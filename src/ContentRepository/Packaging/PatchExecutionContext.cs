@@ -6,15 +6,25 @@ using SenseNet.ContentRepository;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
+    /// <summary>
+    /// Holds context information during patching.
+    /// </summary>
     public class PatchExecutionContext
     {
         public RepositoryStartSettings Settings { get; }
         public List<PatchExecutionError> Errors { get; } = new List<PatchExecutionError>();
         internal Action<PatchExecutionLogRecord> LogCallback { get; }
         public ISnPatch CurrentPatch { get; internal set; }
+        /// <summary>
+        /// Gets whether the repository is running.
+        /// </summary>
         public bool RepositoryIsRunning { get; internal set; }
 
         internal List<ISnPatch> ExecutablePatchesOnAfter { get; set; }
+        /// <summary>
+        /// Gets the full list of currently installed components. It contains the latest components,
+        /// even the ones installed in this iteration.
+        /// </summary>
         public List<SnComponentDescriptor> CurrentlyInstalledComponents { get; set; }
 
         internal PatchExecutionContext(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
@@ -30,6 +40,9 @@ namespace SenseNet.Packaging
 
         /* ============================================================================== API FOR PATCH WRITERS */
 
+        /// <summary>
+        /// Logs a message using the system-defined logger.
+        /// </summary>
         public void Log(string message)
         {
             LogCallback(new PatchExecutionLogRecord(

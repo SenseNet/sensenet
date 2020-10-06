@@ -5,7 +5,7 @@ using System.Text;
 namespace SenseNet.Packaging
 {
     /// <summary>
-    /// Determines a version interval.
+    /// Defines a version interval.
     /// </summary>
     public class VersionBoundary
     {
@@ -21,15 +21,15 @@ namespace SenseNet.Packaging
         /// </summary>
         public Version MaxVersion { get; set; }
         /// <summary>
-        /// Gets or sets the value that specifies whether the <c>MinVersion</c> is in the interval or not.
-        /// If false, the <c>MinVersion</c> is in the interval.
-        /// If true, the <c>MinVersion</c> is not in the interval.
+        /// Gets or sets the value that specifies whether <c>MinVersion</c> is in the interval or not.
+        /// If false, <c>MinVersion</c> is in the interval.
+        /// If true, <c>MinVersion</c> is not in the interval.
         /// </summary>
         public bool MinVersionIsExclusive { get; set; }
         /// <summary>
-        /// Gets or sets the value that specifies whether the <c>MaxVersion</c> is in the interval or not.
-        /// If false, the <c>MaxVersion</c> is in the interval.
-        /// If true, the <c>MaxVersion</c> is not in the interval.
+        /// Gets or sets the value that specifies whether <c>MaxVersion</c> is in the interval or not.
+        /// If false, <c>MaxVersion</c> is in the interval.
+        /// If true, <c>MaxVersion</c> is not in the interval.
         /// </summary>
         public bool MaxVersionIsExclusive { get; set; }
 

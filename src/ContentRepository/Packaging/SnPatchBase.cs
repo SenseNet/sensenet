@@ -32,7 +32,7 @@ namespace SenseNet.Packaging
         /// </summary>
         Version Version { get; }
         /// <summary>
-        /// Gets a dependency array if there is any. Otherwise null.
+        /// Gets a dependency array if there are dependencies. Otherwise null.
         /// </summary>
         IEnumerable<Dependency> Dependencies { get; }
         /// <summary>

@@ -139,6 +139,10 @@ namespace SenseNet.Packaging
 
             var toExec = candidates.ToList(); // Copy
             var executed = new List<ISnPatch>();
+
+            // Try to execute patches one after the other until there is nothing more to do.
+            // If a patch is skipped in an iteration, it may still be executed later,
+            // if other patches change the environment.
             while (true)
             {
                 var isActive = false;
@@ -211,11 +215,13 @@ namespace SenseNet.Packaging
             {
                 int q;
 
+                // first sort by component Id
                 if (0 != (q = string.Compare(x.ComponentId, y.ComponentId, StringComparison.Ordinal)))
                     return q;
                 // Installer comes before SnPatch
                 if (0 != (q = (x.Type == PackageType.Install ? 0 : 1).CompareTo(y.Type == PackageType.Install ? 0 : 1)))
                     return q;
+                // sort by the final version that the patch sets
                 if (0 != (q = x.Version.CompareTo(y.Version)))
                     return q;
 
@@ -238,7 +244,10 @@ namespace SenseNet.Packaging
         private bool CheckPrerequisitesBefore(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
         {
             var component = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+            
+            // a patch becomes irrelevant if we know for sure that it cannot be executed
             isIrrelevant = false;
+
             if (patch is ComponentInstaller installer)
             {
                 if (!ValidInstaller(installer))                           { isIrrelevant = true; return false; }
@@ -251,6 +260,7 @@ namespace SenseNet.Packaging
                 isIrrelevant = true;
                 return false;
             }
+
             if (patch is SnPatch snPatch)
             {
                 if (!ValidSnPatch(snPatch))                                { isIrrelevant = true; return false; }
@@ -292,6 +302,10 @@ namespace SenseNet.Packaging
         {
             var toExec = candidates;
             var executed = new List<ISnPatch>();
+
+            // Try to execute patches one after the other until there is nothing more to do.
+            // If a patch is skipped in an iteration, it may still be executed later,
+            // if other patches change the environment.
             while (true)
             {
                 var isActive = false;
@@ -362,7 +376,10 @@ namespace SenseNet.Packaging
         private bool CheckPrerequisitesAfter(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
         {
             var component = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+
+            // a patch becomes irrelevant if we know for sure that it cannot be executed
             isIrrelevant = false;
+
             if (patch is ComponentInstaller installer)
             {
                 if (!ValidInstaller(installer))                            { isIrrelevant = true; return false; }
@@ -378,6 +395,7 @@ namespace SenseNet.Packaging
                 isIrrelevant = true;
                 return false;
             }
+
             if (patch is SnPatch snPatch)
             {
                 if (!ValidSnPatch(snPatch))                                { isIrrelevant = true; return false; }
