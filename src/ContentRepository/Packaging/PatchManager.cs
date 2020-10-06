@@ -147,7 +147,7 @@ namespace SenseNet.Packaging
                     {
                         if (!isSimulation)
                             if (patch.ActionBeforeStart != null)
-                                WriteInitialStateToDb(patch); //UNDONE:PATCH: try-catch-rethrow
+                                WriteInitialStateToDb(patch);
                         CreateInitialState(patch, installed);
 
                         try
@@ -289,7 +289,7 @@ namespace SenseNet.Packaging
         }
         internal void ExecuteOnAfter(List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool isSimulation)
         {
-            var toExec = candidates; //UNDONE:PATCH refactor, remove and rename
+            var toExec = candidates;
             var executed = new List<ISnPatch>();
             while (true)
             {
@@ -503,7 +503,7 @@ namespace SenseNet.Packaging
 
         private void WriteInitialStateToDb(ISnPatch patch)
         {
-            PackageManager.SaveInitialPackage(Manifest.Create(patch));
+             PackageManager.SaveInitialPackage(Manifest.Create(patch));
         }
         private void ModifyStateInDb(ISnPatch patch, ExecutionResult result, Exception exception)
         {

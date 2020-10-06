@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 
@@ -11,61 +9,6 @@ namespace SenseNet.Packaging.Tests
     [TestClass]
     public class PatchingTestBase : PackagingTestBase
     {
-        //[TestMethod]
-        //public async Task Patching_Collect_NoDependency()
-        //{
-        //    // ARRANGE
-        //    await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.1", "02:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.2", "03:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.0", "01:10", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.1", "02:10", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.2", "03:10", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-
-        //    var patches = new[]
-        //    {
-        //        Patch("C1", "       v = 1.0", "1.1", null),
-        //        Patch("C3", "       v < 1.1", "1.1", null),
-        //        Patch("C2", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.1 <= v < 1.2", "1.2", null),
-        //    };
-
-        //    // ACTION
-        //    var ordered = await GetOrderedPatches(patches, CancellationToken.None).ConfigureAwait(false);
-
-        //    // ASSERT
-        //    var actual = ordered.OrderBy(x => x.Id).ToArray();
-        //    Assert.AreEqual(2, ordered.Length);
-        //    Assert.AreEqual("C1", actual[0].Id);
-        //    Assert.AreEqual("C2", actual[1].Id);
-        //}
-        //[TestMethod]
-        //public async Task Patching_Collect_OneDependency()
-        //{
-        //    await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.1", "02:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.2", "03:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.0", "01:10", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.1", "02:10", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.2", "03:10", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-
-        //    var patches = new[]
-        //    {
-        //        Patch("C1", "       v = 1.0", "1.1", null),
-        //        Patch("C3", "       v < 1.1", "1.1", null),
-        //        Patch("C2", "1.2 <= v < 1.3", "1.3", new[] {Dep("C1", "=1.3")}),
-        //        Patch("C1", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.1 <= v < 1.2", "1.2", null),
-        //    };
-
-        //    var ordered = await GetOrderedPatches(patches, CancellationToken.None).ConfigureAwait(false);
-
-        //    Assert.AreEqual(2, ordered.Length);
-        //    Assert.AreEqual("C1", ordered[0].Id);
-        //    Assert.AreEqual("C2", ordered[1].Id);
-        //}
-
         /* ================================================================= Steps of Packaging logic algorithms */
 
         protected void ValidatePatch(SnPatch patch)
