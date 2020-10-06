@@ -143,17 +143,11 @@ namespace SenseNet.Packaging
                 var isActive = false;
                 foreach (var patch in toExec)
                 {
-                    if (patch.ActionBeforeStart == null)
-                    {
-                        isActive = true;
-                        executed.Add(patch);
-                        continue;
-                    }
-
                     if (CheckPrerequisitesBefore(patch, candidates, installed, out var isIrrelevant))
                     {
                         if (!isSimulation)
-                            WriteInitialStateToDb(patch); //UNDONE:PATCH: try-catch-rethrow
+                            if (patch.ActionBeforeStart != null)
+                                WriteInitialStateToDb(patch); //UNDONE:PATCH: try-catch-rethrow
                         CreateInitialState(patch, installed);
 
                         try
@@ -163,8 +157,11 @@ namespace SenseNet.Packaging
                             {
                                 _context.CurrentPatch = patch;
                                 _context.RepositoryIsRunning = false;
-                                patch.ActionBeforeStart(_context);
-                                ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore, null);
+                                if (patch.ActionBeforeStart != null)
+                                {
+                                    patch.ActionBeforeStart?.Invoke(_context);
+                                    ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore, null);
+                                }
                             }
                             ModifyState(patch, installed, ExecutionResult.SuccessfulBefore);
                             Log(patch, PatchExecutionEventType.OnBeforeActionFinished);
