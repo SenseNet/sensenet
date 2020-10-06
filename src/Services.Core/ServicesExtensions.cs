@@ -56,6 +56,7 @@ namespace SenseNet.Extensions.DependencyInjection
             Func<RepositoryInstance, IServiceProvider, Task> onRepositoryStartedAsync = null)
         {
             services.ConfigureSenseNet(configuration)
+                .AddSenseNetILogger()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
