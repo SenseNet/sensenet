@@ -43,7 +43,8 @@ namespace SenseNet.Packaging
 
         private static string GetDefaultMessage(PatchExecutionErrorType errorType, ISnPatch patch, string message)
         {
-            throw new NotImplementedException();
+            var msg = message ?? "An error occured during a patch execution.";
+            return $"{msg} Patch: {patch}, error type: {errorType}";
         }
     }
 }
