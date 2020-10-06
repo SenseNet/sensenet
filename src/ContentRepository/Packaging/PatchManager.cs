@@ -132,6 +132,8 @@ namespace SenseNet.Packaging
         }
         internal void ExecuteOnBefore(List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool isSimulation)
         {
+            _context.CurrentlyInstalledComponents = installed;
+
             SortCandidates(candidates);
 
             var toExec = candidates.ToList(); // Copy
@@ -160,6 +162,7 @@ namespace SenseNet.Packaging
                             if (!isSimulation)
                             {
                                 _context.CurrentPatch = patch;
+                                _context.RepositoryIsRunning = false;
                                 patch.ActionBeforeStart(_context);
                                 ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore, null);
                             }
@@ -311,6 +314,7 @@ namespace SenseNet.Packaging
                             if (!isSimulation)
                             {
                                 _context.CurrentPatch = patch;
+                                _context.RepositoryIsRunning = true;
                                 patch.Action?.Invoke(_context);
                                 ModifyStateInDb(patch, ExecutionResult.Successful, null);
                             }

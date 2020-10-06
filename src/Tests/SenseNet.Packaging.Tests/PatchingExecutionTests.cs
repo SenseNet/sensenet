@@ -2164,28 +2164,34 @@ namespace SenseNet.Packaging.Tests
                 PackagesToString(packages[1]));
         }
 
-        //UNDONE:PATCH: Patching_Exec_SpecialTreatment modify boundary sorting?
-        //[TestMethod]
-        public void Patching_Exec_SpecialTreatment()
+        /* ======================================================================= CONDITIONAL EXECUTION TESTS */
+
+        // Patch vary component versions conditionally
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_a()
         {
-            // Faulty execution blocks the following patches on the same component.
-            var packages = new List<Package[]>();
             var log = new List<PatchExecutionLogRecord>();
-            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
-            var executed = new List<ISnPatch>();
-            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
-            var exec2Called = false;
-            void Exec2(PatchExecutionContext ctx) { exec2Called = true; }
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Before(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsEqual("7.4.0.2"))
+                    ctx.Log("Update database in in 7.4.0.2.");
+            }
+            void After(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsLower("7.3.0"))
+                    ctx.Log("Import new or modified content in 7.3.0.");
+                if (ctx.ComponentVersionIsLower("7.6.0"))
+                    ctx.Log("Import new or modified content in 7.6.0.");
+            }
 
             var installed = new List<SnComponentDescriptor>
             {
-                Comp("C1", "2.0")
+                Comp("C1", "v7.1.0")
             };
             var candidates = new List<ISnPatch>
             {
-                Patch("C1", "1.0 <= v < 3.0", "v3.0", Exec),
-                Patch("C1", "2.0 <= v <= 2.0", "v3.0", Exec2),
-                Inst("C1", "v3.0", Exec),
+                Patch("C1", "7.1.0 <= v", "v7.7.0", Before, After),
             };
 
             // ACTION BEFORE
@@ -2193,24 +2199,122 @@ namespace SenseNet.Packaging.Tests
             pm.ExecuteOnBefore(candidates, installed, false);
 
             // ASSERT BEFORE
-            Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v2.0(,,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v7.1.0(7.7.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v3.0(,3.0,Successful)",
-                ComponentsToStringWithResult(installed));
-            Assert.AreEqual("[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
-                            "[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString(false))));
+            Assert.AreEqual("C1v7.7.0(7.7.0,7.7.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionFinished.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] ExecutingOnAfter. Import new or modified content in 7.3.0.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] ExecutingOnAfter. Import new or modified content in 7.6.0.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
-            Assert.AreEqual(2, packages.Count);
-            Assert.AreEqual("1, C1: Patch Successful, 3.0",
-                PackagesToString(packages[1]));
-            Assert.IsTrue(exec2Called);
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_b()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Before(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsEqual("7.4.0.2"))
+                    ctx.Log("Update database in in 7.4.0.2.");
+            }
+            void After(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsLower("7.3.0"))
+                    ctx.Log("Import new or modified content in 7.3.0.");
+                if (ctx.ComponentVersionIsLower("7.6.0"))
+                    ctx.Log("Import new or modified content in 7.6.0.");
+            }
+
+            var installed = new List<SnComponentDescriptor>
+            {
+                Comp("C1", "v7.4.0.2")
+            };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "7.1.0 <= v", "v7.7.0", Before, After),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v7.4.0.2(7.7.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v7.7.0(7.7.0,7.7.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] ExecutingOnBefore. Update database in in 7.4.0.2.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionFinished.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] ExecutingOnAfter. Import new or modified content in 7.6.0.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_c()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Before(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsEqual("7.4.0.2"))
+                    ctx.Log("Update database in in 7.4.0.2.");
+            }
+            void After(PatchExecutionContext ctx)
+            {
+                if (ctx.ComponentVersionIsLower("7.3.0"))
+                    ctx.Log("Import new or modified content in 7.3.0.");
+                if (ctx.ComponentVersionIsLower("7.6.0"))
+                    ctx.Log("Import new or modified content in 7.6.0.");
+            }
+
+            var installed = new List<SnComponentDescriptor>
+            {
+                Comp("C1", "v7.5")
+            };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "7.1.0 <= v", "v7.7.0", Before, After),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v7.5(7.7.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v7.7.0(7.7.0,7.7.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnBeforeActionFinished.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionStarts.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] ExecutingOnAfter. Import new or modified content in 7.6.0.|" +
+                            "[C1: 7.1.0 <= v --> 7.7.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
         /* ======================================================== Tools */

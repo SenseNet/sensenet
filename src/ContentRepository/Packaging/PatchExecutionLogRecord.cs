@@ -7,7 +7,8 @@ namespace SenseNet.Packaging
     {
         DuplicatedInstaller, CannotExecuteOnBefore, CannotExecuteOnAfter, CannotExecuteMissingVersion, PackageNotSaved,
         OnBeforeActionStarts, OnBeforeActionFinished, OnAfterActionStarts, OnAfterActionFinished, ExecutionError,
-        ExecutionErrorOnBefore
+        ExecutionErrorOnBefore,
+        ExecutingOnBefore, ExecutingOnAfter
     }
     [DebuggerDisplay("{ToString()}")]
     public struct PatchExecutionLogRecord
