@@ -111,7 +111,7 @@ namespace SenseNet.Packaging
                 case VersionRelation.Lower:         return version >  componentVersion; 
                 case VersionRelation.Equal:         return version == componentVersion; 
                 case VersionRelation.Higher:        return version <  componentVersion; 
-                case VersionRelation.HigherOrEqual: return version >= componentVersion; 
+                case VersionRelation.HigherOrEqual: return version <= componentVersion; 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(relation), relation, null);
             }

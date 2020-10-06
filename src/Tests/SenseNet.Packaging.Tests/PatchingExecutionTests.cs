@@ -2373,6 +2373,170 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
+        // Patch vary component versions conditionally #2
+        private void AllConditionsBefore(PatchExecutionContext ctx)
+        {
+            if (ctx.ComponentVersionIsHigherOrEqual("2.0"))
+                ctx.Log("Before >=2.0");
+            if (ctx.ComponentVersionIsHigher("2.0"))
+                ctx.Log("Before >2.0");
+            if (ctx.ComponentVersionIsEqual("2.5"))
+                ctx.Log("Before =2.5");
+            if (ctx.ComponentVersionIsLower("3.0"))
+                ctx.Log("Before <3.0");
+            if (ctx.ComponentVersionIsLowerOrEqual("3.0"))
+                ctx.Log("Before <=3.0");
+        }
+        private void AllConditionsAfter(PatchExecutionContext ctx)
+        {
+            if (ctx.ComponentVersionIsHigherOrEqual("2.0"))
+                ctx.Log("After >=2.0");
+            if (ctx.ComponentVersionIsHigher("2.0"))
+                ctx.Log("After >2.0");
+            if (ctx.ComponentVersionIsEqual("2.5"))
+                ctx.Log("After =2.5");
+            if (ctx.ComponentVersionIsLower("3.0"))
+                ctx.Log("After <3.0");
+            if (ctx.ComponentVersionIsLowerOrEqual("3.0"))
+                ctx.Log("After <=3.0");
+        }
+
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_AllConditions_a()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+
+            var installed = new List<SnComponentDescriptor> {Comp("C1", "v1.0") };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v", "v4.0", AllConditionsBefore, AllConditionsAfter),
+            };
+
+            // ACTION
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("Before <3.0|Before <=3.0|" +
+                            "After <3.0|After <=3.0",
+                string.Join("|", log.Where(x =>
+                        x.EventType == PatchExecutionEventType.ExecutingOnBefore ||
+                        x.EventType == PatchExecutionEventType.ExecutingOnAfter)
+                    .Select(x => x.Message)));
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_AllConditions_b()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+
+            var installed = new List<SnComponentDescriptor> { Comp("C1", "v2.0") };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v", "v4.0", AllConditionsBefore, AllConditionsAfter),
+            };
+
+            // ACTION
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("Before >=2.0|Before <3.0|Before <=3.0|" +
+                            "After >=2.0|After <3.0|After <=3.0",
+                string.Join("|", log.Where(x =>
+                        x.EventType == PatchExecutionEventType.ExecutingOnBefore ||
+                        x.EventType == PatchExecutionEventType.ExecutingOnAfter)
+                    .Select(x => x.Message)));
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_AllConditions_c()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+
+            var installed = new List<SnComponentDescriptor> { Comp("C1", "v2.5") };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v", "v4.0", AllConditionsBefore, AllConditionsAfter),
+            };
+
+            // ACTION
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("Before >=2.0|Before >2.0|Before =2.5|Before <3.0|Before <=3.0|" +
+                            "After >=2.0|After >2.0|After =2.5|After <3.0|After <=3.0",
+                string.Join("|", log.Where(x =>
+                        x.EventType == PatchExecutionEventType.ExecutingOnBefore ||
+                        x.EventType == PatchExecutionEventType.ExecutingOnAfter)
+                    .Select(x => x.Message)));
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_AllConditions_d()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+
+            var installed = new List<SnComponentDescriptor> { Comp("C1", "v3.0") };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v", "v4.0", AllConditionsBefore, AllConditionsAfter),
+            };
+
+            // ACTION
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("Before >=2.0|Before >2.0|Before <=3.0|" +
+                            "After >=2.0|After >2.0|After <=3.0",
+                string.Join("|", log.Where(x =>
+                        x.EventType == PatchExecutionEventType.ExecutingOnBefore ||
+                        x.EventType == PatchExecutionEventType.ExecutingOnAfter)
+                    .Select(x => x.Message)));
+        }
+        [TestMethod]
+        public void Patching_Exec_ConditionalActions_AllConditions_e()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+
+            var installed = new List<SnComponentDescriptor> { Comp("C1", "v3.5") };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v", "v4.0", AllConditionsBefore, AllConditionsAfter),
+            };
+
+            // ACTION
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("Before >=2.0|Before >2.0|" +
+                            "After >=2.0|After >2.0",
+                string.Join("|", log.Where(x =>
+                        x.EventType == PatchExecutionEventType.ExecutingOnBefore ||
+                        x.EventType == PatchExecutionEventType.ExecutingOnAfter)
+                    .Select(x => x.Message)));
+        }
+
         /* ======================================================== Tools */
 
         private void Error(PatchExecutionContext context) => throw new Exception("Err");
