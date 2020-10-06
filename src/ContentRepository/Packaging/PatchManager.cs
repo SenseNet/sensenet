@@ -329,9 +329,14 @@ namespace SenseNet.Packaging
                                 _context.RepositoryIsRunning = true;
 
                                 // execute patch in elevated mode so that developers do not have to elevate every time
-                                using (new SystemAccount())
-                                    patch.Action?.Invoke(_context);
-
+                            if (patch.Action != null)
+                            {
+                                if (Repository.Started())
+                                    using (new SystemAccount())
+                                        patch.Action.Invoke(_context);
+                                else
+                                    patch.Action.Invoke(_context);
+                            }
                                 ModifyStateInDb(patch, ExecutionResult.Successful, null);
                             }
                             ModifyState(patch, installed, ExecutionResult.Successful);
