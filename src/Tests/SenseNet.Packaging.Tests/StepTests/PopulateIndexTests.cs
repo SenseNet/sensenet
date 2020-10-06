@@ -16,8 +16,7 @@ using SenseNet.Tests.Core;
 
 namespace SenseNet.Packaging.Tests.StepTests
 {
-    //UNDONE:PATCH: Activate this TestClass
-    //[TestClass]
+    [TestClass]
     public class PopulateIndexTests : TestBase
     {
         private static StringBuilder _log;

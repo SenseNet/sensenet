@@ -27,8 +27,7 @@ namespace SenseNet.Packaging.Tests
 
     #endregion
 
-    //UNDONE:PATCH: Activate this TestClass
-    //[TestClass]
+    [TestClass]
     public class PackagingTests : PackagingTestBase
     {
         #region // ========================================= Manifest parsing tests

@@ -6,8 +6,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
 {
-    //UNDONE:PATCH: Activate this TestClass
-    //[TestClass]
+    [TestClass]
     public class PackagingEzReleaseTests : PackagingTestBase
     {
         [TestMethod]

@@ -10,8 +10,7 @@ using SenseNet.Tests.Core;
 
 namespace SenseNet.Packaging.Tests.StepTests
 {
-    //UNDONE:PATCH: Activate this TestClass
-    //[TestClass]
+    [TestClass]
     public class EditConfigurationTests : TestBase
     {
         // Samples
