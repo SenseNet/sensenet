@@ -416,6 +416,9 @@ namespace SenseNet.Packaging
 
         private List<SnComponentDescriptor> LoadComponents()
         {
+            if(PackageManager.Storage == null)
+                return new List<SnComponentDescriptor>();
+
             var installed = PackageManager.Storage?
                 .LoadInstalledComponentsAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();

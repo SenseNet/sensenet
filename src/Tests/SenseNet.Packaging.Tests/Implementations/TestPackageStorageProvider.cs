@@ -76,7 +76,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         public Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.FromResult((IEnumerable<ComponentInfo>)new ComponentInfo[0]);
         }
 
         public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)

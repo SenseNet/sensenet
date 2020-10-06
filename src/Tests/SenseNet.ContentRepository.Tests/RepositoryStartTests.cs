@@ -74,6 +74,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
