@@ -94,7 +94,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                         {
                             cancel.ThrowIfCancellationRequested();
 
-                            var src = reader.GetSafeString(reader.GetOrdinal("Manifest"));
+                            var src = reader.GetSafeString(reader.GetOrdinal("ExecutionResult"));
                             var executionResult = src == null
                                 ? ExecutionResult.Unfinished
                                 : (ExecutionResult) Enum.Parse(typeof(ExecutionResult), src);
@@ -153,7 +153,8 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                                     DeserializeExecutionError(
                                         reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
                                 ComponentVersion =
-                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion")))
+                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
                             });
                         }
 
