@@ -409,13 +409,17 @@ namespace SenseNet.Packaging
                 if (component.Version >= patch.Version)                    { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, false))              {                      return false; }
                 if (component.State == ExecutionResult.Unfinished &&
-                    component.TempVersionBefore == patch.Version)          {                       return true; }
+                    (component.TempVersionBefore == null || 
+                     component.TempVersionBefore == patch.Version))          {                       return true; }
                 if (component.State == ExecutionResult.FaultyBefore &&
-                    component.TempVersionBefore == patch.Version)          {                       return true; }
-                if (component.State == ExecutionResult.Faulty && 
-                    component.TempVersionAfter == patch.Version)           {                       return true; }
+                    (component.TempVersionBefore == null || 
+                     component.TempVersionBefore == patch.Version))          {                       return true; }
+                if (component.State == ExecutionResult.Faulty &&
+                    (component.TempVersionAfter == null || 
+                     component.TempVersionAfter == patch.Version))           {                       return true; }
                 if (component.State == ExecutionResult.SuccessfulBefore &&
-                    component.TempVersionAfter <= patch.Version)           {                       return true; }
+                    (component.TempVersionAfter == null ||
+                     component.TempVersionAfter <= patch.Version))           {                       return true; }
                 if (component.State == ExecutionResult.Successful && 
                     component.Version < patch.Version)                     {                       return true; }
                 isIrrelevant = true;
