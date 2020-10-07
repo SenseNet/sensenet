@@ -43,6 +43,7 @@ namespace SenseNet.Packaging
         private void Initialize(int eventId, PackagingExceptionType errorType)
         {
             this.Data.Add("EventId", eventId);
+            this.Data.Add("ErrorType", errorType.ToString());
             this.ErrorType = errorType;
         }
     }
