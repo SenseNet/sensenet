@@ -13,30 +13,11 @@ namespace SenseNet.Packaging
             return Version.Parse(src.TrimStart('v', 'V'));
         }
     }
+
     public class PatchBuilder
     {
-        private readonly ISnComponent _component;
-        private readonly List<ISnPatch> _patches = new List<ISnPatch>();
-
-        internal List<ISnPatch> GetPatches()
+        public PatchBuilderAfterPatch Install(string version, string released, string description)
         {
-            //TODO:PATCH: Execute other validation here if needed.
-            return _patches;
-        }
-
-        public PatchBuilder(ISnComponent component)
-        {
-            _component = component;
-        }
-
-        internal VersionBoundary MinVersion(string version)
-        {
-            return new VersionBoundary { MinVersion = version.ToVersion() };
-        }
-
-        public IPatchInstanceBuilder Install(string version, string released, string description)
-        {
-
             var patch = new ComponentInstaller
             {
                 ComponentId = _component.ComponentId,
@@ -48,18 +29,19 @@ namespace SenseNet.Packaging
             patch.Description = CheckDescription(description, patch);
             _patches.Add(patch);
 
-            return new ItemBuilder(patch, this);
+            return new PatchBuilderAfterPatch(patch, this);
         }
-
-        public IPatchInstanceBuilder Patch(string from, string to, string released, string description)
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
-            return Patch(null, from, to, released, description);
+            var patch = BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, this);
         }
-        public IPatchInstanceBuilder Patch(VersionBoundary from, string to, string released, string description)
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
-            return Patch(from, null, to, released, description);
+            var patch = BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, this);
         }
-        private ItemBuilder Patch(VersionBoundary from, string fromSrc, string to, string released, string description)
+        internal SnPatch BuildSnPatch(VersionBoundary from, string fromSrc, string to, string released, string description)
         {
             var patch = new SnPatch
             {
@@ -84,10 +66,26 @@ namespace SenseNet.Packaging
                     throw new InvalidPatchException(PatchErrorCode.TooSmallTargetVersion, patch,
                         "The 'Version' need to be higher than minimal version.");
             }
-            
+
             _patches.Add(patch);
 
-            return new ItemBuilder(patch, this);
+            return patch;
+        }
+
+        /* =========================================================================================== INTERNAL PART */
+
+        private readonly ISnComponent _component;
+        private readonly List<ISnPatch> _patches = new List<ISnPatch>();
+
+        internal PatchBuilder(ISnComponent component)
+        {
+            _component = component;
+        }
+
+        internal List<ISnPatch> GetPatches()
+        {
+            //TODO:PATCH: Execute other validation here if needed.
+            return _patches;
         }
 
         private VersionBoundary BuildBoundary(VersionBoundary boundary, Version targetVersion)
@@ -100,11 +98,11 @@ namespace SenseNet.Packaging
 
             return boundary;
         }
-
         private VersionBoundary ParseFromVersion(string src, ISnPatch patch)
         {
             return new VersionBoundary { MinVersion = ParseVersion(src, patch) };
         }
+
         internal static Version ParseVersion(string version, ISnPatch patch)
         {
             try
@@ -134,38 +132,32 @@ namespace SenseNet.Packaging
                     "The description cannot be null or empty.");
             return text;
         }
+
     }
-    public interface IPatchInstanceBuilder
-    {
-        IPatchInstanceBuilder DependsOn(string componentId, string minVersion);
-        IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary);
-        IPatchInstanceBuilder DependsOn(DependencyBuilder builder);
-        IPatchInstanceBuilder ActionBefore(Action<PatchExecutionContext> executeAction = null);
-        PatchBuilder Action(Action<PatchExecutionContext> executeAction = null);
-    }
-    internal class ItemBuilder : IPatchInstanceBuilder
+    public class PatchBuilderAfterPatch
     {
         private readonly SnPatchBase _patch;
         private readonly PatchBuilder _patchBuilder;
-        internal ItemBuilder(SnPatchBase patch, PatchBuilder patchBuilder)
+
+        internal PatchBuilderAfterPatch(SnPatchBase patch, PatchBuilder patchBuilder)
         {
             _patch = patch;
             _patchBuilder = patchBuilder;
         }
 
-        public IPatchInstanceBuilder DependsOn(string componentId, string minVersion)
+        public PatchBuilderAfterPatch DependsOn(string componentId, string minVersion)
         {
             return DependsOn(componentId, new VersionBoundary
             {
                 MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
-        public IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary)
+        public PatchBuilderAfterPatch DependsOn(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
-        public IPatchInstanceBuilder DependsOn(DependencyBuilder builder)
+        public PatchBuilderAfterPatch DependsOn(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             foreach (var dep in builder.Dependencies)
@@ -193,32 +185,88 @@ namespace SenseNet.Packaging
                     "Duplicated dependency is forbidden: " + _patch);
         }
 
-        public IPatchInstanceBuilder ActionBefore(Action<PatchExecutionContext> action = null)
+        public PatchBuilderAfterActionOnBefore ActionOnBefore(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
                 _patch.ActionBeforeStart = action;
-            return this;
+            return new PatchBuilderAfterActionOnBefore(_patch, _patchBuilder);
         }
-        public PatchBuilder Action(Action<PatchExecutionContext> action = null)
+        public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
                 _patch.Action = action;
-            return _patchBuilder;
+            return new PatchBuilderAfterAction(_patch, _patchBuilder);
+        }
+
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+    }
+    public class PatchBuilderAfterActionOnBefore
+    {
+        private readonly SnPatchBase _patch;
+        private readonly PatchBuilder _patchBuilder;
+
+        internal PatchBuilderAfterActionOnBefore(SnPatchBase patch, PatchBuilder patchBuilder)
+        {
+            _patch = patch;
+            _patchBuilder = patchBuilder;
+        }
+
+        public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
+        {
+            if (action != null)
+                _patch.Action = action;
+            return new PatchBuilderAfterAction(_patch, _patchBuilder);
+        }
+
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+    }
+    public class PatchBuilderAfterAction
+    {
+        private readonly SnPatchBase _patch;
+        private readonly PatchBuilder _patchBuilder;
+
+        internal PatchBuilderAfterAction(SnPatchBase patch, PatchBuilder patchBuilder)
+        {
+            _patch = patch;
+            _patchBuilder = patchBuilder;
+        }
+
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
         }
     }
     public class DependencyBuilder
     {
-        private readonly PatchBuilder _patchBuilder;
         public List<Dependency> Dependencies { get; } = new List<Dependency>();
-
-        public DependencyBuilder(PatchBuilder patchBuilder)
-        {
-            _patchBuilder = patchBuilder;
-        }
 
         public DependencyBuilder Dependency(string componentId, string minVersion)
         {
-            Dependencies.Add(new Dependency { Id = componentId, Boundary = _patchBuilder.MinVersion(minVersion) });
+            Dependencies.Add(new Dependency { Id = componentId, Boundary = MinVersion(minVersion) });
             return this;
         }
         public DependencyBuilder Dependency(string componentId, VersionBoundary boundary)
@@ -226,5 +274,11 @@ namespace SenseNet.Packaging
             Dependencies.Add(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
+
+        internal VersionBoundary MinVersion(string version)
+        {
+            return new VersionBoundary { MinVersion = version.ToVersion() };
+        }
     }
+
 }

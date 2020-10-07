@@ -32,7 +32,7 @@ namespace Gyebi.TheCustomizer
 
         public override void AddPatches(PatchBuilder builder)
         {
-            var dependencies = new DependencyBuilder(builder)
+            var dependencies = new DependencyBuilder()
                 .Dependency("SenseNet.Services", "7.7.9");
 
             builder.Patch("1.0", "1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
