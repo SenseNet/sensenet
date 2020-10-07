@@ -629,7 +629,7 @@ namespace SenseNet.Packaging
                 if (patch is SnPatch snPatch)
                 {
                     if (!installed.Any(comp => comp.ComponentId == snPatch.ComponentId &&
-                                                         comp.Version < patch.Version &&
+                                                         (comp.Version == null || comp.Version < patch.Version) &&
                                                          snPatch.Boundary.ContainsVersion(comp.Version)))
                     {
                         var component = installed.FirstOrDefault(c => c.ComponentId == patch.ComponentId);
