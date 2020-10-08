@@ -16,6 +16,12 @@ namespace SenseNet.Packaging
 
     public class PatchBuilder
     {
+        /// <summary>
+        /// Defines an installer for a component. Only a single installer can exist for a component.
+        /// </summary>
+        /// <param name="version">Component version.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Component description.</param>
         public PatchBuilderAfterPatch Install(string version, string released, string description)
         {
             var patch = new ComponentInstaller
@@ -31,11 +37,30 @@ namespace SenseNet.Packaging
 
             return new PatchBuilderAfterPatch(patch, this);
         }
+
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
         public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
             var patch = BuildSnPatch(null, from, to, released, description);
             return new PatchBuilderAfterPatch(patch, this);
         }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
         public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
             var patch = BuildSnPatch(from, null, to, released, description);
@@ -145,6 +170,12 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// </summary>
+        /// <param name="componentId">The component that this one depends on.</param>
+        /// <param name="minVersion">The minimum version that needs to be installed before
+        /// this installer or patch can be executed.</param>
         public PatchBuilderAfterPatch DependsOn(string componentId, string minVersion)
         {
             return DependsOn(componentId, new VersionBoundary
@@ -152,11 +183,23 @@ namespace SenseNet.Packaging
                 MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
+
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// Use this method if you need to define a more complex boundary for the dependency.
+        /// </summary>
+        /// <param name="componentId">The component that this one depends on.</param>
+        /// <param name="boundary">Version boundary for the dependency.</param>
         public PatchBuilderAfterPatch DependsOn(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// Use this method if you need to use the same set of dependencies multiple times.
+        /// </summary>
+        /// <param name="builder">A predefined dependency collection.</param>
         public PatchBuilderAfterPatch DependsOn(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
@@ -185,12 +228,23 @@ namespace SenseNet.Packaging
                     "Duplicated dependency is forbidden: " + _patch);
         }
 
+        /// <summary>
+        /// Defines an action that will be executed before the repository starts.
+        /// Place database or other infrastructure changes here.
+        /// </summary>
+        /// <param name="action">An action to execute before the repository starts. Therefore you will not have
+        /// access to content items or users here, but the database provider will be in place.</param>
         public PatchBuilderAfterActionOnBefore ActionOnBefore(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
                 _patch.ActionBeforeStart = action;
             return new PatchBuilderAfterActionOnBefore(_patch, _patchBuilder);
         }
+        /// <summary>
+        /// Defines an action that will be executed after the repository has started. You will have access
+        /// to the full repository and Content API.
+        /// </summary>
+        /// <param name="action">An action to execute after the repository has started.</param>
         public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
@@ -198,11 +252,29 @@ namespace SenseNet.Packaging
             return new PatchBuilderAfterAction(_patch, _patchBuilder);
         }
 
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
         public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
             return new PatchBuilderAfterPatch(patch, _patchBuilder);
         }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
         public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
@@ -220,6 +292,11 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
+        /// <summary>
+        /// Defines an action that will be executed after the repository has started. You will have access
+        /// to the full repository and Content API.
+        /// </summary>
+        /// <param name="action">An action to execute after the repository has started.</param>
         public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
@@ -227,11 +304,29 @@ namespace SenseNet.Packaging
             return new PatchBuilderAfterAction(_patch, _patchBuilder);
         }
 
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
         public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
             return new PatchBuilderAfterPatch(patch, _patchBuilder);
         }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
         public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
@@ -249,11 +344,29 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
         public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
             return new PatchBuilderAfterPatch(patch, _patchBuilder);
         }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
         public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
             var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
@@ -280,5 +393,4 @@ namespace SenseNet.Packaging
             return new VersionBoundary { MinVersion = version.ToVersion() };
         }
     }
-
 }
