@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 
@@ -11,61 +9,6 @@ namespace SenseNet.Packaging.Tests
     [TestClass]
     public class PatchingTestBase : PackagingTestBase
     {
-        //[TestMethod]
-        //public async Task Patching_Collect_NoDependency()
-        //{
-        //    // ARRANGE
-        //    await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.1", "02:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.2", "03:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.0", "01:10", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.1", "02:10", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.2", "03:10", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-
-        //    var patches = new[]
-        //    {
-        //        Patch("C1", "       v = 1.0", "1.1", null),
-        //        Patch("C3", "       v < 1.1", "1.1", null),
-        //        Patch("C2", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.1 <= v < 1.2", "1.2", null),
-        //    };
-
-        //    // ACTION
-        //    var ordered = await GetOrderedPatches(patches, CancellationToken.None).ConfigureAwait(false);
-
-        //    // ASSERT
-        //    var actual = ordered.OrderBy(x => x.Id).ToArray();
-        //    Assert.AreEqual(2, ordered.Length);
-        //    Assert.AreEqual("C1", actual[0].Id);
-        //    Assert.AreEqual("C2", actual[1].Id);
-        //}
-        //[TestMethod]
-        //public async Task Patching_Collect_OneDependency()
-        //{
-        //    await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.1", "02:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C1", "1.2", "03:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.0", "01:10", "2016-01-01", PackageType.Install, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.1", "02:10", "2016-01-06", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-        //    await SavePackage("C2", "1.2", "03:10", "2016-01-09", PackageType.Patch, ExecutionResult.Successful).ConfigureAwait(false);
-
-        //    var patches = new[]
-        //    {
-        //        Patch("C1", "       v = 1.0", "1.1", null),
-        //        Patch("C3", "       v < 1.1", "1.1", null),
-        //        Patch("C2", "1.2 <= v < 1.3", "1.3", new[] {Dep("C1", "=1.3")}),
-        //        Patch("C1", "1.2 <= v < 1.3", "1.3", null),
-        //        Patch("C1", "1.1 <= v < 1.2", "1.2", null),
-        //    };
-
-        //    var ordered = await GetOrderedPatches(patches, CancellationToken.None).ConfigureAwait(false);
-
-        //    Assert.AreEqual(2, ordered.Length);
-        //    Assert.AreEqual("C1", ordered[0].Id);
-        //    Assert.AreEqual("C2", ordered[1].Id);
-        //}
-
         /* ================================================================= Steps of Packaging logic algorithms */
 
         protected void ValidatePatch(SnPatch patch)
@@ -162,7 +105,7 @@ namespace SenseNet.Packaging.Tests
             var relevantPatches = patches.Where(patch =>
                 lastVersions.Any(pkg => pkg.ComponentId == patch.ComponentId &&
                                         patch.Version > pkg.Version &&
-                                        patch.Boundary.IsInInterval(pkg.Version)));
+                                        patch.Boundary.ContainsVersion(pkg.Version)));
 
             return relevantPatches.ToArray();
         }
@@ -205,13 +148,16 @@ namespace SenseNet.Packaging.Tests
         {
             return new SnComponentDescriptor(id, Version.Parse(version.TrimStart('v')), "", null);
         }
-        /// <summary>
-        /// Creates a ComponentInstaller for test purposes
-        /// </summary>
-        /// <param name="id">ComponentId</param>
-        /// <param name="version">Target version</param>
-        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
-        /// <returns></returns>
+
+        protected ComponentInstaller Inst(string id, string version)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = null,
+            };
+        }
         protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies)
         {
             return new ComponentInstaller
@@ -221,14 +167,17 @@ namespace SenseNet.Packaging.Tests
                 Dependencies = dependencies,
             };
         }
-        /// <summary>
-        /// Creates a ComponentInstaller for test purposes
-        /// </summary>
-        /// <param name="id">ComponentId</param>
-        /// <param name="version">Target version</param>
-        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
-        /// <param name="action">Function of execution</param>
-        /// <returns></returns>
+        protected ComponentInstaller Inst(string id, string version,
+            Action<PatchExecutionContext> action)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = null,
+                Action = action
+            };
+        }
         protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies,
             Action<PatchExecutionContext> action)
         {
@@ -240,6 +189,31 @@ namespace SenseNet.Packaging.Tests
                 Action = action
             };
         }
+        protected ComponentInstaller Inst(string id, string version, Action<PatchExecutionContext> actionBefore,
+            Action<PatchExecutionContext> action)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = null,
+                ActionBeforeStart = actionBefore,
+                Action = action
+            };
+        }
+        protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies,
+            Action<PatchExecutionContext> actionBefore, Action<PatchExecutionContext> action)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = dependencies,
+                ActionBeforeStart = actionBefore,
+                Action = action
+            };
+        }
+
         /// <summary>
         /// Creates a patch for test purposes.
         /// </summary>
@@ -281,17 +255,8 @@ namespace SenseNet.Packaging.Tests
         {
             return Patch(id, boundary, version, null, action);
         }
-        /// <summary>
-        /// Creates a patch for test purposes.
-        /// </summary>
-        /// <param name="id">ComponentId</param>
-        /// <param name="version">Target version</param>
-        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
-        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
-        /// <param name="action">Function of execution</param>
-        /// <returns></returns>
-        protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies,
-            Action<PatchExecutionContext> action)
+        protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies, 
+            Action<PatchExecutionContext> actionBefore, Action<PatchExecutionContext> action)
         {
             return new SnPatch
             {
@@ -299,9 +264,23 @@ namespace SenseNet.Packaging.Tests
                 Version = version == null ? null : Version.Parse(version.TrimStart('v')),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies,
+                ActionBeforeStart = actionBefore,
                 Action = action
             };
         }
+        protected SnPatch Patch(string id, string boundary, string version, Action<PatchExecutionContext> actionBefore,
+            Action<PatchExecutionContext> action)
+        {
+            return new SnPatch
+            {
+                ComponentId = id,
+                Version = version == null ? null : Version.Parse(version.TrimStart('v')),
+                Boundary = ParseBoundary(boundary),
+                ActionBeforeStart = actionBefore,
+                Action = action
+            };
+        }
+
         /// <summary>
         /// Creates a Dependency for test purposes.
         /// </summary>
@@ -361,6 +340,27 @@ namespace SenseNet.Packaging.Tests
             }
 
             return boundary;
+        }
+
+
+        protected string ComponentsToString(SnComponentDescriptor[] components)
+        {
+            return string.Join(" ", components.OrderBy(x => x.ComponentId)
+                .Select(x => $"{x.ComponentId}v{x.Version}"));
+        }
+        protected string ComponentsToStringWithResult(IEnumerable<SnComponentDescriptor> components)
+        {
+            return string.Join(" ", components.OrderBy(x => x.ComponentId)
+                .Select(x => x.ToString()));
+        }
+        protected string PatchesToString(IEnumerable<ISnPatch> executables)
+        {
+            return string.Join(" ", executables.Select(x =>
+                $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));
+        }
+        protected string PackagesToString(Package[] packages)
+        {
+            return string.Join("|", packages.Select(p => p.ToString()));
         }
 
     }

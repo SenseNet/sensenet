@@ -13,30 +13,17 @@ namespace SenseNet.Packaging
             return Version.Parse(src.TrimStart('v', 'V'));
         }
     }
+
     public class PatchBuilder
     {
-        private readonly ISnComponent _component;
-        private readonly List<ISnPatch> _patches = new List<ISnPatch>();
-
-        internal List<ISnPatch> GetPatches()
+        /// <summary>
+        /// Defines an installer for a component. Only a single installer can exist for a component.
+        /// </summary>
+        /// <param name="version">Component version.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Component description.</param>
+        public PatchBuilderAfterPatch Install(string version, string released, string description)
         {
-            //TODO:PATCH: Execute other validation here if needed.
-            return _patches;
-        }
-
-        public PatchBuilder(ISnComponent component)
-        {
-            _component = component;
-        }
-
-        internal VersionBoundary MinVersion(string version)
-        {
-            return new VersionBoundary { MinVersion = version.ToVersion() };
-        }
-
-        public IPatchInstanceBuilder Install(string version, string released, string description)
-        {
-
             var patch = new ComponentInstaller
             {
                 ComponentId = _component.ComponentId,
@@ -48,18 +35,38 @@ namespace SenseNet.Packaging
             patch.Description = CheckDescription(description, patch);
             _patches.Add(patch);
 
-            return new ItemBuilder(patch, this);
+            return new PatchBuilderAfterPatch(patch, this);
         }
 
-        public IPatchInstanceBuilder Patch(string from, string to, string released, string description)
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
         {
-            return Patch(null, from, to, released, description);
+            var patch = BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, this);
         }
-        public IPatchInstanceBuilder Patch(VersionBoundary from, string to, string released, string description)
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
         {
-            return Patch(from, null, to, released, description);
+            var patch = BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, this);
         }
-        private ItemBuilder Patch(VersionBoundary from, string fromSrc, string to, string released, string description)
+        internal SnPatch BuildSnPatch(VersionBoundary from, string fromSrc, string to, string released, string description)
         {
             var patch = new SnPatch
             {
@@ -84,10 +91,26 @@ namespace SenseNet.Packaging
                     throw new InvalidPatchException(PatchErrorCode.TooSmallTargetVersion, patch,
                         "The 'Version' need to be higher than minimal version.");
             }
-            
+
             _patches.Add(patch);
 
-            return new ItemBuilder(patch, this);
+            return patch;
+        }
+
+        /* =========================================================================================== INTERNAL PART */
+
+        private readonly ISnComponent _component;
+        private readonly List<ISnPatch> _patches = new List<ISnPatch>();
+
+        internal PatchBuilder(ISnComponent component)
+        {
+            _component = component;
+        }
+
+        internal List<ISnPatch> GetPatches()
+        {
+            //TODO:PATCH: Execute other validation here if needed.
+            return _patches;
         }
 
         private VersionBoundary BuildBoundary(VersionBoundary boundary, Version targetVersion)
@@ -100,11 +123,11 @@ namespace SenseNet.Packaging
 
             return boundary;
         }
-
         private VersionBoundary ParseFromVersion(string src, ISnPatch patch)
         {
             return new VersionBoundary { MinVersion = ParseVersion(src, patch) };
         }
+
         internal static Version ParseVersion(string version, ISnPatch patch)
         {
             try
@@ -134,37 +157,50 @@ namespace SenseNet.Packaging
                     "The description cannot be null or empty.");
             return text;
         }
+
     }
-    public interface IPatchInstanceBuilder
-    {
-        IPatchInstanceBuilder DependsOn(string componentId, string minVersion);
-        IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary);
-        IPatchInstanceBuilder DependsOn(DependencyBuilder builder);
-        PatchBuilder Action(Action<PatchExecutionContext> executeAction = null);
-    }
-    internal class ItemBuilder : IPatchInstanceBuilder
+    public class PatchBuilderAfterPatch
     {
         private readonly SnPatchBase _patch;
         private readonly PatchBuilder _patchBuilder;
-        internal ItemBuilder(SnPatchBase patch, PatchBuilder patchBuilder)
+
+        internal PatchBuilderAfterPatch(SnPatchBase patch, PatchBuilder patchBuilder)
         {
             _patch = patch;
             _patchBuilder = patchBuilder;
         }
 
-        public IPatchInstanceBuilder DependsOn(string componentId, string minVersion)
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// </summary>
+        /// <param name="componentId">The component that this one depends on.</param>
+        /// <param name="minVersion">The minimum version that needs to be installed before
+        /// this installer or patch can be executed.</param>
+        public PatchBuilderAfterPatch DependsOn(string componentId, string minVersion)
         {
             return DependsOn(componentId, new VersionBoundary
             {
                 MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
-        public IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary)
+
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// Use this method if you need to define a more complex boundary for the dependency.
+        /// </summary>
+        /// <param name="componentId">The component that this one depends on.</param>
+        /// <param name="boundary">Version boundary for the dependency.</param>
+        public PatchBuilderAfterPatch DependsOn(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
-        public IPatchInstanceBuilder DependsOn(DependencyBuilder builder)
+        /// <summary>
+        /// Defines a dependency for the current installer or patch.
+        /// Use this method if you need to use the same set of dependencies multiple times.
+        /// </summary>
+        /// <param name="builder">A predefined dependency collection.</param>
+        public PatchBuilderAfterPatch DependsOn(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             foreach (var dep in builder.Dependencies)
@@ -182,7 +218,6 @@ namespace SenseNet.Packaging
             deps.Add(dependency);
             _patch.Dependencies = deps;
         }
-
         private void AssertDependencyIsValid(Dependency dependencyToAdd, List<Dependency> dependencies)
         {
             if (dependencyToAdd.Id == this._patch.ComponentId)
@@ -193,32 +228,169 @@ namespace SenseNet.Packaging
                     "Duplicated dependency is forbidden: " + _patch);
         }
 
-        public PatchBuilder Action(Action<PatchExecutionContext> action = null)
+        /// <summary>
+        /// Defines an action that will be executed before the repository starts.
+        /// Place database or other infrastructure changes here.
+        /// </summary>
+        /// <param name="action">An action to execute before the repository starts. Therefore you will not have
+        /// access to content items or users here, but the database provider will be in place.</param>
+        public PatchBuilderAfterActionOnBefore ActionOnBefore(Action<PatchExecutionContext> action = null)
+        {
+            if (action != null)
+                _patch.ActionBeforeStart = action;
+            return new PatchBuilderAfterActionOnBefore(_patch, _patchBuilder);
+        }
+        /// <summary>
+        /// Defines an action that will be executed after the repository has started. You will have access
+        /// to the full repository and Content API.
+        /// </summary>
+        /// <param name="action">An action to execute after the repository has started.</param>
+        public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
                 _patch.Action = action;
-            return _patchBuilder;
+            return new PatchBuilderAfterAction(_patch, _patchBuilder);
+        }
+
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+    }
+    public class PatchBuilderAfterActionOnBefore
+    {
+        private readonly SnPatchBase _patch;
+        private readonly PatchBuilder _patchBuilder;
+
+        internal PatchBuilderAfterActionOnBefore(SnPatchBase patch, PatchBuilder patchBuilder)
+        {
+            _patch = patch;
+            _patchBuilder = patchBuilder;
+        }
+
+        /// <summary>
+        /// Defines an action that will be executed after the repository has started. You will have access
+        /// to the full repository and Content API.
+        /// </summary>
+        /// <param name="action">An action to execute after the repository has started.</param>
+        public PatchBuilderAfterAction Action(Action<PatchExecutionContext> action = null)
+        {
+            if (action != null)
+                _patch.Action = action;
+            return new PatchBuilderAfterAction(_patch, _patchBuilder);
+        }
+
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+    }
+    public class PatchBuilderAfterAction
+    {
+        private readonly SnPatchBase _patch;
+        private readonly PatchBuilder _patchBuilder;
+
+        internal PatchBuilderAfterAction(SnPatchBase patch, PatchBuilder patchBuilder)
+        {
+            _patch = patch;
+            _patchBuilder = patchBuilder;
+        }
+
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Minimum component version. If a component is on this version or higher and
+        /// has a lower version than defined in the <see cref="to"/> parameter, the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        public PatchBuilderAfterPatch Patch(string from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(null, from, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
+        }
+        /// <summary>
+        /// Defines a patch for a component. A component may have multiple patches defined, even in separate assemblies.
+        /// </summary>
+        /// <param name="from">Patch version boundary. If the component version falls into this boundary,
+        /// the patch will be executed.</param>
+        /// <param name="to">The target version that will be set after a successful execution.</param>
+        /// <param name="released">Release date.</param>
+        /// <param name="description">Patch description.</param>
+        /// <remarks>Use this method if you want to define a maximum version for the boundary that is
+        /// different from the target version defined in the <see cref="to"/> parameter.</remarks>
+        public PatchBuilderAfterPatch Patch(VersionBoundary from, string to, string released, string description)
+        {
+            var patch = _patchBuilder.BuildSnPatch(from, null, to, released, description);
+            return new PatchBuilderAfterPatch(patch, _patchBuilder);
         }
     }
     public class DependencyBuilder
     {
-        private readonly PatchBuilder _patchBuilder;
         public List<Dependency> Dependencies { get; } = new List<Dependency>();
-
-        public DependencyBuilder(PatchBuilder patchBuilder)
-        {
-            _patchBuilder = patchBuilder;
-        }
 
         public DependencyBuilder Dependency(string componentId, string minVersion)
         {
-            Dependencies.Add(new Dependency { Id = componentId, Boundary = _patchBuilder.MinVersion(minVersion) });
+            Dependencies.Add(new Dependency { Id = componentId, Boundary = MinVersion(minVersion) });
             return this;
         }
         public DependencyBuilder Dependency(string componentId, VersionBoundary boundary)
         {
             Dependencies.Add(new Dependency { Id = componentId, Boundary = boundary });
             return this;
+        }
+
+        internal VersionBoundary MinVersion(string version)
+        {
+            return new VersionBoundary { MinVersion = version.ToVersion() };
         }
     }
 }

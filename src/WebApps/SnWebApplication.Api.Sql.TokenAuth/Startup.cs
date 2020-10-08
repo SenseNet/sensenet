@@ -45,6 +45,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
             {
                 repositoryBuilder
+                    .UseLogger(provider)
                     .UseSecurityDataProvider(
                         new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
