@@ -77,7 +77,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Initialize();
             var log = new List<string>();
-SnTrace.Write("## -----------------------------------------------------------------------------");
 
             var task1 = Worker("1", ExclusiveBlockType.WaitAndAcquire, TimeSpan.FromSeconds(2), log);
             var task2 = Worker("2", ExclusiveBlockType.WaitAndAcquire, TimeSpan.FromSeconds(2), log);

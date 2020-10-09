@@ -44,14 +44,14 @@ namespace SenseNet.ContentRepository.Storage
                     await Task.Delay(_refreshPeriod, _finisher.Token);
 
                     if (!_finisher.IsCancellationRequested)
-                        Refresh();
+                        await RefreshAsync();
                 }
             }
 
-            private void Refresh() //UNDONE:X: async
+            private async Task RefreshAsync()
             {
                 SnTrace.System.Write("ExclusiveLock guard {0} {1}. Refresh lock", _key, _operationId);
-                _dataProvider.RefreshExclusiveLockAsync(_key, DateTime.UtcNow.Add(_refreshPeriod));
+                await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod));
             }
 
             //UNDONE:X: AsyncDispose !?
@@ -91,6 +91,7 @@ namespace SenseNet.ContentRepository.Storage
             SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}", Key, OperationId, acquired);
         }
 
+        //UNDONE:X: AsyncDispose !?
         public void Dispose()
         {
             Dispose(true);
@@ -102,7 +103,7 @@ namespace SenseNet.ContentRepository.Storage
             if (!disposing)
                 return;
             _guard?.Dispose();
-            _dataProvider?.ReleaseExclusiveLockAsync(Key).ConfigureAwait(false).GetAwaiter().GetResult();
+            _dataProvider?.ReleaseAsync(Key).ConfigureAwait(false).GetAwaiter().GetResult();
             SnTrace.System.Write("ExclusiveLock {0} {1}. Released", Key, OperationId);
             SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, OperationId);
         }

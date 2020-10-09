@@ -15,9 +15,9 @@ namespace SenseNet.ContentRepository.Storage
 
     public class ExclusiveBlock
     {
-        internal static TimeSpan LockTimeout = TimeSpan.FromSeconds(1); //UNDONE:X configure the general LockTimeout
-        internal static TimeSpan PollingTime = TimeSpan.FromSeconds(0.1); //UNDONE:X configure the general PollingTime
-        internal static TimeSpan WaitTimeout = TimeSpan.FromSeconds(2); //UNDONE:X configure the general WaitTimeout
+        internal static TimeSpan LockTimeout = TimeSpan.FromSeconds(1); //UNDONE:X: configure the general LockTimeout
+        internal static TimeSpan PollingTime = TimeSpan.FromSeconds(0.1); //UNDONE:X: configure the general PollingTime
+        internal static TimeSpan WaitTimeout = TimeSpan.FromSeconds(2); //UNDONE:X: configure the general WaitTimeout
 
         public static Task RunAsync(string key, string operationId, ExclusiveBlockType lockType, Func<Task> action)
         {
@@ -28,10 +28,12 @@ namespace SenseNet.ContentRepository.Storage
             var timeLimit = DateTime.UtcNow.Add(LockTimeout);
             var dataProvider = DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
 
+            var effectiveTimeout = timeout == TimeSpan.Zero ? WaitTimeout : timeout;
+            var reTryTimeLimit = DateTime.UtcNow.Add(effectiveTimeout);
             switch (lockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
-                    using (var exLock = await dataProvider.AcquireExclusiveLock(key, operationId, timeLimit) // ? TryAcquire
+                    using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit) // ? TryAcquire
                         .ConfigureAwait(false))
                     {
                         if(exLock.Acquired)
@@ -40,31 +42,27 @@ namespace SenseNet.ContentRepository.Storage
                     break;
 
                 case ExclusiveBlockType.WaitForReleased:
-                    using (var exLock = await dataProvider.AcquireExclusiveLock(key, operationId, timeLimit)
+                    using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit)
                         .ConfigureAwait(false))
                     {
+                        SnTrace.Write($"#{operationId} acquire");
                         if (exLock.Acquired)
                         {
+                            SnTrace.Write($"#{operationId} executing");
                             await action();
+                            SnTrace.Write($"#{operationId} executed");
                         }
                         else
                         {
-                            while (true) //UNDONE:X WaitTimeout + exception?
-                            {
-                                if (!await dataProvider.IsLockedAsync(key))
-                                    break;
-                                await Task.Delay(PollingTime);
-                            }
+                            await WaitForRelease(key, operationId, reTryTimeLimit, dataProvider);
                         }
                     } // releases the lock
                     break;
 
                 case ExclusiveBlockType.WaitAndAcquire:
-                    var effectiveTimeout = timeout == TimeSpan.Zero ? WaitTimeout : timeout;
-                    var reTryTimeLimit = DateTime.UtcNow.Add(effectiveTimeout);
                     while (true)
                     {
-                        using (var exLock = await dataProvider.AcquireExclusiveLock(key, operationId, timeLimit)
+                        using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit)
                             .ConfigureAwait(false))
                         {
                             SnTrace.Write($"#{operationId} acquire");
@@ -76,33 +74,34 @@ namespace SenseNet.ContentRepository.Storage
                                 break;
                             }
                         } // releases the lock
-                        while (true)
-                        {
-                            SnTrace.Write($"#{operationId} wait for release");
-                            if (DateTime.UtcNow > reTryTimeLimit)
-                            {
-                                SnTrace.Write($"#{operationId} exit1");
-                                break;
-                            }
 
-                            if (!await dataProvider.IsLockedAsync(key))
-                            {
-                                SnTrace.Write($"#{operationId} exit: unlocked");
-                                break;
-                            }
-                            SnTrace.Write($"#{operationId} wait: locked by another");
-                            await Task.Delay(PollingTime);
-                        }
-
-                        if (DateTime.UtcNow > reTryTimeLimit)
-                        {
-                            SnTrace.Write($"#{operationId} exit2"); //UNDONE:X: timeout exception
-                            break;
-                        }
+                        await WaitForRelease(key, operationId, reTryTimeLimit, dataProvider);
                     }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(lockType), lockType, null);
+            }
+        }
+
+        private static async Task WaitForRelease(string key, string operationId, DateTime reTryTimeLimit,
+            IExclusiveLockDataProviderExtension dataProvider)
+        {
+            SnTrace.Write($"#{operationId} wait for release");
+            while (true)
+            {
+                if (DateTime.UtcNow > reTryTimeLimit)
+                {
+                    SnTrace.Write($"#{operationId} timeout");
+                    throw new TimeoutException(
+                        "The exclusive lock was not released within the specified time");
+                }
+                if (!await dataProvider.IsLockedAsync(key))
+                {
+                    SnTrace.Write($"#{operationId} exit: unlocked");
+                    break;
+                }
+                SnTrace.Write($"#{operationId} wait: locked by another");
+                await Task.Delay(PollingTime);
             }
         }
     }

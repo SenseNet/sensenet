@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.InMemory
         private static readonly object Sync = new object();
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();
 
-        public Task<ExclusiveLock> AcquireExclusiveLock(string key, string operationId, DateTime timeLimit)
+        public Task<ExclusiveLock> AcquireAsync(string key, string operationId, DateTime timeLimit)
         {
             lock (Sync)
             {
@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.InMemory
                 return STT.Task.FromResult(new ExclusiveLock(key, operationId, true, this));
             }
         }
-        public STT.Task RefreshExclusiveLockAsync(string key, DateTime newTimeLimit)
+        public STT.Task RefreshAsync(string key, DateTime newTimeLimit)
         {
             lock (Sync)
             {
@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.InMemory
             }
             return STT.Task.CompletedTask;
         }
-        public STT.Task ReleaseExclusiveLockAsync(string key)
+        public STT.Task ReleaseAsync(string key)
         {
             lock (Sync)
             {
