@@ -15,7 +15,7 @@ namespace SenseNet.ApplicationModel
                 if (this.Forbidden)
                     return string.Empty;
 
-                var s = SerializeParameters(GetParameteres());
+                var s = SerializeParameters(GetParameters());
                 var uri = $"/{ServiceName?.TrimStart('/')}/{MethodName}";
 
                 if (!string.IsNullOrEmpty(s))

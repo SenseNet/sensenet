@@ -93,12 +93,12 @@ namespace SenseNet.ApplicationModel
             }
         }
 
-        public virtual Dictionary<string, object> GetParameteres()
+        public virtual Dictionary<string, object> GetParameters()
         {
-            return GetParameteres(this.Parameters);
+            return GetParameters(this.Parameters);
         }
 
-        protected virtual Dictionary<string, object> GetParameteres(object parameters)
+        protected virtual Dictionary<string, object> GetParameters(object parameters)
         {
             var dict = parameters as Dictionary<string, object>;
 
@@ -145,7 +145,7 @@ namespace SenseNet.ApplicationModel
             if (string.IsNullOrEmpty(name))
                 return;
 
-            var dict = GetParameteres();
+            var dict = GetParameters();
 
             if (!dict.ContainsKey(name))
                 dict.Add(name, value);

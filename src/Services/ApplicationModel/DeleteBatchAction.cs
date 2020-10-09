@@ -25,7 +25,7 @@ namespace SenseNet.ApplicationModel
 
         protected string GetPortletClientId()
         {
-            var parameters = GetParameteres();
+            var parameters = GetParameters();
             return parameters.ContainsKey("PortletClientID") ? parameters["PortletClientID"].ToString() : string.Empty;
         }
 

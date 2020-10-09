@@ -46,7 +46,7 @@ namespace SenseNet.ApplicationModel
             base.Initialize(context, backUri, application, parameters);
 
             object rtb;
-            if (this.GetParameteres().TryGetValue("RedirectToBackUrl", out rtb))
+            if (this.GetParameters().TryGetValue("RedirectToBackUrl", out rtb))
                 this.RedirectToBackUrl = Convert.ToBoolean(rtb);
         }
     }

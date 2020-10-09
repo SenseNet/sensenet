@@ -11,7 +11,7 @@ namespace SenseNet.ApplicationModel
                 if (Content == null || this.Forbidden)
                     return string.Empty;
 
-                var s = SerializeParameters(GetParameteres());
+                var s = SerializeParameters(GetParameters());
                 var uri = SiteRelativePath;
 
                 if (Name.ToLower() != "browse")

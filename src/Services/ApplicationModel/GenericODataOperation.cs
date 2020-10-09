@@ -19,7 +19,7 @@ namespace SenseNet.ApplicationModel
                 if (this.Forbidden)
                     return string.Empty;
 
-                var s = SerializeParameters(GetParameteres());
+                var s = SerializeParameters(GetParameters());
                 var uri = $"/{ODataTools.GetODataUrl(Content.Path).TrimStart('/')}/{this.GetApplication().Name}";
 
                 if (!string.IsNullOrEmpty(s))

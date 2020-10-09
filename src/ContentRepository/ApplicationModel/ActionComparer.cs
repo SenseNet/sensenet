@@ -47,7 +47,7 @@ namespace SenseNet.ApplicationModel
 
         private static ContentType GetContentType(ActionBase action)
         {
-            var parameters = action.GetParameteres();
+            var parameters = action.GetParameters();
             var contentTypeName = parameters.ContainsKey("ContentTypeName")
                                       ? parameters["ContentTypeName"] as string ?? string.Empty
                                       : string.Empty;

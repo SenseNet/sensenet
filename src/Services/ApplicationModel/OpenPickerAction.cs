@@ -82,7 +82,7 @@ namespace SenseNet.ApplicationModel
 
         protected string GetPathListMethod()
         {
-            var parameters = GetParameteres();
+            var parameters = GetParameters();
             var portletId = parameters.ContainsKey("PortletClientID") ? parameters["PortletClientID"] : string.Empty;
 
             return $"SN.ListGrid.getSelectedPaths('{portletId}', this.target)";
@@ -90,7 +90,7 @@ namespace SenseNet.ApplicationModel
 
         protected string GetIdListMethod()
         {
-            var parameters = GetParameteres();
+            var parameters = GetParameters();
             var portletId = parameters.ContainsKey("PortletClientID") ? parameters["PortletClientID"] : string.Empty;
 
             return $"SN.ListGrid.getSelectedIds('{portletId}', this.target)";
