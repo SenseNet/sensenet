@@ -16,11 +16,20 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ExclusiveBlockTests : TestBase
     {
-        private async STT.Task Worker(string operationId, ExclusiveBlockType blockType, TimeSpan timeout,
-            List<string> log)
+        private async STT.Task Worker(string operationId, ExclusiveBlockType blockType,
+            List<string> log, TimeSpan timeout = default)
         {
+            var context = new ExclusiveBlockContext
+            {
+                OperationId = operationId,
+                LockTimeout = TimeSpan.FromSeconds(1),
+                PollingTime = TimeSpan.FromSeconds(0.1),
+            };
+            if (timeout != default)
+                context.WaitTimeout = timeout;
+
             log.Add("before block " + operationId);
-            await ExclusiveBlock.RunAsync("MyFeature", operationId, blockType, timeout, async () =>
+            await ExclusiveBlock.RunAsync(context, "MyFeature", blockType, async () =>
             {
                 await STT.Task.Delay(1500);
                 log.Add("in block " + operationId);
@@ -34,8 +43,8 @@ namespace SenseNet.ContentRepository.Tests
             Initialize();
             var log = new List<string>();
 
-            var task1 = Worker("1", ExclusiveBlockType.SkipIfLocked, TimeSpan.Zero, log);
-            var task2 = Worker("2", ExclusiveBlockType.SkipIfLocked, TimeSpan.Zero, log);
+            var task1 = Worker("1", ExclusiveBlockType.SkipIfLocked, log);
+            var task2 = Worker("2", ExclusiveBlockType.SkipIfLocked, log);
             STT.Task.WaitAll(task1, task2);
             Thread.Sleep(100);
 
@@ -56,8 +65,8 @@ namespace SenseNet.ContentRepository.Tests
             Initialize();
             var log = new List<string>();
 
-            var task1 = Worker("1", ExclusiveBlockType.WaitForReleased, TimeSpan.Zero, log);
-            var task2 = Worker("2", ExclusiveBlockType.WaitForReleased, TimeSpan.Zero, log);
+            var task1 = Worker("1", ExclusiveBlockType.WaitForReleased, log);
+            var task2 = Worker("2", ExclusiveBlockType.WaitForReleased, log);
             STT.Task.WaitAll(task1, task2);
             Thread.Sleep(100);
 
@@ -78,8 +87,8 @@ namespace SenseNet.ContentRepository.Tests
             Initialize();
             var log = new List<string>();
 
-            var task1 = Worker("1", ExclusiveBlockType.WaitAndAcquire, TimeSpan.FromSeconds(2), log);
-            var task2 = Worker("2", ExclusiveBlockType.WaitAndAcquire, TimeSpan.FromSeconds(2), log);
+            var task1 = Worker("1", ExclusiveBlockType.WaitAndAcquire, log, TimeSpan.FromSeconds(2));
+            var task2 = Worker("2", ExclusiveBlockType.WaitAndAcquire, log, TimeSpan.FromSeconds(2));
             STT.Task.WaitAll(task1, task2);
             Thread.Sleep(100);
 

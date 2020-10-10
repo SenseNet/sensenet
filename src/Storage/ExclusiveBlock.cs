@@ -13,27 +13,34 @@ namespace SenseNet.ContentRepository.Storage
         WaitAndAcquire
     }
 
+    public class ExclusiveBlockContext
+    {
+        public string OperationId { get; set; } = Guid.NewGuid().ToString();
+        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(1); //UNDONE:X: configure the default LockTimeout
+        public TimeSpan PollingTime { get; set; } = TimeSpan.FromSeconds(0.1); //UNDONE:X: configure the default PollingTime
+        public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(2); //UNDONE:X: configure the default WaitTimeout
+        public IExclusiveLockDataProviderExtension DataProvider { get; set; } =
+            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
+    }
+
     public class ExclusiveBlock
     {
-        internal static TimeSpan LockTimeout = TimeSpan.FromSeconds(1); //UNDONE:X: configure the general LockTimeout
-        internal static TimeSpan PollingTime = TimeSpan.FromSeconds(0.1); //UNDONE:X: configure the general PollingTime
-        internal static TimeSpan WaitTimeout = TimeSpan.FromSeconds(2); //UNDONE:X: configure the general WaitTimeout
-
-        public static Task RunAsync(string key, string operationId, ExclusiveBlockType lockType, Func<Task> action)
+        public static Task RunAsync(string key, ExclusiveBlockType lockType, Func<Task> action)
         {
-            return RunAsync(key, operationId, lockType, TimeSpan.Zero, action);
+            return RunAsync(new ExclusiveBlockContext(), key, lockType, action);
         }
-        public static async Task RunAsync(string key, string operationId, ExclusiveBlockType lockType, TimeSpan timeout, Func<Task> action)
+        public static async Task RunAsync(ExclusiveBlockContext context, string key, ExclusiveBlockType lockType, 
+            Func<Task> action)
         {
-            var timeLimit = DateTime.UtcNow.Add(LockTimeout);
+            var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
             var dataProvider = DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
 
-            var effectiveTimeout = timeout == TimeSpan.Zero ? WaitTimeout : timeout;
-            var reTryTimeLimit = DateTime.UtcNow.Add(effectiveTimeout);
+            var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);
+            var operationId = context.OperationId;
             switch (lockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
-                    using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit) // ? TryAcquire
+                    using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit) // ? TryAcquire
                         .ConfigureAwait(false))
                     {
                         if(exLock.Acquired)
@@ -42,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
 
                 case ExclusiveBlockType.WaitForReleased:
-                    using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit)
+                    using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit)
                         .ConfigureAwait(false))
                     {
                         SnTrace.Write($"#{operationId} acquire");
@@ -54,7 +61,7 @@ namespace SenseNet.ContentRepository.Storage
                         }
                         else
                         {
-                            await WaitForRelease(key, operationId, reTryTimeLimit, dataProvider);
+                            await WaitForRelease(context, key, reTryTimeLimit);
                         }
                     } // releases the lock
                     break;
@@ -62,7 +69,7 @@ namespace SenseNet.ContentRepository.Storage
                 case ExclusiveBlockType.WaitAndAcquire:
                     while (true)
                     {
-                        using (var exLock = await dataProvider.AcquireAsync(key, operationId, timeLimit)
+                        using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit)
                             .ConfigureAwait(false))
                         {
                             SnTrace.Write($"#{operationId} acquire");
@@ -75,7 +82,7 @@ namespace SenseNet.ContentRepository.Storage
                             }
                         } // releases the lock
 
-                        await WaitForRelease(key, operationId, reTryTimeLimit, dataProvider);
+                        await WaitForRelease(context, key, reTryTimeLimit);
                     }
                     break;
                 default:
@@ -83,9 +90,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private static async Task WaitForRelease(string key, string operationId, DateTime reTryTimeLimit,
-            IExclusiveLockDataProviderExtension dataProvider)
+        private static async Task WaitForRelease(ExclusiveBlockContext context, string key, DateTime reTryTimeLimit)
         {
+            var operationId = context.OperationId;
             SnTrace.Write($"#{operationId} wait for release");
             while (true)
             {
@@ -95,13 +102,13 @@ namespace SenseNet.ContentRepository.Storage
                     throw new TimeoutException(
                         "The exclusive lock was not released within the specified time");
                 }
-                if (!await dataProvider.IsLockedAsync(key))
+                if (!await context.DataProvider.IsLockedAsync(key))
                 {
                     SnTrace.Write($"#{operationId} exit: unlocked");
                     break;
                 }
                 SnTrace.Write($"#{operationId} wait: locked by another");
-                await Task.Delay(PollingTime);
+                await Task.Delay(context.PollingTime);
             }
         }
     }

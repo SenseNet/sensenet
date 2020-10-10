@@ -11,14 +11,14 @@ namespace SenseNet.ContentRepository.InMemory
         private static readonly object Sync = new object();
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();
 
-        public Task<ExclusiveLock> AcquireAsync(string key, string operationId, DateTime timeLimit)
+        public Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit)
         {
             lock (Sync)
             {
                 if (_locks.TryGetValue(key, out var existingTimeLimit) && DateTime.UtcNow < existingTimeLimit)
-                    return STT.Task.FromResult(new ExclusiveLock(key, operationId, false, this));
+                    return STT.Task.FromResult(new ExclusiveLock(context, key, false));
                 _locks[key] = timeLimit;
-                return STT.Task.FromResult(new ExclusiveLock(key, operationId, true, this));
+                return STT.Task.FromResult(new ExclusiveLock(context, key, true));
             }
         }
         public STT.Task RefreshAsync(string key, DateTime newTimeLimit)

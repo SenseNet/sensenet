@@ -16,10 +16,9 @@ namespace SenseNet.ContentRepository.Storage
             private readonly IExclusiveLockDataProviderExtension _dataProvider;
             private readonly CancellationTokenSource _finisher;
 
-            public static LockGuard Create(string key, string operationId, TimeSpan timeOut,
-                IExclusiveLockDataProviderExtension dataProvider)
+            public static LockGuard Create(ExclusiveBlockContext context, string key)
             {
-                var guard = new LockGuard(key, operationId, timeOut, dataProvider);
+                var guard = new LockGuard(context, key);
                 //#pragma warning disable 4014
                 //                guard.StartAsync();
                 //#pragma warning restore 4014
@@ -27,14 +26,14 @@ namespace SenseNet.ContentRepository.Storage
                 return guard;
             }
 
-            private LockGuard(string key, string operationId, TimeSpan timeOut, IExclusiveLockDataProviderExtension dataProvider)
+            private LockGuard(ExclusiveBlockContext context, string key)
             {
                 _key = key;
-                _operationId = operationId;
-                _refreshPeriod = new TimeSpan(timeOut.Ticks / 2 - 1);
-                _dataProvider = dataProvider;
+                _operationId = context.OperationId;
+                _refreshPeriod = new TimeSpan(context.LockTimeout.Ticks / 2 - 1);
+                _dataProvider = context.DataProvider;
                 _finisher = new CancellationTokenSource();
-                SnTrace.System.Write("ExclusiveLock guard created for {0} {1}. RefreshPeriod: {2}", key, operationId, _refreshPeriod);
+                SnTrace.System.Write("ExclusiveLock guard created for {0} {1}. RefreshPeriod: {2}", key, _operationId, _refreshPeriod);
             }
 
             private async Task StartAsync()
@@ -71,24 +70,22 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         private readonly LockGuard _guard;
-        private readonly IExclusiveLockDataProviderExtension _dataProvider;
+        public ExclusiveBlockContext _context;
 
         public string Key { get; }
-        public string OperationId { get; }
         public bool Acquired { get; }
 
-        public ExclusiveLock(string key, string operationId, bool acquired,
-            IExclusiveLockDataProviderExtension dataProvider)
+        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired)
         {
             Key = key;
-            OperationId = operationId;
+            _context = context;
             // ReSharper disable once AssignmentInConditionalExpression
             if (Acquired = acquired)
             {
-                _dataProvider = dataProvider;
-                _guard = LockGuard.Create(key, operationId, ExclusiveBlock.LockTimeout, dataProvider);
+                _guard = LockGuard.Create(context, key);
             }
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}", Key, OperationId, acquired);
+            SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}", Key,
+                _context.OperationId, acquired);
         }
 
         //UNDONE:X: AsyncDispose !?
@@ -103,9 +100,9 @@ namespace SenseNet.ContentRepository.Storage
             if (!disposing)
                 return;
             _guard?.Dispose();
-            _dataProvider?.ReleaseAsync(Key).ConfigureAwait(false).GetAwaiter().GetResult();
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Released", Key, OperationId);
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, OperationId);
+            _context.DataProvider?.ReleaseAsync(Key).ConfigureAwait(false).GetAwaiter().GetResult();
+            SnTrace.System.Write("ExclusiveLock {0} {1}. Released", Key, _context.OperationId);
+            SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, _context.OperationId);
         }
     }
 }

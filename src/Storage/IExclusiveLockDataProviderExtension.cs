@@ -7,7 +7,7 @@ namespace SenseNet.ContentRepository.Storage
 {
     public interface IExclusiveLockDataProviderExtension : IDataProviderExtension
     {
-        Task<ExclusiveLock> AcquireAsync(string key, string operationId, DateTime timeLimit);
+        Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit);
         Task RefreshAsync(string key, DateTime newTimeLimit);
         Task ReleaseAsync(string key);
         Task<bool> IsLockedAsync(string key);
