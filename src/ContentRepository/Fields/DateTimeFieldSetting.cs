@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
@@ -29,6 +27,7 @@ namespace SenseNet.ContentRepository.Fields
         public static readonly DateTimePrecision DefaultPrecision = DateTimePrecision.Minute;
 
         private DateTimeMode? _dateTimeMode;
+        [JsonConverter(typeof(StringEnumConverter))]
         public DateTimeMode? DateTimeMode
         {
             get
@@ -48,6 +47,7 @@ namespace SenseNet.ContentRepository.Fields
         }
 
         private DateTimePrecision? _precision;
+        [JsonConverter(typeof(StringEnumConverter))]
         public DateTimePrecision? Precision
         {
             get
