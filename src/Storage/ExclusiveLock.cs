@@ -53,7 +53,6 @@ namespace SenseNet.ContentRepository.Storage
                 await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod));
             }
 
-            //UNDONE:X: AsyncDispose !?
             public void Dispose()
             {
                 Dispose(true);
@@ -88,7 +87,7 @@ namespace SenseNet.ContentRepository.Storage
                 _context.OperationId, acquired);
         }
 
-        //UNDONE:X: AsyncDispose !?
+        //TODO: Implement AsyncDispose pattern if the framework fixes the "Microsoft.Bcl.AsyncInterfaces" assembly load problem.
         public void Dispose()
         {
             Dispose(true);
