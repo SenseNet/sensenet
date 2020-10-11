@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Data;
 
 // ReSharper disable once CheckNamespace
@@ -31,5 +32,6 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IExclusiveLockDataProviderExtension DataProvider { get; internal set; } =
             DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
+        internal CancellationToken CancellationToken { get; set; }
     }
 }

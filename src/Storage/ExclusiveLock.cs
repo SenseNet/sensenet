@@ -21,10 +21,11 @@ namespace SenseNet.ContentRepository.Storage
             private readonly TimeSpan _refreshPeriod;
             private readonly IExclusiveLockDataProviderExtension _dataProvider;
             private readonly CancellationTokenSource _finisher;
+            private readonly CancellationToken _cancellationToken;
 
-            public static LockGuard Create(ExclusiveBlockContext context, string key)
+            public static LockGuard Create(ExclusiveBlockContext context, string key, CancellationToken cancellationToken)
             {
-                var guard = new LockGuard(context, key);
+                var guard = new LockGuard(context, key, cancellationToken);
                 //#pragma warning disable 4014
                 //                guard.StartAsync();
                 //#pragma warning restore 4014
@@ -32,13 +33,14 @@ namespace SenseNet.ContentRepository.Storage
                 return guard;
             }
 
-            private LockGuard(ExclusiveBlockContext context, string key)
+            private LockGuard(ExclusiveBlockContext context, string key, CancellationToken cancellationToken)
             {
                 _key = key;
                 _operationId = context.OperationId;
                 _refreshPeriod = new TimeSpan(context.LockTimeout.Ticks / 2 - 1);
                 _dataProvider = context.DataProvider;
                 _finisher = new CancellationTokenSource();
+                _cancellationToken = cancellationToken;
                 SnTrace.System.Write("ExclusiveLock guard created for {0} {1}. RefreshPeriod: {2}", key, _operationId, _refreshPeriod);
             }
 
@@ -56,7 +58,7 @@ namespace SenseNet.ContentRepository.Storage
             private async Task RefreshAsync()
             {
                 SnTrace.System.Write("ExclusiveLock guard {0} {1}. Refresh lock", _key, _operationId);
-                await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod));
+                await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod), _cancellationToken);
             }
 
             public void Dispose()
@@ -76,6 +78,7 @@ namespace SenseNet.ContentRepository.Storage
 
         private readonly LockGuard _guard;
         private readonly ExclusiveBlockContext _context;
+        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Gets the unique name of the action.
@@ -92,14 +95,15 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="context">The configuration of the exclusive execution.</param>
         /// <param name="key">The unique name of the exclusive lock.</param>
         /// <param name="acquired">True if the lock is obtained otherwise false.</param>
-        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired)
+        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired, CancellationToken cancellationToken)
         {
             Key = key;
             _context = context;
+            _cancellationToken = cancellationToken;
             // ReSharper disable once AssignmentInConditionalExpression
             if (Acquired = acquired)
             {
-                _guard = LockGuard.Create(context, key);
+                _guard = LockGuard.Create(context, key, _cancellationToken);
             }
             SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}", Key,
                 _context.OperationId, acquired);
@@ -118,7 +122,7 @@ namespace SenseNet.ContentRepository.Storage
             if (!disposing)
                 return;
             _guard?.Dispose();
-            _context.DataProvider?.ReleaseAsync(Key).ConfigureAwait(false).GetAwaiter().GetResult();
+            _context.DataProvider?.ReleaseAsync(Key, _cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
             SnTrace.System.Write("ExclusiveLock {0} {1}. Released", Key, _context.OperationId);
             SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, _context.OperationId);
         }

@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
                 context.WaitTimeout = timeout;
 
             log.Add("before block " + operationId);
-            await ExclusiveBlock.RunAsync(context, "MyFeature", blockType, async () =>
+            await ExclusiveBlock.RunAsync(context, "MyFeature", blockType, CancellationToken.None, async () =>
             {
                 await STT.Task.Delay(1500);
                 log.Add("in block " + operationId);
