@@ -6,6 +6,12 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
+    /// <summary>
+    /// Represents a response object of a persistent, distributed application wide exclusive lock.
+    /// Only the persistence layer (data provider) can effectively create it. If the instance of this object
+    /// means an obtained lock (Acquired is true), it keeps alive the persistent lock with a periodically
+    /// update operation.
+    /// </summary>
     public class ExclusiveLock : IDisposable
     {
         private class LockGuard : IDisposable
@@ -69,11 +75,23 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         private readonly LockGuard _guard;
-        public ExclusiveBlockContext _context;
+        private readonly ExclusiveBlockContext _context;
 
+        /// <summary>
+        /// Gets the unique name of the action.
+        /// </summary>
         public string Key { get; }
+        /// <summary>
+        /// Gets a value that is true if the lock is obtained otherwise false.
+        /// </summary>
         public bool Acquired { get; }
 
+        /// <summary>
+        /// Initializes an instance of the <see cref="ExclusiveLock"/>.
+        /// </summary>
+        /// <param name="context">The configuration of the exclusive execution.</param>
+        /// <param name="key">The unique name of the exclusive lock.</param>
+        /// <param name="acquired">True if the lock is obtained otherwise false.</param>
         public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired)
         {
             Key = key;
@@ -88,6 +106,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         //TODO: Implement AsyncDispose pattern if the framework fixes the "Microsoft.Bcl.AsyncInterfaces" assembly load problem.
+        /// <summary>Releases all resources used by the <see cref="ExclusiveLock"/>.</summary>
         public void Dispose()
         {
             Dispose(true);

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -6,38 +8,70 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
+    /// <summary>
+    /// Determines the exclusive lock algorithm
+    /// </summary>
     public enum ExclusiveBlockType
     {
+        /// <summary>
+        /// Requests an exclusive lock and executes the action if the lock is acquired
+        /// otherwise returns immediately.
+        /// </summary>
         SkipIfLocked,
+        /// <summary>
+        /// Requests an exclusive lock and executes the action if the lock is acquired
+        /// otherwise waits for the lock is released then returns without executes the action.
+        /// </summary>
         WaitForReleased,
+        /// <summary>
+        /// Requests an exclusive lock and executes the action if the lock is acquired
+        /// otherwise waits for the lock is released then requests again.
+        /// </summary>
         WaitAndAcquire
     }
 
-    public class ExclusiveBlockContext
-    {
-        public string OperationId { get; set; } = Guid.NewGuid().ToString();
-        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(1); //UNDONE:X: configure the default LockTimeout
-        public TimeSpan PollingTime { get; set; } = TimeSpan.FromSeconds(0.1); //UNDONE:X: configure the default PollingTime
-        public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(2); //UNDONE:X: configure the default WaitTimeout
-        public IExclusiveLockDataProviderExtension DataProvider { get; set; } =
-            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
-    }
-
+    /// <summary>
+    /// Defines a code block that can run only one instance at a time in the entire distributed application.
+    /// </summary>
     public class ExclusiveBlock
     {
-        public static Task RunAsync(string key, ExclusiveBlockType lockType, Func<Task> action)
+        /// <summary>
+        /// Executes a named action depending on the chosen algorithm.
+        /// </summary>
+        /// <param name="key">The unique name of the action.</param>
+        /// <param name="blockType">The algorithm of the exclusive execution.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="action">The code block that will be executed exclusively.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="DataException">The operation causes a database-related error.</exception>
+        /// <exception cref="TimeoutException">The exclusive lock was not released within the specified time</exception>
+        /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
+        public static Task RunAsync(string key, ExclusiveBlockType blockType,
+            CancellationToken cancellationToken, Func<Task> action)
         {
-            return RunAsync(new ExclusiveBlockContext(), key, lockType, action);
+            return RunAsync(new ExclusiveBlockContext(), key, blockType, cancellationToken, action);
         }
-        public static async Task RunAsync(ExclusiveBlockContext context, string key, ExclusiveBlockType lockType, 
-            Func<Task> action)
+
+        /// <summary>
+        /// Executes a named action depending on the chosen algorithm. The default behavior can be modified by the
+        /// given <see cref="ExclusiveBlockContext"/>.
+        /// </summary>
+        /// <param name="context">The configuration of the exclusive execution.</param>
+        /// <param name="key">The unique name of the action.</param>
+        /// <param name="blockType">The algorithm of the exclusive execution.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="action">The code block that will be executed exclusively.</param>
+        /// <returns></returns>
+        public static async Task RunAsync(ExclusiveBlockContext context, string key, ExclusiveBlockType blockType,
+            CancellationToken cancellationToken, Func<Task> action)
         {
+            //UNDONE:X: Pass and handle cancellationToken
             var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
             var dataProvider = DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
 
             var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);
             var operationId = context.OperationId;
-            switch (lockType)
+            switch (blockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
                     using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit) // ? TryAcquire
@@ -86,7 +120,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(lockType), lockType, null);
+                    throw new ArgumentOutOfRangeException(nameof(blockType), blockType, null);
             }
         }
 
@@ -100,7 +134,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     SnTrace.Write($"#{operationId} timeout");
                     throw new TimeoutException(
-                        "The exclusive lock was not released within the specified time");
+                        "The exclusive lock was not released within the specified time.");
                 }
                 if (!await context.DataProvider.IsLockedAsync(key))
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using STT = System.Threading.Tasks;
@@ -11,7 +12,9 @@ namespace SenseNet.ContentRepository.InMemory
         private static readonly object Sync = new object();
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();
 
-        public Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit)
+        /// <inheritdoc/>
+        public Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
+            CancellationToken cancellationToken) //UNDONE:X: cancellationToken
         {
             lock (Sync)
             {
@@ -21,7 +24,8 @@ namespace SenseNet.ContentRepository.InMemory
                 return STT.Task.FromResult(new ExclusiveLock(context, key, true));
             }
         }
-        public STT.Task RefreshAsync(string key, DateTime newTimeLimit)
+        /// <inheritdoc/>
+        public STT.Task RefreshAsync(string key, DateTime newTimeLimit, CancellationToken cancellationToken) //UNDONE:X: cancellationToken
         {
             lock (Sync)
             {
@@ -30,7 +34,8 @@ namespace SenseNet.ContentRepository.InMemory
             }
             return STT.Task.CompletedTask;
         }
-        public STT.Task ReleaseAsync(string key)
+        /// <inheritdoc/>
+        public STT.Task ReleaseAsync(string key, CancellationToken cancellationToken) //UNDONE:X: cancellationToken
         {
             lock (Sync)
             {
@@ -39,7 +44,8 @@ namespace SenseNet.ContentRepository.InMemory
             }
             return STT.Task.CompletedTask;
         }
-        public Task<bool> IsLockedAsync(string key)
+        /// <inheritdoc/>
+        public Task<bool> IsLockedAsync(string key, CancellationToken cancellationToken) //UNDONE:X: cancellationToken
         {
             lock (Sync)
                 return STT.Task.FromResult(_locks.ContainsKey(key));
