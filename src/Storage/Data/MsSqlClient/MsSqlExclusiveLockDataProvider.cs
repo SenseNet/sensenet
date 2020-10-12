@@ -16,13 +16,21 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
-private string ____sql____ = null;
         /// <inheritdoc/>
         public async Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(____sql____, cmd =>
+                var sql = @"-- MsSqlExclusiveLockDataProvider.Acquire
+BEGIN TRAN
+DELETE FROM ExclusiveLocks WHERE [Name] = @name AND [TimeLimit] < @timeLimit
+IF NOT EXISTS (SELECT Id FROM ExclusiveLocks WHERE [Name] = @name)
+    INSERT INTO ExclusiveLocks ([Name], [TimeLimit])
+        OUTPUT INSERTED.Id
+        VALUES (@name, @timeLimit)
+COMMIT
+";
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -39,14 +47,16 @@ private string ____sql____ = null;
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(____sql____, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
+                await ctx.ExecuteNonQueryAsync(
+                    "UPDATE ExclusiveLocks SET [TimeLimit] = @timeLimit WHERE [Name] = @name",
+                    cmd =>
                     {
-                        ctx.CreateParameter("@LockName", DbType.String, key),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, key)
-                    });
-                }).ConfigureAwait(false);
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@LockName", DbType.String, key),
+                            ctx.CreateParameter("@TimeLimit", DbType.DateTime2, key)
+                        });
+                    }).ConfigureAwait(false);
             }
         }
 
@@ -55,13 +65,14 @@ private string ____sql____ = null;
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(____sql____, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
+                await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks WHERE @name = [Name]",
+                    cmd =>
                     {
-                        ctx.CreateParameter("@LockName", DbType.String, key)
-                    });
-                }).ConfigureAwait(false);
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@LockName", DbType.String, key)
+                        });
+                    }).ConfigureAwait(false);
             }
         }
 
@@ -70,15 +81,29 @@ private string ____sql____ = null;
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(____sql____, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
+                var result = await ctx.ExecuteScalarAsync("SELECT Id FROM ExclusiveLocks WHERE @name = [Name]",
+                    cmd =>
                     {
-                        ctx.CreateParameter("@LockName", DbType.String, key)
-                    });
-                }).ConfigureAwait(false);
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@LockName", DbType.String, key)
+                        });
+                    }).ConfigureAwait(false);
 
                 return result != DBNull.Value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
+        {
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(
+                    "IF OBJECT_ID('ExclusiveLocks', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0")
+                    .ConfigureAwait(false);
+
+                return 1 == (result == DBNull.Value ? 0 : (int)result);
             }
         }
     }
