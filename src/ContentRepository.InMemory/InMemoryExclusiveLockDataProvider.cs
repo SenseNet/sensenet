@@ -53,5 +53,10 @@ namespace SenseNet.ContentRepository.InMemory
             lock (Sync)
                 return STT.Task.FromResult(_locks.ContainsKey(key));
         }
+        /// <inheritdoc/>
+        public Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
+        {
+            return STT.Task.FromResult(true);
+        }
     }
 }
