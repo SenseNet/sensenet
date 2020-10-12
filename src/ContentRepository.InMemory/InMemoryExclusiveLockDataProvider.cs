@@ -16,15 +16,15 @@ namespace SenseNet.ContentRepository.InMemory
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();
 
         /// <inheritdoc/>
-        public Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
+        public Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
             CancellationToken cancellationToken)
         {
             lock (Sync)
             {
-                if (_locks.TryGetValue(key, out var existingTimeLimit) && DateTime.UtcNow < existingTimeLimit)
-                    return STT.Task.FromResult(new ExclusiveLock(context, key, false, cancellationToken));
-                _locks[key] = timeLimit;
-                return STT.Task.FromResult(new ExclusiveLock(context, key, true, cancellationToken));
+                var exists = _locks.TryGetValue(key, out var existingTimeLimit) && DateTime.UtcNow < existingTimeLimit;
+                if (!exists)
+                    _locks[key] = timeLimit;
+                return STT.Task.FromResult(!exists);
             }
         }
         /// <inheritdoc/>

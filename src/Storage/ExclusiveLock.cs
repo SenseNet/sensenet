@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage
     /// means an obtained lock (Acquired is true), it keeps alive the persistent lock with a periodically
     /// update operation.
     /// </summary>
-    public class ExclusiveLock : IDisposable
+    internal class ExclusiveLock : IDisposable
     {
         private class LockGuard : IDisposable
         {

@@ -68,14 +68,13 @@ namespace SenseNet.ContentRepository.Storage
             //UNDONE:X: Pass and handle cancellationToken
             context.CancellationToken = cancellationToken;
             var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
-            var dataProvider = DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
 
             var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);
             var operationId = context.OperationId;
             switch (blockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
-                    using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                    using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         if(exLock.Acquired)
@@ -84,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
 
                 case ExclusiveBlockType.WaitForReleased:
-                    using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                    using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         SnTrace.Write($"#{operationId} acquire");
@@ -104,7 +103,7 @@ namespace SenseNet.ContentRepository.Storage
                 case ExclusiveBlockType.WaitAndAcquire:
                     while (true)
                     {
-                        using (var exLock = await dataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                        using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
                             .ConfigureAwait(false))
                         {
                             SnTrace.Write($"#{operationId} acquire");
@@ -123,6 +122,14 @@ namespace SenseNet.ContentRepository.Storage
                 default:
                     throw new ArgumentOutOfRangeException(nameof(blockType), blockType, null);
             }
+        }
+
+        private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key, DateTime timeLimit,
+            CancellationToken cancellationToken)
+        {
+            var acquired = await context.DataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                .ConfigureAwait(false);
+            return new ExclusiveLock(context, key, acquired, cancellationToken);
         }
 
         private static async Task WaitForRelease(ExclusiveBlockContext context, string key, DateTime reTryTimeLimit,

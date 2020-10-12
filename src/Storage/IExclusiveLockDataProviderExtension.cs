@@ -20,8 +20,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="timeLimit">The expiration date of the obtained exclusive lock.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the new ExclusiveLock instance.</returns>
-        Task<ExclusiveLock> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
-            CancellationToken cancellationToken); //UNDONE:X: cancellationToken
+        Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
+            CancellationToken cancellationToken);
         /// <summary>
         /// Updates the expiration date of an existing lock.
         /// If the lock does not exist, the operation is skipped.
