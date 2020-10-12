@@ -79,6 +79,7 @@ namespace SenseNet.ContentRepository.Storage
         private readonly LockGuard _guard;
         private readonly ExclusiveBlockContext _context;
         private readonly CancellationToken _cancellationToken;
+        private readonly bool _isFeatureAvailable;
 
         /// <summary>
         /// Gets the unique name of the action.
@@ -95,18 +96,19 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="context">The configuration of the exclusive execution.</param>
         /// <param name="key">The unique name of the exclusive lock.</param>
         /// <param name="acquired">True if the lock is obtained otherwise false.</param>
-        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired, CancellationToken cancellationToken)
+        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired, bool isFeatureAvailable,
+            CancellationToken cancellationToken)
         {
             Key = key;
+            Acquired = acquired; 
             _context = context;
             _cancellationToken = cancellationToken;
-            // ReSharper disable once AssignmentInConditionalExpression
-            if (Acquired = acquired)
-            {
+            _isFeatureAvailable = isFeatureAvailable;
+            if (Acquired && isFeatureAvailable)
                 _guard = LockGuard.Create(context, key, _cancellationToken);
-            }
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}", Key,
-                _context.OperationId, acquired);
+
+            SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}. IsFeatureAvailable = {3}",
+                Key, _context.OperationId, acquired, isFeatureAvailable);
         }
 
         //TODO: Implement AsyncDispose pattern if the framework fixes the "Microsoft.Bcl.AsyncInterfaces" assembly load problem.
@@ -122,8 +124,14 @@ namespace SenseNet.ContentRepository.Storage
             if (!disposing)
                 return;
             _guard?.Dispose();
-            _context.DataProvider?.ReleaseAsync(Key, _cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Released", Key, _context.OperationId);
+            if (_isFeatureAvailable)
+            {
+                _context.DataProvider?.ReleaseAsync(Key, _cancellationToken).ConfigureAwait(false).GetAwaiter()
+                    .GetResult();
+                SnTrace.System.Write(
+                    "ExclusiveLock {0} {1}. Not released: the ExclusiveLock feature is not available",
+                    Key, _context.OperationId);
+            }
             SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, _context.OperationId);
         }
     }

@@ -127,9 +127,28 @@ namespace SenseNet.ContentRepository.Storage
         private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key, DateTime timeLimit,
             CancellationToken cancellationToken)
         {
-            var acquired = await context.DataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
-                .ConfigureAwait(false);
-            return new ExclusiveLock(context, key, acquired, cancellationToken);
+            try
+            {
+                var acquired = await context.DataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                    .ConfigureAwait(false);
+                return new ExclusiveLock(context, key, acquired, true, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                if (await context.DataProvider.IsFeatureAvailable(cancellationToken))
+                    throw;
+                WriteFeatureWarning();
+                return new ExclusiveLock(context, key, true, false, cancellationToken);
+            }
+        }
+
+        private static bool _isFeatureWarningWritten;
+        private static void WriteFeatureWarning()
+        {
+            if (_isFeatureWarningWritten)
+                return;
+            SnLog.WriteWarning("Exclusive lock feature is not available.");
+            _isFeatureWarningWritten = true;
         }
 
         private static async Task WaitForRelease(ExclusiveBlockContext context, string key, DateTime reTryTimeLimit,
