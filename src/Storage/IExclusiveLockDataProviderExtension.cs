@@ -12,14 +12,14 @@ namespace SenseNet.ContentRepository.Storage
     public interface IExclusiveLockDataProviderExtension : IDataProviderExtension
     {
         /// <summary>
-        /// Tries to achieve a named exclusive lock and returns its representation. The returning object stores
-        /// the success of the request.
+        /// Tries to achieve a named exclusive lock. Returns true if successful or false if the lock is used by another
+        /// thread, process or application domain.
         /// </summary>
         /// <param name="context">The configuration of the exclusive block's execution.</param>
         /// <param name="key">The unique name of the exclusive lock.</param>
         /// <param name="timeLimit">The expiration date of the obtained exclusive lock.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the new ExclusiveLock instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps a boolean value.</returns>
         Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
             CancellationToken cancellationToken);
         /// <summary>
