@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage
             private async Task RefreshAsync()
             {
                 Trace.WriteLine($"SnTrace: System: ExclusiveLock guard {_key} #{_operationId}. Refresh lock");
-                await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod), _cancellationToken);
+                await _dataProvider.RefreshAsync(_key, _operationId, DateTime.UtcNow.Add(_refreshPeriod), _cancellationToken);
             }
 
             public void Dispose()
@@ -126,7 +126,7 @@ namespace SenseNet.ContentRepository.Storage
             _guard?.Dispose();
             if (_isFeatureAvailable && Acquired)
             {
-                _context.DataProvider?.ReleaseAsync(Key, _cancellationToken).ConfigureAwait(false).GetAwaiter()
+                _context.DataProvider?.ReleaseAsync(Key, _context.OperationId, _cancellationToken).ConfigureAwait(false).GetAwaiter()
                     .GetResult();
                 Trace.WriteLine(
                     $"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}: Released.");

@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.InMemory
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();
 
         /// <inheritdoc/>
-        public Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit,
+        public Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,
             CancellationToken cancellationToken)
         {
             lock (Sync)
@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
         /// <inheritdoc/>
-        public STT.Task RefreshAsync(string key, DateTime newTimeLimit, CancellationToken cancellationToken)
+        public STT.Task RefreshAsync(string key, string operationId, DateTime newTimeLimit, CancellationToken cancellationToken)
         {
             lock (Sync)
             {
@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
         /// <inheritdoc/>
-        public STT.Task ReleaseAsync(string key, CancellationToken cancellationToken)
+        public STT.Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
         {
             lock (Sync)
             {
@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
         /// <inheritdoc/>
-        public Task<bool> IsLockedAsync(string key, CancellationToken cancellationToken)
+        public Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
         {
             lock (Sync)
                 return STT.Task.FromResult(_locks.ContainsKey(key));

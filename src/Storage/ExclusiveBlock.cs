@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             try
             {
-                var acquired = await context.DataProvider.AcquireAsync(context, key, timeLimit, cancellationToken)
+                var acquired = await context.DataProvider.AcquireAsync(key, context.OperationId, timeLimit, cancellationToken)
                     .ConfigureAwait(false);
                 return new ExclusiveLock(context, key, acquired, true, cancellationToken);
             }
@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Storage
                     throw new TimeoutException(
                         "The exclusive lock was not released within the specified time.");
                 }
-                if (!await context.DataProvider.IsLockedAsync(key, cancellationToken))
+                if (!await context.DataProvider.IsLockedAsync(key, context.OperationId, cancellationToken))
                 {
                     Trace.WriteLine($"SnTrace: {key} #{operationId} exit: unlocked");
                     break;

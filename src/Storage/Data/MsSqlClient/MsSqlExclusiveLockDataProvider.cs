@@ -18,9 +18,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase MainProvider => _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         /// <inheritdoc/>
-        public async Task<bool> AcquireAsync(ExclusiveBlockContext context, string key, DateTime timeLimit, CancellationToken cancellationToken)
+        public async Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{context.OperationId}");
+            Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var sql = @"-- MsSqlExclusiveLockDataProvider.Acquire
@@ -50,16 +50,16 @@ END
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
                 }).ConfigureAwait(false);
-                Trace.WriteLine($"SnTrace: DATA:  END: AcquireAsync: {key} #{context.OperationId} " +
+                Trace.WriteLine($"SnTrace: DATA:  END: AcquireAsync: {key} #{operationId} " +
                                 $"{(result == null ? "[null]" : "ACQUIRED " + result)}");
                 return result != DBNull.Value && result != null;
             }
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync(string key, DateTime newTimeLimit, CancellationToken cancellationToken)
+        public async Task RefreshAsync(string key, string operationId, DateTime newTimeLimit, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #?");
+            Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(
@@ -73,13 +73,13 @@ END
                         });
                     }).ConfigureAwait(false);
             }
-            Trace.WriteLine($"SnTrace: DATA:  END: RefreshAsync {key} #?");
+            Trace.WriteLine($"SnTrace: DATA:  END: RefreshAsync {key} #{operationId}");
         }
 
         /// <inheritdoc/>
-        public async Task ReleaseAsync(string key, CancellationToken cancellationToken)
+        public async Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #?");
+            Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks WHERE @Name = [Name]",
@@ -91,13 +91,13 @@ END
                         });
                     }).ConfigureAwait(false);
             }
-            Trace.WriteLine($"SnTrace: DATA:  END: ReleaseAsync {key} #?");
+            Trace.WriteLine($"SnTrace: DATA:  END: ReleaseAsync {key} #{operationId}");
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsLockedAsync(string key, CancellationToken cancellationToken)
+        public async Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #?");
+            Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(
@@ -110,7 +110,7 @@ END
                         });
                     }).ConfigureAwait(false);
 
-                Trace.WriteLine($"SnTrace: DATA:  END: IsLockedAsync {key} #?: {(result == null || result == DBNull.Value ? "[null]" : "LOCKED")}");
+                Trace.WriteLine($"SnTrace: DATA:  END: IsLockedAsync {key} #{operationId}: {(result == null || result == DBNull.Value ? "[null]" : "LOCKED")}");
                 return result != DBNull.Value && result != null;
             }
         }
