@@ -58,5 +58,11 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the query result.</returns>
         Task<bool> IsFeatureAvailable(CancellationToken cancellationToken);
+        /// <summary>
+        /// Releases all locks immediately.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task ReleaseAllAsync(CancellationToken cancellationToken);
     }
 }

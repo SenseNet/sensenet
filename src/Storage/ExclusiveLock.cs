@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Diagnostics;
@@ -41,7 +42,7 @@ namespace SenseNet.ContentRepository.Storage
                 _dataProvider = context.DataProvider;
                 _finisher = new CancellationTokenSource();
                 _cancellationToken = cancellationToken;
-                SnTrace.System.Write("ExclusiveLock guard created for {0} {1}. RefreshPeriod: {2}", key, _operationId, _refreshPeriod);
+                Trace.WriteLine($"SnTrace: System: ExclusiveLock guard created for {key} #{_operationId}. RefreshPeriod: {_refreshPeriod}");
             }
 
             private async Task StartAsync()
@@ -57,7 +58,7 @@ namespace SenseNet.ContentRepository.Storage
 
             private async Task RefreshAsync()
             {
-                SnTrace.System.Write("ExclusiveLock guard {0} {1}. Refresh lock", _key, _operationId);
+                Trace.WriteLine($"SnTrace: System: ExclusiveLock guard {_key} #{_operationId}. Refresh lock");
                 await _dataProvider.RefreshAsync(_key, DateTime.UtcNow.Add(_refreshPeriod), _cancellationToken);
             }
 
@@ -72,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage
                 if (!disposing)
                     return;
                 _finisher.Cancel();
-                SnTrace.System.Write("ExclusiveLock guard {0} {1}. Disposed", _key, _operationId);
+                Trace.WriteLine($"SnTrace: System: ExclusiveLock guard {_key} #{_operationId}. Disposed");
             }
         }
 
@@ -107,8 +108,7 @@ namespace SenseNet.ContentRepository.Storage
             if (Acquired && isFeatureAvailable)
                 _guard = LockGuard.Create(context, key, _cancellationToken);
 
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Created. Acquired = {2}. IsFeatureAvailable = {3}",
-                Key, _context.OperationId, acquired, isFeatureAvailable);
+            Trace.WriteLine($"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}. Created. Acquired = {acquired}. IsFeatureAvailable = {isFeatureAvailable}");
         }
 
         //TODO: Implement AsyncDispose pattern if the framework fixes the "Microsoft.Bcl.AsyncInterfaces" assembly load problem.
@@ -124,15 +124,14 @@ namespace SenseNet.ContentRepository.Storage
             if (!disposing)
                 return;
             _guard?.Dispose();
-            if (_isFeatureAvailable)
+            if (_isFeatureAvailable && Acquired)
             {
                 _context.DataProvider?.ReleaseAsync(Key, _cancellationToken).ConfigureAwait(false).GetAwaiter()
                     .GetResult();
-                SnTrace.System.Write(
-                    "ExclusiveLock {0} {1}. Not released: the ExclusiveLock feature is not available",
-                    Key, _context.OperationId);
+                Trace.WriteLine(
+                    $"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}: Released.");
             }
-            SnTrace.System.Write("ExclusiveLock {0} {1}. Disposed", Key, _context.OperationId);
+            Trace.WriteLine($"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}: Disposed");
         }
     }
 }

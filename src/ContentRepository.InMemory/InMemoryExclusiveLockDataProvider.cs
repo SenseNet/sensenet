@@ -58,5 +58,12 @@ namespace SenseNet.ContentRepository.InMemory
         {
             return STT.Task.FromResult(true);
         }
+        /// <inheritdoc/>
+        public STT.Task ReleaseAllAsync(CancellationToken cancellationToken)
+        {
+            lock (Sync)
+                _locks.Clear();
+            return STT.Task.CompletedTask;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
@@ -86,12 +87,9 @@ namespace SenseNet.ContentRepository.Storage
                     using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
                         .ConfigureAwait(false))
                     {
-                        SnTrace.Write($"#{operationId} acquire");
                         if (exLock.Acquired)
                         {
-                            SnTrace.Write($"#{operationId} executing");
                             await action();
-                            SnTrace.Write($"#{operationId} executed");
                         }
                         else
                         {
@@ -106,12 +104,9 @@ namespace SenseNet.ContentRepository.Storage
                         using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
                             .ConfigureAwait(false))
                         {
-                            SnTrace.Write($"#{operationId} acquire");
                             if (exLock.Acquired)
                             {
-                                SnTrace.Write($"#{operationId} executing");
                                 await action();
-                                SnTrace.Write($"#{operationId} executed");
                                 break;
                             }
                         } // releases the lock
@@ -155,21 +150,21 @@ namespace SenseNet.ContentRepository.Storage
             CancellationToken cancellationToken)
         {
             var operationId = context.OperationId;
-            SnTrace.Write($"#{operationId} wait for release");
+            Trace.WriteLine($"SnTrace: {key} #{operationId} wait for release");
             while (true)
             {
                 if (DateTime.UtcNow > reTryTimeLimit)
                 {
-                    SnTrace.Write($"#{operationId} timeout");
+                    Trace.WriteLine($"SnTrace: {key} #{operationId} timeout");
                     throw new TimeoutException(
                         "The exclusive lock was not released within the specified time.");
                 }
                 if (!await context.DataProvider.IsLockedAsync(key, cancellationToken))
                 {
-                    SnTrace.Write($"#{operationId} exit: unlocked");
+                    Trace.WriteLine($"SnTrace: {key} #{operationId} exit: unlocked");
                     break;
                 }
-                SnTrace.Write($"#{operationId} wait: locked by another");
+                Trace.WriteLine($"SnTrace: {key} #{operationId} wait: locked by another");
                 await Task.Delay(context.PollingTime);
             }
         }
