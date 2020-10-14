@@ -68,14 +68,13 @@ namespace SenseNet.ContentRepository.Storage
         {
             //UNDONE:X: Pass and handle cancellationToken
             context.CancellationToken = cancellationToken;
-            var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
 
             var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);
             var operationId = context.OperationId;
             switch (blockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
-                    using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
+                    using (var exLock = await GetLock(context, key, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         if(exLock.Acquired)
@@ -84,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
 
                 case ExclusiveBlockType.WaitForReleased:
-                    using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
+                    using (var exLock = await GetLock(context, key, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         if (exLock.Acquired)
@@ -101,7 +100,7 @@ namespace SenseNet.ContentRepository.Storage
                 case ExclusiveBlockType.WaitAndAcquire:
                     while (true)
                     {
-                        using (var exLock = await GetLock(context, key, timeLimit, cancellationToken)
+                        using (var exLock = await GetLock(context, key, cancellationToken)
                             .ConfigureAwait(false))
                         {
                             if (exLock.Acquired)
@@ -119,11 +118,12 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key, DateTime timeLimit,
+        private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key,
             CancellationToken cancellationToken)
         {
             try
             {
+                var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
                 var acquired = await context.DataProvider.AcquireAsync(key, context.OperationId, timeLimit, cancellationToken)
                     .ConfigureAwait(false);
                 return new ExclusiveLock(context, key, acquired, true, cancellationToken);

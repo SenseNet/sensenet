@@ -14,6 +14,26 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class MsSqlExclusiveLockDataProvider : IExclusiveLockDataProviderExtension
     {
+        private string _acquireScript = @"-- MsSqlExclusiveLockDataProvider.Acquire
+-- Ensure existing row for the @Name in a fault-tolerant manner
+IF NOT EXISTS (SELECT Id FROM [ExclusiveLocks] (NOLOCK) WHERE [Name] = @Name) BEGIN
+    BEGIN TRY INSERT INTO [ExclusiveLocks] ([Name]) VALUES (@Name) END TRY
+	BEGIN CATCH /* do nothing */ END CATCH
+END
+-- lock if unlocked or timed out in an atomic instruction
+UPDATE T SET OperationId = @OperationId, TimeLimit = @TimeLimit
+	OUTPUT inserted.Id
+	FROM (SELECT TOP 1 * FROM [ExclusiveLocks]
+			WHERE (OperationId IS NULL OR TimeLimit <= GETUTCDATE())) T
+";
+
+        private string _refreshScript = @"UPDATE ExclusiveLocks SET [TimeLimit] = @TimeLimit WHERE [Name] = @Name";
+
+        private string _releaseScript = @"UPDATE ExclusiveLocks SET [OperationId] = NULL WHERE @Name = [Name]";
+
+        private string _isLockedScript = @"SELECT Id FROM ExclusiveLocks (NOLOCK)
+WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE()";
+
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
@@ -23,30 +43,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var sql = @"-- MsSqlExclusiveLockDataProvider.Acquire
-DECLARE @Now DATETIME2 SET @Now = GETUTCDATE()
-DECLARE @Id AS INT
-SELECT @Id = Id FROM [ExclusiveLocks] (NOLOCK) WHERE [Name] = @Name AND [TimeLimit] > @Now
-IF @Id IS NULL BEGIN
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-    BEGIN TRANSACTION
-        SELECT @Id = Id FROM [ExclusiveLocks] (TABLOCKX) WHERE [Name] = @Name AND [TimeLimit] > @Now
-        IF @Id IS NULL BEGIN
-            SELECT @Id = Id FROM [ExclusiveLocks] (NOLOCK) WHERE [Name] = @Name --AND [TimeLimit] <= @Now
-            IF @Id IS NOT NULL
-    			DELETE FROM [ExclusiveLocks] WHERE Id = @Id
-            INSERT INTO [ExclusiveLocks] ([Name], [TimeLimit])
-	            OUTPUT INSERTED.Id
-	            VALUES (@Name, @TimeLimit)
-        END
-    COMMIT TRANSACTION
-END
-";
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(_acquireScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@Name", DbType.String, key),
+                        ctx.CreateParameter("@OperationId", DbType.String, operationId),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
                 }).ConfigureAwait(false);
@@ -62,8 +64,7 @@ END
             Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(
-                    "UPDATE ExclusiveLocks SET [TimeLimit] = @TimeLimit WHERE [Name] = @Name",
+                await ctx.ExecuteNonQueryAsync(_refreshScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -82,7 +83,7 @@ END
             Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks WHERE @Name = [Name]",
+                await ctx.ExecuteNonQueryAsync(_releaseScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -100,8 +101,7 @@ END
             Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(
-                    "SELECT Id FROM ExclusiveLocks (NOLOCK) WHERE @Name = [Name] AND [TimeLimit] > GETUTCDATE()",
+                var result = await ctx.ExecuteScalarAsync(_isLockedScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
