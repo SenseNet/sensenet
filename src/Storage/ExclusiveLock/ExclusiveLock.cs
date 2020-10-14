@@ -24,9 +24,9 @@ namespace SenseNet.ContentRepository.Storage
             private readonly CancellationTokenSource _finisher;
             private readonly CancellationToken _cancellationToken;
 
-            public static LockGuard Create(ExclusiveBlockContext context, string key, CancellationToken cancellationToken)
+            public static LockGuard Create(ExclusiveBlockContext context, string key, string operationId)
             {
-                var guard = new LockGuard(context, key, cancellationToken);
+                var guard = new LockGuard(context, key, operationId);
                 //#pragma warning disable 4014
                 //                guard.StartAsync();
                 //#pragma warning restore 4014
@@ -34,14 +34,14 @@ namespace SenseNet.ContentRepository.Storage
                 return guard;
             }
 
-            private LockGuard(ExclusiveBlockContext context, string key, CancellationToken cancellationToken)
+            private LockGuard(ExclusiveBlockContext context, string key, string operationId)
             {
                 _key = key;
-                _operationId = context.OperationId;
+                _operationId = operationId;
                 _refreshPeriod = new TimeSpan(context.LockTimeout.Ticks / 2 - 1);
                 _dataProvider = context.DataProvider;
                 _finisher = new CancellationTokenSource();
-                _cancellationToken = cancellationToken;
+                _cancellationToken = context.CancellationToken;
                 Trace.WriteLine($"SnTrace: System: ExclusiveLock guard created for {key} #{_operationId}. RefreshPeriod: {_refreshPeriod}");
             }
 
@@ -79,13 +79,16 @@ namespace SenseNet.ContentRepository.Storage
 
         private readonly LockGuard _guard;
         private readonly ExclusiveBlockContext _context;
-        private readonly CancellationToken _cancellationToken;
         private readonly bool _isFeatureAvailable;
 
         /// <summary>
         /// Gets the unique name of the action.
         /// </summary>
         public string Key { get; }
+        /// <summary>
+        /// Gets the unique identifier of the caller thread, process or appdomain.
+        /// </summary>
+        public string OperationId { get; }
         /// <summary>
         /// Gets a value that is true if the lock is obtained otherwise false.
         /// </summary>
@@ -96,19 +99,20 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <param name="context">The configuration of the exclusive execution.</param>
         /// <param name="key">The unique name of the exclusive lock.</param>
+        /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
+        /// <param name="isFeatureAvailable">:::::::::::::::::::::::::::::::::::::</param>
         /// <param name="acquired">True if the lock is obtained otherwise false.</param>
-        public ExclusiveLock(ExclusiveBlockContext context, string key, bool acquired, bool isFeatureAvailable,
-            CancellationToken cancellationToken)
+        public ExclusiveLock(ExclusiveBlockContext context, string key, string operationId, bool acquired, bool isFeatureAvailable)
         {
             Key = key;
+            OperationId = operationId;
             Acquired = acquired; 
             _context = context;
-            _cancellationToken = cancellationToken;
             _isFeatureAvailable = isFeatureAvailable;
             if (Acquired && isFeatureAvailable)
-                _guard = LockGuard.Create(context, key, _cancellationToken);
+                _guard = LockGuard.Create(context, key, operationId);
 
-            Trace.WriteLine($"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}. Created. Acquired = {acquired}. IsFeatureAvailable = {isFeatureAvailable}");
+            Trace.WriteLine($"SnTrace: System: ExclusiveLock {key} #{operationId}. Created. Acquired = {acquired}. IsFeatureAvailable = {isFeatureAvailable}");
         }
 
         //TODO: Implement AsyncDispose pattern if the framework fixes the "Microsoft.Bcl.AsyncInterfaces" assembly load problem.
@@ -126,12 +130,12 @@ namespace SenseNet.ContentRepository.Storage
             _guard?.Dispose();
             if (_isFeatureAvailable && Acquired)
             {
-                _context.DataProvider?.ReleaseAsync(Key, _context.OperationId, _cancellationToken).ConfigureAwait(false).GetAwaiter()
+                _context.DataProvider?.ReleaseAsync(Key, OperationId, _context.CancellationToken).ConfigureAwait(false).GetAwaiter()
                     .GetResult();
                 Trace.WriteLine(
-                    $"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}: Released.");
+                    $"SnTrace: System: ExclusiveLock {Key} #{OperationId}: Released.");
             }
-            Trace.WriteLine($"SnTrace: System: ExclusiveLock {Key} #{_context.OperationId}: Disposed");
+            Trace.WriteLine($"SnTrace: System: ExclusiveLock {Key} #{OperationId}: Disposed");
         }
     }
 }

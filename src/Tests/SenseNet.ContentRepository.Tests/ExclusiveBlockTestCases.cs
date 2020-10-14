@@ -18,7 +18,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             var context = new ExclusiveBlockContext
             {
-                OperationId = operationId,
                 LockTimeout = TimeSpan.FromSeconds(1),
                 PollingTime = TimeSpan.FromSeconds(0.1),
             };
@@ -26,7 +25,7 @@ namespace SenseNet.ContentRepository.Tests
                 context.WaitTimeout = timeout;
 
             log.Add("before block " + operationId);
-            await ExclusiveBlock.RunAsync(context, "MyFeature", blockType, CancellationToken.None, async () =>
+            await ExclusiveBlock.RunAsync(context, "MyFeature", operationId, blockType, CancellationToken.None, async () =>
             {
                 await System.Threading.Tasks.Task.Delay(1500);
                 log.Add("in block " + operationId);

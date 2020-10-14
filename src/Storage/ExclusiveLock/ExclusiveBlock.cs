@@ -3,7 +3,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
@@ -40,6 +39,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Executes a named action depending on the chosen algorithm.
         /// </summary>
         /// <param name="key">The unique name of the action.</param>
+        /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
         /// <param name="blockType">The algorithm of the exclusive execution.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
@@ -47,10 +47,10 @@ namespace SenseNet.ContentRepository.Storage
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="TimeoutException">The exclusive lock was not released within the specified time</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
-        public static Task RunAsync(string key, ExclusiveBlockType blockType,
+        public static Task RunAsync(string key, string operationId, ExclusiveBlockType blockType,
             CancellationToken cancellationToken, Func<Task> action)
         {
-            return RunAsync(new ExclusiveBlockContext(), key, blockType, cancellationToken, action);
+            return RunAsync(new ExclusiveBlockContext(), key, operationId, blockType, cancellationToken, action);
         }
 
         /// <summary>
@@ -59,21 +59,21 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <param name="context">The configuration of the exclusive execution.</param>
         /// <param name="key">The unique name of the action.</param>
+        /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
         /// <param name="blockType">The algorithm of the exclusive execution.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
         /// <returns></returns>
-        public static async Task RunAsync(ExclusiveBlockContext context, string key, ExclusiveBlockType blockType,
+        public static async Task RunAsync(ExclusiveBlockContext context, string key, string operationId, ExclusiveBlockType blockType,
             CancellationToken cancellationToken, Func<Task> action)
         {
             context.CancellationToken = cancellationToken;
 
             var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);
-            var operationId = context.OperationId;
             switch (blockType)
             {
                 case ExclusiveBlockType.SkipIfLocked:
-                    using (var exLock = await GetLock(context, key, cancellationToken)
+                    using (var exLock = await GetLock(context, key, operationId, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         if(exLock.Acquired)
@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
 
                 case ExclusiveBlockType.WaitForReleased:
-                    using (var exLock = await GetLock(context, key, cancellationToken)
+                    using (var exLock = await GetLock(context, key, operationId, cancellationToken)
                         .ConfigureAwait(false))
                     {
                         if (exLock.Acquired)
@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Storage
                         }
                         else
                         {
-                            await WaitForRelease(context, key, reTryTimeLimit, cancellationToken);
+                            await WaitForRelease(context, key, operationId, reTryTimeLimit, cancellationToken);
                         }
                     } // releases the lock
                     break;
@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Storage
                 case ExclusiveBlockType.WaitAndAcquire:
                     while (true)
                     {
-                        using (var exLock = await GetLock(context, key, cancellationToken)
+                        using (var exLock = await GetLock(context, key, operationId, cancellationToken)
                             .ConfigureAwait(false))
                         {
                             if (exLock.Acquired)
@@ -109,7 +109,7 @@ namespace SenseNet.ContentRepository.Storage
                             }
                         } // releases the lock
 
-                        await WaitForRelease(context, key, reTryTimeLimit, cancellationToken);
+                        await WaitForRelease(context, key, operationId, reTryTimeLimit, cancellationToken);
                     }
                     break;
                 default:
@@ -117,22 +117,22 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key,
+        private static async Task<ExclusiveLock> GetLock(ExclusiveBlockContext context, string key, string operationId,
             CancellationToken cancellationToken)
         {
             try
             {
                 var timeLimit = DateTime.UtcNow.Add(context.LockTimeout);
-                var acquired = await context.DataProvider.AcquireAsync(key, context.OperationId, timeLimit, cancellationToken)
+                var acquired = await context.DataProvider.AcquireAsync(key, operationId, timeLimit, cancellationToken)
                     .ConfigureAwait(false);
-                return new ExclusiveLock(context, key, acquired, true, cancellationToken);
+                return new ExclusiveLock(context, key, operationId, acquired, true);
             }
-            catch (Exception e)
+            catch
             {
                 if (await context.DataProvider.IsFeatureAvailable(cancellationToken))
                     throw;
                 WriteFeatureWarning();
-                return new ExclusiveLock(context, key, true, false, cancellationToken);
+                return new ExclusiveLock(context, key, operationId, true, false);
             }
         }
 
@@ -145,10 +145,9 @@ namespace SenseNet.ContentRepository.Storage
             _isFeatureWarningWritten = true;
         }
 
-        private static async Task WaitForRelease(ExclusiveBlockContext context, string key, DateTime reTryTimeLimit,
+        private static async Task WaitForRelease(ExclusiveBlockContext context, string key, string operationId, DateTime reTryTimeLimit,
             CancellationToken cancellationToken)
         {
-            var operationId = context.OperationId;
             Trace.WriteLine($"SnTrace: {key} #{operationId} wait for release");
             while (true)
             {
@@ -158,13 +157,13 @@ namespace SenseNet.ContentRepository.Storage
                     throw new TimeoutException(
                         "The exclusive lock was not released within the specified time.");
                 }
-                if (!await context.DataProvider.IsLockedAsync(key, context.OperationId, cancellationToken))
+                if (!await context.DataProvider.IsLockedAsync(key, operationId, cancellationToken))
                 {
                     Trace.WriteLine($"SnTrace: {key} #{operationId} exit: unlocked");
                     break;
                 }
                 Trace.WriteLine($"SnTrace: {key} #{operationId} wait: locked by another");
-                await Task.Delay(context.PollingTime);
+                await Task.Delay(context.PollingTime, cancellationToken);
             }
         }
     }
