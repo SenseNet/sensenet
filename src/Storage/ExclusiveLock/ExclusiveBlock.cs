@@ -66,7 +66,6 @@ namespace SenseNet.ContentRepository.Storage
         public static async Task RunAsync(ExclusiveBlockContext context, string key, ExclusiveBlockType blockType,
             CancellationToken cancellationToken, Func<Task> action)
         {
-            //UNDONE:X: Pass and handle cancellationToken
             context.CancellationToken = cancellationToken;
 
             var reTryTimeLimit = DateTime.UtcNow.Add(context.WaitTimeout);

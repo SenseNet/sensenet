@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage
     public class ExclusiveBlockContext
     {
         /// <summary>
-        /// Gets or sets the unique name of the code block's appdomain. Default: Guid guid.
+        /// Gets or sets the unique name of the code block's appdomain. Default: newly generated Guid.
         /// </summary>
         public string OperationId { get; set; } = Guid.NewGuid().ToString();
         /// <summary>
