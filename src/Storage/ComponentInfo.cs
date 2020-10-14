@@ -29,6 +29,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public string Manifest { get; set; }
 
+        public ExecutionResult ExecutionResult { get; set; }
+
         /// <summary>
         /// Represents a not installed component.
         /// </summary>
@@ -36,7 +38,8 @@ namespace SenseNet.ContentRepository.Storage
         {
             ComponentId = string.Empty,
             Version = null,
-            Description = string.Empty
+            Description = string.Empty,
+            ExecutionResult = ExecutionResult.Successful
         };
 
         /// <summary>

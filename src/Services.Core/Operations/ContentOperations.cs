@@ -79,6 +79,8 @@ namespace SenseNet.Services.Core.Operations
 
             foreach (var node in nodes)
             {
+                var originalPath = node?.Path;
+
                 try
                 {
                     // Collect already found identifiers in a separate list otherwise the error list
@@ -86,7 +88,13 @@ namespace SenseNet.Services.Core.Operations
                     foundIdentifiers.Add(NodeIdentifier.Get(node));
 
                     var copy = node.CopyToAndGetCopy(targetNode);
-                    results.Add(new { copy.Id, copy.Path, copy.Name });
+                    results.Add(new
+                    {
+                        copy.Id, 
+                        copy.Path, 
+                        copy.Name,
+                        OriginalPath = originalPath
+                    });
                 }
                 catch (Exception e)
                 {
@@ -97,7 +105,13 @@ namespace SenseNet.Services.Core.Operations
 
                     errors.Add(new ErrorContent
                     {
-                        Content = new { node?.Id, node?.Path, node?.Name },
+                        Content = new
+                        {
+                            node?.Id, 
+                            node?.Path, 
+                            node?.Name,
+                            OriginalPath = originalPath
+                        },
                         Error = new Error
                         {
                             Code = "NotSpecified",
@@ -197,6 +211,8 @@ namespace SenseNet.Services.Core.Operations
 
             foreach (var node in nodes)
             {
+                var originalPath = node?.Path;
+
                 try
                 {
                     // Collect already found identifiers in a separate list otherwise the error list
@@ -204,7 +220,13 @@ namespace SenseNet.Services.Core.Operations
                     foundIdentifiers.Add(NodeIdentifier.Get(node));
 
                     node.MoveTo(targetNode);
-                    results.Add(new { node.Id, node.Path, node.Name });
+                    results.Add(new
+                    {
+                        node.Id, 
+                        node.Path, 
+                        node.Name,
+                        OriginalPath = originalPath
+                    });
                 }
                 catch (Exception e)
                 {
@@ -215,7 +237,13 @@ namespace SenseNet.Services.Core.Operations
 
                     errors.Add(new ErrorContent
                     {
-                        Content = new { node?.Id, node?.Path, node?.Name },
+                        Content = new
+                        {
+                            node?.Id, 
+                            node?.Path, 
+                            node?.Name,
+                            OriginalPath = originalPath
+                        },
                         Error = new Error
                         {
                             Code = "NotSpecified",

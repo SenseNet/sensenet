@@ -50,7 +50,8 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                                 Version = DecodePackageVersion(
                                     reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
                                 Description = reader.GetSafeString(reader.GetOrdinal("Description")),
-                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest"))
+                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
+                                ExecutionResult = ExecutionResult.Successful
                             };
 
                             components[component.ComponentId] = component;
@@ -68,6 +69,62 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
 
             return components.Values.ToArray();
         }
+
+        #region SQL LoadIncompleteComponentsScript
+        private static readonly string IncompleteComponentsScript = $@"-- MsSqlPackagingDataProvider.LoadIncompleteComponents
+SELECT ComponentId, PackageType, ComponentVersion, Description, Manifest, ExecutionResult
+FROM Packages WHERE
+	(PackageType = '{PackageType.Install}' OR PackageType = '{PackageType.Patch}') AND
+	ExecutionResult != '{ExecutionResult.Successful}' 
+ORDER BY ComponentId, ComponentVersion, ExecutionDate
+";
+        #endregion
+        public async Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
+        {
+            var components = new Dictionary<string, ComponentInfo>();
+            var descriptions = new Dictionary<string, string>();
+
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            {
+                await ctx.ExecuteReaderAsync(IncompleteComponentsScript,
+                    async (reader, cancel) =>
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                        {
+                            cancel.ThrowIfCancellationRequested();
+
+                            var src = reader.GetSafeString(reader.GetOrdinal("ExecutionResult"));
+                            var executionResult = src == null
+                                ? ExecutionResult.Unfinished
+                                : (ExecutionResult) Enum.Parse(typeof(ExecutionResult), src);
+
+                            var component = new ComponentInfo
+                            {
+                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                                Version = DecodePackageVersion(
+                                    reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
+                                ExecutionResult = executionResult
+                            };
+
+                            components[component.ComponentId] = component;
+                            if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
+                                == nameof(PackageType.Install))
+                                descriptions[component.ComponentId] = component.Description;
+                        }
+
+                        return true;
+                    }).ConfigureAwait(false);
+            }
+
+            foreach (var item in descriptions)
+                components[item.Key].Description = item.Value;
+
+            return components.Values.ToArray();
+        }
+
         public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {
             var packages = new List<Package>();
@@ -96,7 +153,8 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                                     DeserializeExecutionError(
                                         reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
                                 ComponentVersion =
-                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion")))
+                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
                             });
                         }
 

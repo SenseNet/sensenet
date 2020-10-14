@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
 
@@ -53,9 +54,6 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            var patchingLog = new List<PatchExecutionLogRecord>();
-            void WritePatchingLog(PatchExecutionLogRecord record) { patchingLog.Add(record); }
-
             // Required early configuration
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
@@ -65,8 +63,9 @@ namespace SenseNet.ContentRepository
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
-            var patchManager = new PatchManager(builder, WritePatchingLog);
-            patchManager.ExecutePatchesBeforeStart();
+            var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
+            var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
+            patchManager.ExecutePatchesOnBeforeStart();
 
             var repositoryInstance = Start((RepositoryStartSettings) builder);
 
@@ -74,7 +73,7 @@ namespace SenseNet.ContentRepository
             if (permissions != null && permissions.Count > 0)
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
-            patchManager.ExecutePatchesAfterStart();
+            patchManager.ExecutePatchesOnAfterStart();
 
             return repositoryInstance;
         }

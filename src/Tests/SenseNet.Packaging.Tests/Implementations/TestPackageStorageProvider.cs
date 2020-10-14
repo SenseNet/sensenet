@@ -74,6 +74,11 @@ namespace SenseNet.Packaging.Tests.Implementations
             return Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 
+        public Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult((IEnumerable<ComponentInfo>)new ComponentInfo[0]);
+        }
+
         public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(Storage

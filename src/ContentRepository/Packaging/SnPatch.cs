@@ -6,10 +6,9 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.Packaging
 {
     /// <summary>
-    /// Represents a patch action that will be executed only if the current component version
-    /// is lower than the supported version of the component and it is between the defined 
-    /// minimum and maximum version numbers in this patch. The component version after 
-    /// this patch will be the one defined in the Version property.
+    /// Represents a patch action that will be executed automatically if the version of
+    /// the component is between the defined minimum and maximum version numbers in this patch.
+    /// The component version after this patch will be the one defined in the Version property.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
     public class SnPatch : SnPatchBase

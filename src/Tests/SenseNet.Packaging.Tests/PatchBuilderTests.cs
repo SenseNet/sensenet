@@ -136,6 +136,22 @@ namespace SenseNet.Packaging.Tests
             }
         }
 
+        [TestMethod]
+        public void Patching_Builder_Installer_BeforeAfter()
+        {
+            var builder = new PatchBuilder(new TestComponent());
+
+            // ACTION
+            builder.Install("1.0", "2020-10-20", "MyComp desc")
+                .ActionOnBefore().Action();
+
+            // ASSERT
+            var installers = builder.GetPatches()
+                .Select(x=>(ComponentInstaller)x).ToArray();
+            Assert.IsNull(installers[0].ActionBeforeStart);
+            Assert.IsNull(installers[0].Action);
+        }
+
         /* ================================================================ PATCH TESTS */
 
         [TestMethod]
@@ -302,7 +318,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_Builder_Dependency_Shared()
         {
             var patchBuilder = new PatchBuilder(new TestComponent());
-            var depBuilder = new DependencyBuilder(patchBuilder)
+            var depBuilder = new DependencyBuilder()
                     .Dependency("C3", "3.0")
                     .Dependency("C4", "4.0");
 
@@ -320,7 +336,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_Builder_Dependency_Mixed()
         {
             var patchBuilder = new PatchBuilder(new TestComponent());
-            var depBuilder = new DependencyBuilder(patchBuilder)
+            var depBuilder = new DependencyBuilder()
                 .Dependency("C3", "3.0")
                 .Dependency("C4", "4.0");
 
@@ -340,7 +356,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_Builder_Dependency_SelfDirect()
         {
             var patchBuilder = new PatchBuilder(new TestComponent());
-            var depBuilder = new DependencyBuilder(patchBuilder)
+            var depBuilder = new DependencyBuilder()
                 .Dependency("C3", "3.0")
                 .Dependency("C4", "4.0");
 
@@ -365,7 +381,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_Builder_Dependency_SelfShared()
         {
             var patchBuilder = new PatchBuilder(new TestComponent());
-            var depBuilder = new DependencyBuilder(patchBuilder)
+            var depBuilder = new DependencyBuilder()
                 .Dependency("C3", "3.0")
                 .Dependency("MyComp", "4.0");
 
@@ -390,7 +406,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_Builder_Dependency_Duplicated()
         {
             var patchBuilder = new PatchBuilder(new TestComponent());
-            var depBuilder = new DependencyBuilder(patchBuilder)
+            var depBuilder = new DependencyBuilder()
                 .Dependency("C3", "3.0")
                 .Dependency("C2", "4.0");
 
@@ -436,13 +452,12 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             builder
+                .Install("3.0", "2020-10-20", "desc").Action()
                 .Patch("1.0", "2.0", "2020-10-20", "desc").Action()
-                .Patch("2.0", "3.0", "2020-10-21", "desc").Action()
-                .Install("3.0", "2020-10-20", "desc").Action();
+                .Patch("2.0", "3.0", "2020-10-21", "desc").Action();
 
             // ASSERT
-            //                       MyComp: 1.0 <= v < 2.0 --> 2.0
-            Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0 | MyComp: 2.0 <= v < 3.0 --> 3.0 | MyComp: 3.0",
+            Assert.AreEqual("MyComp: 3.0 | MyComp: 1.0 <= v < 2.0 --> 2.0 | MyComp: 2.0 <= v < 3.0 --> 3.0",
                 PatchesToString(builder));
         }
 

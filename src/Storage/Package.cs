@@ -3,11 +3,12 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
     public enum PackageType { Tool, Patch, Install }
 
-    public enum ExecutionResult { Successful, Faulty, Unfinished }
+    public enum ExecutionResult { Successful, Faulty, Unfinished, FaultyBefore, SuccessfulBefore }
 
     [Serializable]
     [DebuggerDisplay("{ToString()}")]

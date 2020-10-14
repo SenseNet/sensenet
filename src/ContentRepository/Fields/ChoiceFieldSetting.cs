@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml;
 using System.Xml.XPath;
 using SenseNet.ContentRepository.i18n;
@@ -10,8 +8,8 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
 using System.Web;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
@@ -89,6 +87,7 @@ namespace SenseNet.ContentRepository.Fields
                 _options = value;
             }
 		}
+        [JsonConverter(typeof(StringEnumConverter))]
         public DisplayChoice? DisplayChoice
         {
             get

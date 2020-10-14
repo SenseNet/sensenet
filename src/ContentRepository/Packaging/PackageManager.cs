@@ -220,14 +220,16 @@ namespace SenseNet.Packaging
         }
         internal static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
-            var executionResult = successful ? ExecutionResult.Successful : ExecutionResult.Faulty;
-
+            SavePackage(manifest, successful ? ExecutionResult.Successful : ExecutionResult.Faulty, execError);
+        }
+        internal static void SavePackage(Manifest manifest, ExecutionResult executionResult, Exception execError)
+        {
             RepositoryVersionInfo.Reset();
             var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
             if (manifest.PackageType == PackageType.Tool)
                 oldPacks = oldPacks
                     .Where(p => p.ComponentId == manifest.ComponentId && p.PackageType == PackageType.Tool
-                    && p.ExecutionResult == ExecutionResult.Unfinished);
+                                                                      && p.ExecutionResult == ExecutionResult.Unfinished);
             else
                 oldPacks = oldPacks
                     .Where(p => p.ComponentId == manifest.ComponentId && p.ComponentVersion == manifest.Version);

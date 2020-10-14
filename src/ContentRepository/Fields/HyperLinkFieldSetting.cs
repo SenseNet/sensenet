@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml;
 using System.Xml.XPath;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
@@ -21,6 +19,7 @@ namespace SenseNet.ContentRepository.Fields
         public const string UrlFormatName = "UrlFormat";
         private UrlFormat? _format;
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public UrlFormat? UrlFormat
         {
             get

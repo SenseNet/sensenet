@@ -6,9 +6,11 @@ namespace SenseNet.Packaging
 {
     public enum PatchExecutionErrorType
     {
-        DuplicatedInstaller, CannotInstall, MissingVersion, ErrorInExecution
+        DuplicatedInstaller, CannotExecuteOnBefore, CannotExecuteOnAfter, MissingVersion,
+        ExecutionErrorOnBefore, ExecutionErrorOnAfter,
+        SelfDependencyForbidden
     }
-    [DebuggerDisplay("{ToString()())}")]
+    [DebuggerDisplay("{ToString()}")]
     public class PatchExecutionError
     {
         public PatchExecutionErrorType ErrorType { get; }
@@ -33,7 +35,7 @@ namespace SenseNet.Packaging
 
         public override string ToString()
         {
-            return $"{ErrorType} {FaultyPatch}";
+            return $"{ErrorType} {string.Join("; ", FaultyPatches.Select(x=>x.ToString()))}";
         }
     }
 }
