@@ -16,16 +16,16 @@ namespace SenseNet.ContentRepository.Tests
         private async System.Threading.Tasks.Task Worker(string operationId, ExclusiveBlockType blockType,
             List<string> log, TimeSpan timeout = default)
         {
-            var context = new ExclusiveBlockContext
+            var config = new ExclusiveBlockConfiguration
             {
                 LockTimeout = TimeSpan.FromSeconds(1),
                 PollingTime = TimeSpan.FromSeconds(0.1),
             };
             if (timeout != default)
-                context.WaitTimeout = timeout;
+                config.WaitTimeout = timeout;
 
             log.Add("before block " + operationId);
-            await ExclusiveBlock.RunAsync(context, "MyFeature", operationId, blockType, CancellationToken.None, async () =>
+            await ExclusiveBlock.RunAsync("MyFeature", operationId, blockType, config, CancellationToken.None, async () =>
             {
                 await System.Threading.Tasks.Task.Delay(1500);
                 log.Add("in block " + operationId);

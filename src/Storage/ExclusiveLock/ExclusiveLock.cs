@@ -24,21 +24,21 @@ namespace SenseNet.ContentRepository.Storage
             private readonly CancellationTokenSource _finisher;
             private readonly CancellationToken _cancellationToken;
 
-            public static LockGuard Create(ExclusiveBlockContext context, string key, string operationId)
+            public static LockGuard Create(string key, string operationId, ExclusiveBlockConfiguration config)
             {
-                var guard = new LockGuard(context, key, operationId);
+                var guard = new LockGuard(key, operationId, config);
                 Task.Run(() => guard.StartAsync());
                 return guard;
             }
 
-            private LockGuard(ExclusiveBlockContext context, string key, string operationId)
+            private LockGuard(string key, string operationId, ExclusiveBlockConfiguration config)
             {
                 _key = key;
                 _operationId = operationId;
-                _refreshPeriod = new TimeSpan(context.LockTimeout.Ticks / 2 - 1);
-                _dataProvider = context.DataProvider;
+                _refreshPeriod = new TimeSpan(config.LockTimeout.Ticks / 2 - 1);
+                _dataProvider = config.DataProvider;
                 _finisher = new CancellationTokenSource();
-                _cancellationToken = context.CancellationToken;
+                _cancellationToken = config.CancellationToken;
                 Trace.WriteLine($"SnTrace: System: ExclusiveLock guard created for {key} #{_operationId}. RefreshPeriod: {_refreshPeriod}");
             }
 
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         private readonly LockGuard _guard;
-        private readonly ExclusiveBlockContext _context;
+        private readonly ExclusiveBlockConfiguration _config;
         private readonly bool _isFeatureAvailable;
 
         /// <summary>
@@ -94,20 +94,21 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Initializes an instance of the <see cref="ExclusiveLock"/>.
         /// </summary>
-        /// <param name="context">The configuration of the exclusive execution.</param>
         /// <param name="key">The unique name of the exclusive lock.</param>
         /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
-        /// <param name="isFeatureAvailable">:::::::::::::::::::::::::::::::::::::</param>
         /// <param name="acquired">True if the lock is obtained otherwise false.</param>
-        public ExclusiveLock(ExclusiveBlockContext context, string key, string operationId, bool acquired, bool isFeatureAvailable)
+        /// <param name="isFeatureAvailable">True if the feature is installed otherwise false.</param>
+        /// <param name="config">The configuration of the exclusive execution.</param>
+        public ExclusiveLock(string key, string operationId, bool acquired, bool isFeatureAvailable,
+            ExclusiveBlockConfiguration config)
         {
             Key = key;
             OperationId = operationId;
-            Acquired = acquired; 
-            _context = context;
+            Acquired = acquired;
+            _config = config;
             _isFeatureAvailable = isFeatureAvailable;
             if (Acquired && isFeatureAvailable)
-                _guard = LockGuard.Create(context, key, operationId);
+                _guard = LockGuard.Create(key, operationId, config);
 
             Trace.WriteLine($"SnTrace: System: ExclusiveLock {key} #{operationId}. Created. Acquired = {acquired}. IsFeatureAvailable = {isFeatureAvailable}");
         }
@@ -127,7 +128,7 @@ namespace SenseNet.ContentRepository.Storage
             _guard?.Dispose();
             if (_isFeatureAvailable && Acquired)
             {
-                _context.DataProvider?.ReleaseAsync(Key, OperationId, _context.CancellationToken).ConfigureAwait(false).GetAwaiter()
+                _config.DataProvider?.ReleaseAsync(Key, OperationId, _config.CancellationToken).ConfigureAwait(false).GetAwaiter()
                     .GetResult();
                 Trace.WriteLine(
                     $"SnTrace: System: ExclusiveLock {Key} #{OperationId}: Released.");

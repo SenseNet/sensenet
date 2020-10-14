@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage
     /// <summary>
     /// Defines a configuration of the exclusive block's execution.
     /// </summary>
-    public class ExclusiveBlockContext
+    public class ExclusiveBlockConfiguration
     {
         /// <summary>
         /// Gets or sets the timeout of the obtained exclusive lock.
