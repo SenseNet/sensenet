@@ -35,10 +35,12 @@ UPDATE T SET OperationId = @OperationId, TimeLimit = @TimeLimit
 WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE()";
 
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider =>
+            _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         /// <inheritdoc/>
-        public async Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit, CancellationToken cancellationToken)
+        public async Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,
+            CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
@@ -59,7 +61,8 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync(string key, string operationId, DateTime newTimeLimit, CancellationToken cancellationToken)
+        public async Task RefreshAsync(string key, string operationId, DateTime newTimeLimit,
+            CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
@@ -139,15 +142,20 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             }
         }
 
+        /* ====================================================================================== INSTALLATION SCRIPTS */
 
-        public static readonly string DropScript = @"/****** Object:  Index [IX_ExclusiveLock_Name_TimeLimit] ******/
+        public static readonly string DropScript = @"/****** Index [IX_ExclusiveLock_Name_TimeLimit] ******/
 DROP INDEX IF EXISTS [IX_ExclusiveLock_Name_TimeLimit] ON [dbo].[ExclusiveLocks]
 GO
-/****** Object:  Table [dbo].[ExclusiveLocks] ******/
+/****** Index [IX_ExclusiveLock_Name] ******/
+DROP INDEX IF EXISTS [IX_ExclusiveLock_Name] ON [dbo].[ExclusiveLocks]
+GO
+/****** Table [dbo].[ExclusiveLocks] ******/
 DROP TABLE IF EXISTS [dbo].[ExclusiveLocks]
 GO
 ";
-        public static readonly string CreationScript = @"/****** Object:  Table [dbo].[ExclusiveLocks] ******/
+
+        public static readonly string CreationScript = @"/****** Table [dbo].[ExclusiveLocks] ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -157,7 +165,8 @@ BEGIN
 CREATE TABLE [dbo].[ExclusiveLocks](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [nvarchar](450) NOT NULL,
-	[TimeLimit] [datetime2](7) NOT NULL,
+	[OperationId] [nvarchar](450) NULL,
+	[TimeLimit] [datetime2](7) NULL,
  CONSTRAINT [PK_ExclusiveLocks] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -168,7 +177,17 @@ GO
 SET ANSI_PADDING ON
 
 GO
-/****** Object:  Index [IX_ExclusiveLock_Name_TimeLimit] ******/
+/****** Index [IX_ExclusiveLock_Name] ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ExclusiveLocks]') AND name = N'IX_ExclusiveLock_Name')
+CREATE UNIQUE NONCLUSTERED INDEX [IX_ExclusiveLock_Name] ON [dbo].[ExclusiveLocks]
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+
+GO
+/****** Index [IX_ExclusiveLock_Name_TimeLimit] ******/
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ExclusiveLocks]') AND name = N'IX_ExclusiveLock_Name_TimeLimit')
 CREATE NONCLUSTERED INDEX [IX_ExclusiveLock_Name_TimeLimit] ON [dbo].[ExclusiveLocks]
 (
