@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// If "consoleOut" is not null, writes progress and debug messages into it.
         /// </summary>
         /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
         {
@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Deletes the existing index. Called before making a brand new index.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Registers an indexing activity in the database.
         /// </summary>
         /// <param name="activity">The activity to register.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task RegisterActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
@@ -119,7 +119,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Dependent activity execution starts after the previously blocker activity is completed.
         /// </summary>
         /// <param name="activity">The activity to execute.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Deletes all activities from the database.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         internal static STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {

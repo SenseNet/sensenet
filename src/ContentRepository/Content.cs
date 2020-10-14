@@ -667,7 +667,7 @@ namespace SenseNet.ContentRepository
         /// Loads a Content by the provided id.
         /// </summary>
         /// <param name="id">Content id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The latest accessible version of the Content.</returns>
         public static async Task<Content> LoadAsync(int id, CancellationToken cancellationToken)
         {
@@ -690,7 +690,7 @@ namespace SenseNet.ContentRepository
         /// Loads a Content by the provided path.
         /// </summary>
         /// <param name="path">Content path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The latest accessible version of the Content.</returns>
         public static async Task<Content> LoadAsync(string path, CancellationToken cancellationToken)
         {
@@ -714,7 +714,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="id">Content id.</param>
         /// <param name="version">Content version.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<Content> LoadAsync(int id, VersionNumber version, CancellationToken cancellationToken)
         {
             var node = await Node.LoadNodeAsync(id, version, cancellationToken).ConfigureAwait(false);
@@ -737,7 +737,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="path">Content path.</param>
         /// <param name="version">Content version.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<Content> LoadAsync(string path, VersionNumber version, CancellationToken cancellationToken)
         {
             var node = await Node.LoadNodeAsync(path, version, cancellationToken).ConfigureAwait(false);
@@ -757,7 +757,7 @@ namespace SenseNet.ContentRepository
         /// Loads a Content by the provided id or path.
         /// </summary>
         /// <param name="idOrPath">Content id or path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<Content> LoadByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
         {
             var node = await Node.LoadNodeByIdOrPathAsync(idOrPath, cancellationToken).ConfigureAwait(false);

@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken);
 
@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="contentId">Content id.</param>
         /// <param name="lock">Lock token.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
         /// <summary>
@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="contentId">Content id.</param>
         /// <param name="lock">Lock token.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
 
@@ -44,14 +44,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="contentId">Content id.</param>
         /// <param name="lock">Lock token.</param>
         /// <param name="newLock"></param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the original lock value if exists.</returns>
         Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken);
         /// <summary>
         /// Loads a shared lock value for the specified content id.
         /// </summary>
         /// <param name="contentId">Content id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded lock token.</returns>
         Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken);
         /// <summary>
@@ -59,13 +59,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="contentId">Content id.</param>
         /// <param name="lock">Lock token.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the original lock value if exists.</returns>
         Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes expired shared locks. Called by the maintenance task.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CleanupSharedLocksAsync(CancellationToken cancellationToken);
     }

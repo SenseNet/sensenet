@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A new data context object.</returns>
         public abstract SnDataContext CreateDataContext(CancellationToken cancellationToken);
         /* =============================================================================================== Nodes */
