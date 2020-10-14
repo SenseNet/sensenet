@@ -11,10 +11,6 @@ namespace SenseNet.ContentRepository.Storage
     public class ExclusiveBlockContext
     {
         /// <summary>
-        /// Gets or sets the unique name of the code block's appdomain. Default: newly generated Guid.
-        /// </summary>
-        //public string OperationId { get; set; } = Guid.NewGuid().ToString();
-        /// <summary>
         /// Gets or sets the timeout of the obtained exclusive lock.
         /// If the time is out, the lock is automatically released.
         /// </summary>
@@ -30,7 +26,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the current implementation of the <see cref="IExclusiveLockDataProviderExtension"/>.
         /// </summary>
-        public IExclusiveLockDataProviderExtension DataProvider { get; internal set; } =
+        internal IExclusiveLockDataProviderExtension DataProvider { get; set; } =
             DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
         internal CancellationToken CancellationToken { get; set; }
     }

@@ -27,9 +27,6 @@ namespace SenseNet.ContentRepository.Storage
             public static LockGuard Create(ExclusiveBlockContext context, string key, string operationId)
             {
                 var guard = new LockGuard(context, key, operationId);
-                //#pragma warning disable 4014
-                //                guard.StartAsync();
-                //#pragma warning restore 4014
                 Task.Run(() => guard.StartAsync());
                 return guard;
             }
