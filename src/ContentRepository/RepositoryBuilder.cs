@@ -41,7 +41,13 @@ namespace SenseNet.ContentRepository
 
         #endregion
 
+        public RepositoryBuilder(IServiceProvider provider = null)
+        {
+            Services = provider;
+        }
+
         public InitialData InitialData { get; set; }
+        public IServiceProvider Services { get; }
 
         public static void WriteLog(string name, object provider)
         {
