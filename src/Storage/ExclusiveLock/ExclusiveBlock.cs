@@ -41,16 +41,17 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="key">The unique name of the action.</param>
         /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
         /// <param name="blockType">The algorithm of the exclusive execution.</param>
+        /// <param name="options">ExclusiveBlock options</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="TimeoutException">The exclusive lock was not released within the specified time</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
-        public static Task RunAsync(string key, string operationId, ExclusiveBlockType blockType,
+        public static Task RunAsync(string key, string operationId, ExclusiveBlockType blockType, ExclusiveLockOptions options,
             CancellationToken cancellationToken, Func<Task> action)
         {
-            return RunAsync(key, operationId, blockType, new ExclusiveBlockConfiguration(), cancellationToken, action);
+            return RunAsync(key, operationId, blockType, new ExclusiveBlockConfiguration(options), cancellationToken, action);
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
         /// <returns></returns>
-        public static async Task RunAsync(string key, string operationId, ExclusiveBlockType blockType,
+        internal static async Task RunAsync(string key, string operationId, ExclusiveBlockType blockType,
             ExclusiveBlockConfiguration config, CancellationToken cancellationToken, Func<Task> action)
         {
             config.CancellationToken = cancellationToken;
