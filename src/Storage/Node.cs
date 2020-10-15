@@ -1729,7 +1729,7 @@ namespace SenseNet.ContentRepository.Storage
         /// at least See permission for each item in the result set.
         /// </summary>
         /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<List<Node>> LoadNodesAsync(IEnumerable<int> idArray, CancellationToken cancellationToken)
         {
             var nodeHeads = await DataStore.LoadNodeHeadsAsync(idArray, cancellationToken).ConfigureAwait(false);
@@ -1974,7 +1974,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <typeparam name="T">The requested return type.</typeparam>
         /// <param name="nodeId">Node id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A node as the provided derived type.</returns>
         public static async Task<T> LoadAsync<T>(int nodeId, CancellationToken cancellationToken) where T : Node
         {
@@ -1997,7 +1997,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">The requested return type.</typeparam>
         /// <param name="nodeId">Node id.</param>
         /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A node as the provided derived type.</returns>
         public static async Task<T> LoadAsync<T>(int nodeId, VersionNumber version, CancellationToken cancellationToken) where T : Node
         {
@@ -2018,7 +2018,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <typeparam name="T">The requested return type.</typeparam>
         /// <param name="path">Node path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A node as the provided derived type.</returns>
         public static async Task<T> LoadAsync<T>(string path, CancellationToken cancellationToken) where T : Node
         {
@@ -2042,7 +2042,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">The requested return type.</typeparam>
         /// <param name="path">Node path.</param>
         /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A node as the provided derived type.</returns>
         public static async Task<T> LoadAsync<T>(string path, VersionNumber version, CancellationToken cancellationToken) where T : Node
         {
@@ -2076,7 +2076,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </code>
         /// </example>
         /// <param name="path">Node path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The latest accessible version of the <see cref="Node"/> that has the given path, or null.</returns>
         public static Task<Node> LoadNodeAsync(string path, CancellationToken cancellationToken)
         {
@@ -2115,7 +2115,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </example>
         /// <param name="path">Node path.</param>
         /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The <see cref="Node"/> holds the data of the given version of the <see cref="Node"/> that has the given path.</returns>
         public static async Task<Node> LoadNodeAsync(string path, VersionNumber version, CancellationToken cancellationToken)
         {
@@ -2150,7 +2150,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </code>
         /// </example>
         /// <param name="nodeId">Node id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The latest version of the <see cref="Node"/> that has the given Id.</returns> 
         public static Task<Node> LoadNodeAsync(int nodeId, CancellationToken cancellationToken)
         {
@@ -2185,7 +2185,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </example>
         /// <param name="nodeId">Node id.</param>
         /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static async Task<Node> LoadNodeAsync(int nodeId, VersionNumber version, CancellationToken cancellationToken)
         {
@@ -2205,7 +2205,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Loads a <see cref="Node"/> by the provided <see cref="NodeHead"/>.
         /// </summary>
         /// <param name="head">Node head.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static Task<Node> LoadNodeAsync(NodeHead head, CancellationToken cancellationToken)
         {
             return LoadNodeAsync(head, null, cancellationToken);
@@ -2286,7 +2286,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <param name="head">Node head.</param>
         /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<Node> LoadNodeAsync(NodeHead head, VersionNumber version, CancellationToken cancellationToken)
         {
             if (version == null)
@@ -2375,7 +2375,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Loads a <see cref="Node"/> by the provided parameter that can be a path or an id as a string.
         /// </summary>
         /// <param name="idOrPath">Id (e.g. "42") or path (e.g. "/Root/System").</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static Task<Node> LoadNodeByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(idOrPath))
@@ -2640,7 +2640,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Loads a <see cref="Node"/> by the provided versionId.
         /// </summary>
         /// <param name="versionId">Version id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<Node> LoadNodeByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             var head = await NodeHead.GetByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);

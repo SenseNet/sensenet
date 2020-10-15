@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Locks one or more subtrees in the Content Repository. If a subtree is locked, no modifications (Save operations) can be made there.
         /// Use this method with a using statement to make sure that the lock is released when not needed anymore.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="paths">One or more Content Repository paths to be locked.</param>
         /// <exception cref="LockedTreeException">Thrown when any of the requested paths (or any of the parent containers) are already locked.</exception>
         /// <returns>A Task that represents the asynchronous operation and wraps the new tree lock
@@ -104,7 +104,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Checks whether a subtree is locked. Used by save operations to make sure that it is OK to make modifications.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="paths">One or more Content Repository paths to check for locked state.</param>
         /// <exception cref="LockedTreeException">Thrown when any of the requested paths (or any of the parent containers) are already locked.</exception>
         /// <returns>A Task that represents the asynchronous operation.</returns>
@@ -148,7 +148,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets all existing locks in the system.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a lock id, path dictionary.</returns>
         public static Task<Dictionary<int, string>> GetAllLocksAsync(CancellationToken cancellationToken)
         {

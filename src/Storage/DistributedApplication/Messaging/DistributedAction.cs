@@ -16,7 +16,7 @@ namespace SenseNet.Communication.Messaging
         /// <summary>
         /// Executes the activity's main action and distributes it to the other app domains in the cluster.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -44,14 +44,14 @@ namespace SenseNet.Communication.Messaging
         /// </summary>
         /// <param name="onRemote">True if the caller is a message receiver.</param>
         /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken);
 
         /// <summary>
         /// Distributes the activity to the other app domains in the cluster.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public virtual async Task DistributeAsync(CancellationToken cancellationToken)
         {

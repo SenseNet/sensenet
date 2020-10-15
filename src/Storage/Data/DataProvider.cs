@@ -116,7 +116,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// LongTextProperties: long text values that can be lazy loaded.
         /// DynamicProperties: all dynamic property values except binaries and long texts.
         /// </param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="NodeAlreadyExistsException">A Node with this path already exists in the database.</exception>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
@@ -176,7 +176,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="originalPath">Contains the node's original path if it has been renamed. Null if the name has not changed.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id or [versionData].Id is missing.</exception>
@@ -242,7 +242,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it has been renamed. Null if the name has not changed.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
@@ -280,7 +280,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id is missing.</exception>
         /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
@@ -306,7 +306,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 7 - Return the collected NodeData set.
         /// </remarks>
         /// <param name="versionIds">VersionIds of nodes to load.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded NodeData set.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -322,7 +322,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="NodeIsOutOfDateException">The operation was initiated on outdated data.</exception>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
@@ -336,7 +336,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="sourceNodeHeadData">Head data of the node to move.</param>
         /// <param name="targetNodeId">Identifier of the target container.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
             CancellationToken cancellationToken);
@@ -347,7 +347,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Id of the requested version.</param>
         /// <param name="propertiesToLoad">Ids of requested <see cref="PropertyType"/>s.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded Dictionary&lt;int, string&gt; instance.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -359,7 +359,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Id of the requested version.</param>
         /// <param name="propertyTypeId">Requested PropertyTypeId.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="BinaryDataValue"/> instance or null.</returns>
         public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
             CancellationToken cancellationToken);
@@ -368,7 +368,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Checks if a node exists with the provided path.
         /// </summary>
         /// <param name="path">Path of a node.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a boolean value
         /// that is true if the database contains a node with the provided path.</returns>
         public abstract Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken);
@@ -380,7 +380,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns null if the requested object does not exist in the database.
         /// </summary>
         /// <param name="path">Repository path of the requested node.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="NodeHead"/> instance or null.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -392,7 +392,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns null if the requested object does not exist in the database.
         /// </summary>
         /// <param name="nodeId">Id of the requested node.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="NodeHead"/> instance or null.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -404,7 +404,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns null if the requested object does not exist in the database.
         /// </summary>
         /// <param name="versionId">Id of the requested version.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="NodeHead"/> instance or null.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -415,7 +415,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Loads a set of <see cref="NodeHead"/> instances.
         /// </summary>
         /// <param name="nodeIds">The requested node ids.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns></returns>
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds,
             CancellationToken cancellationToken);
@@ -424,14 +424,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns version numbers representing all versions of the requested <see cref="Node"/>.
         /// </summary>
         /// <param name="nodeId">Node identifier.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of version numbers.</returns>
         public abstract Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken);
         /// <summary>
         /// Returns version numbers representing all versions of the requested <see cref="Node"/>.
         /// </summary>
         /// <param name="path">Node path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of version numbers.</returns>
         public abstract Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken);
 
@@ -441,7 +441,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="paths">Node path list.</param>
         /// <param name="resolveAll">Resolve all paths or only the first one that is found.</param>
         /// <param name="resolveChildren">Resolve child content or not.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of collected node heads.</returns>
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken);
@@ -453,14 +453,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <remarks>This methods expects a flattened list of node types. It does not return nodes of derived types.</remarks>
         /// <param name="nodeTypeIds">Array of node type ids. </param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the count of nodes of the requested types.</returns>
         public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken);
         /// <summary>
         /// Gets the ids of nodes that are children of the provided parent. Only direct children are collected, not the whole subtree.
         /// </summary>
         /// <param name="parentId">Parent node id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps child node identifiers.</returns>
         public abstract Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken);
         /// <summary>
@@ -471,7 +471,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="pathStart">Case insensitive repository paths of relevant subtrees or null.</param>
         /// <param name="orderByPath">True if the result set need to be ordered by Path.</param>
         /// <param name="name">Name of the relevant <see cref="Node"/>s or null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart,
             bool orderByPath, string name, CancellationToken cancellationToken);
@@ -483,7 +483,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="pathStart">Case insensitive repository path of the relevant subtree or null.</param>
         /// <param name="orderByPath">True if the result set needs to be ordered by Path.</param>
         /// <param name="properties">List of properties that need to be included in the query expression.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart,
             bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken);
@@ -495,7 +495,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="referenceName">Name of the reference property to search for.</param>
         /// <param name="referredNodeId">Id of a referred node that the property value should contain.</param>
         /// <param name="nodeTypeIds">Ids of relevant NodeTypes or null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
         public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId,
             int[] nodeTypeIds, CancellationToken cancellationToken);
@@ -523,14 +523,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <remarks>Not all types will be returned, only the ones that should be allowed on the target container.</remarks>
         /// <param name="nodeId">Node identifier.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of node types in a subtree.</returns>
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken);
         /// <summary>
         /// Gets a list of content list types in a subtree.
         /// </summary>
         /// <param name="path">Subtree path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps
         /// a list of content list types that are found in a subtree.</returns>
         public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken);
@@ -544,7 +544,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="path">The requested path.</param>
         /// <param name="timeLimit">A <see cref="DateTime"/> value, older tree locks than that are considered to be expired.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the Id of the newly created tree lock or 0.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
         /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
@@ -558,7 +558,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="path">The requested path.</param>
         /// <param name="timeLimit">An expiration time limit. Older tree locks are considered
         /// to be expired and are ignored.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a boolean value
         /// that is true if the path is locked.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
@@ -572,7 +572,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes one or more tree locks by the provided Id set.
         /// </summary>
         /// <param name="lockIds">Ids of the tree locks to delete.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -580,7 +580,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Loads all existing tree locks (including expired elements) as an Id, Path dictionary.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the result as an Id, Path dictionary.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -595,7 +595,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Id of the requested version.</param>
         /// <param name="indexDoc">The serialized <see cref="IndexDocument"/> that will be saved.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the modified VersionTimestamp or 0L.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
@@ -606,7 +606,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets the index document for the provided version ids.
         /// </summary>
         /// <param name="versionIds">Version id array.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the index document array.</returns>
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken);
 
@@ -619,7 +619,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="fromId">Starting node id.</param>
         /// <param name="toId">Max node id.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the list of node ids.</returns>
         public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken);
 
@@ -655,7 +655,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the latest IndexingActivityId or 0.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the latest IndexingActivity Id ot 0.</returns>
         public abstract Task<int> GetLastIndexingActivityIdAsync(
             CancellationToken cancellationToken);
@@ -671,7 +671,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="executingUnprocessedActivities">True if the method is called during executing
         /// unprocessed indexing activities at system startup.</param>
         /// <param name="activityFactory">Factory class for creating activity instances.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the array of indexing activities.</returns>
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count,
             bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken);
@@ -682,7 +682,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="executingUnprocessedActivities">True if the method is called during executing
         /// unprocessed indexing activities at system startup.</param>
         /// <param name="activityFactory">Factory class for creating activity instances.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the array of indexing activities.</returns>
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken);
@@ -696,7 +696,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="maxCount">Maximum number of loaded activities.</param>
         /// <param name="runningTimeoutInSeconds">Timeout for running activities.</param>
         /// <param name="waitingActivityIds">An array of activities that this appdomain is waiting for.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the executable activity result.</returns>
         public abstract Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(
             IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds,
@@ -705,7 +705,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Registers an indexing activity in the database.
         /// </summary>
         /// <param name="activity">Indexing activity.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken);
         /// <summary>
@@ -713,7 +713,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="indexingActivityId">Indexing activity id.</param>
         /// <param name="runningState">A state to set in the database.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
             CancellationToken cancellationToken);
@@ -721,19 +721,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Refresh the lock time of multiple indexing activities.
         /// </summary>
         /// <param name="waitingIds">Activity ids that we are still working on or waiting for.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes finished activities. Called by a cleanup background process.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken);
         /// <summary>
         /// Deletes all activities from the database.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken);
 
@@ -742,7 +742,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the whole schema definition from the database, including property types, node types and content list types.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="RepositorySchemaData"/> instance.</returns>
         public abstract Task<RepositorySchemaData> LoadSchemaAsync(
             CancellationToken cancellationToken);
@@ -762,7 +762,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 3 - Locks the schema exclusively against other modifications and return a schema lock token.
         /// </remarks>
         /// <param name="schemaTimestamp">The current known timestamp of the schema.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the generated schema lock token.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken);
@@ -776,7 +776,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 2 - Returns a newly generated schemaTimestamp.
         /// </remarks>
         /// <param name="schemaLock">Schema lock token.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the new schema timestamp.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken);
@@ -787,7 +787,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Writes the <see cref="AuditEventInfo"/> to the database.
         /// </summary>
         /// <param name="auditEvent">The <see cref="AuditEventInfo"/> object that will be saved.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent,
             CancellationToken cancellationToken);
@@ -797,7 +797,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Intended for internal use.
         /// </summary>
         /// <param name="count">Number of events to load.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of audit events.</returns>
         public abstract Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
             CancellationToken cancellationToken);
@@ -824,7 +824,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="parentId">Id of the container.</param>
         /// <param name="namebase">Name prefix.</param>
         /// <param name="extension">File extension.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the found file name.</returns>
         public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
             CancellationToken cancellationToken);
@@ -836,7 +836,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="path">Path of the requested node.</param>
         /// <param name="includeChildren">True if the algorithm should count in all nodes in the whole subtree.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the size of the requested node or subtree.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
         /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
@@ -849,7 +849,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets the count of nodes in a subtree. The number will include the subtree root node.
         /// </summary>
         /// <param name="path">Subtree path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the count of nodes.</returns>
         public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken);
 
@@ -857,7 +857,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets the count of node versions in the subtree defined by the path parameter.
         /// </summary>
         /// <param name="path">Path of the requested subtree.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the count of versions.</returns>
         public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken);
 
@@ -869,7 +869,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// which happens during the installation process.
         /// </summary>
         /// <param name="data">A storage-model structure to install.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken);
 
@@ -877,7 +877,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns the Content tree representation for building the security model.
         /// Every node and leaf contains only the Id, ParentId and OwnerId of the node.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps an enumerable <see cref="EntityTreeNodeData"/>
         /// as the Content tree representation.</returns>
         public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken);
@@ -887,7 +887,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// If this method returns false, the client should call the <see cref="InstallDatabaseAsync"/> method
         /// to prepare the database.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a boolean value
         /// that is true if the database schema is ready.</returns>
         public virtual Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
@@ -898,7 +898,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Prepares the database schema for accepting new items.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public virtual Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
