@@ -42,7 +42,7 @@ namespace SenseNet.Services.Core
             var configuration = Services.GetService<IConfiguration>();
             var components = Services.GetServices<ISnComponent>().ToArray();
 
-            var repositoryBuilder = new RepositoryBuilder()
+            var repositoryBuilder = new RepositoryBuilder(Services)
                 .UseConfiguration(configuration)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
