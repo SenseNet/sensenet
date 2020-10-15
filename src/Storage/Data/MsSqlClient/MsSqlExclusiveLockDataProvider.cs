@@ -156,10 +156,6 @@ GO
 ";
 
         public static readonly string CreationScript = @"/****** Table [dbo].[ExclusiveLocks] ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ExclusiveLocks]') AND type in (N'U'))
 BEGIN
 CREATE TABLE [dbo].[ExclusiveLocks](
@@ -173,20 +169,14 @@ CREATE TABLE [dbo].[ExclusiveLocks](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 END
-GO
-SET ANSI_PADDING ON
 
-GO
 /****** Index [IX_ExclusiveLock_Name] ******/
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ExclusiveLocks]') AND name = N'IX_ExclusiveLock_Name')
 CREATE UNIQUE NONCLUSTERED INDEX [IX_ExclusiveLock_Name] ON [dbo].[ExclusiveLocks]
 (
 	[Name] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
-SET ANSI_PADDING ON
 
-GO
 /****** Index [IX_ExclusiveLock_Name_TimeLimit] ******/
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ExclusiveLocks]') AND name = N'IX_ExclusiveLock_Name_TimeLimit')
 CREATE NONCLUSTERED INDEX [IX_ExclusiveLock_Name_TimeLimit] ON [dbo].[ExclusiveLocks]
@@ -194,7 +184,6 @@ CREATE NONCLUSTERED INDEX [IX_ExclusiveLock_Name_TimeLimit] ON [dbo].[ExclusiveL
 	[Name] ASC
 )
 INCLUDE ( 	[TimeLimit]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
 ";
     }
 }
