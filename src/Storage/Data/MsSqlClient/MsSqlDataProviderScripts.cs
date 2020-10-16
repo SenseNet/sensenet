@@ -233,7 +233,7 @@ SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F
         #endregion
 
         #region DeleteNodeScript
-        protected override string DeleteNodeScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
+        protected override string DeleteNodeScript => @"-- MsSqlDataProvider.DeleteNode
 DECLARE @Path NVARCHAR(450)
 IF (EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @NodeId)) BEGIN
     IF @Timestamp IS NOT NULL AND (NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @NodeId and @Timestamp = [Timestamp])) BEGIN
@@ -864,7 +864,7 @@ WHERE ContentListId IS NULL AND
         #endregion
 
         #region AcquireTreeLockScript
-        protected override string AcquireTreeLockScript => @"-- MsSqlDataProvider.GetContentListTypesInTree
+        protected override string AcquireTreeLockScript => @"-- MsSqlDataProvider.AcquireTreeLock
 BEGIN TRAN
 IF NOT EXISTS (
         SELECT TreeLockId FROM TreeLocks
@@ -1195,7 +1195,7 @@ SELECT TOP 1 @Result [Result], [Timestamp] FROM SchemaModification
         #endregion
 
         #region FinishSchemaUpdateScript
-        protected override string FinishSchemaUpdateScript => @"-- MsSqlDataProvider.StartSchemaUpdate
+        protected override string FinishSchemaUpdateScript => @"-- MsSqlDataProvider.FinishSchemaUpdate
 DECLARE @Timestamp [timestamp]
 UPDATE [SchemaModification] SET [ModificationDate] = GETUTCDATE(), LockToken = NULL
     WHERE LockToken = @LockToken
@@ -1269,7 +1269,7 @@ SELECT COUNT (1) FROM Versions
 ";
         #endregion
         #region GetVersionCountInSubtreeScript
-        protected override string GetVersionCountInSubtreeScript => @"-- MsSqlDataProvider.GetNodeCountInSubtree
+        protected override string GetVersionCountInSubtreeScript => @"-- MsSqlDataProvider.GetVersionCountInSubtree
 SELECT COUNT (1) FROM Versions v
     JOIN Nodes n ON n.NodeId = v.NodeId
 WHERE [Path] = @Path OR [Path] LIKE REPLACE(@Path, '_', '[_]') + '/%'

@@ -38,6 +38,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
+            services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             
             return services;
         }
