@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage
     public interface IExclusiveLockDataProviderExtension : IDataProviderExtension
     {
         /// <summary>
-        /// Tries to achieve a named exclusive lock. Returns true if successful or false if the lock is used by another
+        /// Tries to acquire a named exclusive lock. Returns true if successful or false if the lock is used by another
         /// thread, process or application domain.
         /// </summary>
         /// <param name="key">The unique name of the exclusive lock.</param>
@@ -55,8 +55,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <remarks>
         /// Normally the sensenet patch system can install a feature before the first usage of the component. 
         /// Because this feature is used by patch system, if the exclusive lock persistence object is missing,
-        /// an error will be thrown. This method is called after catching these errors to it help detect the real
-        /// reason for the database problems.
+        /// an error will be thrown. This method is called after catching these errors to help detect the real
+        /// reason of the problem.
         /// </remarks>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the query result.</returns>

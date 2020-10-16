@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class MsSqlExclusiveLockDataProvider : IExclusiveLockDataProviderExtension
     {
-        private string _acquireScript = @"-- MsSqlExclusiveLockDataProvider.Acquire
+        private const string AcquireScript = @"-- MsSqlExclusiveLockDataProvider.Acquire
 -- Ensure existing row for the @Name in a fault-tolerant manner
 IF NOT EXISTS (SELECT Id FROM [ExclusiveLocks] (NOLOCK) WHERE [Name] = @Name) BEGIN
     BEGIN TRY INSERT INTO [ExclusiveLocks] ([Name]) VALUES (@Name) END TRY
@@ -27,11 +27,11 @@ UPDATE T SET OperationId = @OperationId, TimeLimit = @TimeLimit
 			WHERE (OperationId IS NULL OR TimeLimit <= GETUTCDATE())) T
 ";
 
-        private string _refreshScript = @"UPDATE ExclusiveLocks SET [TimeLimit] = @TimeLimit WHERE [Name] = @Name";
+        private const string RefreshScript = @"UPDATE ExclusiveLocks SET [TimeLimit] = @TimeLimit WHERE [Name] = @Name";
 
-        private string _releaseScript = @"UPDATE ExclusiveLocks SET [OperationId] = NULL WHERE @Name = [Name]";
+        private const string ReleaseScript = @"UPDATE ExclusiveLocks SET [OperationId] = NULL WHERE @Name = [Name]";
 
-        private string _isLockedScript = @"SELECT Id FROM ExclusiveLocks (NOLOCK)
+        private const string IsLockedScript = @"SELECT Id FROM ExclusiveLocks (NOLOCK)
 WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE()";
 
         private RelationalDataProviderBase _dataProvider;
@@ -45,10 +45,11 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(_acquireScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(AcquireScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
+                        // ReSharper disable thrice AccessToDisposedClosure
                         ctx.CreateParameter("@Name", DbType.String, key),
                         ctx.CreateParameter("@OperationId", DbType.String, operationId),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
@@ -67,7 +68,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(_refreshScript,
+                await ctx.ExecuteNonQueryAsync(RefreshScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -86,7 +87,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(_releaseScript,
+                await ctx.ExecuteNonQueryAsync(ReleaseScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -104,7 +105,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(_isLockedScript,
+                var result = await ctx.ExecuteScalarAsync(IsLockedScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]

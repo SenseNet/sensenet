@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
@@ -10,8 +9,8 @@ namespace SenseNet.ContentRepository.Storage
     /// <summary>
     /// Represents a response object of a persistent, distributed application wide exclusive lock.
     /// Only the persistence layer (data provider) can effectively create it. If the instance of this object
-    /// means an obtained lock (Acquired is true), it keeps alive the persistent lock with a periodically
-    /// update operation.
+    /// means an obtained lock (Acquired is true), it keeps alive the persistent lock by updating
+    /// it periodically.
     /// </summary>
     internal class ExclusiveLock : IDisposable
     {

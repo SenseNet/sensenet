@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage
         SkipIfLocked,
         /// <summary>
         /// Requests an exclusive lock and executes the action if the lock is acquired
-        /// otherwise waits for the lock is released then returns without executes the action.
+        /// otherwise waits for the lock is released then returns without executing the action.
         /// </summary>
         WaitForReleased,
         /// <summary>
@@ -31,18 +31,20 @@ namespace SenseNet.ContentRepository.Storage
     }
 
     /// <summary>
-    /// Defines a code block that can run only one instance at a time in the entire distributed application.
+    /// Defines a code block that  will be running exclusively (only a single execution at a time)
+    /// in the entire distributed application.
     /// </summary>
     public class ExclusiveBlock
     {
         /// <summary>
         /// Executes a named action depending on the chosen algorithm.
+        /// Do not forget to await for the method as this is an asynchronous operation.
         /// </summary>
         /// <param name="key">The unique name of the action.</param>
         /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
         /// <param name="blockType">The algorithm of the exclusive execution.</param>
         /// <param name="options">ExclusiveBlock options</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
@@ -62,9 +64,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="operationId">Unique identifier of the caller thread, process or appdomain.</param>
         /// <param name="blockType">The algorithm of the exclusive execution.</param>
         /// <param name="config">The configuration of the exclusive execution.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="action">The code block that will be executed exclusively.</param>
-        /// <returns></returns>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         internal static async Task RunAsync(string key, string operationId, ExclusiveBlockType blockType,
             ExclusiveBlockConfiguration config, CancellationToken cancellationToken, Func<Task> action)
         {

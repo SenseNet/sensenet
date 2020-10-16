@@ -10,11 +10,12 @@ namespace SenseNet.ContentRepository.Storage
     {
         /// <summary>
         /// Gets or sets the timeout of the obtained exclusive lock.
-        /// If the time is out, the lock is automatically released.
+        /// If the time runs out, the lock is automatically released.
         /// </summary>
         public int LockTimeoutInSeconds { get; set; } = 30;
         /// <summary>
-        /// Gets or sets the length of the lock monitoring period. Used in algorithms that wait for releasing the lock.
+        /// Gets or sets the length of the lock monitoring period. Used in algorithms
+        /// that wait for releasing the lock.
         /// </summary>
         public int PollingTimeInSeconds { get; set; } = 5;
         /// <summary>
