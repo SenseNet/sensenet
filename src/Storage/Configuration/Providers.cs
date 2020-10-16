@@ -33,6 +33,8 @@ namespace SenseNet.Configuration
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
             "SenseNet.Diagnostics.EventPropertyCollector");
+        public static string AuditEventWriterClassName { get; internal set; } = GetProvider("AuditEventWriter",
+            typeof(DatabaseAuditEventWriter).FullName);
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.DesktopAccessProvider");
@@ -108,6 +110,19 @@ namespace SenseNet.Configuration
         {
             get => _propertyCollector.Value;
             set { _propertyCollector = new Lazy<IEventPropertyCollector>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>
+        private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>(() =>
+        {
+            var aewr = CreateProviderInstance<IAuditEventWriter>(AuditEventWriterClassName, "AuditEventWriter");
+            return aewr;
+        });
+        public virtual IAuditEventWriter AuditEventWriter
+        {
+            get { return _auditEventWriter.Value; }
+            set { _auditEventWriter = new Lazy<IAuditEventWriter>(() => value); }
         }
         #endregion
 
