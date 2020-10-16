@@ -42,6 +42,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseDataProvider(dataProvider)
                 .UseInitialData(InitialData.Load(SenseNetServicesData.Instance))
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseExclusiveLockDataProviderExtension(new InMemoryExclusiveLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
