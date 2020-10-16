@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security.EFCSecurityStore;
 
@@ -41,8 +42,10 @@ namespace SnWebApplication.Api.Sql.Admin
                     .UseLogger(provider)
                     .UseSecurityDataProvider(
                         new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
-                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
-            });
+                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                    .UseMsSqlExclusiveLockDataProviderExtension();
+            })
+                .AddComponent(provider => new MsSqlExclusiveLockComponent());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

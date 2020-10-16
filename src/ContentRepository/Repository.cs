@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -63,17 +65,26 @@ namespace SenseNet.ContentRepository
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
-            var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
-            var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
-            patchManager.ExecutePatchesOnBeforeStart();
+            RepositoryInstance repositoryInstance = null;
+            var exclusiveLockOptions = builder.Services?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
 
-            var repositoryInstance = Start((RepositoryStartSettings) builder);
+            ExclusiveBlock.RunAsync("SenseNet.PatchManager", Guid.NewGuid().ToString(),
+                ExclusiveBlockType.WaitAndAcquire, exclusiveLockOptions, CancellationToken.None, () =>
+            {
+                var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
+                var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
+                patchManager.ExecutePatchesOnBeforeStart();
 
-            var permissions = initialData?.Permissions;
-            if (permissions != null && permissions.Count > 0)
-                SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+                repositoryInstance = Start((RepositoryStartSettings)builder);
 
-            patchManager.ExecutePatchesOnAfterStart();
+                var permissions = initialData?.Permissions;
+                if (permissions != null && permissions.Count > 0)
+                    SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+
+                patchManager.ExecutePatchesOnAfterStart();
+
+                return System.Threading.Tasks.Task.CompletedTask;
+            }).GetAwaiter().GetResult();
 
             return repositoryInstance;
         }
