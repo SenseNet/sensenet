@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Builds a brand new index.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="consoleWriter">TextWriter instance for writing progress.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task ClearAndPopulateAllAsync(CancellationToken cancellationToken, TextWriter consoleWriter = null);
@@ -43,7 +43,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// It does not notify other web servers and does not register activities.
         /// </summary>
         /// <param name="path">Subtree path.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="level">Index rebuild level. Default is <see cref="IndexRebuildLevel.IndexOnly"/>.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly);
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="path">The Path of the root node of the subtree.</param>
         /// <param name="nodeId">The Id of the root node of the subtree.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task AddTreeAsync(string path, int nodeId, CancellationToken cancellationToken);
         /// <summary>
@@ -71,7 +71,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="data">The snapshot recorded by the <see cref="BeginPopulateNode"/> method.</param>
         /// <param name="indexDocument">The index document that will be written into the index.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CommitPopulateNodeAsync(object data, IndexDocumentData indexDocument, CancellationToken cancellationToken);
         /// <summary>
@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="data">The snapshot recorded by the <see cref="BeginPopulateNode"/> method.</param>
         /// <param name="indexDocument">The index document that will be written into the index.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task FinalizeTextExtractingAsync(object data, IndexDocumentData indexDocument, CancellationToken cancellationToken);
         /// <summary>
@@ -87,7 +87,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="path">Path of the deleted content.</param>
         /// <param name="nodeId">Id of the deleted content.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteTreeAsync(string path, int nodeId, CancellationToken cancellationToken);
 
@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// The idSet cannot be null.
         /// </summary>
         /// <param name="idSet">An array of subtree root ids to delete.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteForestAsync(IEnumerable<int> idSet, CancellationToken cancellationToken);
         /// <summary>
@@ -104,7 +104,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// The pathSet cannot be null.
         /// </summary>
         /// <param name="pathSet">An array of subtree root paths to delete.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteForestAsync(IEnumerable<string> pathSet, CancellationToken cancellationToken);
 
@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Rebuilds the index of a node or a subtree.
         /// </summary>
         /// <param name="node">The root node of the subtree.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="recursive">True if the intention is to reindex the whole subtree.</param>
         /// <param name="rebuildLevel">Index rebuild level. Default is <see cref="IndexRebuildLevel.IndexOnly"/>.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>

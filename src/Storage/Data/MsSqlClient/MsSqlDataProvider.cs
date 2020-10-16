@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// on the configured database.
         /// </summary>
         /// <param name="scriptName">Resource identifier.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         private async Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
         {

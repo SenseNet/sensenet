@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// </summary>
         /// <param name="onRemote">True if the caller is a message receiver.</param>
         /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public override async STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {
@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// Waits for a release signal that indicates that this activity has been executed
         /// successfully in the background.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public async STT.Task WaitForCompleteAsync(CancellationToken cancellationToken)
         {

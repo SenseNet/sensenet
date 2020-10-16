@@ -148,7 +148,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// <summary>
         /// Defines the customizable method to reach the activity's main goal.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         protected abstract STT.Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken);
         
