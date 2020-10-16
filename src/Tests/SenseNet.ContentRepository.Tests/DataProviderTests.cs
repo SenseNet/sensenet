@@ -805,6 +805,41 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        public async STT.Task DP_ForceDelete_InstantDeleteBlobs()
+        {
+            await Test(async () =>
+            {
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                root.Save();
+                var f1 = new SystemFolder(root) {Name = "F1"};
+                f1.Save();
+                var f2 = new File(root) { Name = "F2" };
+                f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f2.Save();
+                var f3 = new SystemFolder(f1) {Name = "F3"};
+                f3.Save();
+                var f4 = new File(root) { Name = "F4" };
+                f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f4.Save();
+
+                // ACTION
+                Node.ForceDelete(root.Path);
+
+                // ASSERT
+                Assert.IsNull(Node.Load<SystemFolder>(root.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f1.Id));
+                Assert.IsNull(Node.Load<File>(f2.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
+                Assert.IsNull(Node.Load<File>(f4.Id));
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+            });
+        }
+
+        [TestMethod]
         public void DP_DeleteDeleted()
         {
             Test(() =>
