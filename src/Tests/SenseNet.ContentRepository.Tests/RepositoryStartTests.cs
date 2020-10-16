@@ -19,8 +19,10 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Security.Data;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using SenseNet.Tools.Diagnostics;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -153,6 +155,13 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
+        private class TestAuditEventWriter : IAuditEventWriter
+        {
+            public void Write(IAuditEvent auditEvent, IDictionary<string, object> properties)
+            {
+            }
+        }
+
         #endregion
 
         [TestMethod]
@@ -391,6 +400,115 @@ namespace SenseNet.ContentRepository.Tests
                 SnLog.Instance = originalLogger;
                 SnTrace.SnTracers.Clear();
                 SnTrace.SnTracers.AddRange(originalTracers);
+            }
+        }
+
+        [TestMethod]
+        public void RepositoryStart_AuditEventWriter()
+        {
+            var originalWriter = SnLog.AuditEventWriter;
+            var auditWriter = new TestAuditEventWriter();
+
+            try
+            {
+                Test(repoBuilder =>
+                {
+                    repoBuilder
+                        .UseAuditEventWriter(auditWriter);
+                }, () =>
+                {
+                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
+                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
+                });
+            }
+            finally
+            {
+                SnLog.AuditEventWriter = originalWriter;
+            }
+        }
+        [TestMethod]
+        public void RepositoryStart_AuditEventWriter_Database()
+        {
+            var originalWriter = SnLog.AuditEventWriter;
+            var auditWriter = new DatabaseAuditEventWriter();
+
+            var dbProvider = new InMemoryDataProvider();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine(GetInitialIndex());
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            try
+            {
+                // Clear the slot to ensure a real test.
+                Providers.Instance.AuditEventWriter = null;
+
+                var repoBuilder = new RepositoryBuilder()
+                    .UseAccessProvider(new DesktopAccessProvider())
+                    .UseDataProvider(dbProvider)
+                    .UseAuditEventWriter(auditWriter) // <-- The important line
+                    .UseInitialData(GetInitialData())
+                    .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
+                    .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                    .UseSecurityDataProvider(securityDbProvider)
+                    .UseSearchEngine(searchEngine)
+                    .UseAccessProvider(accessProvider)
+                    .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                    .StartIndexingEngine(false)
+                    .StartWorkflowEngine(false)
+                    .UseTraceCategories("Test", "Web", "System");
+
+                using (Repository.Start(repoBuilder))
+                {
+                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
+                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
+                }
+            }
+            finally
+            {
+                SnLog.AuditEventWriter = originalWriter;
+            }
+        }
+        [TestMethod]
+        public void RepositoryStart_AuditEventWriter_Inactive()
+        {
+            var originalWriter = SnLog.AuditEventWriter;
+
+            var dbProvider = new InMemoryDataProvider();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine(GetInitialIndex());
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            try
+            {
+                // Clear the slot to ensure a real test.
+                Providers.Instance.AuditEventWriter = null;
+
+                var repoBuilder = new RepositoryBuilder()
+                    .UseAccessProvider(new DesktopAccessProvider())
+                    .UseDataProvider(dbProvider)
+                    .UseInactiveAuditEventWriter() // <-- The important line
+                    .UseInitialData(GetInitialData())
+                    .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
+                    .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                    .UseSecurityDataProvider(securityDbProvider)
+                    .UseSearchEngine(searchEngine)
+                    .UseAccessProvider(accessProvider)
+                    .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                    .StartIndexingEngine(false)
+                    .StartWorkflowEngine(false)
+                    .UseTraceCategories("Test", "Web", "System");
+
+                using (Repository.Start(repoBuilder))
+                {
+                    Assert.IsTrue(Providers.Instance.AuditEventWriter is InactiveAuditEventWriter);
+                    Assert.AreSame(Providers.Instance.AuditEventWriter, SnLog.AuditEventWriter);
+                }
+            }
+            finally
+            {
+                SnLog.AuditEventWriter = originalWriter;
             }
         }
 

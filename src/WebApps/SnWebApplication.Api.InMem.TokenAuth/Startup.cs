@@ -44,7 +44,8 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 repositoryBuilder
                     .BuildInMemoryRepository()
                     .UseLogger(provider)
-                    .UseAccessProvider(new UserAccessProvider());
+                    .UseAccessProvider(new UserAccessProvider())
+                    .UseInactiveAuditEventWriter();
             });
         }
 
