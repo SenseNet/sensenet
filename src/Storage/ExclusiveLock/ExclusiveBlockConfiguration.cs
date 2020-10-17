@@ -52,11 +52,10 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public TimeSpan WaitTimeout { get; set; }
 
-        /// <summary>
-        /// Gets the current implementation of the <see cref="IExclusiveLockDataProviderExtension"/>.
-        /// </summary>
         internal IExclusiveLockDataProviderExtension DataProvider { get; } =
-            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>();
+            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>() ??
+            DefaultExclusiveLockDataProviderExtension.Instance;
+
         internal CancellationToken CancellationToken { get; set; }
     }
 }
