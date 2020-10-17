@@ -68,4 +68,35 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task ReleaseAllAsync(CancellationToken cancellationToken);
     }
+
+    internal class DefaultExclusiveLockDataProviderExtension : IExclusiveLockDataProviderExtension
+    {
+        public static IExclusiveLockDataProviderExtension Instance { get; } =
+            new DefaultExclusiveLockDataProviderExtension();
+
+        public Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+        public Task RefreshAsync(string key, string operationId, DateTime newTimeLimit, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+        public Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+        public Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+        public Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(false);
+        }
+        public Task ReleaseAllAsync(CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+    }
 }
