@@ -26,6 +26,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using BlobStorage = SenseNet.Configuration.BlobStorage;
 using IsolationLevel = System.Data.IsolationLevel;
 using STT = System.Threading.Tasks;
 
@@ -809,6 +810,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
+                BlobStorage.BlobDeletionPolicy = BlobDeletionPolicy.Immediately;
+
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 // Create a small subtree

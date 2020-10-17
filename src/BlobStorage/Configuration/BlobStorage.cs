@@ -2,6 +2,37 @@
 namespace SenseNet.Configuration
 {
     /// <summary>
+    /// Determines the blob deletion algorithm.
+    /// </summary>
+    public enum BlobDeletionPolicy
+    {
+        /// <summary>
+        /// Sometimes the SnMaintenance service checks the orphaned blobs and after a delay deletes them.
+        /// </summary>
+        /// <remarks>
+        /// This policy ensures the fast response time but the database can contain a lot of unnecessary data.
+        /// This is an enterprise feature.
+        /// </remarks>
+        BackgroundDelayed,
+        /// <summary>
+        /// Deleting the blobs is requested immediately, and a dedicated background task deletes them one by one.
+        /// </summary>
+        /// <remarks>
+        /// This policy ensures the fast response time but the database load is higher than in the BackgroundDelayed case.
+        /// The database not reaches immediately the desired size, but the delay as short as possible.
+        /// </remarks>
+        BackgroundImmediately,
+        /// <summary>
+        /// Deleting a blob happens immediately and synchronously.
+        /// </summary>
+        /// <remarks>
+        /// This policy responses slower the database load is highest but the database reaches immediately the
+        /// desired size.
+        /// </remarks>
+        Immediately,
+    }
+
+    /// <summary>
     /// Provides configuration values needed by the blob storage. Looks for values 
     /// in the sensenet/blobstorage section. All properties have default values,
     /// no configuration is mandatory.
@@ -44,5 +75,11 @@ namespace SenseNet.Configuration
         /// Class name of an optional external metadata provider for the blob storage.
         /// </summary>
         public static string MetadataProviderClassName { get; internal set; } = GetString(SectionName, "MetadataProvider");
+
+        /// <summary>
+        /// Gets the blob deletion algorithm.
+        /// </summary>
+        public static BlobDeletionPolicy BlobDeletionPolicy { get; internal set; } =
+            GetValue<BlobDeletionPolicy>(SectionName, "BlobDeletionPolicy");
     }
 }
