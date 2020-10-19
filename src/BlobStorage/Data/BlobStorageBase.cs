@@ -56,9 +56,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        protected internal static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            await BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+            return BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionIds">VersionId set.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        protected internal static Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
-            await BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
+            return BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
         }
 
         /// <summary>
