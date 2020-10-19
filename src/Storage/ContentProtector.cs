@@ -33,6 +33,11 @@ namespace SenseNet.ContentRepository.Storage
             "/Root/System/Schema/ContentTypes/GenericContent/User",
             "/Root/System/Schema/ContentTypes/GenericContent/Group",
         };
+        private readonly List<string> _protectedGroups = new List<string>
+        {
+            "/Root/IMS/BuiltIn/Portal/Administrators",
+            "/Root/IMS/Public/Administrators"
+        };
 
         private static ContentProtector Instance => Providers.Instance.ContentProtector;
 
@@ -43,6 +48,14 @@ namespace SenseNet.ContentRepository.Storage
         public static string[] GetProtectedPaths()
         {
             return Instance._protectedPaths.ToArray();
+        }
+        /// <summary>
+        /// Gets the list of all protected groups.
+        /// WARNING: The protected paths are sensitive information.
+        /// </summary>
+        public static string[] GetProtectedGroups()
+        {
+            return Instance._protectedGroups.ToArray();
         }
 
         /// <summary>

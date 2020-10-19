@@ -539,6 +539,38 @@ namespace SenseNet.ContentRepository
                 SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
         }
 
+        protected override void OnModifying(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnModifying(sender, e);
+
+            // is this a protected group?
+            if (!ContentProtector.GetProtectedGroups().Contains(e.SourceNode.Path)) 
+                return;
+
+            // has the Members field changed?
+            var changedMembers = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Members));
+            if (changedMembers == null) 
+                return;
+
+            var newMembers = ((IEnumerable<Node>)changedMembers.Value)?.ToArray() ?? Array.Empty<Node>();
+            if (!newMembers.Any())
+                throw new InvalidOperationException($"{Name} is a protected group. " +
+                                                    "It has to contain at least one member.");
+
+            // at least one Enabled member has to remain in the group
+            if (!newMembers.Any(member =>
+            {
+                return member switch
+                {
+                    User u => u.Enabled,
+                    Group g => g.GetAllMemberUsers().Any(mu => mu.Enabled),
+                    _ => false
+                };
+            }))
+                throw new InvalidOperationException($"{Name} is a protected group. " +
+                                                    "It has to contain at least one enabled member.");
+        }
+
         /// <summary>
         /// After modification updates the membership recursively in the security database.
         /// Do not use this method directly from your code.

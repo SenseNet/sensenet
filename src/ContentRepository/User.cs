@@ -1151,6 +1151,14 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Events
 
+        protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnDeletingPhysically(sender, e);
+
+            // check if all protected groups of this user remain functional
+            AssertEnabledMembers("delete");
+        }
+
         /// <summary>
         /// Checks whether the Move operation is acceptable for the current <see cref="DirectoryProvider"/>.
         /// The operation will be cancelled if it is prohibited.
@@ -1172,6 +1180,19 @@ namespace SenseNet.ContentRepository
             }
 
             base.OnMoving(sender, e);
+        }
+
+        protected override void OnModifying(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnModifying(sender, e);
+
+            // has the Enabled field changed to False?
+            var changedEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Enabled));
+            if (changedEnabled == null || (int)changedEnabled.Value == 1)
+                return;
+
+            // check if all protected groups of this user remain functional
+            AssertEnabledMembers("disable");
         }
 
         /// <summary>
@@ -1200,6 +1221,27 @@ namespace SenseNet.ContentRepository
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
                     SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
+            }
+        }
+
+        private void AssertEnabledMembers(string operation)
+        {
+            // check if all protected groups of this user remain functional
+            var protectedGroups = ContentProtector.GetProtectedGroups();
+
+            using (new SystemAccount())
+            {
+                if (GetGroups()
+                    .Select(gid => NodeHead.Get(gid)?.Path)
+                    .Where(gp => gp != null && protectedGroups.Contains(gp))
+                    .Select(Load<Group>)
+                    .Any(group =>
+                    {
+                        // true if no other enabled member would remain in the group
+                        return group.GetAllMemberUsers().Count(mu => mu is User user && user.Id != Id && user.Enabled) == 0;
+                    }))
+                    throw new InvalidOperationException($"It is not possible to {operation} {Username}. " +
+                                                        "It would leave one of the protected groups without an enabled member.");
             }
         }
 
