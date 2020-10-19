@@ -84,6 +84,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /*================================================================== Maintenance*/
 
+        public new static Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
+        {
+            return BlobStorageBase.DeleteOrphanedFilesAsync(cancellationToken);
+        }
+
         public new static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
         {
             return BlobStorageBase.CleanupFilesSetFlagAsync(cancellationToken);

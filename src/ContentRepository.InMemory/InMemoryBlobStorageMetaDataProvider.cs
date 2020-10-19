@@ -411,7 +411,10 @@ namespace SenseNet.ContentRepository.InMemory
                 .ToArray();
 
             foreach (var fileId in filesIdsToDelete)
+            {
+                Thread.Sleep(10); // Simulates the delay of a real database.
                 db.Files.Remove(fileId);
+            }
 
             // Done: return false because all items are deleted.
             return STT.Task.FromResult(false);

@@ -55,31 +55,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="dataContext">Database accessor object.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext,
-            CancellationToken cancellationToken = default)
+        protected internal static async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             await BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
-            switch (BlobStorage.BlobDeletionPolicy)
-            {
-                case BlobDeletionPolicy.BackgroundDelayed:
-                    // Do nothing, the blob deletion is a maintenance task.
-                    break;
-                case BlobDeletionPolicy.BackgroundImmediately:
-                    await CleanupFilesSetFlagAsync(cancellationToken);
-                    await CleanupFilesAsync(cancellationToken);
-                    break;
-                case BlobDeletionPolicy.Immediately:
-                    await CleanupFilesSetFlagAsync(cancellationToken);
-#pragma warning disable 4014
-                    // This call is not awaited because of shorter response time.
-                    CleanupFilesAsync(cancellationToken);
-#pragma warning restore 4014
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         /// <summary>
@@ -87,31 +66,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
         /// <param name="dataContext">Database accessor object.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext,
-            CancellationToken cancellationToken = default)
+        protected internal static async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
             await BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
-            switch (BlobStorage.BlobDeletionPolicy)
-            {
-                case BlobDeletionPolicy.BackgroundDelayed:
-                    // Do nothing, the blob deletion is a maintenance task.
-                    break;
-                case BlobDeletionPolicy.BackgroundImmediately:
-                    await CleanupFilesSetFlagAsync(cancellationToken);
-                    await CleanupFilesAsync(cancellationToken);
-                    break;
-                case BlobDeletionPolicy.Immediately:
-                    await CleanupFilesSetFlagAsync(cancellationToken);
-#pragma warning disable 4014
-                    // This call is not awaited because of shorter response time.
-                    CleanupFilesAsync(cancellationToken);
-#pragma warning restore 4014
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         /// <summary>
@@ -377,6 +335,29 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /*================================================================== Maintenance*/
+
+        protected static async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
+        {
+            switch (BlobStorage.BlobDeletionPolicy)
+            {
+                case BlobDeletionPolicy.BackgroundDelayed:
+                    // Do nothing, the blob deletion is a maintenance task.
+                    break;
+                case BlobDeletionPolicy.Immediately:
+                    await CleanupFilesSetFlagAsync(cancellationToken);
+                    await CleanupFilesAsync(cancellationToken);
+                    break;
+                case BlobDeletionPolicy.BackgroundImmediately:
+                    await CleanupFilesSetFlagAsync(cancellationToken);
+#pragma warning disable 4014
+                    // This call is not awaited because of shorter response time.
+                    CleanupFilesAsync(cancellationToken);
+#pragma warning restore 4014
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
