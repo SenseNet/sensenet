@@ -188,9 +188,16 @@ UPDATE BinaryProperties SET FileId = @FileId
 
         #region CleanupFileSetIsdeletedScript
         // this is supposed to be faster than using LEFT JOIN
-        private const string CleanupFileSetIsdeletedScript = @"-- MsSqlBlobMetaDataProvider.CleanupFileSetIsdeleted
+        private const string CleanupFileSetIsDeletedScript = @"-- MsSqlBlobMetaDataProvider.CleanupFileSetIsdeleted
 UPDATE [Files] SET IsDeleted = 1
 WHERE [Staging] IS NULL AND CreationDate < DATEADD(minute, -30, GETUTCDATE()) AND FileId NOT IN (SELECT FileId FROM [BinaryProperties])
+";
+        #endregion
+        #region CleanupFileSetIsdeletedImmediatelyScript
+        // this is supposed to be faster than using LEFT JOIN
+        private const string CleanupFileSetIsDeletedImmediatelyScript = @"-- MsSqlBlobMetaDataProvider.CleanupFileSetIsdeleted
+UPDATE [Files] SET IsDeleted = 1
+WHERE [Staging] IS NULL AND FileId NOT IN (SELECT FileId FROM [BinaryProperties])
 ";
         #endregion
 

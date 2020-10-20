@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -510,7 +508,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+        public Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+        {
+            return CleanupFilesSetDeleteFlagAsync(CleanupFileSetIsDeletedScript, cancellationToken);
+        }
+        public Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken)
+        {
+            return CleanupFilesSetDeleteFlagAsync(CleanupFileSetIsDeletedImmediatelyScript, cancellationToken);
+        }
+        private async Task CleanupFilesSetDeleteFlagAsync(string script, CancellationToken cancellationToken)
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
@@ -518,7 +524,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     try
                     {
-                        await ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript).ConfigureAwait(false);
+                        await ctx.ExecuteNonQueryAsync(script).ConfigureAwait(false);
                         transaction.Commit();
                     }
                     catch (Exception e)
@@ -567,6 +573,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
                 }).ConfigureAwait(false);
             }
+        }
+
+        public async Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        {
+            while (await CleanupFilesAsync(cancellationToken)) { }
         }
     }
 }

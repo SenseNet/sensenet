@@ -398,6 +398,14 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        public virtual STT.Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken)
+        {
+            // This method is not supported in this provider because the FileDoc
+            // does not have enough information (IsDeleted).
+
+            return STT.Task.CompletedTask;
+        }
+
         public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             // Delete the orphaned files immediately (see the comment in the CleanupFilesSetDeleteFlagAsync).
@@ -418,6 +426,11 @@ namespace SenseNet.ContentRepository.InMemory
 
             // Done: return false because all items are deleted.
             return STT.Task.FromResult(false);
+        }
+
+        public virtual STT.Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        {
+            return CleanupFilesAsync(cancellationToken);
         }
     }
 }

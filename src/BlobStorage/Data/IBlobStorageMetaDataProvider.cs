@@ -135,17 +135,31 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
+        /// Marks only files that were created more than 30 minutes ago.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
+        /// Deletes one file records that are marked as deleted from the metadata database and also from the blob storage.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a boolean value 
         /// that is true if there was at least one row that was deleted.</returns>
         Task<bool> CleanupFilesAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Deletes all file records that are marked as deleted from the metadata database and also from the blob storage.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CleanupAllFilesAsync(CancellationToken cancellationToken);
     }
 }
