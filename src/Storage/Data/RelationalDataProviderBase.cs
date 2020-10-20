@@ -43,6 +43,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                var needToCleanupFiles = false;
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -124,8 +125,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         transaction.Commit();
                     }
+                    needToCleanupFiles = ctx.NeedToCleanupFiles;
                 }
 
+                if (needToCleanupFiles)
+                    await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {
@@ -235,6 +239,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                var needToCleanupFiles = false;
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -328,7 +333,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         transaction.Commit();
                     }
+                    needToCleanupFiles = ctx.NeedToCleanupFiles;
                 }
+
+                if (needToCleanupFiles)
+                    await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {
@@ -447,6 +456,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                var needToCleanupFiles = false;
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -557,7 +567,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         transaction.Commit();
                     }
+                    needToCleanupFiles = ctx.NeedToCleanupFiles;
                 }
+
+                if (needToCleanupFiles)
+                    await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {
@@ -580,6 +594,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                var needToCleanupFiles = false;
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -628,7 +643,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         transaction.Commit();
                     }
+
+                    needToCleanupFiles = ctx.NeedToCleanupFiles;
                 }
+
+                if (needToCleanupFiles)
+                    await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {
@@ -860,20 +880,24 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 using (var ctx = CreateDataContext(cancellationToken))
-                using (var transaction = ctx.BeginTransaction())
                 {
-                    await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
+                    using (var transaction = ctx.BeginTransaction())
                     {
-                        cmd.Parameters.AddRange(new[]
+                        await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
                         {
-                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                            ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
-                            ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
+                            cmd.Parameters.AddRange(new[]
+                            {
+                                ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                                ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                                ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
 
-                        });
-                    }).ConfigureAwait(false);
-                    transaction.Commit();
+                            });
+                        }).ConfigureAwait(false);
+                        transaction.Commit();
+                    }
                 }
+
+                await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {
@@ -915,6 +939,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                         sourceNodeHeadData.Timestamp = ConvertTimestampToInt64(result);
                     }
                 }
+
+                await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
             }
             catch (DataException)
             {

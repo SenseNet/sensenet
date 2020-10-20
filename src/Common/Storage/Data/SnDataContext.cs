@@ -26,6 +26,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         internal bool IsDisposed { get; private set; }
 
+        public bool NeedToCleanupFiles { get; set; }
+
         protected SnDataContext(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;

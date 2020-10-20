@@ -365,58 +365,69 @@ namespace SenseNet.ContentRepository.InMemory
         public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            using (var transaction = DB.BeginTransaction())
+            var needToCleanupFiles = false;
+            using (var dataContext = new InMemoryDataContext(cancellationToken))
             {
-                try
+                using (var transaction = DB.BeginTransaction())
                 {
-                    var nodeId = nodeHeadData.NodeId;
-                    var timestamp = nodeHeadData.Timestamp;
+                    try
+                    {
+                        var nodeId = nodeHeadData.NodeId;
+                        var timestamp = nodeHeadData.Timestamp;
 
-                    var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
-                    if (nodeDoc == null)
-                        return STT.Task.CompletedTask;
+                        var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                        if (nodeDoc == null)
+                            return STT.Task.CompletedTask;
 
-                    if (nodeDoc.Timestamp != timestamp)
-                        throw new NodeIsOutOfDateException($"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
-                                                           $"Path:\"{nodeDoc.Path}\"");
+                        if (nodeDoc.Timestamp != timestamp)
+                            throw new NodeIsOutOfDateException(
+                                $"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
+                                $"Path:\"{nodeDoc.Path}\"");
 
-                    var path = nodeDoc.Path;
-                    var nodeIds = DB.Nodes
-                        .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
-                        .Select(n => n.NodeId)
-                        .ToArray();
-                    var versionIds = DB.Versions
-                        .Where(v => nodeIds.Contains(v.NodeId))
-                        .Select(v => v.VersionId)
-                        .ToArray();
-                    var longTextPropIds = DB.LongTextProperties
-                        .Where(l => versionIds.Contains(l.VersionId))
-                        .Select(l => l.LongTextPropertyId)
-                        .ToArray();
+                        var path = nodeDoc.Path;
+                        var nodeIds = DB.Nodes
+                            .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                            .Select(n => n.NodeId)
+                            .ToArray();
+                        var versionIds = DB.Versions
+                            .Where(v => nodeIds.Contains(v.NodeId))
+                            .Select(v => v.VersionId)
+                            .ToArray();
+                        var longTextPropIds = DB.LongTextProperties
+                            .Where(l => versionIds.Contains(l.VersionId))
+                            .Select(l => l.LongTextPropertyId)
+                            .ToArray();
 
-                    BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
+                        BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
 
-                    foreach (var longTextPropId in longTextPropIds)
-                        DB.LongTextProperties.Remove(longTextPropId);
+                        foreach (var longTextPropId in longTextPropIds)
+                            DB.LongTextProperties.Remove(longTextPropId);
 
 
-                    foreach (var versionId in versionIds)
-                        DB.Versions.Remove(versionId);
+                        foreach (var versionId in versionIds)
+                            DB.Versions.Remove(versionId);
 
-                    foreach (var nId in nodeIds)
-                        DB.Nodes.Remove(nId);
+                        foreach (var nId in nodeIds)
+                            DB.Nodes.Remove(nId);
 
-                    // indicate invalidity and signal for the tests
-                    nodeHeadData.Timestamp = 0;
+                        // indicate invalidity and signal for the tests
+                        nodeHeadData.Timestamp = 0;
 
-                    transaction.Commit();
+                        transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        throw GetException(e);
+                    }
                 }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    throw GetException(e);
-                }
+
+                needToCleanupFiles = dataContext.NeedToCleanupFiles;
             }
+
+            if (needToCleanupFiles)
+                BlobStorage.DeleteOrphanedFilesAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+
             return STT.Task.CompletedTask;
         }
 
@@ -1702,12 +1713,21 @@ namespace SenseNet.ContentRepository.InMemory
         }
         private void SaveBinaryPropertySafe(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
         {
-            if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
-            else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
-                BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).GetAwaiter().GetResult();
-            else
-                BlobStorage.UpdateBinaryPropertyAsync(value, null).GetAwaiter().GetResult();
+            var needToCleanupFiles = false;
+            using (var dataContext = new InMemoryDataContext(CancellationToken.None))
+            {
+                if (value == null || value.IsEmpty)
+                    BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).GetAwaiter().GetResult();
+                else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
+                    BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext).GetAwaiter().GetResult();
+                else
+                    BlobStorage.UpdateBinaryPropertyAsync(value, dataContext).GetAwaiter().GetResult();
+
+                needToCleanupFiles = dataContext.NeedToCleanupFiles;
+            }
+
+            if (needToCleanupFiles)
+                BlobStorage.DeleteOrphanedFilesAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         private (int, int) LoadLastVersionIdsSafe(int nodeId)
@@ -1863,22 +1883,30 @@ namespace SenseNet.ContentRepository.InMemory
         private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
         {
             var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
-
-            BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
-
-            foreach (var versionId in versionIds)
+            var needToCleanupFiles = false;
+            using (var dataContext = new InMemoryDataContext(CancellationToken.None))
             {
-                foreach (var longTextPropId in DB.LongTextProperties
-                    .Where(x => x.VersionId == versionId)
-                    .Select(x => x.LongTextPropertyId)
-                    .ToArray())
+                BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
+
+                foreach (var versionId in versionIds)
                 {
-                    var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
-                    DB.LongTextProperties.Remove(item);
+                    foreach (var longTextPropId in DB.LongTextProperties
+                        .Where(x => x.VersionId == versionId)
+                        .Select(x => x.LongTextPropertyId)
+                        .ToArray())
+                    {
+                        var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
+                        DB.LongTextProperties.Remove(item);
+                    }
+                    var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                    DB.Versions.Remove(versionItem);
                 }
-                var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
-                DB.Versions.Remove(versionItem);
+
+                needToCleanupFiles = dataContext.NeedToCleanupFiles;
             }
+
+            if (needToCleanupFiles)
+                BlobStorage.DeleteOrphanedFilesAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private bool EmptyReferencesFilterSafe(PropertyType propertyType, object value)
         {

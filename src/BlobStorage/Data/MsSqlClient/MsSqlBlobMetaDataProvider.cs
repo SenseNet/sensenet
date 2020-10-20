@@ -106,6 +106,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 throw new PlatformNotSupportedException();
 
             var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
+            if (!isNewNode)
+                dataContext.NeedToCleanupFiles = true;
+
             await sqlCtx.ExecuteReaderAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -148,6 +151,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             SnDataContext dataContext)
         {
             var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
+            if (!isNewNode)
+                dataContext.NeedToCleanupFiles = true;
 
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();

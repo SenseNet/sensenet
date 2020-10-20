@@ -43,10 +43,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="value">Binary data to update.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
+        protected internal static async Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
             var blobProvider = GetProvider(value.Size);
-            return BlobStorageComponents.DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
+            await BlobStorageComponents.DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
+            dataContext.NeedToCleanupFiles = true;
         }
 
         /// <summary>
@@ -56,9 +57,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        protected internal static async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            return BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+            await BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+            dataContext.NeedToCleanupFiles = true;
         }
 
         /// <summary>
@@ -67,9 +69,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionIds">VersionId set.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        protected internal static async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
-            return BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
+            await BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
+            dataContext.NeedToCleanupFiles = true;
         }
 
         /// <summary>
@@ -264,12 +267,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
+        protected internal static async Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
             CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-            return BlobStorageComponents.DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
+            await BlobStorageComponents.DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
                 fullSize, source, cancellationToken);
+            await DeleteOrphanedFilesAsync(cancellationToken);
         }
 
         /// <summary>
