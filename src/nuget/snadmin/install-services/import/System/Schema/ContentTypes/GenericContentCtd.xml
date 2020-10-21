@@ -393,6 +393,7 @@
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
     <Field name="VersionModifiedBy" type="Reference">
