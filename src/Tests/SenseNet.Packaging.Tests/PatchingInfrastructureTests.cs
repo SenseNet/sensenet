@@ -726,6 +726,223 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
+        public void Patching_System_Load_Issue1174()
+        {
+            SavePackage(Inst("REF", "1.0"), ExecutionResult.Successful, true);
+            SavePackage(Inst("C01", "1.0"), ExecutionResult.FaultyBefore, true);
+            SavePackage(Inst("C01", "1.0"), ExecutionResult.Successful, true);
+
+            // ACTION
+            var installed = PackageManager.Storage?
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var faulty = PackageManager.Storage?
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var currentComponents = SnComponentDescriptor.CreateComponents(installed, faulty);
+
+            // ASSERT
+            Assert.AreEqual("C01v1.0(,,Successful) REFv1.0(,,Successful)", ComponentsToStringWithResult(currentComponents));
+        }
+        [TestMethod]
+        public void Patching_System_Load_Issue1174_All_Installers()
+        {
+            //  S  F Sb Fb  U  ->              -> result
+            //  0  0  0  0  0                        -
+            //  0  0  0  0  1      U                 U
+            //  0  0  0  1  0      Fb               Fb
+            //  0  0  0  1  1      U, Fb            Fb
+            // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+            //  1  1  1  0  0      Sb, F, S          S
+            //  1  1  1  0  1      U, Sb, F, S       S
+            //  1  1  1  1  0      F, Sb, F, S       S
+            //  1  1  1  1  1      U, Fb, Sb, F, S   S
+
+            var results = new[] {ExecutionResult.Unfinished, ExecutionResult.FaultyBefore,
+                ExecutionResult.SuccessfulBefore, ExecutionResult.Faulty, ExecutionResult.Successful};
+
+            for (var id = 1; id < 32; id++)
+                for (var r = 0; r < results.Length; r++)
+                    if (0 != (id & 1 << r))
+                        SavePackage(Inst($"C{id:0#}", "1.0"), results[r], true);
+
+            // ACTION
+            var installed = PackageManager.Storage?
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var faulty = PackageManager.Storage?
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var currentComponents = SnComponentDescriptor.CreateComponents(installed, faulty)
+                .OrderBy(x => x.ComponentId).ToArray();
+
+            // ASSERT
+            for (var id = 1; id < 32; id++)
+            {
+                var expectedResult = results[Convert.ToInt32(Math.Floor(Math.Log(id, 2)))];
+                var comp = currentComponents[id - 1];
+
+                var expectedVersion = new Version(1, 0);
+                Assert.AreEqual(expectedResult, comp.State);
+                switch (comp.State)
+                {
+                    case ExecutionResult.Unfinished:
+                    case ExecutionResult.FaultyBefore:
+                    case ExecutionResult.SuccessfulBefore:
+                        Assert.AreEqual(expectedVersion, comp.TempVersionBefore);
+                        Assert.IsNull(comp.TempVersionAfter);
+                        Assert.IsNull(comp.Version);
+                        break;
+                    case ExecutionResult.Faulty:
+                        Assert.IsNull(comp.TempVersionBefore);
+                        Assert.AreEqual(expectedVersion, comp.TempVersionAfter);
+                        Assert.IsNull(comp.Version);
+                        break;
+                    case ExecutionResult.Successful:
+                        Assert.IsNull(comp.TempVersionBefore);
+                        Assert.IsNull(comp.TempVersionAfter);
+                        Assert.AreEqual(expectedVersion, comp.Version);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            /* equivalent assertion */
+            // ASSERT
+            Assert.AreEqual("C01v(1.0,,Unfinished)" +
+                            " C02v(1.0,,FaultyBefore)" +
+                            " C03v(1.0,,FaultyBefore)" +
+                            " C04v(1.0,,SuccessfulBefore)" +
+                            " C05v(1.0,,SuccessfulBefore)" +
+                            " C06v(1.0,,SuccessfulBefore)" +
+                            " C07v(1.0,,SuccessfulBefore)" +
+                            " C08v(,1.0,Faulty)" +
+                            " C09v(,1.0,Faulty)" +
+                            " C10v(,1.0,Faulty)" +
+                            " C11v(,1.0,Faulty)" +
+                            " C12v(,1.0,Faulty)" +
+                            " C13v(,1.0,Faulty)" +
+                            " C14v(,1.0,Faulty)" +
+                            " C15v(,1.0,Faulty)" +
+                            " C16v1.0(,,Successful)" +
+                            " C17v1.0(,,Successful)" +
+                            " C18v1.0(,,Successful)" +
+                            " C19v1.0(,,Successful)" +
+                            " C20v1.0(,,Successful)" +
+                            " C21v1.0(,,Successful)" +
+                            " C22v1.0(,,Successful)" +
+                            " C23v1.0(,,Successful)" +
+                            " C24v1.0(,,Successful)" +
+                            " C25v1.0(,,Successful)" +
+                            " C26v1.0(,,Successful)" +
+                            " C27v1.0(,,Successful)" +
+                            " C28v1.0(,,Successful)" +
+                            " C29v1.0(,,Successful)" +
+                            " C30v1.0(,,Successful)" +
+                            " C31v1.0(,,Successful)", ComponentsToStringWithResult(currentComponents));
+        }
+        [TestMethod]
+        public void Patching_System_Load_Issue1174_All_Patches()
+        {
+            //  S  F Sb Fb  U  ->              -> result
+            //  0  0  0  0  0                        -
+            //  0  0  0  0  1      U                 U
+            //  0  0  0  1  0      Fb               Fb
+            //  0  0  0  1  1      U, Fb            Fb
+            // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+            //  1  1  1  0  0      Sb, F, S          S
+            //  1  1  1  0  1      U, Sb, F, S       S
+            //  1  1  1  1  0      F, Sb, F, S       S
+            //  1  1  1  1  1      U, Fb, Sb, F, S   S
+
+            var results = new[] {ExecutionResult.Unfinished, ExecutionResult.FaultyBefore,
+                ExecutionResult.SuccessfulBefore, ExecutionResult.Faulty, ExecutionResult.Successful};
+
+            for (var id = 1; id < 32; id++)
+                SavePackage(Inst($"C{id:0#}", "1.0"), ExecutionResult.Successful, true);
+            for (var id = 1; id < 32; id++)
+                for (var r = 0; r < results.Length; r++)
+                    if (0 != (id & 1 << r))
+                        SavePackage(Patch($"C{id:0#}", "1.0 <= v < 2.0", "2.0"), results[r], true);
+
+            // ACTION
+            var installed = PackageManager.Storage?
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var faulty = PackageManager.Storage?
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var currentComponents = SnComponentDescriptor.CreateComponents(installed, faulty)
+                .OrderBy(x => x.ComponentId).ToArray();
+
+            // ASSERT
+            for (var id = 1; id < 32; id++)
+            {
+                var expectedResult = results[Convert.ToInt32(Math.Floor(Math.Log(id, 2)))];
+                var comp = currentComponents[id - 1];
+
+                var expectedOldVersion = new Version(1, 0);
+                var expectedVersion = new Version(2, 0);
+                Assert.AreEqual(expectedResult, comp.State);
+                switch (comp.State)
+                {
+                    case ExecutionResult.Unfinished:
+                    case ExecutionResult.FaultyBefore:
+                    case ExecutionResult.SuccessfulBefore:
+                        Assert.AreEqual(expectedVersion, comp.TempVersionBefore);
+                        Assert.IsNull(comp.TempVersionAfter);
+                        Assert.AreEqual(expectedOldVersion, comp.Version);
+                        break;
+                    case ExecutionResult.Faulty:
+                        Assert.IsNull(comp.TempVersionBefore);
+                        Assert.AreEqual(expectedVersion, comp.TempVersionAfter);
+                        Assert.AreEqual(expectedOldVersion, comp.Version);
+                        break;
+                    case ExecutionResult.Successful:
+                        Assert.IsNull(comp.TempVersionBefore);
+                        Assert.IsNull(comp.TempVersionAfter);
+                        Assert.AreEqual(expectedVersion, comp.Version);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            /* equivalent assertion */
+            // ASSERT
+            Assert.AreEqual("C01v1.0(2.0,,Unfinished)" +
+                            " C02v1.0(2.0,,FaultyBefore)" +
+                            " C03v1.0(2.0,,FaultyBefore)" +
+                            " C04v1.0(2.0,,SuccessfulBefore)" +
+                            " C05v1.0(2.0,,SuccessfulBefore)" +
+                            " C06v1.0(2.0,,SuccessfulBefore)" +
+                            " C07v1.0(2.0,,SuccessfulBefore)" +
+                            " C08v1.0(,2.0,Faulty)" +
+                            " C09v1.0(,2.0,Faulty)" +
+                            " C10v1.0(,2.0,Faulty)" +
+                            " C11v1.0(,2.0,Faulty)" +
+                            " C12v1.0(,2.0,Faulty)" +
+                            " C13v1.0(,2.0,Faulty)" +
+                            " C14v1.0(,2.0,Faulty)" +
+                            " C15v1.0(,2.0,Faulty)" +
+                            " C16v2.0(,,Successful)" +
+                            " C17v2.0(,,Successful)" +
+                            " C18v2.0(,,Successful)" +
+                            " C19v2.0(,,Successful)" +
+                            " C20v2.0(,,Successful)" +
+                            " C21v2.0(,,Successful)" +
+                            " C22v2.0(,,Successful)" +
+                            " C23v2.0(,,Successful)" +
+                            " C24v2.0(,,Successful)" +
+                            " C25v2.0(,,Successful)" +
+                            " C26v2.0(,,Successful)" +
+                            " C27v2.0(,,Successful)" +
+                            " C28v2.0(,,Successful)" +
+                            " C29v2.0(,,Successful)" +
+                            " C30v2.0(,,Successful)" +
+                            " C31v2.0(,,Successful)", ComponentsToStringWithResult(currentComponents));
+        }
+
+        [TestMethod]
         public void Patching_System_PatchSorter_InstallerSmallerThanPatch()
         {
             var candidates = new List<ISnPatch>
@@ -806,9 +1023,9 @@ namespace SenseNet.Packaging.Tests
 
         /* ======================================================================= TOOLS */
 
-        private void SavePackage(ISnPatch patch, ExecutionResult result)
+        private void SavePackage(ISnPatch patch, ExecutionResult result, bool insertOnly = false)
         {
-            PackageManager.SavePackage(Manifest.Create(patch), result, null);
+            PackageManager.SavePackage(Manifest.Create(patch), result, null, insertOnly);
         }
     }
 }
