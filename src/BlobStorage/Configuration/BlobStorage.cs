@@ -77,7 +77,7 @@ namespace SenseNet.Configuration
         public static string MetadataProviderClassName { get; internal set; } = GetString(SectionName, "MetadataProvider");
 
         /// <summary>
-        /// Gets the blob deletion algorithm.
+        /// Gets or sets the blob deletion algorithm.
         /// </summary>
         public static BlobDeletionPolicy BlobDeletionPolicy { get; set; } =
             GetValue<BlobDeletionPolicy>(SectionName, "BlobDeletionPolicy");
