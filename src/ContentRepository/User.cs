@@ -1188,7 +1188,8 @@ namespace SenseNet.ContentRepository
 
             // has the Enabled field changed to False?
             var changedEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Enabled));
-            if (changedEnabled == null || (int)changedEnabled.Value == 1)
+            if (changedEnabled == null || string.IsNullOrEmpty((string)changedEnabled.Value) || 
+                int.Parse((string)changedEnabled.Value) == 1)
                 return;
 
             // check if all protected groups of this user remain functional
@@ -1227,18 +1228,19 @@ namespace SenseNet.ContentRepository
         private void AssertEnabledMembers(string operation)
         {
             // check if all protected groups of this user remain functional
-            var protectedGroups = ContentProtector.GetProtectedGroups();
-
             using (new SystemAccount())
             {
-                if (GetGroups()
-                    .Select(gid => NodeHead.Get(gid)?.Path)
-                    .Where(gp => gp != null && protectedGroups.Contains(gp))
-                    .Select(Load<Group>)
+                var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
+
+                // Load all direct parent groups. We do not have to go up on the parent
+                // chain because protected groups must have enabled direct members.
+                if (SecurityHandler.PermissionQuery.GetParentGroups(Id, true)
+                    .Where(pg => protectedGroupIds.Contains(pg.Id))
+                    .Cast<Group>()
                     .Any(group =>
                     {
                         // true if no other enabled member would remain in the group
-                        return group.GetAllMemberUsers().Count(mu => mu is User user && user.Id != Id && user.Enabled) == 0;
+                        return !group.GetMemberUsers().Any(mu => mu.Id != Id && mu.Enabled);
                     }))
                     throw new InvalidOperationException($"It is not possible to {operation} {Username}. " +
                                                         "It would leave one of the protected groups without an enabled member.");
