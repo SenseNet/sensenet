@@ -340,7 +340,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /*================================================================== Maintenance*/
 
-        protected static async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
+        protected internal static async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
         {
             switch (BlobStorage.BlobDeletionPolicy)
             {
@@ -355,7 +355,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     await CleanupFilesSetFlagImmediatelyAsync(cancellationToken);
 #pragma warning disable 4014
                     // This call is not awaited because of shorter response time.
-                    CleanupAllFilesAsync(cancellationToken);
+                    CleanupAllFilesAsync(cancellationToken).ConfigureAwait(false);
 #pragma warning restore 4014
                     break;
                 default:

@@ -79,7 +79,7 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Gets the blob deletion algorithm.
         /// </summary>
-        public static BlobDeletionPolicy BlobDeletionPolicy { get; internal set; } =
+        public static BlobDeletionPolicy BlobDeletionPolicy { get; set; } =
             GetValue<BlobDeletionPolicy>(SectionName, "BlobDeletionPolicy");
     }
 }
