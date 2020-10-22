@@ -148,7 +148,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Deletes one file records that are marked as deleted from the metadata database and also from the blob storage.
+        /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
+        /// Depending on the implementation this method may delete multiple records or only a single one.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a boolean value 

@@ -7,27 +7,28 @@ namespace SenseNet.Configuration
     public enum BlobDeletionPolicy
     {
         /// <summary>
-        /// Sometimes the SnMaintenance service checks the orphaned blobs and after a delay deletes them.
+        /// The SnMaintenance service checks orphaned blobs periodically and after a delay deletes them.
         /// </summary>
         /// <remarks>
-        /// This policy ensures the fast response time but the database can contain a lot of unnecessary data.
+        /// This policy ensures a fast response time but the database may contain a lot of unnecessary data.
         /// This is an enterprise feature.
         /// </remarks>
         BackgroundDelayed,
         /// <summary>
-        /// Deleting the blobs is requested immediately, and a dedicated background task deletes them one by one.
+        /// Deleting blobs is requested immediately, and a dedicated background task deletes them one by one.
         /// </summary>
         /// <remarks>
-        /// This policy ensures the fast response time but the database load is higher than in the BackgroundDelayed case.
-        /// The database not reaches immediately the desired size, but the delay as short as possible.
+        /// This policy ensures a fast response time but the database load is higher than
+        /// in the BackgroundDelayed case.
+        /// The database does not reach the desired size immediately, but the delay is as short as possible.
         /// </remarks>
         BackgroundImmediately,
         /// <summary>
         /// Deleting a blob happens immediately and synchronously.
         /// </summary>
         /// <remarks>
-        /// This policy responses slower the database load is highest but the database reaches immediately the
-        /// desired size.
+        /// This policy results in a slower response, the database load is highest but
+        /// the database reaches the desired size immediately.
         /// </remarks>
         Immediately,
     }

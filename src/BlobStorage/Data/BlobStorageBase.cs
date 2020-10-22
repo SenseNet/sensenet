@@ -384,7 +384,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /// <summary>
-        /// Deletes one records that are marked as deleted from the metadata database and also from the blob storage.
+        /// Deletes one record that is marked as deleted from the metadata database and also from the blob storage.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a boolean value 
