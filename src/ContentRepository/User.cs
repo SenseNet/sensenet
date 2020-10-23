@@ -1156,7 +1156,7 @@ namespace SenseNet.ContentRepository
             base.OnDeletingPhysically(sender, e);
 
             // check if all protected groups of this user remain functional
-            AssertEnabledMembers("delete");
+            AssertEnabledParentGroupMembers();
         }
 
         /// <summary>
@@ -1193,7 +1193,7 @@ namespace SenseNet.ContentRepository
                 return;
 
             // check if all protected groups of this user remain functional
-            AssertEnabledMembers("disable");
+            AssertEnabledParentGroupMembers();
         }
 
         /// <summary>
@@ -1225,25 +1225,37 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private void AssertEnabledMembers(string operation)
+        private void AssertEnabledParentGroupMembers()
+        {
+            AssertEnabledParentGroupMembers(Id);
+        }
+        /// <summary>
+        /// This method checks all direct parent groups of the specified users.
+        /// If any of them would remain empty after removing or disabling the provided
+        /// users, this method throws an <see cref="InvalidOperationException"/>.
+        /// </summary>
+        internal static void AssertEnabledParentGroupMembers(params int[] userIds)
         {
             // check if all protected groups of this user remain functional
             using (new SystemAccount())
             {
                 var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
+                var sc = SecurityHandler.SecurityContext;
 
                 // Load all direct parent groups. We do not have to go up on the parent
                 // chain because protected groups must have enabled direct members.
-                if (SecurityHandler.PermissionQuery.GetParentGroups(Id, true)
-                    .Where(pg => protectedGroupIds.Contains(pg.Id))
-                    .Cast<Group>()
-                    .Any(group =>
-                    {
-                        // true if no other enabled member would remain in the group
-                        return !group.GetMemberUsers().Any(mu => mu.Id != Id && mu.Enabled);
-                    }))
-                    throw new InvalidOperationException($"It is not possible to {operation} {Username}. " +
-                                                        "It would leave one of the protected groups without an enabled member.");
+                var groupsToCheck = userIds.Select(uid =>
+                        sc.GetParentGroups(uid, true)
+                            .Where(pg => protectedGroupIds.Contains(pg)))
+                    .SelectMany(g => g).Distinct().ToArray();
+
+                foreach (var group in LoadNodes(groupsToCheck).Where(g => g != null).Cast<Group>())
+                {
+                    // true if no other enabled member would remain in the group
+                    if (!group.GetMemberUsers().Any(mu => !userIds.Contains(mu.Id) && mu.Enabled))
+                        throw new InvalidOperationException("It is not possible to perform this operation. " +
+                              $"It would leave the {group.Name} protected group without an enabled member.");
+                }
             }
         }
 

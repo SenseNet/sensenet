@@ -107,7 +107,10 @@ namespace SenseNet.ContentRepository.Tests
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg/user1");
                 // direct member of group2
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg/user2");
-                
+
+                // try to delete the container
+                AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg");
+
                 // can be deleted, group3 is not protected
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user3");
                 // user without groups

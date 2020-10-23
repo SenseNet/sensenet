@@ -1,9 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using  SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
 {
@@ -77,6 +79,25 @@ namespace SenseNet.ContentRepository
                 default:
                     base.SetProperty(name, value);
                     break;
+            }
+        }
+
+        protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnDeletingPhysically(sender, e);
+        
+            if (!Path.StartsWith(RepositoryStructure.ImsFolderPath + RepositoryPath.PathSeparator))
+                return;
+
+            // If we are deleting a container under the security folder, we have to check whether
+            // we would delete users from protected groups. If any of the protected groups would
+            // become empty, this will throw an exception.
+            using (new SystemAccount())
+            {
+                var userInSubtree = ContentQuery.Query(SafeQueries.UsersInSubtree,
+                    QuerySettings.AdminSettings, Path).Identifiers.ToArray();
+
+                User.AssertEnabledParentGroupMembers(userInSubtree);
             }
         }
     }
