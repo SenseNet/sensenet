@@ -222,7 +222,7 @@ namespace SenseNet.Packaging
         {
             SavePackage(manifest, successful ? ExecutionResult.Successful : ExecutionResult.Faulty, execError);
         }
-        internal static void SavePackage(Manifest manifest, ExecutionResult executionResult, Exception execError)
+        internal static void SavePackage(Manifest manifest, ExecutionResult executionResult, Exception execError, bool insertOnly = false)
         {
             RepositoryVersionInfo.Reset();
             var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
@@ -236,7 +236,7 @@ namespace SenseNet.Packaging
             oldPacks = oldPacks.OrderBy(p => p.ExecutionDate).ToArray();
 
             var oldPack = oldPacks.LastOrDefault();
-            if (oldPack == null)
+            if (oldPack == null || insertOnly)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
                 Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();

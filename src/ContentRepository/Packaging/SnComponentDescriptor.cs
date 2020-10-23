@@ -95,6 +95,14 @@ namespace SenseNet.Packaging
                     result.Add(existing);
                     existing.Version = null;
                 }
+                else
+                {
+                    // 1 - If a component is "existing" the actual version is: existing.Version.
+                    // 2 - The "faulty" is a ComponentInfo so its version is: faulty.Version.
+                    // 3 - Only newer faulty is relevant.
+                    if (existing.Version >= faulty.Version)
+                        continue;
+                }
 
                 switch (faulty.ExecutionResult)
                 {
