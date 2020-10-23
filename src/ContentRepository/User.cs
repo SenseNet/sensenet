@@ -1151,6 +1151,14 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Events
 
+        protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnDeletingPhysically(sender, e);
+
+            // check if all protected groups of this user remain functional
+            AssertEnabledParentGroupMembers();
+        }
+
         /// <summary>
         /// Checks whether the Move operation is acceptable for the current <see cref="DirectoryProvider"/>.
         /// The operation will be cancelled if it is prohibited.
@@ -1172,6 +1180,20 @@ namespace SenseNet.ContentRepository
             }
 
             base.OnMoving(sender, e);
+        }
+
+        protected override void OnModifying(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnModifying(sender, e);
+
+            // has the Enabled field changed to False?
+            var changedEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Enabled));
+            if (changedEnabled == null || string.IsNullOrEmpty((string)changedEnabled.Value) || 
+                int.Parse((string)changedEnabled.Value) == 1)
+                return;
+
+            // check if all protected groups of this user remain functional
+            AssertEnabledParentGroupMembers();
         }
 
         /// <summary>
@@ -1200,6 +1222,40 @@ namespace SenseNet.ContentRepository
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
                     SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
+            }
+        }
+
+        private void AssertEnabledParentGroupMembers()
+        {
+            AssertEnabledParentGroupMembers(Id);
+        }
+        /// <summary>
+        /// This method checks all direct parent groups of the specified users.
+        /// If any of them would remain empty after removing or disabling the provided
+        /// users, this method throws an <see cref="InvalidOperationException"/>.
+        /// </summary>
+        internal static void AssertEnabledParentGroupMembers(params int[] userIds)
+        {
+            // check if all protected groups of this user remain functional
+            using (new SystemAccount())
+            {
+                var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
+                var sc = SecurityHandler.SecurityContext;
+
+                // Load all direct parent groups. We do not have to go up on the parent
+                // chain because protected groups must have enabled direct members.
+                var groupsToCheck = userIds.Select(uid =>
+                        sc.GetParentGroups(uid, true)
+                            .Where(pg => protectedGroupIds.Contains(pg)))
+                    .SelectMany(g => g).Distinct().ToArray();
+
+                foreach (var group in LoadNodes(groupsToCheck).Where(g => g != null).Cast<Group>())
+                {
+                    // true if no other enabled member would remain in the group
+                    if (!group.GetMemberUsers().Any(mu => !userIds.Contains(mu.Id) && mu.Enabled))
+                        throw new InvalidOperationException("It is not possible to perform this operation. " +
+                              $"It would leave the {group.Name} protected group without an enabled member.");
+                }
             }
         }
 

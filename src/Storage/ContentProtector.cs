@@ -33,8 +33,28 @@ namespace SenseNet.ContentRepository.Storage
             "/Root/System/Schema/ContentTypes/GenericContent/User",
             "/Root/System/Schema/ContentTypes/GenericContent/Group",
         };
+        private readonly List<string> _protectedGroups = new List<string>
+        {
+            "/Root/IMS/BuiltIn/Portal/Administrators",
+            "/Root/IMS/Public/Administrators"
+        };
+        private Lazy<int[]> _protectedGroupIds;
 
         private static ContentProtector Instance => Providers.Instance.ContentProtector;
+
+        public ContentProtector()
+        {
+            ResetGroupIds();
+        }
+
+        private void ResetGroupIds()
+        {
+            _protectedGroupIds = new Lazy<int[]>(() => _protectedGroups
+                .Select(gp => NodeHead.Get(gp)?.Id)
+                .Where(gid => gid.HasValue)
+                .Select(gid => gid.Value)
+                .ToArray());
+        }
 
         /// <summary>
         /// Returns the whitelist of all protected paths.
@@ -43,6 +63,22 @@ namespace SenseNet.ContentRepository.Storage
         public static string[] GetProtectedPaths()
         {
             return Instance._protectedPaths.ToArray();
+        }
+        /// <summary>
+        /// Gets the list of all protected groups.
+        /// WARNING: The protected paths are sensitive information.
+        /// </summary>
+        public static string[] GetProtectedGroups()
+        {
+            return Instance._protectedGroups.ToArray();
+        }
+        /// <summary>
+        /// Gets the list of all protected group ids.
+        /// WARNING: The protected ids are sensitive information.
+        /// </summary>
+        public static int[] GetProtectedGroupIds()
+        {
+            return Instance._protectedGroupIds.Value;
         }
 
         /// <summary>
@@ -83,6 +119,20 @@ namespace SenseNet.ContentRepository.Storage
 
             var protectedPaths = Instance._protectedPaths;
             protectedPaths.AddRange(allPaths.Except(protectedPaths, StringComparer.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Adds the provided paths to the list of groups to protect.
+        /// </summary>
+        /// <param name="paths">Group paths.</param>
+        public static void AddGroupPaths(params string[] paths)
+        {
+            var newPaths = paths.Except(Instance._protectedGroups).ToArray();
+            if (newPaths.Length == 0)
+                return;
+
+            Instance._protectedGroups.AddRange(newPaths);
+            Instance.ResetGroupIds();
         }
     }
 }

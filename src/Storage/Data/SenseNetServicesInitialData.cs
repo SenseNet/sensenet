@@ -71,7 +71,11 @@ VersionId| NodeId| Creator| Modifier|  Version
        16|   1003|       1|        1|  V1.0.A
 ";
 
-        public string DynamicData => string.Empty;
+        public string DynamicData => @"
+VersionId: 1
+    DynamicProperties
+        Enabled:Int: 1
+";
         public IDictionary<string, string> ContentTypeDefinitions { get; } = new Dictionary<string, string>();
         public IDictionary<string, string> Blobs { get; } = new Dictionary<string, string>();
         public IList<string> Permissions { get; } = new List<string>();
