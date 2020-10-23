@@ -26,6 +26,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using BlobStorage = SenseNet.Configuration.BlobStorage;
 using IsolationLevel = System.Data.IsolationLevel;
 using STT = System.Threading.Tasks;
 
@@ -771,39 +772,91 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task DP_ForceDelete()
+        public async STT.Task DP_ForceDelete_Default()
+        {
+            await Test(async () =>
+            {
+                Assert.AreEqual(BlobDeletionPolicy.BackgroundDelayed, BlobStorage.BlobDeletionPolicy);
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+
+                DP_ForceDelete_TheTest();
+
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+                Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
+                Assert.AreNotEqual(countsBefore.Files, countsAfter.Files);
+                await STT.Task.Delay(500);
+                Assert.AreNotEqual(countsBefore.Files, countsAfter.Files);
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_ForceDelete_DeleteBlobs_Immediately()
         {
             await Test(async () =>
             {
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
-                // Create a small subtree
-                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
-                root.Save();
-                var f1 = new SystemFolder(root) {Name = "F1"};
-                f1.Save();
-                var f2 = new File(root) { Name = "F2" };
-                f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f2.Save();
-                var f3 = new SystemFolder(f1) {Name = "F3"};
-                f3.Save();
-                var f4 = new File(root) { Name = "F4" };
-                f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f4.Save();
+                using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.Immediately))
+                    DP_ForceDelete_TheTest();
 
-                // ACTION
-                Node.ForceDelete(root.Path);
-
-                // ASSERT
-                Assert.IsNull(Node.Load<SystemFolder>(root.Id));
-                Assert.IsNull(Node.Load<SystemFolder>(f1.Id));
-                Assert.IsNull(Node.Load<File>(f2.Id));
-                Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
-                Assert.IsNull(Node.Load<File>(f4.Id));
                 var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
-                Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
+                Assert.AreEqual(countsBefore.Files, countsAfter.Files);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
             });
         }
+        //[TestMethod]
+        public async STT.Task DP_ForceDelete_DeleteBlobs_BackgroundImmediately()
+        {
+            // This test cannot be executed well because the background threading does not work.
+            await Test(async () =>
+            {
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+
+                using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.BackgroundImmediately))
+                    DP_ForceDelete_TheTest();
+
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+                Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
+                Assert.AreNotEqual(countsBefore.Files, countsAfter.Files);
+                await STT.Task.Delay(500);
+                Assert.AreEqual(countsBefore.Files, countsAfter.Files);
+            });
+        }
+        private void DP_ForceDelete_TheTest()
+        {
+            // Create a small subtree
+            var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+            root.Save();
+            var f1 = new SystemFolder(root) { Name = "F1" };
+            f1.Save();
+            var f2 = new File(root) { Name = "F2" };
+            f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+            f2.Save();
+            var f3 = new SystemFolder(f1) { Name = "F3" };
+            f3.Save();
+            var f4 = new File(root) { Name = "F4" };
+            f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+            f4.Save();
+
+            // ACTION
+            Node.ForceDelete(root.Path);
+
+            // ASSERT
+            Assert.IsNull(Node.Load<SystemFolder>(root.Id));
+            Assert.IsNull(Node.Load<SystemFolder>(f1.Id));
+            Assert.IsNull(Node.Load<File>(f2.Id));
+            Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
+            Assert.IsNull(Node.Load<File>(f4.Id));
+        }
+        private class BlobDeletionPolicySwindler : Swindler<BlobDeletionPolicy>
+        {
+            public BlobDeletionPolicySwindler(BlobDeletionPolicy hack):base(
+                hack,
+                () => BlobStorage.BlobDeletionPolicy,
+                (value) => { BlobStorage.BlobDeletionPolicy = value; })
+            {
+            }
+        }
+
         [TestMethod]
         public void DP_DeleteDeleted()
         {
