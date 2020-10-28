@@ -10,7 +10,7 @@ A basic setup of sensenet has three top-level parts:
 - An application that uses the content of the connected content repository through API calls
 - A sensenet admin surface (only in SNaaS) that helps you carry out common content managements tasks
 
-![SNaaS architecture](snaas_architecture.png)
+![SNaaS architecture](/docs/images/snaas_architecture.png)
 
 ## Everything is content
 Content is the basic block for storing information in sensenet. A content can be any kind of data, user, document, workspace, memo, task, and more. Using content items everywhere unlocks a great deal of exceptional features, making your experience as a user more seamless, and your job as a developer a lot easier.
