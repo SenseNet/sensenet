@@ -42,9 +42,15 @@ namespace SenseNet.Extensions.DependencyInjection
                 configure?.Invoke(options);
             });
 
-            services.AddSingleton<ISnClientRequestParametersProvider, DefaultSnClientRequestParametersProvider>();
+            services.AddClientRequestParametersProvider<DefaultSnClientRequestParametersProvider>();
 
             return services;
+        }
+
+        public static IServiceCollection AddClientRequestParametersProvider<T>(this IServiceCollection services) 
+            where T : class, ISnClientRequestParametersProvider
+        {
+            return services.AddSingleton<ISnClientRequestParametersProvider, T>();
         }
     }
 }
