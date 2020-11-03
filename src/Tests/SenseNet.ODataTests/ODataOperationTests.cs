@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -26,6 +27,22 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataOperationTests : ODataTestBase
     {
+        [ODataFunction]
+        public static string Function0(Content content)
+        {
+            return null;
+        }
+        [ODataFunction]
+        public static Task Function0VoidAsync(Content content)
+        {
+            return Task.CompletedTask;
+        }
+        [ODataFunction]
+        public static Task<object> Function0ObjectAsync(Content content)
+        {
+            return Task.FromResult((object)null);
+        }
+
         [ODataFunction]
         public static string Function1(Content content, string param1)
         {
@@ -60,6 +77,55 @@ namespace SenseNet.ODataTests
         }
 
         /* ============================================================= METHOD BASED OPERATION TESTS */
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_String()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_VoidAsync()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0VoidAsync", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_ObjectAsync()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0ObjectAsync", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
 
         [TestMethod]
         public async Task OD_MBOP_Invoke()

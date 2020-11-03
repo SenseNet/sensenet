@@ -449,6 +449,25 @@ namespace SenseNet.ODataTests
 
             return new ODataResponse { Result = output, StatusCode = httpContext.Response.StatusCode };
         }
+        internal static async Task<HttpContext> ODataProcessRequestEmptyResponseAsync(string resource, string queryString,
+            string requestBodyJson, string httpMethod, IConfiguration config)
+        {
+            var httpContext = CreateHttpContext(resource, queryString);
+            var request = httpContext.Request;
+            request.Method = httpMethod;
+            request.Path = resource;
+            request.QueryString = new QueryString(queryString);
+            if (requestBodyJson != null)
+                request.Body = CreateRequestStream(requestBodyJson);
+
+            //httpContext.Response.Body = new MemoryStream();
+
+            var odata = new ODataMiddleware(null, config, null);
+            var odataRequest = ODataRequest.Parse(httpContext);
+            await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+
+            return httpContext;
+        }
 
         internal static HttpContext CreateHttpContext(string resource, string queryString)
         {

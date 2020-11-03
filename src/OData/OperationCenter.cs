@@ -14,6 +14,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.OData;
 using SenseNet.Security;
 using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.OData
 {
@@ -697,9 +698,22 @@ namespace SenseNet.OData
 
             try
             {
-                dynamic awaitable = context.Operation.Method.Invoke(null, parameters);
-                await awaitable;
-                return awaitable.GetAwaiter().GetResult();
+                var invokeResult = context.Operation.Method.Invoke(null, parameters);
+                var invokeResultType = invokeResult.GetType();
+                if (invokeResultType.IsGenericType)
+                {
+                    dynamic awaitable = invokeResult;
+                    var x = awaitable.GetAwaiter();
+                    object y = x.GetResult() as object;
+                    return y;
+                }
+                else
+                {
+                    var awaitable = (Task) invokeResult;
+                    await awaitable;
+                    return null;
+                }
+
             }
             catch (TargetInvocationException e)
             {
