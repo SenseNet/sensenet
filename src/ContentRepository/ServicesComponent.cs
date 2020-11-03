@@ -451,6 +451,24 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.13", "7.7.13.1", "2020-11-02", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("ListItem")
+                        .Field("ModifiedBy")
+                        .VisibleEdit(FieldVisibility.Hide);
+
+                    cb.Apply();
+
+                    #endregion
+
+                    
+                });
         }
     }
 }

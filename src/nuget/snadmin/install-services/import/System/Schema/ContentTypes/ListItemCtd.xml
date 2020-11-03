@@ -12,7 +12,7 @@
     <Field name="ModifiedBy" type="Reference">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
