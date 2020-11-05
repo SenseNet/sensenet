@@ -155,11 +155,11 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+
                     using (new SystemAccount())
                         if (Node.Exists(parentPath))
                             Node.ForceDelete(parentPath);
-
-                    AccessProvider.Current.SetCurrentUser(originalUser);
                 }
             });
         }
