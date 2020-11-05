@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
@@ -90,6 +91,12 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (Instance._protectedPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
                 throw new ApplicationException("Protected content cannot be deleted or moved.");
+
+            if (AccessProvider.Current.GetOriginalUser() is Node user)
+            {
+                if (RepositoryPath.IsInTree(user.Path, path))
+                    throw new ApplicationException("Users cannot delete or move themselves.");
+            }
         }
 
         /// <summary>
