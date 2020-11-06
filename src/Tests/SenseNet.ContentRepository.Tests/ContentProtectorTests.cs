@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
 
@@ -178,6 +179,78 @@ namespace SenseNet.ContentRepository.Tests
                 // can remove anything
                 RemoveUser("/Root/IMS/Public/group1", "/Root/IMS/Public/TestOrg/user1");
                 RemoveUser("/Root/IMS/Public/group2", "/Root/IMS/Public/TestOrg/user2");
+            });
+        }
+
+        [TestMethod]
+        public void ContentProtector_DeleteUser()
+        {
+            Test(() =>
+            {
+                CreateUserAndGroupStructure();
+
+                // add permissions for the users to let them perform the Delete operation
+                var user1 = Node.Load<User>("/Root/IMS/Public/TestOrg/user1");
+                var user2 = Node.Load<User>("/Root/IMS/Public/TestOrg/user2");
+                var testOrg = Node.Load<OrganizationalUnit>("/Root/IMS/Public/TestOrg");
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(testOrg.Id, user1.Id, false, PermissionType.Save, PermissionType.Delete)
+                    .Allow(testOrg.Id, user2.Id, false, PermissionType.Save, PermissionType.Delete)
+                    .Apply();
+
+                var originalUser = AccessProvider.Current.GetOriginalUser();
+                try
+                {
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    // delete user2 without a problem
+                    user2.ForceDelete();
+                }
+                finally
+                {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
+
+                var thrown = false;
+                try
+                {
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    // try to delete themselves
+                    user1.ForceDelete();
+                }
+                catch (ApplicationException ex)
+                {
+                    if (ex.Message.Contains("Users cannot delete"))
+                        thrown = true;
+                }
+                finally
+                {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
+
+                Assert.IsTrue(thrown, "Exception was not thrown.");
+
+                thrown = false;
+                try
+                {
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    // try to delete parent
+                    testOrg.ForceDelete();
+                }
+                catch (ApplicationException ex)
+                {
+                    if (ex.Message.Contains("Users cannot delete"))
+                        thrown = true;
+                }
+                finally
+                {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
+
+                Assert.IsTrue(thrown, "Exception was not thrown.");
             });
         }
 
