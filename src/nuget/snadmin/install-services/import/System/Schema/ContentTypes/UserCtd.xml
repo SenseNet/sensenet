@@ -285,7 +285,6 @@
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="Education" type="LongText">
