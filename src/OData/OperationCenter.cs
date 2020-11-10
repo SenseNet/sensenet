@@ -700,19 +700,20 @@ namespace SenseNet.OData
             {
                 var invokeResult = context.Operation.Method.Invoke(null, parameters);
                 var invokeResultType = invokeResult.GetType();
+
+                var awaitable = (Task)invokeResult;
+                await awaitable;
+
                 if (invokeResultType.IsGenericType)
                 {
-                    dynamic awaitable = invokeResult;
-                    var x = awaitable.GetAwaiter();
-                    object y = x.GetResult() as object;
-                    return y;
+                    // It is impossible to convert to the target type (Task<??>) so getting result with reflection. 
+                    var resultProperty = invokeResultType.GetProperty("Result");
+                    var result = resultProperty?.GetValue(awaitable);
+                    return result;
                 }
-                else
-                {
-                    var awaitable = (Task) invokeResult;
-                    await awaitable;
-                    return null;
-                }
+
+                // Non-generic Task have no result.
+                return null;
 
             }
             catch (TargetInvocationException e)
