@@ -19,10 +19,9 @@ namespace SenseNet.ContentRepository.Fields
 
         public override object GetData()
         {
-            return SecurityHandler.SecurityContext
-                .GetParentGroups(this.Content.Id, false)
-                .Select(Node.LoadNode)
-                .ToArray();
+            // this method will load only containers that the current user has permissions for
+            return Node.LoadNodes(SecurityHandler.SecurityContext
+                .GetParentGroups(this.Content.Id, false)).ToArray();
         }
     }
 }

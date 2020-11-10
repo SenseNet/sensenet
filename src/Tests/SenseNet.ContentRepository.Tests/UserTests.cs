@@ -239,5 +239,45 @@ namespace SenseNet.ContentRepository.Tests
 
             });
         }
+
+        [TestMethod]
+        public void User_Roles_Inaccessible()
+        {
+            Test(() =>
+            {
+                var user1 = new User(OrganizationalUnit.Portal)
+                {
+                    Name = "User-1",
+                    Email = "user1@example.com",
+                    Enabled = true
+                };
+                user1.Save();
+
+                var group1 = new Group(OrganizationalUnit.Portal) { Name = "Group-1" };
+                group1.Save();
+                group1.AddMember(user1);
+
+                var allRolesWithAdmin = ((IEnumerable<Node>) Content.Create(user1)["AllRoles"]).ToArray();
+
+                Assert.IsNotNull(allRolesWithAdmin.Single(r => r.Name == "Portal"));
+                Assert.IsNotNull(allRolesWithAdmin.Single(r => r.Name == group1.Name));
+
+                var originalUser = AccessProvider.Current.GetOriginalUser();
+                try
+                {
+                    // switch to a user with few permissions
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    var allRolesWithUser = ((IEnumerable<Node>)Content.Create(user1)["AllRoles"]).ToArray();
+
+                    // the user does not have permission for these roles, but the field does not throw an exception
+                    Assert.AreEqual(0, allRolesWithUser.Length);
+                }
+                finally
+                {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
+            });
+        }
     }
 }
