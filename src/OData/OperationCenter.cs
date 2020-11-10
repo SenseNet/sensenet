@@ -14,6 +14,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.OData;
 using SenseNet.Security;
 using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.OData
 {
@@ -697,9 +698,23 @@ namespace SenseNet.OData
 
             try
             {
-                dynamic awaitable = context.Operation.Method.Invoke(null, parameters);
+                var invokeResult = context.Operation.Method.Invoke(null, parameters);
+                var invokeResultType = invokeResult.GetType();
+
+                var awaitable = (Task)invokeResult;
                 await awaitable;
-                return awaitable.GetAwaiter().GetResult();
+
+                if (invokeResultType.IsGenericType)
+                {
+                    // It is impossible to convert to the target type (Task<??>) so getting result with reflection. 
+                    var resultProperty = invokeResultType.GetProperty("Result");
+                    var result = resultProperty?.GetValue(awaitable);
+                    return result;
+                }
+
+                // Non-generic Task have no result.
+                return null;
+
             }
             catch (TargetInvocationException e)
             {

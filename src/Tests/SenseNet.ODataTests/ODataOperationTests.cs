@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -26,6 +27,22 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataOperationTests : ODataTestBase
     {
+        [ODataFunction]
+        public static string Function0(Content content)
+        {
+            return null;
+        }
+        [ODataFunction]
+        public static Task Function0VoidAsync(Content content)
+        {
+            return Task.CompletedTask;
+        }
+        [ODataFunction]
+        public static Task<object> Function0ObjectAsync(Content content)
+        {
+            return Task.FromResult((object)null);
+        }
+
         [ODataFunction]
         public static string Function1(Content content, string param1)
         {
@@ -59,7 +76,133 @@ namespace SenseNet.ODataTests
                     $" Param3: {(param3 ?? "[null]")}";
         }
 
+        public class CustomTypeForFunction4
+        {
+            public int Id { get; set; }
+            public string Value { get; set; }
+        }
+        [ODataFunction]
+        public static Task<CustomTypeForFunction4> Function4CustomTypeAsync(Content content, int id, string value)
+        {
+            return Task.FromResult(new CustomTypeForFunction4 {Id = id, Value = value});
+        }
+        [ODataFunction]
+        public static Task<Content> Function4ContentAsync(Content content)
+        {
+            return Task.FromResult(content);
+        }
+        [ODataFunction]
+        public static Task<string> Function4StringAsync(Content content, string input)
+        {
+            return Task.FromResult(input);
+        }
+
         /* ============================================================= METHOD BASED OPERATION TESTS */
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_String()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_VoidAsync()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0VoidAsync", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Null_ObjectAsync()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var httpContext = await ODataProcessRequestEmptyResponseAsync(
+                        "/OData.svc/Root('IMS')/Function0ObjectAsync", null, null,
+                        "POST", null)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(204, httpContext.Response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Async_Custom()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4CustomTypeAsync",
+                    null,
+                    "{id:\"42\", value:\"value42\"}").ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var customResult = JsonSerializer.Create()
+                    .Deserialize<CustomTypeForFunction4>(new JsonTextReader(new StringReader(response.Result)));
+                Assert.AreEqual(42, customResult.Id);
+                Assert.AreEqual("value42", customResult.Value);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Async_Content()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync("/OData.svc/Root('IMS')/Function4ContentAsync",
+                    null, null).ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var expectedContent = Content.Load("/Root/IMS");
+                var clientContent = (JObject)JsonSerializer.Create()
+                    .Deserialize(new JsonTextReader(new StringReader(response.Result)));
+                Assert.AreEqual(expectedContent.Id, clientContent["d"]["Id"].Value<int>());
+                Assert.AreEqual(expectedContent.Path, clientContent["d"]["Path"].Value<string>());
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Async_String()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4StringAsync",
+                    null,
+                    "{input:\"input42\"}").ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual("input42", response.Result);
+
+            }).ConfigureAwait(false);
+        }
 
         [TestMethod]
         public async Task OD_MBOP_Invoke()
