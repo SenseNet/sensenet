@@ -1192,6 +1192,10 @@ namespace SenseNet.ContentRepository
                 int.Parse((string)changedEnabled.Value) == 1)
                 return;
 
+            // check if the user tried to disable themselves
+            if (Id == AccessProvider.Current.GetOriginalUser().Id)
+                throw new InvalidOperationException("It is not possible to disable the current user.");
+
             // check if all protected groups of this user remain functional
             AssertEnabledParentGroupMembers();
         }

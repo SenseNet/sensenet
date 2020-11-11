@@ -279,5 +279,37 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void User_Disable_Self()
+        {
+            Test(() =>
+            {
+                var user1 = new User(OrganizationalUnit.Portal)
+                {
+                    Name = "User-1",
+                    Email = "user1@example.com",
+                    Enabled = true
+                };
+                user1.Save();
+                
+                var originalUser = AccessProvider.Current.GetOriginalUser();
+
+                try
+                {
+                    // switch to a real user
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    // try to disable themselves - it should throw an exception
+                    user1.Enabled = false;
+                    user1.Save(SavingMode.KeepVersion);
+                }
+                finally
+                {
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
+            });
+        }
     }
 }
