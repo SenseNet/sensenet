@@ -1,0 +1,19 @@
+{
+  "solution": {
+    "path": "SenseNet.sln",
+    "projects": [
+      "BlobStorage\\SenseNet.BlobStorage.csproj",
+      "Common\\SenseNet.Common.csproj",
+      "ContentRepository.InMemory\\SenseNet.ContentRepository.InMemory.csproj",
+      "ContentRepository\\SenseNet.ContentRepository.csproj",
+      "OData\\SenseNet.OData.csproj",
+      "Search\\SenseNet.Search.csproj",
+      "Services.Core.Install\\SenseNet.Services.Core.Install.csproj",
+      "Services.Core\\SenseNet.Services.Core.csproj",
+      "Services.Wopi\\SenseNet.Services.Wopi.csproj",
+      "Storage\\SenseNet.Storage.csproj",
+      "WebApps\\SnWebApplication.Api.InMem.Admin\\SnWebApplication.Api.InMem.Admin.csproj",
+      "WebApps\\SnWebApplication.Api.InMem.TokenAuth\\SnWebApplication.Api.InMem.TokenAuth.csproj"
+    ]
+  }
+}

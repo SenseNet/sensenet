@@ -1,0 +1,37 @@
+{
+  "solution": {
+    "path": "SenseNet.sln",
+    "projects": [
+      "BlobStorage\\SenseNet.BlobStorage.csproj",
+      "Common\\SenseNet.Common.csproj",
+      "ContentRepository.InMemory\\SenseNet.ContentRepository.InMemory.csproj",
+      "ContentRepository\\SenseNet.ContentRepository.csproj",
+      "OData\\SenseNet.OData.csproj",
+      "Search\\SenseNet.Search.csproj",
+      "Services.Core.Install\\SenseNet.Services.Core.Install.csproj",
+      "Services.Core\\SenseNet.Services.Core.csproj",
+      "Services.Wopi\\SenseNet.Services.Wopi.csproj",
+      "Storage\\SenseNet.Storage.csproj",
+      "Tests\\SenseNet.ContentRepository.Tests\\SenseNet.ContentRepository.Tests.csproj",
+      "Tests\\SenseNet.MiddlewareTests\\SenseNet.MiddlewareTests.csproj",
+      "Tests\\SenseNet.ODataTests\\SenseNet.ODataTests.csproj",
+      "Tests\\SenseNet.Packaging.Tests\\SenseNet.Packaging.Tests.csproj",
+      "Tests\\SenseNet.RestTester\\SenseNet.RestTester.csproj",
+      "Tests\\SenseNet.Search.Tests\\SenseNet.Search.Tests.csproj",
+      "Tests\\SenseNet.Services.Core.Tests\\SenseNet.Services.Core.Tests.csproj",
+      "Tests\\SenseNet.Services.OData.Tests\\SenseNet.Services.OData.Tests.csproj",
+      "Tests\\SenseNet.Services.Wopi.Tests\\SenseNet.Services.Wopi.Tests.csproj",
+      "Tests\\SenseNet.Tests.Core.Tests\\SenseNet.Tests.Core.Tests.csproj",
+      "Tests\\SenseNet.Tests.Core\\SenseNet.Tests.Core.csproj",
+      "Tests\\SenseNet.Tests.Hosting\\SenseNet.Tests.Hosting.csproj",
+      "Tests\\SenseNet.Tests\\SenseNet.Tests.csproj",
+      "Tests\\SnInitialDataGenerator.Tests\\SnInitialDataGenerator.Tests.csproj",
+      "Tools\\SnConsoleInstaller\\SnConsoleInstaller.csproj",
+      "Tools\\SnInitialDataGenerator\\SnInitialDataGenerator.csproj",
+      "WebApps\\SnWebApplication.Api.InMem.Admin\\SnWebApplication.Api.InMem.Admin.csproj",
+      "WebApps\\SnWebApplication.Api.InMem.TokenAuth\\SnWebApplication.Api.InMem.TokenAuth.csproj",
+      "WebApps\\SnWebApplication.Api.Sql.Admin\\SnWebApplication.Api.Sql.Admin.csproj",
+      "WebApps\\SnWebApplication.Api.Sql.TokenAuth\\SnWebApplication.Api.Sql.TokenAuth.csproj"
+    ]
+  }
+}
