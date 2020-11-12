@@ -8,7 +8,7 @@ A basic setup of sensenet has three top-level parts:
 
 - A content repository that is the storage and service layer
 - An application that uses the content of the connected content repository through API calls
-- A sensenet admin surface (only in SNaaS) that helps you carry out common content managements tasks
+- A sensenet admin surface (only in SNaaS) that helps you carry out common content management tasks
 
 ![SNaaS architecture](/docs/images/snaas_architecture.png)
 
@@ -23,7 +23,7 @@ In this model, sensenet content repositories live in our cloud infrastructure.
 **Advantages**
 
 - no installation required (easy onboarding)
-- easy patches and upgrades
+- patches and upgrades are taken care of by us
 - no hosting related tasks
 - central admin surface
 - [flexible pricing plans](https://www.sensenet.com/pricing) (based on # of contents, requests, and users)
