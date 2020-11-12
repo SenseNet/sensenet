@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace SenseNet.ContentRepository.Storage.Schema
@@ -70,11 +71,45 @@ namespace SenseNet.ContentRepository.Storage.Schema
             {
                 using (var op = SnTrace.Database.StartOperation("Update storage schema."))
                 {
+                    var modifiedPropertySetIds = GetModifiedPropertySetIds(origSchema, newSchema);
+
                     schemaWriter.WriteSchemaAsync(newSchema.ToRepositorySchemaData()).GetAwaiter().GetResult();
                     ActiveSchema.Reset();
+                    foreach(var id in modifiedPropertySetIds)
+                        NodeTypeDependency.FireChanged(id);
+
                     op.Successful = true;
                 }
             }
+        }
+        private static IEnumerable<int> GetModifiedPropertySetIds(SchemaEditor origSchema, SchemaEditor newSchema)
+        {
+            var origTypes = origSchema.NodeTypes;
+            var newTypes = newSchema.NodeTypes;
+            var origIds = origTypes.Select(x => x.Id).ToArray();
+            var newIds = newTypes.Select(x => x.Id).ToArray();
+
+            var deletedIds = origIds.Except(newIds).ToArray();
+
+            var canBeModifiedIds = origIds.Intersect(newIds).ToArray();
+            var modifiedIds = new List<int>();
+            foreach (var id in canBeModifiedIds)
+            {
+                var orig = GetControlString(origTypes.GetItemById(id));
+                var @new = GetControlString(newTypes.GetItemById(id));
+                if (orig != @new)
+                    modifiedIds.Add(id);
+            }
+
+            return deletedIds.Union(modifiedIds);
+        }
+
+        private static string GetControlString(NodeType nodeType)
+        {
+            var propNames = string.Join(",", nodeType.PropertyTypes
+                .Select(x => x.Name)
+                .OrderBy(x => x));
+            return $"{nodeType.Name}({nodeType.Parent?.Name ?? "null"}):{propNames}";
         }
 
         private static void WriteSchemaModifications(SchemaEditor origSchema, SchemaEditor newSchema, SchemaWriter writer, List<PropertySet> modifiedPropertySets)
