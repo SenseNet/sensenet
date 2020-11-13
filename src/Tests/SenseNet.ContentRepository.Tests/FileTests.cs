@@ -14,6 +14,29 @@ namespace SenseNet.ContentRepository.Tests
     public class FileTests : GenericContentTests
     {
         [TestMethod]
+        public void MultiStep_Existing_Incremental()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+                var file = new File(root) { Name = "test.txt" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString("test file"));
+
+                file.Save();
+
+                // create a new file with the same name
+                var file2 = new File(root) { Name = file.Name };
+                file2.Binary.SetStream(RepositoryTools.GetStreamFromString("new file content"));
+
+                // this should prevent the exception and simply generate a new name
+                file2.AllowIncrementalNaming = true;
+
+                // this is normal in case of chunk upload, it should not throw an exception
+                file2.Save(SavingMode.StartMultistepSave);
+            });
+        }
+
+        [TestMethod]
         public void File_Create_TXT()
         {
             CreateFileTest("file.txt", "text/plain", "Lorem ipcum dolor sit amet.", true);
