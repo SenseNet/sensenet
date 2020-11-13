@@ -145,6 +145,9 @@ namespace SenseNet.ContentRepository
 
 	    private static void SetBinaryData(FileBase file)
 	    {
+			//UNDONE: ? skip operation if file is in Creating state
+			//file.SavingState == ContentSavingState.Creating
+
 	        var binaryData = file.Binary;
 
 	        if (string.IsNullOrEmpty(binaryData.FileName))
