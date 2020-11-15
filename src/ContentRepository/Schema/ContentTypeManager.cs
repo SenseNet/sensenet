@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -400,6 +401,8 @@ namespace SenseNet.ContentRepository.Schema
             // 2: Field properties
             foreach (FieldSetting fieldSetting in contentType.FieldSettings)
             {
+                AssertFieldSettingIsValid(fieldSetting);
+
                 Type[][] slots = fieldSetting.HandlerSlots;
                 int fieldSlotCount = slots.GetLength(0);
 
@@ -524,6 +527,77 @@ namespace SenseNet.ContentRepository.Schema
                 return;
             throw new NotSupportedException(String.Format(CultureInfo.InvariantCulture,
                 SR.Exceptions.Registration.Msg_InvalidReferenceField_2, cts.Name, fs.Name));
+        }
+
+        [DebuggerDisplay("{Name}: {FieldType} ({Binding})")]
+        private class FieldSettingInfo
+        {
+            public string Name;
+            public string Binding;
+            public string FieldType;
+        }
+        private class FieldSettingInfoEqualityComparer : IEqualityComparer<FieldSettingInfo>
+        {
+            public bool Equals(FieldSettingInfo x, FieldSettingInfo y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.Name == y.Name;
+            }
+
+            public int GetHashCode(FieldSettingInfo obj)
+            {
+                return (obj.Name != null ? obj.Name.GetHashCode() : 0);
+            }
+        }
+        private static FieldSettingInfo[] _fsInfoTable;
+        private static void AssertFieldSettingIsValid(FieldSetting fieldSetting)
+        {
+            var contentTypeName = fieldSetting.Owner.Name;
+            var fieldName = fieldSetting.Name;
+
+            if(fieldSetting.Name.Equals("Actions", StringComparison.OrdinalIgnoreCase) ||
+               fieldSetting.Name.Equals("Children", StringComparison.OrdinalIgnoreCase))
+                throw new ContentRegistrationException(
+                    $"The '{fieldName}' field cannot be used in any content type definition. ContentType: {contentTypeName}",
+                    null, contentTypeName, fieldName);
+
+            if (_fsInfoTable == null)
+                _fsInfoTable = CreateFsInfoTable();
+
+            var fs = _fsInfoTable.FirstOrDefault(x => x.Name == fieldSetting.Name);
+            if (fs == null)
+                return;
+
+            if(fs.FieldType != fieldSetting.ShortName)
+                throw new ContentRegistrationException(
+                    $"Field type violation in the {contentTypeName} content type definition. " +
+                    $"The expected 'type' of the '{fieldName}' field is {fs.FieldType}.",
+                    null, contentTypeName, fieldName);
+
+            if (fs.Binding != string.Join(",", fieldSetting.Bindings))
+                throw new ContentRegistrationException(
+                    $"Field binding violation in the {contentTypeName} content type definition. " +
+                    $"The expected 'Binding' of the '{fieldName}' field is {fs.Binding}.",
+                    null, contentTypeName, fieldName);
+        }
+
+        private static FieldSettingInfo[] CreateFsInfoTable()
+        {
+            var all = Instance.ContentTypes.Values.SelectMany(x => x.FieldSettings.Where(y => y.Owner == x))
+                .Select(x => new FieldSettingInfo
+                {
+                    Name = x.Name,
+                    Binding = string.Join(", ", x.Bindings),
+                    FieldType = x.ShortName
+                })
+                .OrderBy(x => x.Name)
+                .ThenBy(x => x.FieldType)
+                .ToArray();
+
+            return all.Distinct(new FieldSettingInfoEqualityComparer()).ToArray();
         }
 
         // ---------------------------------------------------------------------- Attribute parsing
