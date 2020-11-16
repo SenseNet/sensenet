@@ -558,7 +558,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
-        private object _fsInfoTableLock = new object();
+        private readonly object _fsInfoTableLock = new object();
         private List<FieldSettingInfo> _fsInfoTable;
         private void AssertFieldSettingIsValid(FieldSetting fieldSetting)
         {
@@ -572,7 +572,7 @@ namespace SenseNet.ContentRepository.Schema
                     null, contentTypeName, fieldName);
 
             FieldSettingInfo fs = null;
-            lock (_fsInfoTable)
+            lock (_fsInfoTableLock)
             {
                 fs = _fsInfoTable.FirstOrDefault(x => x.Name == fieldSetting.Name);
                 if (fs == null)
