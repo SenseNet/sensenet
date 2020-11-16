@@ -146,7 +146,9 @@ namespace SenseNet.ContentRepository
 	    private static void SetBinaryData(FileBase file)
 	    {
 			//UNDONE: ? skip operation if file is in Creating state
-			//file.SavingState == ContentSavingState.Creating
+			// Prevent InvalidOperationException that will be thrown when accessing the Binary of a staged File.
+			if (file.SavingState == ContentSavingState.Creating)
+                return;
 
 	        var binaryData = file.Binary;
 
