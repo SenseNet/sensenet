@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -169,6 +170,9 @@ namespace SenseNet.ContentRepository.Schema
                         contentType.SetParentContentType(_contentTypes[contentType.ParentTypeName]);
                 }
                 AllFieldNames = contentTypes.SelectMany(t => t.FieldSettings.Select(f => f.Name)).Distinct().ToList();
+
+                _fsInfoTable = CreateFsInfoTable();
+
                 FinalizeAllowedChildTypes(AllFieldNames);
                 FinalizeIndexingInfo();
             }
@@ -400,6 +404,8 @@ namespace SenseNet.ContentRepository.Schema
             // 2: Field properties
             foreach (FieldSetting fieldSetting in contentType.FieldSettings)
             {
+                Instance.AssertFieldSettingIsValid(fieldSetting);
+
                 Type[][] slots = fieldSetting.HandlerSlots;
                 int fieldSlotCount = slots.GetLength(0);
 
@@ -524,6 +530,92 @@ namespace SenseNet.ContentRepository.Schema
                 return;
             throw new NotSupportedException(String.Format(CultureInfo.InvariantCulture,
                 SR.Exceptions.Registration.Msg_InvalidReferenceField_2, cts.Name, fs.Name));
+        }
+
+        /* ---------------------------------------------------------------------- FieldSetting validation */
+
+        [DebuggerDisplay("{Name}: {FieldType} ({Binding})")]
+        private class FieldSettingInfo
+        {
+            public string Name;
+            public string Binding;
+            public string FieldType;
+        }
+        private class FieldSettingInfoEqualityComparer : IEqualityComparer<FieldSettingInfo>
+        {
+            public bool Equals(FieldSettingInfo x, FieldSettingInfo y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.Name == y.Name;
+            }
+
+            public int GetHashCode(FieldSettingInfo obj)
+            {
+                return (obj.Name != null ? obj.Name.GetHashCode() : 0);
+            }
+        }
+
+        private readonly object _fsInfoTableLock = new object();
+        private List<FieldSettingInfo> _fsInfoTable;
+        private void AssertFieldSettingIsValid(FieldSetting fieldSetting)
+        {
+            var contentTypeName = fieldSetting.Owner.Name;
+            var fieldName = fieldSetting.Name;
+
+            if(fieldSetting.Name.Equals("Actions", StringComparison.OrdinalIgnoreCase) ||
+               fieldSetting.Name.Equals("Children", StringComparison.OrdinalIgnoreCase))
+                throw new ContentRegistrationException(
+                    $"The '{fieldName}' field cannot be used in any content type definition. ContentType: {contentTypeName}",
+                    null, contentTypeName, fieldName);
+
+            FieldSettingInfo fs = null;
+            lock (_fsInfoTableLock)
+            {
+                fs = _fsInfoTable.FirstOrDefault(x => x.Name == fieldSetting.Name);
+                if (fs == null)
+                {
+                    _fsInfoTable.Add(CreateFsInfo(fieldSetting));
+                    return;
+                }
+            }
+
+            if (fs.FieldType != fieldSetting.FieldClassName)
+                throw new ContentRegistrationException(
+                    $"Field type violation in the {contentTypeName} content type definition. " +
+                    $"The expected 'type' of the '{fieldName}' field is {fs.FieldType}.",
+                    null, contentTypeName, fieldName);
+
+            var actualBinding = string.Join(", ", fieldSetting.Bindings);
+            if (fs.Binding != actualBinding)
+                throw new ContentRegistrationException(
+                    $"Field 'Binding' violation in the {contentTypeName}.{fieldName}. " +
+                    $"Expected: {fs.Binding}. Actual: {actualBinding}.",
+                    null, contentTypeName, fieldName);
+        }
+
+        private List<FieldSettingInfo> CreateFsInfoTable()
+        {
+            var all = ContentTypes.Values.SelectMany(x => x.FieldSettings.Where(y => y.Owner == x))
+                .Select(CreateFsInfo)
+                .OrderBy(x => x.Name)
+                .ThenBy(x => x.FieldType)
+                .Distinct(new FieldSettingInfoEqualityComparer())
+                .ToList();
+
+            return all;
+        }
+
+        private FieldSettingInfo CreateFsInfo(FieldSetting fs)
+        {
+            return new FieldSettingInfo
+            {
+                Name = fs.Name,
+                Binding = string.Join(", ", fs.Bindings),
+                FieldType = fs.FieldClassName
+            };
         }
 
         // ---------------------------------------------------------------------- Attribute parsing
