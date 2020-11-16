@@ -170,6 +170,9 @@ namespace SenseNet.ContentRepository.Schema
                         contentType.SetParentContentType(_contentTypes[contentType.ParentTypeName]);
                 }
                 AllFieldNames = contentTypes.SelectMany(t => t.FieldSettings.Select(f => f.Name)).Distinct().ToList();
+
+                _fsInfoTable = CreateFsInfoTable();
+
                 FinalizeAllowedChildTypes(AllFieldNames);
                 FinalizeIndexingInfo();
             }
@@ -401,7 +404,7 @@ namespace SenseNet.ContentRepository.Schema
             // 2: Field properties
             foreach (FieldSetting fieldSetting in contentType.FieldSettings)
             {
-                AssertFieldSettingIsValid(fieldSetting);
+                Instance.AssertFieldSettingIsValid(fieldSetting);
 
                 Type[][] slots = fieldSetting.HandlerSlots;
                 int fieldSlotCount = slots.GetLength(0);
@@ -529,6 +532,8 @@ namespace SenseNet.ContentRepository.Schema
                 SR.Exceptions.Registration.Msg_InvalidReferenceField_2, cts.Name, fs.Name));
         }
 
+        /* ---------------------------------------------------------------------- FieldSetting validation */
+
         [DebuggerDisplay("{Name}: {FieldType} ({Binding})")]
         private class FieldSettingInfo
         {
@@ -552,8 +557,10 @@ namespace SenseNet.ContentRepository.Schema
                 return (obj.Name != null ? obj.Name.GetHashCode() : 0);
             }
         }
-        private static FieldSettingInfo[] _fsInfoTable;
-        private static void AssertFieldSettingIsValid(FieldSetting fieldSetting)
+
+        private object _fsInfoTableLock = new object();
+        private List<FieldSettingInfo> _fsInfoTable;
+        private void AssertFieldSettingIsValid(FieldSetting fieldSetting)
         {
             var contentTypeName = fieldSetting.Owner.Name;
             var fieldName = fieldSetting.Name;
@@ -564,14 +571,18 @@ namespace SenseNet.ContentRepository.Schema
                     $"The '{fieldName}' field cannot be used in any content type definition. ContentType: {contentTypeName}",
                     null, contentTypeName, fieldName);
 
-            if (_fsInfoTable == null)
-                _fsInfoTable = CreateFsInfoTable();
+            FieldSettingInfo fs = null;
+            lock (_fsInfoTable)
+            {
+                fs = _fsInfoTable.FirstOrDefault(x => x.Name == fieldSetting.Name);
+                if (fs == null)
+                {
+                    _fsInfoTable.Add(CreateFsInfo(fieldSetting));
+                    return;
+                }
+            }
 
-            var fs = _fsInfoTable.FirstOrDefault(x => x.Name == fieldSetting.Name);
-            if (fs == null)
-                return;
-
-            if(fs.FieldType != fieldSetting.ShortName)
+            if (fs.FieldType != fieldSetting.FieldClassName)
                 throw new ContentRegistrationException(
                     $"Field type violation in the {contentTypeName} content type definition. " +
                     $"The expected 'type' of the '{fieldName}' field is {fs.FieldType}.",
@@ -585,20 +596,26 @@ namespace SenseNet.ContentRepository.Schema
                     null, contentTypeName, fieldName);
         }
 
-        private static FieldSettingInfo[] CreateFsInfoTable()
+        private List<FieldSettingInfo> CreateFsInfoTable()
         {
-            var all = Instance.ContentTypes.Values.SelectMany(x => x.FieldSettings.Where(y => y.Owner == x))
-                .Select(x => new FieldSettingInfo
-                {
-                    Name = x.Name,
-                    Binding = string.Join(", ", x.Bindings),
-                    FieldType = x.ShortName
-                })
+            var all = ContentTypes.Values.SelectMany(x => x.FieldSettings.Where(y => y.Owner == x))
+                .Select(CreateFsInfo)
                 .OrderBy(x => x.Name)
                 .ThenBy(x => x.FieldType)
-                .ToArray();
+                .Distinct(new FieldSettingInfoEqualityComparer())
+                .ToList();
 
-            return all.Distinct(new FieldSettingInfoEqualityComparer()).ToArray();
+            return all;
+        }
+
+        private FieldSettingInfo CreateFsInfo(FieldSetting fs)
+        {
+            return new FieldSettingInfo
+            {
+                Name = fs.Name,
+                Binding = string.Join(", ", fs.Bindings),
+                FieldType = fs.FieldClassName
+            };
         }
 
         // ---------------------------------------------------------------------- Attribute parsing
