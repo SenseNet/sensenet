@@ -145,6 +145,10 @@ namespace SenseNet.ContentRepository
 
 	    private static void SetBinaryData(FileBase file)
 	    {
+			// Prevent InvalidOperationException that will be thrown when accessing the Binary of a staged File.
+			if (file.SavingState == ContentSavingState.Creating)
+                return;
+
 	        var binaryData = file.Binary;
 
 	        if (string.IsNullOrEmpty(binaryData.FileName))
