@@ -577,10 +577,11 @@ namespace SenseNet.ContentRepository.Schema
                     $"The expected 'type' of the '{fieldName}' field is {fs.FieldType}.",
                     null, contentTypeName, fieldName);
 
-            if (fs.Binding != string.Join(",", fieldSetting.Bindings))
+            var actualBinding = string.Join(", ", fieldSetting.Bindings);
+            if (fs.Binding != actualBinding)
                 throw new ContentRegistrationException(
-                    $"Field binding violation in the {contentTypeName} content type definition. " +
-                    $"The expected 'Binding' of the '{fieldName}' field is {fs.Binding}.",
+                    $"Field 'Binding' violation in the {contentTypeName}.{fieldName}. " +
+                    $"Expected: {fs.Binding}. Actual: {actualBinding}.",
                     null, contentTypeName, fieldName);
         }
 

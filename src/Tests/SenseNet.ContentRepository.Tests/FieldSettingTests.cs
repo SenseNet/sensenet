@@ -387,7 +387,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
 							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
-									<Field name='Id' type='Number'>
+									<Field name='Id' type='Integer'>
 										<Configuration>
 											<ReadOnly>true</ReadOnly>
 										</Configuration>
