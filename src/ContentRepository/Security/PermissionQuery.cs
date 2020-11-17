@@ -126,8 +126,15 @@ namespace SenseNet.ContentRepository.Security
             public bool LocalOnly { get; set; }
         }
 
-        // ============================================================================= OData operations
+        /* ============================================================================= OData operations */
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissionLevel"></param>
+        /// <param name="identityKind"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -137,6 +144,16 @@ namespace SenseNet.ContentRepository.Security
             var kind = GetIdentityKind(identityKind);
             return PermissionQuery.GetRelatedIdentities(content, level, kind);
         }
+
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissionLevel"></param>
+        /// <param name="explicitOnly"></param>
+        /// <param name="memberPath"></param>
+        /// <param name="includedTypes"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -146,6 +163,16 @@ namespace SenseNet.ContentRepository.Security
             var member = GetMember(memberPath);
             return PermissionQuery.GetRelatedPermissions(content, level, explicitOnly, member, includedTypes);
         }
+
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissionLevel"></param>
+        /// <param name="explicitOnly"></param>
+        /// <param name="memberPath"></param>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -157,6 +184,14 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedItems(content, level, explicitOnly, member, perms);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissionLevel"></param>
+        /// <param name="identityKind"></param>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
         [ODataFunction("GetRelatedIdentitiesByPermissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -167,6 +202,15 @@ namespace SenseNet.ContentRepository.Security
             var kind = GetIdentityKind(identityKind);
             return PermissionQuery.GetRelatedIdentities(content, level, kind, perms);
         }
+
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissionLevel"></param>
+        /// <param name="memberPath"></param>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -178,6 +222,12 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedItemsOneLevel(content, level, member, perms);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -187,6 +237,12 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetAllowedUsers(content, perms);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>UsersAndGroups</snCategory>
+        /// <param name="content"></param>
+        /// <param name="directOnly"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.Group, N.CT.User)]
         [AllowedRoles(N.R.Everyone)]
@@ -195,6 +251,12 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetParentGroups(content, directOnly);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="identity"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -202,7 +264,13 @@ namespace SenseNet.ContentRepository.Security
         {
             return GetPermissionInfo(content, identity, true);
         }
-        
+
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="identity"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]

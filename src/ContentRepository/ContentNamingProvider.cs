@@ -74,6 +74,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// OData function that converts the human readable name to the valid content name.
         /// </summary>
+        /// <snCategory>ContentAndSchema</snCategory>
         /// <param name="content">Required parameter for the OData function.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>The converted name.</returns>

@@ -10,6 +10,13 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 {
     public static class IdentityServerOperations
     {
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="clientType"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]

@@ -44,7 +44,12 @@ namespace SenseNet.Services.Core
             public object Identity;
         }
 
-
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="identity"></param>
+        /// <returns></returns>
         [ODataFunction]
         public static object GetPermissionOverview(Content content, string identity)
         {

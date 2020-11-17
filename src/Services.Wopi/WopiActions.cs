@@ -16,6 +16,13 @@ namespace SenseNet.Services.Wopi
     {
         private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
         [ODataFunction]
         [RequiredPermissions(N.P.Open)]
         public static object GetWopiData(Content content, HttpContext context, string action)
@@ -52,6 +59,11 @@ namespace SenseNet.Services.Wopi
             };
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
         [RequiredPermissions(N.P.Open)]
         [RequiredPolicies("WopiOpenView")]
@@ -61,6 +73,12 @@ namespace SenseNet.Services.Wopi
             // This method serves only action listing and will not actually execute.
             return null;
         }
+
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies("WopiOpenEdit")]

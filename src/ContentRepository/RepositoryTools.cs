@@ -1247,6 +1247,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>AdSync</snCategory>
+        /// <param name="content"></param>
+        /// <param name="result"></param>
         [ODataAction]
         public static void Ad2PortalSyncFinalizer(Content content, SnTaskResult result)
         {

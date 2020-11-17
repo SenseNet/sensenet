@@ -18,6 +18,14 @@ namespace SenseNet.Services.Core.Operations
 
     public static class IdentityOperations
     {
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
@@ -65,6 +73,15 @@ namespace SenseNet.Services.Core.Operations
             throw new SenseNetSecurityException("Invalid username or password.");
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>UsersAndGroups</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="provider"></param>
+        /// <param name="userId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -85,6 +102,15 @@ namespace SenseNet.Services.Core.Operations
             return Content.Create(user);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>UsersAndGroups</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="loginName"></param>
+        /// <param name="password"></param>
+        /// <param name="email"></param>
+        /// <returns></returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]

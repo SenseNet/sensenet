@@ -620,7 +620,12 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
-
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="inheritance"></param>
+        /// <returns></returns>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -647,6 +652,12 @@ namespace SenseNet.Services.Core.Operations
             return content;
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
