@@ -75,7 +75,7 @@ namespace SenseNet.Services.Core.Operations
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>UsersAndGroups</snCategory>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="provider"></param>
@@ -104,7 +104,7 @@ namespace SenseNet.Services.Core.Operations
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>UsersAndGroups</snCategory>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="loginName"></param>

@@ -239,7 +239,7 @@ namespace SenseNet.ContentRepository.Security
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>UsersAndGroups</snCategory>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="directOnly"></param>
         /// <returns></returns>

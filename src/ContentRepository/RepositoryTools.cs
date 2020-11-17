@@ -312,7 +312,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <remarks>
         /// The response is a list of content paths where AllowedChildTypes is empty categorized by content type names.
         /// Here is an annotated example:
@@ -363,7 +363,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns all content types.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of all content types.</returns>
         [ODataFunction("GetAllContentTypes")]
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns the list of content types that are allowed in the content type of the requested content.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of content types.</returns>
         [ODataFunction]

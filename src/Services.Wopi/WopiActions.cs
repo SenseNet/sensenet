@@ -18,7 +18,7 @@ namespace SenseNet.Services.Wopi
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="action"></param>
@@ -61,7 +61,7 @@ namespace SenseNet.Services.Wopi
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
         [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
@@ -76,7 +76,7 @@ namespace SenseNet.Services.Wopi
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>OfficeOnlineEditing</snCategory>
+        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
         [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]

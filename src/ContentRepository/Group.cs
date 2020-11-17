@@ -439,7 +439,7 @@ namespace SenseNet.ContentRepository
         /// Adds the specified items to the members list of the given group <see cref="Content"/>.
         /// If the content is not a <see cref="Group"/>, an <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
-        /// <snCategory>UsersAndGroups</snCategory>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
@@ -467,7 +467,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Removes the specified items from the members list of the given group <see cref="Content"/>.
         /// </summary>
-        /// <snCategory>UsersAndGroups</snCategory>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>

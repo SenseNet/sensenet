@@ -29,7 +29,7 @@ namespace SenseNet.Services.Core
         /// <summary>
         /// Generic OData action method for collecting all fields of all types in the system.
         /// </summary>
-        /// <snCategory>ContentAndSchema</snCategory>
+        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
         [ODataFunction]

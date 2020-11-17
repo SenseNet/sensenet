@@ -173,7 +173,7 @@ namespace SenseNet.OData.Metadata
 
         //UNDONE:Doc:
         /// <summary></summary>
-        /// <snCategory>ContentAndSchema</snCategory>
+        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content"></param>
         /// <param name="contentTypeName"></param>
         /// <returns></returns>
