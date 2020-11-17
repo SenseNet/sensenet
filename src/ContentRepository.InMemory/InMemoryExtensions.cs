@@ -34,20 +34,30 @@ namespace SenseNet.Extensions.DependencyInjection
 
         public static IRepositoryBuilder BuildInMemoryRepository(this IRepositoryBuilder repositoryBuilder)
         {
+            return BuildInMemoryRepository(repositoryBuilder,
+                InitialData.Load(SenseNetServicesData.Instance),
+                GetInitialIndex());
+        }
+        public static IRepositoryBuilder BuildInMemoryRepository(this IRepositoryBuilder repositoryBuilder,
+            InitialData initialData, InMemoryIndex initialIndex)
+        {
+            if (initialData == null) throw new ArgumentNullException(nameof(initialData));
+            if (initialIndex == null) throw new ArgumentNullException(nameof(initialIndex));
+
             var dataProvider = new InMemoryDataProvider();
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
-                .UseInitialData(InitialData.Load(SenseNetServicesData.Instance))
+                .UseInitialData(initialData)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseExclusiveLockDataProviderExtension(new InMemoryExclusiveLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSearchEngine(new InMemorySearchEngine(initialIndex))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false);
