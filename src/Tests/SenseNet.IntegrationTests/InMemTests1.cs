@@ -14,7 +14,7 @@ namespace SenseNet.IntegrationTests
                 .UseTraceCategories("Test", "Event", "Custom", "Database");
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void InMem_Experimental1()
         {
             TestCases.TestCase_1();
