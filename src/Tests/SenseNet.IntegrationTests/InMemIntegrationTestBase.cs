@@ -28,12 +28,21 @@ namespace SenseNet.IntegrationTests
 
         public override RepositoryBuilder GetRepositoryBuilder()
         {
-            return new RepositoryBuilder()
+            var builder = new RepositoryBuilder()
                 .BuildInMemoryRepository(GetInitialData(), GetInitialIndex())
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+
+            ConfigureRepository(builder);
+
+            return builder;
+        }
+
+        protected virtual RepositoryBuilder ConfigureRepository(RepositoryBuilder builder)
+        {
+            return builder;
         }
 
         private static InitialData _initialData;
