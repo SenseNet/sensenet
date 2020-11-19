@@ -452,7 +452,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.13", "7.7.13.2", "2020-11-10", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.13", "7.7.14", "2020-11-19", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region CTD changes
