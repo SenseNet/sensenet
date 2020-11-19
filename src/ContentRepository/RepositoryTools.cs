@@ -576,7 +576,8 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The response contains a state and the current backup descriptor. The history is always null.
-        /// - If the backup is started successfully:
+        /// 
+        /// An example if the backup is started successfully:
         /// <code>
         /// {
         ///   "State": "Started",
@@ -593,7 +594,7 @@ namespace SenseNet.ContentRepository
         ///   "History": null
         /// }
         /// </code>
-        /// - If the backup is already executing:
+        /// Another example if the backup is already executing:
         /// <code>
         /// {
         ///   "State": "Executing",
