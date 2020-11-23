@@ -1484,8 +1484,13 @@ namespace SenseNet.Preview
             file.PageCount = (int)status;
         }
 
-        // ===================================================================================================== OData interface
+        /* ========================================================================================== OData interface */
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction("GetPreviewImages", Description = "$Action,GetPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1495,6 +1500,12 @@ namespace SenseNet.Preview
             return Current != null ? Current.GetPreviewImages(content) : null;
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1518,6 +1529,11 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1535,6 +1551,11 @@ namespace SenseNet.Preview
             }
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataAction(Description = "Get page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1565,6 +1586,12 @@ namespace SenseNet.Preview
             return pageCount;
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="empty"></param>
+        /// <returns></returns>
         [ODataAction(Description = "Get previews folder")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1583,6 +1610,11 @@ namespace SenseNet.Preview
             };
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="status"></param>
         [ODataAction(Description = "Set preview status")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1594,6 +1626,11 @@ namespace SenseNet.Preview
             SetPreviewStatus(content.ContentHandler as File, status);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="pageCount"></param>
         [ODataAction(Description = "Set page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1605,6 +1642,10 @@ namespace SenseNet.Preview
             SavePageCount(content.ContentHandler as File, pageCount);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
         [ODataAction]
         [ContentTypes(N.CT.PreviewImage)]
         [AllowedRoles(N.R.Everyone)]
@@ -1634,6 +1675,11 @@ namespace SenseNet.Preview
             previewImage.Save(SavingMode.KeepVersion);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataAction(Description = "Regenerate preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1653,6 +1699,12 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = 0 };
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="generateMissing"></param>
+        /// <returns></returns>
         [ODataAction(Description = "Check preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1708,6 +1760,11 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = existingCount };
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Preview</snCategory>
+        /// <param name="content"></param>
+        /// <param name="result"></param>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)

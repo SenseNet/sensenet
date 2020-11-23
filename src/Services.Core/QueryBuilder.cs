@@ -29,6 +29,7 @@ namespace SenseNet.Services.Core
         /// <summary>
         /// Generic OData action method for collecting all fields of all types in the system.
         /// </summary>
+        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
         [ODataFunction]
@@ -107,6 +108,12 @@ namespace SenseNet.Services.Core
             return sb.ToString();
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Queries</snCategory>
+        /// <param name="content"></param>
+        /// <param name="onlyPublic"></param>
+        /// <returns></returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetQueries(Content content, bool onlyPublic = false)
@@ -139,6 +146,14 @@ namespace SenseNet.Services.Core
                  c.InTree(RepositoryPath.Combine(wsPath, QueryContainerName))) && c.TypeIs(QueryTypeName));
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Queries</snCategory>
+        /// <param name="content"></param>
+        /// <param name="query"></param>
+        /// <param name="displayName"></param>
+        /// <param name="queryType"></param>
+        /// <returns></returns>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         public static object SaveQuery(Content content, string query, string displayName, string queryType)

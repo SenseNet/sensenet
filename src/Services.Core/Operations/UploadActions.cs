@@ -8,6 +8,22 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class UploadActions
     {
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Binary</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="FileLength"></param>
+        /// <param name="ContentType"></param>
+        /// <param name="PropertyName"></param>
+        /// <param name="FileText"></param>
+        /// <param name="Overwrite"></param>
+        /// <param name="ContentId"></param>
+        /// <param name="FileName"></param>
+        /// <param name="ChunkToken"></param>
+        /// <param name="UseChunk"></param>
+        /// <param name="create"></param>
+        /// <returns></returns>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
@@ -46,6 +62,12 @@ namespace SenseNet.Services.Core.Operations
             return handler.ExecuteAsync(context.RequestAborted);
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Binary</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
@@ -63,6 +85,7 @@ namespace SenseNet.Services.Core.Operations
         /// This method is used by clients who intend to use the blob storage client 
         /// to write files directly to the blob storage.
         /// </summary>
+        /// <snCategory>Binary</snCategory>
         /// <param name="content">Parent content to upload the new file to.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="name">Name of the new (or existing) content.</param>
@@ -85,6 +108,7 @@ namespace SenseNet.Services.Core.Operations
         /// and calling StartChunk. This method is used by clients who intend to use the blob
         /// storage client to write files directly to the blob storage.
         /// </summary>
+        /// <snCategory>Binary</snCategory>
         /// <param name="content">Existing content with a binary field to upload to. In most cases this is a file content.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
@@ -105,6 +129,7 @@ namespace SenseNet.Services.Core.Operations
         /// This method is used by clients who intend to use the blob storage client 
         /// to write files directly to the blob storage.
         /// </summary>
+        /// <snCategory>Binary</snCategory>
         /// <param name="content">A content in a multistep saving state.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="token">Binary token provided by the start operation before.</param>
@@ -125,7 +150,7 @@ namespace SenseNet.Services.Core.Operations
         /// Gets a token from the Content Repository that represents the binary data stored in the specified
         /// field (by default Binary) of the provided content version.
         /// </summary>
-        /// ///
+        /// <snCategory>Binary</snCategory>
         /// <param name="content">A content with a binary field.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>

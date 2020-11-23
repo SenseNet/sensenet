@@ -12,6 +12,11 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class GetAclFunction
     {
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction(Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]

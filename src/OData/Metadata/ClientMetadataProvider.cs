@@ -171,6 +171,12 @@ namespace SenseNet.OData.Metadata
 
         //======================================================================================= OData API
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Content and Schema</snCategory>
+        /// <param name="content"></param>
+        /// <param name="contentTypeName"></param>
+        /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]

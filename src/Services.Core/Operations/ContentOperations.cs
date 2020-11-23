@@ -27,7 +27,7 @@ namespace SenseNet.Services.Core.Operations
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first copy the
         /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
-        /// <snCategory>ContentManagement</snCategory>
+        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all copied items (subtree roots) and all errors if there is any.
         /// <code>
@@ -159,7 +159,7 @@ namespace SenseNet.Services.Core.Operations
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first move the
         /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
-        /// <snCategory>ContentManagement</snCategory>
+        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all moved items (subtree roots) and all errors if there is any.
         /// <code>
@@ -284,7 +284,7 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes the requested content permanently or moves it to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// </summary>
-        /// <snCategory>ContentManagement</snCategory>
+        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
         /// <returns>This method returns nothing.</returns>
@@ -303,7 +303,7 @@ namespace SenseNet.Services.Core.Operations
         /// Deletes one or more content permanently or moves them to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// The deletable items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// </summary>
-        /// <snCategory>ContentManagement</snCategory>
+        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all deleted items (subtree roots) and all errors if there is any.
         /// <code>
@@ -620,7 +620,12 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
-
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="inheritance"></param>
+        /// <returns></returns>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -647,6 +652,12 @@ namespace SenseNet.Services.Core.Operations
             return content;
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -828,7 +839,7 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Restores the Content from the Trash.
         /// </summary>
-        /// <snCategory>ContentManagement</snCategory>
+        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="destination" example="/Root/DifferentTarget">The path where the content should be restored,
         /// if it is not the same one from which it was deleted.</param>
