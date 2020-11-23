@@ -224,7 +224,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlBuilder.AppendFormat(InsertLongtextPropertiesScript, ++index);
                 longTextSqlParameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
-                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.String, int.MaxValue, item.Value));
             }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
@@ -441,7 +441,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlBuilder.AppendFormat(UpdateLongtextPropertiesScript, ++index);
                 longTextSqlParameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
-                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.String, int.MaxValue, item.Value));
             }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
