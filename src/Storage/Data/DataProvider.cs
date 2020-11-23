@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the allowed minimum of a <see cref="DateTime"/> value.
         /// </summary>
-        public virtual DateTime DateTimeMinValue { get; } = DateTime.MinValue;
+        public DateTime DateTimeMinValue => DateTime.MinValue;
         /// <summary>
         /// Gets the allowed maximum of a <see cref="DateTime"/> value.
         /// </summary>
