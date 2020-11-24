@@ -405,13 +405,23 @@ namespace SenseNet.OData
         {
             if (string.IsNullOrEmpty(models))
                 return null;
+
+            static bool IsJson(string postData)
+            {
+                if (string.IsNullOrEmpty(postData))
+                    return false;
+                return postData.StartsWith("{") && postData.EndsWith("}") ||
+                       postData.StartsWith("[{") && postData.EndsWith("}]");
+            }
             
+            // determine the starting and closing bracket type
             var firstChar = models.Last() == ']' ? '[' : '{';
             var p = models.IndexOf(firstChar);
             if (p > 0)
                 models = models.Substring(p);
 
-            if (!models.StartsWith("{") || !models.EndsWith("}"))
+            // if the data is formatted as a forms-encoded collection, convert it to json
+            if (!IsJson(models))
             {
                 var json = new StringBuilder("{");
                 var pairs = models.Split('&');
