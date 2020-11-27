@@ -569,7 +569,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 // at least one Enabled member has to remain in the group
-                if (!LoadNodes(newMemberIds).Any(m => m is User user && user.Enabled))
+                if (!LoadNodes(newMemberIds).Any(User.IsEnabledRegularUser))
                     throw new InvalidOperationException($"{Name} is a protected group. " +
                                                         "It has to contain at least one enabled member.");
             }

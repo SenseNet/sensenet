@@ -21,6 +21,7 @@ namespace SenseNet.ContentRepository.Storage
             "/Root/IMS/BuiltIn/Portal",
             "/Root/IMS/BuiltIn/Portal/Admin",
             "/Root/IMS/BuiltIn/Portal/Administrators",
+            "/Root/IMS/BuiltIn/Portal/PublicAdmin",
             "/Root/IMS/BuiltIn/Portal/Visitor",
             "/Root/IMS/BuiltIn/Portal/Everyone",
             "/Root/IMS/Public",
