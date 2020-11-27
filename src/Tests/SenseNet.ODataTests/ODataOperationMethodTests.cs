@@ -1091,6 +1091,34 @@ namespace SenseNet.ODataTests
             Assert.AreEqual(JTokenType.Object, request["e"].Type);
         }
         [TestMethod]
+        public void OD_MBO_Request_SpecialChars()
+        {
+            var request = ODataMiddleware.ReadToJson("models=[{'a':'b=c&d=e'}]");
+
+            Assert.IsTrue(request.ContainsKey("a"), "Property 'a' not found.");
+            Assert.AreEqual(1, request.Count, "Incorrect number of child elements.");
+
+            Assert.AreEqual(JTokenType.String, request["a"].Type);
+            Assert.AreEqual("b=c&d=e", request["a"].Value<string>());
+
+            request = ODataMiddleware.ReadToJson("models=[{'a':'b=c&d=e&$f=g&#h=i'}]");
+            Assert.AreEqual(JTokenType.String, request["a"].Type);
+            Assert.AreEqual("b=c&d=e&$f=g&#h=i", request["a"].Value<string>());
+        }
+        [TestMethod]
+        public void OD_MBO_Request_FormsEncoded()
+        {
+            var request = ODataMiddleware.ReadToJson("a=b&c=d");
+
+            Assert.IsTrue(request.ContainsKey("a"), "Property 'a' not found.");
+            Assert.AreEqual(2, request.Count, "Incorrect number of child elements.");
+
+            Assert.AreEqual(JTokenType.String, request["a"].Type);
+            Assert.AreEqual("b", request["a"].Value<string>());
+            Assert.AreEqual("d", request["c"].Value<string>());
+        }
+
+        [TestMethod]
         public void OD_MBO_Request_Float()
         {
             var request = ODataMiddleware.ReadToJson("models=[{'a':4.2}]");
