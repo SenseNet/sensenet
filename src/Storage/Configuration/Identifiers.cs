@@ -12,6 +12,7 @@
         public const int EveryoneGroupId = 8;
         public const int OwnersGroupId = 9;
         public const string OperatorsGroupPath = "/Root/IMS/BuiltIn/Portal/Operators";
+        public const string PublicAdminPath = "/Root/IMS/BuiltIn/Portal/PublicAdmin";
         public static readonly int SomebodyUserId = 10;
 
         public const string RootPath = "/Root";

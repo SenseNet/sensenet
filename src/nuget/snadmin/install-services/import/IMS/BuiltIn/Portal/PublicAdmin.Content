@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>User</ContentType>
+  <ContentName>PublicAdmin</ContentName>
+  <Fields>
+    <Enabled>true</Enabled>
+    <FullName>PublicAdmin</FullName>
+    <LoginName>PublicAdmin</LoginName>
+  </Fields>
+</ContentMetaData>

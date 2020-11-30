@@ -58,6 +58,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
         public static User DefaultUser => SystemAccount.Execute(() => Load<User>(AccessProvider.Current.DefaultUserId));
+        public static User PublicAdministrator => SystemAccount.Execute(() => Load<User>(Identifiers.PublicAdminPath));
 
         private static User _somebody;
         private static object _somebodyLock = new object();
@@ -1229,6 +1230,19 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        private static readonly string[] InternalUserPaths =
+        {
+            Identifiers.PublicAdminPath
+        };
+
+        /// <summary>
+        /// Determines if the provided node is a regular (not internal) user and it is enabled. 
+        /// </summary>
+        internal static bool IsEnabledRegularUser(Node user)
+        {
+            return user is User usr && usr.Enabled && !InternalUserPaths.Contains(usr.Path);
+        }
+
         private void AssertEnabledParentGroupMembers()
         {
             AssertEnabledParentGroupMembers(Id);
@@ -1240,7 +1254,10 @@ namespace SenseNet.ContentRepository
         /// </summary>
         internal static void AssertEnabledParentGroupMembers(params int[] userIds)
         {
-            // check if all protected groups of this user remain functional
+            // Check if all protected groups of this user remain functional. This means that
+            // a group must contain at least one non-internal enabled user.
+            // Internal users are skipped because clients cannot use them to log in.
+
             using (new SystemAccount())
             {
                 var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
@@ -1255,8 +1272,9 @@ namespace SenseNet.ContentRepository
 
                 foreach (var group in LoadNodes(groupsToCheck).Where(g => g != null).Cast<Group>())
                 {
-                    // true if no other enabled member would remain in the group
-                    if (!group.GetMemberUsers().Any(mu => !userIds.Contains(mu.Id) && mu.Enabled))
+                    // true if no other enabled regular member would remain in the group
+                    if (!group.GetMemberUsers().Any(mu => 
+                        !userIds.Contains(mu.Id) && IsEnabledRegularUser(mu as User)))
                         throw new InvalidOperationException("It is not possible to perform this operation. " +
                               $"It would leave the {group.Name} protected group without an enabled member.");
                 }
