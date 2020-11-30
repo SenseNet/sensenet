@@ -125,6 +125,7 @@ namespace SenseNet.ContentRepository.Tests
                 // can delete anybody
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user1");
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user2");
+                Node.ForceDelete("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -156,6 +157,7 @@ namespace SenseNet.ContentRepository.Tests
                 // can disable anybody
                 DisableUser("/Root/IMS/Public/TestOrg/user1");
                 DisableUser("/Root/IMS/Public/TestOrg/user2");
+                DisableUser("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -185,6 +187,7 @@ namespace SenseNet.ContentRepository.Tests
                 // can remove anything
                 RemoveUser("/Root/IMS/Public/group1", "/Root/IMS/Public/TestOrg/user1");
                 RemoveUser("/Root/IMS/Public/group2", "/Root/IMS/Public/TestOrg/user2");
+                RemoveUser("/Root/IMS/Public/group5", "/Root/IMS/Public/TestOrg/user5");
             });
         }
 
