@@ -553,11 +553,18 @@ namespace SenseNet.ContentRepository
             // is this group protected?
             if (!ContentProtector.GetProtectedGroupIds().Contains(e.SourceNode.Id))
                 return;
-            
+
             // Protected groups must contain at least one direct member user
             // who is enabled. Transitivity does not count, the user must be
             // a direct member.
 
+            // If there were no members in the group, we can't remove anybody. This
+            // is probably an initial import scenario.
+            var oldMembersText = (string)changedMembers.Original;
+            if (string.IsNullOrEmpty(oldMembersText))
+                return;
+
+            // there has to be at least one member in the group
             var newMembersText = (string) changedMembers.Value;
             var newMemberIds = string.IsNullOrEmpty(newMembersText) 
                 ? Array.Empty<int>() 

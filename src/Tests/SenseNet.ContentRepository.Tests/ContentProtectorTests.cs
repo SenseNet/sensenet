@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -192,6 +193,24 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public System.Threading.Tasks.Task ContentProtector_Group_Empty_AddInternalUser()
+        {
+            return Test(builder =>
+            {
+                // protect groups
+                builder.ProtectGroups("/Root/IMS/Public/group6");
+            }, async () =>
+            {
+                CreateUserAndGroupStructure();
+
+                var group6 = await Node.LoadAsync<Group>("/Root/IMS/Public/group6", CancellationToken.None);
+
+                // this should complete: adding an INTERNAL user to an EMPTY group
+                group6.AddMember(User.PublicAdministrator);
+            });
+        }
+
+        [TestMethod]
         public void ContentProtector_DeleteUser()
         {
             Test(() =>
@@ -321,6 +340,7 @@ namespace SenseNet.ContentRepository.Tests
              *          group2
              *          group3
              *          group5
+             *          group6
              *          TestOrg
              *              user1
              *              user2
@@ -332,6 +352,7 @@ namespace SenseNet.ContentRepository.Tests
              *      group2 members: user2, group3   (--> and user3 transitively!)
              *      group3 members: user3
              *      group5 members: internal public admin user, user5
+             *      group6 members: EMPTY group
              */
 
             var publicDomain = Node.LoadNode("/Root/IMS/Public");
@@ -344,6 +365,8 @@ namespace SenseNet.ContentRepository.Tests
             group3.Save();
             var group5 = new Group(publicDomain) { Name = "group5" };
             group5.Save();
+            var group6 = new Group(publicDomain) { Name = "group6" };
+            group6.Save();
 
             var org = new OrganizationalUnit(publicDomain) { Name = "TestOrg" };
             org.Save();
