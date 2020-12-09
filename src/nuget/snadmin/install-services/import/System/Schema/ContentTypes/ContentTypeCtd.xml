@@ -226,7 +226,7 @@
       <Configuration>
         <MaxLength>100</MaxLength>
         <MinLength>0</MinLength>
-        <TextType>LongText|RichTextRichText</TextType>
+        <TextType>LongText|RichText</TextType>
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
