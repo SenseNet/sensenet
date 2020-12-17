@@ -2,11 +2,11 @@
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.IntegrationTests
+namespace SenseNet.IntegrationTests.TestCases
 {
-    public class TestCases1 : TestCaseBase
+    public class TestCase1 : TestCase
     {
-        public void TestCase_1()
+        public void TestCase_1_1()
         {
             IntegrationTest(() =>
             {
@@ -19,7 +19,7 @@ namespace SenseNet.IntegrationTests
                 edited.Index = 42;
                 edited.Save();
 
-                //ASSERT
+                // ASSERT
                 var loaded = Node.LoadNode(created.Id);
                 Assert.AreEqual(42, loaded.Index);
             });

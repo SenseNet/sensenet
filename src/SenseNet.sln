@@ -98,7 +98,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Tests.Core", "Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Tests.Core.Tests", "Tests\SenseNet.Tests.Core.Tests\SenseNet.Tests.Core.Tests.csproj", "{988FFB5D-4485-475B-87FE-5D651D641CD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.IntegrationTests", "Tests\SenseNet.IntegrationTests\SenseNet.IntegrationTests.csproj", "{E53F97F9-A059-4252-8C09-8C6B63678F24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.IntegrationTests", "Tests\SenseNet.IntegrationTests\SenseNet.IntegrationTests.csproj", "{E53F97F9-A059-4252-8C09-8C6B63678F24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
