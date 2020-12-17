@@ -139,6 +139,7 @@ namespace SenseNet.ContentRepository
             /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the index in the
             /// external index provider the same way as the light-weight algorithm.
             /// </summary>
+            /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
             /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
             /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
@@ -151,8 +152,9 @@ namespace SenseNet.ContentRepository
                 content.RebuildIndex(recursive, rebuildLevel);
             }
             /// <summary>
-            /// Performes a full reindex operation on the content and the whole subtree.
+            /// Performs a full reindex operation on the content and the whole subtree.
             /// </summary>
+            /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
@@ -164,6 +166,7 @@ namespace SenseNet.ContentRepository
             /// <summary>
             /// Refreshes the index document of the content and the whole subtree using the already existing index data stored in the database.
             /// </summary>
+            /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]

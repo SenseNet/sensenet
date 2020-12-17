@@ -13,6 +13,9 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>
         /// Gets a list of all sharing records on a content.
         /// </summary>
+        /// <snCategory>Sharing</snCategory>
+        /// <param name="content"></param>
+        /// <returns></returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.SetPermissions)]
@@ -26,6 +29,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>
         /// Shares a content with somebody.
         /// </summary>
+        /// <snCategory>Sharing</snCategory>
         /// <param name="content"></param>
         /// <param name="token">An identifier token: an email address, a username or a user or group id.</param>
         /// <param name="level">What permissions will the user get for the content.</param>
@@ -45,6 +49,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>
         /// Remove a sharing record from a content.
         /// </summary>
+        /// <snCategory>Sharing</snCategory>
         /// <param name="content"></param>
         /// <param name="id">Identifier of a sharing record.</param>
         /// <returns>Returns true if the system has found and removed the sharing record.</returns>

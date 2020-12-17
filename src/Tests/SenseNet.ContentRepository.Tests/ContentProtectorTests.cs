@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -99,7 +100,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(builder =>
             {
                 // protect groups
-                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2");
+                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2", "/Root/IMS/Public/group5");
             }, () =>
             {
                 CreateUserAndGroupStructure();
@@ -108,6 +109,8 @@ namespace SenseNet.ContentRepository.Tests
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg/user1");
                 // direct member of group2
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg/user2");
+                // group5 with a single member except the public admin
+                AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg/user5");
 
                 // try to delete the container
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg");
@@ -123,6 +126,7 @@ namespace SenseNet.ContentRepository.Tests
                 // can delete anybody
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user1");
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user2");
+                Node.ForceDelete("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -131,7 +135,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(builder =>
             {
                 // protect groups
-                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2");
+                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2", "/Root/IMS/Public/group5");
             }, () =>
             {
                 CreateUserAndGroupStructure();
@@ -140,6 +144,8 @@ namespace SenseNet.ContentRepository.Tests
                 AssertProtectedGroup_DisableUser("/Root/IMS/Public/TestOrg/user1");
                 // direct member of group2
                 AssertProtectedGroup_DisableUser("/Root/IMS/Public/TestOrg/user2");
+                // group5 with a single member except the public admin
+                AssertProtectedGroup_DisableUser("/Root/IMS/Public/TestOrg/user5");
 
                 // can be disabled, group3 is not protected
                 DisableUser("/Root/IMS/Public/TestOrg/user3");
@@ -152,6 +158,7 @@ namespace SenseNet.ContentRepository.Tests
                 // can disable anybody
                 DisableUser("/Root/IMS/Public/TestOrg/user1");
                 DisableUser("/Root/IMS/Public/TestOrg/user2");
+                DisableUser("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -160,7 +167,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(builder =>
             {
                 // protect groups
-                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2");
+                builder.ProtectGroups("/Root/IMS/Public/group1", "/Root/IMS/Public/group2", "/Root/IMS/Public/group5");
             }, () =>
             {
                 CreateUserAndGroupStructure();
@@ -169,6 +176,8 @@ namespace SenseNet.ContentRepository.Tests
                 AssertProtectedGroup_RemoveUser("/Root/IMS/Public/group1", "/Root/IMS/Public/TestOrg/user1");
                 // direct member of group2
                 AssertProtectedGroup_RemoveUser("/Root/IMS/Public/group2", "/Root/IMS/Public/TestOrg/user2");
+                // group5 with a single member except the public admin
+                AssertProtectedGroup_RemoveUser("/Root/IMS/Public/group5", "/Root/IMS/Public/TestOrg/user5");
 
                 // can be removed, group3 is not protected
                 RemoveUser("/Root/IMS/Public/group3", "/Root/IMS/Public/TestOrg/user3");
@@ -179,6 +188,25 @@ namespace SenseNet.ContentRepository.Tests
                 // can remove anything
                 RemoveUser("/Root/IMS/Public/group1", "/Root/IMS/Public/TestOrg/user1");
                 RemoveUser("/Root/IMS/Public/group2", "/Root/IMS/Public/TestOrg/user2");
+                RemoveUser("/Root/IMS/Public/group5", "/Root/IMS/Public/TestOrg/user5");
+            });
+        }
+
+        [TestMethod]
+        public System.Threading.Tasks.Task ContentProtector_Group_Empty_AddInternalUser()
+        {
+            return Test(builder =>
+            {
+                // protect groups
+                builder.ProtectGroups("/Root/IMS/Public/group6");
+            }, async () =>
+            {
+                CreateUserAndGroupStructure();
+
+                var group6 = await Node.LoadAsync<Group>("/Root/IMS/Public/group6", CancellationToken.None);
+
+                // this should complete: adding an INTERNAL user to an EMPTY group
+                group6.AddMember(User.PublicAdministrator);
             });
         }
 
@@ -311,15 +339,20 @@ namespace SenseNet.ContentRepository.Tests
              *          group1
              *          group2
              *          group3
+             *          group5
+             *          group6
              *          TestOrg
              *              user1
              *              user2
              *              user3
              *              user4
+             *              user5
              *
              *      group1 members: user1
              *      group2 members: user2, group3   (--> and user3 transitively!)
              *      group3 members: user3
+             *      group5 members: internal public admin user, user5
+             *      group6 members: EMPTY group
              */
 
             var publicDomain = Node.LoadNode("/Root/IMS/Public");
@@ -330,6 +363,10 @@ namespace SenseNet.ContentRepository.Tests
             group2.Save();
             var group3 = new Group(publicDomain) { Name = "group3" };
             group3.Save();
+            var group5 = new Group(publicDomain) { Name = "group5" };
+            group5.Save();
+            var group6 = new Group(publicDomain) { Name = "group6" };
+            group6.Save();
 
             var org = new OrganizationalUnit(publicDomain) { Name = "TestOrg" };
             org.Save();
@@ -353,10 +390,14 @@ namespace SenseNet.ContentRepository.Tests
             // user without groups
             var _ = CreateUser(org, "user4");
 
+            var user5 = CreateUser(org, "user5");
+
             group1.AddMember(user1);
             group2.AddMember(user2);
             group2.AddMember(group3);
             group3.AddMember(user3);
+            group5.AddMember(user5);
+            group5.AddMember(User.PublicAdministrator);
         }
     }
 }

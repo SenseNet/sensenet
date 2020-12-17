@@ -1,7 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.OData.Metadata;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
@@ -74,6 +78,69 @@ namespace SenseNet.ContentRepository.Tests
 </ContentType>
 ");
             });
+        }
+
+        private enum CheckFieldResult { CtdError, /*SchemaError, FieldExists,*/ NoError }
+
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_FieldNameBlackList()
+        {
+            var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
+
+            var fieldNames = new[] {"Actions", "Type", "TypeIs", "Children", "InFolder", "InTree",
+                "IsSystemContent", "SharedWith", "SharedBy","SharingMode", "SharingLevel"};
+
+            var ctdErrors = new List<string>();
+            var noErrors = new List<string>();
+            Test(() =>
+            {
+                foreach (var fieldName in fieldNames)
+                {
+                    switch (CheckField(contentTypeName, fieldName))
+                    {
+                        case CheckFieldResult.CtdError: ctdErrors.Add(fieldName); break;
+                        case CheckFieldResult.NoError: noErrors.Add(fieldName); break;
+                        default: throw new ArgumentOutOfRangeException();
+                    }
+                }
+
+                Assert.AreEqual(fieldNames.Length, ctdErrors.Count);
+            });
+        }
+
+        private CheckFieldResult CheckField(string contentTypeName, string fieldName)
+        {
+            var result = CheckField(contentTypeName, fieldName, "ShortText");
+            if (result == CheckFieldResult.NoError)
+                result = CheckField(contentTypeName, fieldName, "Integer");
+            return result;
+        }
+        private CheckFieldResult CheckField(string contentTypeName, string fieldName, string fieldType)
+        {
+            var result = CheckFieldResult.NoError;
+
+            try
+            {
+                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='{contentTypeName}' parentType='GenericContent'
+         handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='{fieldName}' type='{fieldType}'/>
+    </Fields>
+</ContentType>
+");
+            }
+            catch (Exception e)
+            {
+                result = CheckFieldResult.CtdError;
+            }
+
+            var contentType = ContentType.GetByName(contentTypeName);
+            if(contentType != null)
+                ContentTypeInstaller.RemoveContentType(contentTypeName);
+
+            return result;
         }
     }
 }

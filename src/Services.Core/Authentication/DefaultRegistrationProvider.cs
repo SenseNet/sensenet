@@ -11,6 +11,9 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SenseNet.Configuration;
 using SenseNet.Portal.Handlers;
 using Task = System.Threading.Tasks.Task;
 
@@ -54,17 +57,28 @@ namespace SenseNet.Services.Core.Authentication
         {
             var fullName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
             var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
-
+            
             // Fill the field with an initial JSON data containing a single provider data.
             // Later, if the user already exists, this field needs to be edited: the new id
             // should be inserted instead of overwriting the current value.
             var external = $"{{ \"{provider}\": {{ \"Id\": \"{userId}\", \"Completed\": false }} }}";
 
-            // content name: email
-            var user = await CreateUser(email, email, email, fullName, u =>
+            // check if there is an existing user with this email
+            var user = GetUserByEmail(email);
+            if (user != null)
             {
-                u["ExternalUserProviders"] = external;
-            }, cancellationToken);
+                // existing user: merge
+                MergeExternalData(user, email, fullName, external, provider, userId);
+            }
+            else
+            {
+                // content name: email
+                user = await CreateUser(email, email, email, fullName, u =>
+                {
+                    u["ExternalUserProviders"] = external;
+                },
+                cancellationToken);
+            }
 
             // save user avatar
             var image = claims.FirstOrDefault(c => c.Type == "image")?.Value ?? string.Empty;
@@ -172,6 +186,73 @@ namespace SenseNet.Services.Core.Authentication
             var bd = UploadHelper.CreateBinaryData("avatar." + contentType, stream);
             user.SetBinary("ImageData", bd);
             user.Save(SavingMode.KeepVersion);
+        }
+
+        private User GetUserByEmail(string email)
+        {
+            return Content.All.FirstOrDefault(c =>
+                c.InTree(RepositoryStructure.ImsFolderPath) &&
+                c.TypeIs("User") &&
+                (string)c["Email"] == email &&
+                (string)c["LoginName"] == email)?.ContentHandler as User;
+        }
+
+        private void MergeExternalData(User user, string email, string fullName, string externalProviderData, 
+            string provider, string userId)
+        {
+            var userContent = Content.Create(user);
+            var currentExternalData = (string)userContent["ExternalUserProviders"];
+
+            if (string.IsNullOrEmpty(currentExternalData))
+            {
+                // no previous external data, simply set it
+                SaveNewExternalData(externalProviderData);
+            }
+            else
+            {
+                var currentExternalJObject = JsonConvert.DeserializeObject<JObject>(currentExternalData ?? string.Empty);
+                if (currentExternalJObject.ContainsKey(provider))
+                {
+                    // provider exists in previous external data
+                    var currentProviderId = currentExternalJObject[provider]["Id"]?.Value<string>() ?? string.Empty;
+                    if (string.IsNullOrEmpty(currentProviderId))
+                    {
+                        // the id is empty for some reason, simply set it
+                        currentExternalJObject[provider]["Id"] = userId;
+
+                        SaveNewExternalData(currentExternalJObject.ToString());
+                    }
+                    else if (!string.Equals(currentProviderId, userId))
+                    {
+                        // This should not happen: we've found a user with the same email and provider
+                        // but with a different user id.
+                        SnLog.WriteWarning($"CreateProviderUser: found an existing user with a matching email but non-matching " +
+                                           $"provider id. Provider: {provider} Email: {email} Current id: {currentProviderId}" +
+                                           $"New id: {userId}");
+
+                        throw new InvalidOperationException($"Ambiguous user id for user {email} and provider {provider}");
+                    }
+
+                    // otherwise: the correct provider and id is already set, move on silently
+                }
+                else
+                {
+                    // merge the new provider to the existing list
+                    var newExternalJObject = JsonConvert.DeserializeObject<JObject>(externalProviderData);
+                    currentExternalJObject.Merge(newExternalJObject);
+
+                    SaveNewExternalData(currentExternalJObject.ToString());
+                }
+            }
+
+            void SaveNewExternalData(string externalData)
+            {
+                userContent["ExternalUserProviders"] = externalData;
+                if (!string.IsNullOrEmpty(fullName))
+                    userContent["FullName"] = fullName;
+
+                userContent.SaveSameVersion();
+            }
         }
     }
 }

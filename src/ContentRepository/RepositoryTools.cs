@@ -312,7 +312,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <remarks>
         /// The response is a list of content paths where AllowedChildTypes is empty categorized by content type names.
         /// Here is an annotated example:
@@ -363,7 +363,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns all content types.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of all content types.</returns>
         [ODataFunction("GetAllContentTypes")]
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns the list of content types that are allowed in the content type of the requested content.
         /// </summary>
-        /// <snCategory>ContentTypes</snCategory>
+        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of content types.</returns>
         [ODataFunction]
@@ -576,7 +576,8 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The response contains a state and the current backup descriptor. The history is always null.
-        /// - If the backup is started successfully:
+        /// 
+        /// An example if the backup is started successfully:
         /// <code>
         /// {
         ///   "State": "Started",
@@ -593,7 +594,7 @@ namespace SenseNet.ContentRepository
         ///   "History": null
         /// }
         /// </code>
-        /// - If the backup is already executing:
+        /// Another example if the backup is already executing:
         /// <code>
         /// {
         ///   "State": "Executing",
@@ -1247,6 +1248,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        //UNDONE:Doc:
+        /// <summary></summary>
+        /// <snCategory>AdSync</snCategory>
+        /// <param name="content"></param>
+        /// <param name="result"></param>
         [ODataAction]
         public static void Ad2PortalSyncFinalizer(Content content, SnTaskResult result)
         {

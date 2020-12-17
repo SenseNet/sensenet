@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -452,7 +453,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.13", "7.7.13.2", "2020-11-10", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.13", "7.7.14", "2020-11-19", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region CTD changes
@@ -468,6 +469,65 @@ namespace SenseNet.ContentRepository
                         .DefaultValue("");
 
                     cb.Apply();
+
+                    #endregion
+                });
+
+            builder.Patch("7.7.14", "7.7.16", "2020-12-08", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    // We can set the new regex only if the current regex is the old default
+                    // (otherwise we do not want to overwrite a custom regex).
+                    // NOTE: in the old regex below the & character appears as is (in the middle
+                    // of the first line), but in the new const we had to replace it with &amp;
+                    // to let the patch algorithm set the correct value in the XML.
+
+                    const string oldUrlRegex = "^(http|https)\\://([a-zA-Z0-9\\.\\-]+(\\:[a-zA-Z0-9\\.&%\\$\\-]+)*@)*((25[0-5]|" +
+                                               "2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}" +
+                                               "[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}" +
+                                               "[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|" +
+                                               "localhost|([a-zA-Z0-9\\-]+\\.)*[a-zA-Z0-9\\-]+(\\.(com|edu|gov|int|mil|net|org|biz|" +
+                                               "arpa|info|name|pro|aero|coop|museum|hu|[a-zA-Z]{2})){0,1})(\\:[0-9]+)*((\\#|/)($|" +
+                                               "[a-zA-Z0-9\\.\\,\\?\\'\\\\\\+&%\\$#\\=~_\\-]+))*$";
+                    const string newUrlRegex = "^(https?|ftp)\\://([a-zA-Z0-9\\.\\-]+(\\:[a-zA-Z0-9\\.&amp;%\\$\\-]+)*@)*((25[0-5]|" +
+                                               "2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}" +
+                                               "[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}" +
+                                               "[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|" +
+                                               "localhost|([a-zA-Z0-9\\-]+\\.)*[a-zA-Z0-9\\-]+(\\.(com|edu|gov|int|mil|net|org|biz|" +
+                                               "arpa|info|name|pro|aero|coop|museum|hu|[a-zA-Z]{2})){0,1})(\\:[0-9]+)*" +
+                                               "(\\/[\\w\\-\\@\\/\\(\\)]*){0,1}((\\?|\\#)(($|[\\w\\.\\,\\'\\\\\\+&amp;" +
+                                               "%\\$#\\=~_\\-\\(\\)]+)*)){0,1}$";
+
+                    var currentRegex =
+                        ((ShortTextFieldSetting) ContentType.GetByName("Link").GetFieldSettingByName("Url")).Regex;
+
+                    // replace the regex only if it was the original default
+                    if (string.Equals(oldUrlRegex, currentRegex, StringComparison.Ordinal))
+                    {
+                        cb.Type("Link")
+                            .Field("Url")
+                            .Configure("Regex", newUrlRegex);
+                    }
+
+                    cb.Apply();
+
+                    #endregion
+
+                    #region Content changes
+
+                    // create the new public admin user
+                    if (User.PublicAdministrator == null)
+                    {
+                        var publicAdmin = Content.CreateNew("User", OrganizationalUnit.Portal, "PublicAdmin");
+                        publicAdmin["Enabled"] = true;
+                        publicAdmin["FullName"] = "PublicAdmin";
+                        publicAdmin["LoginName"] = "PublicAdmin";
+                        publicAdmin.Save();
+                    }
 
                     #endregion
                 });

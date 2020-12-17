@@ -439,6 +439,7 @@ namespace SenseNet.ContentRepository
         /// Adds the specified items to the members list of the given group <see cref="Content"/>.
         /// If the content is not a <see cref="Group"/>, an <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
@@ -466,6 +467,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Removes the specified items from the members list of the given group <see cref="Content"/>.
         /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
@@ -551,11 +553,18 @@ namespace SenseNet.ContentRepository
             // is this group protected?
             if (!ContentProtector.GetProtectedGroupIds().Contains(e.SourceNode.Id))
                 return;
-            
+
             // Protected groups must contain at least one direct member user
             // who is enabled. Transitivity does not count, the user must be
             // a direct member.
 
+            // If there were no members in the group, we can't remove anybody. This
+            // is probably an initial import scenario.
+            var oldMembersText = (string)changedMembers.Original;
+            if (string.IsNullOrEmpty(oldMembersText))
+                return;
+
+            // there has to be at least one member in the group
             var newMembersText = (string) changedMembers.Value;
             var newMemberIds = string.IsNullOrEmpty(newMembersText) 
                 ? Array.Empty<int>() 
@@ -567,7 +576,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 // at least one Enabled member has to remain in the group
-                if (!LoadNodes(newMemberIds).Any(m => m is User user && user.Enabled))
+                if (!LoadNodes(newMemberIds).Any(User.IsEnabledRegularUser))
                     throw new InvalidOperationException($"{Name} is a protected group. " +
                                                         "It has to contain at least one enabled member.");
             }
