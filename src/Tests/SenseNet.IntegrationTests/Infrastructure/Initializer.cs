@@ -17,6 +17,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
         [AssemblyCleanup]
         public static void CleanupAllTests()
         {
+            // Close the last repository if any.
+            TestCases.TestCase.CleanupClass();
             Logger.Log("All tests finished.");
         }
 

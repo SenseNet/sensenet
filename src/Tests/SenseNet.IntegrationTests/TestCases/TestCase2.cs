@@ -8,7 +8,61 @@ namespace SenseNet.IntegrationTests.TestCases
     {
         public void TestCase_2_1()
         {
-            IntegrationTest(() =>
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_2()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_3()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_4i()
+        {
+            IsolatedIntegrationTest(() =>
             {
                 // ASSIGN
                 var created = new SystemFolder(Repository.Root);
@@ -24,12 +78,66 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(42, loaded.Index);
             });
         }
-        public void TestCase_2_2()
+        public void TestCase_2_5()
         {
-            IntegrationTest(() =>
+            IntegrationTest((sandbox) =>
             {
                 // ASSIGN
-                var created = new SystemFolder(Repository.Root);
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_6()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_7()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
+                created.Save();
+
+                // ACTION
+                var edited = Node.LoadNode(created.Id);
+                edited.Index = 42;
+                edited.Save();
+
+                // ASSERT
+                var loaded = Node.LoadNode(created.Id);
+                Assert.AreEqual(42, loaded.Index);
+            });
+        }
+        public void TestCase_2_8()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // ASSIGN
+                var created = new SystemFolder(sandbox);
                 created.Save();
 
                 // ACTION

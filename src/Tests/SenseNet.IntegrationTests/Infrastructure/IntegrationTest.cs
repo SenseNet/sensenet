@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
 
@@ -20,15 +21,31 @@ namespace SenseNet.IntegrationTests.Infrastructure
             TestCase = new TTestCase { Platform = Platform };
         }
 
+        private DateTime _startTime;
+
         [TestInitialize]
         public void InitializeTest()
         {
-            Logger.Log($"{TestContext.TestName} START");
+            _startTime = DateTime.Now;
+            Logger.Log($"    {TestContext.TestName} START");
         }
         [TestCleanup]
         public void CleanupTest()
         {
-            Logger.Log($"{TestContext.TestName} {TestContext.CurrentTestOutcome}");
+            var duration = DateTime.Now - _startTime;
+            Logger.Log($"    {TestContext.TestName} {TestContext.CurrentTestOutcome} {duration:g}");
+        }
+
+        [ClassInitialize]
+        public void InitializeClass(TestContext testContext)
+        {
+            Logger.Log($"InitializeClass {this.GetType().Name}");
+        }
+        [ClassCleanup]
+        public void CleanupClass()
+        {
+            Logger.Log($"CleanupClass {this.GetType().Name}");
+            TestCases.TestCase.CleanupClass();
         }
 
     }
