@@ -13,7 +13,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
 {
     public interface IPlatform
     {
-        RepositoryBuilder CreateRepositoryBuilder(); //UNDONE:<?: Rename to CreateRepositoryBuilder()
+        RepositoryBuilder CreateRepositoryBuilder();
     }
     public abstract class Platform : IPlatform
     {
