@@ -5,20 +5,19 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Tests.Core.Implementations;
 
-namespace SenseNet.IntegrationTests.Platforms
+namespace SenseNet.IntegrationTests.Infrastructure
 {
     public interface IPlatform
     {
-        RepositoryBuilder GetRepositoryBuilder(); //UNDONE:<?: Rename to CreateRepositoryBuilder()
+        RepositoryBuilder CreateRepositoryBuilder(); //UNDONE:<?: Rename to CreateRepositoryBuilder()
     }
     public abstract class Platform : IPlatform
     {
-        public RepositoryBuilder GetRepositoryBuilder()
+        public RepositoryBuilder CreateRepositoryBuilder()
         {
             var builder = new RepositoryBuilder();
 

@@ -1,13 +1,11 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.IntegrationTests.Platforms;
-using SenseNet.IntegrationTests.TestCases;
 
 namespace SenseNet.IntegrationTests.Infrastructure
 {
     public abstract class IntegrationTest<TPlatform, TTestCase>
         where TPlatform : IPlatform, new()
-        where TTestCase : TestCase, new()
+        where TTestCase : TestCaseBase, new()
     {
         // Injected by MsTest framework.
         public TestContext TestContext { get; set; }
@@ -45,7 +43,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public void CleanupClass()
         {
             Logger.Log($"CleanupClass {this.GetType().Name}");
-            TestCases.TestCase.CleanupClass();
+                TestCaseBase.CleanupClass();
         }
 
     }

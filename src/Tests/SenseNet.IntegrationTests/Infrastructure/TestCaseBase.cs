@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using SenseNet.BackgroundOperations;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.IntegrationTests.Infrastructure;
-using SenseNet.IntegrationTests.Platforms;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.IntegrationTests.TestCases
+namespace SenseNet.IntegrationTests.Infrastructure
 {
-    public abstract class TestCase
+    public abstract class TestCaseBase
     {
         public IPlatform Platform { get; set; }
 
@@ -46,7 +42,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 _repositoryInstance = null;
                 _lastPlatformName = null;
 
-                var builder = Platform.GetRepositoryBuilder();
+                var builder = Platform.CreateRepositoryBuilder();
 
                 Logger.Log("  start new repository");
                 _repositoryInstance = Repository.Start(builder);
@@ -106,7 +102,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 _repositoryInstance = null;
                 _lastPlatformName = null;
 
-                var builder = Platform.GetRepositoryBuilder();
+                var builder = Platform.CreateRepositoryBuilder();
 
                 Logger.Log("  start new repository");
                 _repositoryInstance = Repository.Start(builder);
@@ -157,7 +153,7 @@ namespace SenseNet.IntegrationTests.TestCases
         //    ContentTypeManager.Reset();
         //    //Providers.Instance.NodeTypeManeger = null;
 
-        //    var builder = _implementation.GetRepositoryBuilder();
+        //    var builder = _implementation.CreateRepositoryBuilder();
 
         //    Indexing.IsOuterSearchEngineEnabled = true;
 
