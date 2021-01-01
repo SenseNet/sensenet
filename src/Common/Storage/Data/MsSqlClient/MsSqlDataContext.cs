@@ -19,6 +19,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             ConnectionString = ConnectionStrings.ConnectionString;
         }
+        public MsSqlDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken) : base(options, cancellationToken)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
+            
+            ConnectionString = connectionString;
+        }
         public MsSqlDataContext(string connectionString, CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = connectionString ?? ConnectionStrings.ConnectionString;
@@ -143,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
 
                     cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = transaction;
@@ -173,7 +180,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
 
                     cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = transaction;
@@ -210,7 +217,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         }
 
                         cmd.Connection = (SqlConnection)OpenConnection();
-                        cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                         cmd.CommandText = script;
                         cmd.CommandType = CommandType.Text;
                         cmd.Transaction = transaction;

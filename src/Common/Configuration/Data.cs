@@ -27,4 +27,21 @@ namespace SenseNet.Configuration
         public static double LongTransactionTimeout { get; internal set; } = GetDouble(SectionName, "LongTransactionTimeout",
             TransactionTimeout, TransactionTimeout);
     }
+
+    public class DataOptions
+    {
+        /// <summary>
+        /// Gets the configured db command timeout value in seconds.
+        /// </summary>
+        public int DbCommandTimeout { get; set; } = 120;
+        /// <summary>
+        /// Maximum execution time of transactions.
+        /// </summary>
+        public double TransactionTimeout { get; set; } = 120;
+        /// <summary>
+        /// Maximum execution time of long-running transactions. Use this in exceptional cases, 
+        /// e.g. when copying a huge stream or performing a batch db operation.
+        /// </summary>
+        public double LongTransactionTimeout { get; set; } = 120;
+    }
 }

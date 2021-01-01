@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using IsolationLevel = System.Data.IsolationLevel;
 
@@ -16,6 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private DbConnection _connection;
         private TransactionWrapper _transaction;
         private readonly CancellationToken _cancellationToken;
+        protected DataOptions DataOptions { get; } = new DataOptions();
 
         public DbConnection Connection => _connection;
         public TransactionWrapper Transaction => _transaction;
@@ -28,9 +29,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public bool NeedToCleanupFiles { get; set; }
 
-        protected SnDataContext(CancellationToken cancellationToken)
+        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
+        {
+        }
+        protected SnDataContext(DataOptions options, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
+            DataOptions = options ?? new DataOptions();
         }
 
         public virtual void Dispose()
@@ -81,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, timeout, _cancellationToken);
+                           ?? new TransactionWrapper(transaction, timeout, DataOptions, _cancellationToken);
             return _transaction;
         }
 
@@ -92,7 +97,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var cmd = CreateCommand())
                 {
                     cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = _transaction?.Transaction;
@@ -116,7 +121,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var cmd = CreateCommand())
                 {
                     cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = _transaction?.Transaction;
@@ -147,7 +152,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var cmd = CreateCommand())
                     {
                         cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                         cmd.CommandText = script;
                         cmd.CommandType = CommandType.Text;
                         cmd.Transaction = _transaction?.Transaction;
