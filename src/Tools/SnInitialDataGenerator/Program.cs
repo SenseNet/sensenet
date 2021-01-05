@@ -143,8 +143,12 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 // Save index
                 Console.Write("Saving index...");
                 var indexFileName = Path.Combine(arguments.OutputPath, "index.txt");
-                if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                if (SearchManager.SearchEngine is SearchEngineForInitialDataGenerator searchEngine)
+                {
                     searchEngine.Index.Save(indexFileName);
+                    var indexDocumentsFileName = Path.Combine(arguments.OutputPath, "indexDocuments.txt");
+                    searchEngine.SaveIndexDocuments(indexDocumentsFileName);
+                }
                 Console.WriteLine("ok.");
             }
         }
@@ -163,7 +167,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData()))
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSearchEngine(new SearchEngineForInitialDataGenerator())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 //.UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -394,6 +399,22 @@ namespace {0}
         #endregion
     }
 }
+",
+// template[12] ---- index documents start
+@"namespace {0}
+{{
+    public static class {1}Documents
+    {{
+        #region public static readonly string IndexDocuments
+
+        public static readonly string[] IndexDocuments = new string[] {{
+",
+// template[13] ---- index documents end
+@"
+            };
+        #endregion
+    }
+}
 "
         };
         #endregion
@@ -402,14 +423,14 @@ namespace {0}
         {
             Console.WriteLine("Generate C# source files");
 
-            var path = Path.Combine(arguments.OutputPath, arguments.DataFileName);
+            var targetPath = Path.Combine(arguments.OutputPath, arguments.DataFileName);
             var version = typeof(Content).Assembly.GetName().Version;
             var now = DateTime.Now.ToString("yyyy-MM-dd");
 
             // WRITE DATA
 
             Console.Write("writing {0} ...", arguments.DataFileName);
-            using (var writer = new StreamWriter(path, false, Encoding.UTF8))
+            using (var writer = new StreamWriter(targetPath, false, Encoding.UTF8))
             {
                 writer.WriteLine(Template[0], now, version);
 
@@ -458,18 +479,42 @@ namespace {0}
             // WRITE INDEX
 
             Console.Write("writing {0} ...", arguments.IndexFileName);
-            path = Path.Combine(arguments.OutputPath, arguments.IndexFileName);
-            using (var writer = new StreamWriter(path, false, Encoding.UTF8))
+            targetPath = Path.Combine(arguments.OutputPath, arguments.IndexFileName);
+            using (var writer = new StreamWriter(targetPath, false, Encoding.UTF8))
             {
                 writer.WriteLine(Template[0], now, version);
 
                 writer.Write(Template[10], arguments.IndexNamespace, arguments.IndexClassName);
 
-                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "index.txt"), Encoding.UTF8))
+                using (var reader =
+                    new StreamReader(Path.Combine(arguments.OutputPath, "index.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
 
                 writer.Write(Template[11]);
             }
+
+            targetPath = Path.Combine(arguments.OutputPath, arguments.IndexFileName.Replace(".cs", "Documents.cs"));
+            using (var writer = new StreamWriter(targetPath, false, Encoding.UTF8))
+            {
+                writer.WriteLine(Template[0], now, version);
+
+                writer.Write(Template[12], arguments.IndexNamespace, arguments.IndexClassName);
+
+                using (var reader =
+                    new StreamReader(Path.Combine(arguments.OutputPath, "indexDocuments.txt"), Encoding.UTF8))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        writer.Write("@\"");
+                        writer.Write(line.Replace("\"", "\"\""));
+                        writer.WriteLine("\",");
+                    }
+                }
+
+                writer.Write(Template[13]);
+            }
+
             Console.WriteLine("ok.");
         }
         private static void WriteCtds(StreamWriter writer)

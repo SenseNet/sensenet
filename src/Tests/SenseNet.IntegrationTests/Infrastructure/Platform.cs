@@ -1,4 +1,5 @@
-﻿using SenseNet.Configuration;
+﻿using System.Collections.Generic;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
@@ -6,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tests.Core.Implementations;
 
@@ -36,7 +38,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
-                .UseSearchEngine(GetSearchEngine(Initializer.GetInitialIndex()))
+                .UseSearchEngine(GetSearchEngine(Initializer.GetInitialIndexDocuments()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
@@ -60,7 +62,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IBlobProviderSelector GetBlobProviderSelector();
         public abstract IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension();
         public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
-        public abstract ISearchEngine GetSearchEngine(InMemoryIndex getInitialIndex);
+        public abstract ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments);
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
 
