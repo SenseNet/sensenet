@@ -25,7 +25,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
             Logger.Log("All tests finished.");
         }
 
-        public static InitialData InitialData { get; } = InitialData.Load(InMemoryTestData.Instance);
+        public static InitialData InitialData { get; } =
+            InitialData.Load(InMemoryTestData.Instance, InMemoryTestIndexDocuments.IndexDocuments);
 
         private static InMemoryIndex _initialIndex;
 

@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static async Task InstallDatabaseAsync(InitialData initialData, CancellationToken cancellationToken)
         {
             await DataProvider.InstallDatabaseAsync(cancellationToken).ConfigureAwait(false);
-            await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData()),
+            await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null),
                 cancellationToken).ConfigureAwait(false);
         }
 

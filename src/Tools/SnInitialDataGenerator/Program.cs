@@ -165,7 +165,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData()))
+                .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSearchEngine(new SearchEngineForInitialDataGenerator())

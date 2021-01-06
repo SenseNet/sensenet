@@ -33,9 +33,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private void IntegrationTest(bool isolated, Action callback, Action<SystemFolder> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
-            var brandNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
 
-            if (brandNew)
+            if (needToStartNew)
             {
                 Logger.Log("  (cleanup repository)");
                 _repositoryInstance?.Dispose();
@@ -93,9 +93,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private async Task IntegrationTestAsync(bool isolated, Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
-            var brandNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
 
-            if (brandNew)
+            if (needToStartNew)
             {
                 Logger.Log("  (cleanup repository)");
                 _repositoryInstance?.Dispose();

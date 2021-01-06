@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -38,7 +39,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
-                .UseSearchEngine(GetSearchEngine(Initializer.GetInitialIndexDocuments()))
+                .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
@@ -54,6 +55,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         }
 
         public virtual void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder) { }
+        public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
 
         public abstract DataProvider GetDataProvider();
         public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
@@ -62,10 +64,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IBlobProviderSelector GetBlobProviderSelector();
         public abstract IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension();
         public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
-        public abstract ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments);
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
+        public abstract ISearchEngine GetSearchEngine();
 
-        public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
     }
 }

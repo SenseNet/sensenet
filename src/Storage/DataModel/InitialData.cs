@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel
@@ -53,6 +54,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public IDictionary<string, string> Blobs { get; set; }
 
         public IList<string> Permissions { get; set; }
+        public IEnumerable<IndexDocument> IndexDocuments { get; set; }
 
         /* ===================================================================================== SAVE */
 
@@ -227,9 +229,13 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /* ===================================================================================== LOAD */
 
         /// <summary>
-        /// Loads the initial data from the given <see cref="IRepositoryDataFile"/> instance.
+        /// Loads the initial data from the given <see cref="IRepositoryDataFile"/> instance and the
+        /// optional index documents.
         /// </summary>
-        public static InitialData Load(IRepositoryDataFile dataFile)
+        /// <param name="dataFile">Relational data.</param>
+        /// <param name="initialIndexDocuments">Index documents or null.</param>
+        /// <returns></returns>
+        public static InitialData Load(IRepositoryDataFile dataFile, string[] initialIndexDocuments)
         {
             InitialData initialData;
 
@@ -243,6 +249,9 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             initialData.ContentTypeDefinitions = dataFile.ContentTypeDefinitions;
             initialData.Blobs = dataFile.Blobs;
             initialData.Permissions = dataFile.Permissions;
+
+            if (initialIndexDocuments != null)
+                initialData.IndexDocuments = initialIndexDocuments.Select(IndexDocument.Deserialize).ToArray();
 
             return initialData;
         }

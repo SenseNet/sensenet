@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
@@ -45,10 +46,6 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemoryPackageStorageProvider();
         }
-        public override ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments)
-        {
-            return new InMemorySearchEngine(new InMemoryIndex());
-        }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
             return new MemoryDataProvider(new DatabaseStorage
@@ -81,6 +78,10 @@ namespace SenseNet.IntegrationTests.Platforms
         public override ITestingDataProviderExtension GetTestingDataProviderExtension()
         {
             return new InMemoryTestingDataProvider();
+        }
+        public override ISearchEngine GetSearchEngine()
+        {
+            return new InMemorySearchEngine(new InMemoryIndex());
         }
     }
 }

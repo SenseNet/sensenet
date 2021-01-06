@@ -60,7 +60,15 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new MsSqlPackagingDataProvider();
         }
-        public override ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments)
+        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
+        {
+            return new EFCSecurityDataProvider(connectionString: ConnectionString);
+        }
+        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
+        {
+            return new MsSqlTestingDataProvider();
+        }
+        public override ISearchEngine GetSearchEngine()
         {
             //UNDONE:<? ? Is indexDirectoryPath customizable?
             //string indexDirectoryPath = null; 
@@ -69,19 +77,12 @@ namespace SenseNet.IntegrationTests.Platforms
             //    : new IndexDirectory(null, indexDirectoryPath);
             //var indexingEngine = new Lucene29LocalIndexingEngine(indexDirectory);
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
+            var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             return new Lucene29SearchEngine()
             {
                 IndexingEngine = indexingEngine,
                 QueryEngine = new Lucene29LocalQueryEngine()
             };
-        }
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
-        {
-            return new EFCSecurityDataProvider(connectionString: ConnectionString);
-        }
-        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
-        {
-            return new MsSqlTestingDataProvider();
         }
 
         /* ============================================================== */
