@@ -7,6 +7,8 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
@@ -80,6 +82,19 @@ namespace SenseNet.ContentRepository
                 var permissions = initialData?.Permissions;
                 if (permissions != null && permissions.Count > 0)
                     SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+
+                //var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                //if (indexingEngine.Running && initialData?.IndexDocuments != null)
+                //{
+                //    indexingEngine.WriteIndexAsync(null, null, initialData.IndexDocuments,
+                //        CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                //}
+                var populator = SearchManager.GetIndexPopulator();
+                using(new SystemAccount())
+                    populator.RebuildIndexDirectlyAsync("/Root",
+                            CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
 
                 patchManager.ExecutePatchesOnAfterStart();
 

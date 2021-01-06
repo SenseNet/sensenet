@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.Security;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Tests.Core.Implementations;
@@ -61,10 +62,18 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments)
         {
-            var engine = new InMemorySearchEngine(new InMemoryIndex());
-            engine.IndexingEngine.WriteIndexAsync(null, null, initialIndexDocuments,
-                CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-            return engine;
+            //UNDONE:<? ? Is indexDirectoryPath customizable?
+            //string indexDirectoryPath = null; 
+            //var indexDirectory = string.IsNullOrEmpty(indexDirectoryPath)
+            //    ? null
+            //    : new IndexDirectory(null, indexDirectoryPath);
+            //var indexingEngine = new Lucene29LocalIndexingEngine(indexDirectory);
+            var indexingEngine = new Lucene29LocalIndexingEngine(null);
+            return new Lucene29SearchEngine()
+            {
+                IndexingEngine = indexingEngine,
+                QueryEngine = new Lucene29LocalQueryEngine()
+            };
         }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {

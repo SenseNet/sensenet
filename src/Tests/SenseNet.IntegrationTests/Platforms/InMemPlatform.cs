@@ -47,10 +47,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISearchEngine GetSearchEngine(IEnumerable<IndexDocument> initialIndexDocuments)
         {
-            var engine = new InMemorySearchEngine(new InMemoryIndex());
-            engine.IndexingEngine.WriteIndexAsync(null, null, initialIndexDocuments, 
-                CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-            return engine;
+            return new InMemorySearchEngine(new InMemoryIndex());
         }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
