@@ -83,18 +83,15 @@ namespace SenseNet.ContentRepository
                 if (permissions != null && permissions.Count > 0)
                     SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
-                //var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
-                //if (indexingEngine.Running && initialData?.IndexDocuments != null)
-                //{
-                //    indexingEngine.WriteIndexAsync(null, null, initialData.IndexDocuments,
-                //        CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-                //}
-                var populator = SearchManager.GetIndexPopulator();
-                using(new SystemAccount())
-                    populator.RebuildIndexDirectlyAsync("/Root",
-                            CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-
+                //UNDONE:<? Do not build index in the in-memory test environment
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                if (indexingEngine.Running && initialData != null)
+                {
+                    using (new SystemAccount())
+                        SearchManager.GetIndexPopulator().RebuildIndexDirectlyAsync("/Root",
+                                CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                }
 
                 patchManager.ExecutePatchesOnAfterStart();
 
