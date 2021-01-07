@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -11,16 +12,17 @@ namespace SenseNet.Packaging.Steps.Internal
 {
     public partial class ReindexBinaries
     {
+        //UNDONE: [DIREF] get options from DI through constructor
         private static class DataHandler
         {
             internal static void InstallTables(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             }
             internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             }
 
@@ -33,7 +35,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 var result = new List<int>();
                 int remainingTasks = 0;
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
@@ -57,7 +59,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             internal static void FinishTask(int versionId, CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -68,7 +70,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -78,7 +80,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                 {
                     return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
@@ -92,7 +94,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void DropTables(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             }
 
@@ -100,7 +102,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 try
                 {
-                    using (var ctx = new MsSqlDataContext(cancellationToken))
+                    using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                         return Convert.ToInt32(result) != 0;
@@ -120,7 +122,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();

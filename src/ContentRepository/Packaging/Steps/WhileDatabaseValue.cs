@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -29,7 +30,8 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            using (var ctx = new MsSqlDataContext(CancellationToken.None))
+            //UNDONE: [DIREF] get options from DI through constructor
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 try
                 {

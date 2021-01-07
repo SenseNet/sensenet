@@ -2815,7 +2815,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
-            public TestDataContext(CancellationToken cancellationToken) : base(cancellationToken)
+            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, cancellationToken)
             {
                 
             }
@@ -2838,7 +2838,9 @@ namespace SenseNet.ContentRepository.Tests
             async STT.Task<TransactionStatus> TestTimeout(double timeoutInSeconds)
             {
                 TransactionWrapper transactionWrapper;
-                using (var ctx = new TestDataContext(CancellationToken.None))
+
+                //TODO: check default configuration timeout values
+                using (var ctx = new TestDataContext(new DataOptions(), CancellationToken.None))
                 {
                     using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
                     {

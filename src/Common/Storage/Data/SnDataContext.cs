@@ -29,12 +29,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public bool NeedToCleanupFiles { get; set; }
 
+        [Obsolete("Use the constructor that expects data options instead.", true)]
         protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
         {
         }
-        protected SnDataContext(DataOptions options, CancellationToken cancellationToken)
+        protected SnDataContext(DataOptions options, CancellationToken cancel = default)
         {
-            _cancellationToken = cancellationToken;
+            _cancellationToken = cancel;
             DataOptions = options ?? new DataOptions();
         }
 
@@ -82,11 +83,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            TimeSpan timeout = default(TimeSpan))
+            TimeSpan timeout = default)
         {
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, timeout, DataOptions, _cancellationToken);
+                           ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
             return _transaction;
         }
 

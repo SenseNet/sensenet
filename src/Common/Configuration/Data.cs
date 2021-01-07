@@ -30,6 +30,22 @@ namespace SenseNet.Configuration
 
     public class DataOptions
     {
+        //UNDONE: [DIREF] remove legacy data configuration when upper layers are ready.
+        /// <summary>
+        /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
+        /// </summary>
+        /// <returns>A new instance of data options filled with static configuration values.</returns>
+        [Obsolete]
+        public static DataOptions GetLegacyConfiguration()
+        {
+            return new DataOptions()
+            {
+                DbCommandTimeout = Data.DbCommandTimeout,
+                TransactionTimeout = Data.TransactionTimeout,
+                LongTransactionTimeout = Data.LongTransactionTimeout
+            };
+        }
+
         /// <summary>
         /// Gets the configured db command timeout value in seconds.
         /// </summary>

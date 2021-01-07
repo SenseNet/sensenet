@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -198,8 +199,8 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 " + whereClausePart + @"
 )
 ";
-
-            using (var ctx = new MsSqlDataContext(CancellationToken.None))
+            //UNDONE: [DIREF] get options from DI through constructor
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {

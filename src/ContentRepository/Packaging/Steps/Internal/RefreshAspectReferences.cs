@@ -5,6 +5,7 @@ using System.Threading;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
+using SenseNet.Configuration;
 // ReSharper disable once ArrangeThisQualifier
 
 // ReSharper disable once CheckNamespace
@@ -25,7 +26,8 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
-            using (var ctx = new MsSqlDataContext(CancellationToken.None))
+            //UNDONE: [DIREF] get options from DI through constructor
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(Script, async (reader, cancel) =>
                 {

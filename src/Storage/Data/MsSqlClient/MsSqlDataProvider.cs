@@ -18,11 +18,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
+        //UNDONE: [DIREF] get options from DI through constructor
+        private DataOptions DataOptions { get; } = DataOptions.GetLegacyConfiguration();
+
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            return new MsSqlDataContext(token);
+            //UNDONE: [DIREF] get ConnectionString through constructor
+            return new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, token);
         }
         /* =========================================================================================== Platform specific implementations */
 
@@ -81,7 +85,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var ctx = new MsSqlDataContext(cancellationToken))
+            using (var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
@@ -100,7 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(cancellationToken))
+            using (var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken))
             {
                 var typeCount = nodeTypeIds?.Length ?? 0;
                 var onlyNodes = true;

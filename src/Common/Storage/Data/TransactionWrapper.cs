@@ -19,24 +19,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionStatus Status { get; private set; }
         public CancellationToken CancellationToken { get; }
 
-        public TransactionWrapper(DbTransaction transaction, DataOptions options, CancellationToken cancellationToken):this(transaction, default(TimeSpan), options, cancellationToken)
+        public TransactionWrapper(DbTransaction transaction, DataOptions options, CancellationToken cancel) :
+            this(transaction, options, default, cancel)
         {
         }
-        public TransactionWrapper(DbTransaction transaction, TimeSpan timeout, DataOptions options, CancellationToken cancellationToken)
+        public TransactionWrapper(DbTransaction transaction, DataOptions options, TimeSpan timeout, CancellationToken cancel)
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
             Timeout = timeout == default
                 ? TimeSpan.FromSeconds(options.TransactionTimeout)
                 : timeout;
-            CancellationToken = CombineCancellationToken(cancellationToken, timeout);
+            CancellationToken = CombineCancellationToken(cancel);
         }
-        private CancellationToken CombineCancellationToken(CancellationToken cancellationToken, TimeSpan timeout)
+        private CancellationToken CombineCancellationToken(CancellationToken cancellationToken)
         {
-            if (timeout == default(TimeSpan))
-                return cancellationToken;
-
-            var timeoutToken = new CancellationTokenSource(timeout).Token;
+            var timeoutToken = new CancellationTokenSource(Timeout).Token;
             if (cancellationToken == CancellationToken.None)
                 return timeoutToken;
 

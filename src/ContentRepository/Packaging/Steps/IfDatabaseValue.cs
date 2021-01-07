@@ -2,6 +2,7 @@
 using System.Data;
 using System.IO;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -44,7 +45,10 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+
+            //UNDONE: [DIREF] get options from DI through constructor
+            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 object result;
                 try

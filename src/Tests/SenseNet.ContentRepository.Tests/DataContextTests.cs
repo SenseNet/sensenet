@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
-            public TestDataContext(CancellationToken cancellationToken) : base(cancellationToken)
+            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, cancellationToken)
             {
                 // do nothing
             }
@@ -99,14 +99,14 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DC_CancellationToken_Default()
         {
-            var dataContext = new TestDataContext(CancellationToken.None);
+            var dataContext = new TestDataContext(new DataOptions(), CancellationToken.None);
             Assert.AreEqual(CancellationToken.None, dataContext.CancellationToken);
         }
         [TestMethod]
         public void DC_CancellationToken()
         {
             var cancellationToken = new CancellationTokenSource(123456).Token;
-            var dataContext = new TestDataContext(cancellationToken);
+            var dataContext = new TestDataContext(new DataOptions(), cancellationToken);
             Assert.AreEqual(cancellationToken, dataContext.CancellationToken);
         }
         [TestMethod]
@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Tests
             TestTransaction testTransaction = null;
             try
             {
-                using (dataContext = new TestDataContext(CancellationToken.None))
+                using (dataContext = new TestDataContext(new DataOptions(), CancellationToken.None))
                 {
                     Assert.IsFalse(dataContext.IsDisposed);
                     using (var transaction = dataContext.BeginTransaction(IsolationLevel.ReadCommitted, TimeSpan.FromMinutes(10)))
@@ -140,14 +140,14 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DC_MSSQL_Construction_Default()
         {
-            var dataContext = new MsSqlDataContext(CancellationToken.None);
+            var dataContext = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
             Assert.AreEqual(ConnectionStrings.ConnectionString, dataContext.ConnectionString);
         }
         [TestMethod]
         public void DC_MSSQL_Construction_ConnectionString()
         {
             var connectionString = "ConnectionString1";
-            var dataContext = new MsSqlDataContext(connectionString, CancellationToken.None);
+            var dataContext = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
             Assert.AreEqual(connectionString, dataContext.ConnectionString);
         }
         [TestMethod]
@@ -161,11 +161,11 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;            
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=True";
-            Assert.AreEqual(expected, dataContext.ConnectionString);
+            Assert.AreEqual(expected, connectionString);
         }
         [TestMethod]
         public void DC_MSSQL_Construction_ConnectionInfo_Master()
@@ -178,11 +178,11 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=master;Integrated Security=True";
-            Assert.AreEqual(expected, dataContext.ConnectionString);
+            Assert.AreEqual(expected, connectionString);
         }
         [TestMethod]
         public void DC_MSSQL_Construction_ConnectionInfo_UserPassword()
@@ -197,11 +197,11 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=False;Persist Security Info=False;User ID=User1;Password=123";
-            Assert.AreEqual(expected, dataContext.ConnectionString);
+            Assert.AreEqual(expected, connectionString);
         }
     }
 }
