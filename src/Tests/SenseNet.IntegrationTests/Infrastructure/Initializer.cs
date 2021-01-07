@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.IntegrationTests.Infrastructure
 {
@@ -22,7 +25,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
             Logger.Log("All tests finished.");
         }
 
-        public static InitialData InitialData { get; } = InitialData.Load(InMemoryTestData.Instance);
+        public static InitialData InitialData { get; } =
+            InitialData.Load(InMemoryTestData.Instance, InMemoryTestIndexDocuments.IndexDocuments);
 
         private static InMemoryIndex _initialIndex;
 
@@ -36,6 +40,15 @@ namespace SenseNet.IntegrationTests.Infrastructure
             }
 
             return _initialIndex.Clone();
+        }
+
+        public static IEnumerable<IndexDocument> GetInitialIndexDocuments()
+        {
+            var deserialized = InMemoryTestIndexDocuments.IndexDocuments
+                .Select(IndexDocument.Deserialize)
+                .ToArray();
+
+            return deserialized;
         }
 
     }

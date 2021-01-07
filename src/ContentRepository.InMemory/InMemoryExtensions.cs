@@ -35,7 +35,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder BuildInMemoryRepository(this IRepositoryBuilder repositoryBuilder)
         {
             return BuildInMemoryRepository(repositoryBuilder,
-                InitialData.Load(SenseNetServicesData.Instance),
+                InitialData.Load(SenseNetServicesData.Instance, null),
                 GetInitialIndex());
         }
         public static IRepositoryBuilder BuildInMemoryRepository(this IRepositoryBuilder repositoryBuilder,
