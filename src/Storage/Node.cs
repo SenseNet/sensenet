@@ -4544,10 +4544,8 @@ namespace SenseNet.ContentRepository.Storage
             OnModified(this, e);
             NodeObserver.FireOnNodeModified(Modified, this, e, _disabledObservers);
 
-SnTrace.Write("1>");
             EventDistributor.FireNodeObserverEventEventAsync(new NodeModifiedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
-SnTrace.Write("<1");
         }
         private void FireOnDeleting(CancellableNodeEventArgs e)
         {

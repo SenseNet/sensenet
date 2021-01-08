@@ -67,7 +67,6 @@ namespace SenseNet.Events
             new PushNotificationEventProcessor(), new WebHookEventProcessor(), new EmailSenderEventProcessor()
         };
 
-
         public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
             // Cancellable event is used only the NodeObserver infrastructure
@@ -75,15 +74,11 @@ namespace SenseNet.Events
         }
         public Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
-SnTrace.Write("2>");
             // Call observers but do not wait
             var nodeObserverTask = CallNodeObserversAsync(snEvent, disabledNodeObservers);
-SnTrace.Write("<2");
 
             // Call forward to work with more event processor
-SnTrace.Write("3>");
             var task = FireEventAsync(snEvent, nodeObserverTask);
-SnTrace.Write("<3");
             return task;
         }
         public Task FireEventAsync(ISnEvent snEvent)
@@ -101,20 +96,16 @@ SnTrace.Write("<3");
             if (snEvent is IAuditLogEvent auditLogEvent)
                 syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
 
-SnTrace.Write("4>");
             // Call all async processors and forget them
             //var _ = AsyncEventProcessors.Select(x => Task.Run(() => { x.ProcessEvent(snEvent); }) ).ToArray();
             foreach (var processor in AsyncEventProcessors)
                 #pragma warning disable 4014
                 processor.ProcessEventAsync(snEvent);
                 #pragma warning restore 4014
-SnTrace.Write("<4");
 
-SnTrace.Write("5>");
             // Wait for all synchronous tasks.
             if (syncTasks.Count > 0)
                 await Task.WhenAll(syncTasks.ToArray()).ConfigureAwait(false);
-SnTrace.Write("<5");
         }
         private async Task<bool> CallNodeObserversAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
@@ -130,14 +121,12 @@ SnTrace.Write("<5");
         }
         private async Task CallNodeObserversAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
-SnTrace.Write("6>");
             var tasks = Providers.Instance.NodeObservers
                 .Where(x => !disabledNodeObservers?.Contains(x.GetType()) ?? true)
                 .Select(x => FireNodeObserverEventAsync(snEvent, x))
                 .ToArray();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
-SnTrace.Write("<6");
         }
         private async Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
