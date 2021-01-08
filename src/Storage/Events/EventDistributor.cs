@@ -18,6 +18,7 @@ namespace SenseNet.Events
 
     public interface INodeObserverEvent : ISnEvent { Action<NodeObserver> NodeObserverAction { get; } }
     public interface IAuditLogEvent : ISnEvent { AuditEvent AuditEvent { get; } }
+    public interface IDistributedEvent { }
 
     public class NodeModifyingEvent : ISnCancellableEvent<CancellableNodeEventArgs>
     {
@@ -34,7 +35,7 @@ namespace SenseNet.Events
             observer.OnNodeModifying(null, (CancellableNodeEventArgs) EventArgs);
         };
     }
-    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
+    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent, IDistributedEvent
     {
         public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
 
@@ -96,12 +97,17 @@ namespace SenseNet.Events
             if (snEvent is IAuditLogEvent auditLogEvent)
                 syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
 
-            // Call all async processors and forget them
-            //var _ = AsyncEventProcessors.Select(x => Task.Run(() => { x.ProcessEvent(snEvent); }) ).ToArray();
-            foreach (var processor in AsyncEventProcessors)
-                #pragma warning disable 4014
-                processor.ProcessEventAsync(snEvent);
-                #pragma warning restore 4014
+            if (snEvent is IDistributedEvent)
+            {
+                // Persists the event
+                await SaveEventAsync(snEvent);
+
+                // Call all async processors and forget them
+                foreach (var processor in AsyncEventProcessors)
+                    #pragma warning disable 4014
+                    processor.ProcessEventAsync(snEvent);
+                    #pragma warning restore 4014
+            }
 
             // Wait for all synchronous tasks.
             if (syncTasks.Count > 0)
@@ -150,6 +156,15 @@ namespace SenseNet.Events
                 $"NodeObserverAction simulation: {snEvent.GetType().Name} {nodeObserver.GetType().Name}"))
             {
                 await Task.Delay(10, cancel).ConfigureAwait(false);
+                op.Successful = true;
+            }
+        }
+
+        private async Task SaveEventAsync(ISnEvent snEvent)
+        {
+            using (var op = SnTrace.StartOperation("Save event"))
+            {
+                await Task.Delay(10);
                 op.Successful = true;
             }
         }
