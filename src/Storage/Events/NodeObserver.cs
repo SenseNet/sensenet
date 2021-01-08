@@ -242,8 +242,8 @@ namespace SenseNet.ContentRepository.Storage.Events
         protected virtual void OnStart(object sender, EventArgs e) { }
         protected virtual void OnNodeCreating(object sender, CancellableNodeEventArgs e) { }
         protected virtual void OnNodeCreated(object sender, NodeEventArgs e) { }
-        protected virtual void OnNodeModifying(object sender, CancellableNodeEventArgs e) { }
-        protected virtual void OnNodeModified(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeModifying(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeModified(object sender, NodeEventArgs e) { }
         protected virtual void OnNodeDeleting(object sender, CancellableNodeEventArgs e) { }
         protected virtual void OnNodeDeleted(object sender, NodeEventArgs e) { }
         protected virtual void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e) { }

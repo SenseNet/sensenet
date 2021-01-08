@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 
@@ -420,6 +421,9 @@ namespace SenseNet.Configuration
 
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();
+
+        //UNDONE:<? in this form it's just a joke :)
+        public IEventDistributor EventDistributor = new EventDistributor();
 
         //===================================================================================== General provider API
 

@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             RouteEvent(RepositoryEvent.DeletedPhysically, sender, e.SourceNode);
         }
-        protected override void OnNodeModified(object sender, NodeEventArgs e)
+        protected internal override void OnNodeModified(object sender, NodeEventArgs e)
         {
             RouteEvent(RepositoryEvent.Modified, sender, e.SourceNode);
         }
@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             RouteCancelEvent(RepositoryEvent.DeletingPhysically, sender, e.SourceNode, e);
         }
-        protected override void OnNodeModifying(object sender, CancellableNodeEventArgs e)
+        protected internal override void OnNodeModifying(object sender, CancellableNodeEventArgs e)
         {
             RouteCancelEvent(RepositoryEvent.Modifying, sender, e.SourceNode, e);
         }

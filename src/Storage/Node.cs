@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -4420,6 +4421,8 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Events
 
+        private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
+
         private List<Type> _disabledObservers;
         /// <summary>
         /// Gets the collection of the disabled <see cref="NodeObserver"/> types.
@@ -4528,12 +4531,23 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeModifying(Modifying, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+                    new NodeModifyingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if(canceled)
+                e.Cancel = true;
         }
         private void FireOnModified(string originalSourcePath, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Modified, customData, originalSourcePath, changedData);
             OnModified(this, e);
             NodeObserver.FireOnNodeModified(Modified, this, e, _disabledObservers);
+
+SnTrace.Write("1>");
+            EventDistributor.FireNodeObserverEventEventAsync(new NodeModifiedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+SnTrace.Write("<1");
         }
         private void FireOnDeleting(CancellableNodeEventArgs e)
         {
