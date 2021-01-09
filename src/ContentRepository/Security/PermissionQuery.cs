@@ -128,13 +128,14 @@ namespace SenseNet.ContentRepository.Security
 
         /* ============================================================================= OData operations */
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Returns users and groups that have any explicit permissions on the given content or its subtree.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="permissionLevel"></param>
-        /// <param name="identityKind"></param>
-        /// <returns></returns>
+        /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
+        /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
+        /// <returns><see cref="Content"/> list containing related users and groups according to the <paramref name="identityKind"/> filter.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -145,15 +146,18 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedIdentities(content, level, kind);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Collects all permission settings on the given content and its subtree related to the specified user or group.
+        /// Output is grouped by permission types and can be filtered by the permission value or content type.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="permissionLevel"></param>
-        /// <param name="explicitOnly"></param>
-        /// <param name="memberPath"></param>
-        /// <param name="includedTypes"></param>
-        /// <returns></returns>
+        /// <param name="permissionLevel">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
+        /// <param name="explicitOnly">Filter parameter for future use only. Allowed value is true.</param>
+        /// <param name="memberPath">Path of the group or user.</param>
+        /// <param name="includedTypes">Optional filter containing zero, one or more content type names.</param>
+        /// <returns>An associative array containing count of permission settings grouped by permissions. For example:
+        /// { "See": 14, "Open": 5, "Save": 10, ...}</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -164,15 +168,17 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedPermissions(content, level, explicitOnly, member, includedTypes);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Returns all content in the requested content's subtree that have any permission setting
+        /// filtered by permission value, user or group, and a permission mask.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="permissionLevel"></param>
-        /// <param name="explicitOnly"></param>
-        /// <param name="memberPath"></param>
-        /// <param name="permissions"></param>
-        /// <returns></returns>
+        /// <param name="permissionLevel">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
+        /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
+        /// <param name="memberPath">Path of the group or user.</param>
+        /// <param name="permissions">Permission filter. Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
+        /// <returns><see cref="Content"/> list.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -184,14 +190,13 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedItems(content, level, explicitOnly, member, perms);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
-        /// <snCategory>Permissions</snCategory>
-        /// <param name="content"></param>
-        /// <param name="permissionLevel"></param>
-        /// <param name="identityKind"></param>
-        /// <param name="permissions"></param>
-        /// <returns></returns>
+        /// <summary>
+        /// Returns users and groups that have any explicit permissions on the given content or its subtree.
+        /// </summary>
+        /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
+        /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
+        /// <param name="permissions">Filtering by permission type.</param>
+        /// <returns>Filtered <see cref="Content"/> list that have queried permissions.</returns>
         [ODataFunction("GetRelatedIdentitiesByPermissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -203,14 +208,15 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedIdentities(content, level, kind, perms);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
-        /// <snCategory>Permissions</snCategory>
+        /// <summary>
+        /// Returns all content in the requested content's direct child collection that have any permission setting
+        /// filtered by permission value, user or group, and a permission mask.
+        /// </summary>
         /// <param name="content"></param>
-        /// <param name="permissionLevel"></param>
-        /// <param name="memberPath"></param>
-        /// <param name="permissions"></param>
-        /// <returns></returns>
+        /// <param name="permissionLevel">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
+        /// <param name="memberPath">Path of the group or user.</param>
+        /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
+        /// <returns>Filtered <see cref="Content"/> list that have queried permissions.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -222,12 +228,13 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedItemsOneLevel(content, level, member, perms);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
-        /// <snCategory>Permissions</snCategory>
+        /// <summary>
+        /// Returns all users that have all given permission on the entity.
+        /// User will be resulted even if the permissions are granted on a group where she is member directly or indirectly.
+        /// </summary>
         /// <param name="content"></param>
-        /// <param name="permissions"></param>
-        /// <returns></returns>
+        /// <param name="permissions">Only those users appear in the output that have permission settings in connection with the given permissions.</param>
+        /// <returns>Filtered <see cref="Content"/> list of the users that have queried permissions.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -237,12 +244,12 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetAllowedUsers(content, perms);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
-        /// <snCategory>Users and Groups</snCategory>
+        /// <summary>
+        /// Returns all groups where the given user or group is member directly or indirectly.
+        /// </summary>
         /// <param name="content"></param>
-        /// <param name="directOnly"></param>
-        /// <returns></returns>
+        /// <param name="directOnly">Switch of the direct or indirect membership.</param>
+        /// <returns><see cref="Content"/> list of the groups.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.Group, N.CT.User)]
         [AllowedRoles(N.R.Everyone)]
@@ -251,12 +258,14 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetParentGroups(content, directOnly);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Assembles an object containing identity information (basic fields and all groups), inherited and subtree permissions.
+        /// The result object will contain permission infos only for the provided content.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="identity"></param>
-        /// <returns></returns>
+        /// <param name="identity">Path of the related user.</param>
+        /// <returns>A PermissionInfo object.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -265,12 +274,14 @@ namespace SenseNet.ContentRepository.Security
             return GetPermissionInfo(content, identity, true);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Assembles an object containing identity information (basic fields and all groups), inherited and subtree permissions.
+        /// The result object will contain permission infos for the children of the requested content and not the root.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="identity"></param>
-        /// <returns></returns>
+        /// <param name="identity">Path of the related user.</param>
+        /// <returns>A PermissionInfo object.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -311,7 +322,7 @@ namespace SenseNet.ContentRepository.Security
             // to check inherited permissions. If children are in the focus than the parent is the
             // provided content itself.
             var parent = singleContent ? content.ContentHandler.Parent : content.ContentHandler;
-            var effectiveParentEntries = parent == null || !parent.Security.HasPermission(PermissionType.SeePermissions) 
+            var effectiveParentEntries = parent == null || !parent.Security.HasPermission(PermissionType.SeePermissions)
                 ? new AceInfo[0]
                 : parent.Security.GetEffectiveEntries(EntryType.Normal).Where(e => identities.Contains(e.IdentityId) && !e.LocalOnly).ToArray();
 
@@ -328,7 +339,7 @@ namespace SenseNet.ContentRepository.Security
                 else
                     entry.Type = "off";
             }
-                        
+
             if (singleContent)
             {
                 // collect permissions for the provided single content
@@ -417,7 +428,7 @@ namespace SenseNet.ContentRepository.Security
                 }).Take(PermissionType.BuiltInPermissionTypes.Length).ToArray() //TODO: filter unused permissions correctly
             };
         }
-                
+
         private static PermissionLevel GetPermissionLevel(string permissionLevel)
         {
             PermissionLevel level;
