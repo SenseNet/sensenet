@@ -8,17 +8,15 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemorySearchEngine : ISearchEngine
     {
         private IDictionary<string, IndexFieldAnalyzer> _analyzers = new Dictionary<string, IndexFieldAnalyzer>();
-        private readonly InMemoryIndexingEngine _indexingEngine;
-        private readonly InMemoryQueryEngine _queryEngine;
 
-        public IIndexingEngine IndexingEngine => _indexingEngine;
+        public IIndexingEngine IndexingEngine { get; protected set; }
 
-        public IQueryEngine QueryEngine => _queryEngine;
+        public IQueryEngine QueryEngine { get; }
 
         public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
-        {
-            return _analyzers;
-        }
+            {
+                return _analyzers;
+            }
 
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
@@ -39,8 +37,8 @@ namespace SenseNet.ContentRepository.InMemory
         public InMemorySearchEngine(InMemoryIndex index)
         {
             Index = index;
-            _indexingEngine = new InMemoryIndexingEngine(this);
-            _queryEngine = new InMemoryQueryEngine(this);
+            IndexingEngine = new InMemoryIndexingEngine(this);
+            QueryEngine = new InMemoryQueryEngine(this);
         }
     }
 }
