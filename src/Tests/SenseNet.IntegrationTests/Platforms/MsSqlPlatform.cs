@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -9,6 +11,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.Security;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Tests.Core.Implementations;
@@ -56,10 +60,6 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new MsSqlPackagingDataProvider();
         }
-        public override ISearchEngine GetSearchEngine(InMemoryIndex getInitialIndex)
-        {
-            return new InMemorySearchEngine(Initializer.GetInitialIndex());
-        }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
             return new EFCSecurityDataProvider(connectionString: ConnectionString);
@@ -67,6 +67,22 @@ namespace SenseNet.IntegrationTests.Platforms
         public override ITestingDataProviderExtension GetTestingDataProviderExtension()
         {
             return new MsSqlTestingDataProvider();
+        }
+        public override ISearchEngine GetSearchEngine()
+        {
+            //UNDONE:<? ? Is indexDirectoryPath customizable?
+            //string indexDirectoryPath = null; 
+            //var indexDirectory = string.IsNullOrEmpty(indexDirectoryPath)
+            //    ? null
+            //    : new IndexDirectory(null, indexDirectoryPath);
+            //var indexingEngine = new Lucene29LocalIndexingEngine(indexDirectory);
+            var indexingEngine = new Lucene29LocalIndexingEngine(null);
+            var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
+            return new Lucene29SearchEngine()
+            {
+                IndexingEngine = indexingEngine,
+                QueryEngine = new Lucene29LocalQueryEngine()
+            };
         }
 
         /* ============================================================== */
