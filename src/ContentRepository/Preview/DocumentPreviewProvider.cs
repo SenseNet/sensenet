@@ -807,9 +807,15 @@ namespace SenseNet.Preview
 
             // check restriction type
             var previewHead = NodeHead.Get(previewImage.Id);
-            var rt = options.RestrictionType.HasValue ? options.RestrictionType.Value : GetRestrictionType(previewHead);
-            var displayRedaction = (rt & RestrictionType.Redaction) == RestrictionType.Redaction;
-            var displayWatermark = (rt & RestrictionType.Watermark) == RestrictionType.Watermark || GetDisplayWatermarkQueryParameter();
+            var restriction = GetRestrictionType(previewHead);
+            if (options.RestrictionType.HasValue)
+                restriction |= options.RestrictionType.Value;
+
+            var displayRedaction = restriction.HasFlag(RestrictionType.Redaction) || 
+                                   restriction.HasFlag(RestrictionType.NoAccess);
+            var displayWatermark = restriction.HasFlag(RestrictionType.Watermark) || 
+                                   restriction.HasFlag(RestrictionType.NoAccess) ||
+                                   GetDisplayWatermarkQueryParameter();
 
             // check watermark master switch in settings
             if (!Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_ENABLED, image.Path, true))

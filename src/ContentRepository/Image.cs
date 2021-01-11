@@ -379,9 +379,11 @@ namespace SenseNet.ContentRepository
 
             object widthParam = null;
             object heightParam = null;
+            object watermarkParam = null;
 
             parameters?.TryGetValue("width", out widthParam);
             parameters?.TryGetValue("height", out heightParam);
+            parameters?.TryGetValue("watermark", out watermarkParam);
 
             var binaryData = !string.IsNullOrEmpty(propertyName) ? GetBinary(propertyName) : Binary;
 
@@ -392,9 +394,20 @@ namespace SenseNet.ContentRepository
 
             if (DocumentPreviewProvider.Current != null && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(NodeHead.Get(Id)))
             {
+                var options = new PreviewImageOptions
+                {
+                    BinaryFieldName = propertyName
+                };
+
+                if (watermarkParam != null && 
+                    ((int.TryParse((string) watermarkParam, out var wmValue) && wmValue == 1) ||
+                     (bool.TryParse((string) watermarkParam, out var wmBool) && wmBool)))
+                {
+                    options.RestrictionType = RestrictionType.Watermark;
+                }
+
                 // get preview image with watermark or redaction if necessary
-                imageStream = DocumentPreviewProvider.Current.GetRestrictedImage(this,
-                    new PreviewImageOptions {BinaryFieldName = propertyName});
+                imageStream = DocumentPreviewProvider.Current.GetRestrictedImage(this, options);
             }
             else
             {
