@@ -36,6 +36,8 @@ namespace SenseNet.Services.Core.Virtualization
         /// </summary>
         private int? Height { get; set; }
 
+        private string Watermark { get; set; }
+
         private int? RequestedNodeId { get; set; }
         private string RequestedNodePath { get; set; }
         private NodeHead RequestedNodeHead { get; set; }
@@ -203,6 +205,10 @@ namespace SenseNet.Services.Core.Virtualization
             var maxAgeInDaysStr = _context.Request.Query["maxAge"].FirstOrDefault();
             if (!string.IsNullOrEmpty(maxAgeInDaysStr) && int.TryParse(maxAgeInDaysStr, out var maxAgeInDays))
                 MaxAge = TimeSpan.FromDays(maxAgeInDays);
+
+            var watermarkStr = _context.Request.Query["watermark"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(watermarkStr))
+                Watermark = watermarkStr;
         }
 
         private bool HandleResponseForClientCache(HttpHeaderTools headerTools)
@@ -240,8 +246,18 @@ namespace SenseNet.Services.Core.Virtualization
 
             using (new SystemAccount())
             {
-                return SecurityHandler.HasPermission(User.LoggedInUser, RequestedNodeHead.Id, PermissionType.Open);
+                var hasOpen = SecurityHandler.HasPermission(User.LoggedInUser, RequestedNodeHead.Id, 
+                    PermissionType.Open);
+                if (hasOpen)
+                    return true;
             }
+
+            // If this is a preview image and the user has preview permissions, it
+            // should be accessible, even if they do not have Open permission.
+            var dpp = DocumentPreviewProvider.Current;
+            return dpp != null &&
+                   dpp.IsPreviewOrThumbnailImage(RequestedNodeHead) &&
+                   dpp.IsPreviewAccessible(RequestedNodeHead);
         }
         private int? GetCacheHeaderSetting(HttpHeaderTools headerTools)
         {
@@ -277,6 +293,18 @@ namespace SenseNet.Services.Core.Virtualization
                     parameters.Add("width", Width.Value);
                 if (Height.HasValue)
                     parameters.Add("height", Height.Value);
+                if (Watermark != null)
+                    parameters.Add("watermark", Watermark);
+
+                // At this point we are certain that the user can have the binary.
+                // If the user does not have Open permission, it is still possible for them
+                // to access a preview image. In this case we have to reload the image
+                // to clear the headonly flag and let the user access the binary.
+                if (img.IsPreviewOnly)
+                {
+                    // ReSharper disable once AccessToModifiedClosure
+                    img = SystemAccount.Execute(() => Node.Load<Image>(img.Id));
+                }
 
                 return img.GetImageStream(PropertyName, parameters, out contentType, out fileName);
             }
