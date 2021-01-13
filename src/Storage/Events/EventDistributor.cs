@@ -11,7 +11,7 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public interface ISnEvent { }
+    public interface ISnEvent { INodeEventArgs NodeEventArgs { get; } }
     public interface ISnEvent<out T> : ISnEvent where T : INodeEventArgs { T EventArgs { get; } }
     public interface ISnCancellableEvent : INodeObserverEvent { CancellableNodeEventArgs CancellableEventArgs { get; } }
     public interface ISnCancellableEvent<out T> : ISnCancellableEvent, ISnEvent<T> where T : CancellableNodeEventArgs { }
@@ -27,6 +27,7 @@ namespace SenseNet.Events
             EventArgs = args;
         }
 
+        INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         CancellableNodeEventArgs ISnCancellableEvent.CancellableEventArgs => EventArgs;
         public CancellableNodeEventArgs EventArgs { get; }
 
@@ -37,6 +38,7 @@ namespace SenseNet.Events
     }
     public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent, IDistributedEvent
     {
+        INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
 
         public NodeModifiedEvent(NodeEventArgs args)
@@ -61,9 +63,9 @@ namespace SenseNet.Events
     }
     public class EventDistributor : IEventDistributor
     {
-        //UNDONE:<? Use DependencyInjection
+        //UNDONE:<?event Use DependencyInjection
         public AuditLogEventProcessor AuditLogEventProcessor = new AuditLogEventProcessor();
-        //UNDONE:<? Use DependencyInjection
+        //UNDONE:<?event Use DependencyInjection
         public IEventProcessor[] AsyncEventProcessors { get; set; } = {
             new PushNotificationEventProcessor(), new WebHookEventProcessor(), new EmailSenderEventProcessor()
         };
@@ -100,11 +102,19 @@ namespace SenseNet.Events
             if (snEvent is IDistributedEvent)
             {
                 // Persists the event
-                await SaveEventAsync(snEvent);
+                await SaveEventAsync(snEvent); // saveevent(wait, allprocessors, snEvent)
 
                 // Call all async processors and forget them
                 foreach (var processor in AsyncEventProcessors)
                     #pragma warning disable 4014
+
+                    // if(processor.IsRelevant(snEvent))
+                    //    if (Acquire(processor, snEvent))
+                    //        processor.ProcessEventAsync(snEvent);
+                    //        saveevent(done, processor, snEvent)
+                    // else
+                    //     saveevent(done, processor, snEvent)
+
                     processor.ProcessEventAsync(snEvent);
                     #pragma warning restore 4014
             }
@@ -155,7 +165,7 @@ namespace SenseNet.Events
             using (var op = SnTrace.StartOperation(
                 $"NodeObserverAction simulation: {snEvent.GetType().Name} {nodeObserver.GetType().Name}"))
             {
-                await Task.Delay(10, cancel).ConfigureAwait(false);
+                await Task.Delay(20, cancel).ConfigureAwait(false);
                 op.Successful = true;
             }
         }

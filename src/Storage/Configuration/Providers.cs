@@ -422,7 +422,7 @@ namespace SenseNet.Configuration
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();
 
-        //UNDONE:<? in this form it's just a joke :)
+        //UNDONE:<?event in this form it's just a joke :)
         public IEventDistributor EventDistributor = new EventDistributor();
 
         //===================================================================================== General provider API
