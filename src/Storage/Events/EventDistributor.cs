@@ -18,7 +18,7 @@ namespace SenseNet.Events
 
     public interface INodeObserverEvent : ISnEvent { Action<NodeObserver> NodeObserverAction { get; } }
     public interface IAuditLogEvent : ISnEvent { AuditEvent AuditEvent { get; } }
-    public interface IDistributedEvent { }
+    public interface IInternalEvent { }
 
     public class NodeModifyingEvent : ISnCancellableEvent<CancellableNodeEventArgs>
     {
@@ -36,7 +36,7 @@ namespace SenseNet.Events
             observer.OnNodeModifying(null, (CancellableNodeEventArgs) EventArgs);
         };
     }
-    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent, IDistributedEvent
+    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
@@ -52,6 +52,12 @@ namespace SenseNet.Events
         {
             observer.OnNodeModified(null, EventArgs);
         };
+    }
+    public class SampleInternalEvent : ISnEvent<NodeEventArgs>, IAuditLogEvent, IInternalEvent
+    {
+        public INodeEventArgs NodeEventArgs { get; }
+        public NodeEventArgs EventArgs { get; }
+        public AuditEvent AuditEvent { get; }
     }
 
     public interface IEventDistributor
@@ -99,7 +105,7 @@ namespace SenseNet.Events
             if (snEvent is IAuditLogEvent auditLogEvent)
                 syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
 
-            if (snEvent is IDistributedEvent)
+            if (!(snEvent is IInternalEvent))
             {
                 // Persists the event
                 await SaveEventAsync(snEvent); // saveevent(wait, allprocessors, snEvent)
