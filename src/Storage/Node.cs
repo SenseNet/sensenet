@@ -3920,11 +3920,12 @@ namespace SenseNet.ContentRepository.Storage
             bool targetIsOuter = target.ContentListType == null;
             bool targetIsList = !targetIsOuter && target.ContentListId == 0;
             bool targetIsItem = !targetIsOuter && target.ContentListId != 0;
-            if (sourceIsOuter && !targetIsOuter && !sourceIsSystemFolder)
+            //UNDONE:<?copy: Remove commented instructions
+            /*if (sourceIsOuter && !targetIsOuter && !sourceIsSystemFolder)
             {
                 msg = "Cannot copy outer item into a list. ";
             }
-            else if (sourceIsList && !targetIsOuter)
+            else*/ if (sourceIsList && !targetIsOuter)
             {
                 msg = "Cannot copy a list into an another list. ";
             }
