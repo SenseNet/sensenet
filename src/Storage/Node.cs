@@ -3935,9 +3935,9 @@ namespace SenseNet.ContentRepository.Storage
                 // (it will lose the list fields though...)
                 if (targetIsOuter)
                     msg = null; // "Cannot copy a list item out from the list. ";
-                else if (targetIsList && this.ContentListType != target.ContentListType)
+                else /*if (targetIsList && this.ContentListType != target.ContentListType)
                     msg = "Cannot copy a list item into an another list. ";
-                else if (targetIsItem && this.ContentListId != target.ContentListId)
+                else*/ if (targetIsItem && this.ContentListId != target.ContentListId)
                     msg = "Cannot copy a list item into an another list. ";
             }
             return msg;
