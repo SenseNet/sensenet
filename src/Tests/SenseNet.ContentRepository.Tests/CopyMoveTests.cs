@@ -19,48 +19,102 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
 
                 var root = CreateRootWorkspace();
                 var target = new Folder(root){Name = "Target"};
                 target.Save();
 
-                var testFile = new File(root) { Name = "File1" };
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
-                testFile.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(root, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, target.Path);
 
                 // ASSERT
                 var copied = Node.Load<File>(RepositoryPath.Combine(target.Path, testFile.Name));
+                Assert.AreEqual(expectedFileContent, 
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+            });
+        }
+        [TestMethod]
+        public void NodeCopy_Tree_from_Outer_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+
+                var root = CreateRootWorkspace();
+                var target = new Folder(root) { Name = "Target" };
+                target.Save();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var _ = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Copy(source.Path, target.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(target.Path, "Source/File1"));
                 Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
             });
         }
 
         [TestMethod]
-        //UNDONE:<?copy: Write tests to check copying deep structures into a list.
         public void NodeCopy_Node_from_Outer_to_List()
         {
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
                 var targetList = CreateContentList(root, "DocLib1", 
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
-                var testFile = new File(root) { Name = "File1" };
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
-                testFile.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(root, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, targetList.Path);
 
                 // ASSERT
                 var copied = Node.Load<File>(RepositoryPath.Combine(targetList.Path, testFile.Name));
+                Assert.AreEqual(expectedFileContent,
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+
+                Assert.IsFalse(testFile.ContentListId > 0);
+                Assert.IsFalse(testFile.ContentListTypeId > 0);
+                Assert.IsFalse(testFile.HasProperty("#Int_0"));
+                Assert.IsTrue(copied.ContentListId > 0);
+                Assert.IsTrue(copied.ContentListTypeId > 0);
+                Assert.IsTrue(copied.HasProperty("#Int_0"));
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(copied.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
+            });
+        }
+        [TestMethod]
+        public void NodeCopy_Tree_from_Outer_to_List()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+                var targetList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Copy(source.Path, targetList.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(targetList.Path, "Source/File1"));
                 Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
 
@@ -83,22 +137,51 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
 
                 var sourceList = CreateContentList(root, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
-                var testFile = new File(sourceList) { Name = "File1" };
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
-                testFile.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, root.Path);
 
                 // ASSERT
                 var copied = Node.Load<File>(RepositoryPath.Combine(root.Path, testFile.Name));
+                Assert.AreEqual(expectedFileContent,
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+
+                Assert.IsTrue(testFile.ContentListId > 0);
+                Assert.IsTrue(testFile.ContentListTypeId > 0);
+                Assert.IsTrue(testFile.HasProperty("#Int_0"));
+                Assert.IsFalse(copied.ContentListId > 0);
+                Assert.IsFalse(copied.ContentListTypeId > 0);
+                Assert.IsFalse(copied.HasProperty("#Int_0"));
+            });
+        }
+        [TestMethod]
+        public void NodeCopy_Tree_from_List_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Copy(source.Path, root.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(root.Path, "Source/File1"));
                 Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
 
@@ -117,16 +200,14 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
 
                 var sourceList = CreateContentList(root, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
-                var testFile = new File(sourceList) { Name = "File1" };
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
                 testFile.SetProperty("#Int_0", 42);
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
                 testFile.Save();
 
                 var target = new Folder(sourceList) { Name = "Target" };
@@ -149,17 +230,51 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(copied.HasProperty("#Int_0"));
             });
         }
+        [TestMethod]
+        public void NodeCopy_Tree_from_List_to_SameList()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+                testFile.SetProperty("#Int_0", 42);
+                testFile.Save();
+
+                var target = new Folder(sourceList) { Name = "Target" };
+                target.Save();
+
+                // ACTION
+                Node.Copy(source.Path, target.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(target.Path, "Source/File1"));
+                Assert.AreEqual(expectedFileContent,
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+                Assert.AreEqual(42, copied.GetProperty<int>("#Int_0"));
+
+                Assert.IsTrue(testFile.ContentListId > 0);
+                Assert.IsTrue(testFile.ContentListTypeId > 0);
+                Assert.IsTrue(testFile.HasProperty("#Int_0"));
+                Assert.AreEqual(copied.ContentListId, testFile.ContentListId);
+                Assert.AreEqual(copied.ContentListTypeId, testFile.ContentListTypeId);
+                Assert.IsTrue(copied.HasProperty("#Int_0"));
+            });
+        }
 
         [TestMethod]
-        //UNDONE:<?copy: Write tests to check copying deep structures into a list.
-        //UNDONE:<?copy: Write tests to check cross binding for all dataTypes in the GenericContent.CopyDynamicProperties
         public void NodeCopy_Node_from_List1_to_List2()
         {
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
 
                 var sourceList = CreateContentList(root, "DocLib1",
@@ -170,9 +285,8 @@ namespace SenseNet.ContentRepository.Tests
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var testFile = new File(sourceList) { Name = "File1" };
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
-                testFile.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, targetList.Path);
@@ -195,13 +309,52 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        public void NodeCopy_Tree_from_List1_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Copy(source.Path, targetList.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(targetList.Path, "Source/File1"));
+                Assert.AreEqual(expectedFileContent,
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+
+                Assert.IsTrue(testFile.ContentListId > 0);
+                Assert.IsTrue(testFile.ContentListTypeId > 0);
+                Assert.IsTrue(copied.ContentListId > 0);
+                Assert.IsTrue(copied.ContentListTypeId > 0);
+                Assert.AreNotEqual(copied.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(copied.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(copied.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
+            });
+        }
+        [TestMethod]
         public void NodeCopy_Node_from_List1_to_FolderOfList2()
         {
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
 
                 var sourceList = CreateContentList(root, "DocLib1",
@@ -215,9 +368,8 @@ namespace SenseNet.ContentRepository.Tests
                 var targetFolder = new Folder(targetList){Name = "Target"};
                 targetFolder.Save();
 
-                var testFile = new File(sourceList) { Name = "File1" };
-                testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
-                testFile.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, targetFolder.Path);
@@ -239,7 +391,147 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
+        [TestMethod]
+        public void NodeCopy_Tree_from_List1_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
 
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Copy(source.Path, targetFolder.Path);
+
+                // ASSERT
+                var copied = Node.Load<File>(RepositoryPath.Combine(targetFolder.Path, "Source/File1"));
+                Assert.AreEqual(expectedFileContent,
+                    RepositoryTools.GetStreamString(copied.Binary.GetStream()));
+
+                Assert.IsTrue(testFile.ContentListId > 0);
+                Assert.IsTrue(testFile.ContentListTypeId > 0);
+                Assert.IsTrue(copied.ContentListId > 0);
+                Assert.IsTrue(copied.ContentListTypeId > 0);
+                Assert.AreNotEqual(copied.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(copied.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(copied.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
+            });
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeCopy_List1_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                // ACTION
+                Node.Copy(sourceList.Path, targetList.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(ApplicationException))]
+        public void NodeCopy_TreeWithList_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var sourceList = CreateContentList(source, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                // ACTION
+                Node.Copy(source.Path, targetList.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeCopy_List1_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+                
+                // ACTION
+                Node.Copy(sourceList.Path, targetFolder.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(ApplicationException))]
+        public void NodeCopy_TreeWithList_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var sourceList = CreateContentList(source, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                // ACTION
+                Node.Copy(source.Path, targetFolder.Path);
+            });
+        }
+
+        //UNDONE:<?copy: Write tests to check cross binding for all dataTypes in the GenericContent.CopyDynamicProperties
         [TestMethod]
         public void NodeCopy_CrossBinding_SameName_SameType_SameSlot()
         {
@@ -295,8 +587,6 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // ALIGN
-                var expectedFileContent = "FileContent";
-
                 var root = CreateRootWorkspace();
 
                 var doclib1 = Content.CreateNew("DocumentLibrary", root, "DocLib1");
@@ -313,6 +603,7 @@ namespace SenseNet.ContentRepository.Tests
 </Fields></ContentListDefinition>";
                 doclib2.Save();
 
+                var expectedFileContent = "FileContent";
                 var testFile = new File(sourceList) { Name = "File1" };
                 testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
                 setSourceProperties(testFile);
@@ -349,6 +640,13 @@ namespace SenseNet.ContentRepository.Tests
             ws.Save();
 
             return ws;
+        }
+        private File CreateFile(Node parent, string name, string fileContent)
+        {
+            var file = new File(parent) { Name = "File1" };
+            file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
+            file.Save();
+            return file;
         }
         private ContentList CreateContentList(Node parent, string name, string listFields)
         {
