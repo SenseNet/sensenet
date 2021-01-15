@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Ctd-WebHookSubscription">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>WebHook Subscription</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Defines an event and a 3rd party service that should be called when the event is fired.</value>
+        </data>
+        <data name="WebHookUrl-DisplayName" xml:space="preserve">
+          <value>Url</value>
+        </data>
+        <data name="WebHookUrl-Description" xml:space="preserve">
+          <value>Target url to call when the webhook is triggered.</value>
+        </data>
+        <data name="WebHookHttpMethod-DisplayName" xml:space="preserve">
+          <value>HTTP method</value>
+        </data>
+        <data name="WebHookHttpMethod-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookEventType-DisplayName" xml:space="preserve">
+          <value>Event type</value>
+        </data>
+        <data name="WebHookEventType-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookFilter-DisplayName" xml:space="preserve">
+          <value>Filter</value>
+        </data>
+        <data name="WebHookFilter-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookHeaders-DisplayName" xml:space="preserve">
+          <value>HTTP headers</value>
+        </data>
+        <data name="WebHookHeaders-Description" xml:space="preserve">
+          <value>List of HTTP headers to add when the target service is called.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>WebHook felíratkozás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Definiál egy eseményt, aminek hatására meghívunk egy külső szolgáltatást.</value>
+        </data>
+        <data name="WebHookUrl-DisplayName" xml:space="preserve">
+          <value>Url</value>
+        </data>
+        <data name="WebHookUrl-Description" xml:space="preserve">
+          <value>A meghívandó cél url.</value>
+        </data>
+        <data name="WebHookHttpMethod-DisplayName" xml:space="preserve">
+          <value>HTTP method</value>
+        </data>
+        <data name="WebHookHttpMethod-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookEventType-DisplayName" xml:space="preserve">
+          <value>Esemény típusa</value>
+        </data>
+        <data name="WebHookEventType-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookFilter-DisplayName" xml:space="preserve">
+          <value>Szűrő</value>
+        </data>
+        <data name="WebHookFilter-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="WebHookHeaders-DisplayName" xml:space="preserve">
+          <value>HTTP fejlécek</value>
+        </data>
+        <data name="WebHookHeaders-Description" xml:space="preserve">
+          <value>HTTP fejlécek listája, amiket hozzá kell tenni a külső szolgáltatás meghívásakor.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

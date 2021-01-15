@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="WebHookSubscription" parentType="GenericContent" handler="SenseNet.WebHooks.WebHookSubscription" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-WebHookSubscription,DisplayName</DisplayName>
+  <Description>$Ctd-WebHookSubscription,Description</Description>
+  <Icon>WebHookSubscription</Icon>
+  <Fields>
+    <Field name="WebHookUrl" type="ShortText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookUrl-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookUrl-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+        <DefaultValue>https://</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="WebHookHttpMethod" type="Choice">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookHttpMethod-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookHttpMethod-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>true</AllowExtraValue>
+        <Options>
+          <Option value="GET">GET</Option>
+          <Option value="POST" selected="true">POST</Option>
+          <Option value="PATCH">PATCH</Option>
+          <Option value="PUT">PUT</Option>
+          <Option value="DELETE">DELETE</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name="WebHookEventType" type="ShortText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookEventType-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookEventType-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+      </Configuration>
+    </Field>
+    <Field name="WebHookFilter" type="LongText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookFilter-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookFilter-Description</Description>
+    </Field>
+    <Field name="WebHookHeaders" type="LongText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookHeaders-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookHeaders-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>
