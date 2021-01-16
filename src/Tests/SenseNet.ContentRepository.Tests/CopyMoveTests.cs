@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Fields;
@@ -531,7 +532,6 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        //UNDONE:<?copy: Write tests to check cross binding for all dataTypes in the GenericContent.CopyDynamicProperties
         [TestMethod]
         public void NodeCopy_CrossBinding_SameName_SameType_SameSlot()
         {
@@ -581,6 +581,77 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreNotEqual(source.GetProperty("#Int_0"), copied.GetProperty("#Int_0"));
                 });
         }
+        [TestMethod]
+        public void NodeCopy_CrossBinding_DataType_LongText()
+        {
+            CrossBindingTest(
+                "<ContentListField name='#A' type='LongText'/>" +
+                "<ContentListField name='#B' type='LongText'/>",
+                "<ContentListField name='#B' type='LongText'/>" +
+                "<ContentListField name='#C' type='LongText'/>",
+                source =>
+                {
+                    source.SetProperty("#Text_0", "Text A");
+                    source.SetProperty("#Text_1", "Text B");
+                },
+                (source, copied) =>
+                {
+                    Assert.AreEqual(source.GetProperty("#Text_1"), copied.GetProperty("#Text_0"));
+                    Assert.IsNull(copied.GetProperty("#Text_1"));
+                });
+        }
+        [TestMethod]
+        public void NodeCopy_CrossBinding_DataType_Reference()
+        {
+            CrossBindingTest(
+                "<ContentListField name='#A' type='Reference'/>" +
+                "<ContentListField name='#B' type='Reference'/>",
+                "<ContentListField name='#B' type='Reference'/>" +
+                "<ContentListField name='#C' type='Reference'/>",
+                source =>
+                {
+                    var refs0 = new Node[] { Node.LoadNode(1), Node.LoadNode(2) };
+                    var refs1 = new Node[] { Node.LoadNode(3), Node.LoadNode(4) };
+                    source.SetProperty("#Reference_0", refs0);
+                    source.SetProperty("#Reference_1", refs1);
+                },
+                (source, copied) =>
+                {
+                    var actual1 = string.Join(",", 
+                        ((IEnumerable<Node>)copied.GetProperty("#Reference_0")).Select(n => n.Id));
+                    Assert.AreEqual("3,4", actual1);
+
+                    var actual2 = ((IEnumerable<Node>) copied.GetProperty("#Reference_1")).Count();
+                    Assert.AreEqual(0, actual2);
+                });
+        }
+        [TestMethod]
+        public void NodeCopy_CrossBinding_DataType_Binary()
+        {
+            CrossBindingTest(
+                "<ContentListField name='#A' type='Binary'/>" +
+                "<ContentListField name='#B' type='Binary'/>",
+                "<ContentListField name='#B' type='Binary'/>" +
+                "<ContentListField name='#C' type='Binary'/>",
+                source =>
+                {
+                    var bin1 = new BinaryData();
+                    bin1.SetStream(RepositoryTools.GetStreamFromString("FileContent-1"));
+                    source.SetProperty("#Binary_0", bin1);
+                    var bin2 = new BinaryData();
+                    bin2.SetStream(RepositoryTools.GetStreamFromString("FileContent-2"));
+                    source.SetProperty("#Binary_1", bin2);
+                },
+                (source, copied) =>
+                {
+                    var bin1 = (BinaryData)copied.GetProperty("#Binary_0");
+                    var text1 = RepositoryTools.GetStreamString(bin1.GetStream());
+                    Assert.AreEqual("FileContent-2", text1);
+                    var bin2 = (BinaryData)copied.GetProperty("#Binary_1");
+                    Assert.IsNull(bin2.GetStream());
+                });
+        }
+
         private void CrossBindingTest(string sourceListFields, string targetListFields,
             Action<GenericContent> setSourceProperties, Action<GenericContent, GenericContent> assertCopiedValues)
         {
