@@ -702,7 +702,411 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        /* ====================================================== */
+        /* ==================================================================================== */
+
+        [TestMethod]
+        public void NodeMove_Node_from_Outer_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+
+                var root = CreateRootWorkspace();
+                var target = new Folder(root) { Name = "Target" };
+                target.Save();
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(root, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(testFile.Path, target.Path);
+
+                // ASSERT
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(target.Path, "File1"), moved.Path);
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_Outer_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+
+                var root = CreateRootWorkspace();
+                var target = new Folder(root) { Name = "Target" };
+                target.Save();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(source.Path, target.Path);
+
+                // ASSERT
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(target.Path, "Source/File1"), moved.Path);
+            });
+        }
+
+        [TestMethod]
+        public void NodeMove_Node_from_Outer_to_List()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+                var targetList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(root, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(testFile.Path, targetList.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_Outer_to_List()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+                var targetList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(source.Path, targetList.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+
+        [TestMethod]
+        public void NodeMove_Node_from_List_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(testFile.Path, root.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_List_to_Outer()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(source.Path, root.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+
+        [TestMethod]
+        public void NodeMove_Node_from_List_to_SameList()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
+                testFile.SetProperty("#Int_0", 42);
+                testFile.Save();
+
+                var target = new Folder(sourceList) { Name = "Target" };
+                target.Save();
+
+                // ACTION
+                Node.Move(testFile.Path, target.Path);
+
+                // ASSERT
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(target.Path, "File1"), moved.Path);
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_List_to_SameList()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+                testFile.SetProperty("#Int_0", 42);
+                testFile.Save();
+
+                var target = new Folder(sourceList) { Name = "Target" };
+                target.Save();
+
+                // ACTION
+                Node.Move(source.Path, target.Path);
+
+                // ASSERT
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(target.Path, "Source/File1"), moved.Path);
+            });
+        }
+
+        [TestMethod]
+        public void NodeMove_Node_from_List1_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(testFile.Path, targetList.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_List1_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(source.Path, targetList.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Node_from_List1_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(sourceList, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(testFile.Path, targetFolder.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+        [TestMethod]
+        public void NodeMove_Tree_from_List1_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                var source = new Folder(sourceList) { Name = "Source" };
+                source.Save();
+                var expectedFileContent = "FileContent";
+                var testFile = CreateFile(source, "File1", expectedFileContent);
+
+                // ACTION
+                Node.Move(source.Path, targetFolder.Path);
+
+                // ASSERT
+                Assert.Fail("Assertion is not implemented.");
+            });
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeMove_List1_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                // ACTION
+                Node.Move(sourceList.Path, targetList.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeMove_TreeWithList_to_List2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var sourceList = CreateContentList(source, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                // ACTION
+                Node.Move(source.Path, targetList.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeMove_List1_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var sourceList = CreateContentList(root, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                // ACTION
+                Node.Move(sourceList.Path, targetFolder.Path);
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void NodeMove_TreeWithList_to_FolderOfList2()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                var root = CreateRootWorkspace();
+
+                var source = new Folder(root) { Name = "Source" };
+                source.Save();
+                var sourceList = CreateContentList(source, "DocLib1",
+                    "<ContentListField name='#ListField1' type='ShortText'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetList = CreateContentList(root, "DocLib2",
+                    "<ContentListField name='#ListField1' type='Integer'/>" +
+                    "<ContentListField name='#ListField2' type='Integer'/>");
+
+                var targetFolder = new Folder(targetList) { Name = "Target" };
+                targetFolder.Save();
+
+                // ACTION
+                Node.Move(source.Path, targetFolder.Path);
+            });
+        }
+
+        /* ==================================================================================== */
 
         private Workspace CreateRootWorkspace()
         {
