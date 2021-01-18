@@ -21,10 +21,4 @@
     <ProjectReference Include="..\SenseNet.Tests.Core\SenseNet.Tests.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="InMemTests\" />
-    <Folder Include="MsSqlTests\" />
-    <Folder Include="TestCases\" />
-  </ItemGroup>
-
 </Project>

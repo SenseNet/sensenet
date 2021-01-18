@@ -434,6 +434,7 @@ namespace SenseNet.ContentRepository.InMemory
         public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
             CancellationToken cancellationToken)
         {
+            //UNDONE:<?move: Missing ContentList handling. See the MoveNodeScript int the MsSqlDataProvider
             cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
