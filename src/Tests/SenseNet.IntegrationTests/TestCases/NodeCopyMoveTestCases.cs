@@ -2,53 +2,53 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository.Fields;
-using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Workspaces;
-using SenseNet.Tests.Core;
+using SenseNet.IntegrationTests.Infrastructure;
 
-namespace SenseNet.ContentRepository.Tests
+namespace SenseNet.IntegrationTests.TestCases
 {
-    [TestClass]
-    public class CopyMoveTests : TestBase
+    public class NodeCopyMoveTestCases : TestCaseBase
     {
-        [TestMethod]
+        //UNDONE:<?: Missing test cases for non ContentList data
+        //UNDONE:<?: Missing test cases for IsSystem flag
+
+        /* ==================================================================================== TOOLS */
+
         public void NodeCopy_Node_from_Outer_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
+                                sandbox.AllowChildType("File", save: true);
+                sandbox.Save();
 
-                var root = CreateRootWorkspace();
-                var target = new Folder(root){Name = "Target"};
+                var target = new Folder(sandbox) { Name = "Target" };
                 target.Save();
 
                 var expectedFileContent = "FileContent";
-                var testFile = CreateFile(root, "File1", expectedFileContent);
+                var testFile = CreateFile(sandbox, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, target.Path);
 
                 // ASSERT
                 var copied = Node.Load<File>(RepositoryPath.Combine(target.Path, testFile.Name));
-                Assert.AreEqual(expectedFileContent, 
+                Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_Outer_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-
-                var root = CreateRootWorkspace();
-                var target = new Folder(root) { Name = "Target" };
+                sandbox.AllowChildType("File", save: true);
+                var target = new Folder(sandbox) { Name = "Target" };
                 target.Save();
 
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var expectedFileContent = "FileContent";
                 var _ = CreateFile(source, "File1", expectedFileContent);
@@ -62,19 +62,17 @@ namespace SenseNet.ContentRepository.Tests
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
             });
         }
-
-        [TestMethod]
         public void NodeCopy_Node_from_Outer_to_List()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-                var targetList = CreateContentList(root, "DocLib1", 
+                                sandbox.AllowChildType("File", save: true);
+                var targetList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
-                var testFile = CreateFile(root, "File1", expectedFileContent);
+                var testFile = CreateFile(sandbox, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Copy(testFile.Path, targetList.Path);
@@ -96,17 +94,16 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_Outer_to_List()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-                var targetList = CreateContentList(root, "DocLib1",
+                sandbox.AllowChildType("File", save: true);
+                var targetList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
@@ -132,25 +129,23 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
         public void NodeCopy_Node_from_List_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                sandbox.AllowChildType("File", save: true);
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
 
                 // ACTION
-                Node.Copy(testFile.Path, root.Path);
+                Node.Copy(testFile.Path, sandbox.Path);
 
                 // ASSERT
-                var copied = Node.Load<File>(RepositoryPath.Combine(root.Path, testFile.Name));
+                var copied = Node.Load<File>(RepositoryPath.Combine(sandbox.Path, testFile.Name));
                 Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
 
@@ -162,15 +157,13 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(copied.HasProperty("#Int_0"));
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_List_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                                sandbox.AllowChildType("File", save: true);
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
@@ -179,10 +172,10 @@ namespace SenseNet.ContentRepository.Tests
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
                 // ACTION
-                Node.Copy(source.Path, root.Path);
+                Node.Copy(source.Path, sandbox.Path);
 
                 // ASSERT
-                var copied = Node.Load<File>(RepositoryPath.Combine(root.Path, "Source/File1"));
+                var copied = Node.Load<File>(RepositoryPath.Combine(sandbox.Path, "Source/File1"));
                 Assert.AreEqual(expectedFileContent,
                     RepositoryTools.GetStreamString(copied.Binary.GetStream()));
 
@@ -194,16 +187,12 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(copied.HasProperty("#Int_0"));
             });
         }
-
-        [TestMethod]
         public void NodeCopy_Node_from_List_to_SameList()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
@@ -231,15 +220,12 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(copied.HasProperty("#Int_0"));
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_List_to_SameList()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
@@ -270,19 +256,16 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
         public void NodeCopy_Node_from_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -309,19 +292,16 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -350,23 +330,20 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeCopy_Node_from_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetFolder = new Folder(targetList){Name = "Target"};
+                var targetFolder = new Folder(targetList) { Name = "Target" };
                 targetFolder.Save();
 
                 var expectedFileContent = "FileContent";
@@ -392,19 +369,16 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeCopy_Tree_from_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -437,20 +411,17 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeCopy_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -458,22 +429,19 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Copy(sourceList.Path, targetList.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(ApplicationException))]
         public void NodeCopy_TreeWithList_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -481,46 +449,40 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Copy(source.Path, targetList.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeCopy_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
                 targetFolder.Save();
-                
+
                 // ACTION
                 Node.Copy(sourceList.Path, targetFolder.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(ApplicationException))]
         public void NodeCopy_TreeWithList_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -532,19 +494,19 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        /* ==================================================================================== CrossBinding */
+
         public void NodeCopy_CrossBinding_SameName_SameType_SameSlot()
         {
             CrossBindingTest(
                 @"<ContentListField name='#A' type='Integer'/>",
                 @"<ContentListField name='#A' type='Integer'/>",
-                source => { source.SetProperty("#Int_0", 42);},
+                source => { source.SetProperty("#Int_0", 42); },
                 (source, copied) =>
                 {
                     Assert.AreEqual(source.GetProperty("#Int_0"), copied.GetProperty("#Int_0"));
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_SameName_SameType_DiffSlot()
         {
             CrossBindingTest(
@@ -556,7 +518,6 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(source.GetProperty("#Int_0"), copied.GetProperty("#Int_1"));
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_SameName_DiffType()
         {
             CrossBindingTest(
@@ -569,7 +530,6 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsNull(copied.GetProperty("#String_0"));
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_DiffName_SameType_SameSlot()
         {
             CrossBindingTest(
@@ -581,7 +541,6 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreNotEqual(source.GetProperty("#Int_0"), copied.GetProperty("#Int_0"));
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_DataType_LongText()
         {
             CrossBindingTest(
@@ -600,7 +559,6 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsNull(copied.GetProperty("#Text_1"));
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_DataType_Reference()
         {
             CrossBindingTest(
@@ -617,15 +575,14 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 (source, copied) =>
                 {
-                    var actual1 = string.Join(",", 
+                    var actual1 = string.Join(",",
                         ((IEnumerable<Node>)copied.GetProperty("#Reference_0")).Select(n => n.Id));
                     Assert.AreEqual("3,4", actual1);
 
-                    var actual2 = ((IEnumerable<Node>) copied.GetProperty("#Reference_1")).Count();
+                    var actual2 = ((IEnumerable<Node>)copied.GetProperty("#Reference_1")).Count();
                     Assert.AreEqual(0, actual2);
                 });
         }
-        [TestMethod]
         public void NodeCopy_CrossBinding_DataType_Binary()
         {
             CrossBindingTest(
@@ -655,19 +612,17 @@ namespace SenseNet.ContentRepository.Tests
         private void CrossBindingTest(string sourceListFields, string targetListFields,
             Action<GenericContent> setSourceProperties, Action<GenericContent, GenericContent> assertCopiedValues)
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var doclib1 = Content.CreateNew("DocumentLibrary", root, "DocLib1");
+                var doclib1 = Content.CreateNew("DocumentLibrary", sandbox, "DocLib1");
                 var sourceList = (ContentList)doclib1.ContentHandler;
                 sourceList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {sourceListFields}
 </Fields></ContentListDefinition>";
                 doclib1.Save();
 
-                var doclib2 = Content.CreateNew("DocumentLibrary", root, "DocLib2");
+                var doclib2 = Content.CreateNew("DocumentLibrary", sandbox, "DocLib2");
                 var targetList = (ContentList)doclib2.ContentHandler;
                 targetList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {targetListFields}
@@ -702,21 +657,19 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        /* ==================================================================================== */
+        /* ==================================================================================== MOVE */
 
-        [TestMethod]
         public void NodeMove_Node_from_Outer_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-
-                var root = CreateRootWorkspace();
-                var target = new Folder(root) { Name = "Target" };
+                                sandbox.AllowChildType("File", save: true);
+                var target = new Folder(sandbox) { Name = "Target" };
                 target.Save();
 
                 var expectedFileContent = "FileContent";
-                var testFile = CreateFile(root, "File1", expectedFileContent);
+                var testFile = CreateFile(sandbox, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Move(testFile.Path, target.Path);
@@ -726,18 +679,16 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(RepositoryPath.Combine(target.Path, "File1"), moved.Path);
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_Outer_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-
-                var root = CreateRootWorkspace();
-                var target = new Folder(root) { Name = "Target" };
+                sandbox.AllowChildType("File", save: true);
+                var target = new Folder(sandbox) { Name = "Target" };
                 target.Save();
 
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
@@ -750,38 +701,43 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(RepositoryPath.Combine(target.Path, "Source/File1"), moved.Path);
             });
         }
-
-        [TestMethod]
         public void NodeMove_Node_from_Outer_to_List()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-                var targetList = CreateContentList(root, "DocLib1",
+                                sandbox.AllowChildType("File", save: true);
+                var targetList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
-                var testFile = CreateFile(root, "File1", expectedFileContent);
+                var testFile = CreateFile(sandbox, "File1", expectedFileContent);
 
                 // ACTION
                 Node.Move(testFile.Path, targetList.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetList.Path, "File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.IsTrue(moved.HasProperty("#Int_0"));
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_Outer_to_List()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-                var targetList = CreateContentList(root, "DocLib1",
+                sandbox.AllowChildType("File", save: true);
+                var targetList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
@@ -790,40 +746,50 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(source.Path, targetList.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetList.Path, "Source/File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.IsTrue(moved.HasProperty("#Int_0"));
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
 
-        [TestMethod]
         public void NodeMove_Node_from_List_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                                sandbox.AllowChildType("File", save: true);
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
 
                 // ACTION
-                Node.Move(testFile.Path, root.Path);
+                Node.Move(testFile.Path, sandbox.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(sandbox.Path, "File1"), moved.Path);
+
+                Assert.IsFalse(moved.ContentListId > 0);
+                Assert.IsFalse(moved.ContentListTypeId > 0);
+                Assert.IsFalse(moved.HasProperty("#Int_0"));
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_List_to_Outer()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                                sandbox.AllowChildType("File", save: true);
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
@@ -832,22 +798,23 @@ namespace SenseNet.ContentRepository.Tests
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
                 // ACTION
-                Node.Move(source.Path, root.Path);
+                Node.Move(source.Path, sandbox.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(sandbox.Path, "Source/File1"), moved.Path);
+
+                Assert.IsFalse(moved.ContentListId > 0);
+                Assert.IsFalse(moved.ContentListTypeId > 0);
+                Assert.IsFalse(moved.HasProperty("#Int_0"));
             });
         }
-
-        [TestMethod]
         public void NodeMove_Node_from_List_to_SameList()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var expectedFileContent = "FileContent";
@@ -864,17 +831,18 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 var moved = Node.LoadNode(testFile.Id);
                 Assert.AreEqual(RepositoryPath.Combine(target.Path, "File1"), moved.Path);
+
+                Assert.AreEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+                Assert.IsTrue(moved.HasProperty("#Int_0"));
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_List_to_SameList()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
@@ -893,22 +861,23 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 var moved = Node.LoadNode(testFile.Id);
                 Assert.AreEqual(RepositoryPath.Combine(target.Path, "Source/File1"), moved.Path);
+
+                Assert.AreEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+                Assert.IsTrue(moved.HasProperty("#Int_0"));
             });
         }
 
-        [TestMethod]
         public void NodeMove_Node_from_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -919,22 +888,29 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(testFile.Path, targetList.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetList.Path, "File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.AreNotEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -947,22 +923,29 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(source.Path, targetList.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetList.Path, "Source/File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.AreNotEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeMove_Node_from_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -976,22 +959,29 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(testFile.Path, targetFolder.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetFolder.Path, "File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.AreNotEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
-        [TestMethod]
         public void NodeMove_Tree_from_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -1007,24 +997,31 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(source.Path, targetFolder.Path);
 
                 // ASSERT
-                Assert.Fail("Assertion is not implemented.");
+                var moved = Node.LoadNode(testFile.Id);
+                Assert.AreEqual(RepositoryPath.Combine(targetFolder.Path, "Source/File1"), moved.Path);
+
+                Assert.IsTrue(moved.ContentListId > 0);
+                Assert.IsTrue(moved.ContentListTypeId > 0);
+                Assert.AreNotEqual(moved.ContentListId, testFile.ContentListId);
+                Assert.AreNotEqual(moved.ContentListTypeId, testFile.ContentListTypeId);
+
+                var loadedTarget = Node.LoadNode(targetList.Path);
+                Assert.AreEqual(moved.ContentListId, loadedTarget.Id); // target is the list
+                Assert.AreEqual(moved.ContentListTypeId, loadedTarget.ContentListTypeId);
             });
         }
 
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeMove_List1_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -1032,22 +1029,19 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(sourceList.Path, targetList.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeMove_TreeWithList_to_List2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -1055,20 +1049,17 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(source.Path, targetList.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeMove_List1_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var sourceList = CreateContentList(root, "DocLib1",
+                var sourceList = CreateContentList(sandbox, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -1079,22 +1070,19 @@ namespace SenseNet.ContentRepository.Tests
                 Node.Move(sourceList.Path, targetFolder.Path);
             });
         }
-        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NodeMove_TreeWithList_to_FolderOfList2()
         {
-            Test(() =>
+            IntegrationTest<Workspace>((sandbox) =>
             {
                 // ALIGN
-                var root = CreateRootWorkspace();
-
-                var source = new Folder(root) { Name = "Source" };
+                var source = new Folder(sandbox) { Name = "Source" };
                 source.Save();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
-                var targetList = CreateContentList(root, "DocLib2",
+                var targetList = CreateContentList(sandbox, "DocLib2",
                     "<ContentListField name='#ListField1' type='Integer'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
@@ -1106,16 +1094,8 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        /* ==================================================================================== */
+        /* ==================================================================================== TOOLS */
 
-        private Workspace CreateRootWorkspace()
-        {
-            var ws = new Workspace(Repository.Root) {Name = Guid.NewGuid().ToString()};
-            ws.AllowChildType("File");
-            ws.Save();
-
-            return ws;
-        }
         private File CreateFile(Node parent, string name, string fileContent)
         {
             var file = new File(parent) { Name = "File1" };
@@ -1133,5 +1113,6 @@ namespace SenseNet.ContentRepository.Tests
             doclib.Save();
             return targetList;
         }
+
     }
 }
