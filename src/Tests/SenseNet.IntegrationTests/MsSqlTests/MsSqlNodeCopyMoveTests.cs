@@ -226,5 +226,28 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         {
             TestCase.NodeMove_TreeWithList_to_FolderOfList2();
         }
+
+        /* ================================================================================ MOVE SYSTEM NODES */
+
+        [TestMethod]
+        public void IntT_MsSql_NodeMove_NonSystem_to_NonSystem()
+        {
+            TestCase.NodeMove_NonSystem_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeMove_NonSystem_to_System()
+        {
+            TestCase.NodeMove_NonSystem_to_System();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeMove_System_to_NonSystem()
+        {
+            TestCase.NodeMove_System_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeMove_System_to_System()
+        {
+            TestCase.NodeMove_System_to_System();
+        }
     }
 }

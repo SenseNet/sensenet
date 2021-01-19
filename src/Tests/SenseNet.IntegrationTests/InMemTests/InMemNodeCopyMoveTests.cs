@@ -149,23 +149,23 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.NodeMove_Tree_from_Outer_to_Outer();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Node_from_Outer_to_List()
         {
             TestCase.NodeMove_Node_from_Outer_to_List();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Tree_from_Outer_to_List()
         {
             TestCase.NodeMove_Tree_from_Outer_to_List();
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Node_from_List_to_Outer()
         {
             TestCase.NodeMove_Node_from_List_to_Outer();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Tree_from_List_to_Outer()
         {
             TestCase.NodeMove_Tree_from_List_to_Outer();
@@ -181,22 +181,22 @@ namespace SenseNet.IntegrationTests.InMemTests
             TestCase.NodeMove_Tree_from_List_to_SameList();
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Node_from_List1_to_List2()
         {
             TestCase.NodeMove_Node_from_List1_to_List2();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Tree_from_List1_to_List2()
         {
             TestCase.NodeMove_Tree_from_List1_to_List2();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Node_from_List1_to_FolderOfList2()
         {
             TestCase.NodeMove_Node_from_List1_to_FolderOfList2();
         }
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_NodeMove_Tree_from_List1_to_FolderOfList2()
         {
             TestCase.NodeMove_Tree_from_List1_to_FolderOfList2();
@@ -225,6 +225,29 @@ namespace SenseNet.IntegrationTests.InMemTests
         public void IntT_InMem_NodeMove_TreeWithList_to_FolderOfList2()
         {
             TestCase.NodeMove_TreeWithList_to_FolderOfList2();
+        }
+
+        /* ================================================================================ MOVE SYSTEM NODES */
+
+        [TestMethod]
+        public void IntT_InMem_NodeMove_NonSystem_to_NonSystem()
+        {
+            TestCase.NodeMove_NonSystem_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_InMem_NodeMove_NonSystem_to_System()
+        {
+            TestCase.NodeMove_NonSystem_to_System();
+        }
+        [TestMethod]
+        public void IntT_InMem_NodeMove_System_to_NonSystem()
+        {
+            TestCase.NodeMove_System_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_InMem_NodeMove_System_to_System()
+        {
+            TestCase.NodeMove_System_to_System();
         }
     }
 }
