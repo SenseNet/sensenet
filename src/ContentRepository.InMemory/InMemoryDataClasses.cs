@@ -518,7 +518,24 @@ namespace SenseNet.ContentRepository.InMemory
         // ReSharper disable once UnusedParameter.Local
         private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> dynamicProperties)
         {
-            throw new NotImplementedException();
+            var clone = new Dictionary<string, object>(dynamicProperties.Count);
+            foreach (var item in dynamicProperties)
+            {
+                var value = item.Value;
+                switch (value)
+                {
+                    case null: clone.Add(item.Key, null); break;
+                    case string stringValue: clone.Add(item.Key, stringValue); break;
+                    case int intValue: clone.Add(item.Key, intValue); break;
+                    case decimal decimalValue: clone.Add(item.Key, decimalValue); break;
+                    case DateTime dateTimeValue: clone.Add(item.Key, dateTimeValue); break;
+                    case int[] intArrayValue: clone.Add(item.Key, intArrayValue.ToArray()); break;
+                    default:
+                        throw new NotSupportedException(
+                   $"DataType is not supported: {value.GetType().FullName}. PropertyName: {item.Key}");
+                }
+            }
+            return clone;
         }
     }
 
@@ -704,7 +721,7 @@ namespace SenseNet.ContentRepository.InMemory
     public class SharedLockDoc : IDataDocument
     {
         public int Id => SharedLockId;
-        
+
         public int SharedLockId;
         public int ContentId;
         public string Lock;

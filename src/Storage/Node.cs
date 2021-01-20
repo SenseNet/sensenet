@@ -3910,37 +3910,12 @@ namespace SenseNet.ContentRepository.Storage
 
         private string CheckListAndItemCopyingConditions(Node target)
         {
-            string msg = null;
-            bool sourceIsOuter = this.ContentListType == null;
-            bool sourceIsList = !sourceIsOuter && this.ContentListId == 0;
-            bool sourceIsItem = !sourceIsOuter && this.ContentListId != 0;
-
-            //HACK: sourceIsSystemFolder
-            bool sourceIsSystemFolder = this.NodeType.IsInstaceOfOrDerivedFrom("SystemFolder");
-
-            bool targetIsOuter = target.ContentListType == null;
-            bool targetIsList = !targetIsOuter && target.ContentListId == 0;
-            bool targetIsItem = !targetIsOuter && target.ContentListId != 0;
-            if (sourceIsOuter && !targetIsOuter && !sourceIsSystemFolder)
-            {
-                msg = "Cannot copy outer item into a list. ";
-            }
-            else if (sourceIsList && !targetIsOuter)
-            {
-                msg = "Cannot copy a list into an another list. ";
-            }
-            else if (sourceIsItem)
-            {
-                // change: we don't mind if somebody copies an item out from the list
-                // (it will lose the list fields though...)
-                if (targetIsOuter)
-                    msg = null; // "Cannot copy a list item out from the list. ";
-                else if (targetIsList && this.ContentListType != target.ContentListType)
-                    msg = "Cannot copy a list item into an another list. ";
-                else if (targetIsItem && this.ContentListId != target.ContentListId)
-                    msg = "Cannot copy a list item into an another list. ";
-            }
-            return msg;
+            var sourceIsOuter = this.ContentListType == null;
+            var sourceIsList = !sourceIsOuter && this.ContentListId == 0;
+            var targetIsOuter = target.ContentListType == null;
+            if (sourceIsList && !targetIsOuter)
+                return "Cannot copy a list into an another list. ";
+            return null;
         }
 
         private string GenerateCopyName(int index)

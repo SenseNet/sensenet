@@ -531,6 +531,170 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.16", "7.7.16.1", "2021-01-12", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    const string ctDefaultValue = @"&lt;?xml version=""1.0"" encoding=""utf-8""?&gt;
+&lt;ContentType name=""MyType"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""&gt;
+  &lt;DisplayName&gt;MyType&lt;/DisplayName&gt;
+  &lt;Description&gt;&lt;/Description&gt;
+  &lt;Icon&gt;Content&lt;/Icon&gt;
+  &lt;AllowIncrementalNaming&gt;true&lt;/AllowIncrementalNaming&gt;
+  &lt;AllowedChildTypes&gt;ContentTypeName1,ContentTypeName2&lt;/AllowedChildTypes&gt;
+  &lt;Fields&gt;
+    &lt;Field name=""ShortTextField"" type=""ShortText""&gt;
+      &lt;DisplayName&gt;ShortTextField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;MaxLength&gt;100&lt;/MaxLength&gt;
+        &lt;MinLength&gt;0&lt;/MinLength&gt;
+        &lt;Regex&gt;[a-zA-Z0-9]*$&lt;/Regex&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""LongTextField"" type=""LongText""&gt;
+      &lt;DisplayName&gt;LongTextField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;MaxLength&gt;100&lt;/MaxLength&gt;
+        &lt;MinLength&gt;0&lt;/MinLength&gt;
+        &lt;TextType&gt;LongText|RichText&lt;/TextType&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""NumberField"" type=""Number""&gt;
+      &lt;DisplayName&gt;NumberField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;MinValue&gt;0&lt;/MinValue&gt;
+        &lt;MaxValue&gt;100.5&lt;/MaxValue&gt;
+        &lt;Digits&gt;2&lt;/Digits&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""IntegerField"" type=""Integer""&gt;
+      &lt;DisplayName&gt;IntegerField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;MinValue&gt;0&lt;/MinValue&gt;
+        &lt;MaxValue&gt;100&lt;/MaxValue&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""BooleanField"" type=""Boolean""&gt;
+      &lt;DisplayName&gt;BooleanField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""ChoiceField"" type=""Choice""&gt;
+      &lt;DisplayName&gt;ChoiceField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;AllowMultiple&gt;false&lt;/AllowMultiple&gt;
+        &lt;AllowExtraValue&gt;false&lt;/AllowExtraValue&gt;
+        &lt;Options&gt;
+          &lt;Option selected=""true""&gt;1&lt;/Option&gt;
+          &lt;Option&gt;2&lt;/Option&gt;
+        &lt;/Options&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""DateTimeField"" type=""DateTime""&gt;
+      &lt;DisplayName&gt;DateTimeField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;DateTimeMode&gt;DateAndTime&lt;/DateTimeMode&gt;
+        &lt;Precision&gt;Second&lt;/Precision&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""ReferenceField"" type=""Reference""&gt;
+      &lt;DisplayName&gt;ReferenceField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;AllowMultiple&gt;true&lt;/AllowMultiple&gt;
+        &lt;AllowedTypes&gt;
+          &lt;Type&gt;Type1&lt;/Type&gt;
+          &lt;Type&gt;Type2&lt;/Type&gt;
+        &lt;/AllowedTypes&gt;
+        &lt;SelectionRoot&gt;
+          &lt;Path&gt;/Root/Path1&lt;/Path&gt;
+          &lt;Path&gt;/Root/Path2&lt;/Path&gt;
+        &lt;/SelectionRoot&gt;
+        &lt;DefaultValue&gt;/Root/Path1,/Root/Path2&lt;/DefaultValue&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+    &lt;Field name=""BinaryField"" type=""Binary""&gt;
+      &lt;DisplayName&gt;BinaryField&lt;/DisplayName&gt;
+      &lt;Description&gt;&lt;/Description&gt;
+      &lt;Configuration&gt;
+        &lt;IsText&gt;true&lt;/IsText&gt;
+        &lt;ReadOnly&gt;false&lt;/ReadOnly&gt;
+        &lt;Compulsory&gt;false&lt;/Compulsory&gt;
+        &lt;DefaultValue&gt;&lt;/DefaultValue&gt;
+        &lt;VisibleBrowse&gt;Show|Hide&lt;/VisibleBrowse&gt;
+        &lt;VisibleEdit&gt;Show|Hide&lt;/VisibleEdit&gt;
+        &lt;VisibleNew&gt;Show|Hide&lt;/VisibleNew&gt;
+      &lt;/Configuration&gt;
+    &lt;/Field&gt;
+  &lt;/Fields&gt;
+&lt;/ContentType&gt;";
+                    
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("ContentType")
+                        .Field("Binary")
+                        .DefaultValue(ctDefaultValue);
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
     }
 }

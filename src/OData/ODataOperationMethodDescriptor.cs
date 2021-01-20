@@ -1,4 +1,7 @@
 ﻿using System.Linq;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 
@@ -44,10 +47,25 @@ namespace SenseNet.OData
 
             ActionParameters = operationInfo.Method.GetParameters()
                 .Skip(1) // Ignore the Content parameter
+                .Where(IsPublicParameter)
                 .Select(x => new ActionParameter(x.Name, x.ParameterType, !x.IsOptional))
                 .ToArray();
 
             CausesStateChange = operationInfo.CausesStateChange;
+        }
+
+        /// <summary>
+        /// Returns true if the parameter is not one of these: HttpContext, OdataRequest, IConfiguration
+        /// </summary>
+        private bool IsPublicParameter(ParameterInfo parameter)
+        {
+            if (parameter.ParameterType == typeof(HttpContext))
+                return false;
+            if (parameter.ParameterType == typeof(ODataRequest))
+                return false;
+            if (typeof(IConfiguration).IsAssignableFrom(parameter.ParameterType))
+                return false;
+            return true;
         }
 
         public override void Initialize(Content context, string backUri, Application application, object parameters)
