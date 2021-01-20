@@ -193,6 +193,7 @@ namespace SenseNet.ContentRepository.Security
         /// <summary>
         /// Returns users and groups that have explicit permissions on the given content or its subtree.
         /// </summary>
+        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
@@ -213,6 +214,7 @@ namespace SenseNet.ContentRepository.Security
         /// Returns all content in the requested content's direct child collection that have permission settings
         /// filtered by permission value, user or group and a permission mask.
         /// </summary>
+        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="memberPath">Path of a group or user.</param>
@@ -234,6 +236,7 @@ namespace SenseNet.ContentRepository.Security
         /// Users will be included in the result set even if the permissions are granted on a group
         /// where they are members directly or indirectly.
         /// </summary>
+        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissions">Only those users appear in the output that have permission settings
         /// in connection with the given permissions.</param>
@@ -250,6 +253,7 @@ namespace SenseNet.ContentRepository.Security
         /// <summary>
         /// Returns all groups where the given user or group is member directly or indirectly.
         /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="directOnly">Whether only direct membership is requested.</param>
         /// <returns><see cref="Content"/> list of the groups.</returns>

@@ -70,14 +70,10 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISearchEngine GetSearchEngine()
         {
-            //UNDONE:<? ? Is indexDirectoryPath customizable?
-            //string indexDirectoryPath = null; 
-            //var indexDirectory = string.IsNullOrEmpty(indexDirectoryPath)
-            //    ? null
-            //    : new IndexDirectory(null, indexDirectoryPath);
-            //var indexingEngine = new Lucene29LocalIndexingEngine(indexDirectory);
+            //TODO:<? Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
+            //UNDONE:<?:IntT: Force delete "write.lock" when getting the platform the first time.
             return new Lucene29SearchEngine()
             {
                 IndexingEngine = indexingEngine,

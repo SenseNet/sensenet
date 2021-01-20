@@ -838,6 +838,8 @@ namespace SenseNet.Services.Core.Operations
 
         /// <summary>
         /// Restores the Content from the Trash.
+        /// WARNING: Known issue that you may get errors restoring a ContentListItem whose
+        /// ContentListField structure has changed since it was deleted.
         /// </summary>
         /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
