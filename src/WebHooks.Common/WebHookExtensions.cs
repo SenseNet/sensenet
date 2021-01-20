@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using SenseNet.WebHooks.Common;
 
 // ReSharper disable once CheckNamespace
@@ -13,7 +10,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             //UNDONE: maybe register HttpClient only if T is the default class
             services.AddHttpClient();
-            services.AddSingleton<T>();
+            services.AddSingleton<IWebHookClient, T>();
 
             return services;
         }
