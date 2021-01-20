@@ -352,6 +352,26 @@ namespace SenseNet.OData
                         }
                     }
                     #endregion
+                    #region enum
+                    else if (expectedType.IsEnum)
+                    {
+                        if (int.TryParse(stringValue, out var intValue))
+                        {
+                            parsed = intValue;
+                            return true;
+                        }
+                        try
+                        {
+                            parsed = Enum.Parse(expectedType, stringValue, true);
+                            return true;
+                        }
+                        catch
+                        {
+                            // do nothing
+                        }
+                        return false;
+                    }
+                    #endregion
                     #region string[]
                     else if (expectedType == typeof(ODataArray<string>))
                     {
@@ -542,6 +562,17 @@ namespace SenseNet.OData
                     }
 
                     //TODO: try parse further opportunities from string to "expectedType"
+                }
+                else if (parameter.Type == JTokenType.Integer)
+                {
+                    var intValue = parameter.Value<int>();
+                    #region enum
+                    if (expectedType.IsEnum)
+                    {
+                        parsed = intValue;
+                        return true;
+                    }
+                    #endregion
                 }
             }
 

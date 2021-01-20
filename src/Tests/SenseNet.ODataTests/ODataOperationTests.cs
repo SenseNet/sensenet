@@ -70,10 +70,19 @@ namespace SenseNet.ODataTests
         public static string Function3(Content content, string param1, string param2, string param3 = null)
         {
             return "## Function3 called." +
-                    $" Path: {(content?.Path ?? "[null]")}," +
-                    $" Param1: {param1}," +
-                    $" Param2: {param2}," +
-                    $" Param3: {(param3 ?? "[null]")}";
+                   $" Path: {(content?.Path ?? "[null]")}," +
+                   $" Param1: {param1}," +
+                   $" Param2: {param2}," +
+                   $" Param3: {(param3 ?? "[null]")}";
+        }
+
+        [Flags] public enum CustomEnum { Zero = 0, One = 1, Two = 2, Four = 4, Eight = 8, All = 15 }
+        [ODataFunction]
+        public static string Function4Enums(Content content, MetadataFormat metadataFormat, CustomEnum customEnum = default)
+        {
+            return "## Function4Enums called." +
+                   $" metadataFormat: {metadataFormat}," +
+                   $" customEnum: {customEnum}.";
         }
 
         public class CustomTypeForFunction4
@@ -299,6 +308,63 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var expected = $"## Function22 called. Config: {nameof(TestConfigForSystemParametersTest)}. Param1: asdf.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Get()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // MetadataFormat: None, Minimal, Full
+
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums",
+                    "?metadataFormat=mInImal&customEnum=0").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Minimal, customEnum: Zero.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Post_Strings()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums", "",
+                    "{metadataFormat:\"Full\",customEnum:\"6\"}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Full, customEnum:{CustomEnum.Four | CustomEnum.Two}.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Post_Integers()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums", "",
+                    "{metadataFormat:1,customEnum:6}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Minimal, customEnum:{CustomEnum.Four | CustomEnum.Two}.";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
