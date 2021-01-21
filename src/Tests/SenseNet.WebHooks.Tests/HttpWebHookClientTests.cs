@@ -7,32 +7,23 @@ using SenseNet.WebHooks.Common;
 
 namespace SenseNet.WebHooks.Tests
 {
+    /// <summary>
+    /// The test methods in this class are disabled because they require a running target site.
+    /// </summary>
     [TestClass]
     public class HttpWebHookClientTests
     {
         //[TestMethod]
         public async Task Send_Get()
         {
-            var services = new ServiceCollection();
-
-            services.AddLogging()
-                .AddSenseNetWebHookClient<HttpWebHookClient>();
-
-            var provider = services.BuildServiceProvider();
-            var whc = provider.GetRequiredService<IWebHookClient>();
+            var whc = CreateWebHookClient();
 
             await whc.SendAsync("https://localhost:44362", "get");
         }
         //[TestMethod]
         public async Task Send_Post()
         {
-            var services = new ServiceCollection();
-
-            services.AddLogging()
-                .AddSenseNetWebHookClient<HttpWebHookClient>();
-
-            var provider = services.BuildServiceProvider();
-            var whc = provider.GetRequiredService<IWebHookClient>();
+            var whc = CreateWebHookClient();
 
             await whc.SendAsync("https://localhost:44362/odata.svc/('Root')/WebHookTest", 
                 "post",
@@ -42,6 +33,19 @@ namespace SenseNet.WebHooks.Tests
                     { "sn-h-k1", "v1" },
                     { "sn-h-k2", "v2" }
                 });
+        }
+
+        private IWebHookClient CreateWebHookClient()
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging()
+                .AddSenseNetWebHookClient<HttpWebHookClient>();
+
+            var provider = services.BuildServiceProvider();
+            var whc = provider.GetRequiredService<IWebHookClient>();
+
+            return whc;
         }
     }
 }
