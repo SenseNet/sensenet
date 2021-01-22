@@ -69,6 +69,15 @@ namespace SenseNet.Events
     }
     public class EventDistributor : IEventDistributor
     {
+        //UNDONE:<?event Remove the master switch
+        private bool __isFeatureEnabled = false;
+        private bool IsFeatureEnabled(int id)
+        {
+            if (!__isFeatureEnabled)
+                SnTrace.Write($"EventDistributor INACTIVATED ({id}).");
+            return __isFeatureEnabled;
+        }
+
         //UNDONE:<?event Use DependencyInjection
         public AuditLogEventProcessor AuditLogEventProcessor = new AuditLogEventProcessor();
         //UNDONE:<?event Use DependencyInjection
@@ -97,6 +106,9 @@ namespace SenseNet.Events
 
         private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask)
         {
+            if (!IsFeatureEnabled(3))
+                return;
+
             var syncTasks = new List<Task>();
             if(nodeObserverTask != null)
                 syncTasks.Add(nodeObserverTask);
@@ -131,6 +143,9 @@ namespace SenseNet.Events
         }
         private async Task<bool> CallNodeObserversAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
+            if (!IsFeatureEnabled(1))
+                return false;
+
             var tasks = Providers.Instance.NodeObservers
                 .Where(x => !disabledNodeObservers?.Contains(x.GetType()) ?? true)
                 .Select(x => FireCancellableNodeObserverEventAsync(snEvent, x))
@@ -143,6 +158,9 @@ namespace SenseNet.Events
         }
         private async Task CallNodeObserversAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
+            if (!IsFeatureEnabled(2))
+                return;
+
             var tasks = Providers.Instance.NodeObservers
                 .Where(x => !disabledNodeObservers?.Contains(x.GetType()) ?? true)
                 .Select(x => FireNodeObserverEventAsync(snEvent, x))
