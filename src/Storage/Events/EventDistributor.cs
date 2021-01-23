@@ -11,66 +11,10 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public interface ISnEvent { INodeEventArgs NodeEventArgs { get; } }
-    public interface ISnEvent<out T> : ISnEvent where T : INodeEventArgs { T EventArgs { get; } }
-    public interface ISnCancellableEvent : INodeObserverEvent { CancellableNodeEventArgs CancellableEventArgs { get; } }
-    public interface ISnCancellableEvent<out T> : ISnCancellableEvent, ISnEvent<T> where T : CancellableNodeEventArgs { }
-
-    public interface INodeObserverEvent : ISnEvent { Action<NodeObserver> NodeObserverAction { get; } }
-    public interface IAuditLogEvent : ISnEvent { AuditEvent AuditEvent { get; } }
-    public interface IInternalEvent { }
-
-    public class NodeModifyingEvent : ISnCancellableEvent<CancellableNodeEventArgs>
-    {
-        public NodeModifyingEvent(CancellableNodeEventArgs args)
-        {
-            EventArgs = args;
-        }
-
-        INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        CancellableNodeEventArgs ISnCancellableEvent.CancellableEventArgs => EventArgs;
-        public CancellableNodeEventArgs EventArgs { get; }
-
-        public Action<NodeObserver> NodeObserverAction => observer =>
-        {
-            observer.OnNodeModifying(null, (CancellableNodeEventArgs) EventArgs);
-        };
-    }
-    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
-    {
-        INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
-
-        public NodeModifiedEvent(NodeEventArgs args)
-        {
-            EventArgs = args;
-        }
-
-        public NodeEventArgs EventArgs { get; }
-
-        public Action<NodeObserver> NodeObserverAction => observer =>
-        {
-            observer.OnNodeModified(null, EventArgs);
-        };
-    }
-    public class SampleInternalEvent : ISnEvent<NodeEventArgs>, IAuditLogEvent, IInternalEvent
-    {
-        public INodeEventArgs NodeEventArgs { get; }
-        public NodeEventArgs EventArgs { get; }
-        public AuditEvent AuditEvent { get; }
-    }
-
-    public interface IEventDistributor
-    {
-        IEventProcessor[] AsyncEventProcessors { get; set; }
-        Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers);
-        Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers);
-        Task FireEventAsync(ISnEvent snEvent);
-    }
     public class EventDistributor : IEventDistributor
     {
         //UNDONE:<?event Remove the master switch
-        private bool __isFeatureEnabled = false;
+        private bool __isFeatureEnabled = true;
         private bool IsFeatureEnabled(int id)
         {
             if (!__isFeatureEnabled)
@@ -204,10 +148,8 @@ namespace SenseNet.Events
         }
     }
 
-    public interface IEventProcessor
-    {
-        Task ProcessEventAsync(ISnEvent snEvent);
-    }
+    //UNDONE:<?event: Remove the demo classes: AuditLogEventProcessor, EventProcessor and so on.
+
     public abstract class EventProcessor : IEventProcessor
     {
         public async Task ProcessEventAsync(ISnEvent snEvent)
