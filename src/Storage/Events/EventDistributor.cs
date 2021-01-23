@@ -115,6 +115,7 @@ namespace SenseNet.Events
         private async Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
+            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             // NodeObserverAction simulation
             using (var op = SnTrace.StartOperation(
@@ -128,6 +129,7 @@ namespace SenseNet.Events
         private async Task FireNodeObserverEventAsync(INodeObserverEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
+            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             // NodeObserverAction simulation
             using (var op = SnTrace.StartOperation(

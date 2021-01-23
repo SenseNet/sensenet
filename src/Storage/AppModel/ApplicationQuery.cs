@@ -187,23 +187,23 @@ namespace SenseNet.ContentRepository.Storage.AppModel
     {
         public static event EventHandler<AppCacheInvalidateEventArgs> Invalidate;
 
-        protected override void OnNodeCopied(object sender, NodeOperationEventArgs e)
+        protected internal override void OnNodeCopied(object sender, NodeOperationEventArgs e)
         {
             OnInvalidate(sender, e.TargetNode.Path);
         }
-        protected override void OnNodeCreated(object sender, NodeEventArgs e)
+        protected internal override void OnNodeCreated(object sender, NodeEventArgs e)
         {
             OnInvalidate(sender, e.SourceNode.Path);
         }
-        protected override void OnNodeDeleted(object sender, NodeEventArgs e)
+        protected internal override void OnNodeDeleted(object sender, NodeEventArgs e)
         {
             OnInvalidate(sender, e.SourceNode.Path);
         }
-        protected override void OnNodeDeletedPhysically(object sender, NodeEventArgs e)
+        protected internal override void OnNodeDeletedPhysically(object sender, NodeEventArgs e)
         {
             OnInvalidate(sender, e.SourceNode.Path);
         }
-        protected override void OnNodeMoved(object sender, NodeOperationEventArgs e)
+        protected internal override void OnNodeMoved(object sender, NodeOperationEventArgs e)
         {
             OnInvalidate(sender, e.SourceNode.Path);
             OnInvalidate(sender, e.TargetNode.Path);

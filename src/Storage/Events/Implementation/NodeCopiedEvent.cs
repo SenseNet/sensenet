@@ -5,20 +5,20 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
+    public class NodeCopiedEvent : ISnEvent<NodeOperationEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
-        public NodeEventArgs EventArgs { get; }
+        public NodeOperationEventArgs EventArgs { get; }
 
-        public NodeModifiedEvent(NodeEventArgs args)
+        public NodeCopiedEvent(NodeOperationEventArgs args)
         {
             EventArgs = args;
         }
 
         public Action<NodeObserver> NodeObserverAction => observer =>
         {
-            observer.OnNodeModified(null, EventArgs);
+            observer.OnNodeCopied(null, EventArgs);
         };
     }
 }

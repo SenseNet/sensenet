@@ -1,24 +1,23 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public class NodeModifiedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
+    public class NodeCreatingEvent : ISnCancellableEvent<CancellableNodeEventArgs>
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
-        public NodeEventArgs EventArgs { get; }
+        CancellableNodeEventArgs ISnCancellableEvent.CancellableEventArgs => EventArgs;
+        public CancellableNodeEventArgs EventArgs { get; }
 
-        public NodeModifiedEvent(NodeEventArgs args)
+        public NodeCreatingEvent(CancellableNodeEventArgs args)
         {
             EventArgs = args;
         }
 
         public Action<NodeObserver> NodeObserverAction => observer =>
         {
-            observer.OnNodeModified(null, EventArgs);
+            observer.OnNodeCreating(null, EventArgs);
         };
     }
 }

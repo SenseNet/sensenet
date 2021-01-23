@@ -4,20 +4,20 @@ using SenseNet.ContentRepository.Storage.Events;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public class NodeModifyingEvent : ISnCancellableEvent<CancellableNodeEventArgs>
+    public class NodeMovingEvent : ISnCancellableEvent<CancellableNodeOperationEventArgs>
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         CancellableNodeEventArgs ISnCancellableEvent.CancellableEventArgs => EventArgs;
-        public CancellableNodeEventArgs EventArgs { get; }
+        public CancellableNodeOperationEventArgs EventArgs { get; }
 
-        public NodeModifyingEvent(CancellableNodeEventArgs args)
+        public NodeMovingEvent(CancellableNodeOperationEventArgs args)
         {
             EventArgs = args;
         }
 
         public Action<NodeObserver> NodeObserverAction => observer =>
         {
-            observer.OnNodeModifying(null, EventArgs);
+            observer.OnNodeMoving(null, EventArgs);
         };
     }
 }
