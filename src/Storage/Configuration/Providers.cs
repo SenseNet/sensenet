@@ -422,7 +422,13 @@ namespace SenseNet.Configuration
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();
 
-        public IEventDistributor EventDistributor { get; set; }
+        private IEventDistributor _eventDistributor = new DevNullEventDistributor();
+        public IEventDistributor EventDistributor
+        {
+            get => _eventDistributor;
+            set => _eventDistributor = value ?? new DevNullEventDistributor();
+        }
+
         public IEventProcessor AuditLogEventProcessor { get; set; }
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 

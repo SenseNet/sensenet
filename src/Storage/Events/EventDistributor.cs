@@ -11,6 +11,24 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
+    internal class DevNullEventDistributor : IEventDistributor
+    {
+        public IEventProcessor AuditLogEventProcessor { get; } = null;
+        public IEnumerable<IEventProcessor> AsyncEventProcessors { get; } = new IEventProcessor[0];
+        public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
+        {
+            return Task.FromResult(false);
+        }
+        public Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
+        {
+            return Task.CompletedTask;
+        }
+        public Task FireEventAsync(ISnEvent snEvent)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
     public class EventDistributor : IEventDistributor
     {
         //UNDONE:<?event Remove the master switch
