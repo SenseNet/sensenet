@@ -103,8 +103,6 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        #endregion
-
         public class SnEventTestsTestSnTracer : ISnTracer
         {
             public List<string> Log { get; } = new List<string>();
@@ -129,15 +127,16 @@ namespace SenseNet.ContentRepository.Tests
             else
                 existing.Clear();
         }
-
         private SnEventTestsTestSnTracer GetTestTracer()
         {
             return (SnEventTestsTestSnTracer)SnTrace.SnTracers.FirstOrDefault(
                 x => x.GetType() == typeof(SnEventTestsTestSnTracer));
         }
 
+        #endregion
+
         [TestMethod]
-        public void Event_1()
+        public void Event_EventProcessor1()
         {
             Test(builder =>
             {
@@ -225,131 +224,3 @@ namespace SenseNet.ContentRepository.Tests
         }
     }
 }
-
-/*
-Start  TESTMETHOD: Event_1 
-Start  NodeObserverAction simulation: NodePermissionChangingEvent SettingsCache 
-Start  NodeObserverAction simulation: NodePermissionChangingEvent TestObserver1 
-Start  NodeObserverAction simulation: NodePermissionChangingEvent TestObserver2 
-Start  NodeObserverAction simulation: NodePermissionChangingEvent TestObserver3 
-End    NodeObserverAction simulation: NodePermissionChangingEvent TestObserver3 
-End    NodeObserverAction simulation: NodePermissionChangingEvent TestObserver2 
-End    NodeObserverAction simulation: NodePermissionChangingEvent SettingsCache 
-End    NodeObserverAction simulation: NodePermissionChangingEvent TestObserver1 
-Start  NodeObserverAction simulation: NodePermissionChangedEvent SettingsCache 
-Start  NodeObserverAction simulation: NodePermissionChangedEvent TestObserver1 
-Start  NodeObserverAction simulation: NodePermissionChangedEvent TestObserver2 
-Start  NodeObserverAction simulation: NodePermissionChangedEvent TestObserver3 
-Start  ProcessAuditEvent TestAuditLogEventProcessor NodePermissionChangedEvent 
-Start  Save event 
-End    Save event 
-End    ProcessAuditEvent TestAuditLogEventProcessor NodePermissionChangedEvent 
-Start  ProcessEvent TestPushNotificationEventProcessor NodePermissionChangedEvent 
-Start  ProcessEvent TestWebHookEventProcessor NodePermissionChangedEvent 
-Start  ProcessEvent TestEmailSenderEventProcessor NodePermissionChangedEvent 
-End    NodeObserverAction simulation: NodePermissionChangedEvent TestObserver1 
-End    NodeObserverAction simulation: NodePermissionChangedEvent TestObserver3 
-End    NodeObserverAction simulation: NodePermissionChangedEvent SettingsCache 
-End    NodeObserverAction simulation: NodePermissionChangedEvent TestObserver2 
-End    ProcessEvent TestEmailSenderEventProcessor NodePermissionChangedEvent 
-End    ProcessEvent TestWebHookEventProcessor NodePermissionChangedEvent 
-End    ProcessEvent TestPushNotificationEventProcessor NodePermissionChangedEvent 
-Start  NodeObserverAction simulation: NodeCreatingEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeCreatingEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeCreatingEvent TestObserver2 
-Start  NodeObserverAction simulation: NodeCreatingEvent TestObserver3 
-End    NodeObserverAction simulation: NodeCreatingEvent TestObserver1 
-End    NodeObserverAction simulation: NodeCreatingEvent TestObserver3 
-End    NodeObserverAction simulation: NodeCreatingEvent SettingsCache 
-End    NodeObserverAction simulation: NodeCreatingEvent TestObserver2 
-Start  NodeObserverAction simulation: NodeCreatedEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeCreatedEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeCreatedEvent TestObserver2 
-Start  NodeObserverAction simulation: NodeCreatedEvent TestObserver3 
-Start  ProcessAuditEvent TestAuditLogEventProcessor NodeCreatedEvent 
-Start  Save event 
-End    ProcessAuditEvent TestAuditLogEventProcessor NodeCreatedEvent 
-End    Save event 
-Start  ProcessEvent TestPushNotificationEventProcessor NodeCreatedEvent 
-End    NodeObserverAction simulation: NodeCreatedEvent SettingsCache 
-End    NodeObserverAction simulation: NodeCreatedEvent TestObserver2 
-End    NodeObserverAction simulation: NodeCreatedEvent TestObserver3 
-End    NodeObserverAction simulation: NodeCreatedEvent TestObserver1 
-Start  ProcessEvent TestWebHookEventProcessor NodeCreatedEvent 
-Start  ProcessEvent TestEmailSenderEventProcessor NodeCreatedEvent 
-Start  -------- TEST: NODE.SAVE 
-End    ProcessEvent TestPushNotificationEventProcessor NodeCreatedEvent 
-Start  NodeObserverAction simulation: NodeModifyingEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver2 
-End    ProcessEvent TestWebHookEventProcessor NodeCreatedEvent 
-End    NodeObserverAction simulation: NodeModifyingEvent SettingsCache 
-End    ProcessEvent TestEmailSenderEventProcessor NodeCreatedEvent 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver3 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver2 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver1 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver3 
-Start  NodeObserverAction simulation: NodeModifiedEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver2 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver3 
-Start  ProcessAuditEvent TestAuditLogEventProcessor NodeModifiedEvent 
-Start  Save event 
-End    Save event 
-Start  ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent 
-Start  ProcessEvent TestWebHookEventProcessor NodeModifiedEvent 
-Start  ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent 
-End    ProcessAuditEvent TestAuditLogEventProcessor NodeModifiedEvent 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver2 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver3 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver1 
-End    NodeObserverAction simulation: NodeModifiedEvent SettingsCache 
-End    -------- TEST: NODE.SAVE 
-End    ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent 
-End    ProcessEvent TestWebHookEventProcessor NodeModifiedEvent 
-End    ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent 
-       Event_1: Inconclusive 
-End    TESTMETHOD: Event_1 
-*/
-
-/*
-Start  -------- TEST: NODE.SAVE 
-End    ProcessEvent TestPushNotificationEventProcessor NodeCreatedEvent 
-Start  NodeObserverAction simulation: NodeModifyingEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver2 
-End    ProcessEvent TestWebHookEventProcessor NodeCreatedEvent 
-End    NodeObserverAction simulation: NodeModifyingEvent SettingsCache 
-End    ProcessEvent TestEmailSenderEventProcessor NodeCreatedEvent 
-Start  NodeObserverAction simulation: NodeModifyingEvent TestObserver3 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver2 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver1 
-End    NodeObserverAction simulation: NodeModifyingEvent TestObserver3 
-Start  NodeObserverAction simulation: NodeModifiedEvent SettingsCache 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver1 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver2 
-Start  NodeObserverAction simulation: NodeModifiedEvent TestObserver3 
-Start  ProcessAuditEvent TestAuditLogEventProcessor NodeModifiedEvent 
-Start  Save event 
-End    Save event 
-Start  ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent 
-Start  ProcessEvent TestWebHookEventProcessor NodeModifiedEvent 
-Start  ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent 
-End    ProcessAuditEvent TestAuditLogEventProcessor NodeModifiedEvent 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver2 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver3 
-End    NodeObserverAction simulation: NodeModifiedEvent TestObserver1 
-End    NodeObserverAction simulation: NodeModifiedEvent SettingsCache 
-End    -------- TEST: NODE.SAVE 
-End    ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent 
-End    ProcessEvent TestWebHookEventProcessor NodeModifiedEvent 
-End    ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent 
-       Event_1: Inconclusive 
-End    TESTMETHOD: Event_1
-*/
-
-/*
-EventDistributor INACTIVATED (1). 
-EventDistributor INACTIVATED (2). 
-EventDistributor INACTIVATED (3). 
-*/
