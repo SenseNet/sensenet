@@ -29,7 +29,7 @@ namespace SenseNet.Events
         /// <param name="snEvent">A cancellable event representation.</param>
         /// <param name="disabledNodeObservers">A list of NodeObserver types that will not be called.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the cancellation state.</returns>
-        Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers);
+        Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers);
 
         /// <summary>
         /// Fires an <see cref="INodeObserverEvent"/> event on all old school NodeObservers except the given observers.
@@ -40,7 +40,7 @@ namespace SenseNet.Events
         /// <param name="snEvent">An <see cref="INodeObserverEvent"/> event representation.</param>
         /// <param name="disabledNodeObservers">A list of NodeObserver types that will not be called.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers);
+        Task FireNodeObserverEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers);
 
         /// <summary>
         /// Fires an <see cref="ISnEvent"/> event on all known <see cref="IEventProcessor"/> (stored in the

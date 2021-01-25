@@ -321,7 +321,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                         if (args1.Cancel)
                             throw new CancelNodeEventException(args1.CancelMessage, args1.EventType, null);
 
-                        var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+                        var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                                 new NodePermissionChangingEvent(args1), null)
                             .ConfigureAwait(false).GetAwaiter().GetResult();
                         if (canceled)
@@ -344,7 +344,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     {
                         NodeObserver.FireOnPermissionChanged(null, null, args2, disabledObservers);
 
-                        EventDistributor.FireNodeObserverEventEventAsync(new NodePermissionChangedEvent(args2), null)
+                        EventDistributor.FireNodeObserverEventAsync(new NodePermissionChangedEvent(args2), null)
                             .ConfigureAwait(false).GetAwaiter().GetResult();
 
                         op2.Successful = true;

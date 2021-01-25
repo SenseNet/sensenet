@@ -15,11 +15,11 @@ namespace SenseNet.Events
     {
         public IEventProcessor AuditLogEventProcessor { get; } = null;
         public IEnumerable<IEventProcessor> AsyncEventProcessors { get; } = new IEventProcessor[0];
-        public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
+        public Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
             return Task.FromResult(false);
         }
-        public Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
+        public Task FireNodeObserverEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
             return Task.CompletedTask;
         }
@@ -43,12 +43,12 @@ namespace SenseNet.Events
         public IEventProcessor AuditLogEventProcessor => Providers.Instance.AuditLogEventProcessor;
         public IEnumerable<IEventProcessor> AsyncEventProcessors => Providers.Instance.AsyncEventProcessors;
 
-        public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
+        public Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
             // Cancellable event is used only the NodeObserver infrastructure
             return CallNodeObserversAsync(snEvent, disabledNodeObservers);
         }
-        public Task FireNodeObserverEventEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
+        public Task FireNodeObserverEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
             // Call observers but do not wait
             var nodeObserverTask = CallNodeObserversAsync(snEvent, disabledNodeObservers);

@@ -4494,7 +4494,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeCreating(Creating, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeCreatingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if (canceled)
@@ -4507,7 +4507,7 @@ namespace SenseNet.ContentRepository.Storage
             OnCreated(this, e);
             NodeObserver.FireOnNodeCreated(Created, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeCreatedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeCreatedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnModifying(CancellableNodeEventArgs e)
@@ -4517,7 +4517,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeModifying(Modifying, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeModifyingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if(canceled)
@@ -4529,7 +4529,7 @@ namespace SenseNet.ContentRepository.Storage
             OnModified(this, e);
             NodeObserver.FireOnNodeModified(Modified, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeModifiedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeModifiedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeleting(CancellableNodeEventArgs e)
@@ -4539,7 +4539,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeDeleting(Deleting, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeDeletingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if (canceled)
@@ -4551,7 +4551,7 @@ namespace SenseNet.ContentRepository.Storage
             OnDeleted(this, e);
             NodeObserver.FireOnNodeDeleted(Deleted, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeDeletedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeDeletedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeletingPhysically(CancellableNodeEventArgs e)
@@ -4561,7 +4561,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeDeletingPhysically(DeletingPhysically, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeForcedDeletingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if (canceled)
@@ -4573,7 +4573,7 @@ namespace SenseNet.ContentRepository.Storage
             OnDeletedPhysically(this, e);
             NodeObserver.FireOnNodeDeletedPhysically(DeletedPhysically, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeForcedDeletedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeForcedDeletedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnMoving(CancellableNodeOperationEventArgs e)
@@ -4583,7 +4583,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeMoving(Moving, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeMovingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if (canceled)
@@ -4595,7 +4595,7 @@ namespace SenseNet.ContentRepository.Storage
             OnMoved(this, e);
             NodeObserver.FireOnNodeMoved(Moved, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeMovedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeMovedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnCopying(CancellableNodeOperationEventArgs e)
@@ -4605,7 +4605,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeCopying(Copying, this, e, _disabledObservers);
 
-            var canceled = EventDistributor.FireCancellableNodeObserverEventEventAsync(
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
                     new NodeCopyingEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             if (canceled)
@@ -4617,7 +4617,7 @@ namespace SenseNet.ContentRepository.Storage
             OnCopied(this, e);
             NodeObserver.FireOnNodeCopied(Copied, this, e, _disabledObservers);
 
-            EventDistributor.FireNodeObserverEventEventAsync(new NodeCopiedEvent(e), _disabledObservers)
+            EventDistributor.FireNodeObserverEventAsync(new NodeCopiedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnLoaded()
