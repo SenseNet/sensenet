@@ -422,8 +422,9 @@ namespace SenseNet.Configuration
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();
 
-        //UNDONE:<?event in this form it's just a joke :)
-        public IEventDistributor EventDistributor = new EventDistributor();
+        public IEventDistributor EventDistributor { get; set; }
+        public IEventProcessor AuditLogEventProcessor { get; set; }
+        public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 
         //===================================================================================== General provider API
 

@@ -22,10 +22,8 @@ namespace SenseNet.Events
             return __isFeatureEnabled;
         }
 
-        //UNDONE:<?event Use DependencyInjection
-        public IEventProcessor AuditLogEventProcessor { get; set; }
-        //UNDONE:<?event Use DependencyInjection
-        public IEventProcessor[] AsyncEventProcessors { get; set; } = new IEventProcessor[0];
+        public IEventProcessor AuditLogEventProcessor => Providers.Instance.AuditLogEventProcessor;
+        public IEnumerable<IEventProcessor> AsyncEventProcessors => Providers.Instance.AsyncEventProcessors;
 
         public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {

@@ -14,11 +14,11 @@ namespace SenseNet.Events
         /// <summary>
         /// Gets or sets the <see cref="AuditLogEventProcessor"/> implementations.
         /// </summary>
-        IEventProcessor AuditLogEventProcessor { get; set; }
+        IEventProcessor AuditLogEventProcessor { get; }
         /// <summary>
         /// Gets or sets a set of "Fire And Go" style <see cref="IEventProcessor"/> implementations.
         /// </summary>
-        IEventProcessor[] AsyncEventProcessors { get; set; }
+        IEnumerable<IEventProcessor> AsyncEventProcessors { get; }
         /// <summary>
         /// Fires an <see cref="ISnCancellableEvent"/> event on all old school NodeObservers except the given observers.
         /// Waits for all observer's execution and signs with 'true' value if any observer cancels the operation.

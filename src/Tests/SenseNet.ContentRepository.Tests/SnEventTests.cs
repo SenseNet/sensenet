@@ -141,15 +141,14 @@ namespace SenseNet.ContentRepository.Tests
             Test(builder =>
             {
                 builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
-                Providers.Instance.EventDistributor = new TestEventDistributor
+                builder.UseEventDistributor(new TestEventDistributor());
+                builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
+                builder.UseAsyncEventProcessors(new IEventProcessor[]
                 {
-                    AuditLogEventProcessor = new TestAuditLogEventProcessor(),
-                    AsyncEventProcessors = new IEventProcessor[]
-                    {
-                        new TestPushNotificationEventProcessor(), new TestWebHookEventProcessor(),
-                        new TestEmailSenderEventProcessor()
-                    }
-                };
+                    new TestPushNotificationEventProcessor(),
+                    new TestWebHookEventProcessor(),
+                    new TestEmailSenderEventProcessor()
+                });
                 EnsureCleanTestSnTracer();
             }, () =>
             {
