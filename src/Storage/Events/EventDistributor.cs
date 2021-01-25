@@ -15,7 +15,7 @@ namespace SenseNet.Events
     {
         //UNDONE:<?event Remove the master switch
         private bool __isFeatureEnabled = false;
-        private bool IsFeatureEnabled(int id)
+        internal bool IsFeatureEnabled(int id)
         {
             if (!__isFeatureEnabled)
                 SnTrace.Write($"EventDistributor INACTIVATED ({id}).");

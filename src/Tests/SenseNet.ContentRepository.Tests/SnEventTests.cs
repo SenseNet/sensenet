@@ -136,7 +136,7 @@ namespace SenseNet.ContentRepository.Tests
                 x => x.GetType() == typeof(SnEventTestsTestSnTracer));
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void Event_1()
         {
             Test(builder =>
@@ -164,6 +164,7 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
                     op.Successful = true;
                 }
+
                 Thread.Sleep(2000);
 
                 // ASSERT
@@ -175,9 +176,51 @@ namespace SenseNet.ContentRepository.Tests
                         return $"{fields[6],-6} {fields[8]}";
                     })
                     .SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE.SAVE"))
-                    .ToArray();
+                    .ToList();
 
-                Assert.Inconclusive();
+                if(!((EventDistributor)Providers.Instance.EventDistributor).IsFeatureEnabled(0))
+                    Assert.Inconclusive();
+
+                // All cancellable event, and state need to exist in the log for all NodeObserver types
+                foreach (var @event in new[] { "NodeModifyingEvent"/*, "NodeModifiedEvent"*/ })
+                {
+                    foreach (var state in new[] { "Start", "End" })
+                    {
+                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2",
+                            "TestObserver3"})
+                        {
+                            var line = lines.FirstOrDefault(x =>
+                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
+                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
+                        }
+                    }
+                }
+
+                // All not cancellable event, and state need to exist in the log for all types
+                foreach (var @event in new[] { /*"NodeModifyingEvent", */"NodeModifiedEvent" })
+                {
+                    foreach (var state in new[] { "Start", "End" })
+                    {
+                        foreach (var type in new[] {"TestPushNotificationEventProcessor",
+                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
+                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
+                        {
+                            var line = lines.FirstOrDefault(x =>
+                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
+                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
+                        }
+                    }
+                }
+
+                // Async processors finished after end of the test
+                var p0 = lines.IndexOf("End    -------- TEST: NODE.SAVE");
+                var p1 = lines.IndexOf("End    ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent");
+                var p2 = lines.IndexOf("End    ProcessEvent TestWebHookEventProcessor NodeModifiedEvent");
+                var p3 = lines.IndexOf("End    ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent");
+                Assert.IsTrue(p0 > 0);
+                Assert.IsTrue(p1 > p0);
+                Assert.IsTrue(p2 > p0);
+                Assert.IsTrue(p3 > p0);
             });
         }
     }
