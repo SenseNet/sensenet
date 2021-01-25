@@ -8,7 +8,7 @@ namespace SenseNet.Events
     public class NodeDeletedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
+        public AuditEvent AuditEvent => AuditEvent.ContentDeleted;
         public NodeEventArgs EventArgs { get; }
 
         public NodeDeletedEvent(NodeEventArgs args)

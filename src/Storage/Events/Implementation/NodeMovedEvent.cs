@@ -8,7 +8,7 @@ namespace SenseNet.Events
     public class NodeMovedEvent : ISnEvent<NodeOperationEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
+        public AuditEvent AuditEvent => AuditEvent.ContentMoved;
         public NodeOperationEventArgs EventArgs { get; }
 
         public NodeMovedEvent(NodeOperationEventArgs args)

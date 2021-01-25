@@ -8,7 +8,7 @@ namespace SenseNet.Events
     public class NodeCopiedEvent : ISnEvent<NodeOperationEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
-        public AuditEvent AuditEvent => AuditEvent.ContentUpdated;
+        public AuditEvent AuditEvent => AuditEvent.ContentCopied;
         public NodeOperationEventArgs EventArgs { get; }
 
         public NodeCopiedEvent(NodeOperationEventArgs args)
