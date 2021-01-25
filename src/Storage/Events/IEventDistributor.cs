@@ -12,6 +12,10 @@ namespace SenseNet.Events
     public interface IEventDistributor
     {
         /// <summary>
+        /// Gets or sets the <see cref="AuditLogEventProcessor"/> implementations.
+        /// </summary>
+        IEventProcessor AuditLogEventProcessor { get; set; }
+        /// <summary>
         /// Gets or sets a set of "Fire And Go" style <see cref="IEventProcessor"/> implementations.
         /// </summary>
         IEventProcessor[] AsyncEventProcessors { get; set; }

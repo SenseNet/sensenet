@@ -14,7 +14,7 @@ namespace SenseNet.Events
     public class EventDistributor : IEventDistributor
     {
         //UNDONE:<?event Remove the master switch
-        private bool __isFeatureEnabled = true;
+        private bool __isFeatureEnabled = false;
         private bool IsFeatureEnabled(int id)
         {
             if (!__isFeatureEnabled)
@@ -23,11 +23,9 @@ namespace SenseNet.Events
         }
 
         //UNDONE:<?event Use DependencyInjection
-        public AuditLogEventProcessor AuditLogEventProcessor = new AuditLogEventProcessor();
+        public IEventProcessor AuditLogEventProcessor { get; set; }
         //UNDONE:<?event Use DependencyInjection
-        public IEventProcessor[] AsyncEventProcessors { get; set; } = {
-            new PushNotificationEventProcessor(), new WebHookEventProcessor(), new EmailSenderEventProcessor()
-        };
+        public IEventProcessor[] AsyncEventProcessors { get; set; } = new IEventProcessor[0];
 
         public Task<bool> FireCancellableNodeObserverEventEventAsync(ISnCancellableEvent snEvent, List<Type> disabledNodeObservers)
         {
@@ -53,30 +51,24 @@ namespace SenseNet.Events
             if (!IsFeatureEnabled(3))
                 return;
 
+            // Create a waiting list and add the 'nodeObserverTask' if there is.
             var syncTasks = new List<Task>();
             if(nodeObserverTask != null)
                 syncTasks.Add(nodeObserverTask);
 
-            // If the event is IAuditLogEvent, call async, memorize it and do not wait.
+            // If the event is IAuditLogEvent, call async, memorize it, and do not wait.
             if (snEvent is IAuditLogEvent auditLogEvent)
-                syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
+                if(AuditLogEventProcessor != null)
+                    syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
 
             if (!(snEvent is IInternalEvent))
             {
                 // Persists the event
-                await SaveEventAsync(snEvent); // saveevent(wait, allprocessors, snEvent)
+                await SaveEventAsync(snEvent);
 
                 // Call all async processors and forget them
                 foreach (var processor in AsyncEventProcessors)
                     #pragma warning disable 4014
-
-                    // if(processor.IsRelevant(snEvent))
-                    //    if (Acquire(processor, snEvent))
-                    //        processor.ProcessEventAsync(snEvent);
-                    //        saveevent(done, processor, snEvent)
-                    // else
-                    //     saveevent(done, processor, snEvent)
-
                     processor.ProcessEventAsync(snEvent);
                     #pragma warning restore 4014
             }
@@ -112,70 +104,27 @@ namespace SenseNet.Events
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
-        private async Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
+        protected virtual Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
             //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
-            // NodeObserverAction simulation
-            using (var op = SnTrace.StartOperation(
-                $"NodeObserverAction simulation: {snEvent.GetType().Name} {nodeObserver.GetType().Name}"))
-            {
-                await Task.Delay(10, cancel).ConfigureAwait(false);
-                op.Successful = true;
-            }
-            return snEvent.CancellableEventArgs.Cancel;
+            //TODO:event: Not implemented yet
+            return Task.FromResult(false);
         }
-        private async Task FireNodeObserverEventAsync(INodeObserverEvent snEvent,
+        protected virtual Task FireNodeObserverEventAsync(INodeObserverEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
             //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
-            // NodeObserverAction simulation
-            using (var op = SnTrace.StartOperation(
-                $"NodeObserverAction simulation: {snEvent.GetType().Name} {nodeObserver.GetType().Name}"))
-            {
-                await Task.Delay(20, cancel).ConfigureAwait(false);
-                op.Successful = true;
-            }
+            //TODO:event: Not implemented yet
+            return Task.CompletedTask;
         }
 
-        private async Task SaveEventAsync(ISnEvent snEvent)
+        protected virtual Task SaveEventAsync(ISnEvent snEvent)
         {
-            using (var op = SnTrace.StartOperation("Save event"))
-            {
-                await Task.Delay(10);
-                op.Successful = true;
-            }
+            //TODO:event: Not implemented yet
+            return Task.CompletedTask;
         }
     }
-
-    //UNDONE:<?event: Remove the demo classes: AuditLogEventProcessor, EventProcessor and so on.
-
-    public abstract class EventProcessor : IEventProcessor
-    {
-        public async Task ProcessEventAsync(ISnEvent snEvent)
-        {
-            using (var op = SnTrace.StartOperation($"ProcessEvent {GetType().Name} {snEvent.GetType().Name}"))
-            {
-                await Task.Delay(50).ConfigureAwait(false);
-                op.Successful = true;
-            }
-        }
-    }
-    public class AuditLogEventProcessor : IEventProcessor
-    {
-        public async Task ProcessEventAsync(ISnEvent snEvent)
-        {
-            using (var op = SnTrace.StartOperation($"ProcessEvent {GetType().Name} {snEvent.GetType().Name}"))
-            {
-                await Task.Delay(5).ConfigureAwait(false);
-                op.Successful = true;
-            }
-        }
-    }
-
-    public class PushNotificationEventProcessor : EventProcessor { }
-    public class WebHookEventProcessor : EventProcessor { }
-    public class EmailSenderEventProcessor : EventProcessor { }
 }
