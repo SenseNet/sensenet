@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.WebHooks.Common;
 
 namespace SenseNet.WebHooks.Tests
 {

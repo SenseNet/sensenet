@@ -8,7 +8,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SenseNet.WebHooks.Common
+// ReSharper disable once CheckNamespace
+namespace SenseNet.WebHooks
 {
     public class HttpWebHookClient : IWebHookClient
     {

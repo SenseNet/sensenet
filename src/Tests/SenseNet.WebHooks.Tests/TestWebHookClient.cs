@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.WebHooks.Common;
 
 namespace SenseNet.WebHooks.Tests
 {

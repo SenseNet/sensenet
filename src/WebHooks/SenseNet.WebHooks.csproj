@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
+    <ProjectReference Include="..\WebHooks.Common\SenseNet.WebHooks.Common.csproj" />
+  </ItemGroup>
+
+</Project>
