@@ -18,7 +18,6 @@ namespace SenseNet.Services.Core.Operations
 
     public static class IdentityOperations
     {
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
@@ -73,7 +72,6 @@ namespace SenseNet.Services.Core.Operations
             throw new SenseNetSecurityException("Invalid username or password.");
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
@@ -102,7 +100,6 @@ namespace SenseNet.Services.Core.Operations
             return Content.Create(user);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
