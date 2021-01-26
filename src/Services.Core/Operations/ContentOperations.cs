@@ -620,12 +620,20 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Changes the permission inheritance on the requested content.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
+        /// <remarks> After the <c>break</c> operation, all previous
+        /// effective permissions will be  copied explicitly that are matched any of the given entry types.
+        /// After the <c>unbreak</c> operation, the unnecessary explicit entries will be removed.
+        /// The method is ineffective if the content's inheritance state matches the requested operation
+        /// (<c>break</c> operation on broken inheritance or <c>unbreak</c> operation on not broken inheritance).</remarks>
         /// <param name="content"></param>
-        /// <param name="inheritance"></param>
-        /// <returns></returns>
+        /// <param name="inheritance">The inheritance value as string. Available values: "break" or "unbreak"</param>
+        /// <returns>The requested resource.</returns>
+        /// <exception cref="ArgumentException">Throws <see cref="ArgumentException"/> if the <paramref name="inheritance"/> is
+        /// invalid.</exception>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -652,12 +660,49 @@ namespace SenseNet.Services.Core.Operations
             return content;
         }
 
-        //UNDONE:Doc:
-        /// <summary></summary>
+        /// <summary>
+        /// Modifies the explicit permission set of the requested content.
+        /// </summary>
         /// <snCategory>Permissions</snCategory>
+        /// <remarks>
+        /// <para>
+        /// The given <paramref name="r"/> parameter is a <see cref="SetPermissionsRequest"/> that has
+        /// an array of the complex request objects.
+        /// Every item (<see cref="SetPermissionRequest"/>) contains the followings:
+        /// - identity: id or path of a user or group.
+        /// - localOnly: optional bool value (default: false).
+        /// - one optional property for all available permission types (See, Open, Save, etc.) that describes the desired
+        /// permission value.
+        /// </para>
+        /// <para>
+        /// The permission value can be:
+        /// - "undefined" alias "u" or "0"
+        /// - "allow" alias "a" or "1"
+        /// - "deny" alias "d" or "2"
+        /// </para>
+        /// <example>
+        /// The following request body sets some permissions for an user and a group.
+        /// <code>
+        /// {
+        ///   r: [
+        ///     {identity:"/Root/IMS/BuiltIn/Portal/Visitor", OpenMinor:"allow", Save:"deny"},
+        ///     {identity:"/Root/IMS/BuiltIn/Portal/Owners", Save:"A"}
+        ///   ]
+        /// }
+        /// </code>
+        /// </example>
+        /// <example>
+        /// The following request body sets a local only Open permission for the Visitor.
+        /// <code>
+        /// {r: [{identity:"/Root/IMS/BuiltIn/Portal/Visitor", localOnly: true, Open:"allow"}]}
+        /// </code>
+        /// </example>
+        /// </remarks>
         /// <param name="content"></param>
-        /// <param name="r"></param>
-        /// <returns></returns>
+        /// <param name="r">A named array of <c>SetPermissionRequest</c> objects that describe the modifications.</param>
+        /// <returns>The requested resource.</returns>
+        /// <exception cref="ArgumentException">In case of invalid permission state.</exception>
+        /// <exception cref="ContentNotFoundException">If the identity is not found in any request item.</exception>
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
