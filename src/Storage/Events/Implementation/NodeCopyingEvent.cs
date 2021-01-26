@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage.Events;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public class NodeCopyingEvent : ISnCancellableEvent<CancellableNodeOperationEventArgs>
+    internal class NodeCopyingEvent : ISnCancellableEvent<CancellableNodeOperationEventArgs>
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         CancellableNodeEventArgs ISnCancellableEvent.CancellableEventArgs => EventArgs;

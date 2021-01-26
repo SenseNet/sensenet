@@ -5,7 +5,7 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    public class NodePermissionChangedEvent : ISnEvent<PermissionChangedEventArgs>, INodeObserverEvent, IAuditLogEvent
+    internal class NodePermissionChangedEvent : ISnEvent<PermissionChangedEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         public AuditEvent AuditEvent => AuditEvent.PermissionChanged;
