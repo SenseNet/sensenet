@@ -11,7 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
-using Task = System.Threading.Tasks.Task;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -853,7 +853,7 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreToolbar, N.S.ContextMenu)]
-        public static Task Restore(Content content, string destination = null, bool? newname = null)
+        public static async STT.Task Restore(Content content, string destination = null, bool? newname = null)
         {
             if (!(content?.ContentHandler is TrashBag tb))
                 throw new InvalidContentActionException("The resource content must be a TrashBag.");
@@ -897,7 +897,7 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception(msg);
             }
 
-            return Content.LoadAsync(originalId, CancellationToken.None);
+            await Content.LoadAsync(originalId, CancellationToken.None);
         }
     }
 }
