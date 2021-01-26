@@ -167,7 +167,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT
                 var tracer = GetTestTracer();
-                var lines = tracer.Log.Where(x => x.Contains("\tTest\t"))
+                var lines = tracer.Log.Where(x => x != null && x.Contains("\tTest\t"))
                     .Select(x =>
                     {
                         var fields = x.Split('\t');
