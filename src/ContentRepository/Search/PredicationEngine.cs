@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Search
     public class PredicationEngine : SnQueryVisitor
     {
         //private readonly Content _content;
-        private IndexDocument _indexDoc;
+        private readonly IndexDocument _indexDoc;
         private readonly IQueryContext _queryContext;
         private readonly Stack<(bool Value, SnQueryPredicate Predicate)> _hitStack = new();
 
@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Search
             //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
             // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
             var docProvider = Providers.Instance.IndexDocumentProvider;
-            var doc = docProvider.GetIndexDocument(node, false, node.Id == 0, out var hasBinary);
+            var doc = docProvider.GetIndexDocument(node, false, node.Id == 0, out var _);
             var docData = DataStore.CreateIndexDocumentData(node, doc, null);
             IndexManager.CompleteIndexDocument(docData);
             return doc;
@@ -168,7 +168,6 @@ namespace SenseNet.ContentRepository.Search
             var firstMust = true;
             var firstMustNot = true;
 
-            var result = true;
             for (int i = visitedClauses.Count - 1; i >= 0; i--)
             {
                 var clause = visitedClauses[i];
@@ -211,7 +210,7 @@ namespace SenseNet.ContentRepository.Search
             // combine the subsets (if there is any "must", the "should" is irrelevant)
             if (firstMust) mustSubset = true;
             if (firstMustNot) notSubset = true;
-            result = (mustSubset & notSubset) | shouldSubset;
+            var result = (mustSubset & notSubset) | shouldSubset;
 
             // push result to the hit stack
             _hitStack.Push((result, null));

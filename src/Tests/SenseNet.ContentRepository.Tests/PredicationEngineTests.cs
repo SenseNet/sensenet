@@ -12,36 +12,6 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class PredicationEngineTests : TestBase
     {
-        //readonly Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
-        //{
-        //    //{"_Text", new TestPerfieldIndexingInfoString()},
-        //    {"#Field1", new TestPerfieldIndexingInfoString()},
-        //    {"Field1", new TestPerfieldIndexingInfoString()},
-        //    {"Field2", new TestPerfieldIndexingInfoString()},
-        //    {"Field3", new TestPerfieldIndexingInfoString()},
-        //    {"F1", new TestPerfieldIndexingInfoString()},
-        //    {"F2", new TestPerfieldIndexingInfoString()},
-        //    {"F3", new TestPerfieldIndexingInfoString()},
-        //    {"F4", new TestPerfieldIndexingInfoString()},
-        //    {"f1", new TestPerfieldIndexingInfoString()},
-        //    {"f2", new TestPerfieldIndexingInfoString()},
-        //    {"f3", new TestPerfieldIndexingInfoString()},
-        //    {"f4", new TestPerfieldIndexingInfoString()},
-        //    {"f5", new TestPerfieldIndexingInfoString()},
-        //    {"f6", new TestPerfieldIndexingInfoString()},
-        //    {"mod_date", new TestPerfieldIndexingInfoInt()},
-        //    {"title", new TestPerfieldIndexingInfoString()},
-        //    {"Name", new TestPerfieldIndexingInfoString()},
-        //    {"Id", new TestPerfieldIndexingInfoInt()},
-        //    {"LongField1", new TestPerfieldIndexingInfoLong()},
-        //    {"SingleField1", new TestPerfieldIndexingInfoSingle()},
-        //    {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
-        //    {"IsSystemContent", new TestPerfieldIndexingInfoBool()},
-        //    {"EnableLifespan", new TestPerfieldIndexingInfoBool()},
-        //    {"ValidFrom", new TestPerfieldIndexingInfoDateTime()},
-        //    {"ValidTill", new TestPerfieldIndexingInfoDateTime()},
-        //};
-
         private static readonly string CTD = $@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='PredicationEngineTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 	<Fields>
@@ -56,9 +26,8 @@ namespace SenseNet.ContentRepository.Tests
 </ContentType>
 ";
 
-
         [TestMethod]
-        public void PredicationEngine_Predications()
+        public void PredicationEngine_Predication()
         {
             Test(() =>
             {
@@ -269,9 +238,3 @@ namespace SenseNet.ContentRepository.Tests
         }
     }
 }
-/*
-
-
-
-
-*/
