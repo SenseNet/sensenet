@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Search
         //private readonly Content _content;
         private readonly IndexDocument _indexDoc;
         private readonly IQueryContext _queryContext;
-        private readonly Stack<(bool Value, SnQueryPredicate Predicate)> _hitStack = new();
+        private readonly Stack<bool> _hitStack = new();
 
         public PredicationEngine(Content content)
         {
@@ -54,22 +54,22 @@ namespace SenseNet.ContentRepository.Search
 
             var result = _hitStack.Pop();
 
-            return result.Value;
+            return result;
         }
 
         // ========================================================================================
 
         public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
         {
-            var result = (false, simplePredicate);
+            var result = false;
 
             var value = simplePredicate.Value;
             if (_indexDoc.Fields.TryGetValue(simplePredicate.FieldName, out var field))
             {
                 if (IsWildcardPredicate(field, value))
-                    result = (GetResultByWildcard(field.StringValue, value.StringValue), simplePredicate);
+                    result = GetResultByWildcard(field.StringValue, value.StringValue);
                 else if (field.Type == value.Type && field.CompareTo(value) == 0)
-                    result = (true, simplePredicate);
+                    result = true;
             }
             _hitStack.Push(result);
 
@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository.Search
                 }
             }
 
-            _hitStack.Push((result, range));
+            _hitStack.Push(result);
 
             return range;
         }
@@ -178,28 +178,28 @@ namespace SenseNet.ContentRepository.Search
                 switch (occur)
                 {
                     case Occurence.Should:
-                        shouldSubset |= current.Value;
+                        shouldSubset |= current;
                         break;
                     case Occurence.Must:
                         if (firstMust)
                         {
-                            mustSubset = current.Value;
+                            mustSubset = current;
                             firstMust = false;
                         }
                         else
                         {
-                            mustSubset &= current.Value;
+                            mustSubset &= current;
                         }
                         break;
                     case Occurence.MustNot:
                         if (firstMustNot)
                         {
-                            notSubset = !current.Value;
+                            notSubset = !current;
                             firstMustNot = false;
                         }
                         else
                         {
-                            notSubset &= !current.Value;
+                            notSubset &= !current;
                         }
                         break;
                     default:
@@ -213,7 +213,7 @@ namespace SenseNet.ContentRepository.Search
             var result = (mustSubset & notSubset) | shouldSubset;
 
             // push result to the hit stack
-            _hitStack.Push((result, null));
+            _hitStack.Push(result);
 
             // return the original parameter
             return clauses;
