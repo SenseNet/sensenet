@@ -19,14 +19,14 @@ namespace SenseNet.ContentRepository.Search
     {
         //private readonly Content _content;
         private IndexDocument _indexDoc;
-        private readonly IQueryContext _context;
+        private readonly IQueryContext _queryContext;
         private readonly Stack<(bool Value, SnQueryPredicate Predicate)> _hitStack = new();
 
-        public PredicationEngine(Content content, IQueryContext context = null)
+        public PredicationEngine(Content content)
         {
             //_content = content;
             _indexDoc = GetIndexDocument(content.ContentHandler);
-            _context = context ?? new SnQueryContext(QuerySettings.Default, User.Current.Id);
+            _queryContext = new SnQueryContext(QuerySettings.Default, User.Current.Id);
         }
         public IndexDocument GetIndexDocument(Node node)
         {
@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Search
 
         public bool IsTrue(string predication)
         {
-            return IsTrue(SnQuery.Parse(predication, _context));
+            return IsTrue(SnQuery.Parse(predication, _queryContext));
         }
         public bool IsTrue(SnQuery predication)
         {
