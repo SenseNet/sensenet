@@ -160,56 +160,37 @@ namespace SenseNet.ContentRepository.Search
             // interpret every clause in deep
             var visitedClauses = base.VisitLogicalClauses(clauses);
 
-            // pop every subset belonging to clauses and categorize them
+            // clause categories
             var shouldSubset = false;
-            var mustSubset = false;
-            var notSubset = false;
+            var mustSubset = true;
+            var notSubset = true;
 
-            var firstMust = true;
-            var firstMustNot = true;
-
+            // pop every subset belonging to clauses and categorize them
             for (int i = visitedClauses.Count - 1; i >= 0; i--)
             {
-                var clause = visitedClauses[i];
-
                 var current = _hitStack.Pop();
 
-                var occur = clause.Occur == Occurence.Default ? Occurence.Should : clause.Occur;
+                var occur = visitedClauses[i].Occur;
+                if (occur == Occurence.Default)
+                    occur = Occurence.Should;
+
                 switch (occur)
                 {
                     case Occurence.Should:
                         shouldSubset |= current;
                         break;
-                    case Occurence.Must:
-                        if (firstMust)
-                        {
-                            mustSubset = current;
-                            firstMust = false;
-                        }
-                        else
-                        {
-                            mustSubset &= current;
-                        }
+                    case Occurence.Must: 
+                        mustSubset &= current;
                         break;
                     case Occurence.MustNot:
-                        if (firstMustNot)
-                        {
-                            notSubset = !current;
-                            firstMustNot = false;
-                        }
-                        else
-                        {
-                            notSubset &= !current;
-                        }
+                        notSubset &= !current;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
-            // combine the subsets (if there is any "must", the "should" is irrelevant)
-            if (firstMust) mustSubset = true;
-            if (firstMustNot) notSubset = true;
+            // combine categories
             var result = (mustSubset & notSubset) | shouldSubset;
 
             // push result to the hit stack
