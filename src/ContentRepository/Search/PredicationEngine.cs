@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Search
         //private readonly Content _content;
         private IndexDocument _indexDoc;
         private readonly IQueryContext _context;
-        private readonly Stack<List<int>> _hitStack = new Stack<List<int>>();
+        private readonly Stack<(bool Value, SnQueryPredicate Predicate)> _hitStack = new();
 
         public PredicationEngine(Content content, IQueryContext context = null)
         {
@@ -52,88 +52,76 @@ namespace SenseNet.ContentRepository.Search
             if (_hitStack.Count != 1)
                 throw new CompilerException($"Compiler error: The stack contains more than one elements ({_hitStack.Count}).");
 
-            var foundVersionIds = _hitStack.Pop();
+            var result = _hitStack.Pop();
 
-            return foundVersionIds.Count > 0;
+            return result.Value;
         }
 
         // ========================================================================================
 
         public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
         {
-            var result = new List<int>();
+            var result = (false, simplePredicate);
 
             var value = simplePredicate.Value;
             if (_indexDoc.Fields.TryGetValue(simplePredicate.FieldName, out var field))
             {
-                if (value.Type == IndexValueType.String && field.Type == IndexValueType.String &&
-                    (value.StringValue.Contains("*") || value.StringValue.Contains("?")))
-                {
-                    result.AddRange(GetVersionIdsByWildcard(field.StringValue, value.StringValue));
-                }
-                else
-                {
-                    if (field.Type == value.Type && field.CompareTo(value) == 0) //UNDONE:<?predication: ? Operator == overload ?
-                        result.AddRange(new[] { 1 }); //UNDONE:<?predication: simplify result
-                }
+                if (IsWildcardPredicate(field, value))
+                    result = (GetResultByWildcard(field.StringValue, value.StringValue), simplePredicate);
+                else if (field.Type == value.Type && field.CompareTo(value) == 0)
+                    result = (true, simplePredicate);
             }
             _hitStack.Push(result);
+
             return simplePredicate;
         }
-        private IEnumerable<int> GetVersionIdsByWildcard(string fieldValue, string value)
+        private bool IsWildcardPredicate(IndexField field, IndexValue predicationValue)
+        {
+            return predicationValue.Type == IndexValueType.String && field.Type == IndexValueType.String &&
+                    (predicationValue.StringValue.Contains("*") || predicationValue.StringValue.Contains("?"));
+        }
+        private bool GetResultByWildcard(string fieldValue, string value)
         {
             if (value.Contains("?"))
                 throw new NotSupportedException("Wildcard '?' not supported.");
             if (value.Replace("*", "").Length == 0)
                 throw new NotSupportedException($"Query is not supported for this field value: {value}");
 
-            List<int>[] versionIds;
+            string prefix, suffix;
+
             if (value.StartsWith("*") && value.EndsWith("*"))
             {
                 var middle = value.Trim('*');
-                versionIds = fieldValue.Contains(middle) ? new[] { new List<int> { 1 } } : new List<int>[0];
-            }
-            else if (value.StartsWith("*"))
-            {
-                var suffix = value.Trim('*');
-                versionIds = fieldValue.EndsWith(suffix) ? new[] { new List<int> { 1 } } : new List<int>[0];
-            }
-            else if (value.EndsWith("*"))
-            {
-                var prefix = value.Trim('*');
-                versionIds = fieldValue.StartsWith(prefix) ? new[] { new List<int> { 1 } } : new List<int>[0];
-            }
-            else // if (value.Contains("*"))
-            {
-                var sa = value.Split("*".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                var prefix = sa[0];
-                var suffix = sa[1];
-                versionIds = fieldValue.StartsWith(prefix) && fieldValue.EndsWith(suffix) ? new[] { new List<int> { 1 } } : new List<int>[0];
+                return fieldValue.Contains(middle);
             }
 
-            // aggregate
-            var result = new int[0].AsEnumerable();
-            foreach (var item in versionIds)
-                result = result.Union(item);
+            if (value.StartsWith("*"))
+            {
+                suffix = value.Trim('*');
+                return fieldValue.EndsWith(suffix);
+            }
 
-            return result.Distinct().ToArray();
+            if (value.EndsWith("*"))
+            {
+                prefix = value.Trim('*');
+                return fieldValue.StartsWith(prefix);
+            }
+
+            // if (value.Contains("*"))
+            var sa = value.Split("*".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            prefix = sa[0];
+            suffix = sa[1];
+            return fieldValue.StartsWith(prefix) && fieldValue.EndsWith(suffix);
         }
 
         public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
         {
-            var result = new List<int>();
+            var result = false;
 
             if (_indexDoc.Fields.TryGetValue(range.FieldName, out var field))
             {
-                var fieldValues = new KeyValuePair<IndexValue, List<int>>[]
-                {
-                    // FieldValue -> VersionId list
-                    new KeyValuePair<IndexValue, List<int>>(field, new List<int>(new[] {1})),
-                };
-
                 var min = range.Min;
                 var max = range.Max;
-                IEnumerable<KeyValuePair<IndexValue, List<int>>> expression = null;
 
                 // play permutation of min, max and exclusiveness
                 if (min != null && max != null)
@@ -141,51 +129,28 @@ namespace SenseNet.ContentRepository.Search
                     if (min.Type == field.Type && max.Type == field.Type)
                     {
                         if (!range.MinExclusive && !range.MaxExclusive)
-                            expression = fieldValues.Where(
-                                x => x.Key.CompareTo(min) >= 0 && x.Key.CompareTo(max) <= 0);
+                            result = field >= min && field <= max;
                         else if (!range.MinExclusive && range.MaxExclusive)
-                            expression = fieldValues.Where(
-                                x => x.Key.CompareTo(min) >= 0 && x.Key.CompareTo(max) < 0);
+                            result = field >= min && field < max;
                         else if (range.MinExclusive && !range.MaxExclusive)
-                            expression = fieldValues.Where(
-                                x => x.Key.CompareTo(min) > 0 && x.Key.CompareTo(max) <= 0);
+                            result = field > min && field <= max;
                         else
-                            expression = fieldValues.Where(
-                                x => x.Key.CompareTo(min) > 0 && x.Key.CompareTo(max) < 0);
+                            result = field > min && field < max;
                     }
                 }
                 else if (min != null)
                 {
                     if (min.Type == field.Type)
-                    {
-                        expression = !range.MinExclusive
-                            ? fieldValues.Where(x => x.Key.CompareTo(min) >= 0)
-                            : fieldValues.Where(x => x.Key.CompareTo(min) > 0);
-                    }
+                        result = range.MinExclusive ? field > min : field >= min;
                 }
                 else
                 {
                     if (max.Type == field.Type)
-                    {
-                        expression = !range.MaxExclusive
-                            ? fieldValues.Where(x => x.Key.CompareTo(max) <= 0)
-                            : fieldValues.Where(x => x.Key.CompareTo(max) < 0);
-                    }
-                }
-
-                if (expression != null)
-                {
-                    var lists = expression.Select(x => x.Value).ToArray();
-
-                    // aggregate
-                    var aggregation = new int[0].AsEnumerable();
-                    foreach (var item in lists)
-                        aggregation = aggregation.Union(item);
-                    result = aggregation.Distinct().ToList();
+                        result = range.MaxExclusive ? field < max : field <= max;
                 }
             }
 
-            _hitStack.Push(result);
+            _hitStack.Push((result, range));
 
             return range;
         }
@@ -196,43 +161,46 @@ namespace SenseNet.ContentRepository.Search
             var visitedClauses = base.VisitLogicalClauses(clauses);
 
             // pop every subset belonging to clauses and categorize them
-            var shouldSubset = new List<int>();
-            var mustSubset = new List<int>();
-            var notSubset = new List<int>();
+            var shouldSubset = false;
+            var mustSubset = false;
+            var notSubset = false;
+
             var firstMust = true;
             var firstMustNot = true;
 
+            var result = true;
             for (int i = visitedClauses.Count - 1; i >= 0; i--)
             {
                 var clause = visitedClauses[i];
 
-                var currentSubset = _hitStack.Pop();
+                var current = _hitStack.Pop();
+
                 var occur = clause.Occur == Occurence.Default ? Occurence.Should : clause.Occur;
                 switch (occur)
                 {
                     case Occurence.Should:
-                        shouldSubset = shouldSubset.Union(currentSubset).Distinct().ToList();
+                        shouldSubset |= current.Value;
                         break;
                     case Occurence.Must:
                         if (firstMust)
                         {
-                            mustSubset = currentSubset;
+                            mustSubset = current.Value;
                             firstMust = false;
                         }
                         else
                         {
-                            mustSubset = mustSubset.Intersect(currentSubset).ToList();
+                            mustSubset &= current.Value;
                         }
                         break;
                     case Occurence.MustNot:
                         if (firstMustNot)
                         {
-                            notSubset = currentSubset;
+                            notSubset = !current.Value;
                             firstMustNot = false;
                         }
                         else
                         {
-                            notSubset = notSubset.Union(currentSubset).Distinct().ToList();
+                            notSubset &= !current.Value;
                         }
                         break;
                     default:
@@ -241,10 +209,12 @@ namespace SenseNet.ContentRepository.Search
             }
 
             // combine the subsets (if there is any "must", the "should" is irrelevant)
-            var result = (mustSubset.Count > 0 ? mustSubset : shouldSubset).Except(notSubset).ToList();
+            if (firstMust) mustSubset = true;
+            if (firstMustNot) notSubset = true;
+            result = (mustSubset & notSubset) | shouldSubset;
 
             // push result to the hit stack
-            _hitStack.Push(result);
+            _hitStack.Push((result, null));
 
             // return the original parameter
             return clauses;

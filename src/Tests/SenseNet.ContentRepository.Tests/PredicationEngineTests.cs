@@ -80,11 +80,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(prE.IsTrue("-Index:42"));
                 Assert.IsFalse(prE.IsTrue("+Index:41"));
                 Assert.IsFalse(prE.IsTrue("+Index:43"));
-                //Assert.IsTrue(prE.IsTrue("-Index:43"));
+                Assert.IsTrue(prE.IsTrue("-Index:43")); // different from ContentQuery
                 Assert.IsTrue(prE.IsTrue("+DateTime1:'1234-05-06'"));
                 Assert.IsFalse(prE.IsTrue("-DateTime1:'1234-05-06'"));
                 Assert.IsFalse(prE.IsTrue("+DateTime1:'1234-05-05'"));
-                //Assert.IsTrue(prE.IsTrue("-DateTime1:'1234-05-05'"));
+                Assert.IsTrue(prE.IsTrue("-DateTime1:'1234-05-05'")); // different from ContentQuery
                 Assert.IsFalse(prE.IsTrue("+DateTime1:'1234-05-07'"));
                 Assert.IsTrue(prE.IsTrue("+Currency1:42.42"));
                 Assert.IsFalse(prE.IsTrue("-Currency1:42.42"));
@@ -146,21 +146,23 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(prE.IsTrue("+Index:{44 TO 50}"));
 
                 // complex (logical) predicates
+                Assert.IsTrue(prE.IsTrue("-Index:41 -Index:43"));
+                Assert.IsTrue(prE.IsTrue("-Index:41 +Index:42 -Index:43"));
                 Assert.IsTrue(prE.IsTrue("Index:41 Index:42 Index:43"));
-                //Assert.IsFalse(prE.IsTrue("-(Index:41 Index:42 Index:43)")); // useless
-                Assert.IsFalse(prE.IsTrue("-(+Index:41 +Index:42 +Index:43)"));
+                Assert.IsFalse(prE.IsTrue("-(Index:41 Index:42 Index:43)")); // different from ContentQuery
+                Assert.IsTrue(prE.IsTrue("-(+Index:41 +Index:42 +Index:43)"));
                 Assert.IsTrue(prE.IsTrue("Index:(41 42 43)"));
-                //Assert.IsFalse(prE.IsTrue("-Index:(41 42 43)")); // useless
+                Assert.IsFalse(prE.IsTrue("-Index:(41 42 43)")); // different from ContentQuery
                 Assert.IsTrue(prE.IsTrue("+DateTime1:'1234-05-06' +(Index:41 Index:42)"));
-                Assert.IsFalse(prE.IsTrue("+DateTime1:'1234-05-06' +(Index:41 Index:43)"));
+                Assert.IsFalse(prE.IsTrue("+DateTime1:'999-05-06' +(Index:41 Index:43)"));
 
                 Assert.IsTrue(prE.IsTrue("DateTime1:'1234-05-06' AND (Index:41 OR Index:42)"));
                 Assert.IsTrue(prE.IsTrue("Index:41 OR Index:42 OR Index:43"));
 
-                //Assert.IsTrue(prE.IsTrue("NOT Index:43"));
+                Assert.IsTrue(prE.IsTrue("NOT Index:43")); // different from ContentQuery
                 Assert.IsFalse(prE.IsTrue("NOT Index:42"));
                 Assert.IsFalse(prE.IsTrue("(Index:41 AND Index:42 AND Index:43)"));
-                //Assert.IsTrue(prE.IsTrue("NOT (Index:41 AND Index:42 AND Index:43)"));
+                Assert.IsTrue(prE.IsTrue("NOT (Index:41 AND Index:42 AND Index:43)")); // different from ContentQuery
             });
         }
 
