@@ -911,7 +911,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
         }
-        public static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, string serializedIndexDocument)
+        private static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, string serializedIndexDocument)
         {
             return new IndexDocumentData(indexDocument, serializedIndexDocument)
             {

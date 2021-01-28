@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-
 // ReSharper disable StringLiteralTypo
 
 namespace SenseNet.Search
@@ -35,7 +33,7 @@ namespace SenseNet.Search
     /// </summary>
     [Serializable]
     [DebuggerDisplay("{ValueAsString}:{Type}")]
-    public class IndexValue : IComparable<IndexValue>
+    public class IndexValue
     {
         /// <summary>
         /// Generalized value of the "true" used in indexing and querying.
@@ -173,39 +171,6 @@ namespace SenseNet.Search
             }
 
             return $"{value}:{type}";
-        }
-
-        public int CompareTo(IndexValue other)
-        {
-            if (ReferenceEquals(this, other))
-                return 0;
-            if (ReferenceEquals(null, other))
-                return 1;
-            var typeComparison = Type.CompareTo(other.Type);
-            if (typeComparison != 0)
-                return typeComparison;
-
-            switch (Type)
-            {
-                case IndexValueType.String:
-                    return string.Compare(StringValue, other.StringValue, StringComparison.Ordinal);
-                case IndexValueType.StringArray:
-                    return string.Compare(ValueAsString, other.ValueAsString, StringComparison.Ordinal);
-                case IndexValueType.Bool:
-                    return BooleanValue.CompareTo(other.BooleanValue);
-                case IndexValueType.Int:
-                    return IntegerValue.CompareTo(other.IntegerValue);
-                case IndexValueType.Long:
-                    return LongValue.CompareTo(other.LongValue);
-                case IndexValueType.Float:
-                    return SingleValue.CompareTo(other.SingleValue);
-                case IndexValueType.Double:
-                    return DoubleValue.CompareTo(other.DoubleValue);
-                case IndexValueType.DateTime:
-                    return DateTimeValue.CompareTo(other.DateTimeValue);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
     }
 }
