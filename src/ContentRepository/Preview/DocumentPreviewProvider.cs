@@ -1492,7 +1492,6 @@ namespace SenseNet.Preview
 
         /* ========================================================================================== OData interface */
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1506,7 +1505,6 @@ namespace SenseNet.Preview
             return Current != null ? Current.GetPreviewImages(content) : null;
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1535,7 +1533,6 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1557,7 +1554,6 @@ namespace SenseNet.Preview
             }
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1592,7 +1588,6 @@ namespace SenseNet.Preview
             return pageCount;
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1616,7 +1611,6 @@ namespace SenseNet.Preview
             };
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1632,7 +1626,6 @@ namespace SenseNet.Preview
             SetPreviewStatus(content.ContentHandler as File, status);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1648,7 +1641,6 @@ namespace SenseNet.Preview
             SavePageCount(content.ContentHandler as File, pageCount);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1681,7 +1673,6 @@ namespace SenseNet.Preview
             previewImage.Save(SavingMode.KeepVersion);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1705,7 +1696,6 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = 0 };
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
@@ -1766,7 +1756,6 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = existingCount };
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>

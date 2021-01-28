@@ -240,19 +240,19 @@ namespace SenseNet.ContentRepository.Storage.Events
 
         protected virtual void OnReset(object sender, EventArgs e) { }
         protected virtual void OnStart(object sender, EventArgs e) { }
-        protected virtual void OnNodeCreating(object sender, CancellableNodeEventArgs e) { }
-        protected virtual void OnNodeCreated(object sender, NodeEventArgs e) { }
-        protected virtual void OnNodeModifying(object sender, CancellableNodeEventArgs e) { }
-        protected virtual void OnNodeModified(object sender, NodeEventArgs e) { }
-        protected virtual void OnNodeDeleting(object sender, CancellableNodeEventArgs e) { }
-        protected virtual void OnNodeDeleted(object sender, NodeEventArgs e) { }
-        protected virtual void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e) { }
-        protected virtual void OnNodeDeletedPhysically(object sender, NodeEventArgs e) { }
-        protected virtual void OnNodeMoving(object sender, CancellableNodeOperationEventArgs e) { }
-        protected virtual void OnNodeMoved(object sender, NodeOperationEventArgs e) { }
-        protected virtual void OnNodeCopying(object sender, CancellableNodeOperationEventArgs e) { }
-        protected virtual void OnNodeCopied(object sender, NodeOperationEventArgs e) { }
-        protected virtual void OnPermissionChanging(object sender, CancellablePermissionChangingEventArgs e) { }
-        protected virtual void OnPermissionChanged(object sender, PermissionChangedEventArgs e) { }
+        protected internal virtual void OnNodeCreating(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeCreated(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeModifying(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeModified(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeDeleting(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeDeleted(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeDeletedPhysically(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeMoving(object sender, CancellableNodeOperationEventArgs e) { }
+        protected internal virtual void OnNodeMoved(object sender, NodeOperationEventArgs e) { }
+        protected internal virtual void OnNodeCopying(object sender, CancellableNodeOperationEventArgs e) { }
+        protected internal virtual void OnNodeCopied(object sender, NodeOperationEventArgs e) { }
+        protected internal virtual void OnPermissionChanging(object sender, CancellablePermissionChangingEventArgs e) { }
+        protected internal virtual void OnPermissionChanged(object sender, PermissionChangedEventArgs e) { }
     }
 }

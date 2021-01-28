@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="SenseNet.ContentRepository.Storage.Events.CancellableNodeEventArgs">
+    <Position X="5" Y="5.5" Width="3.25" />
+    <Members>
+      <Field Name="_cancelMessage" Hidden="true" />
+      <Field Name="_customData" Hidden="true" />
+      <Field Name="_eventType" Hidden="true" />
+      <Field Name="_sourceNode" Hidden="true" />
+      <Field Name="_time" Hidden="true" />
+      <Field Name="_user" Hidden="true" />
+      <Method Name="CancellableNodeEventArgs" Hidden="true" />
+      <Field Name="CustomDataKey" Hidden="true" />
+      <Method Name="GetCustomData" Hidden="true" />
+      <Method Name="SetCustomData" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>BAABAAAIgIAoAAgAAAIAAAAEACAAAIAAAACAAgAgAQA=</HashCode>
+      <FileName>Events\CancellableNodeEventArgs.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Events.CancellableNodeOperationEventArgs">
+    <Position X="3" Y="8.75" Width="2.75" />
+    <Members>
+      <Field Name="_targetNode" Hidden="true" />
+      <Method Name="CancellableNodeOperationEventArgs" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Events\CancellableNodeOperationEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Events.CancellablePermissionChangingEventArgs">
+    <Position X="6.5" Y="8.75" Width="3" />
+    <Members>
+      <Method Name="CancellablePermissionChangingEventArgs" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>Events\CancellablePermissionChangingEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Events.NodeEventArgs">
+    <Position X="4.5" Y="0.5" Width="3.25" />
+    <Members>
+      <Field Name="_customData" Hidden="true" />
+      <Method Name="GetCustomData" Hidden="true" />
+      <Method Name="NodeEventArgs" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAABAAAAggAIAAgAAAAAAAAEACAAAAAAAAAAAAAgAQA=</HashCode>
+      <FileName>Events\NodeEventArgs.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Events.NodeOperationEventArgs">
+    <Position X="2.75" Y="3.75" Width="2" />
+    <Members>
+      <Field Name="_targetNode" Hidden="true" />
+      <Method Name="NodeOperationEventArgs" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Events\NodeOperationEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Events.PermissionChangedEventArgs">
+    <Position X="5.5" Y="3.75" Width="2.5" />
+    <Members>
+      <Method Name="PermissionChangedEventArgs" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>Events\PermissionChangedEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="SenseNet.ContentRepository.Storage.Events.INodeEventArgs" Collapsed="true">
+    <Position X="10.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAQA=</HashCode>
+      <FileName>Events\INodeEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

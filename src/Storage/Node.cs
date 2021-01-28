@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -4395,6 +4396,8 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Events
 
+        private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
+
         private List<Type> _disabledObservers;
         /// <summary>
         /// Gets the collection of the disabled <see cref="NodeObserver"/> types.
@@ -4490,12 +4493,22 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeCreating(Creating, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeCreatingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
+
         }
         private void FireOnCreated(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Created, customData);
             OnCreated(this, e);
             NodeObserver.FireOnNodeCreated(Created, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeCreatedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnModifying(CancellableNodeEventArgs e)
         {
@@ -4503,12 +4516,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeModifying(Modifying, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeModifyingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if(canceled)
+                e.Cancel = true;
         }
         private void FireOnModified(string originalSourcePath, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Modified, customData, originalSourcePath, changedData);
             OnModified(this, e);
             NodeObserver.FireOnNodeModified(Modified, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeModifiedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeleting(CancellableNodeEventArgs e)
         {
@@ -4516,12 +4538,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeDeleting(Deleting, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeDeletingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnDeleted(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Deleted, customData);
             OnDeleted(this, e);
             NodeObserver.FireOnNodeDeleted(Deleted, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeDeletedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeletingPhysically(CancellableNodeEventArgs e)
         {
@@ -4529,12 +4560,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeDeletingPhysically(DeletingPhysically, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeForcedDeletingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnDeletedPhysically(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.DeletedPhysically, customData);
             OnDeletedPhysically(this, e);
             NodeObserver.FireOnNodeDeletedPhysically(DeletedPhysically, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeForcedDeletedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnMoving(CancellableNodeOperationEventArgs e)
         {
@@ -4542,12 +4582,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeMoving(Moving, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeMovingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnMoved(Node targetNode, IDictionary<string, object> customData, string originalSourcePath)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Moved, customData, originalSourcePath);
             OnMoved(this, e);
             NodeObserver.FireOnNodeMoved(Moved, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeMovedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnCopying(CancellableNodeOperationEventArgs e)
         {
@@ -4555,12 +4604,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeCopying(Copying, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeCopyingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnCopied(Node targetNode, IDictionary<string, object> customData)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Copied, customData);
             OnCopied(this, e);
             NodeObserver.FireOnNodeCopied(Copied, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeCopiedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnLoaded()
         {

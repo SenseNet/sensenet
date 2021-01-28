@@ -10,7 +10,6 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 {
     public static class IdentityServerOperations
     {
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>

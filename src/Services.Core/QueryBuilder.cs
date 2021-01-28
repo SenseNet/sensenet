@@ -108,7 +108,6 @@ namespace SenseNet.Services.Core
             return sb.ToString();
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
@@ -146,7 +145,6 @@ namespace SenseNet.Services.Core
                  c.InTree(RepositoryPath.Combine(wsPath, QueryContainerName))) && c.TypeIs(QueryTypeName));
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>

@@ -1248,7 +1248,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>AdSync</snCategory>
         /// <param name="content"></param>
