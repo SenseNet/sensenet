@@ -1,13 +1,13 @@
-﻿using SenseNet.ContentRepository.Storage;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using SenseNet.Events;
 
 namespace SenseNet.WebHooks.Tests
 {
     internal class TestWebHookFilter : IWebHookFilter
     {
-        public Task<bool> IsRelevantAsync(Node node, string eventName)
+        public Task<bool> IsRelevantAsync(ISnEvent snEvent)
         {
-            return Task.FromResult(node.InTree("/Root/Content"));
+            return Task.FromResult(snEvent.NodeEventArgs.SourceNode.InTree("/Root/Content"));
         }
     }
 }

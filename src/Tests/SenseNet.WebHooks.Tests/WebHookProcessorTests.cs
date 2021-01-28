@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
 
@@ -27,17 +28,21 @@ namespace SenseNet.WebHooks.Tests
                 var node1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
                 var node2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
 
-                await ep.ExecuteAsync(node1, "modify");
-                await ep.ExecuteAsync(node2, "modify");
+                var event1 = new TestEvent1(new TestNodeEventArgs(node1));
+                var event2 = new TestEvent1(new TestNodeEventArgs(node2));
                 
+                await ep.ProcessEventAsync(event1);
+                await ep.ProcessEventAsync(event2);
+
                 Assert.AreEqual(1, whc.Requests.Count);
 
-                object postData = whc.Requests[0].PostData;
+                var postData = whc.Requests[0].PostData;
                 var postJson = JsonSerializer.Serialize(postData);
                 var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
 
                 Assert.AreEqual(node1.Id, ((JsonElement)postObject["nodeId"]).GetInt32());
                 Assert.AreEqual(node1.Path, ((JsonElement)postObject["path"]).GetString());
+                Assert.AreEqual("TestEvent1", ((JsonElement)postObject["eventName"]).GetString());
             });
         }
 

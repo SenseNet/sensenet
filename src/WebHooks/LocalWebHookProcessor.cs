@@ -1,14 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
-    public interface IEventProcessor
-    {
-        Task ExecuteAsync(Node node, string eventName);
-    }
-
     public class LocalWebHookProcessor : IEventProcessor
     {
         private readonly ILogger<LocalWebHookProcessor> _logger;
@@ -22,15 +17,17 @@ namespace SenseNet.WebHooks
             _logger = logger;
         }
 
-        public async Task ExecuteAsync(Node node, string eventName)
+        public async Task ProcessEventAsync(ISnEvent snEvent)
         {
-            if (!(await _filter.IsRelevantAsync(node, eventName).ConfigureAwait(false)))
+            if (!(await _filter.IsRelevantAsync(snEvent).ConfigureAwait(false)))
                 return;
 
             //var subscriptions = Content.All.Where(...);
             //foreach (var subscription in subscriptions)
             //{
             //}
+
+            var node = snEvent.NodeEventArgs.SourceNode;
 
             await _webHookClient.SendAsync("https://localhost:44362/odata.svc/('Root')/WebHookTest",
                 postData: new
@@ -39,7 +36,7 @@ namespace SenseNet.WebHooks
                     path = node.Path,
                     name = node.Name,
                     displayName = node.DisplayName,
-                    eventName
+                    eventName = snEvent.GetType().Name
                 }).ConfigureAwait(false);
         }
     }

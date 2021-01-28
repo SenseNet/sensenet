@@ -1,17 +1,16 @@
 ﻿using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
     public interface IWebHookFilter
     {
-        //UNDONE: add the correct Event parameter to IWebHookFilter
-        Task<bool> IsRelevantAsync(Node node, string eventName);
+        Task<bool> IsRelevantAsync(ISnEvent snEvent);
     }
 
     public class NullWebHookFilter : IWebHookFilter
     {
-        public Task<bool> IsRelevantAsync(Node node, string eventName)
+        public Task<bool> IsRelevantAsync(ISnEvent snEvent)
         {
             return Task.FromResult(false);
         }

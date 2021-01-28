@@ -26,7 +26,7 @@ namespace SenseNet.WebHooks.Tests
 
             await whc.SendAsync("https://localhost:44362/odata.svc/('Root')/WebHookTest", 
                 "post",
-                new { p1 = "aaa"},
+                new { p1 = "aaa" },
                 new Dictionary<string, string>
                 {
                     { "sn-h-k1", "v1" },

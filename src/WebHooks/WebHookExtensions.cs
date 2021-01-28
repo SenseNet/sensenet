@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Events;
 using SenseNet.WebHooks;
 
 // ReSharper disable once CheckNamespace
