@@ -12,7 +12,7 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class GetAclFunction
     {
-        /// <summary>Returns the access control list representation of the requested content.</summary>
+        /// <summary>Returns the access control list for the requested content.</summary>
         /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// The returned object contains information about the permission inheritance state of the content, and
@@ -38,7 +38,7 @@ namespace SenseNet.Services.Core.Operations
         ///         "avatar": ""                          //
         ///       },                                      //
         ///       "ancestor": "/Root",                    // Path of the parent entry
-        ///       "inherited": true,                      // If true, this entry has not any explicit permission.
+        ///       "inherited": true,                      // If true, this entry does not have explicit permissions.
         ///       "propagates": true,                     // This entry is inheritable or not (in other terminology: "localOnly")
         ///       "permissions": {                        // Permissions as an associative array
         ///         "See": {                              // "See" permission descriptor. The sub object is null if it is not set
@@ -62,7 +62,7 @@ namespace SenseNet.Services.Core.Operations
         /// </code>
         /// </example>
         /// <param name="content"></param>
-        /// <returns>The access control list representation of the requested content.</returns>
+        /// <returns>The access control list for the requested content.</returns>
         [ODataFunction(Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]

@@ -625,7 +625,7 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <remarks> After the <c>break</c> operation, all previous
-        /// effective permissions will be  copied explicitly that are matched any of the given entry types.
+        /// effective permissions that match any of the given entry types will be copied to the content.
         /// After the <c>unbreak</c> operation, the unnecessary explicit entries will be removed.
         /// The method is ineffective if the content's inheritance state matches the requested operation
         /// (<c>break</c> operation on broken inheritance or <c>unbreak</c> operation on not broken inheritance).</remarks>
@@ -666,9 +666,9 @@ namespace SenseNet.Services.Core.Operations
         /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// <para>
-        /// The given <paramref name="r"/> parameter is a <see cref="SetPermissionsRequest"/> that has
-        /// an array of the complex request objects.
-        /// Every item (<see cref="SetPermissionRequest"/>) contains the followings:
+        /// The given <paramref name="r"/> parameter is a <see cref="SetPermissionsRequest"/> object that has
+        /// an array of permission request objects.
+        /// Every item (<see cref="SetPermissionRequest"/>) contains the following properties:
         /// - identity: id or path of a user or group.
         /// - localOnly: optional bool value (default: false).
         /// - one optional property for all available permission types (See, Open, Save, etc.) that describes the desired
@@ -681,7 +681,7 @@ namespace SenseNet.Services.Core.Operations
         /// - "deny" alias "d" or "2"
         /// </para>
         /// <example>
-        /// The following request body sets some permissions for an user and a group.
+        /// The following request body sets some permissions for a user and a group.
         /// <code>
         /// {
         ///   r: [
