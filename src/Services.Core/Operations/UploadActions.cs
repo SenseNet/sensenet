@@ -8,7 +8,6 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class UploadActions
     {
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
@@ -62,7 +61,6 @@ namespace SenseNet.Services.Core.Operations
             return handler.ExecuteAsync(context.RequestAborted);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>

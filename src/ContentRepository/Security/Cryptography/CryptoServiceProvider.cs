@@ -56,7 +56,6 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
         // ================================================================================= OData API
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
@@ -70,7 +69,6 @@ namespace SenseNet.ContentRepository.Security.Cryptography
             return Encrypt(text);
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
