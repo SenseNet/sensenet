@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Search
         //private readonly Content _content;
         private readonly IndexDocument _indexDoc;
         private readonly IQueryContext _queryContext;
-        private readonly Stack<bool> _hitStack = new();
+        private readonly Stack<bool> _hitStack = new Stack<bool>();
 
         public PredicationEngine(Content content)
         {
