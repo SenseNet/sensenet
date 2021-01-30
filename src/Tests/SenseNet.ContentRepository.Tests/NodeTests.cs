@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 var reloaded = Node.Load<Group>(group.Id);
                 var actual = string.Join(", ", reloaded.Members.Select(x => x.Name));
-                Assert.AreEqual("U1, U4", actual);
+                Assert.AreEqual("U2, U4", actual);
             });
         }
 
