@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Nito.AsyncEx;
 using SenseNet.Events;
 
 namespace SenseNet.WebHooks
@@ -19,25 +22,23 @@ namespace SenseNet.WebHooks
 
         public async Task ProcessEventAsync(ISnEvent snEvent)
         {
-            if (!(await _filter.IsRelevantAsync(snEvent).ConfigureAwait(false)))
-                return;
-
-            //var subscriptions = Content.All.Where(...);
-            //foreach (var subscription in subscriptions)
-            //{
-            //}
-
             var node = snEvent.NodeEventArgs.SourceNode;
+            var subscriptions = await _filter.GetRelevantSubscriptionsAsync(snEvent).ConfigureAwait(false);
 
-            await _webHookClient.SendAsync("https://localhost:44362/odata.svc/('Root')/WebHookTest",
+            //UNDONE: construct subscription-specific request
+            var sendingTasks = subscriptions.Select(sub => _webHookClient.SendAsync(
+                "https://localhost:44362/odata.svc/('Root')/WebHookTest",
                 postData: new
                 {
                     nodeId = node.Id,
                     path = node.Path,
                     name = node.Name,
                     displayName = node.DisplayName,
-                    eventName = snEvent.GetType().Name
-                }).ConfigureAwait(false);
+                    eventName = snEvent.GetType().Name,
+                    subscriptionId = sub.Id
+                }));
+
+            await sendingTasks.WhenAll().ConfigureAwait(false);
         }
     }
 }

@@ -52,6 +52,14 @@ namespace SenseNet.WebHooks
             set => base.SetProperty(EventTypePropertyName, value);
         }
 
+        private const string FilterPropertyName = "WebHookFilter";
+        [RepositoryProperty(FilterPropertyName, RepositoryDataType.Text)]
+        public string Filter
+        {
+            get => base.GetProperty<string>(FilterPropertyName);
+            set => base.SetProperty(FilterPropertyName, value);
+        }
+
         // ===================================================================================== Overrides
 
         /// <inheritdoc />
@@ -62,6 +70,7 @@ namespace SenseNet.WebHooks
                 UrlPropertyName => this.Url,
                 HttpMethodPropertyName => this.HttpMethod,
                 EventTypePropertyName => this.EventType,
+                FilterPropertyName => this.Filter,
                 _ => base.GetProperty(name),
             };
         }
@@ -79,6 +88,9 @@ namespace SenseNet.WebHooks
                     break;
                 case EventTypePropertyName:
                     this.EventType = (string)value;
+                    break;
+                case FilterPropertyName:
+                    this.Filter = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);

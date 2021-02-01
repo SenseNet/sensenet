@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.WebHooks.Tests
 {
@@ -25,8 +26,10 @@ namespace SenseNet.WebHooks.Tests
                 var ep = provider.GetRequiredService<IEventProcessor>();
                 var whc = (TestWebHookClient)provider.GetRequiredService<IWebHookClient>();
 
-                var node1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
-                var node2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
+                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                var parent2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
+                var node1 = new Folder(parent1);
+                var node2 = new Folder(parent2);
 
                 var event1 = new TestEvent1(new TestNodeEventArgs(node1));
                 var event2 = new TestEvent1(new TestNodeEventArgs(node2));

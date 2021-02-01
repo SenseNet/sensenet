@@ -1,18 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
     public interface IWebHookFilter
     {
-        Task<bool> IsRelevantAsync(ISnEvent snEvent);
+        Task<IEnumerable<WebHookSubscription>> GetRelevantSubscriptionsAsync(ISnEvent snEvent);
     }
 
     public class NullWebHookFilter : IWebHookFilter
     {
-        public Task<bool> IsRelevantAsync(ISnEvent snEvent)
+        public Task<IEnumerable<WebHookSubscription>> GetRelevantSubscriptionsAsync(ISnEvent snEvent)
         {
-            return Task.FromResult(false);
+            return Task.FromResult((IEnumerable<WebHookSubscription>)Array.Empty<WebHookSubscription>());
         }
     }
 }
