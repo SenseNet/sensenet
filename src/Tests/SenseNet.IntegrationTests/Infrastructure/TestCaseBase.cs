@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection.Metadata.Ecma335;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
@@ -8,11 +9,21 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public abstract class TestCaseBase
     {
         public IPlatform Platform { get; set; }
+        //UNDONE:<? Call from every base control-method.
+        public Action<RepositoryBuilder> TestInitializer { get; set; } //UNDONE:<?x?
 
         /* ==================================================================== */
 
         private static string _lastPlatformName;
         private static RepositoryInstance _repositoryInstance;
+
+        public void NoRepoIntegrationTest(Action callback)
+        {
+            var platformName = Platform.GetType().Name;
+            var builder = Platform.CreateRepositoryBuilder();
+            TestInitializer?.Invoke(builder);
+            callback();
+        }
 
         public void IntegrationTest(Action callback)
         {
