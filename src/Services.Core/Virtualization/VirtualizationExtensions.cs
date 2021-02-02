@@ -20,25 +20,17 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Add this middleware after authentication/authorization middlewares.
         /// </summary>
         /// <param name="builder">IApplicationBuilder instance.</param>
-        /// <param name="buildAppBranch">Optional builder method. Use this when you want to add
+        /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline before the sensenet binary middleware.</param>
+        ///  <param name="buildAppBranchAfter">Optional builder method. Use this when you want to add
         /// additional middleware in the pipeline after the sensenet binary middleware.</param>
         public static IApplicationBuilder UseSenseNetFiles(this IApplicationBuilder builder,
-            Action<IApplicationBuilder> buildAppBranch = null)
+            Action<IApplicationBuilder> buildAppBranchBefore = null,
+            Action<IApplicationBuilder> buildAppBranchAfter = null)
         {
             // add binary middleware only if the request is recognized to be a binary request
-            builder.MapWhen(IsBinaryRequest, appBranch =>
-            {
-                appBranch.UseMiddleware<BinaryMiddleware>();
-
-                // Register a follow-up middleware defined by the caller or set a terminating, empty middleware.
-                // If we do not do this, the system will try to set the status code which is not possible as
-                // the request has already been started by our middleware above.
-
-                if (buildAppBranch != null)
-                    buildAppBranch.Invoke(appBranch);
-                else
-                    appBranch.Use((context, next) => Task.CompletedTask);
-            });
+            builder.MapMiddlewareWhen<BinaryMiddleware>(IsBinaryRequest, buildAppBranchBefore,
+                buildAppBranchAfter, true);
 
             return builder;
         }
