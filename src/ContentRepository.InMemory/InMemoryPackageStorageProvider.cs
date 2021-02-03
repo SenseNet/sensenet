@@ -119,8 +119,6 @@ namespace SenseNet.ContentRepository.InMemory
             package.Id = newId;
             collection.Insert(packageDoc);
 
-            RepositoryVersionInfo.Reset();
-
             return System.Threading.Tasks.Task.CompletedTask;
         }
 

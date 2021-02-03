@@ -119,9 +119,13 @@ namespace SenseNet.ContentRepository
             };
         }
 
-        public static void Reset()
+        public static void Reset(bool skipDistribution = false)
         {
-            new RepositoryVersionInfoResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            if (skipDistribution)
+                ResetPrivate();
+            else
+                new RepositoryVersionInfoResetDistributedAction()
+                    .ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {

@@ -94,6 +94,7 @@ namespace SenseNet.ContentRepository
                 }
 
                 patchManager.ExecutePatchesOnAfterStart();
+                RepositoryVersionInfo.Reset();
 
                 return System.Threading.Tasks.Task.CompletedTask;
             }).GetAwaiter().GetResult();

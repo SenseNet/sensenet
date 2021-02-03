@@ -3,7 +3,7 @@ using System.IO;
 
 namespace SenseNet.IntegrationTests.Infrastructure
 {
-    public class Logger //UNDONE:<?: Use a better solution for Logger
+    public class Logger //UNDONE:<?IntT: Use a better solution for Logger
     {
         public static void ClearLog()
         {
