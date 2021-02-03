@@ -5,44 +5,16 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
-using SenseNet.Extensions.DependencyInjection;
+using SenseNet.IntegrationTests.Common;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
-using SenseNet.Packaging;
 using SenseNet.Testing;
-using Logger = SenseNet.IntegrationTests.Infrastructure.Logger;
 
 namespace SenseNet.IntegrationTests.MsSqlTests
 {
-    //UNDONE:<?: Move PackagingTestLogger to a common folder e.g. "SenseNet.IntegrationTests/Implementations"
-    public class PackagingTestLogger : IPackagingLogger
-    {
-        public LogLevel AcceptedLevel => LogLevel.File;
-        private readonly StringBuilder _sb;
-
-        public string LogFilePath => "[in memory]";
-
-        public PackagingTestLogger(StringBuilder sb)
-        {
-            _sb = sb;
-        }
-
-        public void Initialize(LogLevel level, string logFilePath) { }
-        public void WriteTitle(string title)
-        {
-            _sb.AppendLine("================================");
-            _sb.AppendLine(title);
-            _sb.AppendLine("================================");
-        }
-        public void WriteMessage(string message)
-        {
-            _sb.AppendLine(message);
-        }
-    }
-
     [TestClass]
-    public class PatchingMsSqlTests : IntegrationTest<MsSqlPlatform, PatchingTestCases>
+    public class MsSqlPatchingTests : IntegrationTest<MsSqlPlatform, PatchingTestCases>
     {
         #region MsSql specific infrastructure
 
@@ -51,22 +23,10 @@ namespace SenseNet.IntegrationTests.MsSqlTests
 
         private void InitializePackagingTest(RepositoryBuilder builder)
         {
-            // preparing logger
             _log = new StringBuilder();
             var loggers = new[] { new PackagingTestLogger(_log) };
             var loggerAcc = new TypeAccessor(typeof(SenseNet.Packaging.Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
-
-            //// set default implementation directly
-            //var sqlDb = new MsSqlDataProvider();
-            //Providers.Instance.DataProvider = sqlDb;
-
-            //// build database
-            //var builder = new RepositoryBuilder();
-            //builder.UsePackagingDataProviderExtension(new MsSqlPackagingDataProvider());
-
-            //// preparing database
-            //ConnectionStrings.ConnectionString = SenseNet.IntegrationTests.Common.ConnectionStrings.ForPackagingTests;
 
             using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
