@@ -9,8 +9,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public abstract class TestCaseBase
     {
         public IPlatform Platform { get; set; }
-        //UNDONE:<? Call from every base control-method.
-        public Action<RepositoryBuilder> TestInitializer { get; set; } //UNDONE:<?x?
+        //UNDONE:<?IntT: Call from every base control-method.
+        public Action<RepositoryBuilder> TestInitializer { get; set; }
 
         /* ==================================================================== */
 
@@ -209,7 +209,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         }
 
 
-        //UNDONE:<?: Consider the instructions in the following block
+        //UNDONE:<?IntT: Consider the instructions in the following block
         //public void IntegrationTest(Action callback)
         //{
         //    Cache.Reset();
