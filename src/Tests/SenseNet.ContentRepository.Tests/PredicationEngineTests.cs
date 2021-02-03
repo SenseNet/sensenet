@@ -134,6 +134,61 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(prE.IsTrue("NOT (Index:41 AND Index:42 AND Index:43)")); // different from ContentQuery
             });
         }
+        [TestMethod]
+        public void PredicationEngine_InTree()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CTD);
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var content = Content.CreateNew("PredicationEngineTestNode", root, "TestNode1");
+                content.Index = 42;
+                content["DateTime1"] = new DateTime(1234, 5, 6);
+                content["Currency1"] = 42.42;
+                content.Save();
+
+                // CASE 1
+                var prE = new PredicationEngine(Content.Load("/Root/TestRoot/TestNode1"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root/TestRoot/TestNode1"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/Content"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root/TestRoot"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root"));
+
+                // CASE 2
+                prE = new PredicationEngine(Content.Load("/Root/TestRoot"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/TestRoot/TestNode1"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/Content"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root/TestRoot"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root"));
+
+                // CASE 3
+                prE = new PredicationEngine(Content.Load("/Root"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/TestRoot/TestNode1"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/Content"));
+                Assert.IsFalse(prE.IsTrue("+InTree:/Root/TestRoot"));
+                Assert.IsTrue(prE.IsTrue("+InTree:/Root"));
+            });
+        }
+        [TestMethod]
+        public void PredicationEngine_TypeIs()
+        {
+            Test(() =>
+            {
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+
+                // CASE 1
+                var prE = new PredicationEngine(Content.Load("/Root/TestRoot"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:SystemFolder"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:Folder"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:GenericContent"));
+
+                // CASE 2
+                prE = new PredicationEngine(Content.Load("/Root/Content"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:Workspace"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:Folder"));
+                Assert.IsTrue(prE.IsTrue("+TypeIs:GenericContent"));
+            });
+        }
 
         [TestMethod]
         public void PredicationEngine_Errors()
