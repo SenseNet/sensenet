@@ -1385,13 +1385,11 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(string propertyName, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(propertyName);
-            AddReferences(propertyName, nodes);
+            SetReferences(GetNodeList(propertyName), nodes);
         }
         internal void SetReferences<T>(int propertyId, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(propertyId);
-            AddReferences(propertyId, nodes);
+            SetReferences(GetNodeList(propertyId), nodes);
         }
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
@@ -1400,8 +1398,28 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(PropertyType property, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(property);
-            AddReferences(property, nodes);
+            var originalList = GetNodeList(property);
+            SetReferences(GetNodeList(property), nodes);
+        }
+        private void SetReferences<T>(NodeList<Node> nodeList, IEnumerable<T> nodes) where T : Node
+        {
+            // remove visible elements
+            var user = AccessProvider.Current.GetCurrentUser();
+            if (user.Id == Identifiers.SystemUserId)
+            {
+                // acceleration: all items are visible to the SystemUser
+                nodeList.Clear();
+            }
+            else
+            {
+                var visibleItems = nodeList.GetIdentifiers()
+                    .Where(nodeId => SecurityHandler.HasPermission(user, nodeId, PermissionType.See));
+                foreach (var id in visibleItems)
+                    nodeList.Remove(id);
+            }
+
+            // add new instances
+            AddReferences(nodeList, nodes, false);
         }
 
         /// <summary>

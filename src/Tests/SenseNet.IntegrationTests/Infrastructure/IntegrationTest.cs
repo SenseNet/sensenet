@@ -22,29 +22,28 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private DateTime _startTime;
 
         [TestInitialize]
-        public void InitializeTest()
+        public void _initializeTest()
         {
             _startTime = DateTime.Now;
             Logger.Log($"    {TestContext.TestName} START");
         }
         [TestCleanup]
-        public void CleanupTest()
+        public void _cleanupTest()
         {
             var duration = DateTime.Now - _startTime;
             Logger.Log($"    {TestContext.TestName} {TestContext.CurrentTestOutcome} {duration:g}");
         }
 
         [ClassInitialize]
-        public void InitializeClass(TestContext testContext)
+        public void _initializeClass(TestContext testContext)
         {
             Logger.Log($"InitializeClass {this.GetType().Name}");
         }
         [ClassCleanup]
-        public void CleanupClass()
+        public void _cleanupClass()
         {
             Logger.Log($"CleanupClass {this.GetType().Name}");
                 TestCaseBase.CleanupClass();
         }
-
     }
 }

@@ -21,6 +21,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
+using SenseNet.Storage;
 using Timer = System.Timers.Timer;
 
 namespace SenseNet.Packaging.Steps
@@ -673,7 +674,7 @@ namespace SenseNet.Packaging.Steps
                     Log(ImportLogLevel.Info, "Importing content types: " + ctdPath);
 
                     ContentTypeInstaller importer = ContentTypeInstaller.CreateBatchContentTypeInstaller();
-                    var ctdFiles = IO.Directory.GetFiles(ctdPath, "*.xml");
+                    var ctdFiles = FileSystemWrapper.Directory.GetFilesByExtension(ctdPath, ".xml");
                     foreach (var ctdFilePath in ctdFiles)
                     {
                         using (var stream = new IO.FileStream(ctdFilePath, IO.FileMode.Open, IO.FileAccess.Read))
@@ -714,7 +715,7 @@ namespace SenseNet.Packaging.Steps
                         Log(ImportLogLevel.Info, "  Ok");
                     }
 
-                    var aspectFiles = System.IO.Directory.GetFiles(aspectsPath, "*.content");
+                    var aspectFiles = FileSystemWrapper.Directory.GetFilesByExtension(aspectsPath, ".content");
                     Log(ImportLogLevel.Info, "Importing aspects:");
 
                     ImportContents(aspectsPath, Repository.AspectsFolderPath, true, false);
@@ -828,7 +829,7 @@ namespace SenseNet.Packaging.Steps
                 else
                 {
                     paths = new List<string>(IO.Directory.GetFileSystemEntries(path));
-                    contentPaths = new List<string>(IO.Directory.GetFiles(path, "*.content"));
+                    contentPaths = new List<string>(FileSystemWrapper.Directory.GetFilesByExtension(path, ".content"));
                 }
 
                 foreach (string contentPath in contentPaths)

@@ -21,7 +21,7 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlPlatform : Platform
     {
-        //UNDONE:<?: remove local connectionstring
+        //UNDONE:<?IntT: remove local connectionstring
         public string ConnectionString { get; } =
             "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=.\\SQL2016";
 
@@ -70,10 +70,10 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISearchEngine GetSearchEngine()
         {
-            //TODO:<? Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
+            //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
-            //UNDONE:<?:IntT: Force delete "write.lock" when getting the platform the first time.
+            //UNDONE:<?IntT: Force delete "write.lock" when getting the platform the first time.
             return new Lucene29SearchEngine()
             {
                 IndexingEngine = indexingEngine,

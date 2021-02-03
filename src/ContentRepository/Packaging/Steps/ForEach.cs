@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using SenseNet.ContentRepository;
+using SenseNet.Storage;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -70,7 +71,9 @@ namespace SenseNet.Packaging.Steps
                     dir = context.TargetPath;
                     pattern = path;
                 }
-                var files = Directory.GetFiles(dir, pattern);
+                var files = pattern.StartsWith("*.") && !pattern.Substring(1).Contains(".")
+                    ? FileSystemWrapper.Directory.GetFilesByExtension(path, pattern.Substring(1))
+                    : Directory.GetFiles(dir, pattern);
                 pathList.AddRange(isRooted ? files : files.Select(f => f.Substring(context.TargetPath.Length + 1)));
             }
             else
