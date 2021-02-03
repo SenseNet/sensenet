@@ -1396,9 +1396,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 void Exec(PatchExecutionContext ctx) { /* do nothing but register the fact of execution */ }
 
                 AssertVersionInfo("C1", null, new string[0]);
+                var installed = new List<SnComponentDescriptor>();
 
                 // ACTION-1
-                var installed = new List<SnComponentDescriptor>();
                 var candidates = new List<ISnPatch>
                 {
                     Inst("C1", "v1.0", Exec, Exec),
@@ -1412,7 +1412,6 @@ namespace SenseNet.IntegrationTests.TestCases
 
 
                 // ACTION-2
-                installed = new List<SnComponentDescriptor>();
                 candidates = new List<ISnPatch>
                 {
                     Inst("C1", "v2.0", Exec, Exec),
@@ -1444,7 +1443,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 Assert.AreEqual(PackageType.Install, packages[0].PackageType);
                 for (int i = 1; i < packages.Length; i++)
-                    Assert.AreEqual(PackageType.Patch, packages[0].PackageType);
+                    Assert.AreEqual(PackageType.Patch, packages[i].PackageType);
             }
 
             var component = versionInfo.Components.SingleOrDefault(x => x.ComponentId == componentId);
