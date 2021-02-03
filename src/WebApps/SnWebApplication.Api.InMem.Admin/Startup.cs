@@ -7,7 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.WebHooks;
+using Task = System.Threading.Tasks.Task;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -37,6 +41,7 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
                 })
+                .AddSenseNetWebHooks()
                 .AddFeature1();
         }
 

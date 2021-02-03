@@ -8,6 +8,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using Exception = System.Exception;
 using Task = System.Threading.Tasks.Task;
@@ -41,6 +42,7 @@ namespace SenseNet.Services.Core
 
             var configuration = Services.GetService<IConfiguration>();
             var components = Services.GetServices<ISnComponent>().ToArray();
+            var eventProcessors = Services.GetServices<IEventProcessor>().ToArray();
 
             var repositoryBuilder = new RepositoryBuilder(Services)
                 .UseConfiguration(configuration)
@@ -51,6 +53,8 @@ namespace SenseNet.Services.Core
                 .UseDataProvider(new MsSqlDataProvider())
                 .UsePackagingDataProviderExtension(new MsSqlPackagingDataProvider())
                 .StartWorkflowEngine(false)
+                .UseEventDistributor(new EventDistributor())
+                .AddAsyncEventProcessors(eventProcessors)
                 .UseTraceCategories("Event", "Custom", "System", "Security") as RepositoryBuilder;
 
             // hook for developers to modify the repository builder before start

@@ -32,7 +32,7 @@ namespace SenseNet.Events
     public class EventDistributor : IEventDistributor
     {
         //UNDONE:<?event Remove the master switch
-        private bool __isFeatureEnabled = false;
+        private bool __isFeatureEnabled = true;
         internal bool IsFeatureEnabled(int id)
         {
             if (!__isFeatureEnabled)

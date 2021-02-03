@@ -27,7 +27,7 @@ namespace SenseNet.WebHooks
 
             //UNDONE: construct subscription-specific request
             var sendingTasks = subscriptions.Select(sub => _webHookClient.SendAsync(
-                "https://localhost:44362/odata.svc/('Root')/WebHookTest",
+                sub.Url,
                 postData: new
                 {
                     nodeId = node.Id,
