@@ -224,7 +224,9 @@ namespace SenseNet.Packaging
         }
         internal static void SavePackage(Manifest manifest, ExecutionResult executionResult, Exception execError, bool insertOnly = false)
         {
+            // Ensure consistency of local version-info before determining the installed packages.
             RepositoryVersionInfo.Reset(true);
+
             var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
             if (manifest.PackageType == PackageType.Tool)
                 oldPacks = oldPacks
@@ -247,6 +249,7 @@ namespace SenseNet.Packaging
                 Storage.UpdatePackageAsync(oldPack, CancellationToken.None).GetAwaiter().GetResult();
             }
 
+            // Ensure consistency of local version-info after persisting every executed package.
             RepositoryVersionInfo.Reset(true);
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
