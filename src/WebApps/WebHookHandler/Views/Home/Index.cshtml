@@ -1,0 +1,56 @@
+﻿@using WebHookHandler.Controllers
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">WebHook handler service</h1>
+    <p>List of arrived webhook requests.</p>
+    <p>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Content id
+                    </th>
+                    <th>
+                        Path
+                    </th>
+                    <th>
+                        Event name
+                    </th>
+                    <th>
+                        Subscription id
+                    </th>
+                    <th>
+                        Arrived at
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var webhook in WebHooksController.WebHooks.OrderByDescending(wh => wh.requestDate))
+            {
+                <tr>
+                    <td>
+                        @webhook.nodeId
+                    </td>
+                    <td>
+                        @webhook.path
+                    </td>
+                    <td>
+                        @webhook.eventName
+                    </td>
+                    <td>
+                        @webhook.subscriptionId
+                    </td>
+                    <td>
+                        @webhook.requestDate
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </p>
+</div>

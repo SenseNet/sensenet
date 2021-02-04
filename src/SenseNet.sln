@@ -104,7 +104,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.WebHooks.Common", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.WebHooks.Tests", "Tests\SenseNet.WebHooks.Tests\SenseNet.WebHooks.Tests.csproj", "{C1E6CCA7-2AEE-4CF7-9FFB-3F7E5EB3CDC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.WebHooks", "WebHooks\SenseNet.WebHooks.csproj", "{6F17E01E-8BEB-411B-84FD-316D7A29F128}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.WebHooks", "WebHooks\SenseNet.WebHooks.csproj", "{6F17E01E-8BEB-411B-84FD-316D7A29F128}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHookHandler", "WebApps\WebHookHandler\WebHookHandler.csproj", "{ABDCC209-B20B-4027-A374-1476F5FF5F48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -790,6 +792,22 @@ Global
 		{6F17E01E-8BEB-411B-84FD-316D7A29F128}.Release|x64.Build.0 = Release|Any CPU
 		{6F17E01E-8BEB-411B-84FD-316D7A29F128}.Release|x86.ActiveCfg = Release|Any CPU
 		{6F17E01E-8BEB-411B-84FD-316D7A29F128}.Release|x86.Build.0 = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|x64.Build.0 = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Debug|x86.Build.0 = Debug|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|x64.ActiveCfg = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|x64.Build.0 = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|x86.ActiveCfg = Release|Any CPU
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -838,6 +856,7 @@ Global
 		{319E4006-B1FD-4EF8-AF7A-F750AAEEF39C} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 		{C1E6CCA7-2AEE-4CF7-9FFB-3F7E5EB3CDC2} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{6F17E01E-8BEB-411B-84FD-316D7A29F128} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
+		{ABDCC209-B20B-4027-A374-1476F5FF5F48} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
