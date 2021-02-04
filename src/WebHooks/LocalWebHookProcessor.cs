@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
@@ -25,10 +24,11 @@ namespace SenseNet.WebHooks
             var node = snEvent.NodeEventArgs.SourceNode;
             var subscriptions = await _filter.GetRelevantSubscriptionsAsync(snEvent).ConfigureAwait(false);
 
-            //UNDONE: construct subscription-specific request
+            //UNDONE: finalize webhook request payload
             var sendingTasks = subscriptions.Select(sub => _webHookClient.SendAsync(
                 sub.Url,
-                postData: new
+                sub.HttpMethod,
+                new
                 {
                     nodeId = node.Id,
                     path = node.Path,
@@ -36,7 +36,8 @@ namespace SenseNet.WebHooks
                     displayName = node.DisplayName,
                     eventName = snEvent.GetType().Name,
                     subscriptionId = sub.Id
-                }));
+                },
+                sub.GetHeaders()));
 
             await sendingTasks.WhenAll().ConfigureAwait(false);
         }

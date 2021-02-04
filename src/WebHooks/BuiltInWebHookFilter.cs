@@ -21,8 +21,12 @@ namespace SenseNet.WebHooks
                 .Select(c => c.ContentHandler as WebHookSubscription)
                 .ToList();
 
-            //UNDONE: use the Content available on GenericContent instances
-            var pe = new PredicationEngine(Content.Create(snEvent.NodeEventArgs.SourceNode));
+            // use the already constructed Content instance if possible
+            var content = snEvent.NodeEventArgs.SourceNode is GenericContent gc
+                ? gc.Content
+                : Content.Create(snEvent.NodeEventArgs.SourceNode);
+
+            var pe = new PredicationEngine(content);
             var filteredSubs = allSubs.Where(sub => pe.IsTrue(sub.Filter)).ToList();
 
             return Task.FromResult((IEnumerable<WebHookSubscription>)filteredSubs);

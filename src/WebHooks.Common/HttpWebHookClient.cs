@@ -22,11 +22,14 @@ namespace SenseNet.WebHooks
             _logger = logger;
         }
 
-        public async Task SendAsync(string url, string httpMethod = "POST", object postData = null, 
+        public async Task SendAsync(string url, string httpMethod = null, object postData = null, 
             IDictionary<string, string> headers = null, CancellationToken cancel = default)
         {
             if (string.IsNullOrEmpty(url))
                 throw new ArgumentNullException(nameof(url));
+
+            if (string.IsNullOrEmpty(httpMethod))
+                httpMethod = "POST";
 
             var client = _clientFactory.CreateClient();
 
@@ -46,11 +49,10 @@ namespace SenseNet.WebHooks
                         response = await client.PutAsync(url, GetStringContent(postData, headers), cancel)
                             .ConfigureAwait(false);
                         break;
-                    case "DELETE":
-                        response = await client.DeleteAsync(url, cancel).ConfigureAwait(false);
-                        break;
+                    //case "DELETE":
+                    // We cannot use the built-in Delete method because it does not allow sending a body.
                     default:
-                        response = await client.SendAsync(GetMessage(url, httpMethod, headers), cancel)
+                        response = await client.SendAsync(GetMessage(url, httpMethod, postData, headers), cancel)
                             .ConfigureAwait(false);
                         break;
                 }
@@ -83,17 +85,12 @@ namespace SenseNet.WebHooks
             return content;
         }
 
-        private static HttpRequestMessage GetMessage(string url, string httpMethod, IDictionary<string, string> headers)
+        private static HttpRequestMessage GetMessage(string url, string httpMethod, object postData, IDictionary<string, string> headers)
         {
-            var message = new HttpRequestMessage(new HttpMethod(httpMethod), url);
-
-            if (headers?.Any() ?? false)
+            var message = new HttpRequestMessage(new HttpMethod(httpMethod), url)
             {
-                foreach (var header in headers)
-                {
-                    message.Headers.Add(header.Key, header.Value);
-                }
-            }
+                Content = GetStringContent(postData, headers)
+            };
 
             return message;
         }

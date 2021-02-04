@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace WebHookHandler.Controllers
 {
@@ -22,8 +20,48 @@ namespace WebHookHandler.Controllers
         private static object _sync = new object();
         public static List<WebHookModel> WebHooks { get; } = new List<WebHookModel>();
 
+        [HttpGet()]
+        [ActionName("test")]
+        public IActionResult TestGet([FromQuery] WebHookModel model)
+        {
+            SaveModel(model);
+
+            return new OkResult();
+        }
         [HttpPost]
-        public IActionResult Test([FromBody]WebHookModel model)
+        [ActionName("test")]
+        public IActionResult Test([FromBody] WebHookModel model)
+        {
+            SaveModel(model);
+
+            return new OkResult();
+        }
+        [HttpPatch]
+        [ActionName("test")]
+        public IActionResult TestPatch([FromBody] WebHookModel model)
+        {
+            SaveModel(model);
+
+            return new OkResult();
+        }
+        [HttpPut]
+        [ActionName("test")]
+        public IActionResult TestPut([FromBody] WebHookModel model)
+        {
+            SaveModel(model);
+
+            return new OkResult();
+        }
+        [HttpDelete]
+        [ActionName("test")]
+        public IActionResult TestDel([FromBody] WebHookModel model)
+        {
+            SaveModel(model);
+
+            return new OkResult();
+        }
+
+        private void SaveModel(WebHookModel model)
         {
             model.requestDate = DateTime.UtcNow;
 
@@ -31,8 +69,6 @@ namespace WebHookHandler.Controllers
             {
                 WebHooks.Add(model);
             }
-
-            return new OkResult();
         }
     }
 }

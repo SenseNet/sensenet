@@ -1,6 +1,10 @@
-﻿using SenseNet.ContentRepository;
+﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 
 // ReSharper disable InconsistentNaming
 namespace SenseNet.WebHooks
@@ -60,6 +64,30 @@ namespace SenseNet.WebHooks
             set => base.SetProperty(FilterPropertyName, value);
         }
 
+        private const string HeadersPropertyName = "WebHookHeaders";
+        [RepositoryProperty(HeadersPropertyName, RepositoryDataType.Text)]
+        public string Headers
+        {
+            get => base.GetProperty<string>(HeadersPropertyName);
+            set => base.SetProperty(HeadersPropertyName, value);
+        }
+
+        public IDictionary<string, string> GetHeaders()
+        {
+            //UNDONE: cache headers value in node data
+            try
+            {
+                if (!string.IsNullOrEmpty(Headers))
+                    return JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
+            }
+            catch (Exception e)
+            {
+                SnLog.WriteWarning($"Error parsing webhook headers on subscription {this.Path}. {e.Message}");
+            }
+
+            return new Dictionary<string, string>();
+        }
+
         // ===================================================================================== Overrides
 
         /// <inheritdoc />
@@ -71,6 +99,7 @@ namespace SenseNet.WebHooks
                 HttpMethodPropertyName => this.HttpMethod,
                 EventTypePropertyName => this.EventType,
                 FilterPropertyName => this.Filter,
+                HeadersPropertyName => this.Headers,
                 _ => base.GetProperty(name),
             };
         }
@@ -91,6 +120,9 @@ namespace SenseNet.WebHooks
                     break;
                 case FilterPropertyName:
                     this.Filter = (string)value;
+                    break;
+                case HeadersPropertyName:
+                    this.Headers = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);

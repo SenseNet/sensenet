@@ -8,6 +8,8 @@ namespace SenseNet.Events
     /// </summary>
     public interface IEventProcessor
     {
+        //UNDONE: [event] this method should get a CancellationToken parameter
+
         /// <summary>
         /// Processes the given sensenet event (<see cref="ISnEvent"/>).
         /// </summary>
