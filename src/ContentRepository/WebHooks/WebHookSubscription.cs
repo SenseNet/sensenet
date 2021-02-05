@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -49,14 +51,6 @@ namespace SenseNet.WebHooks
             set => base.SetProperty(HttpMethodPropertyName, value);
         }
 
-        private const string EventTypePropertyName = "WebHookEventType";
-        [RepositoryProperty(EventTypePropertyName, RepositoryDataType.String)]
-        public string EventType
-        {
-            get => base.GetProperty<string>(EventTypePropertyName);
-            set => base.SetProperty(EventTypePropertyName, value);
-        }
-
         private const string FilterPropertyName = "WebHookFilter";
         [RepositoryProperty(FilterPropertyName, RepositoryDataType.Text)]
         public string Filter
@@ -76,31 +70,88 @@ namespace SenseNet.WebHooks
         private const string HeadersCacheKey = "WebHookHeaders.Key";
         public IDictionary<string, string> HttpHeaders { get; private set; }
 
+        private const string FilterCacheKey = "WebHookFilter.Key";
+        public WebHookFilterData FilterData { get; private set; }
+
+        private const string FilterQueryCacheKey = "WebHookFilterQuery.Key";
+        public string FilterQuery { get; set; }
+
         // ===================================================================================== Overrides
 
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
 
-            HttpHeaders = (IDictionary<string, string>)base.GetCachedData(HeadersCacheKey);
-
+            #region Headers
+            HttpHeaders = (IDictionary<string, string>)GetCachedData(HeadersCacheKey);
             if (HttpHeaders == null)
             {
                 try
                 {
-                    if (!string.IsNullOrEmpty(Headers)) 
-                        HttpHeaders = JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
+                    HttpHeaders = JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
                 }
                 catch (Exception ex)
                 {
-                    SnLog.WriteWarning($"Error parsing webhook headers on subscription {this.Path}. {ex.Message}");
+                    SnLog.WriteWarning($"Error parsing webhook headers on subscription {Path}. {ex.Message}");
                 }
 
                 if (HttpHeaders == null)
                     HttpHeaders = new Dictionary<string, string>();
 
-                base.SetCachedData(HeadersCacheKey, HttpHeaders);
+                SetCachedData(HeadersCacheKey, HttpHeaders);
             }
+            #endregion
+
+            #region Filter data
+            FilterData = (WebHookFilterData)GetCachedData(FilterCacheKey);
+            if (FilterData == null)
+            {
+                try
+                {
+                    FilterData = JsonConvert.DeserializeObject<WebHookFilterData>(Filter ?? string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteWarning($"Error parsing webhook filters on subscription {Path}. {ex.Message}");
+                }
+
+                if (FilterData == null)
+                    FilterData = new WebHookFilterData();
+
+                SetCachedData(FilterCacheKey, FilterData);
+            }
+            #endregion
+
+            #region Filter query
+
+            FilterQuery = (string)GetCachedData(FilterQueryCacheKey);
+            if (FilterQuery == null)
+            {
+                try
+                {
+                    // subtree filter
+                    var queryBuilder = new StringBuilder($"+InTree:'{FilterData.Path ?? "/Root"}'");
+
+                    // add exact type filters
+                    if (FilterData.ContentTypes?.Any() ?? false)
+                    {
+                        queryBuilder.Append($" +Type:({string.Join(" ", FilterData.ContentTypes.Select(ct => ct.Name))})");
+                    }
+
+                    FilterQuery = queryBuilder.ToString();
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteWarning($"Error building webhook filter query on subscription {Path}. {ex.Message}");
+                }
+
+                if (FilterQuery == null)
+                    FilterQuery = string.Empty;
+
+                SetCachedData(FilterQueryCacheKey, FilterQuery);
+            }
+
+            #endregion
         }
 
         /// <inheritdoc />
@@ -110,8 +161,7 @@ namespace SenseNet.WebHooks
             {
                 UrlPropertyName => this.Url,
                 HttpMethodPropertyName => this.HttpMethod,
-                EventTypePropertyName => this.EventType,
-                FilterPropertyName => this.Filter,
+            FilterPropertyName => this.Filter,
                 HeadersPropertyName => this.Headers,
                 _ => base.GetProperty(name),
             };
@@ -127,9 +177,6 @@ namespace SenseNet.WebHooks
                     break;
                 case HttpMethodPropertyName:
                     this.HttpMethod = (string)value;
-                    break;
-                case EventTypePropertyName:
-                    this.EventType = (string)value;
                     break;
                 case FilterPropertyName:
                     this.Filter = (string)value;

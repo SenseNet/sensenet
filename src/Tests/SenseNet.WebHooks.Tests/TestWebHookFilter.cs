@@ -17,7 +17,7 @@ namespace SenseNet.WebHooks.Tests
         {
             new WebHookSubscription(Repository.Root)
             {
-                Filter = "+InTree:/Root/Content"
+                FilterQuery = "+InTree:/Root/Content"
             }
         });
 
@@ -27,7 +27,7 @@ namespace SenseNet.WebHooks.Tests
 
             // filter the hardcoded subscription list: return the ones that
             // match the current content
-            var relevantSubs = Subscriptions.Where(sub => pe.IsTrue(sub.Filter));
+            var relevantSubs = Subscriptions.Where(sub => pe.IsTrue(sub.FilterQuery));
 
             return Task.FromResult(relevantSubs);
         }

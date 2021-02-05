@@ -26,8 +26,10 @@ namespace SenseNet.WebHooks
                 ? gc.Content
                 : Content.Create(snEvent.NodeEventArgs.SourceNode);
 
+
+            //UNDONE: [webhook] add postfilter for event types
             var pe = new PredicationEngine(content);
-            var filteredSubs = allSubs.Where(sub => pe.IsTrue(sub.Filter)).ToList();
+            var filteredSubs = allSubs.Where(sub => pe.IsTrue(sub.FilterQuery)).ToList();
 
             return Task.FromResult((IEnumerable<WebHookSubscription>)filteredSubs);
         }
