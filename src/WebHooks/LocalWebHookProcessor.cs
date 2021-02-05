@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
@@ -20,7 +21,7 @@ namespace SenseNet.WebHooks
             _logger = logger;
         }
 
-        public async Task ProcessEventAsync(ISnEvent snEvent)
+        public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
         {
             var node = snEvent.NodeEventArgs.SourceNode;
             var subscriptions = await _filter.GetRelevantSubscriptionsAsync(snEvent).ConfigureAwait(false);
@@ -39,7 +40,8 @@ namespace SenseNet.WebHooks
                     subscriptionId = sub.Id,
                     sentTime = DateTime.UtcNow
                 },
-                sub.GetHeaders()));
+                sub.GetHeaders(),
+                cancel));
 
             await sendingTasks.WhenAll().ConfigureAwait(false);
         }

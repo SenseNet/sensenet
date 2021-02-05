@@ -34,8 +34,8 @@ namespace SenseNet.WebHooks.Tests
                 var event1 = new TestEvent1(new TestNodeEventArgs(node1));
                 var event2 = new TestEvent1(new TestNodeEventArgs(node2));
                 
-                await ep.ProcessEventAsync(event1);
-                await ep.ProcessEventAsync(event2);
+                await ep.ProcessEventAsync(event1, CancellationToken.None);
+                await ep.ProcessEventAsync(event2, CancellationToken.None);
 
                 Assert.AreEqual(1, whc.Requests.Count);
 

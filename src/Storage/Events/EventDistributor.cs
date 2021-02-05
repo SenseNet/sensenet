@@ -61,7 +61,7 @@ namespace SenseNet.Events
             return FireEventAsync(snEvent, null);
         }
 
-        private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask)
+        private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask, CancellationToken cancel = default)
         {
             if (!IsFeatureEnabled(3))
                 return;
@@ -74,7 +74,7 @@ namespace SenseNet.Events
             // If the event is IAuditLogEvent, call async, memorize it, and do not wait.
             if (snEvent is IAuditLogEvent auditLogEvent)
                 if(AuditLogEventProcessor != null)
-                    syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
+                    syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent, cancel));
 
             if (!(snEvent is IInternalEvent))
             {
@@ -84,7 +84,7 @@ namespace SenseNet.Events
                 // Call all async processors and forget them
                 foreach (var processor in AsyncEventProcessors)
                     #pragma warning disable 4014
-                    processor.ProcessEventAsync(snEvent);
+                    processor.ProcessEventAsync(snEvent, cancel);
                     #pragma warning restore 4014
             }
 
