@@ -30,8 +30,7 @@ namespace SenseNet.Events
 
     public class EventDistributor : IEventDistributor
     {
-        //UNDONE:<?event Remove the master switch
-        private bool __isFeatureEnabled = true;
+        private bool __isFeatureEnabled = false;
         internal bool IsFeatureEnabled(int id)
         {
             if (!__isFeatureEnabled)
@@ -63,9 +62,6 @@ namespace SenseNet.Events
 
         private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask, CancellationToken cancel = default)
         {
-            if (!IsFeatureEnabled(3))
-                return;
-
             // Create a waiting list and add the 'nodeObserverTask' if there is.
             var syncTasks = new List<Task>();
             if(nodeObserverTask != null)
