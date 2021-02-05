@@ -40,7 +40,7 @@ namespace SenseNet.WebHooks
                     subscriptionId = sub.Id,
                     sentTime = DateTime.UtcNow
                 },
-                sub.GetHeaders(),
+                sub.HttpHeaders,
                 cancel));
 
             await sendingTasks.WhenAll().ConfigureAwait(false);

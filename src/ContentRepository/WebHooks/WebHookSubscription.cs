@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 
 // ReSharper disable InconsistentNaming
@@ -72,23 +73,35 @@ namespace SenseNet.WebHooks
             set => base.SetProperty(HeadersPropertyName, value);
         }
 
-        public IDictionary<string, string> GetHeaders()
-        {
-            //UNDONE: cache headers value in node data
-            try
-            {
-                if (!string.IsNullOrEmpty(Headers))
-                    return JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
-            }
-            catch (Exception e)
-            {
-                SnLog.WriteWarning($"Error parsing webhook headers on subscription {this.Path}. {e.Message}");
-            }
-
-            return new Dictionary<string, string>();
-        }
+        private const string HeadersCacheKey = "WebHookHeaders.Key";
+        public IDictionary<string, string> HttpHeaders { get; private set; }
 
         // ===================================================================================== Overrides
+
+        protected override void OnLoaded(object sender, NodeEventArgs e)
+        {
+            base.OnLoaded(sender, e);
+
+            HttpHeaders = (IDictionary<string, string>)base.GetCachedData(HeadersCacheKey);
+
+            if (HttpHeaders == null)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(Headers)) 
+                        HttpHeaders = JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteWarning($"Error parsing webhook headers on subscription {this.Path}. {ex.Message}");
+                }
+
+                if (HttpHeaders == null)
+                    HttpHeaders = new Dictionary<string, string>();
+
+                base.SetCachedData(HeadersCacheKey, HttpHeaders);
+            }
+        }
 
         /// <inheritdoc />
         public override object GetProperty(string name)

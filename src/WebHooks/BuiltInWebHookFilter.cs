@@ -12,7 +12,7 @@ namespace SenseNet.WebHooks
     {
         public Task<IEnumerable<WebHookSubscription>> GetRelevantSubscriptionsAsync(ISnEvent snEvent)
         {
-            //UNDONE: implement a subscription cache that is invalidated when a subscription changes
+            //TODO: implement a subscription cache that is invalidated when a subscription changes
             // Do NOT cache nodes, their data is already cached. Cache only ids, paths, or trees.
             var allSubs = Content.All.DisableAutofilters().Where(c =>
                 c.InTree("/Root/System/WebHooks") &&
