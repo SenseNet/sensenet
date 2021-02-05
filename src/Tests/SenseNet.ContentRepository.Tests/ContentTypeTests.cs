@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.OData.Metadata;
 using SenseNet.Search.Indexing;
+using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 
@@ -15,6 +20,132 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ContentTypeTests : TestBase
     {
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_BUG1292_LoadInvalidField()
+        {
+            Test(() =>
+            {
+                var ctd0 = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""ImageRef"" type=""Reference""></Field>
+    <Field name=""ImageData"" type=""Binary""></Field>
+    <Field name=""Image2"" type=""Image"">
+      <Bind property=""ImageRef"" />
+      <Bind property=""ImageData"" />
+    </Field>
+  </Fields>
+</ContentType>";
+                var ctd1 = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""ImageRef"" type=""Reference""></Field>
+    <Field name=""ImageData"" type=""Binary""></Field>
+    <Field name=""Image2"" type=""Image""></Field>
+  </Fields>
+</ContentType>";
+
+                // ARRANGE
+                ContentTypeInstaller.InstallContentType(ctd0);
+
+                var myType = ContentType.GetByName("MyType1");
+                Assert.IsNotNull(myType);
+                Assert.IsNotNull(myType.FieldSettings.FirstOrDefault(x => x.Name == "Image2"));
+
+                // Get related data row (FileDoc of the InMemoryDatabase)
+                var dataProvider = (InMemoryDataProvider)Providers.Instance.DataProvider;
+                var db = dataProvider.DB;
+                var fileRow = db.Files.First(x => x.FileNameWithoutExtension == "MyType1");
+
+                // Get blob id
+                var bp = (InMemoryBlobProvider)BlobStorageBase.GetProvider(0);
+                var data = (InMemoryBlobProviderData)bp.ParseData(fileRow.BlobProviderData);
+
+                // Get and check the old CTD from the related blob
+                var bpAcc = new ObjectAccessor(bp);
+                var blobs = (Dictionary<Guid, byte[]>)bpAcc.GetField("_blobStorage");
+                var oldBuffer = blobs[data.BlobId];
+                var oldCtd = RepositoryTools.GetStreamString(new MemoryStream(oldBuffer));
+                Assert.AreEqual(ctd0, oldCtd);
+
+                // Change the related blob to the invalid CTD
+                var stream = (MemoryStream) RepositoryTools.GetStreamFromString(ctd1);
+                var newBuffer = new byte[stream.Length];
+                var newStream = new MemoryStream(newBuffer);
+                stream.CopyTo(newStream);
+                fileRow.Buffer = newBuffer;
+                fileRow.Size = newBuffer.Length;
+
+                // ACTION: Reload schema from the database.
+                Cache.Reset();
+                ContentTypeManager.Reload();
+
+                // ASSERT: the ContentType is loaded but invalid.
+                var myType1 = ContentType.GetByName("MyType1");
+                Assert.AreEqual(ctd1, myType1.ToXml());
+                Assert.IsTrue(myType1.IsInvalid);
+            });
+
+        }
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_BUG1292_CreateInvalidField_MissingBinding()
+        {
+            Test(() =>
+            {
+                var ctd0 = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Image2"" type=""Image""></Field>
+  </Fields>
+</ContentType>";
+                var ctd1 = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""ImageRef"" type=""Reference""></Field>
+    <Field name=""ImageData"" type=""Binary""></Field>
+    <Field name=""Image2"" type=""Image"">
+      <Bind property=""ImageRef"" />
+      <Bind property=""ImageData"" />
+    </Field>
+  </Fields>
+</ContentType>";
+
+                // ACTION-1: Try install an invalid CTD.
+                try
+                {
+                    //ContentTypeInstaller.InstallContentType(ctd0);
+                    var binaryData = new BinaryData();
+                    binaryData.FileName = "MyType1";
+                    binaryData.SetStream(RepositoryTools.GetStreamFromString(ctd0));
+                    var contentType = new ContentType(ContentType.GetByName("GenericContent"))
+                    {
+                        Name = "MyType1",
+                        Binary = binaryData
+                    };
+                    contentType.Save();
+
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (ContentRegistrationException e)
+                {
+                    // do nothing
+                }
+
+                // ACTION-2: reinstall without any problem.
+                ContentTypeInstaller.InstallContentType(ctd1);
+
+
+                // ACTION-3: Reload schema from the database.
+                Cache.Reset();
+                ContentTypeManager.Reload();
+
+                // ASSERT: the ContentType is loaded and valid.
+                var myType1 = ContentType.GetByName("MyType1");
+                Assert.AreEqual(ctd1, myType1.ToXml());
+                Assert.IsFalse(myType1.IsInvalid);
+                Assert.IsNotNull(myType1.FieldSettings.FirstOrDefault(x => x.Name == "Image2"));
+            });
+
+        }
+
         [TestMethod]
         [TestCategory("ContentType")]
         public void ContentType_Analyzers()
