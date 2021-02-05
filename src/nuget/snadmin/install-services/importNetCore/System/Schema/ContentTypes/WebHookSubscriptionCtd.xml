@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ContentType name="WebHookSubscription" parentType="GenericContent" handler="SenseNet.ContentRepository.GenericContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+<ContentType name="WebHookSubscription" parentType="GenericContent" handler="SenseNet.WebHooks.WebHookSubscription" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-WebHookSubscription,DisplayName</DisplayName>
   <Description>$Ctd-WebHookSubscription,Description</Description>
   <Icon>WebHookSubscription</Icon>
