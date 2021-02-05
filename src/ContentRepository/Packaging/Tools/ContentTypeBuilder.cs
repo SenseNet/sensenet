@@ -217,7 +217,7 @@ namespace SenseNet.Packaging.Tools
                 var ct = ContentType.GetByName(ctdBuilder.ContentTypeName);
                 if (ct == null)
                 {
-                    //UNDONE: log missing ctd!
+                    //TODO: log missing ctd!
                     continue;
                 }
 
@@ -349,7 +349,7 @@ namespace SenseNet.Packaging.Tools
 
                 if (insertIfPossible)
                 {
-                    //UNDONE: implement insert before or after
+                    //TODO: implement insert before or after
 
                     XmlNode insertBeforeElement = null;
                     XmlNode insertAfterElement = null;
@@ -371,7 +371,7 @@ namespace SenseNet.Packaging.Tools
                     parentNode.AppendChild(childElement);
                 }
 
-                //UNDONE: log!
+                //TODO: log!
                 //Logger.LogMessage("New xml element was created: " + name);
             }
 

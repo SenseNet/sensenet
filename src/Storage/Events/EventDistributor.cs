@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 
@@ -123,7 +122,7 @@ namespace SenseNet.Events
         protected virtual Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
-            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
+            //TODO:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             //TODO:event: Not implemented yet
             return Task.FromResult(false);
@@ -131,7 +130,7 @@ namespace SenseNet.Events
         protected virtual Task FireNodeObserverEventAsync(INodeObserverEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
-            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
+            //TODO:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             //TODO:event: Not implemented yet
             return Task.CompletedTask;

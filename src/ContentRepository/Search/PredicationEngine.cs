@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -30,7 +28,7 @@ namespace SenseNet.ContentRepository.Search
         }
         public IndexDocument GetIndexDocument(Node node)
         {
-            //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
+            //TODO:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
             // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
             var docProvider = Providers.Instance.IndexDocumentProvider;
             var doc = docProvider.GetIndexDocument(node, false, node.Id == 0, out var _);
