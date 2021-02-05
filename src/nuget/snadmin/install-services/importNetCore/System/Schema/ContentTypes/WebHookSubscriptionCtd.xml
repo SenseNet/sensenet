@@ -55,6 +55,7 @@
       <Description>$Ctd-WebHookSubscription,WebHookFilter-Description</Description>
       <Configuration>
         <FieldIndex>40</FieldIndex>
+        <ControlHint>sn:WebhookFilter</ControlHint>
       </Configuration>
     </Field>
     <Field name="WebHookHeaders" type="LongText">
