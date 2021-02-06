@@ -149,9 +149,9 @@ namespace SenseNet.ContentRepository.Tests
                     new TestWebHookEventProcessor(),
                     new TestEmailSenderEventProcessor()
                 });
-                EnsureCleanTestSnTracer();
             }, () =>
             {
+                EnsureCleanTestSnTracer();
                 var node = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
                 node.Save();
 
