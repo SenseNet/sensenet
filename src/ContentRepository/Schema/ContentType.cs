@@ -520,6 +520,14 @@ namespace  SenseNet.ContentRepository.Schema
                 }
                 catch (ContentRegistrationException ex)
                 {
+
+                    this.HasUnknownField = true;
+
+                    // throw registration exceptions only during creation.
+                    if (this.Id < 1)
+                        throw;
+
+                    // continue building the content type when loading it without breaking the whole system
                     SnLog.WriteWarning(
                         $"Error during registration of field {ex.FieldName} in content type {this.Name}.",
                         properties: new Dictionary<string, object>
@@ -527,8 +535,6 @@ namespace  SenseNet.ContentRepository.Schema
                             {"FieldXml", fieldElement.OuterXml}
                         });
 
-                    // continue building the content type without breaking the whole system
-                    this.HasUnknownField = true;
                     continue;
                 }
 
