@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -38,6 +39,34 @@ namespace SenseNet.WebHooks.Tests
                 Assert.AreEqual(WebHookEventType.Create, wh.FilterData.ContentTypes[0].Events[0]);
 
                 Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder)", wh.FilterQuery);
+            });
+        }
+
+        [TestMethod]
+        public async Task WebHookSubscription_Complex()
+        {
+            await Test(async () =>
+            {
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""Folder"", 
+            ""Events"": [ ""Create"" ] 
+        },
+{
+            ""Name"": ""File"", 
+            ""Events"": [ ""Create"", ""Modify"", ""Publish"" ] 
+        }
+    ] 
+}");
+                Assert.AreEqual("/Root/Content", wh.FilterData.Path);
+                Assert.AreEqual("Folder,File",  string.Join(",", 
+                    wh.FilterData.ContentTypes.Select(ct => ct.Name)));
+                Assert.AreEqual("Create,Modify,Publish", string.Join(",",
+                    wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
+
+                Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
             });
         }
 
