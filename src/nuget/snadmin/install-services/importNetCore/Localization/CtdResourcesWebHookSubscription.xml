@@ -52,18 +52,9 @@
 						Http method
 					</value>
 				</data>
-				<data name="WebHookEventType-DisplayName" xml:space="preserve">
-					<value>
-						Event type
-					</value>
-				</data>
-				<data name="WebHookEventType-Description" xml:space="preserve">
-					<value>
-					</value>
-				</data>
 				<data name="WebHookFilter-DisplayName" xml:space="preserve">
 					<value>
-						Filter
+						Triggers
 					</value>
 				</data>
 				<data name="WebHookFilter-Description" xml:space="preserve">
@@ -149,15 +140,6 @@
 				<data name="WebHookHttpMethod-Description" xml:space="preserve">
 					<value>
 						Http method
-					</value>
-				</data>
-				<data name="WebHookEventType-DisplayName" xml:space="preserve">
-					<value>
-						Esemény típusa
-					</value>
-				</data>
-				<data name="WebHookEventType-Description" xml:space="preserve">
-					<value>
 					</value>
 				</data>
 				<data name="WebHookFilter-DisplayName" xml:space="preserve">

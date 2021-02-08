@@ -42,20 +42,12 @@
         <DefaultValue>https://</DefaultValue>
       </Configuration>
     </Field>
-    <Field name="WebHookEventType" type="ShortText">
-      <DisplayName>$Ctd-WebHookSubscription,WebHookEventType-DisplayName</DisplayName>
-      <Description>$Ctd-WebHookSubscription,WebHookEventType-Description</Description>
-      <Configuration>
-        <FieldIndex>50</FieldIndex>
-        <Compulsory>true</Compulsory>
-      </Configuration>
-    </Field>
     <Field name="WebHookFilter" type="LongText">
       <DisplayName>$Ctd-WebHookSubscription,WebHookFilter-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookFilter-Description</Description>
       <Configuration>
         <FieldIndex>40</FieldIndex>
-        <ControlHint>sn:WebhookFilter</ControlHint>
+		    <ControlHint>sn:WebhookFilter</ControlHint>
       </Configuration>
     </Field>
     <Field name="WebHookHeaders" type="LongText">
@@ -63,6 +55,7 @@
       <Description>$Ctd-WebHookSubscription,WebHookHeaders-Description</Description>
       <Configuration>
         <FieldIndex>30</FieldIndex>
+        <ControlHint>sn:WebhookHeaders</ControlHint>
       </Configuration>
     </Field>
 	<Field name="Enabled" type="Boolean">
