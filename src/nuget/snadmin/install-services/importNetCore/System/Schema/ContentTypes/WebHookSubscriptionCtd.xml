@@ -42,5 +42,10 @@
       <DisplayName>$Ctd-WebHookSubscription,WebHookHeaders-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookHeaders-Description</Description>
     </Field>
+    <Field name="Enabled" type="Boolean">
+      <Configuration>
+        <DefaultValue>true</DefaultValue>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>
