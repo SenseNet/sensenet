@@ -33,6 +33,7 @@
       "WebApps\\SnWebApplication.Api.InMem.TokenAuth\\SnWebApplication.Api.InMem.TokenAuth.csproj",
       "WebApps\\SnWebApplication.Api.Sql.Admin\\SnWebApplication.Api.Sql.Admin.csproj",
       "WebApps\\SnWebApplication.Api.Sql.TokenAuth\\SnWebApplication.Api.Sql.TokenAuth.csproj",
+      "WebApps\\WebHookHandler\\WebHookHandler.csproj",
       "WebHooks.Common\\SenseNet.WebHooks.Common.csproj",
       "WebHooks\\SenseNet.WebHooks.csproj"
     ]
