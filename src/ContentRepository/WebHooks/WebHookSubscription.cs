@@ -80,10 +80,38 @@ namespace SenseNet.WebHooks
         public IDictionary<string, string> HttpHeaders { get; private set; }
 
         private const string FilterCacheKey = "WebHookFilter.Key";
-        public WebHookFilterData FilterData { get; private set; }
+        public WebHookFilterData FilterData { get; internal set; }
 
         private const string FilterQueryCacheKey = "WebHookFilterQuery.Key";
         public string FilterQuery { get; set; }
+
+        public WebHookEventType? GetRelevantEventType(ISnEvent snEvent)
+        {
+            WebHookEventType? FindEvent(WebHookEventType eventType)
+            {
+                if (FilterData?.ContentTypes?.Any(ct => ct.Events.Contains(eventType)) ?? false)
+                    return eventType;
+                return null;
+            }
+
+            //UNDONE: event types are internal, cannot cast sn event
+            var eventTypeName = snEvent.GetType().Name;
+
+            switch (eventTypeName)
+            {
+                case "NodeCreatedEvent":
+                    return FindEvent(WebHookEventType.Create);
+                case "NodeModifiedEvent":
+                    //UNDONE: determine business event type (e.g. Published, Checked in)
+                    break;
+                case "NodeForcedDeletedEvent":
+                    return FindEvent(WebHookEventType.Delete);
+                default:
+                    return null;
+            }
+
+            return null;
+        }
 
         // ===================================================================================== Overrides
 
@@ -142,7 +170,7 @@ namespace SenseNet.WebHooks
                     var queryBuilder = new StringBuilder($"+InTree:'{FilterData.Path ?? "/Root"}'");
 
                     // add exact type filters
-                    if (FilterData.ContentTypes?.Any() ?? false)
+                    if (FilterData?.ContentTypes?.Any() ?? false)
                     {
                         queryBuilder.Append($" +Type:({string.Join(" ", FilterData.ContentTypes.Select(ct => ct.Name))})");
                     }

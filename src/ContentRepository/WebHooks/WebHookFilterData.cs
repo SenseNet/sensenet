@@ -31,4 +31,16 @@ namespace SenseNet.WebHooks
 
         public WebHookEventType[] Events { get; set; }
     }
+
+    public class WebHookSubscriptionInfo
+    {
+        public WebHookSubscription Subscription { get; }
+        public WebHookEventType EventType { get; }
+
+        public WebHookSubscriptionInfo(WebHookSubscription subscription, WebHookEventType eventType)
+        {
+            Subscription = subscription;
+            EventType = eventType;
+        }
+    }
 }

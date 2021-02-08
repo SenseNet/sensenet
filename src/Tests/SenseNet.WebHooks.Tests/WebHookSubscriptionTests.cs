@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Events;
 using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 
@@ -32,6 +26,7 @@ namespace SenseNet.WebHooks.Tests
         }
     ] 
 }");
+
                 Assert.AreEqual("/Root/Content", wh.FilterData.Path);
                 Assert.AreEqual(1, wh.FilterData.ContentTypes.Length);
                 Assert.AreEqual("Folder", wh.FilterData.ContentTypes[0].Name);
@@ -60,6 +55,7 @@ namespace SenseNet.WebHooks.Tests
         }
     ] 
 }");
+
                 Assert.AreEqual("/Root/Content", wh.FilterData.Path);
                 Assert.AreEqual("Folder,File",  string.Join(",", 
                     wh.FilterData.ContentTypes.Select(ct => ct.Name)));
@@ -67,6 +63,35 @@ namespace SenseNet.WebHooks.Tests
                     wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
 
                 Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
+            });
+        }
+
+        [TestMethod]
+        public async Task WebHookSubscription_RelevantEvent()
+        {
+            await Test(async () =>
+            {
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""Folder"", 
+            ""Events"": [ ""Create"", ""Delete"" ] 
+        }
+    ] 
+}");
+
+                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                var node1 = new Folder(parent1);
+                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                var event2 = new TestEvent1(new TestNodeEventArgs(node1));
+                var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+
+                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventType(event1));
+                Assert.IsNull(wh.GetRelevantEventType(event2));
+                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventType(event3));
+
+                //UNDONE: add tests for more complex events: Publish, CheckIn
             });
         }
 

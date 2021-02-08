@@ -16,6 +16,26 @@ namespace SenseNet.WebHooks.Tests
         }
     }
 
+    // the name of this event class mirrors the one in Storage
+    internal class NodeCreatedEvent : ISnEvent
+    {
+        public INodeEventArgs NodeEventArgs { get; set; }
+
+        public NodeCreatedEvent(INodeEventArgs e)
+        {
+            NodeEventArgs = e;
+        }
+    }
+    internal class NodeForcedDeletedEvent : ISnEvent
+    {
+        public INodeEventArgs NodeEventArgs { get; set; }
+
+        public NodeForcedDeletedEvent(INodeEventArgs e)
+        {
+            NodeEventArgs = e;
+        }
+    }
+
     internal class TestNodeEventArgs : INodeEventArgs
     {
         public Node SourceNode { get; }

@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Events;
-using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.WebHooks.Tests
 {
@@ -15,21 +13,39 @@ namespace SenseNet.WebHooks.Tests
         /// </summary>
         private IEnumerable<WebHookSubscription> Subscriptions { get; } = new List<WebHookSubscription>(new[]
         {
+            //UNDONE: set other subscription properties in this test implementation
             new WebHookSubscription(Repository.Root)
             {
-                FilterQuery = "+InTree:/Root/Content"
+                FilterQuery = "+InTree:/Root/Content",
+                FilterData = new WebHookFilterData { 
+                    Path = "/Root/Content",
+                    ContentTypes = new []
+                    {
+                        new ContentTypeFilterData
+                        {
+                            Name = "Folder",
+                            Events = new []
+                            {
+                                WebHookEventType.Create, 
+                                WebHookEventType.Delete
+                            }
+                        }, 
+                    }},
+                Enabled = true
             }
         });
 
-        public Task<IEnumerable<WebHookSubscription>> GetRelevantSubscriptionsAsync(ISnEvent snEvent)
+        public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
         {
             var pe = new PredicationEngine(Content.Create(snEvent.NodeEventArgs.SourceNode));
 
             // filter the hardcoded subscription list: return the ones that
             // match the current content
-            var relevantSubs = Subscriptions.Where(sub => pe.IsTrue(sub.FilterQuery));
-
-            return Task.FromResult(relevantSubs);
+            return Subscriptions.Select(sub =>
+            {
+                var et = sub.GetRelevantEventType(snEvent);
+                return et.HasValue ? new WebHookSubscriptionInfo(sub, et.Value) : null;
+            }).Where(si => si != null && pe.IsTrue(si.Subscription.FilterQuery));
         }
     }
 }

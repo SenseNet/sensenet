@@ -18,7 +18,7 @@ namespace SenseNet.WebHooks.Tests
     public class WebHookProcessorTests : TestBase
     {
         [TestMethod]
-        public async Task WebHook_Modify()
+        public async Task WebHook_Basic()
         {
             await Test(async () =>
             {
@@ -31,22 +31,38 @@ namespace SenseNet.WebHooks.Tests
                 var node1 = new Folder(parent1);
                 var node2 = new Folder(parent2);
 
-                var event1 = new TestEvent1(new TestNodeEventArgs(node1));
-                var event2 = new TestEvent1(new TestNodeEventArgs(node2));
-                
+                // create mock events
+                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2));
+                var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+
+                // ACTION: fire mock events
                 await ep.ProcessEventAsync(event1, CancellationToken.None);
                 await ep.ProcessEventAsync(event2, CancellationToken.None);
+                await ep.ProcessEventAsync(event3, CancellationToken.None);
 
-                Assert.AreEqual(1, whc.Requests.Count);
+                // test webhook client should contain the even log
+                Assert.AreEqual(2, whc.Requests.Count);
 
-                var postData = whc.Requests[0].PostData;
-                var postJson = JsonSerializer.Serialize(postData);
-                var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
+                var postObject1 = GetPostObject(whc.Requests[0].PostData);
 
-                Assert.AreEqual(node1.Id, ((JsonElement)postObject["nodeId"]).GetInt32());
-                Assert.AreEqual(node1.Path, ((JsonElement)postObject["path"]).GetString());
-                Assert.AreEqual("TestEvent1", ((JsonElement)postObject["eventName"]).GetString());
+                Assert.AreEqual(node1.Id, ((JsonElement)postObject1["nodeId"]).GetInt32());
+                Assert.AreEqual(node1.Path, ((JsonElement)postObject1["path"]).GetString());
+                Assert.AreEqual("Create", ((JsonElement)postObject1["eventName"]).GetString());
+
+                var postObject2 = GetPostObject(whc.Requests[1].PostData);
+
+                Assert.AreEqual(node1.Id, ((JsonElement)postObject2["nodeId"]).GetInt32());
+                Assert.AreEqual(node1.Path, ((JsonElement)postObject2["path"]).GetString());
+                Assert.AreEqual("Delete", ((JsonElement)postObject2["eventName"]).GetString());
             });
+        }
+
+        private static IDictionary<string, object> GetPostObject(object postData)
+        {
+            var postJson = JsonSerializer.Serialize(postData);
+            var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
+            return postObject;
         }
 
         private IServiceProvider BuildServiceProvider()

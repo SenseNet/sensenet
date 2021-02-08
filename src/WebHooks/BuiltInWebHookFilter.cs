@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Events;
-using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.WebHooks
 {
     public class BuiltInWebHookFilter : IWebHookFilter
     {
-        public Task<IEnumerable<WebHookSubscription>> GetRelevantSubscriptionsAsync(ISnEvent snEvent)
+        public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
         {
             //TODO: implement a subscription cache that is invalidated when a subscription changes
             // Do NOT cache nodes, their data is already cached. Cache only ids, paths, or trees.
@@ -20,18 +19,25 @@ namespace SenseNet.WebHooks
                 (bool)c["Enabled"] == true)
                 .AsEnumerable()
                 .Select(c => c.ContentHandler as WebHookSubscription)
+                .Select(sub => {
+                    // prefilter: check if this event is relevant for the subscription
+                    var et = sub?.GetRelevantEventType(snEvent);
+                    return et.HasValue ? new WebHookSubscriptionInfo(sub, et.Value) : null;
+                })
+                .Where(si => si != null)
                 .ToList();
+
+            if (!allSubs.Any())
+                return Array.Empty<WebHookSubscriptionInfo>();
 
             // use the already constructed Content instance if possible
             var content = snEvent.NodeEventArgs.SourceNode is GenericContent gc
                 ? gc.Content
                 : Content.Create(snEvent.NodeEventArgs.SourceNode);
 
-            //UNDONE: [webhook] add prefilter for event types
+            // filter by the query defined by the subscriber
             var pe = new PredicationEngine(content);
-            var filteredSubs = allSubs.Where(sub => pe.IsTrue(sub.FilterQuery)).ToList();
-
-            return Task.FromResult((IEnumerable<WebHookSubscription>)filteredSubs);
+            return allSubs.Where(sub => pe.IsTrue(sub.Subscription.FilterQuery)).ToList();
         }
     }
 }

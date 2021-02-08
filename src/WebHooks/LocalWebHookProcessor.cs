@@ -25,23 +25,23 @@ namespace SenseNet.WebHooks
         public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
         {
             var node = snEvent.NodeEventArgs.SourceNode;
-            var subscriptions = await _filter.GetRelevantSubscriptionsAsync(snEvent).ConfigureAwait(false);
+            var subscriptions = _filter.GetRelevantSubscriptions(snEvent);
 
             //TODO: extend webhook request payload with event-specific info
-            var sendingTasks = subscriptions.Select(sub => _webHookClient.SendAsync(
-                sub.Url,
-                sub.HttpMethod,
+            var sendingTasks = subscriptions.Select(si => _webHookClient.SendAsync(
+                si.Subscription.Url,
+                si.Subscription.HttpMethod,
                 new
                 {
                     nodeId = node.Id,
                     path = node.Path,
                     name = node.Name,
                     displayName = node.DisplayName,
-                    eventName = snEvent.GetType().Name, //UNDONE: set readable event name
-                    subscriptionId = sub.Id,
+                    eventName = si.EventType.ToString(),
+                    subscriptionId = si.Subscription.Id,
                     sentTime = DateTime.UtcNow
                 },
-                sub.HttpHeaders,
+                si.Subscription.HttpHeaders,
                 cancel));
 
             //TODO: handle responses: webhook statistics implementation
