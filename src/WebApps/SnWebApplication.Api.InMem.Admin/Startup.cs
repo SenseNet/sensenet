@@ -40,6 +40,23 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseLogger(provider)
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
+                }, (instance, provider) =>
+                {
+                    using (new SystemAccount())
+                    {
+                        var webhooks = new SystemFolder(Node.LoadNode("/Root/System")) { Name = "WebHooks" };
+                        webhooks.Save();
+                        var wh1 = new WebHookSubscription(webhooks)
+                        {
+                            Name = "wh1",
+                            Url = "https://localhost:44393/webhooks/test",
+                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\", \"Publish\" ] } ] }",
+                            Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
+                            Enabled = true
+                        };
+                        wh1.Save();
+                    }
+                    return Task.CompletedTask;
                 })
                 .AddSenseNetWebHooks()
                 .AddFeature1();

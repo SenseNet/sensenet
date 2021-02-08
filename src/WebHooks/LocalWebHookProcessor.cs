@@ -8,6 +8,7 @@ using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
+    //UNDONE: webhook docs
     public class LocalWebHookProcessor : IEventProcessor
     {
         private readonly ILogger<LocalWebHookProcessor> _logger;
@@ -36,12 +37,14 @@ namespace SenseNet.WebHooks
                     path = node.Path,
                     name = node.Name,
                     displayName = node.DisplayName,
-                    eventName = snEvent.GetType().Name,
+                    eventName = snEvent.GetType().Name, //UNDONE: set readable event name
                     subscriptionId = sub.Id,
                     sentTime = DateTime.UtcNow
                 },
                 sub.HttpHeaders,
                 cancel));
+
+            //TODO: handle responses: webhook statistics implementation
 
             await sendingTasks.WhenAll().ConfigureAwait(false);
         }

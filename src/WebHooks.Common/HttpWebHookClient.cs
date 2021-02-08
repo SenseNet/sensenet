@@ -63,8 +63,6 @@ namespace SenseNet.WebHooks
             {
                 _logger.LogWarning(ex, $"Error during webhook service call. Url: {url} Http method: {httpMethod}");
             }
-
-            //TODO: webhook statistics implementation
         }
 
         private static StringContent GetStringContent(object postData, IDictionary<string, string> headers)

@@ -16,7 +16,8 @@ namespace SenseNet.WebHooks
             // Do NOT cache nodes, their data is already cached. Cache only ids, paths, or trees.
             var allSubs = Content.All.DisableAutofilters().Where(c =>
                 c.InTree("/Root/System/WebHooks") &&
-                c.ContentHandler is WebHookSubscription)
+                c.ContentHandler is WebHookSubscription &&
+                (bool)c["Enabled"] == true)
                 .AsEnumerable()
                 .Select(c => c.ContentHandler as WebHookSubscription)
                 .ToList();
@@ -26,8 +27,7 @@ namespace SenseNet.WebHooks
                 ? gc.Content
                 : Content.Create(snEvent.NodeEventArgs.SourceNode);
 
-
-            //UNDONE: [webhook] add postfilter for event types
+            //UNDONE: [webhook] add prefilter for event types
             var pe = new PredicationEngine(content);
             var filteredSubs = allSubs.Where(sub => pe.IsTrue(sub.FilterQuery)).ToList();
 

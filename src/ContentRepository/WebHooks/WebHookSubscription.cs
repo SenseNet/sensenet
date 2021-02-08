@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 
 // ReSharper disable InconsistentNaming
 namespace SenseNet.WebHooks
@@ -34,6 +35,14 @@ namespace SenseNet.WebHooks
         /// Do not use this constructor directly in your code.
         /// </summary>
         protected WebHookSubscription(NodeToken nt) : base(nt) { }
+
+        private const string EnabledPropertyName = "Enabled";
+        [RepositoryProperty(EnabledPropertyName, RepositoryDataType.Int)]
+        public bool Enabled
+        {
+            get => base.GetProperty<int>(EnabledPropertyName) != 0;
+            set => base.SetProperty(EnabledPropertyName, value ? 1 : 0);
+        }
 
         private const string UrlPropertyName = "WebHookUrl";
         [RepositoryProperty(UrlPropertyName, RepositoryDataType.String)]
@@ -159,9 +168,10 @@ namespace SenseNet.WebHooks
         {
             return name switch
             {
+                EnabledPropertyName => this.Enabled,
                 UrlPropertyName => this.Url,
                 HttpMethodPropertyName => this.HttpMethod,
-            FilterPropertyName => this.Filter,
+                FilterPropertyName => this.Filter,
                 HeadersPropertyName => this.Headers,
                 _ => base.GetProperty(name),
             };
@@ -172,6 +182,9 @@ namespace SenseNet.WebHooks
         {
             switch (name)
             {
+                case EnabledPropertyName:
+                    this.Enabled = (bool)value;
+                    break;
                 case UrlPropertyName:
                     this.Url = (string)value;
                     break;
