@@ -25,13 +25,16 @@
       "Tests\\SenseNet.Tests.Core\\SenseNet.Tests.Core.csproj",
       "Tests\\SenseNet.Tests.Hosting\\SenseNet.Tests.Hosting.csproj",
       "Tests\\SenseNet.Tests\\SenseNet.Tests.csproj",
+      "Tests\\SenseNet.WebHooks.Tests\\SenseNet.WebHooks.Tests.csproj",
       "Tests\\SnInitialDataGenerator.Tests\\SnInitialDataGenerator.Tests.csproj",
       "Tools\\SnConsoleInstaller\\SnConsoleInstaller.csproj",
       "Tools\\SnInitialDataGenerator\\SnInitialDataGenerator.csproj",
       "WebApps\\SnWebApplication.Api.InMem.Admin\\SnWebApplication.Api.InMem.Admin.csproj",
       "WebApps\\SnWebApplication.Api.InMem.TokenAuth\\SnWebApplication.Api.InMem.TokenAuth.csproj",
       "WebApps\\SnWebApplication.Api.Sql.Admin\\SnWebApplication.Api.Sql.Admin.csproj",
-      "WebApps\\SnWebApplication.Api.Sql.TokenAuth\\SnWebApplication.Api.Sql.TokenAuth.csproj"
+      "WebApps\\SnWebApplication.Api.Sql.TokenAuth\\SnWebApplication.Api.Sql.TokenAuth.csproj",
+      "WebHooks.Common\\SenseNet.WebHooks.Common.csproj",
+      "WebHooks\\SenseNet.WebHooks.csproj"
     ]
   }
 }
