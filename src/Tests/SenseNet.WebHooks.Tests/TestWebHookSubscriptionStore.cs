@@ -9,11 +9,10 @@ namespace SenseNet.WebHooks.Tests
     internal class TestWebHookSubscriptionStore : IWebHookSubscriptionStore
     {
         /// <summary>
-        /// Hardcoded subscription for all items in the /Root/Content subtree.
+        /// Hardcoded subscription for items in the /Root/Content subtree.
         /// </summary>
         private IEnumerable<WebHookSubscription> Subscriptions { get; } = new List<WebHookSubscription>(new[]
         {
-            //UNDONE: set other subscription properties in this test implementation
             new WebHookSubscription(Repository.Root)
             {
                 FilterQuery = "+InTree:/Root/Content",
@@ -41,11 +40,16 @@ namespace SenseNet.WebHooks.Tests
 
             // filter the hardcoded subscription list: return the ones that
             // match the current content
-            return Subscriptions.Select(sub =>
+            return Subscriptions.SelectMany(sub =>
             {
-                var et = sub.GetRelevantEventType(snEvent);
-                return et.HasValue ? new WebHookSubscriptionInfo(sub, et.Value) : null;
-            }).Where(si => si != null && pe.IsTrue(si.Subscription.FilterQuery));
+                var eventTypes = sub.GetRelevantEventTypes(snEvent);
+
+                // handle multiple relevant event types by adding the subscription multiple times
+                return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
+            }).Where(si => si != null && 
+                           pe.IsTrue(si.Subscription.FilterQuery) &&
+                           si.Subscription.Enabled &&
+                           si.Subscription.IsValid);
         }
     }
 }

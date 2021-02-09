@@ -18,11 +18,13 @@ namespace SenseNet.WebHooks
                 c.ContentHandler is WebHookSubscription &&
                 (bool)c["Enabled"] == true)
                 .AsEnumerable()
-                .Select(c => c.ContentHandler as WebHookSubscription)
-                .Select(sub => {
+                .Select(c => (WebHookSubscription)c.ContentHandler)
+                .SelectMany(sub => {
                     // prefilter: check if this event is relevant for the subscription
-                    var et = sub?.GetRelevantEventType(snEvent);
-                    return et.HasValue ? new WebHookSubscriptionInfo(sub, et.Value) : null;
+                    var eventTypes = sub.GetRelevantEventTypes(snEvent);
+
+                    //handle multiple relevant event types by adding the subscription multiple times
+                    return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
                 })
                 .Where(si => si != null && si.Subscription.IsValid)
                 .ToList();

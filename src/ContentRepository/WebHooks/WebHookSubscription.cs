@@ -90,32 +90,46 @@ namespace SenseNet.WebHooks
 
         public bool IsValid => string.IsNullOrEmpty(InvalidFields);
 
-        public WebHookEventType? GetRelevantEventType(ISnEvent snEvent)
+        private static WebHookEventType[] AllEventTypes { get; } = (WebHookEventType[])Enum.GetValues(typeof(WebHookEventType));
+
+        public WebHookEventType[] GetRelevantEventTypes(ISnEvent snEvent)
         {
-            WebHookEventType? FindEvent(WebHookEventType eventType)
-            {
-                if (FilterData?.ContentTypes?.Any(ct => ct.Events.Contains(eventType)) ?? false)
-                    return eventType;
-                return null;
-            }
+            // Check if the subscription contains the type of the content. Currently we
+            // treat the defined content types as "exact" types, meaning you have to choose
+            // the appropriate type, no type inheritance is taken into account.
+            var contentType = FilterData.ContentTypes
+                .FirstOrDefault(ct => ct.Name == snEvent.NodeEventArgs.SourceNode.NodeType.Name);
+
+            if (contentType == null)
+                return Array.Empty<WebHookEventType>();
+
+            var selectedEvents = FilterData.TriggersForAllEvents || contentType.Events.Contains(WebHookEventType.All)
+                ? AllEventTypes
+                : contentType.Events ?? Array.Empty<WebHookEventType>();
+
+            if (!selectedEvents.Any())
+                return Array.Empty<WebHookEventType>();
 
             //UNDONE: event types are internal, cannot cast sn event
             var eventTypeName = snEvent.GetType().Name;
 
             switch (eventTypeName)
             {
+                // Create and Delete are strong events, they cannot be paired with other events (e.g. with Modify).
                 case "NodeCreatedEvent":
-                    return FindEvent(WebHookEventType.Create);
+                    if (selectedEvents.Contains(WebHookEventType.Create))
+                        return new[] {WebHookEventType.Create};
+                    break;
                 case "NodeModifiedEvent":
                     //UNDONE: determine business event type (e.g. Published, Checked in)
                     break;
                 case "NodeForcedDeletedEvent":
-                    return FindEvent(WebHookEventType.Delete);
-                default:
-                    return null;
+                    if (selectedEvents.Contains(WebHookEventType.Delete))
+                        return new[] { WebHookEventType.Delete };
+                    break;
             }
 
-            return null;
+            return Array.Empty<WebHookEventType>();
         }
 
         // ===================================================================================== Overrides

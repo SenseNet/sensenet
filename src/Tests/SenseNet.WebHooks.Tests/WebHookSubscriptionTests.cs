@@ -99,11 +99,53 @@ namespace SenseNet.WebHooks.Tests
                 var event2 = new TestEvent1(new TestNodeEventArgs(node1));
                 var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
 
-                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventType(event1));
-                Assert.IsNull(wh.GetRelevantEventType(event2));
-                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventType(event3));
+                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
+                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event3).Single());
 
                 //UNDONE: add tests for more complex events: Publish, CheckIn
+            });
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_RelevantEvent_All()
+        {
+            await Test(async () =>
+            {
+                // TriggersForAllEvents is TRUE
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+""TriggersForAllEvents"": true,
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""Folder"", 
+            ""Events"": [ ""Publish"" ] 
+        }
+    ] 
+}");
+
+                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                var node1 = new Folder(parent1);
+                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+
+                // triggered for ALL events: only the appropriate events should be returned
+                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
+
+                // TriggersForAllEvents is FALSE, but All is selected for the type.
+                wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+""TriggersForAllEvents"": false,
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""Folder"", 
+            ""Events"": [ ""All"" ] 
+        }
+    ] 
+}");
+                // triggered for ALL events of the type: only the appropriate events should be returned
+                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
             });
         }
 
@@ -157,8 +199,9 @@ namespace SenseNet.WebHooks.Tests
                 Url = "https://localhost:44393/webhooks/test",
                 Filter = filter,
                 //Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\", \"Publish\" ] } ] }",
-                Headers = headers
-                //Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }"
+                Headers = headers,
+                //Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
+                AllowIncrementalNaming = true
             };
             wh.Save();
 
