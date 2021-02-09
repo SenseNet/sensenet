@@ -4,18 +4,24 @@
   <Description>$Ctd-WebHookSubscription,Description</Description>
   <Icon>WebHookSubscription</Icon>
   <Fields>
-    <Field name="WebHookUrl" type="ShortText">
-      <DisplayName>$Ctd-WebHookSubscription,WebHookUrl-DisplayName</DisplayName>
-      <Description>$Ctd-WebHookSubscription,WebHookUrl-Description</Description>
+    <Field name="Name" type="ShortText">
+      <DisplayName>$Ctd-WebHookSubscription,Name-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,Name-Description</Description>
+      <Indexing>
+        <Store>Yes</Store>
+        <Analyzer>Keyword</Analyzer>
+      </Indexing>
       <Configuration>
+        <FieldIndex>80</FieldIndex>
         <Compulsory>true</Compulsory>
-        <DefaultValue>https://</DefaultValue>
+        <ControlHint>sn:Name</ControlHint>
       </Configuration>
     </Field>
     <Field name="WebHookHttpMethod" type="Choice">
       <DisplayName>$Ctd-WebHookSubscription,WebHookHttpMethod-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookHttpMethod-Description</Description>
       <Configuration>
+        <FieldIndex>70</FieldIndex>
         <AllowMultiple>false</AllowMultiple>
         <AllowExtraValue>true</AllowExtraValue>
         <Options>
@@ -27,20 +33,107 @@
         </Options>
       </Configuration>
     </Field>
-    <Field name="WebHookEventType" type="ShortText">
-      <DisplayName>$Ctd-WebHookSubscription,WebHookEventType-DisplayName</DisplayName>
-      <Description>$Ctd-WebHookSubscription,WebHookEventType-Description</Description>
+    <Field name="WebHookUrl" type="ShortText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookUrl-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookUrl-Description</Description>
       <Configuration>
+        <FieldIndex>60</FieldIndex>
         <Compulsory>true</Compulsory>
+        <DefaultValue>https://</DefaultValue>
       </Configuration>
     </Field>
     <Field name="WebHookFilter" type="LongText">
       <DisplayName>$Ctd-WebHookSubscription,WebHookFilter-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookFilter-Description</Description>
+      <Configuration>
+        <FieldIndex>40</FieldIndex>
+        <ControlHint>sn:WebhookFilter</ControlHint>
+      </Configuration>
     </Field>
     <Field name="WebHookHeaders" type="LongText">
       <DisplayName>$Ctd-WebHookSubscription,WebHookHeaders-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookHeaders-Description</Description>
+      <Configuration>
+        <FieldIndex>30</FieldIndex>
+        <ControlHint>sn:WebhookHeaders</ControlHint>
+      </Configuration>
+    </Field>
+    <Field name="Enabled" type="Boolean">
+      <DisplayName>$Ctd-WebHookSubscription,Enabled-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,Enabled-Description</Description>
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="SuccessfulCalls" type="Integer">
+      <DisplayName>$Ctd-WebHookSubscription,SuccessfulCalls-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,SuccessfulCalls-Description</Description>
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-WebHookSubscription,DisplayName-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,DisplayName-Description</Description>
+      <Configuration>
+        <ControlHint>sn:DisplayName</ControlHint>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Version" type="Version">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <DisplayName>$Ctd-WebHookSubscription,Description-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,Description-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Index" type="Integer">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EnableLifespan" type="Boolean">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ValidFrom" type="DateTime">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ValidTill" type="DateTime">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
     <Field name="Enabled" type="Boolean">
       <Configuration>
