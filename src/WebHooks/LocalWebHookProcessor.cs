@@ -13,11 +13,11 @@ namespace SenseNet.WebHooks
     {
         private readonly ILogger<LocalWebHookProcessor> _logger;
         private readonly IWebHookClient _webHookClient;
-        private readonly IWebHookFilter _filter;
+        private readonly IWebHookSubscriptionStore _subscriptionStore;
 
-        public LocalWebHookProcessor(IWebHookFilter filter, IWebHookClient webHookClient, ILogger<LocalWebHookProcessor> logger)
+        public LocalWebHookProcessor(IWebHookSubscriptionStore subscriptionStore, IWebHookClient webHookClient, ILogger<LocalWebHookProcessor> logger)
         {
-            _filter = filter;
+            _subscriptionStore = subscriptionStore;
             _webHookClient = webHookClient;
             _logger = logger;
         }
@@ -25,7 +25,7 @@ namespace SenseNet.WebHooks
         public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
         {
             var node = snEvent.NodeEventArgs.SourceNode;
-            var subscriptions = _filter.GetRelevantSubscriptions(snEvent);
+            var subscriptions = _subscriptionStore.GetRelevantSubscriptions(snEvent);
 
             //TODO: extend webhook request payload with event-specific info
 

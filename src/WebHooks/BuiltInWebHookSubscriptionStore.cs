@@ -7,7 +7,7 @@ using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
-    public class BuiltInWebHookFilter : IWebHookFilter
+    public class BuiltInWebHookSubscriptionStore : IWebHookSubscriptionStore
     {
         public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
         {

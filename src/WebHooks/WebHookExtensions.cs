@@ -14,7 +14,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             services.AddSingleton<IEventProcessor, LocalWebHookProcessor>();
 
-            services.AddSingleton<IWebHookFilter, BuiltInWebHookFilter>();
+            services.AddSingleton<IWebHookSubscriptionStore, BuiltInWebHookSubscriptionStore>();
 
             return services;
         }

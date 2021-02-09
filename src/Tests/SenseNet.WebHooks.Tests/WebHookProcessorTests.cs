@@ -73,7 +73,7 @@ namespace SenseNet.WebHooks.Tests
             services.AddLogging()
                 .AddSenseNetWebHookClient<TestWebHookClient>()
                 .AddSingleton<IEventProcessor, LocalWebHookProcessor>()
-                .AddSingleton<IWebHookFilter, TestWebHookFilter>();
+                .AddSingleton<IWebHookSubscriptionStore, TestWebHookSubscriptionStore>();
 
             var provider = services.BuildServiceProvider();
 

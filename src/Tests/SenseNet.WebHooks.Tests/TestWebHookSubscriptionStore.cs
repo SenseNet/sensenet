@@ -6,7 +6,7 @@ using SenseNet.Events;
 
 namespace SenseNet.WebHooks.Tests
 {
-    internal class TestWebHookFilter : IWebHookFilter
+    internal class TestWebHookSubscriptionStore : IWebHookSubscriptionStore
     {
         /// <summary>
         /// Hardcoded subscription for all items in the /Root/Content subtree.
