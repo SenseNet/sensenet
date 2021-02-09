@@ -4,7 +4,7 @@
   <Description>$Ctd-WebHookSubscription,Description</Description>
   <Icon>WebHookSubscription</Icon>
   <Fields>
-     <Field name="Name" type="ShortText">
+    <Field name="Name" type="ShortText">
       <DisplayName>$Ctd-WebHookSubscription,Name-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,Name-Description</Description>
       <Indexing>
@@ -17,7 +17,7 @@
         <ControlHint>sn:Name</ControlHint>
       </Configuration>
     </Field>
-	<Field name="WebHookHttpMethod" type="Choice">
+    <Field name="WebHookHttpMethod" type="Choice">
       <DisplayName>$Ctd-WebHookSubscription,WebHookHttpMethod-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,WebHookHttpMethod-Description</Description>
       <Configuration>
@@ -47,7 +47,7 @@
       <Description>$Ctd-WebHookSubscription,WebHookFilter-Description</Description>
       <Configuration>
         <FieldIndex>40</FieldIndex>
-		    <ControlHint>sn:WebhookFilter</ControlHint>
+        <ControlHint>sn:WebhookFilter</ControlHint>
       </Configuration>
     </Field>
     <Field name="WebHookHeaders" type="LongText">
@@ -58,21 +58,21 @@
         <ControlHint>sn:WebhookHeaders</ControlHint>
       </Configuration>
     </Field>
-	<Field name="Enabled" type="Boolean">
+    <Field name="Enabled" type="Boolean">
       <DisplayName>$Ctd-WebHookSubscription,Enabled-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,Enabled-Description</Description>
       <Configuration>
-	    <FieldIndex>20</FieldIndex>
+        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-	<Field name="SuccessfulCalls" type="Integer">
+    <Field name="SuccessfulCalls" type="Integer">
       <DisplayName>$Ctd-WebHookSubscription,SuccessfulCalls-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,SuccessfulCalls-Description</Description>
       <Configuration>
-	    <FieldIndex>10</FieldIndex>
+        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
