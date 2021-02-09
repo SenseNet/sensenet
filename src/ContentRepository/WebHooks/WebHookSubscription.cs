@@ -97,9 +97,8 @@ namespace SenseNet.WebHooks
             // Check if the subscription contains the type of the content. Currently we
             // treat the defined content types as "exact" types, meaning you have to choose
             // the appropriate type, no type inheritance is taken into account.
-            var contentType = FilterData.ContentTypes
-                .FirstOrDefault(ct => ct.Name == snEvent.NodeEventArgs.SourceNode.NodeType.Name);
-
+            var node = snEvent.NodeEventArgs.SourceNode;
+            var contentType = FilterData.ContentTypes.FirstOrDefault(ct => ct.Name == node.NodeType.Name);
             if (contentType == null)
                 return Array.Empty<WebHookEventType>();
 
@@ -121,8 +120,7 @@ namespace SenseNet.WebHooks
                         return new[] {WebHookEventType.Create};
                     break;
                 case "NodeModifiedEvent":
-                    //UNDONE: determine business event type (e.g. Published, Checked in)
-                    break;
+                    return CollectVersioningEvents(selectedEvents, snEvent);
                 case "NodeForcedDeletedEvent":
                     if (selectedEvents.Contains(WebHookEventType.Delete))
                         return new[] { WebHookEventType.Delete };
@@ -130,6 +128,79 @@ namespace SenseNet.WebHooks
             }
 
             return Array.Empty<WebHookEventType>();
+        }
+
+        private WebHookEventType[] CollectVersioningEvents(WebHookEventType[] selectedEvents, ISnEvent snEvent)
+        {
+            var relevantEvents = new List<WebHookEventType>();
+            var node = snEvent.NodeEventArgs.SourceNode;
+            var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
+            var previousVersion = GetPreviousVersion();
+
+            foreach (var eventType in selectedEvents)
+            {
+                // check whether this event happened
+                switch (eventType)
+                {
+                    case WebHookEventType.Modify:
+                        // everything is a modification as of now
+                        relevantEvents.Add(WebHookEventType.Modify);
+                        break;
+                    case WebHookEventType.Approve:
+                        if (previousVersion?.Status == VersionStatus.Pending &&
+                            node.Version.Status == VersionStatus.Approved)
+                        {
+                            relevantEvents.Add(WebHookEventType.Approve);
+                            relevantEvents.Add(WebHookEventType.Modify);
+                        }
+                        break;
+                    case WebHookEventType.Publish:
+                        if ((previousVersion?.Status != VersionStatus.Pending &&
+                            node.Version.Status == VersionStatus.Pending) ||
+                            previousVersion?.Status != VersionStatus.Approved &&
+                            node.Version.Status == VersionStatus.Approved)
+                        {
+                            relevantEvents.Add(WebHookEventType.Publish);
+                            relevantEvents.Add(WebHookEventType.Modify);
+                        }
+                        break;
+                    case WebHookEventType.Reject:
+                        if (previousVersion?.Status == VersionStatus.Pending &&
+                            node.Version.Status == VersionStatus.Rejected)
+                        {
+                            relevantEvents.Add(WebHookEventType.Reject);
+                            relevantEvents.Add(WebHookEventType.Modify);
+                        }
+                        break;
+                    case WebHookEventType.CheckIn:
+                        if (previousVersion?.Status == VersionStatus.Locked &&
+                            node.Version.Status != VersionStatus.Locked)
+                        {
+                            relevantEvents.Add(WebHookEventType.CheckIn);
+                            relevantEvents.Add(WebHookEventType.Modify);
+                        }
+                        break;
+                    case WebHookEventType.CheckOut:
+                        if (previousVersion?.Status != VersionStatus.Locked &&
+                            node.Version.Status == VersionStatus.Locked)
+                        {
+                            relevantEvents.Add(WebHookEventType.CheckOut);
+                            relevantEvents.Add(WebHookEventType.Modify);
+                        }
+                        break;
+                }
+            }
+
+            return relevantEvents.Distinct().ToArray();
+
+            VersionNumber GetPreviousVersion()
+            {
+                var chv = eventArgs?.ChangedData?.FirstOrDefault(cd => cd.Name == "Version");
+                if (chv == null)
+                    return null;
+
+                return VersionNumber.TryParse((string) chv.Original, out var oldVersion) ? oldVersion : null;
+            }
         }
 
         // ===================================================================================== Overrides

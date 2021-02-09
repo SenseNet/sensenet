@@ -44,25 +44,18 @@ namespace SenseNet.WebHooks.Tests
                 // test webhook client should contain the even log
                 Assert.AreEqual(2, whc.Requests.Count);
 
-                var postObject1 = GetPostObject(whc.Requests[0].PostData);
+                var postObject1 = whc.Requests[0].PostProperties;
 
                 Assert.AreEqual(node1.Id, ((JsonElement)postObject1["nodeId"]).GetInt32());
                 Assert.AreEqual(node1.Path, ((JsonElement)postObject1["path"]).GetString());
                 Assert.AreEqual("Create", ((JsonElement)postObject1["eventName"]).GetString());
 
-                var postObject2 = GetPostObject(whc.Requests[1].PostData);
+                var postObject2 = whc.Requests[1].PostProperties;
 
                 Assert.AreEqual(node1.Id, ((JsonElement)postObject2["nodeId"]).GetInt32());
                 Assert.AreEqual(node1.Path, ((JsonElement)postObject2["path"]).GetString());
                 Assert.AreEqual("Delete", ((JsonElement)postObject2["eventName"]).GetString());
             });
-        }
-
-        private static IDictionary<string, object> GetPostObject(object postData)
-        {
-            var postJson = JsonSerializer.Serialize(postData);
-            var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
-            return postObject;
         }
 
         private IServiceProvider BuildServiceProvider()
@@ -73,7 +66,8 @@ namespace SenseNet.WebHooks.Tests
             services.AddLogging()
                 .AddSenseNetWebHookClient<TestWebHookClient>()
                 .AddSingleton<IEventProcessor, LocalWebHookProcessor>()
-                .AddSingleton<IWebHookSubscriptionStore, TestWebHookSubscriptionStore>();
+                .AddSingleton<IWebHookSubscriptionStore, TestWebHookSubscriptionStore>((s) =>
+                    new TestWebHookSubscriptionStore(null));
 
             var provider = services.BuildServiceProvider();
 

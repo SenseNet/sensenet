@@ -1,9 +1,13 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Versioning;
+using SenseNet.Events;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 
@@ -102,8 +106,6 @@ namespace SenseNet.WebHooks.Tests
                 Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
                 Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
                 Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event3).Single());
-
-                //UNDONE: add tests for more complex events: Publish, CheckIn
             });
         }
         [TestMethod]
@@ -146,6 +148,56 @@ namespace SenseNet.WebHooks.Tests
                 // triggered for ALL events of the type: only the appropriate events should be returned
                 Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
                 Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
+            });
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_RelevantEvent_Versioning()
+        {
+            var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
+            var webHookClient = new TestWebHookClient();
+
+            await Test((builder) =>
+                {
+                    builder
+                        .UseEventDistributor(new EventDistributor())
+                        .AddAsyncEventProcessors(new LocalWebHookProcessor(
+                        store,
+                        webHookClient, 
+                        new NullLogger<LocalWebHookProcessor>()));
+                },
+                async () =>
+            {
+                var file = CreateFile();
+
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""File"", 
+            ""Events"": [ ""Create"", ""Delete"", ""CheckOut"", ""CheckIn"", ""Publish"", ""Approve"", ""Reject"" ] 
+        }
+    ] 
+}");
+                store.Subscriptions.Add(wh);
+
+                //UNDONE: CheckOut does not trigger an event :(
+                file.CheckOut();
+
+                file.CheckIn();
+
+                Assert.AreEqual(2, webHookClient.Requests.Count);
+                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "CheckIn"));
+                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Modify"));
+                
+                webHookClient.Requests.Clear();
+
+                file.Publish();
+
+                Assert.AreEqual(2, webHookClient.Requests.Count);
+                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Publish"));
+                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Modify"));
+
+                //UNDONE: Add tests for Approve and Reject
             });
         }
 
@@ -206,6 +258,16 @@ namespace SenseNet.WebHooks.Tests
             wh.Save();
 
             return Node.LoadAsync<WebHookSubscription>(wh.Id, CancellationToken.None);
+        }
+
+        private File CreateFile()
+        {
+            var parent = (RepositoryTools.CreateStructure("/Root/Content/Docs", "DocumentLibrary")
+                          ?? Content.Load("/Root/Content/Docs")).ContentHandler;
+            var file = new File(parent) {VersioningMode = VersioningType.MajorAndMinor};
+            file.Save();
+
+            return file;
         }
     }
 }

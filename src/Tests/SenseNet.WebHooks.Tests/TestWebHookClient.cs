@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Dynamic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +12,21 @@ namespace SenseNet.WebHooks.Tests
         public string HttpMethod { get; set; }
         public object PostData { get; set; }
         public IDictionary<string, string> Headers { get; set; }
+
+        private IDictionary<string, object> _postProperties;
+        public IDictionary<string, object> PostProperties => _postProperties ??= GetPostProperties();
+
+        public string EventName => PostProperties.TryGetValue("eventName", out var en) ? ((JsonElement)en).GetString() : null;
+
+        private IDictionary<string, object> GetPostProperties()
+        {
+            if (PostData == null)
+                return new Dictionary<string, object>();
+
+            var postJson = JsonSerializer.Serialize(PostData);
+            var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
+            return postObject ?? new Dictionary<string, object>();
+        }
     }
 
     internal class TestWebHookClient : IWebHookClient

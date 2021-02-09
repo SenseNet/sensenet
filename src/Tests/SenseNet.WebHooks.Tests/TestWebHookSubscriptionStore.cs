@@ -8,10 +8,16 @@ namespace SenseNet.WebHooks.Tests
 {
     internal class TestWebHookSubscriptionStore : IWebHookSubscriptionStore
     {
+        public TestWebHookSubscriptionStore(IEnumerable<WebHookSubscription> subscriptions = null)
+        {
+            Subscriptions = subscriptions?.ToList() ?? CreateDefaultSubscriptions();
+        }
         /// <summary>
         /// Hardcoded subscription for items in the /Root/Content subtree.
         /// </summary>
-        private IEnumerable<WebHookSubscription> Subscriptions { get; } = new List<WebHookSubscription>(new[]
+        public List<WebHookSubscription> Subscriptions { get; } 
+
+        private List<WebHookSubscription> CreateDefaultSubscriptions() => new List<WebHookSubscription>(new[]
         {
             new WebHookSubscription(Repository.Root)
             {
