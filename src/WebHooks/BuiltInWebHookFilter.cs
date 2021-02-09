@@ -24,7 +24,7 @@ namespace SenseNet.WebHooks
                     var et = sub?.GetRelevantEventType(snEvent);
                     return et.HasValue ? new WebHookSubscriptionInfo(sub, et.Value) : null;
                 })
-                .Where(si => si != null)
+                .Where(si => si != null && si.Subscription.IsValid)
                 .ToList();
 
             if (!allSubs.Any())

@@ -28,7 +28,10 @@ namespace SenseNet.WebHooks
             var subscriptions = _filter.GetRelevantSubscriptions(snEvent);
 
             //TODO: extend webhook request payload with event-specific info
-            var sendingTasks = subscriptions.Select(si => _webHookClient.SendAsync(
+
+            var sendingTasks = subscriptions
+                .Where(si => si.Subscription.Enabled && si.Subscription.IsValid)
+                .Select(si => _webHookClient.SendAsync(
                 si.Subscription.Url,
                 si.Subscription.HttpMethod,
                 new

@@ -85,6 +85,11 @@ namespace SenseNet.WebHooks
         private const string FilterQueryCacheKey = "WebHookFilterQuery.Key";
         public string FilterQuery { get; set; }
 
+        private const string InvalidFieldsCacheKey = "InvalidFields.Key";
+        public string InvalidFields { get; private set; }
+
+        public bool IsValid => string.IsNullOrEmpty(InvalidFields);
+
         public WebHookEventType? GetRelevantEventType(ISnEvent snEvent)
         {
             WebHookEventType? FindEvent(WebHookEventType eventType)
@@ -115,9 +120,18 @@ namespace SenseNet.WebHooks
 
         // ===================================================================================== Overrides
 
+        private static readonly Dictionary<string, bool> InvalidFieldNames = new Dictionary<string, bool>
+        {
+            { FilterPropertyName, false },
+            { HeadersPropertyName, false }
+        };
+
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
+
+            var invalidFields = (Dictionary<string, bool>)GetCachedData(InvalidFieldsCacheKey)
+                ?? new Dictionary<string, bool>(InvalidFieldNames);
 
             #region Headers
             HttpHeaders = (IDictionary<string, string>)GetCachedData(HeadersCacheKey);
@@ -126,9 +140,11 @@ namespace SenseNet.WebHooks
                 try
                 {
                     HttpHeaders = JsonConvert.DeserializeObject<Dictionary<string, string>>(Headers ?? string.Empty);
+                    invalidFields[HeadersPropertyName] = false;
                 }
                 catch (Exception ex)
                 {
+                    invalidFields[HeadersPropertyName] = true;
                     SnLog.WriteWarning($"Error parsing webhook headers on subscription {Path}. {ex.Message}");
                 }
 
@@ -146,9 +162,11 @@ namespace SenseNet.WebHooks
                 try
                 {
                     FilterData = JsonConvert.DeserializeObject<WebHookFilterData>(Filter ?? string.Empty);
+                    invalidFields[FilterPropertyName] = false;
                 }
                 catch (Exception ex)
                 {
+                    invalidFields[FilterPropertyName] = true;
                     SnLog.WriteWarning($"Error parsing webhook filters on subscription {Path}. {ex.Message}");
                 }
 
@@ -179,6 +197,7 @@ namespace SenseNet.WebHooks
                 }
                 catch (Exception ex)
                 {
+                    invalidFields[FilterPropertyName] = true;
                     SnLog.WriteWarning($"Error building webhook filter query on subscription {Path}. {ex.Message}");
                 }
 
@@ -189,6 +208,9 @@ namespace SenseNet.WebHooks
             }
 
             #endregion
+
+            InvalidFields = string.Join(";", invalidFields.Where(kv => kv.Value).Select(kv => kv.Key));
+            SetCachedData(InvalidFieldsCacheKey, invalidFields);
         }
 
         /// <inheritdoc />

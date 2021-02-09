@@ -27,6 +27,7 @@ namespace SenseNet.WebHooks.Tests
     ] 
 }");
 
+                Assert.IsTrue(wh.IsValid);
                 Assert.AreEqual("/Root/Content", wh.FilterData.Path);
                 Assert.AreEqual(1, wh.FilterData.ContentTypes.Length);
                 Assert.AreEqual("Folder", wh.FilterData.ContentTypes[0].Name);
@@ -54,8 +55,13 @@ namespace SenseNet.WebHooks.Tests
             ""Events"": [ ""Create"", ""Modify"", ""Publish"" ] 
         }
     ] 
+}",
+                    @"{
+""h1"":  ""value1"",
+""h2"":  ""value2""
 }");
 
+                Assert.IsTrue(wh.IsValid);
                 Assert.AreEqual("/Root/Content", wh.FilterData.Path);
                 Assert.AreEqual("Folder,File",  string.Join(",", 
                     wh.FilterData.ContentTypes.Select(ct => ct.Name)));
@@ -63,6 +69,12 @@ namespace SenseNet.WebHooks.Tests
                     wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
 
                 Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
+
+                Assert.AreEqual(2, wh.HttpHeaders.Count);
+                Assert.AreEqual("h1", wh.HttpHeaders.Keys.First());
+                Assert.AreEqual("value1", wh.HttpHeaders.Values.First());
+                Assert.AreEqual("h2", wh.HttpHeaders.Keys.Last());
+                Assert.AreEqual("value2", wh.HttpHeaders.Values.Last());
             });
         }
 
@@ -92,6 +104,46 @@ namespace SenseNet.WebHooks.Tests
                 Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventType(event3));
 
                 //UNDONE: add tests for more complex events: Publish, CheckIn
+            });
+        }
+
+        [TestMethod]
+        public async Task WebHookSubscription_Invalid_Filter()
+        {
+            await Test(async () =>
+            {
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": 
+    ] 
+}",
+                    @"{
+""h1"":  ""value1"",
+""h2"":  ""value2""
+}");
+
+                Assert.IsFalse(wh.IsValid);
+                Assert.AreEqual("WebHookFilter", wh.InvalidFields);
+            });
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Invalid_FilterAndHeader()
+        {
+            await Test(async () =>
+            {
+                var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": 
+    ] 
+}",
+                    @"{""h1"":  ""value1""");
+
+                Assert.IsFalse(wh.IsValid);
+                Assert.AreEqual("WebHookFilter;WebHookHeaders", wh.InvalidFields);
             });
         }
 
