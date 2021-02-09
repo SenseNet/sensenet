@@ -85,9 +85,11 @@ namespace SenseNet.WebHooks
         private const string FilterQueryCacheKey = "WebHookFilterQuery.Key";
         public string FilterQuery { get; set; }
 
+        private const string InvalidFieldsPropertyName = "InvalidFields";
         private const string InvalidFieldsCacheKey = "InvalidFields.Key";
         public string InvalidFields { get; private set; }
 
+        private const string IsValidPropertyName = "IsValid";
         public bool IsValid => string.IsNullOrEmpty(InvalidFields);
 
         private static WebHookEventType[] AllEventTypes { get; } = (WebHookEventType[])Enum.GetValues(typeof(WebHookEventType));
@@ -304,6 +306,8 @@ namespace SenseNet.WebHooks
             return name switch
             {
                 EnabledPropertyName => this.Enabled,
+                IsValidPropertyName => this.IsValid,
+                InvalidFieldsPropertyName => this.InvalidFields,
                 UrlPropertyName => this.Url,
                 HttpMethodPropertyName => this.HttpMethod,
                 FilterPropertyName => this.Filter,
@@ -319,6 +323,9 @@ namespace SenseNet.WebHooks
             {
                 case EnabledPropertyName:
                     this.Enabled = (bool)value;
+                    break;
+                case IsValidPropertyName:
+                case InvalidFieldsPropertyName:
                     break;
                 case UrlPropertyName:
                     this.Url = (string)value;
