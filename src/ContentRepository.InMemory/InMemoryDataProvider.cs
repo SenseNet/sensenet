@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
@@ -1810,6 +1811,14 @@ namespace SenseNet.ContentRepository.InMemory
                     .ToArray();
                 return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
             }
+        }
+
+        /* =============================================================================================== Usage */
+
+        public override Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancel)
+        {
+            //UNDONE:<?usage: not mssql implemented
+            throw new NotImplementedException();
         }
 
         /* =============================================================================================== Tools */

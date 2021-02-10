@@ -1284,6 +1284,21 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 ";
         #endregion
 
+        /* ------------------------------------------------ Usage */
+
+        #region DatabaseUsageProfileScript
+        protected override string DatabaseUsageProfileScript { get; } = @"-- MsSqlDataProvider.DatabaseUsageProfile
+SELECT NodeId, ParentNodeId, NodeTypeId, OwnerId, LastMinorVersionId, COALESCE(LastMajorVersionId, 0) LastMajorVersionId,
+       Name FROM Nodes
+SELECT VersionId, NodeId, MajorNumber, MinorNumber, Status, COALESCE(DATALENGTH(DynamicProperties), 0) DynamicPropertiesSize,
+       COALESCE(DATALENGTH(ContentListProperties), 0) ContentListPropertiesSize,
+       COALESCE(DATALENGTH(ChangedData), 0) ChangedDataSize, COALESCE(DATALENGTH(IndexDocument), 0) IndexSize FROM Versions
+SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties
+SELECT VersionId, FileId FROM BinaryProperties
+SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files
+";
+        #endregion
+
         /* ------------------------------------------------ Tools */
     }
 

@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -928,5 +929,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="exception">The exception instance to check.</param>
         /// <returns>True if the provided exception refers to a transaction deadlock.</returns>
         public abstract bool IsDeadlockException(Exception exception);
+
+        public abstract Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancel);
     }
 }

@@ -14,6 +14,8 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Security.Messaging.SecurityMessages;
+using SenseNet.Storage.DataModel;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -2268,6 +2270,149 @@ ELSE CAST(0 AS BIT) END";
                 return Convert.ToBoolean(result);
             }
         }
+
+        /* =============================================================================================== Usage */
+
+        public override async Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancellation)
+        {
+            using (var ctx = CreateDataContext(cancellation))
+            {
+                return await ctx.ExecuteReaderAsync(DatabaseUsageProfileScript, async (reader, cancel) =>
+                {
+                    var nodes = new Dictionary<int, (int lastDraft, int lastPublic, DatabaseUsageProfile.NodeModel model)>();
+
+                    // NODES
+
+                    cancel.ThrowIfCancellationRequested();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+
+                        var nodeId = reader.GetInt32("NodeId");
+                        var lastDraft = reader.GetInt32("LastMinorVersionId");
+                        var lastPublic = reader.GetInt32("LastMajorVersionId");
+
+                        var node = new DatabaseUsageProfile.NodeModel
+                        {
+                            Id = nodeId,
+                            ParentId = reader.GetSafeInt32("ParentNodeId"),
+                            Type = NodeType.GetById(reader.GetInt32("NodeTypeId")),
+                            OwnerId = reader.GetSafeInt32("OwnerId"),
+                            Name = reader.GetString("Name"),
+                        };
+
+                        nodes.Add(nodeId,(lastDraft, lastPublic, node));
+                    }
+
+                    // VERSIONS
+
+                    cancel.ThrowIfCancellationRequested();
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    cancel.ThrowIfCancellationRequested();
+
+                    var versions = new Dictionary<int, DatabaseUsageProfile.VersionModel>();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+
+                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                        var nodeId = reader.GetInt32(reader.GetOrdinal("NodeId"));
+
+                        var version = new DatabaseUsageProfile.VersionModel
+                        {
+                            Version = new VersionNumber(reader.GetInt16("MajorNumber"), reader.GetInt16("MinorNumber"),
+                                (VersionStatus)reader.GetInt16("Status")),
+                            DynamicPropertiesSize = reader.GetInt64("DynamicPropertiesSize"),
+                            ContentListPropertiesSize = reader.GetInt64("ContentListPropertiesSize"),
+                            ChangedDataSize = reader.GetInt64("ChangedDataSize"),
+                            IndexSize = reader.GetInt64("IndexSize"),
+                            // LongTextSizes and BlobSizes are aggregated later.
+                        };
+                        versions.Add(versionId, version);
+
+                        // Add the version to the related node's appropriate slot.
+                        var nodeInfo = nodes[nodeId];
+                        if (versionId == nodeInfo.lastDraft)
+                        {
+                            nodeInfo.model.LastDraftVersion = version;
+                        }
+                        else if (versionId == nodeInfo.lastPublic)
+                        {
+                            if (versionId != nodeInfo.lastDraft)
+                                nodeInfo.model.LastPublicVersion = version;
+                        }
+                        else
+                        {
+                            nodeInfo.model.OldVersions.Add(version);
+                        }
+                    }
+
+                    // TEXTS
+
+                    cancel.ThrowIfCancellationRequested();
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    cancel.ThrowIfCancellationRequested();
+
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+
+                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                        var size = reader.GetInt64("Size");
+
+                        var version = versions[versionId];
+                        version.LongTextSizes += size;
+                    }
+
+                    // BLOBS
+
+                    cancel.ThrowIfCancellationRequested();
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    cancel.ThrowIfCancellationRequested();
+
+                    var binaryProperties = new Dictionary<int, int>(); // FileId => VersionId
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+
+                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                        var fileId = reader.GetInt32("FileId");
+                        binaryProperties.Add(fileId, versionId);
+                    }
+
+                    cancel.ThrowIfCancellationRequested();
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    cancel.ThrowIfCancellationRequested();
+
+                    var orphanedBlobSizes = 0L; //UNDONE:<?usage: use orphanedBlobSizes in the return object.
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+
+                        var fileId = reader.GetInt32(reader.GetOrdinal("FileId"));
+                        var size = Math.Max(reader.GetInt64("Size"), reader.GetInt64("StreamSize"));
+
+                        if (binaryProperties.TryGetValue(fileId, out var versionId))
+                        {
+                            var version = versions[versionId];
+                            version.BlobSizes += size;
+                        }
+                        else
+                        {
+                            orphanedBlobSizes += size;
+                        }
+                    }
+
+                    return new DatabaseUsageProfile.DatabaseUsageModel
+                    {
+                        Nodes = nodes.Values.Select(x => x.model).ToArray(),
+                        SizeOfOrphanedBlobs = orphanedBlobSizes
+                    };
+
+                }).ConfigureAwait(false);
+            }
+        }
+        protected abstract string DatabaseUsageProfileScript { get; }
 
         /* =============================================================================================== Tools */
 
