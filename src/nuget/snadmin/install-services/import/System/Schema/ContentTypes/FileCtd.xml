@@ -57,6 +57,7 @@
       <DisplayName>$Ctd-File,Size-DisplayName</DisplayName>
       <Description>$Ctd-File,Size-Description</Description>
       <Configuration>
+        <ControlHint>sn:FileSize</ControlHint>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
