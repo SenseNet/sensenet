@@ -5,6 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\WebHooks.Common\SenseNet.WebHooks.Common.csproj" />
   </ItemGroup>

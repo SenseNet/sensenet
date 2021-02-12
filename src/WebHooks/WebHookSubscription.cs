@@ -80,7 +80,7 @@ namespace SenseNet.WebHooks
         public IDictionary<string, string> HttpHeaders { get; private set; }
 
         private const string FilterCacheKey = "WebHookFilter.Key";
-        public WebHookFilterData FilterData { get; internal set; }
+        public WebHookFilterData FilterData { get; set; }
 
         private const string FilterQueryCacheKey = "WebHookFilterQuery.Key";
         public string FilterQuery { get; set; }
@@ -303,17 +303,17 @@ namespace SenseNet.WebHooks
         /// <inheritdoc />
         public override object GetProperty(string name)
         {
-            return name switch
+            switch (name)
             {
-                EnabledPropertyName => this.Enabled,
-                IsValidPropertyName => this.IsValid,
-                InvalidFieldsPropertyName => this.InvalidFields,
-                UrlPropertyName => this.Url,
-                HttpMethodPropertyName => this.HttpMethod,
-                FilterPropertyName => this.Filter,
-                HeadersPropertyName => this.Headers,
-                _ => base.GetProperty(name),
-            };
+                case EnabledPropertyName: return this.Enabled;
+                case IsValidPropertyName: return this.IsValid;
+                case InvalidFieldsPropertyName: return this.InvalidFields;
+                case UrlPropertyName: return this.Url;
+                case HttpMethodPropertyName: return this.HttpMethod;
+                case FilterPropertyName: return this.Filter;
+                case HeadersPropertyName: return this.Headers;
+                default: return base.GetProperty(name);
+            }
         }
 
         /// <inheritdoc />

@@ -19,9 +19,11 @@ namespace SenseNet.WebHooks.Tests
         [TestMethod]
         public async Task WebHookSubscription_OneType()
         {
-            await Test(async () =>
-            {
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
@@ -31,23 +33,25 @@ namespace SenseNet.WebHooks.Tests
     ] 
 }");
 
-                Assert.IsTrue(wh.IsValid);
-                Assert.AreEqual("/Root/Content", wh.FilterData.Path);
-                Assert.AreEqual(1, wh.FilterData.ContentTypes.Length);
-                Assert.AreEqual("Folder", wh.FilterData.ContentTypes[0].Name);
-                Assert.AreEqual(1, wh.FilterData.ContentTypes[0].Events.Length);
-                Assert.AreEqual(WebHookEventType.Create, wh.FilterData.ContentTypes[0].Events[0]);
+                    Assert.IsTrue(wh.IsValid);
+                    Assert.AreEqual("/Root/Content", wh.FilterData.Path);
+                    Assert.AreEqual(1, wh.FilterData.ContentTypes.Length);
+                    Assert.AreEqual("Folder", wh.FilterData.ContentTypes[0].Name);
+                    Assert.AreEqual(1, wh.FilterData.ContentTypes[0].Events.Length);
+                    Assert.AreEqual(WebHookEventType.Create, wh.FilterData.ContentTypes[0].Events[0]);
 
-                Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder)", wh.FilterQuery);
-            });
+                    Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder)", wh.FilterQuery);
+                });
         }
 
         [TestMethod]
         public async Task WebHookSubscription_Complex()
         {
-            await Test(async () =>
-            {
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
@@ -60,34 +64,36 @@ namespace SenseNet.WebHooks.Tests
         }
     ] 
 }",
-                    @"{
+                        @"{
 ""h1"":  ""value1"",
 ""h2"":  ""value2""
 }");
 
-                Assert.IsTrue(wh.IsValid);
-                Assert.AreEqual("/Root/Content", wh.FilterData.Path);
-                Assert.AreEqual("Folder,File",  string.Join(",", 
-                    wh.FilterData.ContentTypes.Select(ct => ct.Name)));
-                Assert.AreEqual("Create,Modify,Publish", string.Join(",",
-                    wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
+                    Assert.IsTrue(wh.IsValid);
+                    Assert.AreEqual("/Root/Content", wh.FilterData.Path);
+                    Assert.AreEqual("Folder,File", string.Join(",",
+                        wh.FilterData.ContentTypes.Select(ct => ct.Name)));
+                    Assert.AreEqual("Create,Modify,Publish", string.Join(",",
+                        wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
 
-                Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
+                    Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
 
-                Assert.AreEqual(2, wh.HttpHeaders.Count);
-                Assert.AreEqual("h1", wh.HttpHeaders.Keys.First());
-                Assert.AreEqual("value1", wh.HttpHeaders.Values.First());
-                Assert.AreEqual("h2", wh.HttpHeaders.Keys.Last());
-                Assert.AreEqual("value2", wh.HttpHeaders.Values.Last());
-            });
+                    Assert.AreEqual(2, wh.HttpHeaders.Count);
+                    Assert.AreEqual("h1", wh.HttpHeaders.Keys.First());
+                    Assert.AreEqual("value1", wh.HttpHeaders.Values.First());
+                    Assert.AreEqual("h2", wh.HttpHeaders.Keys.Last());
+                    Assert.AreEqual("value2", wh.HttpHeaders.Values.Last());
+                });
         }
 
         [TestMethod]
         public async Task WebHookSubscription_RelevantEvent()
         {
-            await Test(async () =>
-            {
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
@@ -97,24 +103,26 @@ namespace SenseNet.WebHooks.Tests
     ] 
 }");
 
-                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
-                var node1 = new Folder(parent1);
-                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                var event2 = new TestEvent1(new TestNodeEventArgs(node1));
-                var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                    var node1 = new Folder(parent1);
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                    var event2 = new TestEvent1(new TestNodeEventArgs(node1));
+                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
 
-                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
-                Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
-                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event3).Single());
-            });
+                    Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                    Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
+                    Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event3).Single());
+                });
         }
         [TestMethod]
         public async Task WebHookSubscription_RelevantEvent_All()
         {
-            await Test(async () =>
-            {
-                // TriggersForAllEvents is TRUE
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    // TriggersForAllEvents is TRUE
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
 ""TriggersForAllEvents"": true,
     ""ContentTypes"": [ 
@@ -125,17 +133,17 @@ namespace SenseNet.WebHooks.Tests
     ] 
 }");
 
-                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
-                var node1 = new Folder(parent1);
-                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                    var node1 = new Folder(parent1);
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                    var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
 
-                // triggered for ALL events: only the appropriate events should be returned
-                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
-                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
+                    // triggered for ALL events: only the appropriate events should be returned
+                    Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                    Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
 
-                // TriggersForAllEvents is FALSE, but All is selected for the type.
-                wh = await CreateWebHookSubscriptionAsync(@"{
+                    // TriggersForAllEvents is FALSE, but All is selected for the type.
+                    wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
 ""TriggersForAllEvents"": false,
     ""ContentTypes"": [ 
@@ -145,10 +153,10 @@ namespace SenseNet.WebHooks.Tests
         }
     ] 
 }");
-                // triggered for ALL events of the type: only the appropriate events should be returned
-                Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
-                Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
-            });
+                    // triggered for ALL events of the type: only the appropriate events should be returned
+                    Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                    Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
+                });
         }
         [TestMethod]
         public async Task WebHookSubscription_RelevantEvent_Versioning()
@@ -159,6 +167,7 @@ namespace SenseNet.WebHooks.Tests
             await Test((builder) =>
                 {
                     builder
+                        .UseComponent(new WebHookComponent())
                         .UseEventDistributor(new EventDistributor())
                         .AddAsyncEventProcessors(new LocalWebHookProcessor(
                         store,
@@ -204,41 +213,45 @@ namespace SenseNet.WebHooks.Tests
         [TestMethod]
         public async Task WebHookSubscription_Invalid_Filter()
         {
-            await Test(async () =>
-            {
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
             ""Name"": 
     ] 
 }",
-                    @"{
+                        @"{
 ""h1"":  ""value1"",
 ""h2"":  ""value2""
 }");
 
-                Assert.IsFalse(wh.IsValid);
-                Assert.AreEqual("WebHookFilter", wh.InvalidFields);
-            });
+                    Assert.IsFalse(wh.IsValid);
+                    Assert.AreEqual("WebHookFilter", wh.InvalidFields);
+                });
         }
         [TestMethod]
         public async Task WebHookSubscription_Invalid_FilterAndHeader()
         {
-            await Test(async () =>
-            {
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
             ""Name"": 
     ] 
 }",
-                    @"{""h1"":  ""value1""");
+                        @"{""h1"":  ""value1""");
 
-                Assert.IsFalse(wh.IsValid);
-                Assert.AreEqual("WebHookFilter;WebHookHeaders", wh.InvalidFields);
-            });
+                    Assert.IsFalse(wh.IsValid);
+                    Assert.AreEqual("WebHookFilter;WebHookHeaders", wh.InvalidFields);
+                });
         }
 
         private Task<WebHookSubscription> CreateWebHookSubscriptionAsync(string filter, string headers = null)

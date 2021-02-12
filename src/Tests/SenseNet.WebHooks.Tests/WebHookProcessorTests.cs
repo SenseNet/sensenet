@@ -20,42 +20,44 @@ namespace SenseNet.WebHooks.Tests
         [TestMethod]
         public async Task WebHook_Basic()
         {
-            await Test(async () =>
-            {
-                var provider = BuildServiceProvider();
-                var ep = provider.GetRequiredService<IEventProcessor>();
-                var whc = (TestWebHookClient)provider.GetRequiredService<IWebHookClient>();
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var provider = BuildServiceProvider();
+                    var ep = provider.GetRequiredService<IEventProcessor>();
+                    var whc = (TestWebHookClient) provider.GetRequiredService<IWebHookClient>();
 
-                var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
-                var parent2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
-                var node1 = new Folder(parent1);
-                var node2 = new Folder(parent2);
+                    var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                    var parent2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
+                    var node1 = new Folder(parent1);
+                    var node2 = new Folder(parent2);
 
-                // create mock events
-                var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2));
-                var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    // create mock events
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
+                    var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2));
+                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
 
-                // ACTION: fire mock events
-                await ep.ProcessEventAsync(event1, CancellationToken.None);
-                await ep.ProcessEventAsync(event2, CancellationToken.None);
-                await ep.ProcessEventAsync(event3, CancellationToken.None);
+                    // ACTION: fire mock events
+                    await ep.ProcessEventAsync(event1, CancellationToken.None);
+                    await ep.ProcessEventAsync(event2, CancellationToken.None);
+                    await ep.ProcessEventAsync(event3, CancellationToken.None);
 
-                // test webhook client should contain the even log
-                Assert.AreEqual(2, whc.Requests.Count);
+                    // test webhook client should contain the even log
+                    Assert.AreEqual(2, whc.Requests.Count);
 
-                var postObject1 = whc.Requests[0].PostProperties;
+                    var postObject1 = whc.Requests[0].PostProperties;
 
-                Assert.AreEqual(node1.Id, ((JsonElement)postObject1["nodeId"]).GetInt32());
-                Assert.AreEqual(node1.Path, ((JsonElement)postObject1["path"]).GetString());
-                Assert.AreEqual("Create", ((JsonElement)postObject1["eventName"]).GetString());
+                    Assert.AreEqual(node1.Id, ((JsonElement) postObject1["nodeId"]).GetInt32());
+                    Assert.AreEqual(node1.Path, ((JsonElement) postObject1["path"]).GetString());
+                    Assert.AreEqual("Create", ((JsonElement) postObject1["eventName"]).GetString());
 
-                var postObject2 = whc.Requests[1].PostProperties;
+                    var postObject2 = whc.Requests[1].PostProperties;
 
-                Assert.AreEqual(node1.Id, ((JsonElement)postObject2["nodeId"]).GetInt32());
-                Assert.AreEqual(node1.Path, ((JsonElement)postObject2["path"]).GetString());
-                Assert.AreEqual("Delete", ((JsonElement)postObject2["eventName"]).GetString());
-            });
+                    Assert.AreEqual(node1.Id, ((JsonElement) postObject2["nodeId"]).GetInt32());
+                    Assert.AreEqual(node1.Path, ((JsonElement) postObject2["path"]).GetString());
+                    Assert.AreEqual("Delete", ((JsonElement) postObject2["eventName"]).GetString());
+                });
         }
 
         private IServiceProvider BuildServiceProvider()

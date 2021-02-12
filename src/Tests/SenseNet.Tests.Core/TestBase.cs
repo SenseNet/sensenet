@@ -141,6 +141,7 @@ namespace SenseNet.Tests.Core
         {
             Cache.Reset();
             ContentTypeManager.Reset();
+            Providers.Instance.Components.Clear();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
