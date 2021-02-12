@@ -1815,9 +1815,10 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* =============================================================================================== Usage */
 
-        public override Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancel)
+        public override void ProcessDatabaseUsageProfile(Func<NodeModel, bool> nodeVersionCallback, Func<LongTextModel, bool> LongTextPropertyCallback, Func<BinaryPropertyModel, bool> BinaryPropertyCallback,
+            Func<FileModel, bool> FileCallback)
         {
-            //UNDONE:<?usage: not mssql implemented
+            //UNDONE:<?usage: not inmem implemented
             throw new NotImplementedException();
         }
 
@@ -1827,6 +1828,7 @@ namespace SenseNet.ContentRepository.InMemory
         {
             return exception.Message == "Transaction was deadlocked.";
         }
+
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

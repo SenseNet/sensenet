@@ -9,19 +9,9 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemDbUsageTests : IntegrationTest<InMemPlatform, DbUsageTests>
     {
         [TestMethod]
-        public void IntT_InMem_DbUsage_1()
-        {
-            TestCase.DbUsage_1().ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        [TestMethod]
         public void IntT_InMem_DbUsage_CheckPreviewStructure()
         {
-            TestCase.DbUsage_CheckPreviewStructure().ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        [TestMethod]
-        public void IntT_InMem_DbUsage_2()
-        {
-            TestCase.DbUsage_2().ConfigureAwait(false).GetAwaiter().GetResult();
+            TestCase.DbUsage_Previews().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

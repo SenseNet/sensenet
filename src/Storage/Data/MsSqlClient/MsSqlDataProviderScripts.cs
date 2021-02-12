@@ -1286,13 +1286,24 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 
         /* ------------------------------------------------ Usage */
 
-        #region DatabaseUsageProfileScript
-        protected override string DatabaseUsageProfileScript { get; } = @"-- MsSqlDataProvider.DatabaseUsageProfile
-SELECT NodeId, ParentNodeId, NodeTypeId, OwnerId, LastMinorVersionId, COALESCE(LastMajorVersionId, 0) LastMajorVersionId,
-       Name FROM Nodes
-SELECT VersionId, NodeId, MajorNumber, MinorNumber, Status, COALESCE(DATALENGTH(DynamicProperties), 0) DynamicPropertiesSize,
-       COALESCE(DATALENGTH(ContentListProperties), 0) ContentListPropertiesSize,
-       COALESCE(DATALENGTH(ChangedData), 0) ChangedDataSize, COALESCE(DATALENGTH(IndexDocument), 0) IndexSize FROM Versions
+        #region ProcessDatabaseUsageProfileScript
+        protected override string ProcessDatabaseUsageProfileScript { get; } = @"-- ProcessDatabaseUsageProfile
+SELECT N.NodeId, V.VersionId, N.ParentNodeId, 
+    N.NodeTypeId,
+    V.MajorNumber, V.MinorNumber, V.Status,
+    --CONVERT(Varchar, V.MajorNumber) + '.' + CONVERT(Varchar, V.MinorNumber) 
+    --    + '.' + CASE [Status] WHEN 1 THEN 'A' WHEN 2 THEN 'L' WHEN 4 THEN 'D' WHEN 8 THEN 'R' WHEN 16 THEN 'P' ELSE '' END AS Version, 
+    CASE V.VersionId WHEN N.LastMajorVersionId THEN 1 ELSE 0 END AS LastPub,
+    CASE V.VersionId WHEN N.LastMinorVersionId THEN 1 ELSE 0 END AS LastWork,
+    N.OwnerId, 
+    COALESCE(DATALENGTH(DynamicProperties), 0) DynamicPropertiesSize,
+    COALESCE(DATALENGTH(ContentListProperties), 0) ContentListPropertiesSize,
+    COALESCE(DATALENGTH(ChangedData), 0) ChangedDataSize,
+    COALESCE(DATALENGTH(IndexDocument), 0) IndexSize
+FROM Nodes N
+    JOIN Versions V ON V.NodeId = N.NodeId
+--ORDER BY N.NodeId
+
 SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties
 SELECT VersionId, FileId FROM BinaryProperties
 SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files

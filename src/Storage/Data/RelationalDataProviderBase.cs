@@ -2273,146 +2273,146 @@ ELSE CAST(0 AS BIT) END";
 
         /* =============================================================================================== Usage */
 
-        public override async Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancellation)
+        public override void ProcessDatabaseUsageProfile(
+            Func<NodeModel, bool> nodeVersionCallback,
+            Func<LongTextModel, bool> longTextPropertyCallback,
+            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
+            Func<FileModel, bool> fileCallback)
         {
-            using (var ctx = CreateDataContext(cancellation))
+            var cancellation = new CancellationTokenSource();
+            using (var ctx = CreateDataContext(cancellation.Token))
             {
-                return await ctx.ExecuteReaderAsync(DatabaseUsageProfileScript, async (reader, cancel) =>
+                var _ = ctx.ExecuteReaderAsync(ProcessDatabaseUsageProfileScript, (reader, cancel) =>
                 {
-                    var nodes = new Dictionary<int, (int lastDraft, int lastPublic, DatabaseUsageProfile.NodeModel model)>();
+                    // PROCESS NODE+VERSION ROWS
 
-                    // NODES
-
-                    cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    var nodeIdIndex = reader.GetOrdinal("NodeId");
+                    var versionIdIndex = reader.GetOrdinal("VersionId");
+                    var parentNodeIdIndex = reader.GetOrdinal("ParentNodeId");
+                    var nodeTypeIdIndex = reader.GetOrdinal("NodeTypeId");
+                    var majorNumberIndex = reader.GetOrdinal("MajorNumber");
+                    var minorNumberIndex = reader.GetOrdinal("MinorNumber");
+                    var statusIndex = reader.GetOrdinal("Status");
+                    var isLastPublicIndex = reader.GetOrdinal("LastPub");
+                    var isLastDraftIndex = reader.GetOrdinal("LastWork");
+                    var ownerIdIndex = reader.GetOrdinal("OwnerId");
+                    var dynamicPropertiesSizeIndex = reader.GetOrdinal("DynamicPropertiesSize");
+                    var contentListPropertiesSizeIndex = reader.GetOrdinal("ContentListPropertiesSize");
+                    var changedDataSizeIndex = reader.GetOrdinal("ChangedDataSize");
+                    var indexSizeIndex = reader.GetOrdinal("IndexSize");
+                    while (reader.Read())
                     {
-                        cancel.ThrowIfCancellationRequested();
-
-                        var nodeId = reader.GetInt32("NodeId");
-                        var lastDraft = reader.GetInt32("LastMinorVersionId");
-                        var lastPublic = reader.GetInt32("LastMajorVersionId");
-
-                        var node = new DatabaseUsageProfile.NodeModel
+                        try
                         {
-                            Id = nodeId,
-                            ParentId = reader.GetSafeInt32("ParentNodeId"),
-                            Type = NodeType.GetById(reader.GetInt32("NodeTypeId")),
-                            OwnerId = reader.GetSafeInt32("OwnerId"),
-                            Name = reader.GetString("Name"),
+                            var node = new NodeModel
+                            {
+                                NodeId = reader.GetInt32(nodeIdIndex),
+                                VersionId = reader.GetInt32(versionIdIndex),
+                                ParentNodeId = reader.GetSafeInt32(parentNodeIdIndex),
+                                NodeTypeId = reader.GetInt32(nodeTypeIdIndex),
+                                Version = ParseVersion(reader.GetInt16(majorNumberIndex),
+                                    reader.GetInt16(minorNumberIndex),
+                                    reader.GetInt16(statusIndex)),
+                                IsLastPublic = reader.GetInt32(isLastPublicIndex) > 0,
+                                IsLastDraft = reader.GetInt32(isLastDraftIndex) > 0,
+                                OwnerId = reader.GetInt32(ownerIdIndex),
+                                DynamicPropertiesSize = reader.GetInt64(dynamicPropertiesSizeIndex),
+                                ContentListPropertiesSize = reader.GetInt64(contentListPropertiesSizeIndex),
+                                ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
+                                IndexSize = reader.GetInt64(indexSizeIndex),
+                            };
+                            var cancelRequested =
+                                nodeVersionCallback(node); //UNDONE:<?usage: missing test: cancel request
+                            if (cancelRequested)
+                                cancellation.Cancel(true);
+                        }
+                        catch (Exception e)
+                        {
+                            throw;
+                        }
+                    }
+
+                    if (!reader.NextResult())
+                        throw new ApplicationException("Missing result set: LongTextModels.");
+
+                    // PROCESS LONGTEXT ROWS
+
+                    versionIdIndex = reader.GetOrdinal("VersionId");
+                    var sizeIndex = reader.GetOrdinal("Size");
+                    while (reader.Read())
+                    {
+                        var longText = new LongTextModel
+                        {
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            Size = reader.GetInt64(sizeIndex),
                         };
-
-                        nodes.Add(nodeId,(lastDraft, lastPublic, node));
+                        var cancelRequested = longTextPropertyCallback(longText);
+                        if (cancelRequested)
+                            cancellation.Cancel(true);
                     }
 
-                    // VERSIONS
+                    // PROCESS BINARY PROPERTY ROWS
 
-                    cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
-                    cancel.ThrowIfCancellationRequested();
+                    if (!reader.NextResult())
+                        throw new ApplicationException("Missing result set: LongTextModels.");
 
-                    var versions = new Dictionary<int, DatabaseUsageProfile.VersionModel>();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    versionIdIndex = reader.GetOrdinal("VersionId");
+                    var fileIdIndex = reader.GetOrdinal("FileId");
+                    while (reader.Read())
                     {
-                        cancel.ThrowIfCancellationRequested();
-
-                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                        var nodeId = reader.GetInt32(reader.GetOrdinal("NodeId"));
-
-                        var version = new DatabaseUsageProfile.VersionModel
+                        var binaryProperty = new BinaryPropertyModel
                         {
-                            Version = new VersionNumber(reader.GetInt16("MajorNumber"), reader.GetInt16("MinorNumber"),
-                                (VersionStatus)reader.GetInt16("Status")),
-                            DynamicPropertiesSize = reader.GetInt64("DynamicPropertiesSize"),
-                            ContentListPropertiesSize = reader.GetInt64("ContentListPropertiesSize"),
-                            ChangedDataSize = reader.GetInt64("ChangedDataSize"),
-                            IndexSize = reader.GetInt64("IndexSize"),
-                            // LongTextSizes and BlobSizes are aggregated later.
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            FileId = reader.GetInt32(fileIdIndex),
                         };
-                        versions.Add(versionId, version);
-
-                        // Add the version to the related node's appropriate slot.
-                        var nodeInfo = nodes[nodeId];
-                        if (versionId == nodeInfo.lastDraft)
-                        {
-                            nodeInfo.model.LastDraftVersion = version;
-                        }
-                        else if (versionId == nodeInfo.lastPublic)
-                        {
-                            if (versionId != nodeInfo.lastDraft)
-                                nodeInfo.model.LastPublicVersion = version;
-                        }
-                        else
-                        {
-                            nodeInfo.model.OldVersions.Add(version);
-                        }
+                        var cancelRequested = binaryPropertyCallback(binaryProperty);
+                        if (cancelRequested)
+                            cancellation.Cancel(true);
                     }
 
-                    // TEXTS
+                    // PROCESS FILE ROWS
 
-                    cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
-                    cancel.ThrowIfCancellationRequested();
+                    if (!reader.NextResult())
+                        throw new ApplicationException("Missing result set: LongTextModels.");
 
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    fileIdIndex = reader.GetOrdinal("FileId");
+                    sizeIndex = reader.GetOrdinal("Size");
+                    var streamSizeIndex = reader.GetOrdinal("StreamSize");
+                    while (reader.Read())
                     {
-                        cancel.ThrowIfCancellationRequested();
-
-                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                        var size = reader.GetInt64("Size");
-
-                        var version = versions[versionId];
-                        version.LongTextSizes += size;
-                    }
-
-                    // BLOBS
-
-                    cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
-                    cancel.ThrowIfCancellationRequested();
-
-                    var binaryProperties = new Dictionary<int, int>(); // FileId => VersionId
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-
-                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                        var fileId = reader.GetInt32("FileId");
-                        binaryProperties.Add(fileId, versionId);
-                    }
-
-                    cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
-                    cancel.ThrowIfCancellationRequested();
-
-                    var orphanedBlobSizes = 0L; //UNDONE:<?usage: use orphanedBlobSizes in the return object.
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-
-                        var fileId = reader.GetInt32(reader.GetOrdinal("FileId"));
-                        var size = Math.Max(reader.GetInt64("Size"), reader.GetInt64("StreamSize"));
-
-                        if (binaryProperties.TryGetValue(fileId, out var versionId))
+                        var fileModel = new FileModel
                         {
-                            var version = versions[versionId];
-                            version.BlobSizes += size;
-                        }
-                        else
-                        {
-                            orphanedBlobSizes += size;
-                        }
+                            FileId = reader.GetInt32(fileIdIndex),
+                            Size = reader.GetInt64(sizeIndex),
+                            StreamSize = reader.GetInt64(streamSizeIndex)
+                        };
+                        var cancelRequested = fileCallback(fileModel);
+                        if (cancelRequested)
+                            cancellation.Cancel(true);
                     }
 
-                    return new DatabaseUsageProfile.DatabaseUsageModel
-                    {
-                        Nodes = nodes.Values.Select(x => x.model).ToArray(),
-                        SizeOfOrphanedBlobs = orphanedBlobSizes
-                    };
+                    return Task.FromResult(true);
 
-                }).ConfigureAwait(false);
+                }).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
-        protected abstract string DatabaseUsageProfileScript { get; }
+        protected abstract string ProcessDatabaseUsageProfileScript { get; }
+
+        private string ParseVersion(int major, int minor, short status)
+        {
+            VersionStatus versionStatus;
+            switch (status)
+            {
+                case 1: versionStatus = VersionStatus.Approved; break;
+                case 2: versionStatus = VersionStatus.Locked; break;
+                case 4: versionStatus = VersionStatus.Draft; break;
+                case 8: versionStatus = VersionStatus.Rejected; break;
+                case 16: versionStatus = VersionStatus.Pending; break;
+                default: throw new ArgumentException("Unknown VersionStatus: {status}");
+            }
+            return new VersionNumber(major, minor, versionStatus).ToDisplayText();
+        }
+
 
         /* =============================================================================================== Tools */
 

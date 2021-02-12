@@ -906,6 +906,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             return Task.CompletedTask;
         }
 
+        /* =============================================================================================== Usage */
+
+        public abstract void ProcessDatabaseUsageProfile(
+            Func<NodeModel, bool> nodeVersionCallback,
+            Func<LongTextModel, bool> longTextPropertyCallback,
+            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
+            Func<FileModel, bool> fileCallback);
+
         /* =============================================================================================== Tools */
 
         /// <summary>
@@ -929,7 +937,5 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="exception">The exception instance to check.</param>
         /// <returns>True if the provided exception refers to a transaction deadlock.</returns>
         public abstract bool IsDeadlockException(Exception exception);
-
-        public abstract Task<DatabaseUsageProfile.DatabaseUsageModel> GetUsageModelAsync(CancellationToken cancel);
     }
 }
