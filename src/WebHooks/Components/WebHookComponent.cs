@@ -61,6 +61,13 @@ namespace SenseNet.WebHooks
                         ContentTypeInstaller.InstallContentType(ctdStream);
                     }
                     #endregion
+
+                    #region Content items
+
+                    var webHooks = RepositoryTools.CreateStructure("/Root/System/WebHooks", 
+                        "SystemFolder");
+
+                    #endregion
                 });
         }
     }
