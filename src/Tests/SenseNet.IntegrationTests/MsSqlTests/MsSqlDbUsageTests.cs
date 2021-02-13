@@ -12,7 +12,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_DbUsage_CheckPreviewStructure()
         {
-            TestCase.DbUsage_Previews().ConfigureAwait(false).GetAwaiter().GetResult();
+            TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

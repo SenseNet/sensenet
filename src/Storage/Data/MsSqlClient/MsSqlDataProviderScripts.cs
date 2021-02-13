@@ -1288,11 +1288,7 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 
         #region ProcessDatabaseUsageProfileScript
         protected override string ProcessDatabaseUsageProfileScript { get; } = @"-- ProcessDatabaseUsageProfile
-SELECT N.NodeId, V.VersionId, N.ParentNodeId, 
-    N.NodeTypeId,
-    V.MajorNumber, V.MinorNumber, V.Status,
-    --CONVERT(Varchar, V.MajorNumber) + '.' + CONVERT(Varchar, V.MinorNumber) 
-    --    + '.' + CASE [Status] WHEN 1 THEN 'A' WHEN 2 THEN 'L' WHEN 4 THEN 'D' WHEN 8 THEN 'R' WHEN 16 THEN 'P' ELSE '' END AS Version, 
+SELECT N.NodeId, V.VersionId, N.ParentNodeId, N.NodeTypeId, V.MajorNumber, V.MinorNumber, V.Status,
     CASE V.VersionId WHEN N.LastMajorVersionId THEN 1 ELSE 0 END AS LastPub,
     CASE V.VersionId WHEN N.LastMinorVersionId THEN 1 ELSE 0 END AS LastWork,
     N.OwnerId, 
@@ -1302,7 +1298,6 @@ SELECT N.NodeId, V.VersionId, N.ParentNodeId,
     COALESCE(DATALENGTH(IndexDocument), 0) IndexSize
 FROM Nodes N
     JOIN Versions V ON V.NodeId = N.NodeId
---ORDER BY N.NodeId
 
 SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties
 SELECT VersionId, FileId FROM BinaryProperties

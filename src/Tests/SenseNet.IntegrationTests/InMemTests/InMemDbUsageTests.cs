@@ -11,7 +11,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public void IntT_InMem_DbUsage_CheckPreviewStructure()
         {
-            TestCase.DbUsage_Previews().ConfigureAwait(false).GetAwaiter().GetResult();
+            TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }
