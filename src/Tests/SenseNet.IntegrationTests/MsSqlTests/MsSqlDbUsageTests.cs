@@ -10,7 +10,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
     public class MsSqlDbUsageTests : IntegrationTest<MsSqlPlatform, DbUsageTests>
     {
         [TestMethod]
-        public void IntT_MsSql_DbUsage_CheckPreviewStructure()
+        public void IntT_MsSql_DbUsage_PreviewsVersionsBlobsTexts()
         {
             TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false).GetAwaiter().GetResult();
         }

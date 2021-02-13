@@ -9,7 +9,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemDbUsageTests : IntegrationTest<InMemPlatform, DbUsageTests>
     {
         [TestMethod]
-        public void IntT_InMem_DbUsage_CheckPreviewStructure()
+        public void IntT_InMem_DbUsage_PreviewsVersionsBlobsTexts()
         {
             TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false).GetAwaiter().GetResult();
         }
