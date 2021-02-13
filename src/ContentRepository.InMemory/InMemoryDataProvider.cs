@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -1815,11 +1816,95 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* =============================================================================================== Usage */
 
-        public override void ProcessDatabaseUsageProfile(Func<NodeModel, bool> nodeVersionCallback, Func<LongTextModel, bool> LongTextPropertyCallback, Func<BinaryPropertyModel, bool> BinaryPropertyCallback,
-            Func<FileModel, bool> FileCallback)
+        public override void ProcessDatabaseUsageProfile(
+            Func<NodeModel, bool> nodeVersionCallback,
+            Func<LongTextModel, bool> longTextPropertyCallback,
+            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
+            Func<FileModel, bool> fileCallback)
         {
-            //UNDONE:<?usage: not inmem implemented
-            throw new NotImplementedException();
+            // PROCESS NODE+VERSION ROWS
+
+            foreach (var dbVersion in DB.Versions)
+            {
+                var dbNode = DB.Nodes.FirstOrDefault(n => n.NodeId == dbVersion.NodeId);
+                if (dbNode == null)
+                    continue;
+                var nodeModel = new NodeModel
+                {
+                    NodeId = dbNode.NodeId,
+                    VersionId = dbVersion.VersionId,
+                    ParentNodeId = dbNode.ParentNodeId,
+                    NodeTypeId = dbNode.NodeTypeId,
+                    Version = dbVersion.Version.ToString(),
+                    IsLastPublic = dbNode.LastMajorVersionId == dbVersion.VersionId,
+                    IsLastDraft = dbNode.LastMinorVersionId == dbVersion.VersionId,
+                    OwnerId = dbNode.OwnerId,
+                    DynamicPropertiesSize = GetObjectSize(dbVersion.DynamicProperties),
+                    ContentListPropertiesSize = 0L,
+                    ChangedDataSize = GetObjectSize(dbVersion.ChangedData),
+                    IndexSize = 2 * dbVersion.IndexDocument?.Length ?? 0,
+                };
+                if (nodeVersionCallback(nodeModel))
+                    throw new OperationCanceledException();
+            }
+
+            // PROCESS LONGTEXT ROWS
+
+            foreach (var dbLongTextProperty in DB.LongTextProperties)
+            {
+                var longTextModel = new LongTextModel
+                {
+                    VersionId = dbLongTextProperty.VersionId,
+                    Size = 2 * dbLongTextProperty.Value?.Length ?? 0L
+                };
+                if (longTextPropertyCallback(longTextModel))
+                    throw new OperationCanceledException();
+            }
+
+            // PROCESS BINARY PROPERTY ROWS
+
+            foreach (var dbBinaryProperty in DB.BinaryProperties)
+            {
+                var binaryProperty = new BinaryPropertyModel
+                {
+                    VersionId = dbBinaryProperty.VersionId,
+                    FileId = dbBinaryProperty.FileId,
+                };
+                if (binaryPropertyCallback(binaryProperty))
+                    throw new OperationCanceledException();
+            }
+
+            // PROCESS FILE ROWS
+
+            foreach (var dbFile in DB.Files)
+            {
+                var fileModel = new FileModel
+                {
+                    FileId =dbFile.FileId,
+                    Size = dbFile.Size,
+                    StreamSize = dbFile.Buffer?.Length ?? 0L
+                };
+                if (fileCallback(fileModel))
+                    throw new OperationCanceledException();
+            }
+        }
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.None
+        };
+        private static long GetObjectSize (object o)
+        {
+            if (o == null)
+                return 0L;
+
+            using (var writer = new StringWriter())
+            {
+                JsonSerializer.Create(JsonSerializerSettings).Serialize(writer, o);
+                var serializedDoc = writer.GetStringBuilder().ToString();
+                return 2 * serializedDoc.Length;
+            }
         }
 
         /* =============================================================================================== Tools */

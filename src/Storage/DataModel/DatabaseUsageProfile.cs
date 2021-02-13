@@ -129,7 +129,7 @@ namespace SenseNet.Storage.DataModel
                 dimensions.Metadata += node.DynamicPropertiesSize + node.ContentListPropertiesSize + node.ChangedDataSize;
                 dimensions.Index += node.IndexSize;
 
-                return true;
+                return false;
             }
             bool ProcessLongText(LongTextModel model)
             {
@@ -141,7 +141,7 @@ namespace SenseNet.Storage.DataModel
                         break;
                     }
                 }
-                return true;
+                return false;
             }
             bool ProcessBinary(BinaryPropertyModel model)
             {
@@ -153,7 +153,7 @@ namespace SenseNet.Storage.DataModel
                         break;
                     }
                 }
-                return true;
+                return false;
             }
             bool ProcessFile(FileModel model)
             {
@@ -172,7 +172,7 @@ namespace SenseNet.Storage.DataModel
                 if (!found)
                     sizeOfOrphanedBlobs += size;
 
-                return true;
+                return false;
             }
 
             _dataProvider.ProcessDatabaseUsageProfile(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
