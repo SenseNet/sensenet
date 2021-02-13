@@ -2400,17 +2400,17 @@ ELSE CAST(0 AS BIT) END";
 
         private string ParseVersion(int major, int minor, short status)
         {
-            VersionStatus versionStatus;
+            char c;
             switch (status)
             {
-                case 1: versionStatus = VersionStatus.Approved; break;
-                case 2: versionStatus = VersionStatus.Locked; break;
-                case 4: versionStatus = VersionStatus.Draft; break;
-                case 8: versionStatus = VersionStatus.Rejected; break;
-                case 16: versionStatus = VersionStatus.Pending; break;
+                case 1: c = 'A'; break;
+                case 2: c = 'L'; break;
+                case 4: c = 'D'; break;
+                case 8: c = 'R'; break;
+                case 16: c = 'P'; break;
                 default: throw new ArgumentException("Unknown VersionStatus: {status}");
             }
-            return new VersionNumber(major, minor, versionStatus).ToDisplayText();
+            return $"V{major}.{minor}.{c}";
         }
 
 
