@@ -2319,10 +2319,12 @@ ELSE CAST(0 AS BIT) END";
                             ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
                             IndexSize = reader.GetInt64(indexSizeIndex),
                         };
-                        var cancelRequested =
-                            nodeVersionCallback(node); //UNDONE:<?usage: missing test: cancel request
+                        var cancelRequested = nodeVersionCallback(node);
                         if (cancelRequested)
+                        {
                             cancellation.Cancel(true);
+                            throw new OperationCanceledException();
+                        }
                     }
 
                     if (!reader.NextResult())
@@ -2341,7 +2343,10 @@ ELSE CAST(0 AS BIT) END";
                         };
                         var cancelRequested = longTextPropertyCallback(longText);
                         if (cancelRequested)
+                        {
                             cancellation.Cancel(true);
+                            throw new OperationCanceledException();
+                        }
                     }
 
                     // PROCESS BINARY PROPERTY ROWS
@@ -2360,7 +2365,10 @@ ELSE CAST(0 AS BIT) END";
                         };
                         var cancelRequested = binaryPropertyCallback(binaryProperty);
                         if (cancelRequested)
+                        {
                             cancellation.Cancel(true);
+                            throw new OperationCanceledException();
+                        }
                     }
 
                     // PROCESS FILE ROWS
@@ -2381,7 +2389,10 @@ ELSE CAST(0 AS BIT) END";
                         };
                         var cancelRequested = fileCallback(fileModel);
                         if (cancelRequested)
+                        {
                             cancellation.Cancel(true);
+                            throw new OperationCanceledException();
+                        }
                     }
 
                     return Task.FromResult(true);
