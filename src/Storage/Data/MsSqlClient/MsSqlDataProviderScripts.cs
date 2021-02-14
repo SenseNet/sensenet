@@ -1286,8 +1286,8 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 
         /* ------------------------------------------------ Usage */
 
-        #region ProcessDatabaseUsageProfileScript
-        protected override string ProcessDatabaseUsageProfileScript { get; } = @"-- ProcessDatabaseUsageProfile
+        #region LoadDatabaseUsageProfileScript
+        protected override string LoadDatabaseUsageProfileScript { get; } = @"-- LoadDatabaseUsageProfile
 SELECT N.NodeId, V.VersionId, N.ParentNodeId, N.NodeTypeId, V.MajorNumber, V.MinorNumber, V.Status,
     CASE V.VersionId WHEN N.LastMajorVersionId THEN 1 ELSE 0 END AS LastPub,
     CASE V.VersionId WHEN N.LastMinorVersionId THEN 1 ELSE 0 END AS LastWork,

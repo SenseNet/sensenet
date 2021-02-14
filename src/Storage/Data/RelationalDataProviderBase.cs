@@ -2273,7 +2273,7 @@ ELSE CAST(0 AS BIT) END";
 
         /* =============================================================================================== Usage */
 
-        public override void ProcessDatabaseUsageProfile(
+        public override void LoadDatabaseUsageProfile(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
             Func<BinaryPropertyModel, bool> binaryPropertyCallback,
@@ -2282,7 +2282,7 @@ ELSE CAST(0 AS BIT) END";
             var cancellation = new CancellationTokenSource();
             using (var ctx = CreateDataContext(cancellation.Token))
             {
-                var _ = ctx.ExecuteReaderAsync(ProcessDatabaseUsageProfileScript, (reader, cancel) =>
+                var _ = ctx.ExecuteReaderAsync(LoadDatabaseUsageProfileScript, (reader, cancel) =>
                 {
                     // PROCESS NODE+VERSION ROWS
 
@@ -2302,34 +2302,27 @@ ELSE CAST(0 AS BIT) END";
                     var indexSizeIndex = reader.GetOrdinal("IndexSize");
                     while (reader.Read())
                     {
-                        try
+                        var node = new NodeModel
                         {
-                            var node = new NodeModel
-                            {
-                                NodeId = reader.GetInt32(nodeIdIndex),
-                                VersionId = reader.GetInt32(versionIdIndex),
-                                ParentNodeId = reader.GetSafeInt32(parentNodeIdIndex),
-                                NodeTypeId = reader.GetInt32(nodeTypeIdIndex),
-                                Version = ParseVersion(reader.GetInt16(majorNumberIndex),
-                                    reader.GetInt16(minorNumberIndex),
-                                    reader.GetInt16(statusIndex)),
-                                IsLastPublic = reader.GetInt32(isLastPublicIndex) > 0,
-                                IsLastDraft = reader.GetInt32(isLastDraftIndex) > 0,
-                                OwnerId = reader.GetInt32(ownerIdIndex),
-                                DynamicPropertiesSize = reader.GetInt64(dynamicPropertiesSizeIndex),
-                                ContentListPropertiesSize = reader.GetInt64(contentListPropertiesSizeIndex),
-                                ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
-                                IndexSize = reader.GetInt64(indexSizeIndex),
-                            };
-                            var cancelRequested =
-                                nodeVersionCallback(node); //UNDONE:<?usage: missing test: cancel request
-                            if (cancelRequested)
-                                cancellation.Cancel(true);
-                        }
-                        catch (Exception e)
-                        {
-                            throw;
-                        }
+                            NodeId = reader.GetInt32(nodeIdIndex),
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            ParentNodeId = reader.GetSafeInt32(parentNodeIdIndex),
+                            NodeTypeId = reader.GetInt32(nodeTypeIdIndex),
+                            Version = ParseVersion(reader.GetInt16(majorNumberIndex),
+                                reader.GetInt16(minorNumberIndex),
+                                reader.GetInt16(statusIndex)),
+                            IsLastPublic = reader.GetInt32(isLastPublicIndex) > 0,
+                            IsLastDraft = reader.GetInt32(isLastDraftIndex) > 0,
+                            OwnerId = reader.GetInt32(ownerIdIndex),
+                            DynamicPropertiesSize = reader.GetInt64(dynamicPropertiesSizeIndex),
+                            ContentListPropertiesSize = reader.GetInt64(contentListPropertiesSizeIndex),
+                            ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
+                            IndexSize = reader.GetInt64(indexSizeIndex),
+                        };
+                        var cancelRequested =
+                            nodeVersionCallback(node); //UNDONE:<?usage: missing test: cancel request
+                        if (cancelRequested)
+                            cancellation.Cancel(true);
                     }
 
                     if (!reader.NextResult())
@@ -2396,7 +2389,7 @@ ELSE CAST(0 AS BIT) END";
                 }).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
-        protected abstract string ProcessDatabaseUsageProfileScript { get; }
+        protected abstract string LoadDatabaseUsageProfileScript { get; }
 
         private string ParseVersion(int major, int minor, short status)
         {

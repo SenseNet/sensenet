@@ -175,7 +175,7 @@ namespace SenseNet.Storage.DataModel
                 return false;
             }
 
-            _dataProvider.ProcessDatabaseUsageProfile(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
+            _dataProvider.LoadDatabaseUsageProfile(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
 
             this.Preview = db[previewImage].Dimensions.Clone();
             this.System = db[systemLast].Dimensions.Clone();

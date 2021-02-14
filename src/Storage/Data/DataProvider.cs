@@ -908,7 +908,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Usage */
 
-        public abstract void ProcessDatabaseUsageProfile(
+        public abstract void LoadDatabaseUsageProfile(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
             Func<BinaryPropertyModel, bool> binaryPropertyCallback,
