@@ -9,46 +9,120 @@ using SenseNet.ContentRepository.Storage.Schema;
 
 namespace SenseNet.Storage.DataModel
 {
+    /// <summary>
+    /// Represents a version of a <see cref="Node"/> in the database usage profile.
+    /// </summary>
     public class NodeModel
     {
         public int NodeId { get; set; }
         public int VersionId { get; set; }
         public int ParentNodeId { get; set; }
         public int NodeTypeId { get; set; }
+        /// <summary>
+        /// Version in the <c>V{major}.{minor}.{status}</c> format (e.g. V1.2.D).
+        /// </summary>
         public string Version { get; set; }
+        /// <summary>
+        /// True if the VersionId equals with the id of the last public version.
+        /// </summary>
         public bool IsLastPublic { get; set; }
+        /// <summary>
+        /// True if the VersionId equals with the id of the last version.
+        /// </summary>
         public bool IsLastDraft { get; set; }
         public int OwnerId { get; set; }
+        /// <summary>
+        /// Size of the dynamic properties in bytes.
+        /// </summary>
         public long DynamicPropertiesSize { get; set; }
+        /// <summary>
+        /// Size of the content-list properties in bytes.
+        /// </summary>
         public long ContentListPropertiesSize { get; set; }
+        /// <summary>
+        /// Size of the changed data properties in bytes.
+        /// </summary>
         public long ChangedDataSize { get; set; }
+        /// <summary>
+        /// Size of the precompiled index document in bytes.
+        /// </summary>
         public long IndexSize { get; set; }
     }
+    /// <summary>
+    /// Represents a long text property in the database usage profile.
+    /// </summary>
     public class LongTextModel
     {
         public int VersionId { get; set; }
+        /// <summary>
+        /// Size of the text value in bytes.
+        /// </summary>
         public long Size { get; set; }
     }
+    /// <summary>
+    /// Represents a binary property in the database usage profile.
+    /// </summary>
+    /// <remarks>
+    /// The binary property is a linker object between a <see cref="Node"/> and a <c>File</c> representation.
+    /// </remarks>
     public class BinaryPropertyModel
     {
         public int VersionId { get; set; }
         public int FileId { get; set; }
     }
+    /// <summary>
+    /// Represents a blob in the database usage profile.
+    /// </summary>
+    /// <remarks>
+    /// It is connected to a <see cref="Node"/> through a binary property.
+    /// If the connection is broken, the file is deletable (orphaned).
+    /// </remarks>
     public class FileModel
     {
         public int FileId { get; set; }
+        /// <summary>
+        /// Size of the stream.
+        /// </summary>
         public long Size { get; set; }
+        /// <summary>
+        /// Size of the stream if it is stored in the built in table otherwise 0.
+        /// </summary>
         public long StreamSize { get; set; }
     }
 
+    /// <summary>
+    /// Represents aggregated counters.
+    /// </summary>
     public class Dimensions
     {
+        /// <summary>
+        /// Count of rows.
+        /// </summary>
         public int Count { get; set; }
+        /// <summary>
+        /// Size of blobs in bytes.
+        /// </summary>
         public long Blob { get; set; }
+        /// <summary>
+        /// Size of metadata in bytes.
+        /// </summary>
+        /// <remarks>
+        /// Summary of the <c>DynamicPropertiesSize</c>, <c>ContentListPropertiesSize</c> and <c>ChangedDataSize</c>
+        /// of the related <see cref="NodeModel"/>s.
+        /// </remarks>
         public long Metadata { get; set; }
+        /// <summary>
+        /// Size of long text properties in bytes.
+        /// </summary>
         public long Text { get; set; }
+        /// <summary>
+        /// Size of the precompiled index documents in bytes.
+        /// </summary>
         public long Index { get; set; }
 
+        /// <summary>
+        /// Combines the given <see cref="Dimensions"/>s and returns a new one. 
+        /// </summary>
         public static Dimensions Sum(params Dimensions[] items)
         {
             var d = new Dimensions();
@@ -63,6 +137,10 @@ namespace SenseNet.Storage.DataModel
             return d;
         }
 
+        /// <summary>
+        /// Returns a copy of this object.
+        /// </summary>
+        /// <returns></returns>
         public Dimensions Clone()
         {
             return new()
