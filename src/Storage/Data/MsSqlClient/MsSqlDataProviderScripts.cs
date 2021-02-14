@@ -1296,12 +1296,12 @@ SELECT N.NodeId, V.VersionId, N.ParentNodeId, N.NodeTypeId, V.MajorNumber, V.Min
     COALESCE(DATALENGTH(ContentListProperties), 0) ContentListPropertiesSize,
     COALESCE(DATALENGTH(ChangedData), 0) ChangedDataSize,
     COALESCE(DATALENGTH(IndexDocument), 0) IndexSize
-FROM Nodes N
-    JOIN Versions V ON V.NodeId = N.NodeId
+FROM Nodes N (NOLOCK)
+    JOIN Versions V (NOLOCK) ON V.NodeId = N.NodeId
 
-SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties
-SELECT VersionId, FileId FROM BinaryProperties
-SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files
+SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties (NOLOCK)
+SELECT VersionId, FileId FROM BinaryProperties (NOLOCK)
+SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files (NOLOCK)
 ";
         #endregion
 
