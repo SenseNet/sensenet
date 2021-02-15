@@ -27,9 +27,6 @@
     <Field name="UiFilters" type="LongText">
       <DisplayName>$Ctd-Query,UiFilters-DisplayName</DisplayName>
       <Description>$Ctd-Query,UiFilters-Description</Description>
-      <Configuration>
-        <ControlHint>sn:QueryBuilder</ControlHint>
-      </Configuration>
     </Field>
   </Fields>
 </ContentType>
