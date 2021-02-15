@@ -7,6 +7,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 
@@ -135,9 +136,12 @@ namespace SenseNet.WebHooks
         private WebHookEventType[] CollectVersioningEvents(WebHookEventType[] selectedEvents, ISnEvent snEvent)
         {
             var relevantEvents = new List<WebHookEventType>();
-            var node = snEvent.NodeEventArgs.SourceNode;
+            var gc = snEvent.NodeEventArgs.SourceNode as GenericContent;
+            var approvingMode = gc?.ApprovingMode ?? ApprovingType.False;
+            var versioningMode = gc?.VersioningMode ?? VersioningType.None;
             var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
             var previousVersion = GetPreviousVersion();
+            var currentVersion = snEvent.NodeEventArgs.SourceNode.Version;
 
             foreach (var eventType in selectedEvents)
             {
@@ -145,49 +149,52 @@ namespace SenseNet.WebHooks
                 switch (eventType)
                 {
                     case WebHookEventType.Modify:
-                        // everything is a modification as of now
                         relevantEvents.Add(WebHookEventType.Modify);
                         break;
                     case WebHookEventType.Approve:
-                        if (previousVersion?.Status == VersionStatus.Pending &&
-                            node.Version.Status == VersionStatus.Approved)
+                        // Hidden approve: when the admin or owner publishes a document directly
+                        // from draft to approved.
+                        if ((previousVersion?.Status == VersionStatus.Pending &&
+                            currentVersion.Status == VersionStatus.Approved) ||
+                            (approvingMode == ApprovingType.True &&
+                             previousVersion?.Status == VersionStatus.Draft &&
+                             currentVersion.Status == VersionStatus.Approved))
                         {
                             relevantEvents.Add(WebHookEventType.Approve);
-                            relevantEvents.Add(WebHookEventType.Modify);
                         }
                         break;
                     case WebHookEventType.Publish:
-                        if ((previousVersion?.Status != VersionStatus.Pending &&
-                            node.Version.Status == VersionStatus.Pending) ||
-                            previousVersion?.Status != VersionStatus.Approved &&
-                            node.Version.Status == VersionStatus.Approved)
+                        //UNDONE: true? publish is relevant only if approving is on
+                        // Users want this event when...?
+                        if ((approvingMode == ApprovingType.True &&
+                             currentVersion.Status == VersionStatus.Pending) ||
+                            (approvingMode == ApprovingType.False &&
+                             previousVersion?.Status == VersionStatus.Draft &&
+                             currentVersion.Status == VersionStatus.Approved))
                         {
                             relevantEvents.Add(WebHookEventType.Publish);
-                            relevantEvents.Add(WebHookEventType.Modify);
                         }
                         break;
                     case WebHookEventType.Reject:
-                        if (previousVersion?.Status == VersionStatus.Pending &&
-                            node.Version.Status == VersionStatus.Rejected)
+                        if (approvingMode == ApprovingType.True &&
+                            previousVersion?.Status == VersionStatus.Pending &&
+                            currentVersion.Status == VersionStatus.Rejected)
                         {
                             relevantEvents.Add(WebHookEventType.Reject);
-                            relevantEvents.Add(WebHookEventType.Modify);
                         }
                         break;
                     case WebHookEventType.CheckIn:
                         if (previousVersion?.Status == VersionStatus.Locked &&
-                            node.Version.Status != VersionStatus.Locked)
+                            currentVersion.Status != VersionStatus.Locked)
                         {
                             relevantEvents.Add(WebHookEventType.CheckIn);
-                            relevantEvents.Add(WebHookEventType.Modify);
                         }
                         break;
                     case WebHookEventType.CheckOut:
                         if (previousVersion?.Status != VersionStatus.Locked &&
-                            node.Version.Status == VersionStatus.Locked)
+                            currentVersion.Status == VersionStatus.Locked)
                         {
                             relevantEvents.Add(WebHookEventType.CheckOut);
-                            relevantEvents.Add(WebHookEventType.Modify);
                         }
                         break;
                 }

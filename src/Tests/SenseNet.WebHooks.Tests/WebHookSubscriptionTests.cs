@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -158,8 +159,153 @@ namespace SenseNet.WebHooks.Tests
                     Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
                 });
         }
+
         [TestMethod]
-        public async Task WebHookSubscription_RelevantEvent_Versioning()
+        public async Task WebHookSubscription_Versioning_None_Approving_False()
+        {
+            await Test_Versioning(VersioningType.None, ApprovingType.False,
+                file =>
+                {
+                    // Initial version: 1.0.A
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 1.0.A    --> Modify,CheckIn
+
+                    file.Index = 41;
+                    file.Save(SavingMode.KeepVersion);  // --> Modify
+
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+
+                    file.Index = 42;
+                    file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
+
+                    file.CheckIn();     // --> 1.0.A    --> Modify,CheckIn
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Modify,Modify,CheckIn");
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Versioning_None_Approving_True()
+        {
+            await Test_Versioning(VersioningType.None, ApprovingType.True,
+                file =>
+                {
+                    // Initial version: 1.0.P
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 1.0.P    --> Modify,CheckIn,Publish
+
+                    file.Index = 41;
+                    file.Save(SavingMode.KeepVersion);  // --> 1.0.P    --> Modify,Publish (!!!!)
+
+                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish
+                    file.Reject();      // --> 2.0.R    --> Modify,Reject
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Publish,Modify,Publish,Modify,Approve,Modify,CheckIn,Publish,Modify,Reject");
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Versioning_Major_Approving_False()
+        {
+            await Test_Versioning(VersioningType.MajorOnly, ApprovingType.False,
+                file =>
+                {
+                    // Initial version: 1.0.A
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 2.0.A    --> Modify,CheckIn
+
+                    file.Index = 41;
+                    file.Save(SavingMode.KeepVersion);  // --> Modify
+
+                    file.CheckOut();    // --> 3.0.L    --> no event on checkout
+
+                    file.Index = 42;
+                    file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
+
+                    file.CheckIn();     // --> 3.0.A    --> Modify,CheckIn
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Modify,Modify,CheckIn");
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Versioning_Major_Approving_True()
+        {
+            await Test_Versioning(VersioningType.MajorOnly, ApprovingType.True,
+                file =>
+                {
+                    // Initial version: 1.0.P
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish (!!!!)
+
+                    file.Index = 42;
+                    file.Save(SavingMode.KeepVersion);  // --> Modify,Publish (!!!!)
+
+                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+
+                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish
+                    file.Reject();      // --> 2.0.R    --> Modify,Reject
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Publish,Modify,Publish,Modify,Approve,Modify,CheckIn,Publish,Modify,Reject");
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Versioning_Minor_Approving_False()
+        {
+            await Test_Versioning(VersioningType.MajorAndMinor, ApprovingType.False,
+                file =>
+                {
+                    // Initial version: 0.1.D
+                    file.CheckOut();    // --> 0.2.L    --> no event on checkout
+                    file.CheckIn();     // --> 0.2.D    --> Modify,CheckIn
+
+                    file.Index = 41;
+                    file.Save();        // --> 0.3.D    --> Modify
+
+                    file.Publish();     // --> 1.0.A    --> Modify,Publish (!!! admin permission, no approve)
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Modify,Modify,Publish");
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Versioning_Minor_Approving_True()
+        {
+            await Test_Versioning(VersioningType.MajorAndMinor, ApprovingType.True,
+                file =>
+                {
+                    // Initial version: 0.1.D
+                    file.CheckOut();    // --> 0.2.L    --> no event on checkout
+                    file.CheckIn();     // --> 0.2.D    --> Modify,CheckIn
+
+                    file.Index = 41;
+                    file.Save(SavingMode.KeepVersion);  // --> Modify
+
+                    file.Publish();     // --> 0.2.P    --> Modify,Publish
+                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+
+                    file.CheckOut();    // --> 1.1.L    --> no event on checkout
+                    file.CheckIn();     // --> 1.1.D    --> Modify,CheckIn
+
+                    file.Index = 42;
+                    file.Save();        // --> 1.2.D    --> Modify
+
+                    file.Publish();     // --> 1.2.P    --> Modify,Publish
+                    file.Reject();      // --> 1.2.R    --> Modify,Reject
+
+                    return Task.CompletedTask;
+                },
+                "Modify,CheckIn,Modify,Modify,Publish,Modify,Approve,Modify,CheckIn," +
+                "Modify,Modify,Publish,Modify,Reject");
+        }
+
+        public async Task Test_Versioning(VersioningType versioningType, ApprovingType approvingType,
+            Func<File, Task> action, string expectedEventLog)
         {
             var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
             var webHookClient = new TestWebHookClient();
@@ -170,44 +316,32 @@ namespace SenseNet.WebHooks.Tests
                         .UseComponent(new WebHookComponent())
                         .UseEventDistributor(new EventDistributor())
                         .AddAsyncEventProcessors(new LocalWebHookProcessor(
-                        store,
-                        webHookClient, 
-                        new NullLogger<LocalWebHookProcessor>()));
+                            store,
+                            webHookClient,
+                            new NullLogger<LocalWebHookProcessor>()));
                 },
                 async () =>
-            {
-                var file = CreateFile();
+                {
+                    var file = CreateFile(versioningType, approvingType);
 
-                var wh = await CreateWebHookSubscriptionAsync(@"{
+                    // subscribe to all versioning events
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
     ""Path"": ""/Root/Content"",
     ""ContentTypes"": [ 
         {
             ""Name"": ""File"", 
-            ""Events"": [ ""Create"", ""Delete"", ""CheckOut"", ""CheckIn"", ""Publish"", ""Approve"", ""Reject"" ] 
+            ""Events"": [ ""Modify"", ""CheckOut"", ""CheckIn"", ""Publish"", ""Approve"", ""Reject"" ] 
         }
     ] 
 }");
-                store.Subscriptions.Add(wh);
+                    store.Subscriptions.Add(wh);
 
-                //UNDONE: CheckOut does not trigger an event :(
-                file.CheckOut();
+                    await action(file);
+                    
+                    var eventLog = string.Join(",", webHookClient.Requests.Select(r => r.EventName));
 
-                file.CheckIn();
-
-                Assert.AreEqual(2, webHookClient.Requests.Count);
-                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "CheckIn"));
-                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Modify"));
-                
-                webHookClient.Requests.Clear();
-
-                file.Publish();
-
-                Assert.AreEqual(2, webHookClient.Requests.Count);
-                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Publish"));
-                Assert.IsTrue(webHookClient.Requests.Any(r => r.EventName == "Modify"));
-
-                //UNDONE: Add tests for Approve and Reject
-            });
+                    Assert.AreEqual(expectedEventLog, eventLog);
+                });
         }
 
         [TestMethod]
@@ -273,11 +407,15 @@ namespace SenseNet.WebHooks.Tests
             return Node.LoadAsync<WebHookSubscription>(wh.Id, CancellationToken.None);
         }
 
-        private File CreateFile()
+        private File CreateFile(VersioningType versioningType, ApprovingType approvingType)
         {
             var parent = (RepositoryTools.CreateStructure("/Root/Content/Docs", "DocumentLibrary")
                           ?? Content.Load("/Root/Content/Docs")).ContentHandler;
-            var file = new File(parent) {VersioningMode = VersioningType.MajorAndMinor};
+            var file = new File(parent)
+            {
+                VersioningMode = versioningType,
+                ApprovingMode = approvingType
+            };
             file.Save();
 
             return file;
