@@ -11,11 +11,11 @@ namespace SenseNet.Storage.DataModel.Usage
 {
     public class DatabaseUsageProfile
     {
-        public Dimensions System { get; private set; }
-        public Dimensions Preview { get; private set; }
         public Dimensions Content { get; private set; }
         public Dimensions OldVersions { get; private set; }
-        public long SizeOfOrphanedBlobs { get; private set; }
+        public Dimensions Preview { get; private set; }
+        public Dimensions System { get; private set; }
+        public long OrphanedBlobs { get; private set; }
         public DateTime Executed { get; private set; }
         public TimeSpan ExecutionTime { get; private set; }
 
@@ -98,7 +98,7 @@ namespace SenseNet.Storage.DataModel.Usage
             }
 
             if (!found)
-                SizeOfOrphanedBlobs += size;
+                OrphanedBlobs += size;
 
             return false;
         }
