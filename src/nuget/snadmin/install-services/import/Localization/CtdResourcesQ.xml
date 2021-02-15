@@ -30,6 +30,12 @@
         <data name="QueryType-Private" xml:space="preserve">
           <value>Private</value>
         </data>
+        <data name="UiFilters-DisplayName" xml:space="preserve">
+          <value>UI filters</value>
+        </data>
+        <data name="UiFilters-Description" xml:space="preserve">
+          <value>Technical field for filter data.</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -58,6 +64,12 @@
         </data>
         <data name="QueryType-Private" xml:space="preserve">
           <value>Privát</value>
+        </data>
+        <data name="UiFilters-DisplayName" xml:space="preserve">
+          <value>UI szűrők</value>
+        </data>
+        <data name="UiFilters-Description" xml:space="preserve">
+          <value>Technikai mező szűrő adatoknak.</value>
         </data>
       </Language>
     </Languages>
