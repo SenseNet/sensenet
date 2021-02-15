@@ -695,6 +695,40 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.17", "7.7.17.1", "2021-02-15", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region String resources
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesQ.xml")
+                        .Class("Ctd-Query")
+                        .Culture("en")
+                        .AddResource("UiFilters-DisplayName", "UI filters")
+                        .AddResource("UiFilters-Description", "Technical field for filter data.")
+                        .Culture("hu")
+                        .AddResource("UiFilters-DisplayName", "UI szűrők")
+                        .AddResource("UiFilters-Description", "Technikai mező szűrő adatoknak.");
+
+                    rb.Apply();
+
+                    #endregion
+
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("Query")
+                        .Field("UiFilters", "LongText")
+                        .DisplayName("$Ctd-Query,UiFilters-DisplayName")
+                        .Description("$Ctd-Query,UiFilters-Description");
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
     }
 }
