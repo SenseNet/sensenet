@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
@@ -106,9 +107,9 @@ namespace SenseNet.WebHooks.Tests
 
                     var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
                     var node1 = new Folder(parent1);
-                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                    var event2 = new TestEvent1(new TestNodeEventArgs(node1));
-                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
+                    var event2 = new TestEvent1(new TestNodeEventArgs(node1, NodeEvent.Created));
+                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
 
                     Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
                     Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
@@ -136,8 +137,8 @@ namespace SenseNet.WebHooks.Tests
 
                     var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
                     var node1 = new Folder(parent1);
-                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                    var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
+                    var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
 
                     // triggered for ALL events: only the appropriate events should be returned
                     Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());

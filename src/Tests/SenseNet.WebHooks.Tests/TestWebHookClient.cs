@@ -16,6 +16,8 @@ namespace SenseNet.WebHooks.Tests
         private IDictionary<string, object> _postProperties;
         public IDictionary<string, object> PostProperties => _postProperties ??= GetPostProperties();
 
+        public int NodeId => PostProperties.TryGetValue("nodeId", out var en) ? ((JsonElement)en).GetInt32() : 0;
+        public string Path => PostProperties.TryGetValue("path", out var en) ? ((JsonElement)en).GetString() : null;
         public string EventName => PostProperties.TryGetValue("eventName", out var en) ? ((JsonElement)en).GetString() : null;
 
         private IDictionary<string, object> GetPostProperties()

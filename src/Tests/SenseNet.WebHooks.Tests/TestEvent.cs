@@ -1,8 +1,6 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Events;
-using System;
 
 namespace SenseNet.WebHooks.Tests
 {
@@ -16,37 +14,8 @@ namespace SenseNet.WebHooks.Tests
         }
     }
 
-    // the name of this event class mirrors the one in Storage
-    internal class NodeCreatedEvent : ISnEvent
+    internal class TestNodeEventArgs : NodeEventArgs
     {
-        public INodeEventArgs NodeEventArgs { get; set; }
-
-        public NodeCreatedEvent(INodeEventArgs e)
-        {
-            NodeEventArgs = e;
-        }
-    }
-    internal class NodeForcedDeletedEvent : ISnEvent
-    {
-        public INodeEventArgs NodeEventArgs { get; set; }
-
-        public NodeForcedDeletedEvent(INodeEventArgs e)
-        {
-            NodeEventArgs = e;
-        }
-    }
-
-    internal class TestNodeEventArgs : INodeEventArgs
-    {
-        public Node SourceNode { get; }
-
-        public IUser User => throw new NotImplementedException();
-
-        public DateTime Time => throw new NotImplementedException();
-
-        public TestNodeEventArgs(Node node)
-        {
-            SourceNode = node;
-        }
+        public TestNodeEventArgs(Node node, NodeEvent eventType) : base(node, eventType, null) { }
     }
 }

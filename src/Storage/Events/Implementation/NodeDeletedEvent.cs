@@ -5,7 +5,7 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
 {
-    internal class NodeDeletedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
+    public class NodeDeletedEvent : ISnEvent<NodeEventArgs>, INodeObserverEvent, IAuditLogEvent
     {
         INodeEventArgs ISnEvent.NodeEventArgs => EventArgs;
         public AuditEvent AuditEvent => AuditEvent.ContentDeleted;

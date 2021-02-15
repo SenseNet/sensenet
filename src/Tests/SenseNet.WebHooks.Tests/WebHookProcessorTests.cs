@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Text.Json;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
@@ -34,29 +32,29 @@ namespace SenseNet.WebHooks.Tests
                     var node2 = new Folder(parent2);
 
                     // create mock events
-                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1));
-                    var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2));
-                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1));
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
+                    var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2, NodeEvent.Created));
+                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
 
                     // ACTION: fire mock events
                     await ep.ProcessEventAsync(event1, CancellationToken.None);
                     await ep.ProcessEventAsync(event2, CancellationToken.None);
                     await ep.ProcessEventAsync(event3, CancellationToken.None);
 
-                    // test webhook client should contain the even log
+                    // test webhook client should contain the event log
                     Assert.AreEqual(2, whc.Requests.Count);
 
-                    var postObject1 = whc.Requests[0].PostProperties;
+                    var request1 = whc.Requests[0];
 
-                    Assert.AreEqual(node1.Id, ((JsonElement) postObject1["nodeId"]).GetInt32());
-                    Assert.AreEqual(node1.Path, ((JsonElement) postObject1["path"]).GetString());
-                    Assert.AreEqual("Create", ((JsonElement) postObject1["eventName"]).GetString());
+                    Assert.AreEqual(node1.Id, request1.NodeId);
+                    Assert.AreEqual(node1.Path, request1.Path);
+                    Assert.AreEqual("Create", request1.EventName);
 
-                    var postObject2 = whc.Requests[1].PostProperties;
+                    var request2 = whc.Requests[1];
 
-                    Assert.AreEqual(node1.Id, ((JsonElement) postObject2["nodeId"]).GetInt32());
-                    Assert.AreEqual(node1.Path, ((JsonElement) postObject2["path"]).GetString());
-                    Assert.AreEqual("Delete", ((JsonElement) postObject2["eventName"]).GetString());
+                    Assert.AreEqual(node1.Id, request2.NodeId);
+                    Assert.AreEqual(node1.Path, request2.Path);
+                    Assert.AreEqual("Delete", request2.EventName);
                 });
         }
 

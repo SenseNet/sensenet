@@ -111,20 +111,17 @@ namespace SenseNet.WebHooks
 
             if (!selectedEvents.Any())
                 return Array.Empty<WebHookEventType>();
-
-            //UNDONE: event types are internal, cannot cast sn event
-            var eventTypeName = snEvent.GetType().Name;
-
-            switch (eventTypeName)
+            
+            switch (snEvent)
             {
-                // Create and Delete are strong events, they cannot be paired with other events (e.g. with Modify).
-                case "NodeCreatedEvent":
+                // Create and Delete are single events, they cannot be paired with other events (e.g. with Modify).
+                case NodeCreatedEvent nce:
                     if (selectedEvents.Contains(WebHookEventType.Create))
-                        return new[] {WebHookEventType.Create};
+                        return new[] { WebHookEventType.Create };
                     break;
-                case "NodeModifiedEvent":
+                case NodeModifiedEvent nme:
                     return CollectVersioningEvents(selectedEvents, snEvent);
-                case "NodeForcedDeletedEvent":
+                case NodeForcedDeletedEvent nfd:
                     if (selectedEvents.Contains(WebHookEventType.Delete))
                         return new[] { WebHookEventType.Delete };
                     break;
@@ -163,7 +160,7 @@ namespace SenseNet.WebHooks
                         }
                         break;
                     case WebHookEventType.Publish:
-                        //UNDONE: true? publish is relevant only if approving is on
+                        //UNDONE: finalize Publish event
                         // Users want this event when...?
                         if ((approvingMode == ApprovingType.True &&
                              currentVersion.Status == VersionStatus.Pending) ||
