@@ -130,13 +130,15 @@ namespace SenseNet.Services.Core
                 if (onlyPublic)
                     return new List<Content>();
 
-               return Content.All.DisableAutofilters().Where(c => c.InTree(RepositoryPath.Combine(profilePath, QueryContainerName)) && c.TypeIs(QueryTypeName));
+                return Content.All.DisableAutofilters().Where(c =>
+                    c.InTree(RepositoryPath.Combine(profilePath, QueryContainerName)) && c.TypeIs(QueryTypeName));
             }
             
             if (onlyPublic)
             {
                 // return only public queries, saved under the workspace
-                return Content.All.DisableAutofilters().Where(c => c.InTree(RepositoryPath.Combine(wsPath, QueryContainerName)) && c.TypeIs(QueryTypeName));
+                return Content.All.DisableAutofilters().Where(c =>
+                    c.InTree(RepositoryPath.Combine(wsPath, QueryContainerName)) && c.TypeIs(QueryTypeName));
             }
             
             // return both public and private queries
@@ -151,16 +153,18 @@ namespace SenseNet.Services.Core
         /// <param name="query"></param>
         /// <param name="displayName"></param>
         /// <param name="queryType"></param>
+        /// <param name="uiFilters">Technical data containing filter information.</param>
         /// <returns></returns>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
-        public static object SaveQuery(Content content, string query, string displayName, string queryType)
+        public static object SaveQuery(Content content, string query, string displayName, 
+            string queryType, string uiFilters = null)
         {
             var qt = string.IsNullOrEmpty(queryType)
                          ? QueryType.Public
                          : (QueryType) Enum.Parse(typeof (QueryType), queryType);
 
-            return SaveQuery(content, query, displayName, qt);
+            return SaveQuery(content, query, displayName, qt, uiFilters);
         }
 
         /// <summary>
@@ -170,8 +174,10 @@ namespace SenseNet.Services.Core
         /// <param name="query">Query text.</param>
         /// <param name="displayName">Display name for the saved query.</param>
         /// <param name="queryType">Type of the query.</param>
+        /// <param name="uiFilters">Technical data containing filter information.</param>
         /// <returns></returns>
-        public static object SaveQuery(Content content, string query, string displayName, QueryType queryType)
+        public static object SaveQuery(Content content, string query, string displayName, 
+            QueryType queryType, string uiFilters = null)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
@@ -250,6 +256,7 @@ namespace SenseNet.Services.Core
                     queryContent.DisplayName = displayName;
 
                 queryContent["Query"] = query;
+                queryContent["UiFilters"] = uiFilters;
                 queryContent.Save(); 
             }
 
