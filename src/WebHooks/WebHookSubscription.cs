@@ -138,7 +138,6 @@ namespace SenseNet.WebHooks
             var relevantEvents = new List<WebHookEventType>();
             var gc = snEvent.NodeEventArgs.SourceNode as GenericContent;
             var approvingMode = gc?.ApprovingMode ?? ApprovingType.False;
-            var versioningMode = gc?.VersioningMode ?? VersioningType.None;
             var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
             var previousVersion = GetPreviousVersion();
             var currentVersion = snEvent.NodeEventArgs.SourceNode.Version;

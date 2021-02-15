@@ -4,6 +4,10 @@ using Newtonsoft.Json.Converters;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.WebHooks
 {
+    /// <summary>
+    /// Strongly typed values for the webhook subscription filter
+    /// defined on the client in a JSON object.
+    /// </summary>
     public class WebHookFilterData
     {
         public string Path { get; set; }

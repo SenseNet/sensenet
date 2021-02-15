@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.WebHooks
 {
+    /// <summary>
+    /// WebHook client implementation for sending webhooks as HTTP requests.
+    /// </summary>
     public class HttpWebHookClient : IWebHookClient
     {
         private readonly IHttpClientFactory _clientFactory;

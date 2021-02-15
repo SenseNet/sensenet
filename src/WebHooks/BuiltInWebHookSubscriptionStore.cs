@@ -7,8 +7,13 @@ using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
+    /// <summary>
+    /// Default subscription store that loads subscription content from the System/WebHooks
+    /// folder in the repository. Only enabled and valid subscriptions are returned.
+    /// </summary>
     public class BuiltInWebHookSubscriptionStore : IWebHookSubscriptionStore
     {
+        /// <inheritdoc/>
         public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
         {
             //TODO: implement a subscription cache that is invalidated when a subscription changes

@@ -8,7 +8,11 @@ using SenseNet.Events;
 
 namespace SenseNet.WebHooks
 {
-    //UNDONE: webhook docs
+    /// <summary>
+    /// Event processor implementation for sending webhooks. Gets relevant subscriptions
+    /// for an event from the configured subscription store and sends request using
+    /// the configured webhook client.
+    /// </summary>
     public class LocalWebHookProcessor : IEventProcessor
     {
         private readonly ILogger<LocalWebHookProcessor> _logger;
@@ -25,12 +29,17 @@ namespace SenseNet.WebHooks
         public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
         {
             var node = snEvent.NodeEventArgs.SourceNode;
-            var subscriptions = _subscriptionStore.GetRelevantSubscriptions(snEvent);
+            var subscriptions = _subscriptionStore.GetRelevantSubscriptions(snEvent)
+                .Where(si => si.Subscription.Enabled && si.Subscription.IsValid)
+                .ToArray();
+
+            if (subscriptions.Any())
+                _logger?.LogTrace($"Sending webhook events for subscriptions: " +
+                                  $"{string.Join(", ", subscriptions.Select(si => si.Subscription.Name + " (" + si.EventType + ")"))}");
 
             //TODO: extend webhook request payload with event-specific info
 
             var sendingTasks = subscriptions
-                .Where(si => si.Subscription.Enabled && si.Subscription.IsValid)
                 .Select(si => _webHookClient.SendAsync(
                 si.Subscription.Url,
                 si.Subscription.HttpMethod,
