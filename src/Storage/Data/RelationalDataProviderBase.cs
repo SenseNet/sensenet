@@ -14,8 +14,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
-using SenseNet.Security.Messaging.SecurityMessages;
-using SenseNet.Storage.DataModel;
+using SenseNet.Storage.DataModel.Usage;
 
 // ReSharper disable AccessToDisposedClosure
 

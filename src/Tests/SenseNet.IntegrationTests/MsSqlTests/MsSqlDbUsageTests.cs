@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+﻿
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;

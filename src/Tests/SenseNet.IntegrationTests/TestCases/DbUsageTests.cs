@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -11,9 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.IntegrationTests.Infrastructure;
-using SenseNet.Storage.DataModel;
-using SenseNet.Testing;
-using SenseNet.Tests.Core;
+using SenseNet.Storage.DataModel.Usage;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.TestCases
@@ -62,6 +56,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(4 * oneText, profile.OldVersions.Text);
                 Assert.AreEqual(profileBefore.System.Text, profile.System.Text);
 
+                Assert.IsTrue(DateTime.UtcNow - profile.Executed < TimeSpan.FromSeconds(1),
+                    "Expectation: DateTime.UtcNow - profile.Executed < TimeSpan.FromSeconds(1).");
+                Assert.IsTrue(profile.ExecutionTime > TimeSpan.Zero,
+                    "Expectation: profile.ExecutionTime > TimeSpan.Zero");
+                Assert.IsTrue(profile.ExecutionTime < TimeSpan.MaxValue,
+                    "Expectation: profile.ExecutionTime < TimeSpan.MaxValue");
             });
         }
 
