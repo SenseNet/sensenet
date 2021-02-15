@@ -1817,7 +1817,7 @@ namespace SenseNet.ContentRepository.InMemory
         /* =============================================================================================== Usage */
 
 
-        public override void LoadDatabaseUsageProfile(
+        public override void LoadDatabaseUsage(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
             Func<BinaryPropertyModel, bool> binaryPropertyCallback,

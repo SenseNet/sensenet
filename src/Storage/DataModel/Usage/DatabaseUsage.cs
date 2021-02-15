@@ -9,7 +9,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Storage.DataModel.Usage
 {
-    public class DatabaseUsageProfile
+    public class DatabaseUsage
     {
         public Dimensions Content { get; private set; }
         public Dimensions OldVersions { get; private set; }
@@ -29,7 +29,7 @@ namespace SenseNet.Storage.DataModel.Usage
 
         private readonly DataProvider _dataProvider;
 
-        public DatabaseUsageProfile(DataProvider dataProvider)
+        public DatabaseUsage(DataProvider dataProvider)
         {
             _dataProvider = dataProvider;
         }
@@ -105,7 +105,7 @@ namespace SenseNet.Storage.DataModel.Usage
 
         public Task BuildProfileAsync(CancellationToken cancel = default)
         {
-            using (var op = SnTrace.System.StartOperation("Load DatabaseUsageProfile"))
+            using (var op = SnTrace.System.StartOperation("Load DatabaseUsage"))
             {
                 var start = DateTime.UtcNow;
 
@@ -115,7 +115,7 @@ namespace SenseNet.Storage.DataModel.Usage
                 for (int i = 0; i < _db.Length; i++)
                     _db[i] = (new List<int>(), new List<int>(), new Dimensions());
 
-                _dataProvider.LoadDatabaseUsageProfile(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
+                _dataProvider.LoadDatabaseUsage(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
 
                 this.Preview = _db[PreviewImage].Dimensions.Clone();
                 this.System = _db[SystemLast].Dimensions.Clone();

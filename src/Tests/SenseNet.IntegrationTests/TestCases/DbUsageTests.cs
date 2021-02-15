@@ -27,13 +27,13 @@ namespace SenseNet.IntegrationTests.TestCases
                 user1.Save();
 
                 var dataProvider = Providers.Instance.DataProvider;
-                var profileBefore = new DatabaseUsageProfile(dataProvider);
+                var profileBefore = new DatabaseUsage(dataProvider);
                 await profileBefore.BuildProfileAsync();
 
                 CreateStructure(user1, out var folder, out var file);
 
                 // ACTION
-                var profile = new DatabaseUsageProfile(dataProvider);
+                var profile = new DatabaseUsage(dataProvider);
                 await profile.BuildProfileAsync();
 
                 // ASSERT

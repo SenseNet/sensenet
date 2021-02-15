@@ -2272,7 +2272,7 @@ ELSE CAST(0 AS BIT) END";
 
         /* =============================================================================================== Usage */
 
-        public override void LoadDatabaseUsageProfile(
+        public override void LoadDatabaseUsage(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
             Func<BinaryPropertyModel, bool> binaryPropertyCallback,
@@ -2281,7 +2281,7 @@ ELSE CAST(0 AS BIT) END";
             var cancellation = new CancellationTokenSource();
             using (var ctx = CreateDataContext(cancellation.Token))
             {
-                var _ = ctx.ExecuteReaderAsync(LoadDatabaseUsageProfileScript, (reader, cancel) =>
+                var _ = ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, (reader, cancel) =>
                 {
                     // PROCESS NODE+VERSION ROWS
 
@@ -2399,7 +2399,7 @@ ELSE CAST(0 AS BIT) END";
                 }).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
-        protected abstract string LoadDatabaseUsageProfileScript { get; }
+        protected abstract string LoadDatabaseUsageScript { get; }
 
         private string ParseVersion(int major, int minor, short status)
         {

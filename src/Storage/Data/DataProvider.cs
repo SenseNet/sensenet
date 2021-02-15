@@ -924,7 +924,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
         /// <param name="fileCallback">Processes the given <see cref="FileModel"/> instance and returns
         /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
-        public abstract void LoadDatabaseUsageProfile(
+        public abstract void LoadDatabaseUsage(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
             Func<BinaryPropertyModel, bool> binaryPropertyCallback,

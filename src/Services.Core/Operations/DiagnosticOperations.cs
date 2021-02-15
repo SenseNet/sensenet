@@ -15,8 +15,8 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class DiagnosticOperations
     {
-        private static readonly string DatabaseUsageProfileCachePath = "/Root/System/DatabaseUsageProfile";
-        private static readonly TimeSpan DatabaseUsageProfileCacheTime = TimeSpan.FromMinutes(5);
+        private static readonly string DatabaseUsageCachePath = "/Root/System/DatabaseUsage";
+        private static readonly TimeSpan DatabaseUsageCacheTime = TimeSpan.FromMinutes(5);
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -26,16 +26,16 @@ namespace SenseNet.Services.Core.Operations
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async Task<string> GetDatabaseUsageProfile(Content content, HttpContext httpContext)
+        public static async Task<string> GetDatabaseUsage(Content content, HttpContext httpContext)
         {
             File cached = null;
             try
             {
-                cached = await Node.LoadAsync<File>(DatabaseUsageProfileCachePath, httpContext.RequestAborted)
+                cached = await Node.LoadAsync<File>(DatabaseUsageCachePath, httpContext.RequestAborted)
                     .ConfigureAwait(false);
                 if (cached != null)
                 {
-                    if (DateTime.UtcNow - cached.ModificationDate <= DatabaseUsageProfileCacheTime)
+                    if (DateTime.UtcNow - cached.ModificationDate <= DatabaseUsageCacheTime)
                         return RepositoryTools.GetStreamString(cached.Binary.GetStream());
                 }
             }
@@ -45,7 +45,7 @@ namespace SenseNet.Services.Core.Operations
             }
 
 
-            var profile = new DatabaseUsageProfile(Providers.Instance.DataProvider);
+            var profile = new DatabaseUsage(Providers.Instance.DataProvider);
             await profile.BuildProfileAsync(httpContext.RequestAborted);
 
             var resultBuilder = new StringBuilder();
@@ -54,8 +54,8 @@ namespace SenseNet.Services.Core.Operations
 
             if (cached == null)
             {
-                var parentPath = RepositoryPath.GetParentPath(DatabaseUsageProfileCachePath);
-                var name = RepositoryPath.GetFileName(DatabaseUsageProfileCachePath);
+                var parentPath = RepositoryPath.GetParentPath(DatabaseUsageCachePath);
+                var name = RepositoryPath.GetFileName(DatabaseUsageCachePath);
                 var parent = await Node.LoadNodeAsync(parentPath, httpContext.RequestAborted).ConfigureAwait(false);
                 cached = new File(parent) {Name = name};
             }
