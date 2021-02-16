@@ -696,7 +696,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.17", "7.7.17.1", "2021-02-15", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.17", "7.7.17.2", "2021-02-16", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region String resources
@@ -723,7 +723,10 @@ namespace SenseNet.ContentRepository
                     cb.Type("Query")
                         .Field("UiFilters", "LongText")
                         .DisplayName("$Ctd-Query,UiFilters-DisplayName")
-                        .Description("$Ctd-Query,UiFilters-Description");
+                        .Description("$Ctd-Query,UiFilters-Description")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Hide)
+                        .VisibleNew(FieldVisibility.Hide);
 
                     cb.Apply();
 
