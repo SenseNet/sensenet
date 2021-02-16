@@ -187,8 +187,11 @@ namespace SenseNet.Services.Core
 
             try
             {
+                // replace @@ templates, because they cannot be parsed
+                var replacedQuery = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), query);
+
                 // We need to validate the query to avoid saving unknown texts.
-                SnQuery.Parse(query, new SnQueryContext(QuerySettings.Default, User.Current.Id));
+                SnQuery.Parse(replacedQuery, new SnQueryContext(QuerySettings.Default, User.Current.Id));
             }
             catch (Exception ex)
             {
@@ -200,7 +203,7 @@ namespace SenseNet.Services.Core
                         {"Error", ex.Message}
                     });
 
-                return string.Empty;
+                throw new InvalidOperationException("Cannot save an invalid content query: " + query);
             }
 
             ContentList queryContainer = null;
