@@ -27,6 +27,12 @@
     <Field name="UiFilters" type="LongText">
       <DisplayName>$Ctd-Query,UiFilters-DisplayName</DisplayName>
       <Description>$Ctd-Query,UiFilters-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <TextType>LongText</TextType>
+      </Configuration>
     </Field>
   </Fields>
 </ContentType>
