@@ -15,6 +15,7 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class DiagnosticOperations
     {
+        //UNDONE:<?usage: do not save any file into /Root/System directly
         private static readonly string DatabaseUsageCachePath = "/Root/System/DatabaseUsage";
         private static readonly TimeSpan DatabaseUsageCacheTime = TimeSpan.FromMinutes(5);
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
@@ -26,11 +27,13 @@ namespace SenseNet.Services.Core.Operations
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async Task<string> GetDatabaseUsage(Content content, HttpContext httpContext)
+        //UNDONE:<?usage: move this logic to ContentRepository
+        public static async Task<string> GetDatabaseUsage(Content content, HttpContext httpContext) //UNDONE:<?usage: optional "force"
         {
             File cached = null;
             try
             {
+                //UNDONE:<?usage: permissions?
                 cached = await Node.LoadAsync<File>(DatabaseUsageCachePath, httpContext.RequestAborted)
                     .ConfigureAwait(false);
                 if (cached != null)
@@ -41,12 +44,13 @@ namespace SenseNet.Services.Core.Operations
             }
             catch
             {
+                //UNDONE:<?usage: warning
                 // do nothing
             }
 
 
             var profile = new DatabaseUsage(Providers.Instance.DataProvider);
-            await profile.BuildProfileAsync(httpContext.RequestAborted);
+            await profile.BuildAsync(httpContext.RequestAborted);
 
             var resultBuilder = new StringBuilder();
             using (var writer = new StringWriter(resultBuilder))
@@ -61,8 +65,18 @@ namespace SenseNet.Services.Core.Operations
             }
 
             var result = resultBuilder.ToString();
-            cached.Binary.SetStream(RepositoryTools.GetStreamFromString(result));
-            cached.Save();
+
+            try
+            {
+                cached.Binary.SetStream(RepositoryTools.GetStreamFromString(result));
+                //UNDONE:<?usage: permissions?
+                cached.Save();
+            }
+            catch
+            {
+                //UNDONE:<?usage: warning
+                // do nothing
+            }
 
             return result;
         }

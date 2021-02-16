@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -103,7 +104,15 @@ namespace SenseNet.Storage.DataModel.Usage
             return false;
         }
 
-        public Task BuildProfileAsync(CancellationToken cancel = default)
+        private static readonly string ExclusiveBlockKey = "SenseNet.Storage.LoadDatabaseUsage";
+        public Task BuildAsync(CancellationToken cancel = default)
+        {
+            //UNDONE:<?usage: Move ExclusiveBlock usage to the ContentRepository layer
+            return ExclusiveBlock.RunAsync(ExclusiveBlockKey, Guid.NewGuid().ToString(),
+                ExclusiveBlockType.WaitForReleased, new ExclusiveLockOptions(), cancel,
+                Build2Async);
+        }
+        private Task Build2Async()
         {
             using (var op = SnTrace.System.StartOperation("Load DatabaseUsage"))
             {

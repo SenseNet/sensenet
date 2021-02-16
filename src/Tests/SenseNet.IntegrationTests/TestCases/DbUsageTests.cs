@@ -16,6 +16,7 @@ namespace SenseNet.IntegrationTests.TestCases
     {
         public async Task DbUsage_PreviewsVersionsBlobsTexts()
         {
+            //UNDONE:<?usage: Use ExclusiveBlock component in the integration tests.
             await IsolatedIntegrationTestAsync(async () =>
             {
                 var user1 = new User(Node.LoadNode("/Root/IMS/Public"))
@@ -28,13 +29,13 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var dataProvider = Providers.Instance.DataProvider;
                 var profileBefore = new DatabaseUsage(dataProvider);
-                await profileBefore.BuildProfileAsync();
+                await profileBefore.BuildAsync();
 
                 CreateStructure(user1, out var folder, out var file);
 
                 // ACTION
                 var profile = new DatabaseUsage(dataProvider);
-                await profile.BuildProfileAsync();
+                await profile.BuildAsync();
 
                 // ASSERT
                 var versionCount = await dataProvider.GetVersionCountAsync("/Root", CancellationToken.None);
