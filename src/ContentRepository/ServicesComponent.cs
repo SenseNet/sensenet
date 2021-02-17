@@ -696,7 +696,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.17", "7.7.17.2", "2021-02-16", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.17", "7.7.18", "2021-02-17", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region String resources
@@ -711,6 +711,11 @@ namespace SenseNet.ContentRepository
                         .Culture("hu")
                         .AddResource("UiFilters-DisplayName", "UI szűrők")
                         .AddResource("UiFilters-Description", "Technikai mező szűrő adatoknak.");
+
+                    rb.Content("ActionResources.xml")
+                        .Class("Action")
+                        .Culture("en")
+                        .AddResource("Browse", "Details");
 
                     rb.Apply();
 
@@ -727,6 +732,10 @@ namespace SenseNet.ContentRepository
                         .VisibleBrowse(FieldVisibility.Hide)
                         .VisibleEdit(FieldVisibility.Hide)
                         .VisibleNew(FieldVisibility.Hide);
+
+                    cb.Type("File")
+                        .Field("Size")
+                        .ControlHint("sn:FileSize");
 
                     cb.Apply();
 
