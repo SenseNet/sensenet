@@ -1,4 +1,4 @@
-﻿
+﻿using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
@@ -10,9 +10,9 @@ namespace SenseNet.IntegrationTests.MsSqlTests
     public class MsSqlDbUsageTests : IntegrationTest<MsSqlPlatform, DbUsageTests>
     {
         [TestMethod]
-        public void IntT_MsSql_DbUsage_PreviewsVersionsBlobsTexts()
+        public async Task IntT_MsSql_DbUsage_PreviewsVersionsBlobsTexts()
         {
-            TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false).GetAwaiter().GetResult();
+            await TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false);
         }
     }
 }

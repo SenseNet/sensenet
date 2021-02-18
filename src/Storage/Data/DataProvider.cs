@@ -913,22 +913,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <remarks>
         /// To avoid a large memory load, it processes incoming rows immediately with the passed callback functions.
-        /// Each callback function receives the corresponding model object, processes it, and then returns
-        /// a logical value that indicates whether the operation was canceled or not.
+        /// Each callback function receives the corresponding model object and processes it.
         /// </remarks>
-        /// <param name="nodeVersionCallback">Processes the given <see cref="NodeModel"/> instance and returns
-        /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
-        /// <param name="longTextPropertyCallback">Processes the given <see cref="LongTextModel"/> instance and returns
-        /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
-        /// <param name="binaryPropertyCallback">Processes the given <see cref="BinaryPropertyModel"/> instance and returns
-        /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
-        /// <param name="fileCallback">Processes the given <see cref="FileModel"/> instance and returns
-        /// <c>false</c> if the operation can be continued or <c>true</c> if it is canceled.</param>
+        /// <param name="nodeVersionCallback">Processes the given <see cref="NodeModel"/> instance.</param>
+        /// <param name="longTextPropertyCallback">Processes the given <see cref="LongTextModel"/> instance.</param>
+        /// <param name="binaryPropertyCallback">Processes the given <see cref="BinaryPropertyModel"/> instance.</param>
+        /// <param name="fileCallback">Processes the given <see cref="FileModel"/> instance.</param>
         public abstract void LoadDatabaseUsage(
-            Func<NodeModel, bool> nodeVersionCallback,
-            Func<LongTextModel, bool> longTextPropertyCallback,
-            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
-            Func<FileModel, bool> fileCallback);
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback);
 
         /* =============================================================================================== Tools */
 

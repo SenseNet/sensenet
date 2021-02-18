@@ -2274,12 +2274,12 @@ ELSE CAST(0 AS BIT) END";
 
         //UNDONE?<?usage: Make async
         public override void LoadDatabaseUsage(
-            Func<NodeModel, bool> nodeVersionCallback,
-            Func<LongTextModel, bool> longTextPropertyCallback,
-            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
-            Func<FileModel, bool> fileCallback)
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback)
         {
-            var cancellation = new CancellationTokenSource();
+var cancellation = new CancellationTokenSource();
             using (var ctx = CreateDataContext(cancellation.Token))
             {
                 var _ = ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, (reader, cancel) =>
@@ -2319,12 +2319,8 @@ ELSE CAST(0 AS BIT) END";
                             ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
                             IndexSize = reader.GetInt64(indexSizeIndex),
                         };
-                        var cancelRequested = nodeVersionCallback(node);
-                        if (cancelRequested)
-                        {
-                            cancellation.Cancel(true);
-                            throw new OperationCanceledException();
-                        }
+                        nodeVersionCallback(node);
+                        cancel.ThrowIfCancellationRequested();
                     }
 
                     if (!reader.NextResult())
@@ -2341,16 +2337,8 @@ ELSE CAST(0 AS BIT) END";
                             VersionId = reader.GetInt32(versionIdIndex),
                             Size = reader.GetInt64(sizeIndex),
                         };
-                        var cancelRequested = longTextPropertyCallback(longText);
-                        if (cancelRequested)
-                        {
-                            cancellation.Cancel(true);
-                            throw new OperationCanceledException();
-                        }
-                        //UNDONE:<?usage: Pass cancellationtoken (even if it is sync) and us this pattern:
-                        //longTextPropertyCallback(longText, cancel);
-                        //cancel.ThrowIfCancellationRequested();
-
+                        longTextPropertyCallback(longText);
+                        cancel.ThrowIfCancellationRequested();
                     }
 
                     // PROCESS BINARY PROPERTY ROWS
@@ -2367,12 +2355,8 @@ ELSE CAST(0 AS BIT) END";
                             VersionId = reader.GetInt32(versionIdIndex),
                             FileId = reader.GetInt32(fileIdIndex),
                         };
-                        var cancelRequested = binaryPropertyCallback(binaryProperty);
-                        if (cancelRequested)
-                        {
-                            cancellation.Cancel(true);
-                            throw new OperationCanceledException();
-                        }
+                        binaryPropertyCallback(binaryProperty);
+                        cancel.ThrowIfCancellationRequested();
                     }
 
                     // PROCESS FILE ROWS
@@ -2391,12 +2375,8 @@ ELSE CAST(0 AS BIT) END";
                             Size = reader.GetInt64(sizeIndex),
                             StreamSize = reader.GetInt64(streamSizeIndex)
                         };
-                        var cancelRequested = fileCallback(fileModel);
-                        if (cancelRequested)
-                        {
-                            cancellation.Cancel(true);
-                            throw new OperationCanceledException();
-                        }
+                        fileCallback(fileModel);
+                        cancel.ThrowIfCancellationRequested();
                     }
 
                     return Task.FromResult(true);

@@ -34,7 +34,7 @@ namespace SenseNet.Storage.DataModel.Usage
             _dataProvider = dataProvider;
         }
 
-        private bool ProcessNode(NodeModel node)
+        private void ProcessNode(NodeModel node)
         {
             int category;
             if (node.NodeTypeId == _previewImageTypeId)
@@ -56,10 +56,8 @@ namespace SenseNet.Storage.DataModel.Usage
             dimensions.Count++;
             dimensions.Metadata += node.DynamicPropertiesSize + node.ContentListPropertiesSize + node.ChangedDataSize;
             dimensions.Index += node.IndexSize;
-
-            return false;
         }
-        private bool ProcessLongText(LongTextModel model)
+        private void ProcessLongText(LongTextModel model)
         {
             for (int i = 0; i < _db.Length; i++)
             {
@@ -69,9 +67,8 @@ namespace SenseNet.Storage.DataModel.Usage
                     break;
                 }
             }
-            return false;
         }
-        private bool ProcessBinary(BinaryPropertyModel model)
+        private void ProcessBinary(BinaryPropertyModel model)
         {
             for (int i = 0; i < _db.Length; i++)
             {
@@ -81,9 +78,8 @@ namespace SenseNet.Storage.DataModel.Usage
                     break;
                 }
             }
-            return false;
         }
-        private bool ProcessFile(FileModel model)
+        private void ProcessFile(FileModel model)
         {
             var found = false;
             var size = Math.Max(model.Size, model.StreamSize);
@@ -99,8 +95,6 @@ namespace SenseNet.Storage.DataModel.Usage
 
             if (!found)
                 OrphanedBlobs += size;
-
-            return false;
         }
 
         public Task BuildAsync()

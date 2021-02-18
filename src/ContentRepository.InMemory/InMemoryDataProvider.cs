@@ -1818,11 +1818,12 @@ namespace SenseNet.ContentRepository.InMemory
 
 
         public override void LoadDatabaseUsage(
-            Func<NodeModel, bool> nodeVersionCallback,
-            Func<LongTextModel, bool> longTextPropertyCallback,
-            Func<BinaryPropertyModel, bool> binaryPropertyCallback,
-            Func<FileModel, bool> fileCallback)
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback)
         {
+var cancel = CancellationToken.None;
             // PROCESS NODE+VERSION ROWS
 
             foreach (var dbVersion in DB.Versions)
@@ -1845,8 +1846,8 @@ namespace SenseNet.ContentRepository.InMemory
                     ChangedDataSize = GetObjectSize(dbVersion.ChangedData),
                     IndexSize = 2 * dbVersion.IndexDocument?.Length ?? 0,
                 };
-                if (nodeVersionCallback(nodeModel))
-                    throw new OperationCanceledException();
+                nodeVersionCallback(nodeModel);
+                cancel.ThrowIfCancellationRequested();
             }
 
             // PROCESS LONGTEXT ROWS
@@ -1858,8 +1859,8 @@ namespace SenseNet.ContentRepository.InMemory
                     VersionId = dbLongTextProperty.VersionId,
                     Size = 2 * dbLongTextProperty.Value?.Length ?? 0L
                 };
-                if (longTextPropertyCallback(longTextModel))
-                    throw new OperationCanceledException();
+                longTextPropertyCallback(longTextModel);
+                cancel.ThrowIfCancellationRequested();
             }
 
             // PROCESS BINARY PROPERTY ROWS
@@ -1871,8 +1872,8 @@ namespace SenseNet.ContentRepository.InMemory
                     VersionId = dbBinaryProperty.VersionId,
                     FileId = dbBinaryProperty.FileId,
                 };
-                if (binaryPropertyCallback(binaryProperty))
-                    throw new OperationCanceledException();
+                binaryPropertyCallback(binaryProperty);
+                cancel.ThrowIfCancellationRequested();
             }
 
             // PROCESS FILE ROWS
@@ -1885,8 +1886,8 @@ namespace SenseNet.ContentRepository.InMemory
                     Size = dbFile.Size,
                     StreamSize = dbFile.Buffer?.Length ?? 0L
                 };
-                if (fileCallback(fileModel))
-                    throw new OperationCanceledException();
+                fileCallback(fileModel);
+                cancel.ThrowIfCancellationRequested();
             }
         }
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
