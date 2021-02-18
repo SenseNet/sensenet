@@ -14,6 +14,7 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
+    //UNDONE:<?usage: Make interface and service
     public class DatabaseUsageHandler
     {
         private static readonly string CacheKey = "1";
@@ -25,8 +26,8 @@ namespace SenseNet.ContentRepository
             Formatting = Formatting.Indented
         };
 
-        private readonly ILogger _logger;
-        public DatabaseUsageHandler(ILogger logger)
+        private readonly ILogger<DatabaseUsageHandler> _logger;
+        public DatabaseUsageHandler(ILogger<DatabaseUsageHandler> logger)
         {
             _logger = logger;
         }
@@ -86,25 +87,28 @@ namespace SenseNet.ContentRepository
             using (var writer = new StringWriter(resultBuilder))
                 JsonSerializer.Create(SerializerSettings).Serialize(writer, databaseUsage);
 
-            if (cached == null)
-                cached = await CreateCacheFileAsync(cancel);
-
-            if (cached == null)
-                return;
-
-            cached.SetCachedData(CacheKey, databaseUsage);
-            var serialized = resultBuilder.ToString();
-
-            try
+            using (new SystemAccount())
             {
-                cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
-                using (new SystemAccount())
-                    cached.Save();
-            }
-            catch(Exception e)
-            {
-                _logger.LogWarning("An error occured during saving DatabaseUsage.cache: " + e);
-                // do nothing
+                if (cached == null)
+                    cached = await CreateCacheFileAsync(cancel);
+
+                if (cached == null)
+                    return;
+
+                cached.SetCachedData(CacheKey, databaseUsage);
+                var serialized = resultBuilder.ToString();
+
+                try
+                {
+                    cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
+                    using (new SystemAccount())
+                        cached.Save();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning("An error occured during saving DatabaseUsage.cache: " + e);
+                    // do nothing
+                }
             }
         }
 
@@ -116,6 +120,7 @@ namespace SenseNet.ContentRepository
                 var parentPath = RepositoryPath.GetParentPath(DatabaseUsageCachePath);
                 var name = RepositoryPath.GetFileName(DatabaseUsageCachePath);
                 var parent = await EnsureFolderAsync(parentPath, cancel).ConfigureAwait(false);
+
                 file = new File(parent) {Name = name};
             }
             catch (Exception e)

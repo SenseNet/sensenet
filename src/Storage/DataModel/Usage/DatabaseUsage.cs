@@ -7,12 +7,14 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Storage.DataModel.Usage
 {
+    //UNDONE:<?usage: Make independent data class and interface and service for computing
     public class DatabaseUsage
     {
         public Dimensions Content { get; set; }
         public Dimensions OldVersions { get; set; }
         public Dimensions Preview { get; set; }
         public Dimensions System { get; set; }
+        //UNDONE:<?usage: provide AuditLog size
         public long OrphanedBlobs { get; set; }
         public DateTime Executed { get; set; }
         public TimeSpan ExecutionTime { get; set; }

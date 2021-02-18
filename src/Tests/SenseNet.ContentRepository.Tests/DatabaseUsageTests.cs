@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DatabaseUsageTests : TestBase
     {
-        private class TestDbUsageLogger : ILogger
+        private class TestDbUsageLogger : ILogger<DatabaseUsageHandler>
         {
             public LogLevel LastLevel { get; private set; }
             public string LastMessage { get; private set; }

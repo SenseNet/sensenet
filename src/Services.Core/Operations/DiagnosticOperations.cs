@@ -15,7 +15,8 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async Task<DatabaseUsage> GetDatabaseUsage(Content content, HttpContext httpContext, bool force = false)
         {
-            var logger = (ILogger<SnILogger>)httpContext.RequestServices.GetService(typeof(ILogger<SnILogger>));
+            var logger = (ILogger<DatabaseUsageHandler>)httpContext
+                .RequestServices.GetService(typeof(ILogger<DatabaseUsageHandler>));
             var handler = new DatabaseUsageHandler(logger);
             return await handler.GetDatabaseUsageAsync(force, httpContext.RequestAborted).ConfigureAwait(false);
         }

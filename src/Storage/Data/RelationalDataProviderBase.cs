@@ -2272,6 +2272,7 @@ ELSE CAST(0 AS BIT) END";
 
         /* =============================================================================================== Usage */
 
+        //UNDONE?<?usage: Make async
         public override void LoadDatabaseUsage(
             Func<NodeModel, bool> nodeVersionCallback,
             Func<LongTextModel, bool> longTextPropertyCallback,
@@ -2346,6 +2347,10 @@ ELSE CAST(0 AS BIT) END";
                             cancellation.Cancel(true);
                             throw new OperationCanceledException();
                         }
+                        //UNDONE:<?usage: Pass cancellationtoken (even if it is sync) and us this pattern:
+                        //longTextPropertyCallback(longText, cancel);
+                        //cancel.ThrowIfCancellationRequested();
+
                     }
 
                     // PROCESS BINARY PROPERTY ROWS
