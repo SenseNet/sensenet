@@ -1817,13 +1817,13 @@ namespace SenseNet.ContentRepository.InMemory
         /* =============================================================================================== Usage */
 
 
-        public override void LoadDatabaseUsage(
+        public override STT.Task LoadDatabaseUsageAsync(
             Action<NodeModel> nodeVersionCallback,
             Action<LongTextModel> longTextPropertyCallback,
             Action<BinaryPropertyModel> binaryPropertyCallback,
-            Action<FileModel> fileCallback)
+            Action<FileModel> fileCallback,
+            CancellationToken cancel)
         {
-var cancel = CancellationToken.None;
             // PROCESS NODE+VERSION ROWS
 
             foreach (var dbVersion in DB.Versions)
@@ -1889,6 +1889,8 @@ var cancel = CancellationToken.None;
                 fileCallback(fileModel);
                 cancel.ThrowIfCancellationRequested();
             }
+
+            return STT.Task.CompletedTask;
         }
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {

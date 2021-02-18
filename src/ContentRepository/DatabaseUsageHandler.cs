@@ -142,20 +142,18 @@ namespace SenseNet.ContentRepository
         }
 
         private static readonly string ExclusiveBlockKey = "SenseNet.Storage.LoadDatabaseUsage";
+        private DatabaseUsage _loadedDatabaseUsage;
         private async Task<DatabaseUsage> LoadDatabaseUsageAsync(CancellationToken cancel)
         {
             await ExclusiveBlock.RunAsync(ExclusiveBlockKey, Guid.NewGuid().ToString(),
                 ExclusiveBlockType.WaitForReleased, new ExclusiveLockOptions(), cancel,
-                LoadDatabaseUsageAsync);
+                async () =>
+                {
+                    var dbUsage = new DatabaseUsage(Providers.Instance.DataProvider);
+                    await dbUsage.BuildAsync(cancel).ConfigureAwait(false);
+                    _loadedDatabaseUsage = dbUsage;
+                });
             return _loadedDatabaseUsage;
-        }
-
-        private DatabaseUsage _loadedDatabaseUsage;
-        private async STT.Task LoadDatabaseUsageAsync()
-        {
-            var dbUsage = new DatabaseUsage(Providers.Instance.DataProvider);
-            await dbUsage.BuildAsync().ConfigureAwait(false);
-            _loadedDatabaseUsage = dbUsage;
         }
     }
 }

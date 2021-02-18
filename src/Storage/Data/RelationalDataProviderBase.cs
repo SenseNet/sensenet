@@ -2273,16 +2273,16 @@ ELSE CAST(0 AS BIT) END";
         /* =============================================================================================== Usage */
 
         //UNDONE?<?usage: Make async
-        public override void LoadDatabaseUsage(
+        public override async Task LoadDatabaseUsageAsync(
             Action<NodeModel> nodeVersionCallback,
             Action<LongTextModel> longTextPropertyCallback,
             Action<BinaryPropertyModel> binaryPropertyCallback,
-            Action<FileModel> fileCallback)
+            Action<FileModel> fileCallback,
+            CancellationToken cancellation)
         {
-var cancellation = new CancellationTokenSource();
-            using (var ctx = CreateDataContext(cancellation.Token))
+            using (var ctx = CreateDataContext(cancellation))
             {
-                var _ = ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, (reader, cancel) =>
+                await ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, async (reader, cancel) =>
                 {
                     // PROCESS NODE+VERSION ROWS
 
@@ -2300,7 +2300,7 @@ var cancellation = new CancellationTokenSource();
                     var contentListPropertiesSizeIndex = reader.GetOrdinal("ContentListPropertiesSize");
                     var changedDataSizeIndex = reader.GetOrdinal("ChangedDataSize");
                     var indexSizeIndex = reader.GetOrdinal("IndexSize");
-                    while (reader.Read())
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         var node = new NodeModel
                         {
@@ -2323,14 +2323,14 @@ var cancellation = new CancellationTokenSource();
                         cancel.ThrowIfCancellationRequested();
                     }
 
-                    if (!reader.NextResult())
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
                         throw new ApplicationException("Missing result set: LongTextModels.");
 
                     // PROCESS LONGTEXT ROWS
 
                     versionIdIndex = reader.GetOrdinal("VersionId");
                     var sizeIndex = reader.GetOrdinal("Size");
-                    while (reader.Read())
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         var longText = new LongTextModel
                         {
@@ -2343,12 +2343,12 @@ var cancellation = new CancellationTokenSource();
 
                     // PROCESS BINARY PROPERTY ROWS
 
-                    if (!reader.NextResult())
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
                         throw new ApplicationException("Missing result set: LongTextModels.");
 
                     versionIdIndex = reader.GetOrdinal("VersionId");
                     var fileIdIndex = reader.GetOrdinal("FileId");
-                    while (reader.Read())
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         var binaryProperty = new BinaryPropertyModel
                         {
@@ -2361,13 +2361,13 @@ var cancellation = new CancellationTokenSource();
 
                     // PROCESS FILE ROWS
 
-                    if (!reader.NextResult())
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
                         throw new ApplicationException("Missing result set: LongTextModels.");
 
                     fileIdIndex = reader.GetOrdinal("FileId");
                     sizeIndex = reader.GetOrdinal("Size");
                     var streamSizeIndex = reader.GetOrdinal("StreamSize");
-                    while (reader.Read())
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         var fileModel = new FileModel
                         {
@@ -2378,10 +2378,8 @@ var cancellation = new CancellationTokenSource();
                         fileCallback(fileModel);
                         cancel.ThrowIfCancellationRequested();
                     }
-
-                    return Task.FromResult(true);
-
-                }).ConfigureAwait(false).GetAwaiter().GetResult();
+                    return true;
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadDatabaseUsageScript { get; }

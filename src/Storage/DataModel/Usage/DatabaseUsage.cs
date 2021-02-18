@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -97,7 +98,7 @@ namespace SenseNet.Storage.DataModel.Usage
                 OrphanedBlobs += size;
         }
 
-        public Task BuildAsync()
+        public async Task BuildAsync(CancellationToken cancel = default)
         {
             using (var op = SnTrace.System.StartOperation("Load DatabaseUsage"))
             {
@@ -109,7 +110,8 @@ namespace SenseNet.Storage.DataModel.Usage
                 for (int i = 0; i < _db.Length; i++)
                     _db[i] = (new List<int>(), new List<int>(), new Dimensions());
 
-                _dataProvider.LoadDatabaseUsage(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile);
+                await _dataProvider.LoadDatabaseUsageAsync(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile,
+                    cancel);
 
                 this.Preview = _db[PreviewImage].Dimensions.Clone();
                 this.System = _db[SystemLast].Dimensions.Clone();
@@ -121,7 +123,6 @@ namespace SenseNet.Storage.DataModel.Usage
                 this.ExecutionTime = now - start;
 
                 op.Successful = true;
-                return Task.CompletedTask;
             }
         }
     }
