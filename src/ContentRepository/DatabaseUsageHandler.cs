@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository
     public class DatabaseUsageHandler
     {
         private static readonly string CacheKey = "1";
-        private static readonly string DatabaseUsageCachePath = "/Root/System/Cache/DatabaseUsage.cache";
+        public static readonly string DatabaseUsageCachePath = "/Root/System/Cache/DatabaseUsage.cache";
         private static readonly TimeSpan DatabaseUsageCacheTime = TimeSpan.FromMinutes(5);
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -25,14 +25,13 @@ namespace SenseNet.ContentRepository
             Formatting = Formatting.Indented
         };
 
-        private ILogger<SnILogger> _logger;
-        public DatabaseUsageHandler(ILogger<SnILogger> logger)
+        private readonly ILogger _logger;
+        public DatabaseUsageHandler(ILogger logger)
         {
             _logger = logger;
         }
 
-        //UNDONE:<?usage: Test: "force" true/false"
-        public async Task<DatabaseUsage> GetDatabaseUsage(bool force, CancellationToken cancel)
+        public async Task<DatabaseUsage> GetDatabaseUsageAsync(bool force, CancellationToken cancel)
         {
             var (dbUsage, cached) = await GetFromCache(cancel).ConfigureAwait(false);
             if (dbUsage != null && !force)
@@ -90,6 +89,9 @@ namespace SenseNet.ContentRepository
             if (cached == null)
                 cached = await CreateCacheFileAsync(cancel);
 
+            if (cached == null)
+                return;
+
             cached.SetCachedData(CacheKey, databaseUsage);
             var serialized = resultBuilder.ToString();
 
@@ -108,10 +110,18 @@ namespace SenseNet.ContentRepository
 
         private async Task<File> CreateCacheFileAsync(CancellationToken cancel)
         {
-            var parentPath = RepositoryPath.GetParentPath(DatabaseUsageCachePath);
-            var name = RepositoryPath.GetFileName(DatabaseUsageCachePath);
-            var parent = await EnsureFolderAsync(parentPath, cancel).ConfigureAwait(false);
-            var file = new File(parent) { Name = name };
+            File file = null;
+            try
+            {
+                var parentPath = RepositoryPath.GetParentPath(DatabaseUsageCachePath);
+                var name = RepositoryPath.GetFileName(DatabaseUsageCachePath);
+                var parent = await EnsureFolderAsync(parentPath, cancel).ConfigureAwait(false);
+                file = new File(parent) {Name = name};
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("An error occured during saving DatabaseUsage.cache: " + e);
+            }
             return file;
         }
         private async Task<Node> EnsureFolderAsync(string path, CancellationToken cancel)

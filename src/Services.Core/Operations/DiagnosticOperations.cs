@@ -17,7 +17,7 @@ namespace SenseNet.Services.Core.Operations
         {
             var logger = (ILogger<SnILogger>)httpContext.RequestServices.GetService(typeof(ILogger<SnILogger>));
             var handler = new DatabaseUsageHandler(logger);
-            return await handler.GetDatabaseUsage(force, httpContext.RequestAborted).ConfigureAwait(false);
+            return await handler.GetDatabaseUsageAsync(force, httpContext.RequestAborted).ConfigureAwait(false);
         }
     }
 }
