@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -12,13 +9,13 @@ namespace SenseNet.Storage.DataModel.Usage
 {
     public class DatabaseUsage
     {
-        public Dimensions Content { get; private set; }
-        public Dimensions OldVersions { get; private set; }
-        public Dimensions Preview { get; private set; }
-        public Dimensions System { get; private set; }
-        public long OrphanedBlobs { get; private set; }
-        public DateTime Executed { get; private set; }
-        public TimeSpan ExecutionTime { get; private set; }
+        public Dimensions Content { get; set; }
+        public Dimensions OldVersions { get; set; }
+        public Dimensions Preview { get; set; }
+        public Dimensions System { get; set; }
+        public long OrphanedBlobs { get; set; }
+        public DateTime Executed { get; set; }
+        public TimeSpan ExecutionTime { get; set; }
 
         private const int PreviewImage = 0;
         private const int SystemLast = 1;
@@ -37,7 +34,7 @@ namespace SenseNet.Storage.DataModel.Usage
 
         private bool ProcessNode(NodeModel node)
         {
-            var category = -1;
+            int category;
             if (node.NodeTypeId == _previewImageTypeId)
             {
                 category = PreviewImage;
@@ -104,15 +101,7 @@ namespace SenseNet.Storage.DataModel.Usage
             return false;
         }
 
-        private static readonly string ExclusiveBlockKey = "SenseNet.Storage.LoadDatabaseUsage";
-        public Task BuildAsync(CancellationToken cancel = default)
-        {
-            //UNDONE:<?usage: Move ExclusiveBlock usage to the ContentRepository layer
-            return ExclusiveBlock.RunAsync(ExclusiveBlockKey, Guid.NewGuid().ToString(),
-                ExclusiveBlockType.WaitForReleased, new ExclusiveLockOptions(), cancel,
-                Build2Async);
-        }
-        private Task Build2Async()
+        public Task BuildAsync()
         {
             using (var op = SnTrace.System.StartOperation("Load DatabaseUsage"))
             {
