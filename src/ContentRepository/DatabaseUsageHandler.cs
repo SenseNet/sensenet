@@ -14,8 +14,11 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
-    //UNDONE:<?usage: Make interface and service
-    public class DatabaseUsageHandler
+    public interface IDatabaseUsageHandler  //UNDONE:<?usage: Register service
+    {
+        Task<DatabaseUsage> GetDatabaseUsageAsync(bool force, CancellationToken cancel);
+    }
+    public class DatabaseUsageHandler : IDatabaseUsageHandler
     {
         private static readonly string CacheKey = "1";
         public static readonly string DatabaseUsageCachePath = "/Root/System/Cache/DatabaseUsage.cache";
