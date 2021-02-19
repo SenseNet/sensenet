@@ -1822,6 +1822,7 @@ namespace SenseNet.ContentRepository.InMemory
             Action<LongTextModel> longTextPropertyCallback,
             Action<BinaryPropertyModel> binaryPropertyCallback,
             Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancel)
         {
             // PROCESS NODE+VERSION ROWS
@@ -1889,6 +1890,33 @@ namespace SenseNet.ContentRepository.InMemory
                 fileCallback(fileModel);
                 cancel.ThrowIfCancellationRequested();
             }
+
+            // PROCESS LOGENTRIES TABLE
+
+            var meta = 0L;
+            var text = 0L;
+            foreach (var item in DB.LogEntries)
+            {
+                meta += 48 + 2 * ((item.Category?.Length ?? 0) +
+                                  (item.Severity?.Length ?? 0) +
+                                  (item.Title?.Length ?? 0) +
+                                  (item.ContentPath?.Length ?? 0) +
+                                  (item.UserName?.Length ?? 0) +
+                                  (item.MachineName?.Length ?? 0) +
+                                  (item.AppDomainName?.Length ?? 0) +
+                                  (item.ProcessName?.Length ?? 0) +
+                                  (item.ThreadName?.Length ?? 0) +
+                                  (item.Message?.Length ?? 0));
+                text += item.FormattedMessage.Length;
+            }
+
+            var logEntriesTableModel = new LogEntriesTableModel
+            {
+                Count = DB.LogEntries.Count,
+                Metadata = meta,
+                Text = text
+            };
+            logEntriesTableCallback(logEntriesTableModel);
 
             return STT.Task.CompletedTask;
         }

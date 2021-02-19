@@ -24,6 +24,7 @@ namespace SenseNet.Storage.DataModel.Usage
 
         private long _orphanedBlobs;
         private (List<int> VersionIds, List<int> FileIds, Dimensions Dimensions)[] _db;
+        private LogDimensions _logDb = new LogDimensions();
 
         private readonly DataProvider _dataProvider;
 
@@ -94,6 +95,12 @@ namespace SenseNet.Storage.DataModel.Usage
             if (!found)
                 _orphanedBlobs += size;
         }
+        private void ProcessLogEntries(LogEntriesTableModel model)
+        {
+            _logDb.Count = model.Count;
+            _logDb.Metadata = model.Metadata;
+            _logDb.Text = model.Text;
+        }
 
         public async Task<DatabaseUsage> LoadAsync(CancellationToken cancel = default)
         {
@@ -108,7 +115,7 @@ namespace SenseNet.Storage.DataModel.Usage
                     _db[i] = (new List<int>(), new List<int>(), new Dimensions());
 
                 await _dataProvider.LoadDatabaseUsageAsync(ProcessNode, ProcessLongText, ProcessBinary, ProcessFile,
-                    cancel);
+                    ProcessLogEntries, cancel);
 
                 var now = DateTime.UtcNow;
                 var result = new DatabaseUsage
@@ -117,7 +124,7 @@ namespace SenseNet.Storage.DataModel.Usage
                     System = _db[SystemLast].Dimensions.Clone(),
                     Content = _db[ContentLast].Dimensions.Clone(),
                     OldVersions = Dimensions.Sum(_db[SystemOld].Dimensions, _db[ContentOld].Dimensions),
-                    //UNDONE:<?usage: AuditLog = 
+                    OperationLog = _logDb,
                     OrphanedBlobs = _orphanedBlobs,
                     Executed = now,
                     ExecutionTime = now - start,

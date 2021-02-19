@@ -2277,6 +2277,7 @@ ELSE CAST(0 AS BIT) END";
             Action<LongTextModel> longTextPropertyCallback,
             Action<BinaryPropertyModel> binaryPropertyCallback,
             Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancellation)
         {
             using (var ctx = CreateDataContext(cancellation))
@@ -2343,7 +2344,7 @@ ELSE CAST(0 AS BIT) END";
                     // PROCESS BINARY PROPERTY ROWS
 
                     if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
-                        throw new ApplicationException("Missing result set: LongTextModels.");
+                        throw new ApplicationException("Missing result set: BinaryPropertyModels.");
 
                     versionIdIndex = reader.GetOrdinal("VersionId");
                     var fileIdIndex = reader.GetOrdinal("FileId");
@@ -2361,7 +2362,7 @@ ELSE CAST(0 AS BIT) END";
                     // PROCESS FILE ROWS
 
                     if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
-                        throw new ApplicationException("Missing result set: LongTextModels.");
+                        throw new ApplicationException("Missing result set: FileModels.");
 
                     fileIdIndex = reader.GetOrdinal("FileId");
                     sizeIndex = reader.GetOrdinal("Size");
@@ -2377,6 +2378,21 @@ ELSE CAST(0 AS BIT) END";
                         fileCallback(fileModel);
                         cancel.ThrowIfCancellationRequested();
                     }
+
+                    // PROCESS LOGENTRIES TABLE
+
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
+                        throw new ApplicationException("Missing result set: LogEntriesTableModel.");
+
+                    var logEntriesTableModel = new LogEntriesTableModel();
+                    if (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        logEntriesTableModel.Count = reader.GetInt32(reader.GetOrdinal("Rows"));
+                        logEntriesTableModel.Metadata = reader.GetInt64(reader.GetOrdinal("Metadata"));
+                        logEntriesTableModel.Text = reader.GetInt64(reader.GetOrdinal("Text"));
+                    }
+                    logEntriesTableCallback(logEntriesTableModel);
+
                     return true;
                 }).ConfigureAwait(false);
             }

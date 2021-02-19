@@ -1300,8 +1300,18 @@ FROM Nodes N (NOLOCK)
     JOIN Versions V (NOLOCK) ON V.NodeId = N.NodeId
 
 SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties (NOLOCK)
+
 SELECT VersionId, FileId FROM BinaryProperties (NOLOCK)
+
 SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files (NOLOCK)
+
+SELECT COUNT(1) [Rows],
+       SUM(CAST(48 AS bigint) + COALESCE(DATALENGTH([Category]), 0) + DATALENGTH([Severity]) + DATALENGTH([Title]) + DATALENGTH([ContentPath])
+          + DATALENGTH([UserName]) + DATALENGTH([MachineName]) + DATALENGTH([AppDomainName]) + DATALENGTH([ProcessID])
+		  + DATALENGTH([ProcessName]) + COALESCE(DATALENGTH([ThreadName]), 0) + DATALENGTH([Win32ThreadId]) 
+		  + DATALENGTH([Message])) [Metadata],
+       SUM(CAST(DATALENGTH([FormattedMessage]) AS bigint)) [Text]
+FROM [LogEntries] (NOLOCK)
 ";
         #endregion
 

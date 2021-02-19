@@ -919,6 +919,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="longTextPropertyCallback">Processes the given <see cref="LongTextModel"/> instance.</param>
         /// <param name="binaryPropertyCallback">Processes the given <see cref="BinaryPropertyModel"/> instance.</param>
         /// <param name="fileCallback">Processes the given <see cref="FileModel"/> instance.</param>
+        /// <param name="logEntriesTableCallback">Processes the given <see cref="LogEntriesTableModel"/> data.
+        /// The model instance contains counters of the entire table.</param>
         /// <param name="cancel">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps an enumerable <see cref="EntityTreeNodeData"/>
         /// as the Content tree representation.</returns>
@@ -927,6 +929,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             Action<LongTextModel> longTextPropertyCallback,
             Action<BinaryPropertyModel> binaryPropertyCallback,
             Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancel);
 
         /* =============================================================================================== Tools */

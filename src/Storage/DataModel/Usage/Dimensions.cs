@@ -31,7 +31,7 @@
         public long Index { get; set; }
 
         /// <summary>
-        /// Combines the given <see cref="Dimensions"/>s and returns a new one. 
+        /// Combines the given <see cref="Dimensions"/> and returns a new one. 
         /// </summary>
         public static Dimensions Sum(params Dimensions[] items)
         {
@@ -60,6 +60,42 @@
                 Metadata = Metadata,
                 Text = Text,
                 Index = Index
+            };
+        }
+    }
+    /// <summary>
+    /// Represents aggregated counters.
+    /// </summary>
+    public class LogDimensions
+    {
+        /// <summary>
+        /// Count of rows.
+        /// </summary>
+        public int Count { get; set; }
+        /// <summary>
+        /// Size of metadata in bytes.
+        /// </summary>
+        /// <remarks>
+        /// Summary of the <c>DynamicPropertiesSize</c>, <c>ContentListPropertiesSize</c> and <c>ChangedDataSize</c>
+        /// of the related <see cref="NodeModel"/>s.
+        /// </remarks>
+        public long Metadata { get; set; }
+        /// <summary>
+        /// Size of long text properties in bytes.
+        /// </summary>
+        public long Text { get; set; }
+
+        /// <summary>
+        /// Returns a copy of this object.
+        /// </summary>
+        /// <returns></returns>
+        public LogDimensions Clone()
+        {
+            return new()
+            {
+                Count = Count,
+                Metadata = Metadata,
+                Text = Text,
             };
         }
     }
