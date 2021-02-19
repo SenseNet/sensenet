@@ -149,8 +149,8 @@ namespace SenseNet.ContentRepository
                 ExclusiveBlockType.WaitForReleased, new ExclusiveLockOptions(), cancel,
                 async () =>
                 {
-                    var dbUsage = new DatabaseUsage(Providers.Instance.DataProvider);
-                    await dbUsage.BuildAsync(cancel).ConfigureAwait(false);
+                    var loader = new DatabaseUsageLoader(Providers.Instance.DataProvider); //UNDONE:<?usage: GetService
+                    var dbUsage = await loader.LoadAsync(cancel).ConfigureAwait(false);
                     _loadedDatabaseUsage = dbUsage;
                 });
             return _loadedDatabaseUsage;

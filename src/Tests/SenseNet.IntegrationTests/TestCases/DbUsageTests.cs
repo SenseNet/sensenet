@@ -28,14 +28,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 user1.Save();
 
                 var dataProvider = Providers.Instance.DataProvider;
-                var profileBefore = new DatabaseUsage(dataProvider);
-                await profileBefore.BuildAsync();
+                var loader = new DatabaseUsageLoader(dataProvider);
+                var profileBefore = await loader.LoadAsync();
 
                 CreateStructure(user1, out var folder, out var file);
 
                 // ACTION
-                var profile = new DatabaseUsage(dataProvider);
-                await profile.BuildAsync();
+                loader = new DatabaseUsageLoader(dataProvider);
+                var profile = await loader.LoadAsync();
 
                 // ASSERT
                 var versionCount = await dataProvider.GetVersionCountAsync("/Root", CancellationToken.None);
