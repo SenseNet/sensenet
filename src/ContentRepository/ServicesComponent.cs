@@ -695,6 +695,52 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.17", "7.7.18", "2021-02-17", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region String resources
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesQ.xml")
+                        .Class("Ctd-Query")
+                        .Culture("en")
+                        .AddResource("UiFilters-DisplayName", "UI filters")
+                        .AddResource("UiFilters-Description", "Technical field for filter data.")
+                        .Culture("hu")
+                        .AddResource("UiFilters-DisplayName", "UI szűrők")
+                        .AddResource("UiFilters-Description", "Technikai mező szűrő adatoknak.");
+
+                    rb.Content("ActionResources.xml")
+                        .Class("Action")
+                        .Culture("en")
+                        .AddResource("Browse", "Details");
+
+                    rb.Apply();
+
+                    #endregion
+
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("Query")
+                        .Field("UiFilters", "LongText")
+                        .DisplayName("$Ctd-Query,UiFilters-DisplayName")
+                        .Description("$Ctd-Query,UiFilters-Description")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Hide)
+                        .VisibleNew(FieldVisibility.Hide);
+
+                    cb.Type("File")
+                        .Field("Size")
+                        .ControlHint("sn:FileSize");
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
     }
 }
