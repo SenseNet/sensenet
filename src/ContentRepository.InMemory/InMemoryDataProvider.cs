@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -16,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel.Usage;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
@@ -1812,12 +1814,138 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
+        /* =============================================================================================== Usage */
+
+
+        public override STT.Task LoadDatabaseUsageAsync(
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
+            CancellationToken cancel)
+        {
+            // PROCESS NODE+VERSION ROWS
+
+            foreach (var dbVersion in DB.Versions)
+            {
+                var dbNode = DB.Nodes.FirstOrDefault(n => n.NodeId == dbVersion.NodeId);
+                if (dbNode == null)
+                    continue;
+                var nodeModel = new NodeModel
+                {
+                    NodeId = dbNode.NodeId,
+                    VersionId = dbVersion.VersionId,
+                    ParentNodeId = dbNode.ParentNodeId,
+                    NodeTypeId = dbNode.NodeTypeId,
+                    Version = dbVersion.Version.ToString(),
+                    IsLastPublic = dbNode.LastMajorVersionId == dbVersion.VersionId,
+                    IsLastDraft = dbNode.LastMinorVersionId == dbVersion.VersionId,
+                    OwnerId = dbNode.OwnerId,
+                    DynamicPropertiesSize = GetObjectSize(dbVersion.DynamicProperties),
+                    ContentListPropertiesSize = 0L,
+                    ChangedDataSize = GetObjectSize(dbVersion.ChangedData),
+                    IndexSize = 2 * dbVersion.IndexDocument?.Length ?? 0,
+                };
+                nodeVersionCallback(nodeModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS LONGTEXT ROWS
+
+            foreach (var dbLongTextProperty in DB.LongTextProperties)
+            {
+                var longTextModel = new LongTextModel
+                {
+                    VersionId = dbLongTextProperty.VersionId,
+                    Size = 2 * dbLongTextProperty.Value?.Length ?? 0L
+                };
+                longTextPropertyCallback(longTextModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS BINARY PROPERTY ROWS
+
+            foreach (var dbBinaryProperty in DB.BinaryProperties)
+            {
+                var binaryProperty = new BinaryPropertyModel
+                {
+                    VersionId = dbBinaryProperty.VersionId,
+                    FileId = dbBinaryProperty.FileId,
+                };
+                binaryPropertyCallback(binaryProperty);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS FILE ROWS
+
+            foreach (var dbFile in DB.Files)
+            {
+                var fileModel = new FileModel
+                {
+                    FileId =dbFile.FileId,
+                    Size = dbFile.Size,
+                    StreamSize = dbFile.Buffer?.Length ?? 0L
+                };
+                fileCallback(fileModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS LOGENTRIES TABLE
+
+            var meta = 0L;
+            var text = 0L;
+            foreach (var item in DB.LogEntries)
+            {
+                meta += 48 + 2 * ((item.Category?.Length ?? 0) +
+                                  (item.Severity?.Length ?? 0) +
+                                  (item.Title?.Length ?? 0) +
+                                  (item.ContentPath?.Length ?? 0) +
+                                  (item.UserName?.Length ?? 0) +
+                                  (item.MachineName?.Length ?? 0) +
+                                  (item.AppDomainName?.Length ?? 0) +
+                                  (item.ProcessName?.Length ?? 0) +
+                                  (item.ThreadName?.Length ?? 0) +
+                                  (item.Message?.Length ?? 0));
+                text += item.FormattedMessage.Length;
+            }
+
+            var logEntriesTableModel = new LogEntriesTableModel
+            {
+                Count = DB.LogEntries.Count,
+                Metadata = meta,
+                Text = text
+            };
+            logEntriesTableCallback(logEntriesTableModel);
+
+            return STT.Task.CompletedTask;
+        }
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.None
+        };
+        private static long GetObjectSize (object o)
+        {
+            if (o == null)
+                return 0L;
+
+            using (var writer = new StringWriter())
+            {
+                JsonSerializer.Create(JsonSerializerSettings).Serialize(writer, o);
+                var serializedDoc = writer.GetStringBuilder().ToString();
+                return 2 * serializedDoc.Length;
+            }
+        }
+
         /* =============================================================================================== Tools */
 
         public override bool IsDeadlockException(Exception exception)
         {
             return exception.Message == "Transaction was deadlocked.";
         }
+
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

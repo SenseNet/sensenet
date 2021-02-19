@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel.Usage;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -2268,6 +2269,151 @@ ELSE CAST(0 AS BIT) END";
                 return Convert.ToBoolean(result);
             }
         }
+
+        /* =============================================================================================== Usage */
+
+        public override async Task LoadDatabaseUsageAsync(
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
+            CancellationToken cancellation)
+        {
+            using (var ctx = CreateDataContext(cancellation))
+            {
+                await ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, async (reader, cancel) =>
+                {
+                    // PROCESS NODE+VERSION ROWS
+
+                    var nodeIdIndex = reader.GetOrdinal("NodeId");
+                    var versionIdIndex = reader.GetOrdinal("VersionId");
+                    var parentNodeIdIndex = reader.GetOrdinal("ParentNodeId");
+                    var nodeTypeIdIndex = reader.GetOrdinal("NodeTypeId");
+                    var majorNumberIndex = reader.GetOrdinal("MajorNumber");
+                    var minorNumberIndex = reader.GetOrdinal("MinorNumber");
+                    var statusIndex = reader.GetOrdinal("Status");
+                    var isLastPublicIndex = reader.GetOrdinal("LastPub");
+                    var isLastDraftIndex = reader.GetOrdinal("LastWork");
+                    var ownerIdIndex = reader.GetOrdinal("OwnerId");
+                    var dynamicPropertiesSizeIndex = reader.GetOrdinal("DynamicPropertiesSize");
+                    var contentListPropertiesSizeIndex = reader.GetOrdinal("ContentListPropertiesSize");
+                    var changedDataSizeIndex = reader.GetOrdinal("ChangedDataSize");
+                    var indexSizeIndex = reader.GetOrdinal("IndexSize");
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        var node = new NodeModel
+                        {
+                            NodeId = reader.GetInt32(nodeIdIndex),
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            ParentNodeId = reader.GetSafeInt32(parentNodeIdIndex),
+                            NodeTypeId = reader.GetInt32(nodeTypeIdIndex),
+                            Version = ParseVersion(reader.GetInt16(majorNumberIndex),
+                                reader.GetInt16(minorNumberIndex),
+                                reader.GetInt16(statusIndex)),
+                            IsLastPublic = reader.GetInt32(isLastPublicIndex) > 0,
+                            IsLastDraft = reader.GetInt32(isLastDraftIndex) > 0,
+                            OwnerId = reader.GetInt32(ownerIdIndex),
+                            DynamicPropertiesSize = reader.GetInt64(dynamicPropertiesSizeIndex),
+                            ContentListPropertiesSize = reader.GetInt64(contentListPropertiesSizeIndex),
+                            ChangedDataSize = reader.GetInt64(changedDataSizeIndex),
+                            IndexSize = reader.GetInt64(indexSizeIndex),
+                        };
+                        nodeVersionCallback(node);
+                        cancel.ThrowIfCancellationRequested();
+                    }
+
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
+                        throw new ApplicationException("Missing result set: LongTextModels.");
+
+                    // PROCESS LONGTEXT ROWS
+
+                    versionIdIndex = reader.GetOrdinal("VersionId");
+                    var sizeIndex = reader.GetOrdinal("Size");
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        var longText = new LongTextModel
+                        {
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            Size = reader.GetInt64(sizeIndex),
+                        };
+                        longTextPropertyCallback(longText);
+                        cancel.ThrowIfCancellationRequested();
+                    }
+
+                    // PROCESS BINARY PROPERTY ROWS
+
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
+                        throw new ApplicationException("Missing result set: BinaryPropertyModels.");
+
+                    versionIdIndex = reader.GetOrdinal("VersionId");
+                    var fileIdIndex = reader.GetOrdinal("FileId");
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        var binaryProperty = new BinaryPropertyModel
+                        {
+                            VersionId = reader.GetInt32(versionIdIndex),
+                            FileId = reader.GetInt32(fileIdIndex),
+                        };
+                        binaryPropertyCallback(binaryProperty);
+                        cancel.ThrowIfCancellationRequested();
+                    }
+
+                    // PROCESS FILE ROWS
+
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
+                        throw new ApplicationException("Missing result set: FileModels.");
+
+                    fileIdIndex = reader.GetOrdinal("FileId");
+                    sizeIndex = reader.GetOrdinal("Size");
+                    var streamSizeIndex = reader.GetOrdinal("StreamSize");
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        var fileModel = new FileModel
+                        {
+                            FileId = reader.GetInt32(fileIdIndex),
+                            Size = reader.GetInt64(sizeIndex),
+                            StreamSize = reader.GetInt64(streamSizeIndex)
+                        };
+                        fileCallback(fileModel);
+                        cancel.ThrowIfCancellationRequested();
+                    }
+
+                    // PROCESS LOGENTRIES TABLE
+
+                    if (!(await reader.NextResultAsync(cancel).ConfigureAwait(false)))
+                        throw new ApplicationException("Missing result set: LogEntriesTableModel.");
+
+                    var logEntriesTableModel = new LogEntriesTableModel();
+                    if (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        logEntriesTableModel.Count = reader.GetInt32(reader.GetOrdinal("Rows"));
+                        logEntriesTableModel.Metadata = reader.GetInt64(reader.GetOrdinal("Metadata"));
+                        logEntriesTableModel.Text = reader.GetInt64(reader.GetOrdinal("Text"));
+                    }
+                    logEntriesTableCallback(logEntriesTableModel);
+
+                    return true;
+                }).ConfigureAwait(false);
+            }
+        }
+        protected abstract string LoadDatabaseUsageScript { get; }
+
+        private string ParseVersion(int major, int minor, short status)
+        {
+            char c;
+            switch (status)
+            {
+                case 1: c = 'A'; break;
+                case 2: c = 'L'; break;
+                case 4: c = 'D'; break;
+                case 8: c = 'R'; break;
+                case 16: c = 'P'; break;
+                default: throw new ArgumentException("Unknown VersionStatus: {status}");
+            }
+            return $"V{major}.{minor}.{c}";
+        }
+
 
         /* =============================================================================================== Tools */
 
