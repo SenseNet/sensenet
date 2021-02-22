@@ -53,7 +53,7 @@
         /// <returns></returns>
         public Dimensions Clone()
         {
-            return new()
+            return new Dimensions()
             {
                 Count = Count,
                 Blob = Blob,
@@ -91,7 +91,7 @@
         /// <returns></returns>
         public LogDimensions Clone()
         {
-            return new()
+            return new LogDimensions()
             {
                 Count = Count,
                 Metadata = Metadata,
