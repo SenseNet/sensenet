@@ -114,14 +114,18 @@ namespace SenseNet.WebHooks
             
             switch (snEvent)
             {
-                // Create and Delete are single events, they cannot be paired with other events (e.g. with Modify).
-                case NodeCreatedEvent nce:
+                case NodeCreatedEvent _:
+                    // There are cases when a versioning event should be sent
+                    // even if the content is newly created.
+                    var events = new List<WebHookEventType>(CollectVersioningEvents(selectedEvents, snEvent));
                     if (selectedEvents.Contains(WebHookEventType.Create))
-                        return new[] { WebHookEventType.Create };
-                    break;
-                case NodeModifiedEvent nme:
+                        events.Add(WebHookEventType.Create);
+                    return events.ToArray();
+                case NodeModifiedEvent _:
                     return CollectVersioningEvents(selectedEvents, snEvent);
-                case NodeForcedDeletedEvent nfd:
+                case NodeForcedDeletedEvent _:
+                    // Delete means deleted permanently. Delete to Trash should be
+                    // a separate event in the future.
                     if (selectedEvents.Contains(WebHookEventType.Delete))
                         return new[] { WebHookEventType.Delete };
                     break;
@@ -134,6 +138,7 @@ namespace SenseNet.WebHooks
         {
             var relevantEvents = new List<WebHookEventType>();
             var gc = snEvent.NodeEventArgs.SourceNode as GenericContent;
+            var versioningMode = gc?.VersioningMode ?? VersioningType.None;
             var approvingMode = gc?.ApprovingMode ?? ApprovingType.False;
             var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
             var previousVersion = GetPreviousVersion();
@@ -145,33 +150,40 @@ namespace SenseNet.WebHooks
                 switch (eventType)
                 {
                     case WebHookEventType.Modify:
-                        relevantEvents.Add(WebHookEventType.Modify);
+                        // we consider every change a modification
+                        if (snEvent is NodeModifiedEvent)
+                            relevantEvents.Add(WebHookEventType.Modify);
                         break;
                     case WebHookEventType.Approve:
-                        // Hidden approve: when the admin or owner publishes a document directly
-                        // from draft to approved.
-                        if ((previousVersion?.Status == VersionStatus.Pending &&
-                            currentVersion.Status == VersionStatus.Approved) ||
-                            (approvingMode == ApprovingType.True &&
-                             previousVersion?.Status == VersionStatus.Draft &&
-                             currentVersion.Status == VersionStatus.Approved))
+                        // the content became Approved
+                        if (currentVersion.Status == VersionStatus.Approved)
                         {
-                            relevantEvents.Add(WebHookEventType.Approve);
+                            if (approvingMode == ApprovingType.True &&
+                                previousVersion?.Status == VersionStatus.Pending ||
+                                approvingMode == ApprovingType.False &&
+                                ((previousVersion != null && (previousVersion.Status != VersionStatus.Approved ||
+                                                              previousVersion < currentVersion)) ||
+                                 snEvent is NodeCreatedEvent))
+                            {
+                                relevantEvents.Add(WebHookEventType.Approve);
+                            }
                         }
                         break;
-                    case WebHookEventType.Publish:
-                        //UNDONE: finalize Publish event
-                        // Users want this event when...?
-                        if ((approvingMode == ApprovingType.True &&
-                             currentVersion.Status == VersionStatus.Pending) ||
-                            (approvingMode == ApprovingType.False &&
-                             previousVersion?.Status == VersionStatus.Draft &&
-                             currentVersion.Status == VersionStatus.Approved))
+                    case WebHookEventType.Pending:
+                        // the content became Pending
+                        if (currentVersion.Status == VersionStatus.Pending)
                         {
-                            relevantEvents.Add(WebHookEventType.Publish);
+                            if (approvingMode == ApprovingType.True &&
+                                (previousVersion != null && previousVersion.Status != VersionStatus.Pending ||
+                                 snEvent is NodeCreatedEvent))
+                            {
+                                relevantEvents.Add(WebHookEventType.Pending);
+                            }
                         }
+
                         break;
                     case WebHookEventType.Reject:
+                        // the content became Rejected
                         if (approvingMode == ApprovingType.True &&
                             previousVersion?.Status == VersionStatus.Pending &&
                             currentVersion.Status == VersionStatus.Rejected)
@@ -179,14 +191,21 @@ namespace SenseNet.WebHooks
                             relevantEvents.Add(WebHookEventType.Reject);
                         }
                         break;
-                    case WebHookEventType.CheckIn:
-                        if (previousVersion?.Status == VersionStatus.Locked &&
-                            currentVersion.Status != VersionStatus.Locked)
+                    case WebHookEventType.Draft:
+                        // the content became Draft
+                        if (currentVersion.Status == VersionStatus.Draft)
                         {
-                            relevantEvents.Add(WebHookEventType.CheckIn);
+                            if (versioningMode == VersioningType.MajorAndMinor &&
+                                (previousVersion != null && (previousVersion.Status != VersionStatus.Draft ||
+                                                             previousVersion < currentVersion) ||
+                                 snEvent is NodeCreatedEvent))
+                            {
+                                relevantEvents.Add(WebHookEventType.Draft);
+                            }
                         }
                         break;
                     case WebHookEventType.CheckOut:
+                        // the content became Locked
                         if (previousVersion?.Status != VersionStatus.Locked &&
                             currentVersion.Status == VersionStatus.Locked)
                         {

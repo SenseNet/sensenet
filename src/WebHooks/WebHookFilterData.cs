@@ -23,9 +23,9 @@ namespace SenseNet.WebHooks
         Delete,
         Modify,
         Approve,
-        Publish,
         Reject,
-        CheckIn,
+        Draft,
+        Pending,
         CheckOut
     }
 

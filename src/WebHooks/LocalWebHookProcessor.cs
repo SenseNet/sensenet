@@ -29,6 +29,11 @@ namespace SenseNet.WebHooks
         public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
         {
             var node = snEvent.NodeEventArgs.SourceNode;
+
+            // currently we deal with content-related events only
+            if (node == null)
+                return;
+
             var subscriptions = _subscriptionStore.GetRelevantSubscriptions(snEvent)
                 .Where(si => si.Subscription.Enabled && si.Subscription.IsValid)
                 .ToArray();

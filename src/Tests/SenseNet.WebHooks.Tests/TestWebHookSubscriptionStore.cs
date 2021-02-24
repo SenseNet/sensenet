@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
@@ -42,7 +43,11 @@ namespace SenseNet.WebHooks.Tests
 
         public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
         {
-            var pe = new PredicationEngine(Content.Create(snEvent.NodeEventArgs.SourceNode));
+            var node = snEvent.NodeEventArgs.SourceNode;
+            if (node == null)
+                return Array.Empty<WebHookSubscriptionInfo>();
+
+            var pe = new PredicationEngine(Content.Create(node));
 
             // filter the hardcoded subscription list: return the ones that
             // match the current content

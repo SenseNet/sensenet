@@ -62,7 +62,7 @@ namespace SenseNet.WebHooks.Tests
         },
 {
             ""Name"": ""File"", 
-            ""Events"": [ ""Create"", ""Modify"", ""Publish"" ] 
+            ""Events"": [ ""Create"", ""Modify"", ""Approve"" ] 
         }
     ] 
 }",
@@ -75,7 +75,7 @@ namespace SenseNet.WebHooks.Tests
                     Assert.AreEqual("/Root/Content", wh.FilterData.Path);
                     Assert.AreEqual("Folder,File", string.Join(",",
                         wh.FilterData.ContentTypes.Select(ct => ct.Name)));
-                    Assert.AreEqual("Create,Modify,Publish", string.Join(",",
+                    Assert.AreEqual("Create,Modify,Approve", string.Join(",",
                         wh.FilterData.ContentTypes[1].Events.Select(ev => ev.ToString())));
 
                     Assert.AreEqual("+InTree:'/Root/Content' +Type:(Folder File)", wh.FilterQuery);
@@ -130,7 +130,7 @@ namespace SenseNet.WebHooks.Tests
     ""ContentTypes"": [ 
         {
             ""Name"": ""Folder"", 
-            ""Events"": [ ""Publish"" ] 
+            ""Events"": [ ""Pending"" ] 
         }
     ] 
 }");
@@ -141,7 +141,11 @@ namespace SenseNet.WebHooks.Tests
                     var event2 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
 
                     // triggered for ALL events: only the appropriate events should be returned
-                    Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                    var re1 = wh.GetRelevantEventTypes(event1);
+                    Assert.AreEqual(2, re1.Length);
+                    Assert.IsTrue(re1.Contains(WebHookEventType.Create));
+                    Assert.IsTrue(re1.Contains(WebHookEventType.Approve)); // automatic approve
+
                     Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
 
                     // TriggersForAllEvents is FALSE, but All is selected for the type.
@@ -156,7 +160,11 @@ namespace SenseNet.WebHooks.Tests
     ] 
 }");
                     // triggered for ALL events of the type: only the appropriate events should be returned
-                    Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
+                    re1 = wh.GetRelevantEventTypes(event1);
+                    Assert.AreEqual(2, re1.Length);
+                    Assert.IsTrue(re1.Contains(WebHookEventType.Create));
+                    Assert.IsTrue(re1.Contains(WebHookEventType.Approve)); // automatic approve
+
                     Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event2).Single());
                 });
         }
@@ -169,7 +177,7 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 1.0.A
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.0.A    --> Modify,CheckIn
+                    file.CheckIn();     // --> 1.0.A    --> Modify,Approve
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> Modify
@@ -179,11 +187,11 @@ namespace SenseNet.WebHooks.Tests
                     file.Index = 42;
                     file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
 
-                    file.CheckIn();     // --> 1.0.A    --> Modify,CheckIn
+                    file.CheckIn();     // --> 1.0.A    --> Modify,Approve
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Modify,Modify,CheckIn");
+                "Modify,Approve,Modify,Modify,Approve");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_None_Approving_True()
@@ -193,20 +201,20 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 1.0.P
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.0.P    --> Modify,CheckIn,Publish
+                    file.CheckIn();     // --> 1.0.P    --> Modify,Pending
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> 1.0.P    --> Modify,Publish (!!!!)
+                    file.Save(SavingMode.KeepVersion);  // --> 1.0.P    --> Modify
 
                     file.Approve();     // --> 1.0.A    --> Modify,Approve
 
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish
+                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
                     file.Reject();      // --> 2.0.R    --> Modify,Reject
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Publish,Modify,Publish,Modify,Approve,Modify,CheckIn,Publish,Modify,Reject");
+                "Modify,Pending,Modify,Modify,Approve,Modify,Pending,Modify,Reject");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Major_Approving_False()
@@ -216,21 +224,23 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 1.0.A
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.A    --> Modify,CheckIn
+                    file.CheckIn();     // --> 2.0.A    --> Modify,Approve
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> Modify
+                    file.Save(SavingMode.KeepVersion);  // --> 2.0.A    --> Modify
 
                     file.CheckOut();    // --> 3.0.L    --> no event on checkout
 
                     file.Index = 42;
                     file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
 
-                    file.CheckIn();     // --> 3.0.A    --> Modify,CheckIn
+                    file.CheckIn();     // --> 3.0.A    --> Modify,Approve
+
+                    file.Save();        // --> 4.0.A    --> Modify,Approve
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Modify,Modify,CheckIn");
+                "Modify,Approve,Modify,Modify,Approve,Modify,Approve");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Major_Approving_True()
@@ -240,20 +250,21 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 1.0.P
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish (!!!!)
+                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
 
                     file.Index = 42;
-                    file.Save(SavingMode.KeepVersion);  // --> Modify,Publish (!!!!)
+                    file.Save(SavingMode.KeepVersion);  // --> Modify
 
                     file.Approve();     // --> 1.0.A    --> Modify,Approve
 
                     file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,CheckIn,Publish
+                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
                     file.Reject();      // --> 2.0.R    --> Modify,Reject
+                    file.Save();        // --> 3.0.P    --> Modify,Pending
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Publish,Modify,Publish,Modify,Approve,Modify,CheckIn,Publish,Modify,Reject");
+                "Modify,Pending,Modify,Modify,Approve,Modify,Pending,Modify,Reject,Modify,Pending");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Minor_Approving_False()
@@ -263,16 +274,16 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 0.1.D
                     file.CheckOut();    // --> 0.2.L    --> no event on checkout
-                    file.CheckIn();     // --> 0.2.D    --> Modify,CheckIn
+                    file.CheckIn();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
-                    file.Save();        // --> 0.3.D    --> Modify
+                    file.Save();        // --> 0.3.D    --> Modify,Draft
 
-                    file.Publish();     // --> 1.0.A    --> Modify,Publish (!!! admin permission, no approve)
+                    file.Publish();     // --> 1.0.A    --> Modify,Approve
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Modify,Modify,Publish");
+                "Modify,Draft,Modify,Draft,Modify,Approve");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Minor_Approving_True()
@@ -282,27 +293,27 @@ namespace SenseNet.WebHooks.Tests
                 {
                     // Initial version: 0.1.D
                     file.CheckOut();    // --> 0.2.L    --> no event on checkout
-                    file.CheckIn();     // --> 0.2.D    --> Modify,CheckIn
+                    file.CheckIn();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> Modify
 
-                    file.Publish();     // --> 0.2.P    --> Modify,Publish
+                    file.Publish();     // --> 0.2.P    --> Modify,Pending
                     file.Approve();     // --> 1.0.A    --> Modify,Approve
 
                     file.CheckOut();    // --> 1.1.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.1.D    --> Modify,CheckIn
+                    file.CheckIn();     // --> 1.1.D    --> Modify,Draft
 
                     file.Index = 42;
-                    file.Save();        // --> 1.2.D    --> Modify
+                    file.Save();        // --> 1.2.D    --> Modify,Draft
 
-                    file.Publish();     // --> 1.2.P    --> Modify,Publish
+                    file.Publish();     // --> 1.2.P    --> Modify,Pending
                     file.Reject();      // --> 1.2.R    --> Modify,Reject
 
                     return Task.CompletedTask;
                 },
-                "Modify,CheckIn,Modify,Modify,Publish,Modify,Approve,Modify,CheckIn," +
-                "Modify,Modify,Publish,Modify,Reject");
+                "Modify,Draft,Modify,Modify,Pending,Modify,Approve,Modify,Draft," +
+                "Modify,Draft,Modify,Pending,Modify,Reject");
         }
 
         public async Task Test_Versioning(VersioningType versioningType, ApprovingType approvingType,
@@ -331,7 +342,7 @@ namespace SenseNet.WebHooks.Tests
     ""ContentTypes"": [ 
         {
             ""Name"": ""File"", 
-            ""Events"": [ ""Modify"", ""CheckOut"", ""CheckIn"", ""Publish"", ""Approve"", ""Reject"" ] 
+            ""Events"": [ ""Modify"", ""CheckOut"", ""Draft"", ""Approve"", ""Reject"", ""Pending"" ] 
         }
     ] 
 }");
