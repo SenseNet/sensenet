@@ -158,55 +158,55 @@ namespace SenseNet.WebHooks
         
         Became REJECTED
         ====================================
-        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        Original state  |   Target state    |   repo event      |   Versioning modes    |   Approving mode
         --------------------------------------------------------------------------------------------------
-        P				|	R				|	Reject			|	none, major, full	|	ON
+        P               |   R               |   Reject          |   none, major, full   |   ON
         --------------------------------------------------------------------------------------------------
 
 
         Became LOCKED
         ====================================
-        Original state	|	Target state	|	repo event				|	Versioning modes	|	Approving mode
+        Original state  |   Target state    |   repo event               |   Versioning modes   |   Approving mode
         ----------------------------------------------------------------------------------------------------------
-        anything		|	Locked			|	create, save, checkout	|	none, major, full	|	ON/OFF
+        anything        |   Locked          |   create, save, checkout   |   none, major, full  |   ON/OFF
         ----------------------------------------------------------------------------------------------------------
 
 
         Became DRAFT
         ====================================
-        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        Original state  |   Target state    |   repo event      |   Versioning modes    |   Approving mode
         --------------------------------------------------------------------------------------------------
-        A, P, R			|	D				|	create, save	|	full				|	ON/OFF
+        A, P, R         |   D               |   create, save    |   full                |   ON/OFF
         --------------------------------------------------------------------------------------------------
-        L				|	D				|	checkin			|	full				|	ON/OFF
+        L               |   D               |   checkin         |   full                |   ON/OFF
         --------------------------------------------------------------------------------------------------
 
 
         Became PENDING
         ====================================
-        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        Original state  |   Target state    |   repo event      |   Versioning modes    |   Approving mode
         --------------------------------------------------------------------------------------------------
-        A, D, R			|	P				|	create, save	|	none, major			|	ON
+        A, D, R         |   P               |   create, save    |   none, major         |   ON
         --------------------------------------------------------------------------------------------------
-        L				|	P				|	checkin			|	none, major			|	ON
+        L               |   P               |   checkin         |   none, major         |   ON
         --------------------------------------------------------------------------------------------------
-        anything		|	P				|	publish			|	full				|	ON
+        anything        |   P               |   publish         |   full                |   ON
         --------------------------------------------------------------------------------------------------
 
 
         Became APPROVED
         ====================================
-        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        Original state  |   Target state    |   repo event      |   Versioning modes    |   Approving mode
         --------------------------------------------------------------------------------------------------
-        D, P, R			|	A				|	create, save	|	none, major			|	OFF
+        D, P, R         |   A               |   create, save    |   none, major         |   OFF
         --------------------------------------------------------------------------------------------------
-        L				|	A				|	checkin			|	none, major			|	OFF
+        L               |   A               |   checkin         |   none, major         |   OFF
         --------------------------------------------------------------------------------------------------
-        L				|	A				|	publish			|	full				|	OFF
+        L               |   A               |   publish         |   full                |   OFF
         --------------------------------------------------------------------------------------------------
-        D, R			|	A				|	publish			|	none, major, full	|	OFF
+        D, R            |   A               |   publish         |   none, major, full   |   OFF
         --------------------------------------------------------------------------------------------------
-        P				|	A				|	approve			|	none, major, full	|	ON
+        P               |   A               |   approve         |   none, major, full   |   ON
         --------------------------------------------------------------------------------------------------
 
          */
