@@ -105,24 +105,36 @@ namespace SenseNet.WebHooks
             if (contentType == null)
                 return Array.Empty<WebHookEventType>();
 
+            // collect events selected by the user
             var selectedEvents = FilterData.TriggersForAllEvents || contentType.Events.Contains(WebHookEventType.All)
                 ? AllEventTypes
                 : contentType.Events ?? Array.Empty<WebHookEventType>();
 
             if (!selectedEvents.Any())
                 return Array.Empty<WebHookEventType>();
-            
+
+            // collect events based on the selection and versioning state change
+            WebHookEventType[] CollectEvents(WebHookEventType firedEvent)
+            {
+                var list = new List<WebHookEventType>();
+
+                // add the major event (create or modify)
+                if (selectedEvents.Contains(firedEvent))
+                    list.Add(firedEvent);
+
+                // collect additional possible event
+                list.AddRange(CollectVersioningEvents(selectedEvents, snEvent));
+                return list.ToArray();
+            }
+
             switch (snEvent)
             {
                 case NodeCreatedEvent _:
                     // There are cases when a versioning event should be sent
                     // even if the content is newly created.
-                    var events = new List<WebHookEventType>(CollectVersioningEvents(selectedEvents, snEvent));
-                    if (selectedEvents.Contains(WebHookEventType.Create))
-                        events.Add(WebHookEventType.Create);
-                    return events.ToArray();
+                    return CollectEvents(WebHookEventType.Create);
                 case NodeModifiedEvent _:
-                    return CollectVersioningEvents(selectedEvents, snEvent);
+                    return CollectEvents(WebHookEventType.Modify);
                 case NodeForcedDeletedEvent _:
                     // Delete means deleted permanently. Delete to Trash should be
                     // a separate event in the future.
@@ -134,7 +146,76 @@ namespace SenseNet.WebHooks
             return Array.Empty<WebHookEventType>();
         }
 
-        private WebHookEventType[] CollectVersioningEvents(WebHookEventType[] selectedEvents, ISnEvent snEvent)
+        #region Versioning events and states
+
+        /*
+        
+        These tables show how repo events (e.g. save or publish) affect the versioning state of content items.
+        The content starts in the Original state and will convert to the Target state if the versioning and
+        approving modes are set as indicated in the last two columns.
+
+        
+        Became REJECTED
+        ====================================
+        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        --------------------------------------------------------------------------------------------------
+        P				|	R				|	Reject			|	none, major, full	|	ON
+        --------------------------------------------------------------------------------------------------
+
+
+        Became LOCKED
+        ====================================
+        Original state	|	Target state	|	repo event				|	Versioning modes	|	Approving mode
+        ----------------------------------------------------------------------------------------------------------
+        anything		|	Locked			|	create, save, checkout	|	none, major, full	|	ON/OFF
+        ----------------------------------------------------------------------------------------------------------
+
+
+        Became DRAFT
+        ====================================
+        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        --------------------------------------------------------------------------------------------------
+        A, P, R			|	D				|	create, save	|	full				|	ON/OFF
+        --------------------------------------------------------------------------------------------------
+        L				|	D				|	checkin			|	full				|	ON/OFF
+        --------------------------------------------------------------------------------------------------
+
+
+        Became PENDING
+        ====================================
+        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        --------------------------------------------------------------------------------------------------
+        A, D, R			|	P				|	create, save	|	none, major			|	ON
+        --------------------------------------------------------------------------------------------------
+        L				|	P				|	checkin			|	none, major			|	ON
+        --------------------------------------------------------------------------------------------------
+        anything		|	P				|	publish			|	full				|	ON
+        --------------------------------------------------------------------------------------------------
+
+
+        Became APPROVED
+        ====================================
+        Original state	|	Target state	|	repo event		|	Versioning modes	|	Approving mode
+        --------------------------------------------------------------------------------------------------
+        D, P, R			|	A				|	create, save	|	none, major			|	OFF
+        --------------------------------------------------------------------------------------------------
+        L				|	A				|	checkin			|	none, major			|	OFF
+        --------------------------------------------------------------------------------------------------
+        L				|	A				|	publish			|	full				|	OFF
+        --------------------------------------------------------------------------------------------------
+        D, R			|	A				|	publish			|	none, major, full	|	OFF
+        --------------------------------------------------------------------------------------------------
+        P				|	A				|	approve			|	none, major, full	|	ON
+        --------------------------------------------------------------------------------------------------
+
+         */
+
+        #endregion
+
+        /// <summary>
+        /// Collects events based on the selection and the state change tables above.
+        /// </summary>
+        private List<WebHookEventType> CollectVersioningEvents(WebHookEventType[] selectedEvents, ISnEvent snEvent)
         {
             var relevantEvents = new List<WebHookEventType>();
             var gc = snEvent.NodeEventArgs.SourceNode as GenericContent;
@@ -149,11 +230,6 @@ namespace SenseNet.WebHooks
                 // check whether this event happened
                 switch (eventType)
                 {
-                    case WebHookEventType.Modify:
-                        // we consider every change a modification
-                        if (snEvent is NodeModifiedEvent)
-                            relevantEvents.Add(WebHookEventType.Modify);
-                        break;
                     case WebHookEventType.Approve:
                         // the content became Approved
                         if (currentVersion.Status == VersionStatus.Approved)
@@ -215,7 +291,7 @@ namespace SenseNet.WebHooks
                 }
             }
 
-            return relevantEvents.Distinct().ToArray();
+            return relevantEvents.Distinct().ToList();
 
             VersionNumber GetPreviousVersion()
             {

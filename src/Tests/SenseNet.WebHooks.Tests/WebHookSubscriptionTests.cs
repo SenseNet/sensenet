@@ -267,7 +267,7 @@ namespace SenseNet.WebHooks.Tests
                 "Modify,Pending,Modify,Modify,Approve,Modify,Pending,Modify,Reject,Modify,Pending");
         }
         [TestMethod]
-        public async Task WebHookSubscription_Versioning_Minor_Approving_False()
+        public async Task WebHookSubscription_Versioning_Full_Approving_False()
         {
             await Test_Versioning(VersioningType.MajorAndMinor, ApprovingType.False,
                 file =>
@@ -286,7 +286,7 @@ namespace SenseNet.WebHooks.Tests
                 "Modify,Draft,Modify,Draft,Modify,Approve");
         }
         [TestMethod]
-        public async Task WebHookSubscription_Versioning_Minor_Approving_True()
+        public async Task WebHookSubscription_Versioning_Full_Approving_True()
         {
             await Test_Versioning(VersioningType.MajorAndMinor, ApprovingType.True,
                 file =>
