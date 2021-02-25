@@ -291,5 +291,21 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsFalse(@single >= @double);
 
         }
+
+        [TestMethod]
+        public void PredicationEngine_Deleted()
+        {
+            Test(() =>
+            {
+                var testNode = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                testNode.Save();
+                testNode.ForceDelete();
+
+                var testContent = testNode.Content ?? Content.Create(testNode);
+                var prE = new PredicationEngine(testContent);
+
+                Assert.IsTrue(prE.IsTrue("Name:TestRoot"));
+            });
+        }
     }
 }
