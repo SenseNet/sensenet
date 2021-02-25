@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Events;
 using SenseNet.WebHooks;
+using System.Linq;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -21,6 +24,15 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IWebHookSubscriptionStore, BuiltInWebHookSubscriptionStore>();
 
             return services;
+        }
+
+        internal static VersionNumber GetPreviousVersion(this NodeEventArgs eventArgs)
+        {
+            var chv = eventArgs?.ChangedData?.FirstOrDefault(cd => cd.Name == "Version");
+            if (chv == null)
+                return null;
+
+            return VersionNumber.TryParse((string)chv.Original, out var oldVersion) ? oldVersion : null;
         }
     }
 }

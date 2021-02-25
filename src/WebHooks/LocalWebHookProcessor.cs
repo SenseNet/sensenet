@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Events;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.WebHooks
 {
@@ -43,6 +45,8 @@ namespace SenseNet.WebHooks
                                   $"{string.Join(", ", subscriptions.Select(si => si.Subscription.Name + " (" + si.EventType + ")"))}");
 
             //TODO: extend webhook request payload with event-specific info
+            var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
+            var previousVersion = eventArgs.GetPreviousVersion();
 
             var sendingTasks = subscriptions
                 .Select(si => _webHookClient.SendAsync(
@@ -51,6 +55,11 @@ namespace SenseNet.WebHooks
                 new
                 {
                     nodeId = node.Id,
+                    versionId = node.VersionId,
+                    version = node.Version?.ToString(),
+                    previousVersion = previousVersion?.ToString(),
+                    versionModificationDate = node.VersionModificationDate,
+                    modifiedBy = node.ModifiedById,
                     path = node.Path,
                     name = node.Name,
                     displayName = node.DisplayName,

@@ -24,13 +24,19 @@
                         Subscription id
                     </th>
                     <th>
+                        Sent at
+                    </th>
+                    <th>
                         Arrived at
+                    </th>
+                    <th>
+                        Event data
                     </th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var webhook in WebHooksController.WebHooks.OrderByDescending(wh => wh.requestDate))
+            @foreach (var webhook in WebHooksController.WebHooks.OrderByDescending(wh => wh.arrivedTime))
             {
                 <tr>
                     <td>
@@ -46,7 +52,25 @@
                         @webhook.subscriptionId
                     </td>
                     <td>
-                        @webhook.requestDate
+                        @webhook.sentTime
+                    </td>
+                    <td>
+                        @webhook.arrivedTime
+                    </td>
+                    <td>
+                        VersionId: @webhook.versionId
+                        <br />
+                        Version: @webhook.version
+                        <br />
+                        Previous version: @webhook.previousVersion
+                        <br />
+                        Modification date: @webhook.versionModificationDate
+                        <br />
+                        Modified by: @webhook.modifiedBy
+                        <br />
+                        Display name: @webhook.displayName
+                        <br />
+                        <br />
                     </td>
                 </tr>
             }

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
+using SenseNet.Extensions.DependencyInjection;
 
 // ReSharper disable InconsistentNaming
 namespace SenseNet.WebHooks
@@ -222,7 +223,7 @@ namespace SenseNet.WebHooks
             var versioningMode = gc?.VersioningMode ?? VersioningType.None;
             var approvingMode = gc?.ApprovingMode ?? ApprovingType.False;
             var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
-            var previousVersion = GetPreviousVersion();
+            var previousVersion = eventArgs.GetPreviousVersion();
             var currentVersion = snEvent.NodeEventArgs.SourceNode.Version;
 
             foreach (var eventType in selectedEvents)
@@ -292,15 +293,6 @@ namespace SenseNet.WebHooks
             }
 
             return relevantEvents.Distinct().ToList();
-
-            VersionNumber GetPreviousVersion()
-            {
-                var chv = eventArgs?.ChangedData?.FirstOrDefault(cd => cd.Name == "Version");
-                if (chv == null)
-                    return null;
-
-                return VersionNumber.TryParse((string) chv.Original, out var oldVersion) ? oldVersion : null;
-            }
         }
 
         // ===================================================================================== Overrides

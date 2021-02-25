@@ -44,17 +44,27 @@ namespace SnWebApplication.Api.InMem.Admin
                 {
                     using (new SystemAccount())
                     {
-                        var webhooks = new SystemFolder(Node.LoadNode("/Root/System")) { Name = "WebHooks" };
-                        webhooks.Save();
+                        //UNDONE: remove sample webhook subscription code
+                        var webhooks = Node.LoadNode("/Root/System/WebHooks");
+
                         var wh1 = new WebHookSubscription(webhooks)
                         {
                             Name = "wh1",
                             Url = "https://localhost:44393/webhooks/test",
-                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\", \"Publish\" ] } ] }",
-                            Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
+                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\" ] } ] }",
                             Enabled = true
                         };
                         wh1.Save();
+
+                        var wh2 = new WebHookSubscription(webhooks)
+                        {
+                            Name = "wh2",
+                            Url = "https://localhost:44393/webhooks/test",
+                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"File\", \"Events\": [ \"All\" ] } ] }",
+                            Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
+                            Enabled = true
+                        };
+                        wh2.Save();
                     }
                     return Task.CompletedTask;
                 })
