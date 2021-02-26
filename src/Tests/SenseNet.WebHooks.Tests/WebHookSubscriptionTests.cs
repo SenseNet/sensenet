@@ -170,6 +170,19 @@ namespace SenseNet.WebHooks.Tests
         }
 
         [TestMethod]
+        public async Task WebHookSubscription_Delete()
+        {
+            await Test_Versioning(VersioningType.None, ApprovingType.False,
+                file =>
+                {
+                    file.ForceDelete();
+
+                    return Task.CompletedTask;
+                },
+                "Delete");
+        }
+
+        [TestMethod]
         public async Task WebHookSubscription_Versioning_None_Approving_False()
         {
             await Test_Versioning(VersioningType.None, ApprovingType.False,
@@ -317,8 +330,12 @@ namespace SenseNet.WebHooks.Tests
         }
 
         public async Task Test_Versioning(VersioningType versioningType, ApprovingType approvingType,
-            Func<File, Task> action, string expectedEventLog)
+            Func<File, Task> action, string expectedEventLog, string subscribedEvents = null)
         {
+            // subscribe to all events by default
+            if (subscribedEvents == null)
+                subscribedEvents = @"""All""";
+
             var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
             var webHookClient = new TestWebHookClient();
 
@@ -342,7 +359,7 @@ namespace SenseNet.WebHooks.Tests
     ""ContentTypes"": [ 
         {
             ""Name"": ""File"", 
-            ""Events"": [ ""Modify"", ""CheckOut"", ""Draft"", ""Approve"", ""Reject"", ""Pending"" ] 
+            ""Events"": [ " + subscribedEvents + @"  ] 
         }
     ] 
 }");
