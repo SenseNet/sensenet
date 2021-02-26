@@ -4,6 +4,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Tests.Implementations
 {
@@ -29,6 +30,11 @@ namespace SenseNet.Tests.Implementations
         public IIndexPopulator GetIndexPopulator()
         {
             return new DocumentPopulator();
+        }
+
+        public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
+        {
+            return IndexManager.CompleteIndexDocument(indexDocumentData);
         }
     }
 }

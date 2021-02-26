@@ -25,18 +25,8 @@ namespace SenseNet.ContentRepository.Search
         public PredicationEngine(Content content)
         {
             //_content = content;
-            _indexDoc = GetIndexDocument(content.ContentHandler);
+            _indexDoc = content.ContentHandler.GetIndexDocument(content.ContentHandler);
             _queryContext = new SnQueryContext(QuerySettings.Default, User.Current.Id);
-        }
-        public IndexDocument GetIndexDocument(Node node)
-        {
-            //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
-            // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
-            var docProvider = Providers.Instance.IndexDocumentProvider;
-            var doc = docProvider.GetIndexDocument(node, false, node.Id == 0, out var _);
-            var docData = DataStore.CreateIndexDocumentData(node, doc, null);
-            IndexManager.CompleteIndexDocument(docData);
-            return doc;
         }
 
         public bool IsTrue(string predication)
