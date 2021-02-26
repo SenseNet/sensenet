@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
@@ -33,8 +32,9 @@ namespace SenseNet.Events
         private bool __isFeatureEnabled = false;
         internal bool IsFeatureEnabled(int id)
         {
-            if (!__isFeatureEnabled)
-                SnTrace.Write($"EventDistributor INACTIVATED ({id}).");
+            //TODO: remove master switch after porting node observers to the SnEvent infrastructure
+            //if (!__isFeatureEnabled)
+            //    SnTrace.Write($"EventDistributor INACTIVATED ({id}).");
             return __isFeatureEnabled;
         }
 
@@ -98,8 +98,8 @@ namespace SenseNet.Events
                 .Select(x => FireCancellableNodeObserverEventAsync(snEvent, x))
                 .ToArray();
 
-            await Task.WhenAll<bool>(tasks).ConfigureAwait(false);
-            var canceled = tasks.Any(t => t.Result == true);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            var canceled = tasks.Any(t => t.Result);
 
             return canceled;
         }

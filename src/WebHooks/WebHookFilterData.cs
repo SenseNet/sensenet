@@ -31,11 +31,20 @@ namespace SenseNet.WebHooks
 
     public class ContentTypeFilterData
     {
+        /// <summary>
+        /// Name of the Content Type.
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Events that the user subscribed to for this content type.
+        /// </summary>
         public WebHookEventType[] Events { get; set; }
     }
 
+    /// <summary>
+    /// Model class for combining a subscription with a matched event type.
+    /// </summary>
     public class WebHookSubscriptionInfo
     {
         public WebHookSubscription Subscription { get; }

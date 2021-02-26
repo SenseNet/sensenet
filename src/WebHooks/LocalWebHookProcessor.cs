@@ -12,7 +12,7 @@ namespace SenseNet.WebHooks
 {
     /// <summary>
     /// Event processor implementation for sending webhooks. Gets relevant subscriptions
-    /// for an event from the configured subscription store and sends request using
+    /// for an event from the configured subscription store and sends requests using
     /// the configured webhook client.
     /// </summary>
     public class LocalWebHookProcessor : IEventProcessor

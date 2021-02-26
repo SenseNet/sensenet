@@ -26,6 +26,11 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Finds and parses the version number of the previous node version
+        /// in the changed data stored in the node event args.
+        /// </summary>
+        /// <returns>The parsed version number or null.</returns>
         internal static VersionNumber GetPreviousVersion(this NodeEventArgs eventArgs)
         {
             var chv = eventArgs?.ChangedData?.FirstOrDefault(cd => cd.Name == "Version");

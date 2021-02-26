@@ -18,6 +18,8 @@ namespace SenseNet.WebHooks
         {
             //TODO: implement a subscription cache that is invalidated when a subscription changes
             // Do NOT cache nodes, their data is already cached. Cache only ids, paths, or trees.
+
+            // ReSharper disable once RedundantBoolCompare
             var allSubs = Content.All.DisableAutofilters().Where(c =>
                 c.InTree("/Root/System/WebHooks") &&
                 c.ContentHandler is WebHookSubscription &&
@@ -28,7 +30,7 @@ namespace SenseNet.WebHooks
                     // prefilter: check if this event is relevant for the subscription
                     var eventTypes = sub.GetRelevantEventTypes(snEvent);
 
-                    //handle multiple relevant event types by adding the subscription multiple times
+                    // handle multiple relevant event types by adding the subscription multiple times
                     return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
                 })
                 .Where(si => si != null && si.Subscription.IsValid)

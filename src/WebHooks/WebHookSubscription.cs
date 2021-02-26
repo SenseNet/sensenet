@@ -395,13 +395,13 @@ namespace SenseNet.WebHooks
         {
             switch (name)
             {
-                case EnabledPropertyName: return this.Enabled;
-                case IsValidPropertyName: return this.IsValid;
-                case InvalidFieldsPropertyName: return this.InvalidFields;
-                case UrlPropertyName: return this.Url;
-                case HttpMethodPropertyName: return this.HttpMethod;
-                case FilterPropertyName: return this.Filter;
-                case HeadersPropertyName: return this.Headers;
+                case EnabledPropertyName: return Enabled;
+                case IsValidPropertyName: return IsValid;
+                case InvalidFieldsPropertyName: return InvalidFields;
+                case UrlPropertyName: return Url;
+                case HttpMethodPropertyName: return HttpMethod;
+                case FilterPropertyName: return Filter;
+                case HeadersPropertyName: return Headers;
                 default: return base.GetProperty(name);
             }
         }
@@ -412,22 +412,22 @@ namespace SenseNet.WebHooks
             switch (name)
             {
                 case EnabledPropertyName:
-                    this.Enabled = (bool)value;
+                    Enabled = (bool)value;
                     break;
                 case IsValidPropertyName:
                 case InvalidFieldsPropertyName:
                     break;
                 case UrlPropertyName:
-                    this.Url = (string)value;
+                    Url = (string)value;
                     break;
                 case HttpMethodPropertyName:
-                    this.HttpMethod = (string)value;
+                    HttpMethod = (string)value;
                     break;
                 case FilterPropertyName:
-                    this.Filter = (string)value;
+                    Filter = (string)value;
                     break;
                 case HeadersPropertyName:
-                    this.Headers = (string)value;
+                    Headers = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);
