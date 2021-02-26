@@ -59,7 +59,7 @@ namespace SenseNet.Packaging.Tests
 
         /*================================================= tools */
 
-        protected Task SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
+        protected async Task SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
         {
             var package = new Package
             {
@@ -73,7 +73,9 @@ namespace SenseNet.Packaging.Tests
                 PackageType = packageType,
             };
 
-            return PackageManager.Storage.SavePackageAsync(package, CancellationToken.None);
+            await PackageManager.Storage.SavePackageAsync(package, CancellationToken.None);
+
+            RepositoryVersionInfo.Reset();
         }
 
         protected Manifest ParseManifestHead(string manifestXml)

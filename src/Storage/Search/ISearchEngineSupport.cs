@@ -1,4 +1,5 @@
 ﻿using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
@@ -27,5 +28,12 @@ namespace SenseNet.ContentRepository.Search
         /// Returns an <see cref="IIndexPopulator"/> implementation instance.
         /// </summary>
         IIndexPopulator GetIndexPopulator();
+
+        /// <summary>
+        /// Returns complete index document that contains all postponed field.
+        /// </summary>
+        /// <param name="indexDocumentData">Preloaded structure.</param>
+        /// <returns></returns>
+        IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData);
     }
 }
