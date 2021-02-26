@@ -37,6 +37,7 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
                 })
+                .AddSenseNetWebHooks()
                 .AddFeature1();
         }
 

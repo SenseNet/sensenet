@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Events
@@ -31,12 +29,12 @@ namespace SenseNet.Events
 
     public class EventDistributor : IEventDistributor
     {
-        //UNDONE:<?event Remove the master switch
         private bool __isFeatureEnabled = false;
         internal bool IsFeatureEnabled(int id)
         {
-            if (!__isFeatureEnabled)
-                SnTrace.Write($"EventDistributor INACTIVATED ({id}).");
+            //TODO: remove master switch after porting node observers to the SnEvent infrastructure
+            //if (!__isFeatureEnabled)
+            //    SnTrace.Write($"EventDistributor INACTIVATED ({id}).");
             return __isFeatureEnabled;
         }
 
@@ -62,11 +60,8 @@ namespace SenseNet.Events
             return FireEventAsync(snEvent, null);
         }
 
-        private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask)
+        private async Task FireEventAsync(ISnEvent snEvent, Task nodeObserverTask, CancellationToken cancel = default)
         {
-            if (!IsFeatureEnabled(3))
-                return;
-
             // Create a waiting list and add the 'nodeObserverTask' if there is.
             var syncTasks = new List<Task>();
             if(nodeObserverTask != null)
@@ -75,7 +70,7 @@ namespace SenseNet.Events
             // If the event is IAuditLogEvent, call async, memorize it, and do not wait.
             if (snEvent is IAuditLogEvent auditLogEvent)
                 if(AuditLogEventProcessor != null)
-                    syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent));
+                    syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent, cancel));
 
             if (!(snEvent is IInternalEvent))
             {
@@ -85,7 +80,7 @@ namespace SenseNet.Events
                 // Call all async processors and forget them
                 foreach (var processor in AsyncEventProcessors)
                     #pragma warning disable 4014
-                    processor.ProcessEventAsync(snEvent);
+                    processor.ProcessEventAsync(snEvent, cancel);
                     #pragma warning restore 4014
             }
 
@@ -103,8 +98,8 @@ namespace SenseNet.Events
                 .Select(x => FireCancellableNodeObserverEventAsync(snEvent, x))
                 .ToArray();
 
-            await Task.WhenAll<bool>(tasks).ConfigureAwait(false);
-            var canceled = tasks.Any(t => t.Result == true);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            var canceled = tasks.Any(t => t.Result);
 
             return canceled;
         }
@@ -123,7 +118,7 @@ namespace SenseNet.Events
         protected virtual Task<bool> FireCancellableNodeObserverEventAsync(ISnCancellableEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
-            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
+            //TODO:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             //TODO:event: Not implemented yet
             return Task.FromResult(false);
@@ -131,7 +126,7 @@ namespace SenseNet.Events
         protected virtual Task FireNodeObserverEventAsync(INodeObserverEvent snEvent,
             NodeObserver nodeObserver, CancellationToken cancel = default)
         {
-            //UNDONE:<?event: Ensure that this method does not throw any exception (but trace and log).
+            //TODO:<?event: Ensure that this method does not throw any exception (but trace and log).
             //snEvent.NodeObserverAction(nodeObserver);
             //TODO:event: Not implemented yet
             return Task.CompletedTask;

@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Events
 	        return _customData.TryGetValue(key, out var value) ? value : null;
 	    }
 
-        internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData) : this(node, eventType, customData, node.Path) { }
+        protected internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData) : this(node, eventType, customData, node.Path) { }
 
         internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData, string originalSourcePath) : this(node, eventType, customData, originalSourcePath, null) { }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -10,7 +9,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
-using SenseNet.Tools.Diagnostics;
 using T = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -26,11 +24,11 @@ namespace SenseNet.ContentRepository.Tests
 
         private class TestAuditLogEventProcessor : IEventProcessor
         {
-            public async T.Task ProcessEventAsync(ISnEvent snEvent)
+            public async T.Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
             {
                 using (var op = SnTrace.Test.StartOperation($"ProcessAuditEvent {GetType().Name} {snEvent.GetType().Name}"))
                 {
-                    await T.Task.Delay(5).ConfigureAwait(false);
+                    await T.Task.Delay(5, cancel).ConfigureAwait(false);
                     op.Successful = true;
                 }
             }
@@ -38,11 +36,11 @@ namespace SenseNet.ContentRepository.Tests
 
         private abstract class TestEventProcessor : IEventProcessor
         {
-            public async T.Task ProcessEventAsync(ISnEvent snEvent)
+            public async T.Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
             {
                 using (var op = SnTrace.Test.StartOperation($"ProcessEvent {GetType().Name} {snEvent.GetType().Name}"))
                 {
-                    await T.Task.Delay(50).ConfigureAwait(false);
+                    await T.Task.Delay(50, cancel).ConfigureAwait(false);
                     op.Successful = true;
                 }
             }

@@ -190,7 +190,7 @@ namespace SenseNet.Packaging.Tools
                     resource.Binary = binData;
                     resource.Save();
 
-                    //UNDONE: log!
+                    //TODO: log!
                     //context.Console.WriteLine("NEW resource content: {0}", resource.Path);
                 }
 

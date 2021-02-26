@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.1</Version>
+    <Authors>kavics,aniko,tusmester</Authors>
+    <Company>Sense/Net Inc.</Company>
+    <Copyright>Copyright © Sense/Net Inc.</Copyright>
+    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sensenet csp content repository webhooks</PackageTags>
+    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Product>sensenet WebHooks</Product>
+    <Description>WebHooks component for the sensenet platform.</Description>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
+    <ProjectReference Include="..\WebHooks.Common\SenseNet.WebHooks.Common.csproj" />
+  </ItemGroup>
+
+</Project>
