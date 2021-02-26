@@ -38,7 +38,7 @@
             <tbody>
             @foreach (var webhook in WebHooksController.WebHooks.OrderByDescending(wh => wh.arrivedTime))
             {
-                <tr>
+                <tr class="@(webhook.arrivedTime > DateTime.UtcNow.AddSeconds(-20) ? "new-event" : string.Empty)">
                     <td>
                         @webhook.nodeId
                     </td>

@@ -7,11 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.WebHooks;
-using Task = System.Threading.Tasks.Task;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -40,33 +36,6 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseLogger(provider)
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
-                }, (instance, provider) =>
-                {
-                    using (new SystemAccount())
-                    {
-                        //UNDONE: remove sample webhook subscription code
-                        var webhooks = Node.LoadNode("/Root/System/WebHooks");
-
-                        var wh1 = new WebHookSubscription(webhooks)
-                        {
-                            Name = "wh1",
-                            Url = "https://localhost:44393/webhooks/test",
-                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\" ] } ] }",
-                            Enabled = true
-                        };
-                        wh1.Save();
-
-                        var wh2 = new WebHookSubscription(webhooks)
-                        {
-                            Name = "wh2",
-                            Url = "https://localhost:44393/webhooks/test",
-                            Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"File\", \"Events\": [ \"All\" ] } ] }",
-                            Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
-                            Enabled = true
-                        };
-                        wh2.Save();
-                    }
-                    return Task.CompletedTask;
                 })
                 .AddSenseNetWebHooks()
                 .AddFeature1();
