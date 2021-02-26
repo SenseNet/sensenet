@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
@@ -25,7 +20,7 @@ namespace SenseNet.ContentRepository.Search
         public PredicationEngine(Content content)
         {
             //_content = content;
-            _indexDoc = content.ContentHandler.GetIndexDocument(content.ContentHandler);
+            _indexDoc = content.ContentHandler.GetIndexDocument();
             _queryContext = new SnQueryContext(QuerySettings.Default, User.Current.Id);
         }
 

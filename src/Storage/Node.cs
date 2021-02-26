@@ -4141,7 +4141,7 @@ namespace SenseNet.ContentRepository.Storage
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                     var customData = args.GetCustomData();
 
-                    _indexDocument = GetIndexDocument(this);
+                    _indexDocument = GetIndexDocument();
 
                     var contentListTypesInTree = (this is IContentList)
                         ? new List<ContentListType>(new[] {this.ContentListType})
@@ -5061,7 +5061,7 @@ namespace SenseNet.ContentRepository.Storage
         /*================================================================================================= Indexing */
 
         private IndexDocument _indexDocument;
-        public IndexDocument GetIndexDocument(Node node)
+        public IndexDocument GetIndexDocument()
         {
             // For now only in this case supports caching because of discovering invalidating issues are not finished.
             // That is a future task.
@@ -5071,8 +5071,8 @@ namespace SenseNet.ContentRepository.Storage
             //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
             // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
             var docProvider = Providers.Instance.IndexDocumentProvider;
-            var doc = docProvider.GetIndexDocument(node, false, node.Id == 0, out var _);
-            var docData = DataStore.CreateIndexDocumentData(node, doc, null);
+            var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
+            var docData = DataStore.CreateIndexDocumentData(this, doc, null);
             SearchManager.CompleteIndexDocument(docData);
             return doc;
         }
