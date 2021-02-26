@@ -20,8 +20,8 @@ namespace SenseNet.WebHooks
             var assembly = typeof(WebHookComponent).Assembly;
 
             builder
-                .Install("1.0.0", "2021-02-11", "sensenet WebHooks")
-                .DependsOn("SenseNet.Services", "7.7.17")
+                .Install("0.0.1", "2021-02-26", "sensenet WebHooks")
+                .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
                     var resourcePrefix = assembly.GetName().Name;
