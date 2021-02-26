@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 // ReSharper disable ArrangeThisQualifier
@@ -4140,6 +4141,8 @@ namespace SenseNet.ContentRepository.Storage
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                     var customData = args.GetCustomData();
 
+                    _indexDocument = GetIndexDocument();
+
                     var contentListTypesInTree = (this is IContentList)
                         ? new List<ContentListType>(new[] {this.ContentListType})
                         : DataStore.GetContentListTypesInTreeAsync(this.Path, CancellationToken.None)
@@ -5053,6 +5056,25 @@ namespace SenseNet.ContentRepository.Storage
         public bool TypeIs(string contentTypeName)
         {
             return NodeType.IsInstaceOfOrDerivedFrom(contentTypeName);
+        }
+
+        /*================================================================================================= Indexing */
+
+        private IndexDocument _indexDocument;
+        public IndexDocument GetIndexDocument()
+        {
+            // For now only in this case supports caching because of discovering invalidating issues are not finished.
+            // That is a future task.
+            if (_indexDocument != null && IsDeleted)
+                return _indexDocument;
+
+            //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
+            // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
+            var docProvider = Providers.Instance.IndexDocumentProvider;
+            var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
+            var docData = DataStore.CreateIndexDocumentData(this, doc, null);
+            SearchManager.CompleteIndexDocument(docData);
+            return doc;
         }
     }
     public class BenchmarkCounter
