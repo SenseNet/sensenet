@@ -3,6 +3,7 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
+using SenseNet.Packaging.Tools;
 using SenseNet.Portal.Handlers;
 
 namespace SenseNet.WebHooks
@@ -20,7 +21,7 @@ namespace SenseNet.WebHooks
             var assembly = typeof(WebHookComponent).Assembly;
 
             builder
-                .Install("0.0.1", "2021-02-26", "sensenet WebHooks")
+                .Install("0.0.1.1", "2021-03-01", "sensenet WebHooks")
                 .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
@@ -66,6 +67,29 @@ namespace SenseNet.WebHooks
 
                     var webHooks = RepositoryTools.CreateStructure("/Root/System/WebHooks", 
                         "SystemFolder");
+
+                    #endregion
+                });
+
+            builder.Patch("0.0.1", "0.0.1.1", "2021-03-01", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.18")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("WebHookSubscription")
+                        .Field("WebHookPayload", "LongText")
+                        .DisplayName("$Ctd-WebHookSubscription,WebHookPayload-DisplayName")
+                        .Description("$Ctd-WebHookSubscription,WebHookPayload-Description")
+                        .VisibleBrowse(FieldVisibility.Show)
+                        .VisibleEdit(FieldVisibility.Show)
+                        .VisibleNew(FieldVisibility.Show)
+                        .FieldIndex(0)
+                        .ControlHint("sn:WebhookPayload");
+
+                    cb.Apply();
 
                     #endregion
                 });

@@ -57,6 +57,12 @@
         <data name="Enabled-Description" xml:space="preserve">
 					<value>Status of the webhook</value>
 				</data>
+        <data name="WebHookPayload-DisplayName" xml:space="preserve">
+					<value>Custom payload</value>
+				</data>
+        <data name="WebHookPayload-Description" xml:space="preserve">
+					<value>Customize the payload sent when this subscription indicates a request.</value>
+				</data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -112,6 +118,12 @@
 				</data>
         <data name="Enabled-Description" xml:space="preserve">
 					<value>A webhook státusza</value>
+				</data>
+        <data name="WebHookPayload-DisplayName" xml:space="preserve">
+					<value>Küldött adatok</value>
+				</data>
+        <data name="WebHookPayload-Description" xml:space="preserve">
+					<value>A webhook hívással küldött egyedi adatok.</value>
 				</data>
       </Language>
     </Languages>
