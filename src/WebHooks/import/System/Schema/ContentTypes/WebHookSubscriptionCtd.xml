@@ -151,5 +151,14 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name="WebHookPayload" type="LongText">
+      <Configuration>
+        <FieldIndex>0</FieldIndex>
+        <ControlHint>sn:WebhookPayload</ControlHint>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>
