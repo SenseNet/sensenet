@@ -67,6 +67,13 @@ namespace WebHookHandler.Controllers
             return new OkResult();
         }
 
+        [HttpGet]
+        public IActionResult Clear()
+        {
+            WebHooks.Clear();
+            return Redirect("/");
+        }
+
         private void SaveModel(WebHookModel model)
         {
             model.arrivedTime = DateTime.UtcNow;

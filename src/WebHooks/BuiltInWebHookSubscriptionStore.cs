@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Events;
 
 namespace SenseNet.WebHooks
@@ -19,22 +20,29 @@ namespace SenseNet.WebHooks
             //TODO: implement a subscription cache that is invalidated when a subscription changes
             // Do NOT cache nodes, their data is already cached. Cache only ids, paths, or trees.
 
-            // ReSharper disable once RedundantBoolCompare
-            var allSubs = Content.All.DisableAutofilters().Where(c =>
-                c.InTree("/Root/System/WebHooks") &&
-                c.ContentHandler is WebHookSubscription &&
-                (bool)c["Enabled"] == true)
-                .AsEnumerable()
-                .Select(c => (WebHookSubscription)c.ContentHandler)
-                .SelectMany(sub => {
-                    // prefilter: check if this event is relevant for the subscription
-                    var eventTypes = sub.GetRelevantEventTypes(snEvent);
+            List<WebHookSubscriptionInfo> allSubs;
 
-                    // handle multiple relevant event types by adding the subscription multiple times
-                    return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
-                })
-                .Where(si => si != null && si.Subscription.IsValid)
-                .ToList();
+            // load subscriptions in elevated mode because this is a system feature
+            using (new SystemAccount())
+            {
+                // ReSharper disable once RedundantBoolCompare
+                allSubs = Content.All.DisableAutofilters().Where(c =>
+                        c.InTree("/Root/System/WebHooks") &&
+                        c.ContentHandler is WebHookSubscription &&
+                        (bool) c["Enabled"] == true)
+                    .AsEnumerable()
+                    .Select(c => (WebHookSubscription) c.ContentHandler)
+                    .SelectMany(sub =>
+                    {
+                        // prefilter: check if this event is relevant for the subscription
+                        var eventTypes = sub.GetRelevantEventTypes(snEvent);
+
+                        // handle multiple relevant event types by adding the subscription multiple times
+                        return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
+                    })
+                    .Where(si => si != null && si.Subscription.IsValid)
+                    .ToList();
+            }
 
             if (!allSubs.Any())
                 return Array.Empty<WebHookSubscriptionInfo>();
