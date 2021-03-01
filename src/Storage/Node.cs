@@ -20,7 +20,9 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 // ReSharper disable ArrangeThisQualifier
@@ -1384,13 +1386,11 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(string propertyName, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(propertyName);
-            AddReferences(propertyName, nodes);
+            SetReferences(GetNodeList(propertyName), nodes);
         }
         internal void SetReferences<T>(int propertyId, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(propertyId);
-            AddReferences(propertyId, nodes);
+            SetReferences(GetNodeList(propertyId), nodes);
         }
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
@@ -1399,8 +1399,28 @@ namespace SenseNet.ContentRepository.Storage
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(PropertyType property, IEnumerable<T> nodes) where T : Node
         {
-            ClearReference(property);
-            AddReferences(property, nodes);
+            var originalList = GetNodeList(property);
+            SetReferences(GetNodeList(property), nodes);
+        }
+        private void SetReferences<T>(NodeList<Node> nodeList, IEnumerable<T> nodes) where T : Node
+        {
+            // remove visible elements
+            var user = AccessProvider.Current.GetCurrentUser();
+            if (user.Id == Identifiers.SystemUserId)
+            {
+                // acceleration: all items are visible to the SystemUser
+                nodeList.Clear();
+            }
+            else
+            {
+                var visibleItems = nodeList.GetIdentifiers()
+                    .Where(nodeId => SecurityHandler.HasPermission(user, nodeId, PermissionType.See));
+                foreach (var id in visibleItems)
+                    nodeList.Remove(id);
+            }
+
+            // add new instances
+            AddReferences(nodeList, nodes, false);
         }
 
         /// <summary>
@@ -3909,37 +3929,12 @@ namespace SenseNet.ContentRepository.Storage
 
         private string CheckListAndItemCopyingConditions(Node target)
         {
-            string msg = null;
-            bool sourceIsOuter = this.ContentListType == null;
-            bool sourceIsList = !sourceIsOuter && this.ContentListId == 0;
-            bool sourceIsItem = !sourceIsOuter && this.ContentListId != 0;
-
-            //HACK: sourceIsSystemFolder
-            bool sourceIsSystemFolder = this.NodeType.IsInstaceOfOrDerivedFrom("SystemFolder");
-
-            bool targetIsOuter = target.ContentListType == null;
-            bool targetIsList = !targetIsOuter && target.ContentListId == 0;
-            bool targetIsItem = !targetIsOuter && target.ContentListId != 0;
-            if (sourceIsOuter && !targetIsOuter && !sourceIsSystemFolder)
-            {
-                msg = "Cannot copy outer item into a list. ";
-            }
-            else if (sourceIsList && !targetIsOuter)
-            {
-                msg = "Cannot copy a list into an another list. ";
-            }
-            else if (sourceIsItem)
-            {
-                // change: we don't mind if somebody copies an item out from the list
-                // (it will lose the list fields though...)
-                if (targetIsOuter)
-                    msg = null; // "Cannot copy a list item out from the list. ";
-                else if (targetIsList && this.ContentListType != target.ContentListType)
-                    msg = "Cannot copy a list item into an another list. ";
-                else if (targetIsItem && this.ContentListId != target.ContentListId)
-                    msg = "Cannot copy a list item into an another list. ";
-            }
-            return msg;
+            var sourceIsOuter = this.ContentListType == null;
+            var sourceIsList = !sourceIsOuter && this.ContentListId == 0;
+            var targetIsOuter = target.ContentListType == null;
+            if (sourceIsList && !targetIsOuter)
+                return "Cannot copy a list into an another list. ";
+            return null;
         }
 
         private string GenerateCopyName(int index)
@@ -4145,6 +4140,8 @@ namespace SenseNet.ContentRepository.Storage
                     if (args.Cancel)
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                     var customData = args.GetCustomData();
+
+                    _indexDocument = GetIndexDocument();
 
                     var contentListTypesInTree = (this is IContentList)
                         ? new List<ContentListType>(new[] {this.ContentListType})
@@ -4420,6 +4417,8 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Events
 
+        private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
+
         private List<Type> _disabledObservers;
         /// <summary>
         /// Gets the collection of the disabled <see cref="NodeObserver"/> types.
@@ -4515,12 +4514,22 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeCreating(Creating, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeCreatingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
+
         }
         private void FireOnCreated(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Created, customData);
             OnCreated(this, e);
             NodeObserver.FireOnNodeCreated(Created, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeCreatedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnModifying(CancellableNodeEventArgs e)
         {
@@ -4528,12 +4537,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeModifying(Modifying, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeModifyingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if(canceled)
+                e.Cancel = true;
         }
         private void FireOnModified(string originalSourcePath, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Modified, customData, originalSourcePath, changedData);
             OnModified(this, e);
             NodeObserver.FireOnNodeModified(Modified, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeModifiedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeleting(CancellableNodeEventArgs e)
         {
@@ -4541,12 +4559,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeDeleting(Deleting, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeDeletingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnDeleted(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Deleted, customData);
             OnDeleted(this, e);
             NodeObserver.FireOnNodeDeleted(Deleted, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeDeletedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnDeletingPhysically(CancellableNodeEventArgs e)
         {
@@ -4554,12 +4581,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeDeletingPhysically(DeletingPhysically, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeForcedDeletingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnDeletedPhysically(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.DeletedPhysically, customData);
             OnDeletedPhysically(this, e);
             NodeObserver.FireOnNodeDeletedPhysically(DeletedPhysically, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeForcedDeletedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnMoving(CancellableNodeOperationEventArgs e)
         {
@@ -4567,12 +4603,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeMoving(Moving, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeMovingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnMoved(Node targetNode, IDictionary<string, object> customData, string originalSourcePath)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Moved, customData, originalSourcePath);
             OnMoved(this, e);
             NodeObserver.FireOnNodeMoved(Moved, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeMovedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnCopying(CancellableNodeOperationEventArgs e)
         {
@@ -4580,12 +4625,21 @@ namespace SenseNet.ContentRepository.Storage
             if (e.Cancel)
                 return;
             NodeObserver.FireOnNodeCopying(Copying, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeCopyingEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
         }
         private void FireOnCopied(Node targetNode, IDictionary<string, object> customData)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Copied, customData);
             OnCopied(this, e);
             NodeObserver.FireOnNodeCopied(Copied, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeCopiedEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         private void FireOnLoaded()
         {
@@ -5002,6 +5056,25 @@ namespace SenseNet.ContentRepository.Storage
         public bool TypeIs(string contentTypeName)
         {
             return NodeType.IsInstaceOfOrDerivedFrom(contentTypeName);
+        }
+
+        /*================================================================================================= Indexing */
+
+        private IndexDocument _indexDocument;
+        public IndexDocument GetIndexDocument()
+        {
+            // For now only in this case supports caching because of discovering invalidating issues are not finished.
+            // That is a future task.
+            if (_indexDocument != null && IsDeleted)
+                return _indexDocument;
+
+            //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
+            // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
+            var docProvider = Providers.Instance.IndexDocumentProvider;
+            var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
+            var docData = DataStore.CreateIndexDocumentData(this, doc, null);
+            SearchManager.CompleteIndexDocument(docData);
+            return doc;
         }
     }
     public class BenchmarkCounter

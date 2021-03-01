@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
     <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
     <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
+    <ProjectReference Include="..\..\WebHooks\SenseNet.WebHooks.csproj" />
   </ItemGroup>
 
 </Project>

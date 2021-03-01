@@ -386,6 +386,17 @@ namespace SenseNet.ContentRepository.Storage
             return true;
         }
 
+        internal bool Remove(int nodeId)
+        {
+            Modifying();
+            int index = RawData.IndexOf(nodeId);
+            if (index < 0)
+                return false;
+            RawData.RemoveAt(index);
+            Modified();
+            return true;
+        }
+
         /// <summary>
         /// Removes all elements from the <see cref="T:SenseNet.ContentRepository.Storage.NodeList`1"></see>, and then fires the Change event.
         /// </summary>

@@ -1,4 +1,6 @@
-﻿using SenseNet.Configuration;
+﻿using System.Collections.Generic;
+using System.IO;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
@@ -6,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tests.Core.Implementations;
 
@@ -36,7 +39,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
-                .UseSearchEngine(GetSearchEngine(Initializer.GetInitialIndex()))
+                .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
@@ -52,6 +55,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         }
 
         public virtual void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder) { }
+        public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
 
         public abstract DataProvider GetDataProvider();
         public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
@@ -60,10 +64,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IBlobProviderSelector GetBlobProviderSelector();
         public abstract IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension();
         public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
-        public abstract ISearchEngine GetSearchEngine(InMemoryIndex getInitialIndex);
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
+        public abstract ISearchEngine GetSearchEngine();
 
-        public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
     }
 }

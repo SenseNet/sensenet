@@ -141,6 +141,7 @@ namespace SenseNet.Tests.Core
         {
             Cache.Reset();
             ContentTypeManager.Reset();
+            Providers.Instance.Components.Clear();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
@@ -382,7 +383,7 @@ namespace SenseNet.Tests.Core
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance));
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance, null));
         }
 
         private static InMemoryIndex _initialIndex;

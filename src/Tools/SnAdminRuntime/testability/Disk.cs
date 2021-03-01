@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using SenseNet.Storage;
 
 namespace SenseNet.Tools.SnAdmin.Testability
 {
@@ -93,7 +94,12 @@ namespace SenseNet.Tools.SnAdmin.Testability
         {
             if (filter == null)
                 return Directory.GetFiles(path);
-            return Directory.GetFiles(path, filter);
+
+            var files = filter.StartsWith("*.") && !filter.Substring(1).Contains(".")
+                ? FileSystemWrapper.Directory.GetFilesByExtension(path, filter.Substring(1))
+                : Directory.GetFiles(path, filter);
+
+            return files;
         }
         public void FileCopy(string source, string target)
         {

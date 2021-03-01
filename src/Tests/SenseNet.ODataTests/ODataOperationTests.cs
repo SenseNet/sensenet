@@ -70,10 +70,19 @@ namespace SenseNet.ODataTests
         public static string Function3(Content content, string param1, string param2, string param3 = null)
         {
             return "## Function3 called." +
-                    $" Path: {(content?.Path ?? "[null]")}," +
-                    $" Param1: {param1}," +
-                    $" Param2: {param2}," +
-                    $" Param3: {(param3 ?? "[null]")}";
+                   $" Path: {(content?.Path ?? "[null]")}," +
+                   $" Param1: {param1}," +
+                   $" Param2: {param2}," +
+                   $" Param3: {(param3 ?? "[null]")}";
+        }
+
+        [Flags] public enum CustomEnum { Zero = 0, One = 1, Two = 2, Four = 4, Eight = 8, All = 15 }
+        [ODataFunction]
+        public static string Function4Enums(Content content, MetadataFormat metadataFormat, CustomEnum customEnum = default)
+        {
+            return "## Function4Enums called." +
+                   $" metadataFormat: {metadataFormat}," +
+                   $" customEnum: {customEnum}.";
         }
 
         public class CustomTypeForFunction4
@@ -307,6 +316,63 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Get()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // MetadataFormat: None, Minimal, Full
+
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums",
+                    "?metadataFormat=mInImal&customEnum=0").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Minimal, customEnum: Zero.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Post_Strings()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums", "",
+                    "{metadataFormat:\"Full\",customEnum:\"6\"}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Full, customEnum:{CustomEnum.Four | CustomEnum.Two}.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_EnumParams_Post_Integers()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function4Enums", "",
+                    "{metadataFormat:1,customEnum:6}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = $"## Function4Enums called. metadataFormat: Minimal, customEnum:{CustomEnum.Four | CustomEnum.Two}.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task OD_MBOP_Invoke_WithApp()
         {
             await ODataTestAsync(async () =>
@@ -372,6 +438,89 @@ namespace SenseNet.ODataTests
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+        /* ============================================================= METHOD BASED OPERATION METADATA */
+
+        [TestMethod]
+        public async Task OD_MBOM_FullMetadata()
+        {
+            await ODataTestAsync(async () =>
+            {
+
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')",
+                    "?metadata=full&$select=Name").ConfigureAwait(false);
+
+                // ASSERT
+                var expected =
+                    "{\"title\":\"Function2\",\"name\":\"Function2\",\"target\":\"/odata.svc/Root('IMS')/Function2\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}," +
+                    "{\"title\":\"Function22\",\"name\":\"Function22\",\"target\":\"/odata.svc/Root('IMS')/Function22\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var p0 = raw.IndexOf("{\"title\":\"Function2\"", StringComparison.Ordinal);
+                var p1 = raw.IndexOf(",{\"title\":\"", p0, StringComparison.Ordinal);
+                var function2 = raw.Substring(p0, p1 - p0);
+                p0 = raw.IndexOf("{\"title\":\"Function22\"", StringComparison.Ordinal);
+                p1 = raw.IndexOf(",{\"title\":\"", p0, StringComparison.Ordinal);
+                var function22 = raw.Substring(p0, p1 - p0);
+                Assert.AreEqual(expected, function2 + "," + function22);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOM_ActionsProperty()
+        {
+            await ODataTestAsync(async () =>
+            {
+
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')",
+                    "?metadata=no&$expand=Actions&$select=Name,Actions").ConfigureAwait(false);
+
+                // ASSERT
+                var expected =
+                    "{\"Name\":\"Function2\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
+                    "{\"Name\":\"Function22\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var p0 = raw.IndexOf("{\"Name\":\"Function2\"", StringComparison.Ordinal);
+                var p1 = raw.IndexOf(",{\"Name\":\"", p0, StringComparison.Ordinal);
+                var function2 = raw.Substring(p0, p1 - p0);
+                p0 = raw.IndexOf("{\"Name\":\"Function22\"", StringComparison.Ordinal);
+                p1 = raw.IndexOf(",{\"Name\":\"", p0, StringComparison.Ordinal);
+                var function22 = raw.Substring(p0, p1 - p0);
+                Assert.AreEqual(exp, function2 + "," + function22);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOM_ActionsFunction()
+        {
+            await ODataTestAsync(async () =>
+            {
+
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')/Actions",
+                    "?metadata=no").ConfigureAwait(false);
+
+                // ASSERT
+                var expected =
+                    "{\"Name\":\"Function2\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
+                    "{\"Name\":\"Function22\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var p0 = raw.IndexOf("{\"Name\":\"Function2\"", StringComparison.Ordinal);
+                var p1 = raw.IndexOf(",{\"Name\":\"", p0, StringComparison.Ordinal);
+                var function2 = raw.Substring(p0, p1 - p0);
+                p0 = raw.IndexOf("{\"Name\":\"Function22\"", StringComparison.Ordinal);
+                p1 = raw.IndexOf(",{\"Name\":\"", p0, StringComparison.Ordinal);
+                var function22 = raw.Substring(p0, p1 - p0);
+                Assert.AreEqual(exp, function2 + "," + function22);
             }).ConfigureAwait(false);
         }
 

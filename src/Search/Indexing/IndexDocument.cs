@@ -60,6 +60,7 @@ namespace SenseNet.Search.Indexing
         public static List<string> ForbiddenFields = new List<string>(new[] { "Password", "PasswordHash" });
 
         private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
+        public Dictionary<string, IndexField> Fields => _fields;
 
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
@@ -247,19 +248,26 @@ namespace SenseNet.Search.Indexing
 
         /* =========================================================================================== */
 
-        private static readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings FormattedSerializerSettings = new JsonSerializerSettings
         {
             Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
             NullValueHandling = NullValueHandling.Ignore,
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Formatting = Formatting.Indented
         };
+        private static readonly JsonSerializerSettings OneLineSerializerSettings = new JsonSerializerSettings
+        {
+            Converters = new List<JsonConverter> { new IndexFieldJsonConverter() },
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.None
+        };
 
         public static IndexDocument Deserialize(string serializedIndexDocument)
         {
             try
             {
-                var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize(
+                var deserialized = JsonSerializer.Create(FormattedSerializerSettings).Deserialize(
                     new JsonTextReader(new StringReader(serializedIndexDocument)));
                 var result = new IndexDocument();
                 foreach (JObject field in (JArray)deserialized)
@@ -332,11 +340,12 @@ namespace SenseNet.Search.Indexing
             }
         }
 
-        public string Serialize()
+        public string Serialize(bool oneLine = false)
         {
             using (var writer = new StringWriter())
             {
-                JsonSerializer.Create(_serializerSettings).Serialize(writer, this);
+                var settings = oneLine ? OneLineSerializerSettings : FormattedSerializerSettings;
+                JsonSerializer.Create(settings).Serialize(writer, this);
                 var serializedDoc = writer.GetStringBuilder().ToString();
                 return serializedDoc;
             }

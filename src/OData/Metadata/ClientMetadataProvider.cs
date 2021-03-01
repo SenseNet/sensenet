@@ -171,7 +171,6 @@ namespace SenseNet.OData.Metadata
 
         //======================================================================================= OData API
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Content and Schema</snCategory>
         /// <param name="content"></param>

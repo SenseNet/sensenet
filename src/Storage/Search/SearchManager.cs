@@ -108,6 +108,10 @@ namespace SenseNet.ContentRepository.Search
             return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
         }
 
+        public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
+        {
+            return _searchEngineSupport.CompleteIndexDocument(indexDocumentData);
+        }
 
         /// <summary>
         /// Gets a value that is true if the content query can run in the configured outer query engine.

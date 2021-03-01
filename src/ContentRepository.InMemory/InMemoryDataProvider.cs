@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -16,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel.Usage;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
@@ -245,7 +247,7 @@ namespace SenseNet.ContentRepository.InMemory
                     DeleteVersionsSafe(versionIdsToDelete);
 
                     // Update NodeDoc (create a new nodeDoc instance)
-                    var nodeDoc = CreateNodeDocSafe(nodeHeadData); 
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
                     (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
@@ -454,24 +456,73 @@ namespace SenseNet.ContentRepository.InMemory
                         throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
                                                            $"Path:{sourceNode.Path}, TargetPath: {targetNode.Path}");
 
+                    var targetIsTrashBag = NodeType.GetById(targetNode.NodeTypeId)
+                        .IsInstaceOfOrDerivedFrom(NodeType.GetByName("TrashBag"));
+
+                    var systemFolderIds = ActiveSchema.NodeTypes
+                        .Where(x => x.NodeTypePath.Contains("SystemFolder"))
+                        .Select(x => x.Id)
+                        .ToArray();
+
+                    var systemFlagUpdatingStrategy =
+                        GetSystemFlagUpdatingStrategyWhenMoving(sourceNode, targetNode, systemFolderIds);
+
+                    var sourceContentListId = sourceNode.ContentListId;
+                    var sourceContentListTypeId = sourceNode.ContentListTypeId;
+                    var targetContentListId = targetNode.ContentListId;
+                    var targetContentListTypeId = targetNode.ContentListTypeId;
+
+                    if (targetContentListTypeId != 0 && targetContentListId == 0)
+                        // In this case the ContentListId is null, because the ContentListId is the NodeId.
+                        targetContentListId = targetNodeId;
+
+                    if (sourceContentListTypeId != 0 && sourceContentListId != 0
+                                                     && (targetContentListTypeId == 0 ||
+                                                         targetContentListTypeId != sourceContentListTypeId)
+                                                     && !targetIsTrashBag)
+                    {
+                        DeleteContentListPropertiesInTree(sourceNode);
+                        sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
+                    }
+
                     // Update subtree (do not update directly to ensure transactionality)
                     var originalPath = sourceNode.Path;
+                    // First of all set IsSystem flag on the root of the moved tree
+                    if (systemFlagUpdatingStrategy == SystemFlagUpdatingStrategy.Recompute)
+                    {
+                        sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
+                        var updated = sourceNode.Clone();
+                        updated.IsSystem = systemFolderIds.Contains(updated.NodeTypeId);
+                        DB.Nodes.Remove(sourceNode);
+                        DB.Nodes.Insert(updated);
+                        sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
+                    }
+
                     var nodes = DB.Nodes
-                        .Where(n => n.Path.StartsWith(originalPath + RepositoryPath.PathSeparator, StringComparison.OrdinalIgnoreCase))
+                        .Where(n => n.Path.StartsWith(originalPath + RepositoryPath.PathSeparator,
+                            StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(n => n.Path)
                         .ToArray();
                     var originalParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
                     foreach (var node in nodes)
                     {
                         var clone = node.Clone();
                         clone.Path = clone.Path.Replace(originalParentPath, targetNode.Path);
+                        ManageSystemFlag(clone, systemFlagUpdatingStrategy, systemFolderIds);
+                        clone.ContentListId = targetContentListId;
+                        clone.ContentListTypeId = targetContentListTypeId;
                         DB.Nodes.Remove(node);
                         DB.Nodes.Insert(clone);
                     }
 
                     // Update node head (do not update directly to ensure transactionality)
+                    sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
                     var updatedSourceNode = sourceNode.Clone();
                     updatedSourceNode.ParentNodeId = targetNodeId;
                     updatedSourceNode.Path = updatedSourceNode.Path.Replace(originalParentPath, targetNode.Path);
+                    ManageSystemFlag(updatedSourceNode, systemFlagUpdatingStrategy, systemFolderIds);
+                    updatedSourceNode.ContentListId = targetContentListId;
+                    updatedSourceNode.ContentListTypeId = targetContentListTypeId;
                     DB.Nodes.Remove(sourceNode);
                     DB.Nodes.Insert(updatedSourceNode);
 
@@ -486,6 +537,99 @@ namespace SenseNet.ContentRepository.InMemory
                 }
             }
             return STT.Task.CompletedTask;
+        }
+        private enum SystemFlagUpdatingStrategy { NoChange, AllSystem, Recompute };
+        private SystemFlagUpdatingStrategy GetSystemFlagUpdatingStrategyWhenMoving(
+            NodeDoc sourceNode, NodeDoc targetNode, int[] systemFolderIds)
+        {
+            var sourceIsSystem = sourceNode.IsSystem; // systemFolderIds.Contains(sourceNode.NodeTypeId);
+            var targetIsSystem = targetNode.IsSystem; // systemFolderIds.Contains(targetNode.NodeTypeId);
+
+            if (!sourceIsSystem && targetIsSystem)
+                return SystemFlagUpdatingStrategy.AllSystem;
+            if (sourceIsSystem && !targetIsSystem)
+                return SystemFlagUpdatingStrategy.Recompute;
+            return SystemFlagUpdatingStrategy.NoChange;
+        }
+        private void ManageSystemFlag(NodeDoc node,
+            SystemFlagUpdatingStrategy systemFlagUpdatingStrategy, int[] systemFolderIds)
+        {
+            switch (systemFlagUpdatingStrategy)
+            {
+                case SystemFlagUpdatingStrategy.NoChange:
+                    break;
+                case SystemFlagUpdatingStrategy.AllSystem:
+                    node.IsSystem = true;
+                    break;
+                case SystemFlagUpdatingStrategy.Recompute:
+                    node.IsSystem = systemFolderIds.Contains(node.NodeTypeId) ||
+                                    DB.Nodes.First(x => x.Id == node.ParentNodeId).IsSystem;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(systemFlagUpdatingStrategy), systemFlagUpdatingStrategy, null);
+            }
+        }
+        private void DeleteContentListPropertiesInTree(NodeDoc sourceNode)
+        {
+
+            var affectedNodeIds = DB.Nodes
+                .Where(x => x.Path.StartsWith(sourceNode.Path + "/") || x.Id == sourceNode.Id)
+                .Select(x => x.NodeId)
+                .ToArray();
+            var affectedVersions = DB.Versions
+                .Where(x => affectedNodeIds.Contains(x.NodeId))
+                .ToArray();
+            var affectedVersionIds = affectedVersions
+                .Select(x => x.VersionId)
+                .ToArray();
+            var contentListPropertyTypeIds = DB.Schema.PropertyTypes
+                .Where(x => x.IsContentListProperty)
+                .Select(x => x.Id)
+                .ToArray();
+
+            // Drop binary ContentList properties
+            var binaryRowsToDelete = DB.BinaryProperties
+                .Where(x =>
+                    affectedVersionIds.Contains(x.VersionId) &&
+                    contentListPropertyTypeIds.Contains(x.PropertyTypeId))
+                .ToArray();
+            foreach (var binaryRow in binaryRowsToDelete)
+                DB.BinaryProperties.Remove(binaryRow);
+
+            // Drop LongTextProperty ContentList properties
+            var longTextRowsToDelete = DB.LongTextProperties
+                .Where(x =>
+                    affectedVersionIds.Contains(x.VersionId) &&
+                    contentListPropertyTypeIds.Contains(x.PropertyTypeId))
+                .ToArray();
+            foreach (var longTextRow in longTextRowsToDelete)
+                DB.LongTextProperties.Remove(longTextRow);
+
+
+            foreach (var versionDoc in affectedVersions)
+            {
+                // Drop all ContentList properties including references.
+                var versionClone = versionDoc.Clone();
+                var keysToDelete = versionClone.DynamicProperties.Keys
+                    .Where(x => x.StartsWith("#"))
+                    .ToArray();
+                foreach (var key in keysToDelete)
+                    versionClone.DynamicProperties.Remove(key);
+
+                // Update versions (do not update directly to ensure transactionality)
+                DB.Versions.Remove(versionDoc);
+                DB.Versions.Insert(versionClone);
+            }
+
+            // The target is NOT a ContentList nor a ContentListFolder so
+            //   ContentListTypeId, ContentListId should be updated to null
+            //   (except if it is the trash).
+            var sourceNodeClone = sourceNode.Clone();
+            sourceNodeClone.ContentListId = 0;
+            sourceNodeClone.ContentListTypeId = 0;
+            DB.Nodes.Remove(sourceNode);
+            DB.Nodes.Insert(sourceNodeClone);
+            sourceNode = sourceNodeClone;
         }
 
         public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad,
@@ -980,8 +1124,8 @@ namespace SenseNet.ContentRepository.InMemory
 
                 foreach (var node in collection.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
                                                            n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
-                foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
-                    result.Add(CreateIndexDocumentDataSafe(node, version));
+                    foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
+                        result.Add(CreateIndexDocumentDataSafe(node, version));
 
                 return result;
             }
@@ -1670,12 +1814,138 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
+        /* =============================================================================================== Usage */
+
+
+        public override STT.Task LoadDatabaseUsageAsync(
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
+            CancellationToken cancel)
+        {
+            // PROCESS NODE+VERSION ROWS
+
+            foreach (var dbVersion in DB.Versions)
+            {
+                var dbNode = DB.Nodes.FirstOrDefault(n => n.NodeId == dbVersion.NodeId);
+                if (dbNode == null)
+                    continue;
+                var nodeModel = new NodeModel
+                {
+                    NodeId = dbNode.NodeId,
+                    VersionId = dbVersion.VersionId,
+                    ParentNodeId = dbNode.ParentNodeId,
+                    NodeTypeId = dbNode.NodeTypeId,
+                    Version = dbVersion.Version.ToString(),
+                    IsLastPublic = dbNode.LastMajorVersionId == dbVersion.VersionId,
+                    IsLastDraft = dbNode.LastMinorVersionId == dbVersion.VersionId,
+                    OwnerId = dbNode.OwnerId,
+                    DynamicPropertiesSize = GetObjectSize(dbVersion.DynamicProperties),
+                    ContentListPropertiesSize = 0L,
+                    ChangedDataSize = GetObjectSize(dbVersion.ChangedData),
+                    IndexSize = 2 * dbVersion.IndexDocument?.Length ?? 0,
+                };
+                nodeVersionCallback(nodeModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS LONGTEXT ROWS
+
+            foreach (var dbLongTextProperty in DB.LongTextProperties)
+            {
+                var longTextModel = new LongTextModel
+                {
+                    VersionId = dbLongTextProperty.VersionId,
+                    Size = 2 * dbLongTextProperty.Value?.Length ?? 0L
+                };
+                longTextPropertyCallback(longTextModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS BINARY PROPERTY ROWS
+
+            foreach (var dbBinaryProperty in DB.BinaryProperties)
+            {
+                var binaryProperty = new BinaryPropertyModel
+                {
+                    VersionId = dbBinaryProperty.VersionId,
+                    FileId = dbBinaryProperty.FileId,
+                };
+                binaryPropertyCallback(binaryProperty);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS FILE ROWS
+
+            foreach (var dbFile in DB.Files)
+            {
+                var fileModel = new FileModel
+                {
+                    FileId =dbFile.FileId,
+                    Size = dbFile.Size,
+                    StreamSize = dbFile.Buffer?.Length ?? 0L
+                };
+                fileCallback(fileModel);
+                cancel.ThrowIfCancellationRequested();
+            }
+
+            // PROCESS LOGENTRIES TABLE
+
+            var meta = 0L;
+            var text = 0L;
+            foreach (var item in DB.LogEntries)
+            {
+                meta += 48 + 2 * ((item.Category?.Length ?? 0) +
+                                  (item.Severity?.Length ?? 0) +
+                                  (item.Title?.Length ?? 0) +
+                                  (item.ContentPath?.Length ?? 0) +
+                                  (item.UserName?.Length ?? 0) +
+                                  (item.MachineName?.Length ?? 0) +
+                                  (item.AppDomainName?.Length ?? 0) +
+                                  (item.ProcessName?.Length ?? 0) +
+                                  (item.ThreadName?.Length ?? 0) +
+                                  (item.Message?.Length ?? 0));
+                text += item.FormattedMessage.Length;
+            }
+
+            var logEntriesTableModel = new LogEntriesTableModel
+            {
+                Count = DB.LogEntries.Count,
+                Metadata = meta,
+                Text = text
+            };
+            logEntriesTableCallback(logEntriesTableModel);
+
+            return STT.Task.CompletedTask;
+        }
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.None
+        };
+        private static long GetObjectSize (object o)
+        {
+            if (o == null)
+                return 0L;
+
+            using (var writer = new StringWriter())
+            {
+                JsonSerializer.Create(JsonSerializerSettings).Serialize(writer, o);
+                var serializedDoc = writer.GetStringBuilder().ToString();
+                return 2 * serializedDoc.Length;
+            }
+        }
+
         /* =============================================================================================== Tools */
 
         public override bool IsDeadlockException(Exception exception)
         {
             return exception.Message == "Transaction was deadlocked.";
         }
+
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

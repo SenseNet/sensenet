@@ -16,7 +16,6 @@ namespace SenseNet.Services.Wopi
     {
         private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
@@ -59,7 +58,6 @@ namespace SenseNet.Services.Wopi
             };
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
@@ -74,7 +72,6 @@ namespace SenseNet.Services.Wopi
             return null;
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>

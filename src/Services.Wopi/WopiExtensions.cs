@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using SenseNet.Services.Core;
 using SenseNet.Services.Wopi;
 using System;
 
@@ -13,13 +12,17 @@ namespace SenseNet.Extensions.DependencyInjection
         /// if the request contains the wopi prefix.
         /// </summary>
         /// <param name="builder">IApplicationBuilder instance.</param>
-        /// <param name="buildAppBranch">Optional builder method. Use this when you want to add
+        /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline before the sensenet WOPI middleware.</param>
+        /// <param name="buildAppBranchAfter">Optional builder method. Use this when you want to add
         /// additional middleware in the pipeline after the sensenet WOPI middleware.</param>
         public static IApplicationBuilder UseSenseNetWopi(this IApplicationBuilder builder,
-            Action<IApplicationBuilder> buildAppBranch = null)
+            Action<IApplicationBuilder> buildAppBranchBefore = null,
+            Action<IApplicationBuilder> buildAppBranchAfter = null)
         {
             // add WOPI middleware if the request contains a prefix
-            builder.MapMiddlewareWhen<WopiMiddleware>("/wopi", buildAppBranch);
+            builder.MapMiddlewareWhen<WopiMiddleware>("/wopi", buildAppBranchBefore, 
+                buildAppBranchAfter, true);
 
             // add the necessary execution policies
             builder.UseOperationMethodExecutionPolicy(new WopiOpenViewMethodPolicy())

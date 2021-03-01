@@ -1284,6 +1284,42 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 ";
         #endregion
 
+        /* ------------------------------------------------ Usage */
+
+        #region LoadDatabaseUsageScript
+        protected override string LoadDatabaseUsageScript { get; } = @"-- LoadDatabaseUsage
+SELECT N.NodeId, V.VersionId, N.ParentNodeId, N.NodeTypeId, V.MajorNumber, V.MinorNumber, V.Status,
+    CASE V.VersionId WHEN N.LastMajorVersionId THEN 1 ELSE 0 END AS LastPub,
+    CASE V.VersionId WHEN N.LastMinorVersionId THEN 1 ELSE 0 END AS LastWork,
+    N.OwnerId, 
+    COALESCE(DATALENGTH(DynamicProperties), 0) DynamicPropertiesSize,
+    COALESCE(DATALENGTH(ContentListProperties), 0) ContentListPropertiesSize,
+    COALESCE(DATALENGTH(ChangedData), 0) ChangedDataSize,
+    COALESCE(DATALENGTH(IndexDocument), 0) IndexSize
+FROM Nodes N (NOLOCK)
+    JOIN Versions V (NOLOCK) ON V.NodeId = N.NodeId
+
+SELECT VersionId, DATALENGTH(Value) Size FROM LongTextProperties (NOLOCK)
+
+SELECT VersionId, FileId FROM BinaryProperties (NOLOCK)
+
+SELECT FileId, Size, COALESCE(DATALENGTH(Stream), 0) StreamSize FROM Files (NOLOCK)
+
+DECLARE @LogCount int
+SELECT @LogCount = COUNT(1) FROM [LogEntries] (NOLOCK)
+if @LogCount > 0
+	SELECT @LogCount [Rows],
+		   SUM(CAST(48 AS bigint) + COALESCE(DATALENGTH([Category]), 0) + DATALENGTH([Severity]) + DATALENGTH([Title]) + DATALENGTH([ContentPath])
+			  + DATALENGTH([UserName]) + DATALENGTH([MachineName]) + DATALENGTH([AppDomainName]) + DATALENGTH([ProcessID])
+			  + DATALENGTH([ProcessName]) + COALESCE(DATALENGTH([ThreadName]), 0) + DATALENGTH([Win32ThreadId]) 
+			  + DATALENGTH([Message])) [Metadata],
+		   SUM(CAST(DATALENGTH([FormattedMessage]) AS bigint)) [Text]
+	FROM [LogEntries] (NOLOCK)
+ELSE
+	SELECT 0 [Rows], 0 [Metadata], 0 [Text]
+";
+        #endregion
+
         /* ------------------------------------------------ Tools */
     }
 

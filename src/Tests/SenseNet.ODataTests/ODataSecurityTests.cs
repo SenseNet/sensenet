@@ -248,12 +248,12 @@ namespace SenseNet.ODataTests
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Folder", testRoot, Guid.NewGuid().ToString());
+                var content = Content.CreateNew("Folder", testRoot, "Folder1");
                 content.Save();
                 var folderPath = ODataMiddleware.GetEntityUrl(content.Path);
                 var folderRepoPath = content.Path;
                 var folderId = content.Id;
-                content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
+                content = Content.CreateNew("Car", content.ContentHandler, "Car1");
                 content.Save();
                 var carRepoPath = content.Path;
 
@@ -262,7 +262,7 @@ namespace SenseNet.ODataTests
                         $"/OData.svc/{folderPath}/SetPermissions",
                         "",
                         "{r:[{identity:\"/Root/IMS/BuiltIn/Portal/Visitor\"," +
-                        " OpenMinor:\"allow\", propagates:false}]}")
+                        " OpenMinor:\"allow\", localOnly:true}]}")
                     .ConfigureAwait(false);
 
                 // ASSERT

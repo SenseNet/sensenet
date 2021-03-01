@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Storage.DataModel.Usage;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -904,6 +905,32 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return Task.CompletedTask;
         }
+
+        /* =============================================================================================== Usage */
+
+        /// <summary>
+        /// Loads tables and dimensions for statistical purposes.
+        /// </summary>
+        /// <remarks>
+        /// To avoid a large memory load, it processes incoming rows immediately with the passed callback functions.
+        /// Each callback function receives the corresponding model object and processes it.
+        /// </remarks>
+        /// <param name="nodeVersionCallback">Processes the given <see cref="NodeModel"/> instance.</param>
+        /// <param name="longTextPropertyCallback">Processes the given <see cref="LongTextModel"/> instance.</param>
+        /// <param name="binaryPropertyCallback">Processes the given <see cref="BinaryPropertyModel"/> instance.</param>
+        /// <param name="fileCallback">Processes the given <see cref="FileModel"/> instance.</param>
+        /// <param name="logEntriesTableCallback">Processes the given <see cref="LogEntriesTableModel"/> data.
+        /// The model instance contains counters of the entire table.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps an enumerable <see cref="EntityTreeNodeData"/>
+        /// as the Content tree representation.</returns>
+        public abstract Task LoadDatabaseUsageAsync(
+            Action<NodeModel> nodeVersionCallback,
+            Action<LongTextModel> longTextPropertyCallback,
+            Action<BinaryPropertyModel> binaryPropertyCallback,
+            Action<FileModel> fileCallback,
+            Action<LogEntriesTableModel> logEntriesTableCallback,
+            CancellationToken cancel);
 
         /* =============================================================================================== Tools */
 

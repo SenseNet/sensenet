@@ -2,6 +2,8 @@
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 using SenseNet.Tests.Core;
 using STT = System.Threading.Tasks;
 
@@ -96,6 +98,111 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod, TestCategory("NODE, REFERENCE, FIX")] //Fix1291_SetMembersDoNotRemovesHiddenItems
+        public void Node_Reference_SetReference_Multiple_Invisible()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var u2 = CreateUser("U2");
+                var u3 = CreateUser("U3");
+                var u4 = CreateUser("U4");
+                var group = new Group(Node.LoadNode("/Root/IMS/Public"))
+                {
+                    Name = "Group1",
+                    Members = new[] { u2, u3 }
+                };
+                group.Save();
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(u3.Id, u1.Id, false, PermissionType.See)
+                    .Allow(u4.Id, u1.Id, false, PermissionType.See)
+                    .Allow(group.Id, u1.Id, false, PermissionType.Save)
+                    .Apply();
+
+                Assert.IsFalse(u2.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(u3.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(u4.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(group.Security.HasPermission(u1, PermissionType.Save));
+
+                // ACTION
+                using (new CurrentUserBlock(u1))
+                {
+                    var loadedGroup = Node.Load<Group>(group.Id);
+
+                    // Restrictive user does not see the user "U2".
+                    var loadedGroupMembers = loadedGroup.Members.ToArray();
+                    Assert.AreEqual(1, loadedGroupMembers.Length);
+                    Assert.AreEqual(u3.Id, loadedGroupMembers[0].Id);
+
+                    // Set new membership
+                    var loadedUser = Node.Load<User>(u4.Id);
+                    loadedGroup.Members = new[] { u4 };
+                    loadedGroup.Save();
+                }
+
+                // ASSERT
+                var reloaded = Node.Load<Group>(group.Id);
+                var actual = string.Join(", ", reloaded.Members.Select(x => x.Name));
+                Assert.AreEqual("U2, U4", actual);
+            });
+        }
+
+        [TestMethod, TestCategory("NODE, REFERENCE")]
+        public void Node_Reference_SetReference_Simple_Invisible()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var target0 = new Folder(root) { Name = "folder1" };
+                target0.Save();
+                var target1 = new Folder(root) { Name = "folder2" };
+                target1.Save();
+                var link = new ContentLink(root) { Name = "Link1", Link = target0 };
+                link.Save();
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(target1.Id, u1.Id, false, PermissionType.See)
+                    .Allow(link.Id, u1.Id, false, PermissionType.Save)
+                    .Apply();
+
+                Assert.IsFalse(target0.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(target1.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(link.Security.HasPermission(u1, PermissionType.Save));
+
+                // ACTION
+                using (new CurrentUserBlock(u1))
+                {
+                    var loadedLink = Node.Load<ContentLink>(link.Id);
+
+                    // Restrictive user cannot access the current target.
+                    //Assert.IsNull(loadedLink.Link);
+                    try
+                    {
+                        var currentLint = loadedLink.Link;
+                        Assert.Fail("The expected AccessDeniedException was not thrown.");
+                    }
+                    catch (SenseNetSecurityException)
+                    {
+                        // expected exception
+                    }
+
+                    // Set new target
+                    var loadedTarget = Node.LoadNode(target1.Id);
+                    loadedLink.Link = loadedTarget;
+                    loadedLink.Save();
+                }
+
+                // ASSERT
+                var reloaded = Node.Load<ContentLink>(link.Id);
+                Assert.AreEqual(reloaded.Link.Id, target1.Id);
+            });
+        }
+
+
+
         [TestMethod, TestCategory("NODE, LOAD")]
         public async STT.Task Node_Load()
         {
@@ -126,6 +233,26 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(admin.Id, nodes1[0].Id);
                 Assert.AreEqual(visitor.Id, nodes1[1].Id);
             });
+        }
+
+        /* ============================================================================== */
+
+        private GenericContent CreateTestRoot()
+        {
+            var node = new SystemFolder(Repository.Root) { Name = "_GroupTests" };
+            node.Save();
+            return node;
+        }
+        private User CreateUser(string name)
+        {
+            var node = new User(Node.LoadNode("/Root/IMS/Public"))
+            {
+                Name = name,
+                Email = $"{name}@example.com",
+                Enabled = true
+            };
+            node.Save();
+            return node;
         }
     }
 }

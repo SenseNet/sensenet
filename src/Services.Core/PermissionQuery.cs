@@ -44,7 +44,6 @@ namespace SenseNet.Services.Core
             public object Identity;
         }
 
-        //UNDONE:Doc:
         /// <summary></summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>

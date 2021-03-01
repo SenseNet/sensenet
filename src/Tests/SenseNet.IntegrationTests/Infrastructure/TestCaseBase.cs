@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection.Metadata.Ecma335;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
@@ -8,11 +9,21 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public abstract class TestCaseBase
     {
         public IPlatform Platform { get; set; }
+        //UNDONE:<?IntT: Call from every base control-method.
+        public Action<RepositoryBuilder> TestInitializer { get; set; }
 
         /* ==================================================================== */
 
         private static string _lastPlatformName;
         private static RepositoryInstance _repositoryInstance;
+
+        public void NoRepoIntegrationTest(Action callback)
+        {
+            var platformName = Platform.GetType().Name;
+            var builder = Platform.CreateRepositoryBuilder();
+            TestInitializer?.Invoke(builder);
+            callback();
+        }
 
         public void IntegrationTest(Action callback)
         {
@@ -33,9 +44,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private void IntegrationTest(bool isolated, Action callback, Action<SystemFolder> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
-            var brandNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
 
-            if (brandNew)
+            if (needToStartNew)
             {
                 Logger.Log("  (cleanup repository)");
                 _repositoryInstance?.Dispose();
@@ -74,6 +85,58 @@ namespace SenseNet.IntegrationTests.Infrastructure
             }
         }
 
+        public void IntegrationTest<T>(Action<T> callback) where T : GenericContent
+        {
+            IntegrationTest(false, null, callback);
+        }
+        public void IsolatedIntegrationTest<T>(Action<T> callback) where T : GenericContent
+        {
+            IntegrationTest(true, null, callback);
+        }
+        private void IntegrationTest<T>(bool isolated, Action callback, Action<T> callbackWithSandbox) where T : GenericContent
+        {
+            var platformName = Platform.GetType().Name;
+            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+
+            if (needToStartNew)
+            {
+                Logger.Log("  (cleanup repository)");
+                _repositoryInstance?.Dispose();
+                _repositoryInstance = null;
+                _lastPlatformName = null;
+
+                var builder = Platform.CreateRepositoryBuilder();
+
+                Logger.Log("  start new repository");
+                _repositoryInstance = Repository.Start(builder);
+                _lastPlatformName = platformName;
+
+                //PrepareRepository();
+            }
+
+            T sandbox = null;
+            try
+            {
+                using (new SystemAccount())
+                    if (callback != null) callback(); else callbackWithSandbox(sandbox = CreateSandbox<T>());
+
+            }
+            finally
+            {
+                if (sandbox != null)
+                    using (new SystemAccount())
+                        sandbox.ForceDelete();
+
+                if (isolated)
+                {
+                    Logger.Log("  cleanup repository");
+                    _repositoryInstance?.Dispose();
+                    _repositoryInstance = null;
+                    _lastPlatformName = null;
+                }
+            }
+        }
+
         public Task IntegrationTestAsync(Func<Task> callback)
         {
             return IntegrationTestAsync(false, callback, null);
@@ -93,9 +156,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private async Task IntegrationTestAsync(bool isolated, Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
-            var brandNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
 
-            if (brandNew)
+            if (needToStartNew)
             {
                 Logger.Log("  (cleanup repository)");
                 _repositoryInstance?.Dispose();
@@ -146,7 +209,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         }
 
 
-        //UNDONE:<?: Consider the instructions in the following block
+        //UNDONE:<?IntT: Consider the instructions in the following block
         //public void IntegrationTest(Action callback)
         //{
         //    Cache.Reset();
@@ -172,6 +235,12 @@ namespace SenseNet.IntegrationTests.Infrastructure
             var sandbox = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
             sandbox.Save();
             return sandbox;
+        }
+        protected T CreateSandbox<T>() where T : GenericContent
+        {
+            var sandbox = Content.CreateNew(typeof(T).Name, Repository.Root, Guid.NewGuid().ToString());
+            sandbox.Save();
+            return (T)sandbox.ContentHandler;
         }
 
         private class UserBlock : IDisposable

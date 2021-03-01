@@ -1584,10 +1584,18 @@ namespace SenseNet.ContentRepository
                 {
                     targetContentListBindings.TryGetValue(item.Key, out var targetPropertyNames);
                     if (targetPropertyNames != null && targetPropertyNames.Count == 1)
-                        result.Add(item.Value[0], targetPropertyNames[0]);
+                        if (SameDataType(item.Value[0], targetPropertyNames[0]))
+                            result.Add(item.Value[0], targetPropertyNames[0]);
                 }
             }
             return result;
+        }
+
+        private bool SameDataType(string name1, string name2)
+        {
+            var type1 = name1.Substring(0, name1.IndexOf('_'));
+            var type2 = name2.Substring(0, name2.IndexOf('_'));
+            return type1 == type2;
         }
 
 

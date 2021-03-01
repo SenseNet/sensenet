@@ -3,6 +3,8 @@ using SenseNet.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
+using SenseNet.Events;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage.Security
@@ -19,6 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Gets the current SnSecurityContext
         /// </summary>
         public new SnSecurityContext Context => (SnSecurityContext)base.Context;
+        private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
 
         internal SnAclEditor(SnSecurityContext context, EntryType entryType = EntryType.Normal)
             : base(context ?? SecurityHandler.SecurityContext, entryType) { }
@@ -317,6 +320,13 @@ namespace SenseNet.ContentRepository.Storage.Security
                         NodeObserver.FireOnPermissionChanging(null, null, args1, disabledObservers);
                         if (args1.Cancel)
                             throw new CancelNodeEventException(args1.CancelMessage, args1.EventType, null);
+
+                        var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                                new NodePermissionChangingEvent(args1), null)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                        if (canceled)
+                            throw new CancelNodeEventException(args1.CancelMessage, args1.EventType, null);
+
                         op1.Successful = true;
                     }
 
@@ -333,6 +343,10 @@ namespace SenseNet.ContentRepository.Storage.Security
                     using (var op2 = SnTrace.Security.StartOperation("AclEditor.Apply / FireOnPermissionChanged"))
                     {
                         NodeObserver.FireOnPermissionChanged(null, null, args2, disabledObservers);
+
+                        EventDistributor.FireNodeObserverEventAsync(new NodePermissionChangedEvent(args2), null)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
                         op2.Successful = true;
                     }
 
