@@ -17,6 +17,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
+        //UNDONE: [DIREF] eliminate static provider property
         /// <summary>
         /// A custom blob provider instance that can be configured in the <see cref="BlobStorage"/> section.
         /// </summary>

@@ -33,7 +33,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
         {
         }
-        //UNDONE: should cancel be optional or not?
         protected SnDataContext(DataOptions options, CancellationToken cancel = default)
         {
             _cancellationToken = cancel;
