@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Configuration;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -106,22 +107,25 @@ namespace SenseNet.Packaging.Steps
         }
         private void ExecuteSql(SqlScriptReader sqlReader, ExecutionContext context)
         {
+            var connectionInfo = new ConnectionInfo
+            {
+                ConnectionName = (string)context.ResolveVariable(ConnectionName),
+                DataSource = (string)context.ResolveVariable(DataSource),
+                InitialCatalog = InitialCatalog,
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
+            };
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+
             while (sqlReader.ReadScript())
             {
                 var script = sqlReader.Script;
 
                 var sb = new StringBuilder();
 
-                var connectionInfo = new ConnectionInfo
-                {
-                    ConnectionName = (string)context.ResolveVariable(ConnectionName),
-                    DataSource = (string)context.ResolveVariable(DataSource),
-                    InitialCatalog = InitialCatalog,
-                    InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
-                    UserName = (string)context.ResolveVariable(UserName),
-                    Password = (string)context.ResolveVariable(Password)
-                };
-                using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
+                //UNDONE: [DIREF] get options from DI through constructor
+                using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
                 {
                     ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                     {

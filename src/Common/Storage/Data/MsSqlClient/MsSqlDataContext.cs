@@ -15,14 +15,25 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public string ConnectionString { get; }
 
+        [Obsolete("Use the constructor that expects data options instead.", true)]
         public MsSqlDataContext(CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = ConnectionStrings.ConnectionString;
         }
+        public MsSqlDataContext(string connectionString, DataOptions options, CancellationToken cancel)
+            : base(options, cancel)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
+            
+            ConnectionString = connectionString;
+        }
+        [Obsolete("Use the constructor that expects data options instead.", true)]
         public MsSqlDataContext(string connectionString, CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = connectionString ?? ConnectionStrings.ConnectionString;
         }
+        [Obsolete("Use the constructor that expects data options instead.", true)]
         public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
@@ -143,7 +154,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
 
                     cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = transaction;
@@ -173,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
 
                     cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = transaction;
@@ -210,7 +221,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         }
 
                         cmd.Connection = (SqlConnection)OpenConnection();
-                        cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                         cmd.CommandText = script;
                         cmd.CommandType = CommandType.Text;
                         cmd.Transaction = transaction;

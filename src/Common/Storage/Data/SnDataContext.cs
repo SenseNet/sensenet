@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using IsolationLevel = System.Data.IsolationLevel;
 
@@ -16,6 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private DbConnection _connection;
         private TransactionWrapper _transaction;
         private readonly CancellationToken _cancellationToken;
+        protected DataOptions DataOptions { get; }
 
         public DbConnection Connection => _connection;
         public TransactionWrapper Transaction => _transaction;
@@ -28,9 +29,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public bool NeedToCleanupFiles { get; set; }
 
-        protected SnDataContext(CancellationToken cancellationToken)
+        [Obsolete("Use the constructor that expects data options instead.", true)]
+        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
         {
-            _cancellationToken = cancellationToken;
+        }
+        protected SnDataContext(DataOptions options, CancellationToken cancel = default)
+        {
+            _cancellationToken = cancel;
+            DataOptions = options ?? new DataOptions();
         }
 
         public virtual void Dispose()
@@ -77,11 +83,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            TimeSpan timeout = default(TimeSpan))
+            TimeSpan timeout = default)
         {
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, timeout, _cancellationToken);
+                           ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
             return _transaction;
         }
 
@@ -92,7 +98,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var cmd = CreateCommand())
                 {
                     cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = _transaction?.Transaction;
@@ -116,7 +122,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var cmd = CreateCommand())
                 {
                     cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
                     cmd.Transaction = _transaction?.Transaction;
@@ -147,7 +153,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var cmd = CreateCommand())
                     {
                         cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                         cmd.CommandText = script;
                         cmd.CommandType = CommandType.Text;
                         cmd.Transaction = _transaction?.Transaction;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SenseNet.Configuration;
+using System;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -18,24 +19,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionStatus Status { get; private set; }
         public CancellationToken CancellationToken { get; }
 
-        public TransactionWrapper(DbTransaction transaction, CancellationToken cancellationToken):this(transaction, default(TimeSpan), cancellationToken)
+        public TransactionWrapper(DbTransaction transaction, DataOptions options, CancellationToken cancel) :
+            this(transaction, options, default, cancel)
         {
         }
-        public TransactionWrapper(DbTransaction transaction, TimeSpan timeout, CancellationToken cancellationToken)
+        public TransactionWrapper(DbTransaction transaction, DataOptions options, TimeSpan timeout, CancellationToken cancel)
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
-            Timeout = timeout == default(TimeSpan)
-                ? TimeSpan.FromSeconds(Configuration.Data.TransactionTimeout)
+            Timeout = timeout == default
+                ? TimeSpan.FromSeconds(options.TransactionTimeout)
                 : timeout;
-            CancellationToken = CombineCancellationToken(cancellationToken, timeout);
+            CancellationToken = CombineCancellationToken(cancel);
         }
-        private CancellationToken CombineCancellationToken(CancellationToken cancellationToken, TimeSpan timeout)
+        private CancellationToken CombineCancellationToken(CancellationToken cancellationToken)
         {
-            if (timeout == default(TimeSpan))
-                return cancellationToken;
-
-            var timeoutToken = new CancellationTokenSource(timeout).Token;
+            var timeoutToken = new CancellationTokenSource(Timeout).Token;
             if (cancellationToken == CancellationToken.None)
                 return timeoutToken;
 

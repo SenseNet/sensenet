@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryDataContext : SnDataContext
     {
-        public InMemoryDataContext(CancellationToken cancellationToken) : base(cancellationToken)
+        public InMemoryDataContext(CancellationToken cancellationToken) : base(new DataOptions(), cancellationToken)
         {
         }
 
