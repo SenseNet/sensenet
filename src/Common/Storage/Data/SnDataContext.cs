@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private DbConnection _connection;
         private TransactionWrapper _transaction;
         private readonly CancellationToken _cancellationToken;
-        protected DataOptions DataOptions { get; } = new DataOptions();
+        protected DataOptions DataOptions { get; }
 
         public DbConnection Connection => _connection;
         public TransactionWrapper Transaction => _transaction;
@@ -33,6 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
         {
         }
+        //UNDONE: should cancel be optional or not?
         protected SnDataContext(DataOptions options, CancellationToken cancel = default)
         {
             _cancellationToken = cancel;
