@@ -8,7 +8,7 @@
   <Field name="Name" type="ShortText">
       <DisplayName>$Ctd-Image,Name-DisplayName</DisplayName>
       <Configuration>
-        <FieldIndex>0</FieldIndex>
+        <FieldIndex>30</FieldIndex>
       </Configuration>
     </Field>
     <Field name="DateTaken" type="DateTime">
@@ -16,18 +16,16 @@
       <Description>$Ctd-Image,DateTaken-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
-        <FieldIndex>1</FieldIndex>
+        <FieldIndex>20</FieldIndex>
       </Configuration>
     </Field>
     <Field name="Keywords" type="LongText">
       <DisplayName>$Ctd-Image,Keywords-DisplayName</DisplayName>
       <Description>$Ctd-Image,Keywords-Description</Description>
-      <Configuration>
-        <FieldIndex>2</FieldIndex>
-      </Configuration>
     </Field>
     <Field name="Index" type="Integer">
     <Configuration>
+        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
