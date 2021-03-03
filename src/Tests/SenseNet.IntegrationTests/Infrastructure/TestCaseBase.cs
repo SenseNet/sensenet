@@ -27,21 +27,38 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public void IntegrationTest(Action callback)
         {
-            IntegrationTest(false, callback, null);
+            IntegrationTest(false, null, callback, null);
+        }
+        public void IntegrationTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            IntegrationTest(false, initialize, callback, null);
         }
         public void IntegrationTest(Action<SystemFolder> callback)
         {
-            IntegrationTest(false, null, callback);
+            IntegrationTest(false, null, null, callback);
+        }
+        public void IntegrationTest(Action<RepositoryBuilder> initialize, Action<SystemFolder> callback)
+        {
+            IntegrationTest(false, initialize, null, callback);
         }
         public void IsolatedIntegrationTest(Action callback)
         {
-            IntegrationTest(true, callback, null);
+            IntegrationTest(true, null, callback, null);
+        }
+        public void IsolatedIntegrationTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            IntegrationTest(true, initialize, callback, null);
         }
         public void IsolatedIntegrationTest(Action<SystemFolder> callback)
         {
-            IntegrationTest(true, null, callback);
+            IntegrationTest(true, null, null, callback);
         }
-        private void IntegrationTest(bool isolated, Action callback, Action<SystemFolder> callbackWithSandbox)
+        public void IsolatedIntegrationTest(Action<RepositoryBuilder> initialize, Action<SystemFolder> callback)
+        {
+            IntegrationTest(true, initialize, null, callback);
+        }
+        private void IntegrationTest(bool isolated, Action<RepositoryBuilder> initialize,
+            Action callback, Action<SystemFolder> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
             var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
@@ -54,6 +71,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 _lastPlatformName = null;
 
                 var builder = Platform.CreateRepositoryBuilder();
+                initialize?.Invoke(builder);
 
                 Logger.Log("  start new repository");
                 _repositoryInstance = Repository.Start(builder);
@@ -87,13 +105,22 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public void IntegrationTest<T>(Action<T> callback) where T : GenericContent
         {
-            IntegrationTest(false, null, callback);
+            IntegrationTest(false, null, null, callback);
+        }
+        public void IntegrationTest<T>(Action<RepositoryBuilder> initialize, Action<T> callback) where T : GenericContent
+        {
+            IntegrationTest(false, initialize, null, callback);
         }
         public void IsolatedIntegrationTest<T>(Action<T> callback) where T : GenericContent
         {
-            IntegrationTest(true, null, callback);
+            IntegrationTest(true, null, null, callback);
         }
-        private void IntegrationTest<T>(bool isolated, Action callback, Action<T> callbackWithSandbox) where T : GenericContent
+        public void IsolatedIntegrationTest<T>(Action<RepositoryBuilder> initialize, Action<T> callback) where T : GenericContent
+        {
+            IntegrationTest(true, initialize, null, callback);
+        }
+        private void IntegrationTest<T>(bool isolated, Action<RepositoryBuilder> initialize,
+            Action callback, Action<T> callbackWithSandbox) where T : GenericContent
         {
             var platformName = Platform.GetType().Name;
             var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
@@ -106,6 +133,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 _lastPlatformName = null;
 
                 var builder = Platform.CreateRepositoryBuilder();
+                initialize?.Invoke(builder);
 
                 Logger.Log("  start new repository");
                 _repositoryInstance = Repository.Start(builder);
@@ -139,21 +167,38 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public Task IntegrationTestAsync(Func<Task> callback)
         {
-            return IntegrationTestAsync(false, callback, null);
+            return IntegrationTestAsync(false, null, callback, null);
+        }
+        public Task IntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return IntegrationTestAsync(false, initialize, callback, null);
         }
         public Task IntegrationTestAsync(Func<SystemFolder, Task> callback)
         {
-            return IntegrationTestAsync(false, null, callback);
+            return IntegrationTestAsync(false, null, null, callback);
+        }
+        public Task IntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<SystemFolder, Task> callback)
+        {
+            return IntegrationTestAsync(false, initialize, null, callback);
         }
         public Task IsolatedIntegrationTestAsync(Func<Task> callback)
         {
-            return IntegrationTestAsync(true, callback, null);
+            return IntegrationTestAsync(true, null, callback, null);
+        }
+        public Task IsolatedIntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return IntegrationTestAsync(true, initialize, callback, null);
         }
         public Task IsolatedIntegrationTestAsync(Func<SystemFolder, Task> callback)
         {
-            return IntegrationTestAsync(true, null, callback);
+            return IntegrationTestAsync(true, null, null, callback);
         }
-        private async Task IntegrationTestAsync(bool isolated, Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
+        public Task IsolatedIntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<SystemFolder, Task> callback)
+        {
+            return IntegrationTestAsync(true, initialize, null, callback);
+        }
+        private async Task IntegrationTestAsync(bool isolated, Action<RepositoryBuilder> initialize,
+            Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
         {
             var platformName = Platform.GetType().Name;
             var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
