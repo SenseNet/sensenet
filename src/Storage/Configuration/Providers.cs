@@ -160,14 +160,8 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IBlobProviderSelector> _blobProviderSelector = new Lazy<IBlobProviderSelector>
-        private Lazy<IBlobProviderSelector> _blobProviderSelector =
-            new Lazy<IBlobProviderSelector>(() => new BuiltInBlobProviderSelector());
-        public virtual IBlobProviderSelector BlobProviderSelector
-        {
-            get { return _blobProviderSelector.Value; }
-            set { _blobProviderSelector = new Lazy<IBlobProviderSelector>(() => value); }
-        }
+        #region IBlobProviderSelector
+        public virtual IBlobProviderSelector BlobProviderSelector { get; set; }
         #endregion
 
         #region IBlobProviderFactory

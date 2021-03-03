@@ -53,7 +53,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
-            return new BuiltInBlobProviderSelector();
+            return new BuiltInBlobProviderSelector(null);
         }
         public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
         {

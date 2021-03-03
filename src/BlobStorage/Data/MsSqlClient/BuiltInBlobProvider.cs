@@ -85,7 +85,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            //UNDONE: [DIREF] get options from DI through constructor
+            //UNDONE: [DIREF] get connection string through constructor
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
@@ -153,7 +153,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         internal byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            //UNDONE: [DIREF] get connection string from DI through constructor (new options class)
+            //UNDONE: [DIREF] get connection string through constructor (new options class)
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, CancellationToken.None))
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
@@ -185,9 +185,8 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
-            //UNDONE: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
-                DataOptions.GetLegacyConfiguration(), cancellationToken))
+            //UNDONE: [DIREF] get connection string through constructor
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {

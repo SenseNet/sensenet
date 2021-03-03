@@ -69,12 +69,13 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return repositoryBuilder;
         }
-
+        
         /// <summary>
         /// Sets the blob provider selector.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="selector">IBlobProviderSelector instance.</param>
+        [Obsolete("Register the selector type as a service instead.")]
         public static IRepositoryBuilder UseBlobProviderSelector(this IRepositoryBuilder repositoryBuilder, IBlobProviderSelector selector)
         {
             Configuration.Providers.Instance.BlobProviderSelector = selector;

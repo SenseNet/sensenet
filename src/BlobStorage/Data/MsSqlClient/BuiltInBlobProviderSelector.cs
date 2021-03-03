@@ -1,9 +1,5 @@
-﻿using SenseNet.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Collections.Generic;
 using SenseNet.Configuration;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
@@ -17,37 +13,17 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
-        //UNDONE: [DIREF] eliminate static provider property
         /// <summary>
-        /// A custom blob provider instance that can be configured in the <see cref="BlobStorage"/> section.
+        /// A custom blob provider instance that will be used when the file size exceeds a certain configured value.
         /// </summary>
-        protected internal static IBlobProvider ExternalBlobProvider { get; set; }
+        internal IBlobProvider ExternalBlobProvider { get; }
 
         /// <summary>
         /// Initializes an instance of the BuiltInBlobProviderSelector
         /// </summary>
-        public BuiltInBlobProviderSelector()
+        public BuiltInBlobProviderSelector(IBlobProvider externalBlobProvider)
         {
-            // check if there is a configuration for an external blob provider
-            if (string.IsNullOrEmpty(BlobStorage.BlobProviderClassName) || ExternalBlobProvider != null)
-                return;
-
-            try
-            {
-                ExternalBlobProvider = (IBlobProvider)TypeResolver.CreateInstance(BlobStorage.BlobProviderClassName);
-                SnLog.WriteInformation("External BlobProvider created by configuration. Type: " + BlobStorage.BlobProviderClassName,
-                    EventId.RepositoryLifecycle);
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex);
-            }
-
-            // We throw an exception in a static constructor (which will prevent this type to work)
-            // because if something is wrong with the blob provider configuration, it will affect
-            // the whole system and it should be resolved immediately.
-            if (ExternalBlobProvider == null)
-                throw new ConfigurationErrorsException("Unknown blob provider name in configuration: " + BlobStorage.BlobProviderClassName);
+            ExternalBlobProvider = externalBlobProvider;
         }
 
         /// <summary>
