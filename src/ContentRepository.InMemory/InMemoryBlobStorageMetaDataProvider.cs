@@ -44,7 +44,6 @@ namespace SenseNet.ContentRepository.InMemory
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
                 BlobProviderData = provider is IBuiltInBlobProvider
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)

@@ -17,7 +17,7 @@ namespace SenseNet.Extensions.DependencyInjection
             if (provider == null)
                 return builder;
 
-            //UNDONE: [DIBLOB] create extension method for registering ExternalBlobProvider as a service
+            //UNDONE: [DIBLOB] set ExternalBlobProvider with the built-in selector class
             //BuiltInBlobProviderSelector.ExternalBlobProvider = provider;
             
             return builder;

@@ -141,26 +141,13 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
-        private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =
-            new Lazy<IBlobStorageMetaDataProvider>(() =>
-            {
-                //UNDONE: [DIBLOB] remove this type discovery and set provider from above
-                return null;
-
-                //var blobMetaClassName = BlobStorage.MetadataProviderClassName;
-                //return string.IsNullOrEmpty(blobMetaClassName)
-                //    ? new MsSqlBlobMetaDataProvider(null)
-                //    : CreateProviderInstance<IBlobStorageMetaDataProvider>(blobMetaClassName, "BlobMetaDataProvider");
-            });
-        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider
-        {
-            get { return _blobMetaDataProvider.Value; }
-            set { _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>(() => value); }
-        }
+        #region IBlobStorageMetaDataProvider
+        //UNDONE: [DIBLOB] set provider above (default: MsSqlBlobMetaDataProvider)
+        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider { get; set; }
         #endregion
 
         #region IBlobProviderSelector
+        //UNDONE: [DIBLOB] set provider above (default: BuiltInBlobProviderSelector)
         public virtual IBlobProviderSelector BlobProviderSelector { get; set; }
         #endregion
 

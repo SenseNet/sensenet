@@ -303,7 +303,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             var ctx = await GetBlobStorageContextAsync(fileId, cancellationToken).ConfigureAwait(false);
             var provider = ctx.Provider;
 
-            //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
             //UNDONE: [DIBLOB] probably add this method to the IBuiltInBlobProvider interface and use that
             if (provider is BuiltInBlobProvider builtInBlobProvider)
                 return builtInBlobProvider.ReadRandom(ctx, position, count);
@@ -418,8 +417,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId, cancellationToken).ConfigureAwait(false);
 
-                //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
-                if (context.Provider is IBuiltInBlobProvider)
+                if (context.Provider is BuiltInBlobProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when
                     // the binary should be saved into a regular SQL varbinary column.
@@ -535,7 +533,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /*==================================================================== Provider */
 
-        //UNDONE: [DIBLOB] remove static built-in blob provider property
         [Obsolete("Use the IBuiltInBlobProvider interface instead.", true)]
         /// <summary>
         /// Gets an instance of the built-in provider.
