@@ -46,7 +46,10 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
         {
-            return new MsSqlBlobMetaDataProvider();
+            //TODO: get services and options from outside
+            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviderFactory, 
+                new BuiltInBlobProvider(Providers.Instance.BlobStorage, DataOptions.GetLegacyConfiguration()),
+                DataOptions.GetLegacyConfiguration());
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {

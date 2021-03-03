@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Core.Implementations;
-using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using IO = System.IO;
 using File = SenseNet.ContentRepository.File;
 
@@ -231,6 +230,7 @@ namespace SenseNet.Tests.Core.Tests
         {
             Test(async () =>
             {
+                var blobStorage = Providers.Instance.BlobStorage;
                 var root = CreateTestRoot();
                 var file = new File(root) {Name = "File1.txt"};
                 file.Binary.ContentType = "application/octet-stream";
@@ -250,7 +250,7 @@ namespace SenseNet.Tests.Core.Tests
                 var versionId = file.VersionId;
                 var propertyTypeId = PropertyType.GetByName("Binary").Id;
                 var fullSize = 50L;
-                var token = await BlobStorage.StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None)
+                var token = await blobStorage.StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None)
                     .ConfigureAwait(false);
 
                 // WRITE CHUNKS
@@ -258,12 +258,12 @@ namespace SenseNet.Tests.Core.Tests
                 {
                     var offset = i * chunkSize;
                     var chunk = chunks[i];
-                    await BlobStorage.WriteChunkAsync(versionId, token, chunk, offset, fullSize,
+                    await blobStorage.WriteChunkAsync(versionId, token, chunk, offset, fullSize,
                         CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // COMMIT CHUNK
-                await BlobStorage.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, CancellationToken.None)
+                await blobStorage.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, CancellationToken.None)
                     .ConfigureAwait(false);
 
                 // ASSERT

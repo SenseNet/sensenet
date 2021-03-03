@@ -173,6 +173,7 @@ namespace SenseNet.Configuration
         #region IBlobProviderFactory
 
         //UNDONE: [DIBLOB] register the provider factory as a service and set this instance
+        // REMOVE THIS PROPERTY LATER
 
         /// <summary>
         /// Legacy property for old APIs.
@@ -184,6 +185,7 @@ namespace SenseNet.Configuration
         #region BlobStorage
 
         //UNDONE: [DIBLOB] register the blob storage as a service and set this instance
+        // REMOVE THIS PROPERTY LATER
 
         /// <summary>
         /// Legacy property for old APIs.

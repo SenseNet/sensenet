@@ -18,15 +18,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
-        //UNDONE: [DIREF] get options from DI through constructor
-        private DataOptions DataOptions { get; } = DataOptions.GetLegacyConfiguration();
+        private DataOptions DataOptions { get; }
         private IBlobProviderFactory BlobProviderFactory { get; }
         private IBuiltInBlobProvider BuiltInProvider { get; }
 
-        public MsSqlBlobMetaDataProvider(IBlobProviderFactory blobProviderFactory, IBuiltInBlobProvider builtInProvider)
+        public MsSqlBlobMetaDataProvider(
+            IBlobProviderFactory blobProviderFactory, 
+            IBuiltInBlobProvider builtInProvider,
+            DataOptions options)
         {
             BlobProviderFactory = blobProviderFactory;
             BuiltInProvider = builtInProvider;
+            DataOptions = options;
         }
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */

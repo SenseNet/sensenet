@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -26,15 +27,11 @@ namespace SenseNet.ContentRepository.InMemory
     {
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB { get; } = new InMemoryDataBase();
-        private IBlobProviderFactory BlobProviderFactory { get; }
-        private BlobStorageBase BlobStorage { get; }
 
-        public InMemoryDataProvider(IBlobProviderFactory blobProviderFactory, BlobStorageBase blobStorage)
-        {
-            BlobProviderFactory = blobProviderFactory;
-            BlobStorage = blobStorage;
-        }
-
+        //UNDONE: [DIBLOB] get these services through the constructor later
+        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        
         /* =============================================================================================== Nodes */
 
         public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,

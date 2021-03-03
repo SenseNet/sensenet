@@ -16,9 +16,9 @@ namespace SenseNet.BackgroundOperations
     {
         public int WaitingSeconds { get; } = 120; // 2 minutes
         private bool _fileCleanupIsRunning;
-        private BlobStorageBase BlobStorage { get; }
+        private IBlobStorage BlobStorage { get; }
 
-        public CleanupFilesTask(BlobStorageBase blobStorage)
+        public CleanupFilesTask(IBlobStorage blobStorage)
         {
             BlobStorage = blobStorage;
         }

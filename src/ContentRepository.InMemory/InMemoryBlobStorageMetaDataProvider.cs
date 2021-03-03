@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -15,12 +16,13 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemoryBlobStorageMetaDataProvider : IBlobStorageMetaDataProvider
     {
         public InMemoryDataProvider DataProvider { get; set; }
-        private IBlobProviderFactory BlobProviderFactory { get; }
 
-        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider, IBlobProviderFactory blobProviderFactory)
+        //UNDONE: [DIBLOB] get these services through the constructor later
+        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
+
+        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
         {
             DataProvider = dataProvider;
-            BlobProviderFactory = blobProviderFactory;
         }
 
         public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
