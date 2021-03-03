@@ -58,9 +58,10 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            //UNDONE: set blob providers as services earlier
             // Required early configuration
-            BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
-            BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
+            //BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
+            //BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 
             var initialData = builder.InitialData;
             if (initialData != null)

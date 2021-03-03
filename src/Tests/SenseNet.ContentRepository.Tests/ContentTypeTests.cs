@@ -320,7 +320,8 @@ namespace SenseNet.ContentRepository.Tests
             var fileRow = db.Files.First(x => x.FileNameWithoutExtension == contentTypeName);
 
             // Get blob id
-            var bp = (InMemoryBlobProvider)BlobStorageBase.GetProvider(0);
+            var bpf = Providers.Instance.BlobProviderFactory;
+            var bp = (InMemoryBlobProvider)bpf.GetProvider(0);
             var data = (InMemoryBlobProviderData)bp.ParseData(fileRow.BlobProviderData);
 
             // Get and check the old CTD from the related blob

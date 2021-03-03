@@ -27,12 +27,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         internal BlobStorageContext Context { get; }
 
-        public SnStream(BlobStorageContext context, byte[] rawData = null)
+        public SnStream(BlobStorageContext context, IBlobStorage storage, byte[] rawData = null)
         {
             Context = context;
 
             _underlyingStream = rawData != null
-                ? new RepositoryStream(context.FileId, context.Length, rawData)
+                ? new RepositoryStream(context.FileId, context.Length, storage, rawData)
                 : context.Provider.GetStreamForRead(context);
         }
         private SnStream(BlobStorageContext context, Stream underlyingStream)

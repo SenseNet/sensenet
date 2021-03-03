@@ -18,7 +18,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DataModel.Usage;
-using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.InMemory
@@ -27,6 +26,14 @@ namespace SenseNet.ContentRepository.InMemory
     {
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB { get; } = new InMemoryDataBase();
+        private IBlobProviderFactory BlobProviderFactory { get; }
+        private BlobStorageBase BlobStorage { get; }
+
+        public InMemoryDataProvider(IBlobProviderFactory blobProviderFactory, BlobStorageBase blobStorage)
+        {
+            BlobProviderFactory = blobProviderFactory;
+            BlobStorage = blobStorage;
+        }
 
         /* =============================================================================================== Nodes */
 
@@ -1745,7 +1752,7 @@ namespace SenseNet.ContentRepository.InMemory
                                                  && blobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                     {
                         buffer = data.GetBlobBytes(blobProviderData, propertyType.Name);
-                        var blobProvider = BlobStorage.GetProvider(buffer.Length);
+                        var blobProvider = BlobProviderFactory.GetProvider(buffer.Length);
                         var blobStorageContext = new BlobStorageContext(blobProvider)
                         {
                             FileId = binProp.FileId,

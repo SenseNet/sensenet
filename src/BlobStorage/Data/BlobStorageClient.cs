@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 // ReSharper disable CheckNamespace
@@ -11,33 +12,15 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public class BlobStorageClient : BlobStorageBase
     {
-        /// <summary>
-        /// Writes a byte array to the blob entry specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="buffer">Byte array to write.</param>
-        /// <param name="offset">Starting position.</param>
-        /// <param name="fullSize">Full size of the whole stream.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        public new static Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
-            CancellationToken cancellationToken)
+        public BlobStorageClient() : base(null)
         {
-            return BlobStorageBase.WriteChunkAsync(versionId, token, buffer, offset, fullSize, cancellationToken);
+            //UNDONE: [DIBLOB] how to get providers?
+            // How do we use this class? How will we get the meta provider and the selector here?
+            // Should we simply get them through the constructor?
+            // Can we use the built-in classes as defaults?
+            throw new NotImplementedException("BlobStorageClient is not fully modified to support the new API.");
         }
-        /// <summary>
-        /// Writes an input stream to an entry in the blob storage specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="input">The whole stream to write.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public new static Task CopyFromStreamAsync(int versionId, string token, Stream input,
-            CancellationToken cancellationToken)
-        {
-            return BlobStorageBase.CopyFromStreamAsync(versionId, token, input, cancellationToken);
-        }
+
         /// <summary>
         /// Gets a readonly stream that contains a blob entry in the blob storage.
         /// </summary>
@@ -45,7 +28,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containig
         /// a readonly stream that comes from the blob storage directly.</returns>
-        public static async Task<Stream> GetStreamForReadAsync(string token, CancellationToken cancellationToken)
+        public async Task<Stream> GetStreamForReadAsync(string token, CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token);
             var context = await GetBlobStorageContextAsync(tokenData.FileId, false, tokenData.VersionId, tokenData.PropertyTypeId, cancellationToken).ConfigureAwait(false);

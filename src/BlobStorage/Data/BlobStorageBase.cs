@@ -13,11 +13,136 @@ using SenseNet.Tools;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    public interface IBlobStorage
+    {
+        Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+            SnDataContext dataContext);
+        Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext);
+        Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
+        Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext);
+
+        Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, 
+            CancellationToken cancellationToken);
+        Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream,
+            CancellationToken cancellationToken);
+        Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId,
+            CancellationToken cancellationToken);
+        Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId,
+            int propertyTypeId, CancellationToken cancellationToken);
+
+        Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
+        Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
+            CancellationToken cancellationToken);
+        Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
+            SnDataContext dataContext);
+
+        Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Starts a chunked save operation on an existing content. It does not write any binary data 
+        /// to the storage, it only makes prerequisite operations - e.g. allocates a new slot in the storage.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a token with
+        /// all the information (db record ids) that identify a single entry in the blob storage.</returns>
+        Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken);
+        /// <summary>
+        /// Writes a byte array to the blob entry specified by the provided token.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="token">Blob token provided by a preliminary request.</param>
+        /// <param name="buffer">Byte array to write.</param>
+        /// <param name="offset">Starting position.</param>
+        /// <param name="fullSize">Full size of the whole stream.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Finalizes a chunked save operation.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <param name="token">Blob token provided by a preliminary request.</param>
+        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Finalizes a chunked save operation.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <param name="token">Blob token provided by a preliminary request.</param>
+        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
+        /// <param name="source">Binary data containing metadata (e.g. content type).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Writes an input stream to an entry in the blob storage specified by the provided token.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="token">Blob token provided by a preliminary request.</param>
+        /// <param name="input">The whole stream to write.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        Task CopyFromStreamAsync(int versionId, string token, Stream input,
+            CancellationToken cancellationToken);
+
+        /*================================================================== Maintenance*/
+
+        Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
+        /// Marks only files that were created more than 30 minutes ago.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CleanupFilesSetFlagImmediatelyAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Deletes one record that is marked as deleted from the metadata database and also from the blob storage.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a boolean value 
+        /// that is true if there was at least one row that was deleted.</returns>
+        Task<bool> CleanupFilesAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Deletes all records that are marked as deleted from the metadata database and also from the blob storage.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task CleanupAllFilesAsync(CancellationToken cancellationToken);
+    }
     /// <summary>
     /// Encapsulates all binary-related storage operations in the Content Repository.
     /// </summary>
-    public abstract class BlobStorageBase
+    public abstract class BlobStorageBase : IBlobStorage
     {
+        private IBlobStorageMetaDataProvider DataProvider { get; }
+
+        protected BlobStorageBase(IBlobStorageMetaDataProvider metaProvider)
+        {
+            DataProvider = metaProvider;
+        }
+
         /// <summary>
         /// Inserts a new binary record into the metadata database containing a new or an already existing file id,
         /// removing the previous record if the content is not new.
@@ -28,13 +153,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
+        public Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
             var blobProvider = GetProvider(value.Size);
             if (value.FileId > 0 && value.Stream == null)
-                return BlobStorageComponents.DataProvider.InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
+                return DataProvider.InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
             else
-                return BlobStorageComponents.DataProvider.InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, dataContext);
+                return DataProvider.InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, dataContext);
         }
 
         /// <summary>
@@ -43,10 +168,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="value">Binary data to update.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
+        public async Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
             var blobProvider = GetProvider(value.Size);
-            await BlobStorageComponents.DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
+            await DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
             dataContext.NeedToCleanupFiles = true;
         }
 
@@ -57,9 +182,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        public async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            await BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+            await DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
             dataContext.NeedToCleanupFiles = true;
         }
 
@@ -69,9 +194,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionIds">VersionId set.</param>
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        public async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
-            await BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
+            await DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
             dataContext.NeedToCleanupFiles = true;
         }
 
@@ -80,7 +205,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="fileId">File identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId,
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId,
             CancellationToken cancellationToken)
         {
             return GetBlobStorageContextAsync(fileId, false, cancellationToken);
@@ -91,7 +216,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fileId">File identifier.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream,
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream,
             CancellationToken cancellationToken)
         {
             return GetBlobStorageContextAsync(fileId, clearStream, 0, cancellationToken);
@@ -103,7 +228,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId,
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId,
             CancellationToken cancellationToken)
         {
             return GetBlobStorageContextAsync(fileId, clearStream, versionId, 0, cancellationToken);
@@ -116,10 +241,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
             CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
+            return DataProvider.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
         }
 
         /// <summary>
@@ -130,9 +255,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation 
         /// containing the loaded <see cref="BinaryDataValue"/> instance or null.</returns>
-        protected static Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        public Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            return BlobStorageComponents.DataProvider.LoadBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+            return DataProvider.LoadBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
 
         /// <summary>
@@ -144,9 +269,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation 
         /// containig the loaded <see cref="BinaryCacheEntity"/> instance or null.</returns>
-        protected internal static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
+        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, cancellationToken);
+            return DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, cancellationToken);
         }
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
@@ -157,10 +282,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="dataContext">Database accessor object.</param>
         /// <returns>A Task that represents the asynchronous operation 
         /// containig the loaded <see cref="BinaryCacheEntity"/> instance or null.</returns>
-        protected internal static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
+        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
             SnDataContext dataContext)
         {
-            return BlobStorageComponents.DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, dataContext);
+            return DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, dataContext);
         }
 
         /// <summary>
@@ -172,14 +297,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing
         /// a byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
-        protected internal static async Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count,
+        public async Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count,
             CancellationToken cancellationToken)
         {
             var ctx = await GetBlobStorageContextAsync(fileId, cancellationToken).ConfigureAwait(false);
             var provider = ctx.Provider;
 
-            if (provider == BuiltInProvider)
-                return BuiltInBlobProvider.ReadRandom(ctx, position, count);
+            //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
+            //UNDONE: [DIBLOB] probably add this method to the IBuiltInBlobProvider interface and use that
+            if (provider is BuiltInBlobProvider builtInBlobProvider)
+                return builtInBlobProvider.ReadRandom(ctx, position, count);
 
             var realCount = Convert.ToInt32(Math.Min(ctx.Length - position, count));
             var bytes = new byte[realCount];
@@ -201,11 +328,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a token with
         /// all the information (db record ids) that identify a single entry in the blob storage.</returns>
-        protected internal static Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
+        public Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
             CancellationToken cancellationToken)
         {
             var blobProvider = GetProvider(fullSize);
-            return BlobStorageComponents.DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,
+            return DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,
                 cancellationToken);
         }
 
@@ -218,7 +345,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="offset">Starting position.</param>
         /// <param name="fullSize">Full size of the whole stream.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
+        public async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
             CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
@@ -252,7 +379,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+        public Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
             CancellationToken cancellationToken)
         {
             return CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, cancellationToken);
@@ -267,11 +394,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static async Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
+        public async Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
             CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-            await BlobStorageComponents.DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
+            await DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
                 fullSize, source, cancellationToken);
             await DeleteOrphanedFilesAsync(cancellationToken);
         }
@@ -283,14 +410,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="input">The whole stream to write.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        protected internal static async Task CopyFromStreamAsync(int versionId, string token, Stream input,
+        public async Task CopyFromStreamAsync(int versionId, string token, Stream input,
             CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
                 var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId, cancellationToken).ConfigureAwait(false);
-                if (context.Provider == BuiltInProvider)
+
+                //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
+                if (context.Provider is IBuiltInBlobProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when
                     // the binary should be saved into a regular SQL varbinary column.
@@ -340,8 +469,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /*================================================================== Maintenance*/
 
-        protected internal static async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
+        public async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
         {
+            //UNDONE: [DIBLOB] create new blob config class for options instances
             switch (BlobStorage.BlobDeletionPolicy)
             {
                 case BlobDeletionPolicy.BackgroundDelayed:
@@ -369,18 +499,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
+        public Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.CleanupFilesSetDeleteFlagAsync(cancellationToken);
+            return DataProvider.CleanupFilesSetDeleteFlagAsync(cancellationToken);
         }
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CleanupFilesSetFlagImmediatelyAsync(CancellationToken cancellationToken)
+        public Task CleanupFilesSetFlagImmediatelyAsync(CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.CleanupFilesSetDeleteFlagImmediatelyAsync(cancellationToken);
+            return DataProvider.CleanupFilesSetDeleteFlagImmediatelyAsync(cancellationToken);
         }
 
         /// <summary>
@@ -389,104 +519,97 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a boolean value 
         /// that is true if there was at least one row that was deleted.</returns>
-        protected internal static Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        public Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.CleanupFilesAsync(cancellationToken);
+            return DataProvider.CleanupFilesAsync(cancellationToken);
         }
         /// <summary>
         /// Deletes all records that are marked as deleted from the metadata database and also from the blob storage.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        public Task CleanupAllFilesAsync(CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.CleanupAllFilesAsync(cancellationToken);
+            return DataProvider.CleanupAllFilesAsync(cancellationToken);
         }
 
         /*==================================================================== Provider */
 
+        //UNDONE: [DIBLOB] remove static built-in blob provider property
+        [Obsolete("Use the IBuiltInBlobProvider interface instead.", true)]
         /// <summary>
         /// Gets an instance of the built-in provider.
         /// </summary>
         public static IBlobProvider BuiltInProvider { get; }
-        /// <summary>
-        /// Gets a list of available blob storage providers in the system.
-        /// </summary>
-        protected internal static Dictionary<string, IBlobProvider> Providers { get; set; }
-
-        private class BlobProviderComparer : IEqualityComparer<IBlobProvider>
-        {
-            public bool Equals(IBlobProvider x, IBlobProvider y)
-            {
-                if (x == null)
-                    return y == null;
-                if (y == null)
-                    return false;
-                var tx = x.GetType();
-                var ty = y.GetType();
-                if (tx.FullName != ty.FullName)
-                    return false;
-                var ax = tx.Assembly;
-                var ay = ty.Assembly;
-                if (ax.FullName != ay.FullName)
-                    return false;
-                return ax.GetName().Version == ay.GetName().Version;
-            }
-
-            public int GetHashCode(IBlobProvider obj)
-            {
-                var n = obj.GetType().Assembly.GetName();
-                return n.FullName.GetHashCode() ^ n.Version.GetHashCode();
-            }
-        }
-        static BlobStorageBase()
-        {
-            Providers = TypeResolver.GetTypesByInterface(typeof(IBlobProvider))
-                .Select(t =>
-                {
-                    try
-                    {
-                        var instance = (IBlobProvider)Activator.CreateInstance(t);
-                        SnTrace.System.Write("BlobProvider found: {0} ({1}) from: {2}", t.FullName, t.Assembly.GetName().Version, t.Assembly.CodeBase);
-
-                        return instance;
-                    }
-                    catch (MissingMethodException)
-                    {
-                        // no default constructor: provider must be instantiated manually
-                        SnTrace.System.Write("BlobProvider found, but must be configured manually: {0}", t.FullName);
-                    }
-                    catch (Exception ex)
-                    {
-                        SnLog.WriteException(ex, $"Error during instantiating {t.FullName}.");
-                    }
-
-                    return null;
-                })
-                .Where(instance => instance != null)
-                .Distinct(new BlobProviderComparer())
-                .ToDictionary(x => x.GetType().FullName, x => x);
-
-            BuiltInProvider = new BuiltInBlobProvider();
-        }
-
+        
+        [Obsolete("Get providers through the IBlobProviderFactory service instead.")]
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        public static IBlobProvider GetProvider(long fullSize)
+        public IBlobProvider GetProvider(long fullSize)
         {
-            return BlobStorageComponents.ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
+            throw new InvalidOperationException("Get providers through the IBlobProviderFactory service instead.");
         }
+
+        [Obsolete("Get providers through the IBlobProviderFactory service instead.")]
         /// <summary>
         /// Gets the blob provider instance with the specified name. Default is the built-in provider.
         /// </summary>
-        public static IBlobProvider GetProvider(string providerName)
+        public IBlobProvider GetProvider(string providerName)
+        {
+            throw new InvalidOperationException("Get providers through the IBlobProviderFactory service instead.");
+        }
+    }
+
+    //UNDONE: [DIBLOB]: register new factory class as a service!
+    //UNDONE: [DIBLOB]: move new factory class to a separate cs file
+
+    /// <summary>
+    /// Defines methods for loading the appropriate blob provider
+    /// based on the current context or by name.
+    /// </summary>
+    public interface IBlobProviderFactory
+    {
+        IBlobProvider GetProvider(long fullSize);
+        IBlobProvider GetProvider(string providerName);
+    }
+
+    public class BlobProviderFactory : IBlobProviderFactory
+    {
+        private IBlobProviderSelector ProviderSelector { get; }
+        private IBuiltInBlobProvider BuiltInProvider { get; }
+        private Dictionary<string, IBlobProvider> Providers { get; }
+
+        protected BlobProviderFactory(
+            IBlobProviderSelector providerSelector, 
+            IBuiltInBlobProvider builtInProvider,
+            IEnumerable<IBlobProvider> providers)
+        {
+            //UNDONE: [DIBLOB] register the IBuiltInBlobProvider that we request here
+            //UNDONE: [DIBLOB] register a BlobStorage instance as BlobStorageBase
+
+            ProviderSelector = providerSelector;
+            BuiltInProvider = builtInProvider;
+            Providers = providers
+                //UNDONE: [DIBLOB] add builtin provider to the list or not?
+                //.Where(bp => !(bp is IBuiltInBlobProvider))
+                .ToDictionary(bp => bp.GetType().FullName, bp => bp);
+        }
+
+        public IBlobProvider GetProvider(long fullSize)
+        {
+            return ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
+        }
+
+        /// <summary>
+        /// Gets the blob provider instance with the specified name. Default is the built-in provider.
+        /// </summary>
+        public IBlobProvider GetProvider(string providerName)
         {
             if (providerName == null)
                 return BuiltInProvider;
-            IBlobProvider provider;
-            if (Providers.TryGetValue(providerName, out provider))
+            if (Providers.TryGetValue(providerName, out var provider))
                 return provider;
             throw new InvalidOperationException("BlobProvider not found: '" + providerName + "'.");
         }

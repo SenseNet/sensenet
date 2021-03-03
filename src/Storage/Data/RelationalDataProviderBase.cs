@@ -31,6 +31,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
+        //UNDONE: [DIBLOB] get this instance through the constructor later
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
         /// </summary>

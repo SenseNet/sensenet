@@ -15,14 +15,12 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemoryBlobStorageMetaDataProvider : IBlobStorageMetaDataProvider
     {
         public InMemoryDataProvider DataProvider { get; set; }
+        private IBlobProviderFactory BlobProviderFactory { get; }
 
-        public InMemoryBlobStorageMetaDataProvider()
-        {
-            
-        }
-        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
+        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider, IBlobProviderFactory blobProviderFactory)
         {
             DataProvider = dataProvider;
+            BlobProviderFactory = blobProviderFactory;
         }
 
         public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
@@ -36,7 +34,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerData = fileDoc.BlobProviderData;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviderFactory.GetProvider(providerName);
 
             var result = new BlobStorageContext(provider, providerData)
             {
@@ -44,7 +42,8 @@ namespace SenseNet.ContentRepository.InMemory
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
+                //UNDONE: [DIBLOB] why did we use instance comparison here? (provider == BuiltIn...)
+                BlobProviderData = provider is IBuiltInBlobProvider
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
@@ -272,7 +271,7 @@ namespace SenseNet.ContentRepository.InMemory
 
             var rawData = fileDoc.Buffer;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviderFactory.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,
@@ -316,7 +315,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerTextData = fileDoc.BlobProviderData;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviderFactory.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,

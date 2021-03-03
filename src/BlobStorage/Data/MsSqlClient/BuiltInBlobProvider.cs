@@ -12,12 +12,26 @@ using SenseNet.Configuration;
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary>
+    /// Marker interface for pointing out the special built-in blob provider implementation.
+    /// </summary>
+    public interface IBuiltInBlobProvider : IBlobProvider { }
+
+    /// <summary>
     /// The built-in provider is responsible for saving bytes directly 
     /// to the Files table (varbinary column). This
     /// provider cannot be removed or replaced by an external provider.
     /// </summary>
-    public class BuiltInBlobProvider : IBlobProvider
+    public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
+        protected DataOptions DataOptions { get; }
+        private IBlobStorage BlobStorage { get; }
+
+        public BuiltInBlobProvider(IBlobStorage storage, DataOptions options)
+        {
+            BlobStorage = storage;
+            DataOptions = options;
+        }
+
         /// <inheritdoc />
         public object ParseData(string providerData)
         {
@@ -40,7 +54,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// DO NOT USE DIRECTLY THIS METHOD FROM YOUR CODE.
         /// Writes the stream in the appropriate row of the Files table specified by the context.
         /// </summary>
-        public static void AddStream(BlobStorageContext context, Stream stream)
+        public void AddStream(BlobStorageContext context, Stream stream)
         {
             if (stream == null || stream.Length == 0L)
                 return;
@@ -57,7 +71,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// DO NOT USE DIRECTLY THIS METHOD FROM YOUR CODE.
         /// Updates the stream in the appropriate row of the Files table specified by the context.
         /// </summary>
-        public static void UpdateStream(BlobStorageContext context, Stream stream)
+        public void UpdateStream(BlobStorageContext context, Stream stream)
         {
             // We have to work with an integer since SQL does not support
             // binary values bigger than [Int32.MaxValue].
@@ -72,8 +86,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             }
 
             //UNDONE: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
-                DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                 {
@@ -109,11 +122,10 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             }).ConfigureAwait(false);
         }
 
-
         /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
-            return new RepositoryStream(context.FileId, context.Length);
+            return new RepositoryStream(context.FileId, context.Length, BlobStorage);
         }
 
         /// <inheritdoc />
@@ -122,9 +134,8 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            var repoStream = stream as RepositoryStream;
-            if (repoStream != null)
-                return new RepositoryStream(repoStream.FileId, repoStream.Length);
+            if (stream is RepositoryStream repoStream)
+                return new RepositoryStream(repoStream.FileId, repoStream.Length, BlobStorage);
 
             throw new InvalidOperationException("Unknown stream type: " + stream.GetType().Name);
         }
@@ -140,11 +151,10 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
 
         private const string LoadBinaryFragmentScript = @"SELECT SUBSTRING([Stream], @Position, @Count) FROM dbo.Files WHERE FileId = @FileId";
         #endregion
-        internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
+        internal byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            //UNDONE: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
-                DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            //UNDONE: [DIREF] get connection string from DI through constructor (new options class)
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, CancellationToken.None))
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
                 {

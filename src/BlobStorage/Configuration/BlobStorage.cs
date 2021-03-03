@@ -83,4 +83,6 @@ namespace SenseNet.Configuration
         public static BlobDeletionPolicy BlobDeletionPolicy { get; set; } =
             GetValue<BlobDeletionPolicy>(SectionName, "BlobDeletionPolicy");
     }
+
+    //UNDONE: [DIBLOB] create new blob config class for options instances
 }

@@ -13,6 +13,7 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -144,10 +145,13 @@ namespace SenseNet.Configuration
         private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =
             new Lazy<IBlobStorageMetaDataProvider>(() =>
             {
-                var blobMetaClassName = BlobStorage.MetadataProviderClassName;
-                return string.IsNullOrEmpty(blobMetaClassName)
-                    ? new MsSqlBlobMetaDataProvider()
-                    : CreateProviderInstance<IBlobStorageMetaDataProvider>(blobMetaClassName, "BlobMetaDataProvider");
+                //UNDONE: [DIBLOB] remove this type discovery and set provider from above
+                return null;
+
+                //var blobMetaClassName = BlobStorage.MetadataProviderClassName;
+                //return string.IsNullOrEmpty(blobMetaClassName)
+                //    ? new MsSqlBlobMetaDataProvider(null)
+                //    : CreateProviderInstance<IBlobStorageMetaDataProvider>(blobMetaClassName, "BlobMetaDataProvider");
             });
         public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider
         {
@@ -164,6 +168,28 @@ namespace SenseNet.Configuration
             get { return _blobProviderSelector.Value; }
             set { _blobProviderSelector = new Lazy<IBlobProviderSelector>(() => value); }
         }
+        #endregion
+
+        #region IBlobProviderFactory
+
+        //UNDONE: [DIBLOB] register the provider factory as a service and set this instance
+
+        /// <summary>
+        /// Legacy property for old APIs.
+        /// </summary>
+        public IBlobProviderFactory BlobProviderFactory { get; set; }
+
+        #endregion
+
+        #region BlobStorage
+
+        //UNDONE: [DIBLOB] register the blob storage as a service and set this instance
+
+        /// <summary>
+        /// Legacy property for old APIs.
+        /// </summary>
+        public IBlobStorage BlobStorage { get; set; }
+
         #endregion
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>

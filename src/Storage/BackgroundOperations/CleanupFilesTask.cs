@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 
@@ -17,6 +16,12 @@ namespace SenseNet.BackgroundOperations
     {
         public int WaitingSeconds { get; } = 120; // 2 minutes
         private bool _fileCleanupIsRunning;
+        private BlobStorageBase BlobStorage { get; }
+
+        public CleanupFilesTask(BlobStorageBase blobStorage)
+        {
+            BlobStorage = blobStorage;
+        }
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
