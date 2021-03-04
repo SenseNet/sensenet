@@ -21,9 +21,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <summary>
         /// Initializes an instance of the BuiltInBlobProviderSelector
         /// </summary>
-        public BuiltInBlobProviderSelector(IBlobProvider externalBlobProvider)
+        public BuiltInBlobProviderSelector(IExternalBlobProviderFactory externalBlobProviderFactory)
         {
-            ExternalBlobProvider = externalBlobProvider;
+            ExternalBlobProvider = externalBlobProviderFactory?.GetBlobProvider();
         }
 
         /// <summary>

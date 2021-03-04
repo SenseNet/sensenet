@@ -148,7 +148,8 @@ namespace SenseNet.Configuration
 
         #region IBlobProviderSelector
         //UNDONE: [DIBLOB] set provider above (default: BuiltInBlobProviderSelector)
-        public virtual IBlobProviderSelector BlobProviderSelector { get; set; }
+        public virtual IBlobProviderSelector BlobProviderSelector { get; set; } = 
+            new BuiltInBlobProviderSelector(null);
         #endregion
 
         #region IBlobProviderFactory
@@ -174,6 +175,17 @@ namespace SenseNet.Configuration
         public IBlobStorage BlobStorage { get; set; }
 
         #endregion
+
+        public void ResetBlobProviders()
+        {
+            BlobStorage = null;
+            BlobProviderFactory = null;
+            BlobProviderSelector = new BuiltInBlobProviderSelector(null);
+            BlobMetaDataProvider = null;
+            BlobProviders.Clear();
+        }
+
+        public List<IBlobProvider> BlobProviders { get; } = new List<IBlobProvider>();
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
         private Lazy<ISearchEngine> _searchEngine =

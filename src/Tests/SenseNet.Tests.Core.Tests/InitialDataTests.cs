@@ -211,6 +211,7 @@ namespace SenseNet.Tests.Core.Tests
         {
             Cache.Reset();
             ContentTypeManager.Reset();
+            Providers.Instance.ResetBlobProviders();
 
             var builder = CreateRepositoryBuilderForTest();
 

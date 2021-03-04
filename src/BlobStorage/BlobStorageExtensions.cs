@@ -7,19 +7,13 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class BlobStorageExtensions
     {
-        [Obsolete("Register blob providers as services instead.", true)]
         /// <summary>
         /// Set the external blob provider to be used by the built-in blob provider selector
         /// during write operations when the binary size exceeds a configured value.
         /// </summary>
+        [Obsolete("Register blob providers as services instead.", true)]
         public static IRepositoryBuilder UseExternalBlobProvider(this IRepositoryBuilder builder, IBlobProvider provider)
         {
-            if (provider == null)
-                return builder;
-
-            //UNDONE: [DIBLOB] set ExternalBlobProvider with the built-in selector class
-            //BuiltInBlobProviderSelector.ExternalBlobProvider = provider;
-            
             return builder;
         }
     }

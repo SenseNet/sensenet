@@ -549,6 +549,9 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR")]
         public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync()
         {
+            //UNDONE: [DIBLOB] test fails because of inmem blob providers are not preserved
+            Assert.Fail("Inmem blob providers are not preserved");
+
             // Temporary storages for manage repository's restart.
             InMemoryDataProvider dataProvider = null;
             InMemorySearchEngine searchProvider = null;

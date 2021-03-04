@@ -7,6 +7,7 @@ using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
@@ -32,6 +33,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="configuration">The main app configuration instance.</param>
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
@@ -58,6 +60,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
+                .AddSenseNetBlobStorage()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
@@ -86,6 +89,11 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceProvider AddSenseNetProviderInstances(this IServiceProvider provider)
         {
+            Providers.Instance.BlobStorage = provider.GetRequiredService<IBlobStorage>();
+            Providers.Instance.BlobProviderFactory = provider.GetRequiredService<IBlobProviderFactory>();
+            Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();
+            Providers.Instance.BlobProviderSelector = provider.GetRequiredService<IBlobProviderSelector>();
+
 #pragma warning disable 618
 
             var previewProvider = provider.GetService<IPreviewProvider>();

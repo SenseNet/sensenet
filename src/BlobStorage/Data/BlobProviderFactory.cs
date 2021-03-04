@@ -23,18 +23,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         private IBuiltInBlobProvider BuiltInProvider { get; }
         private Dictionary<string, IBlobProvider> Providers { get; }
 
-        protected BlobProviderFactory(
+        public BlobProviderFactory(
             IBlobProviderSelector providerSelector,
-            IBuiltInBlobProvider builtInProvider,
             IEnumerable<IBlobProvider> providers)
         {
-            //UNDONE: [DIBLOB] register the IBuiltInBlobProvider that we request here
-            //UNDONE: [DIBLOB] register a BlobStorage instance as BlobStorageBase
-
             ProviderSelector = providerSelector;
-            BuiltInProvider = builtInProvider;
+            BuiltInProvider = (IBuiltInBlobProvider)providers.FirstOrDefault(p => p is IBuiltInBlobProvider);
             Providers = providers
-                //UNDONE: [DIBLOB] add builtin provider to the list or not?
+                //UNDONE: [DIBLOB] filter builtin or external provider or not?
                 //.Where(bp => !(bp is IBuiltInBlobProvider))
                 .ToDictionary(bp => bp.GetType().FullName, bp => bp);
         }
