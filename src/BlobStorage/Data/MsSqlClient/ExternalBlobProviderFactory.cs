@@ -8,6 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public interface IExternalBlobProviderFactory
     {
+        //UNDONE: [DIBLOB] [CIRCLE] remove IBlobProvider reference --> GetBlobProviderType
         IBlobProvider GetBlobProvider();
     }
 

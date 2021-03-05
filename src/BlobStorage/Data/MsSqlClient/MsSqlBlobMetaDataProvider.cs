@@ -28,6 +28,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             DataOptions options)
         {
             BlobProviderFactory = blobProviderFactory;
+
+            //UNDONE: [DIBLOB] [CIRCLE] remove this dependency and check only by type
             BuiltInProvider = builtInProvider;
             DataOptions = options;
         }

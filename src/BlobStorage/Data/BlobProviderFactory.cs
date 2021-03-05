@@ -37,6 +37,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public IBlobProvider GetProvider(long fullSize)
         {
+            //UNDONE: [DIBLOB] [CIRCLE] we may need to remove the last two parameters to avoid circular reference
             return ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
         }
 
