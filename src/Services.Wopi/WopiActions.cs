@@ -97,7 +97,9 @@ namespace SenseNet.Services.Wopi
 
             var query = url.Substring(queryIndex + 1);
             var regex = new Regex("<(?<pname>\\w+)=(?<pvalue>\\w+)[&]{0,1}>");
-            var wopiSrcUrl = $"{context.Request.Scheme}://{context.Request.Host}/wopi/files/{contentId}";
+
+            // hardcoded secure schema
+            var wopiSrcUrl = $"https://{context.Request.Host}/wopi/files/{contentId}";
 
             var newQueryParams = new StringBuilder();
 
