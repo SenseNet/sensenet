@@ -4,9 +4,17 @@
   <Description>$Ctd-Folder,Description</Description>
   <Icon>Folder</Icon>
   <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name="DisplayName" type="ShortText">
       <DisplayName>$Ctd-Folder,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-Folder,DisplayName-Description</Description>
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>

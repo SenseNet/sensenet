@@ -9,7 +9,7 @@
       <DisplayName>$Ctd-Workspace,Name-DisplayName</DisplayName>
       <Description>$Ctd-Workspace,Name-Description</Description>
       <Configuration>
-        <FieldIndex>60</FieldIndex>
+        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -21,12 +21,11 @@
     <Field name="DisplayName" type="ShortText">
       <DisplayName>$Ctd-Workspace,DisplayName-DisplayName</DisplayName>
       <Configuration>
-        <FieldIndex>40</FieldIndex>
+        <FieldIndex>10</FieldIndex>
       </Configuration>
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
-        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -111,7 +110,6 @@
     </Field>
     <Field name="AllowedChildTypes" type="AllowedChildTypes">
       <Configuration>
-        <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -120,7 +118,6 @@
     <Field name="InheritableVersioningMode" type="InheritableVersioningMode">
       <Description>$Ctd-Workspace,WorkspaceInheritableVersioningMode-Description</Description>
       <Configuration>
-        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -129,7 +126,6 @@
     <Field name="InheritableApprovingMode" type="InheritableApprovingMode">
       <Description>$Ctd-Workspace,WorkspaceInheritableApprovingMode-Description</Description>
       <Configuration>
-        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -139,7 +135,6 @@
       <DisplayName>$Ctd-Workspace,Path-DisplayName</DisplayName>
       <Description>$Ctd-Workspace,Path-Description</Description>
       <Configuration>
-        <FieldIndex>11</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
