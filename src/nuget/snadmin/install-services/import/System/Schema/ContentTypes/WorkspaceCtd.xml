@@ -14,7 +14,7 @@
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
         <Compulsory>true</Compulsory>
-        <MaxLength>20</MaxLength>
+        <MaxLength>100</MaxLength>
         <ControlHint>sn:ShortText</ControlHint>
       </Configuration>
     </Field>
