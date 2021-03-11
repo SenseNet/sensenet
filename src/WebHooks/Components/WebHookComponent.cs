@@ -21,7 +21,7 @@ namespace SenseNet.WebHooks
             var assembly = typeof(WebHookComponent).Assembly;
 
             builder
-                .Install("0.0.1.1", "2021-03-01", "sensenet WebHooks")
+                .Install("0.0.1.2", "2021-03-11", "sensenet WebHooks")
                 .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
@@ -51,7 +51,7 @@ namespace SenseNet.WebHooks
                     }
                     #endregion
 
-                    #region install CTD
+                    #region Install CTD
 
                     // install a CTD stored as an embedded resource
                     const string resourceCtd = "import.System.Schema.ContentTypes.WebHookSubscriptionCtd.xml";
@@ -71,10 +71,25 @@ namespace SenseNet.WebHooks
                     #endregion
                 });
 
-            builder.Patch("0.0.1", "0.0.1.1", "2021-03-01", "Upgrades the WebHook component")
-                .DependsOn("SenseNet.Services", "7.7.18")
+            builder.Patch("0.0.1", "0.0.1.2", "2021-03-11", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.18.1")
                 .Action(context =>
                 {
+                    #region String resource
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesWebHookSubscription.xml")
+                        .Class("Ctd-WebHookSubscription")
+                        .Culture("en")
+                        .AddResource("DisplayName", "Webhook")
+                        .Culture("hu")
+                        .AddResource("DisplayName", "Webhook");
+
+                    rb.Apply();
+
+                    #endregion
+
                     #region CTD changes
 
                     var cb = new ContentTypeBuilder();
@@ -86,8 +101,23 @@ namespace SenseNet.WebHooks
                         .VisibleBrowse(FieldVisibility.Show)
                         .VisibleEdit(FieldVisibility.Show)
                         .VisibleNew(FieldVisibility.Show)
-                        .FieldIndex(0)
-                        .ControlHint("sn:WebhookPayload");
+                        .FieldIndex(10)
+                        .ControlHint("sn:WebhookPayload")
+                        .Field("WebHookFilter")
+                        .FieldIndex(50)
+                        .Field("WebHookHeaders")
+                        .FieldIndex(40)
+                        .Field("Enabled")
+                        .FieldIndex(90)
+                        .Field("IsValid")
+                        .FieldIndex(30)
+                        .Field("InvalidFields")
+                        .RemoveConfiguration("FieldIndex")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Hide)
+                        .VisibleNew(FieldVisibility.Hide)
+                        .Field("SuccessfulCalls")
+                        .FieldIndex(20);
 
                     cb.Apply();
 
