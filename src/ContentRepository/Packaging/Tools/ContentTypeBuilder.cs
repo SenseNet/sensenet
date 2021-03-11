@@ -402,6 +402,14 @@ namespace SenseNet.Packaging.Tools
 
             return fieldNode;
         }
+
+        // This list represents the order of xml nodes in a Field section of a CTD. We use
+        // it to insert a new xml node to a correct location.
+        private static readonly List<string> FieldPropertyOrder = new List<string>(new[]
+        {
+            "DisplayName", "Description", "Icon", "Preview", "AppInfo", "Bind", "Indexing", "Configuration"
+        });
+
         private static XmlNode LoadOrAddChild(XmlNode parentNode, string name, bool insertIfPossible = true, IDictionary<string, string> attributes = null)
         {
             if (parentNode?.OwnerDocument?.DocumentElement == null)
@@ -414,21 +422,43 @@ namespace SenseNet.Packaging.Tools
 
                 if (insertIfPossible)
                 {
-                    //TODO: implement insert before or after
+                    //TODO: implement insert before or after for CTD header
+                    // Currently we use Field child node ordering for everything.
 
                     XmlNode insertBeforeElement = null;
                     XmlNode insertAfterElement = null;
-                    
-                    //if (!string.IsNullOrEmpty(InsertBefore))
-                    //    insertBeforeElement = LoadChild(parentNode, InsertBefore);
-                    //if (!string.IsNullOrEmpty(InsertAfter))
-                    //    insertAfterElement = LoadChild(parentNode, InsertAfter);
 
-                    //if (insertBeforeElement != null)
-                    //    parentNode.InsertBefore(childElement, insertBeforeElement);
-                    //else if (insertAfterElement != null)
-                    //    parentNode.InsertAfter(childElement, insertAfterElement);
-                    //else
+                    var propertyIndex = FieldPropertyOrder.Contains(name) 
+                        ? FieldPropertyOrder.IndexOf(name)
+                        : -1;
+
+                    // find a preceding node
+                    var previousIndex = propertyIndex - 1;
+                    while (previousIndex >= 0)
+                    {
+                        insertAfterElement = LoadChild(parentNode, FieldPropertyOrder[previousIndex]);
+                        if (insertAfterElement != null)
+                            break;
+
+                        previousIndex--;
+                    }
+
+                    // find a subsequent node
+                    var subsequentIndex = propertyIndex + 1;
+                    while (subsequentIndex < FieldPropertyOrder.Count)
+                    {
+                        insertBeforeElement = LoadChild(parentNode, FieldPropertyOrder[subsequentIndex]);
+                        if (insertBeforeElement != null)
+                            break;
+
+                        subsequentIndex++;
+                    }
+
+                    if (insertBeforeElement != null)
+                        parentNode.InsertBefore(childElement, insertBeforeElement);
+                    else if (insertAfterElement != null)
+                        parentNode.InsertAfter(childElement, insertAfterElement);
+                    else
                         parentNode.AppendChild(childElement);
                 }
                 else

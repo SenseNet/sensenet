@@ -51,6 +51,11 @@ namespace SenseNet.ContentRepository.Tests
         <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
+   <Field name=""ConfigField"" type=""ShortText"">
+      <Configuration>
+        <DefaultValue>default</DefaultValue>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>";
         #endregion
@@ -305,6 +310,31 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(567, fs2.FieldIndex);
                 Assert.AreEqual(true, fs2.Compulsory);
                 Assert.AreEqual("mycustomcontrol", fs2.ControlHint);
+            });
+        }
+
+        [TestMethod]
+        public void ContentType_Complex_InsertFieldProperty()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdComplex);
+
+                var cb = new ContentTypeBuilder();
+
+                // define properties in reverse order
+                cb.Type("ComplexTestContent")
+                    .Field("ConfigField")
+                    .Description("desc")
+                    .DisplayName("disp");
+
+                cb.Apply();
+
+                var fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "ConfigField");
+
+                Assert.AreEqual("disp", fs1.DisplayName);
+                Assert.AreEqual("desc", fs1.Description);
+                Assert.AreEqual("default", fs1.DefaultValue);
             });
         }
 
