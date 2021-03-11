@@ -15,6 +15,7 @@ namespace SenseNet.Packaging.Tools
         IContentTypeBuilder Icon(string value);
         //IContentTypeBuilder AddAllowedChildTypes(params string[] typeNames);
         IFieldEditor Field(string name, string type = null);
+        IContentTypeBuilder RemoveField(string name);
     }
     public interface IFieldEditor
     {
@@ -29,6 +30,9 @@ namespace SenseNet.Packaging.Tools
         IFieldEditor Compulsory(bool value = true);
         IFieldEditor ControlHint(string value);
         IFieldEditor Configure(string key, string value);
+        IFieldEditor RemoveProperty(string name);
+        IFieldEditor RemoveConfiguration(string key);
+        IContentTypeBuilder Delete();
         IFieldEditor Field(string name, string type = null);
     }
     #endregion
@@ -84,6 +88,12 @@ namespace SenseNet.Packaging.Tools
 
             return editor;
         }
+
+        public IContentTypeBuilder RemoveField(string name)
+        {
+            var field = Field(name);
+            return field.Delete();
+        }
     }
 
     internal class FieldEditor : IFieldEditor
@@ -93,9 +103,12 @@ namespace SenseNet.Packaging.Tools
         internal ConfigurationInfo Configuration { get; } = new ConfigurationInfo();
         internal bool ConfigurationChanged { get; private set; }
 
-        private CtdBuilder _ctdBuilder;
+        private readonly CtdBuilder _ctdBuilder;
         internal string FieldName { get; }
         internal string Type { get; }
+        internal bool DeleteField { get; private set; }
+        internal IList<string> PropertiesToDelete { get; } = new List<string>();
+        internal IList<string> ConfigurationToDelete { get; } = new List<string>();
 
         internal FieldEditor(CtdBuilder ctdBuilder, string name, string type)
         {
@@ -181,6 +194,30 @@ namespace SenseNet.Packaging.Tools
             return this;
         }
 
+        public IFieldEditor RemoveProperty(string name)
+        {
+            if (!string.IsNullOrEmpty(name) && !PropertiesToDelete.Contains(name))
+                PropertiesToDelete.Add(name);
+
+            return this;
+        }
+        public IFieldEditor RemoveConfiguration(string name)
+        {
+            if (!string.IsNullOrEmpty(name) && !ConfigurationToDelete.Contains(name))
+            {
+                ConfigurationToDelete.Add(name);
+                ConfigurationChanged = true;
+            }
+
+            return this;
+        }
+
+        public IContentTypeBuilder Delete()
+        {
+            DeleteField = true;
+            return _ctdBuilder;
+        }
+
         public IFieldEditor Field(string name, string type = null)
         {
             return _ctdBuilder.Field(name, type);
@@ -260,6 +297,12 @@ namespace SenseNet.Packaging.Tools
         {
             var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName, fieldEditor.Type);
 
+            if (fieldEditor.DeleteField)
+            {
+                fieldElement?.ParentNode?.RemoveChild(fieldElement);
+                return;
+            }
+
             SetProperty(fieldElement, "DisplayName", fieldEditor.DisplayNameValue);
             SetProperty(fieldElement, "Description", fieldEditor.DescriptionValue);
 
@@ -283,6 +326,28 @@ namespace SenseNet.Packaging.Tools
                     {
                         SetProperty(configNode, kv.Key, kv.Value?.ToString() ?? string.Empty);
                     }
+                }
+
+                // remove configuration sections
+                foreach (var configToDelete in fieldEditor.ConfigurationToDelete)
+                {
+                    var child = LoadChild(configNode, configToDelete);
+                    if (child != null)
+                        configNode.RemoveChild(child);
+                }
+
+                if (configNode.ChildNodes.Count == 0)
+                    configNode.ParentNode?.RemoveChild(configNode);
+            }
+
+            // remove properties
+            if (fieldElement != null)
+            {
+                foreach (var propertyToDelete in fieldEditor.PropertiesToDelete)
+                {
+                    var child = LoadChild(fieldElement, propertyToDelete);
+                    if (child != null)
+                        fieldElement.RemoveChild(child);
                 }
             }
 
