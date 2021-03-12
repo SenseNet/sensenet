@@ -154,6 +154,8 @@
       </Configuration>
     </Field>
     <Field name="WebHookPayload" type="LongText">
+      <DisplayName>$Ctd-WebHookSubscription,WebHookPayload-DisplayName</DisplayName>
+      <Description>$Ctd-WebHookSubscription,WebHookPayload-Description</Description>
       <Configuration>
         <FieldIndex>10</FieldIndex>
         <ControlHint>sn:WebhookPayload</ControlHint>
