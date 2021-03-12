@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Ctd-WebHookSubscriptionList">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+					<value>WebHook List</value>
+				</data>
+        <data name="Description" xml:space="preserve">
+					<value>Container for webhook contents.</value>
+				</data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+					<value>WebHook lista</value>
+				</data>
+        <data name="Description" xml:space="preserve">
+					<value>Lista webhook tartalmak tárolására.</value>
+				</data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>
