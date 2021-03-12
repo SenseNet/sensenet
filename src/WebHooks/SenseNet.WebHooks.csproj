@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.1.2</Version>
+    <Version>0.0.1.3</Version>
     <Authors>kavics,aniko,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -26,12 +26,16 @@
 
   <ItemGroup>
     <None Remove="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <None Remove="import\Localization\CtdResourcesWebHookSubscriptionList.xml" />
     <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+    <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionListCtd.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscription.xml" />
+    <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscriptionList.xml" />
     <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
+    <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionListCtd.xml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,68 +18,48 @@ namespace SenseNet.WebHooks
 
         public override void AddPatches(PatchBuilder builder)
         {
-            var assembly = typeof(WebHookComponent).Assembly;
-
             builder
-                .Install("0.0.1.1", "2021-03-01", "sensenet WebHooks")
+                .Install("0.0.1.3", "2021-03-12", "sensenet WebHooks")
                 .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
-                    var resourcePrefix = assembly.GetName().Name;
-
                     #region String resource
 
-                    // install a string resource stored as an embedded resource
-                    const string resourceStringResource = "import.Localization.CtdResourcesWebHookSubscription.xml";
-
-                    using (var stringResourceStream = assembly.GetManifestResourceStream(
-                        resourcePrefix + "." + resourceStringResource))
-                    {
-                        const string parentPath = "/Root/Localization";
-                        const string whResourceName = "CtdResourcesWebHookSubscription.xml";
-
-                        var parent = RepositoryTools.CreateStructure(parentPath, "Resources") ??
-                                     Content.Load(parentPath);
-                        var whResourcePath = RepositoryPath.Combine(parentPath, whResourceName);
-                        var whResource = Node.Load<Resource>(whResourcePath) ??
-                                         new Resource(parent.ContentHandler)
-                                         {
-                                             Name = "CtdResourcesWebHookSubscription.xml"
-                                         };
-                        whResource.Binary = UploadHelper.CreateBinaryData(whResourceName, stringResourceStream);
-                        whResource.Save(SavingMode.KeepVersion);
-                    }
+                    InstallStringResource("CtdResourcesWebHookSubscription.xml");
+                    InstallStringResource("CtdResourcesWebHookSubscriptionList.xml");
+                    
                     #endregion
 
                     #region install CTD
 
-                    // install a CTD stored as an embedded resource
-                    const string resourceCtd = "import.System.Schema.ContentTypes.WebHookSubscriptionCtd.xml";
+                    InstallCtd("WebHookSubscriptionCtd.xml");
+                    InstallCtd("WebHookSubscriptionListCtd.xml");
 
-                    using (var ctdStream = assembly.GetManifestResourceStream(
-                        resourcePrefix + "." + resourceCtd))
-                    {
-                        ContentTypeInstaller.InstallContentType(ctdStream);
-                    }
                     #endregion
 
                     #region Content items
 
-                    var webHooks = RepositoryTools.CreateStructure("/Root/System/WebHooks", 
-                        "SystemFolder");
+                    RepositoryTools.CreateStructure("/Root/System/WebHooks", "SystemFolder");
 
                     #endregion
                 });
 
-            builder.Patch("0.0.1", "0.0.1.1", "2021-03-01", "Upgrades the WebHook component")
+            builder.Patch("0.0.1", "0.0.1.3", "2021-03-12", "Upgrades the WebHook component")
                 .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
+                    #region String resources
+
+                    InstallStringResource("CtdResourcesWebHookSubscriptionList.xml");
+
+                    #endregion
+
                     #region CTD changes
 
                     var cb = new ContentTypeBuilder();
 
                     cb.Type("WebHookSubscription")
+                        .Icon("Settings")
                         .Field("WebHookPayload", "LongText")
                         .DisplayName("$Ctd-WebHookSubscription,WebHookPayload-DisplayName")
                         .Description("$Ctd-WebHookSubscription,WebHookPayload-Description")
@@ -91,8 +71,47 @@ namespace SenseNet.WebHooks
 
                     cb.Apply();
 
+                    InstallCtd("WebHookSubscriptionListCtd.xml");
+
                     #endregion
                 });
+        }
+
+        private static void InstallStringResource(string resourceContentName)
+        {
+            var assembly = typeof(WebHookComponent).Assembly;
+            var resourcePrefix = assembly.GetName().Name;
+
+            // install a string resource stored as an embedded resource
+            var resourcePath = resourcePrefix + ".import.Localization." + resourceContentName;
+            const string parentPath = "/Root/Localization";
+
+            using (var resourceStream = assembly.GetManifestResourceStream(resourcePath))
+            {
+                var parent = RepositoryTools.CreateStructure(parentPath, "Resources") ??
+                             Content.Load(parentPath);
+                var whResourcePath = RepositoryPath.Combine(parentPath, resourceContentName);
+                var whResource = Node.Load<Resource>(whResourcePath) ??
+                                 new Resource(parent.ContentHandler)
+                                 {
+                                     Name = resourceContentName
+                                 };
+                whResource.Binary = UploadHelper.CreateBinaryData(resourceContentName, resourceStream);
+                whResource.Save(SavingMode.KeepVersion);
+            }
+        }
+        private static void InstallCtd(string ctdFileName)
+        {
+            var assembly = typeof(WebHookComponent).Assembly;
+            var resourcePrefix = assembly.GetName().Name;
+
+            // install a CTD stored as an embedded resource
+            var resourceCtdPath = resourcePrefix + ".import.System.Schema.ContentTypes." + ctdFileName;
+
+            using (var ctdStream = assembly.GetManifestResourceStream(resourceCtdPath))
+            {
+                ContentTypeInstaller.InstallContentType(ctdStream);
+            }
         }
     }
 }
