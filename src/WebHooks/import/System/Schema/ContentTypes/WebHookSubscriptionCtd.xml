@@ -2,7 +2,7 @@
 <ContentType name="WebHookSubscription" parentType="GenericContent" handler="SenseNet.WebHooks.WebHookSubscription" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-WebHookSubscription,DisplayName</DisplayName>
   <Description>$Ctd-WebHookSubscription,Description</Description>
-  <Icon>WebHookSubscription</Icon>
+  <Icon>Settings</Icon>
   <Fields>
     <Field name="Name" type="ShortText">
       <DisplayName>$Ctd-WebHookSubscription,Name-DisplayName</DisplayName>

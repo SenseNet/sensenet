@@ -295,7 +295,8 @@ namespace SenseNet.Packaging.Tools
 
         private void EditField(XmlDocument xDoc, FieldEditor fieldEditor)
         {
-            var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName, fieldEditor.Type);
+            // if we should delete the field, do not throw an error if the xml node is missing
+            var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName, fieldEditor.Type, !fieldEditor.DeleteField);
 
             if (fieldEditor.DeleteField)
             {

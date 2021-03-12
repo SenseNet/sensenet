@@ -52,7 +52,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
                     .UseMsSqlExclusiveLockDataProviderExtension();
             })
-                .AddComponent(provider => new MsSqlExclusiveLockComponent());
+                .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddSenseNetWebHooks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
