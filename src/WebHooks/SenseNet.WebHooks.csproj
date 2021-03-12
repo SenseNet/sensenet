@@ -26,16 +26,12 @@
 
   <ItemGroup>
     <None Remove="import\Localization\CtdResourcesWebHookSubscription.xml" />
-    <None Remove="import\Localization\CtdResourcesWebHookSubscriptionList.xml" />
     <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
-    <None Remove="import\System\Schema\ContentTypes\WebHookSubscriptionListCtd.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscription.xml" />
-    <EmbeddedResource Include="import\Localization\CtdResourcesWebHookSubscriptionList.xml" />
     <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml" />
-    <EmbeddedResource Include="import\System\Schema\ContentTypes\WebHookSubscriptionListCtd.xml" />
   </ItemGroup>
 
   <ItemGroup>

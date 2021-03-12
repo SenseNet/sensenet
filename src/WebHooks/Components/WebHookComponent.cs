@@ -16,35 +16,35 @@ namespace SenseNet.WebHooks
     {
         public override string ComponentId { get; } = "SenseNet.WebHooks";
 
+        private const string WebHooksPath = "/Root/System/WebHooks";
+
         public override void AddPatches(PatchBuilder builder)
         {
             builder
-                .Install("0.0.1.6", "2021-03-12", "sensenet WebHooks")
+                .Install("0.0.1.7", "2021-03-12", "sensenet WebHooks")
                 .DependsOn("SenseNet.Services", "7.7.18")
                 .Action(context =>
                 {
                     #region String resource
 
                     InstallStringResource("CtdResourcesWebHookSubscription.xml");
-                    InstallStringResource("CtdResourcesWebHookSubscriptionList.xml");
-                    
+
                     #endregion
 
                     #region Install CTD
 
                     InstallCtd("WebHookSubscriptionCtd.xml");
-                    InstallCtd("WebHookSubscriptionListCtd.xml");
 
                     #endregion
 
                     #region Content items
 
-                    RepositoryTools.CreateStructure("/Root/System/WebHooks", "SystemFolder");
+                    CreateWebHooksContainer();
 
                     #endregion
                 });
 
-            builder.Patch("0.0.1", "0.0.1.6", "2021-03-12", "Upgrades the WebHook component")
+            builder.Patch("0.0.1", "0.0.1.7", "2021-03-12", "Upgrades the WebHook component")
                 .DependsOn("SenseNet.Services", "7.7.18.1")
                 .Action(context =>
                 {
@@ -61,8 +61,6 @@ namespace SenseNet.WebHooks
 
                     rb.Apply();
                     
-                    InstallStringResource("CtdResourcesWebHookSubscriptionList.xml");
-
                     #endregion
 
                     #region CTD changes
@@ -97,10 +95,31 @@ namespace SenseNet.WebHooks
 
                     cb.Apply();
 
-                    InstallCtd("WebHookSubscriptionListCtd.xml");
+                    #endregion
+
+                    #region Content items
+
+                    CreateWebHooksContainer();
 
                     #endregion
                 });
+        }
+
+        private static void CreateWebHooksContainer()
+        {
+            var webHooks = Node.Load<GenericContent>(WebHooksPath);
+            if (webHooks != null && !webHooks.NodeType.IsInstaceOfOrDerivedFrom("ItemList"))
+            {
+                webHooks.ForceDelete();
+                webHooks = null;
+            }
+
+            if (webHooks == null)
+                webHooks = (GenericContent) RepositoryTools.CreateStructure(WebHooksPath, "ItemList")
+                    .ContentHandler;
+
+            if (!webHooks.IsAllowedChildType(nameof(WebHookSubscription)))
+                webHooks.AllowChildType(nameof(WebHookSubscription), save: true);
         }
 
         private static void InstallStringResource(string resourceContentName)
