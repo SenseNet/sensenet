@@ -741,6 +741,114 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+            builder.Patch("7.7.18", "7.7.18.2", "2021-03-12", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("ContentLink")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Field("Link", "Reference")
+                        .FieldIndex(10);
+
+                    cb.Type("DocumentLibrary")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(10)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(20)
+                        .Field("Index")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("InheritableVersioningMode")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("InheritableApprovingMode")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("AllowedChildTypes")
+                        .RemoveConfiguration("FieldIndex");
+
+                    cb.Type("Folder")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(10);
+
+                    cb.Type("Group")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(30)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(20)
+                        .Field("Version")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("Members", "Reference")
+                        .FieldIndex(10)
+                        .Field("Index")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("Description")
+                        .RemoveConfiguration("FieldIndex");
+
+                    cb.Type("Image")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(30)
+                        .Field("DateTaken", "DateTime")
+                        .FieldIndex(20)
+                        .Field("Keywords")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("Index", "Integer")
+                        .FieldIndex(10);
+
+                    cb.Type("ImageLibrary")
+                        .RemoveField("Index")
+                        .RemoveField("InheritableVersioningMode")
+                        .RemoveField("InheritableApprovingMode")
+                        .RemoveField("AllowedChildTypes")
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(20)
+                        .Field("CoverImage", "Reference")
+                        .FieldIndex(10)
+                        .Field("Description")
+                        .RemoveConfiguration("FieldIndex");
+
+                    cb.Type("ItemList")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(10);
+
+                    cb.Type("ListItem")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(10);
+
+                    cb.Type("Query")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(10);
+
+                    cb.Type("Workspace")
+                        .Field("Name", "ShortText")
+                        .FieldIndex(20)
+                        .Configure("MaxLength", "100")
+                        .Field("DisplayName", "ShortText")
+                        .FieldIndex(10)
+                        .Field("Description")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("AllowedChildTypes")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("InheritableVersioningMode")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("InheritableApprovingMode")
+                        .RemoveConfiguration("FieldIndex")
+                        .Field("Path")
+                        .RemoveConfiguration("FieldIndex");
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
     }
 }

@@ -5,6 +5,16 @@
   <Icon>Query</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name="Query" type="LongText">
       <DisplayName>$Ctd-Query,Query-DisplayName</DisplayName>
       <Description>$Ctd-Query,Query-Description</Description>

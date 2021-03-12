@@ -4,6 +4,16 @@
   <Description>$Ctd-ListItem,Description</Description>
   <Icon>FormItem</Icon>
   <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name="Description" type="LongText">
       <Configuration>
         <OutputMethod>Html</OutputMethod>

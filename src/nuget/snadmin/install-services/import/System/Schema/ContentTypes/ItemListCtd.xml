@@ -4,6 +4,16 @@
   <Description>$Ctd-ItemList,Description</Description>
   <Icon>ContentList</Icon>
   <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name="OwnerWhenVisitor" type="Reference">
       <DisplayName>$Ctd-ContentList,OwnerWhenVisitor-DisplayName</DisplayName>
       <Description>$Ctd-ContentList,OwnerWhenVisitor-Description</Description>
@@ -30,7 +40,6 @@
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-
     <Field name="InheritableApprovingMode" type="InheritableApprovingMode">
       <DisplayName>$Ctd-GenericContent,InheritableApprovingMode-DisplayName</DisplayName>
       <Description>$Ctd-ItemList,ItemListInheritableApprovingMode-Description</Description>
