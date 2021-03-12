@@ -741,7 +741,7 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
-            builder.Patch("7.7.18", "7.7.18.1", "2021-03-11", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.18", "7.7.18.2", "2021-03-12", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region CTD changes
@@ -831,6 +831,7 @@ namespace SenseNet.ContentRepository
                     cb.Type("Workspace")
                         .Field("Name", "ShortText")
                         .FieldIndex(20)
+                        .Configure("MaxLength", "100")
                         .Field("DisplayName", "ShortText")
                         .FieldIndex(10)
                         .Field("Description")
