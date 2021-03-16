@@ -21,8 +21,8 @@ namespace SenseNet.WebHooks
         public override void AddPatches(PatchBuilder builder)
         {
             builder
-                .Install("0.0.1.7", "2021-03-12", "sensenet WebHooks")
-                .DependsOn("SenseNet.Services", "7.7.18")
+                .Install("0.0.2", "2021-03-16", "sensenet WebHooks")
+                .DependsOn("SenseNet.Services", "7.7.19")
                 .Action(context =>
                 {
                     #region String resource
@@ -44,8 +44,8 @@ namespace SenseNet.WebHooks
                     #endregion
                 });
 
-            builder.Patch("0.0.1", "0.0.1.7", "2021-03-12", "Upgrades the WebHook component")
-                .DependsOn("SenseNet.Services", "7.7.18.1")
+            builder.Patch("0.0.1", "0.0.2", "2021-03-16", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.19")
                 .Action(context =>
                 {
                     #region String resources
