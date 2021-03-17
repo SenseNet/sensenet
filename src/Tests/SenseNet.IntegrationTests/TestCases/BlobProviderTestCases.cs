@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BlobStorage.IntegrationTests;
@@ -186,6 +187,107 @@ namespace SenseNet.IntegrationTests.TestCases
             }
         }
 
+
+        public void TestCase_WriteChunksSmall()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
+
+                var stream = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFile.Stream : dbFile.ExternalStream;
+                Assert.IsNull(dbFile.FileStream);
+                Assert.IsNotNull(stream);
+                Assert.AreEqual(dbFile.Size, stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(stream));
+            });
+        }
+        public void TestCase_WriteChunksBig()
+        {
+            IntegrationTest((sandbox) =>
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
+
+                if (NeedExternal(BlobStoragePlatform.ExpectedBlobProviderDataType, updatedText, 20))
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
+                    Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
+                }
+                else
+                {
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                }
+            });
+        }
+        private DbFile UpdateByChunksTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        {
+            using (new SystemAccount())
+            using (new SizeLimitSwindler(this, sizeLimit))
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
+                file.Save();
+                var fileId = file.Id;
+
+                var chunks = SplitFile(updatedText, chunkSize, out var fullSize);
+
+                file = Node.Load<File>(fileId);
+                file.Save(SavingMode.StartMultistepSave);
+                var token = BinaryData.StartChunk(fileId, fullSize);
+
+                var offset = 0;
+                foreach (var chunk in chunks)
+                {
+                    BinaryData.WriteChunk(fileId, token, fullSize, chunk, offset);
+                    offset += chunkSize;
+                }
+
+                BinaryData.CommitChunk(fileId, token, fullSize);
+
+                file = Node.Load<File>(fileId);
+                file.FinalizeContent();
+
+
+                // assert
+                var dbFiles = BlobStoragePlatform.LoadDbFiles(file.VersionId);
+                Assert.AreEqual(1, dbFiles.Length);
+                var dbFile = dbFiles[0];
+                if (NeedExternal(BlobStoragePlatform.ExpectedBlobProviderDataType, updatedText, sizeLimit))
+                {
+                    Assert.AreEqual(BlobStoragePlatform.ExpectedExternalBlobProviderType.FullName, dbFile.BlobProvider);
+                    Assert.IsNotNull(dbFile.BlobProviderData);
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.BlobProvider);
+                    Assert.IsNull(dbFile.BlobProviderData);
+                }
+                Assert.AreEqual(false, dbFile.IsDeleted);
+                Assert.AreEqual(false, dbFile.Staging);
+                Assert.AreEqual(0, dbFile.StagingVersionId);
+                Assert.AreEqual(0, dbFile.StagingPropertyTypeId);
+                Assert.AreEqual(fullSize, dbFile.Size);
+
+                return dbFile;
+            }
+        }
+
+        /* ==================================================================================================== */
+
         private void Assert_Small(DbFile dbFile, string expectedText)
         {
             var buffer = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFile.Stream : dbFile.ExternalStream;
@@ -219,6 +321,28 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(dbFile.Size, ctx.Length);
         }
 
+        private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)
+        {
+            var stream = (IO.MemoryStream)RepositoryTools.GetStreamFromString(text);
+            var buffer = stream.GetBuffer();
+            var bytes = new byte[text.Length + 3];
+            fullSize = bytes.Length;
+
+            Array.Copy(buffer, 0, bytes, 0, bytes.Length);
+
+            var chunks = new List<byte[]>();
+            //var bytes = Encoding.UTF8.GetBytes(text);
+            var p = 0;
+            while (p < bytes.Length)
+            {
+                var size = Math.Min(chunkSize, bytes.Length - p);
+                var chunk = new byte[size];
+                Array.Copy(bytes, p, chunk, 0, size);
+                chunks.Add(chunk);
+                p += chunkSize;
+            }
+            return chunks;
+        }
 
         /* ================================================================================== TOOLS */
         protected Node CreateTestRoot()

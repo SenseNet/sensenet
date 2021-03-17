@@ -1067,27 +1067,27 @@ namespace SenseNet.BlobStorage.IntegrationTests
             return chunks;
         }
 
-        protected class DbFile
-        {
-            public int FileId;
-            public string ContentType;
-            public string FileNameWithoutExtension;
-            public string Extension;
-            public long Size;
-            public string Checksum;
-            public byte[] Stream;
-            public DateTime CreationDate;
-            public Guid RowGuid;
-            public long Timestamp;
-            public bool? Staging;
-            public int StagingVersionId;
-            public int StagingPropertyTypeId;
-            public bool? IsDeleted;
-            public string BlobProvider;
-            public string BlobProviderData;
-            public byte[] FileStream;
-            public byte[] ExternalStream;
-        }
+        //protected class DbFile
+        //{
+        //    public int FileId;
+        //    public string ContentType;
+        //    public string FileNameWithoutExtension;
+        //    public string Extension;
+        //    public long Size;
+        //    public string Checksum;
+        //    public byte[] Stream;
+        //    public DateTime CreationDate;
+        //    public Guid RowGuid;
+        //    public long Timestamp;
+        //    public bool? Staging;
+        //    public int StagingVersionId;
+        //    public int StagingPropertyTypeId;
+        //    public bool? IsDeleted;
+        //    public string BlobProvider;
+        //    public string BlobProviderData;
+        //    public byte[] FileStream;
+        //    public byte[] ExternalStream;
+        //}
 /**/        protected DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
             var propTypeId = ActiveSchema.PropertyTypes[propertyName].Id;
@@ -1127,25 +1127,25 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             var file = new DbFile
             {
-                FileId = reader.GetInt32(reader.GetOrdinal("FileId")),
-                BlobProvider = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("BlobProvider")),
-                BlobProviderData = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("BlobProviderData")),
-                ContentType = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("ContentType")),
-                FileNameWithoutExtension = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("FileNameWithoutExtension")),
-                Extension = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("Extension")),
-                Size = SenseNet.IntegrationTests.Common.Extensions.GetSafeInt64(reader, reader.GetOrdinal("Size")),
-                CreationDate = SenseNet.IntegrationTests.Common.Extensions.GetSafeDateTime(reader, reader.GetOrdinal("CreationDate")) ?? DateTime.MinValue,
-                IsDeleted = reader.GetSafeBoolFromBit(reader.GetOrdinal("IsDeleted")),
-                Staging = reader.GetSafeBoolFromBit(reader.GetOrdinal("Staging")),
-                StagingPropertyTypeId = SenseNet.IntegrationTests.Common.Extensions.GetSafeInt32(reader, reader.GetOrdinal("StagingPropertyTypeId")),
-                StagingVersionId = SenseNet.IntegrationTests.Common.Extensions.GetSafeInt32(reader, reader.GetOrdinal("StagingVersionId")),
-                Stream = reader.GetSafeBytes(reader.GetOrdinal("Stream")),
-                Checksum = SenseNet.IntegrationTests.Common.Extensions.GetSafeString(reader, reader.GetOrdinal("Checksum")),
+                FileId = reader.GetInt32("FileId"),
+                BlobProvider = reader.GetSafeString("BlobProvider"),
+                BlobProviderData = reader.GetSafeString("BlobProviderData"),
+                ContentType = reader.GetSafeString("ContentType"),
+                FileNameWithoutExtension = reader.GetSafeString("FileNameWithoutExtension"),
+                Extension = reader.GetSafeString("Extension"),
+                Size = reader.GetSafeInt64("Size"),
+                CreationDate = reader.GetSafeDateTime("CreationDate") ?? DateTime.MinValue,
+                IsDeleted = reader.GetSafeBooleanFromBoolean("IsDeleted"),
+                Staging = reader.GetSafeBooleanFromBoolean("Staging"),
+                StagingPropertyTypeId = reader.GetSafeInt32("StagingPropertyTypeId"),
+                StagingVersionId = reader.GetSafeInt32("StagingVersionId"),
+                Stream = reader.GetSafeByteArray("Stream"),
+                Checksum = reader.GetSafeString("Checksum"),
                 RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid")),
                 Timestamp = reader.GetSafeLongFromBytes("Timestamp")
             };
             if (reader.FieldCount > 16)
-                file.FileStream = reader.GetSafeBytes(reader.GetOrdinal("FileStream"));
+                file.FileStream = reader.GetSafeByteArray("FileStream");
             file.ExternalStream = GetExternalData(file);
 
             return file;
