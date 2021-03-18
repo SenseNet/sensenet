@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Common;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.Testing;
 
 namespace SenseNet.IntegrationTests.Platforms
 {
@@ -140,6 +142,31 @@ namespace SenseNet.IntegrationTests.Platforms
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@CreationDate", DbType.DateTime2, creationDate));
                 }).GetAwaiter().GetResult();
+            }
+        }
+
+        public IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds)
+        {
+            return new MsSqlWaitingBetweenCleanupFilesSwindler(milliseconds);
+        }
+        private class MsSqlWaitingBetweenCleanupFilesSwindler : Swindler<int>
+        {
+            private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
+            public MsSqlWaitingBetweenCleanupFilesSwindler(int hack) : base(
+                hack,
+                () =>
+                {
+                    var metaDataProvider = (MsSqlBlobMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    return (int)accessor.GetField(FieldName);
+                },
+                (value) =>
+                {
+                    var metaDataProvider = (MsSqlBlobMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    accessor.SetField(FieldName, value);
+                })
+            {
             }
         }
 

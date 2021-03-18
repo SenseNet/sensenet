@@ -22,5 +22,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
         byte[] GetExternalData(BlobStorageContext context);
 
         void UpdateFileCreationDate(int fileId, DateTime creationDate);
+        IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds);
     }
 }

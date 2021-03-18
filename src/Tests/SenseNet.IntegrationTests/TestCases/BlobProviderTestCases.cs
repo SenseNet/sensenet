@@ -637,15 +637,18 @@ namespace SenseNet.IntegrationTests.TestCases
                 var tdp = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
 
-                using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.BackgroundImmediately))
-                    DeletionPolicy_TheTest();
+                using (BlobStoragePlatform.SwindleWaitingBetweenCleanupFiles(10))
+                {
+                    using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.BackgroundImmediately))
+                        DeletionPolicy_TheTest();
 
-                var countsAfter = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
-                Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
-                Assert.AreNotEqual(countsBefore.Files, countsAfter.Files);
-                Thread.Sleep(500);
-                countsAfter = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
-                Assert.AreEqual(countsBefore.Files, countsAfter.Files);
+                    var countsAfter = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
+                    Assert.AreNotEqual(countsBefore.Files, countsAfter.Files);
+                    Thread.Sleep(500);
+                    countsAfter = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual(countsBefore.Files, countsAfter.Files);
+                }
             });
         }
         private void DeletionPolicy_TheTest()

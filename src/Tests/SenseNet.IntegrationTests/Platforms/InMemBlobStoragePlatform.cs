@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Common;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.Testing;
 
 namespace SenseNet.IntegrationTests.Platforms
 {
@@ -123,6 +124,33 @@ namespace SenseNet.IntegrationTests.Platforms
             if (file != null)
                 file.CreationDate = creationDate;
         }
+
+        public IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds)
+        {
+            //UNDONE:<?Blob: implement swindler after implementation of CleanupFilesSetDeleteFlagAsync and CleanupFilesSetDeleteFlagImmediatelyAsync
+            throw new NotImplementedException();
+            //return new InMemWaitingBetweenCleanupFilesSwindler(milliseconds);
+        }
+        //private class InMemWaitingBetweenCleanupFilesSwindler : Swindler<int>
+        //{
+        //    private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
+        //    public InMemWaitingBetweenCleanupFilesSwindler(int hack) : base(
+        //        hack,
+        //        () =>
+        //        {
+        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+        //            var accessor = new ObjectAccessor(metaDataProvider);
+        //            return (int)accessor.GetField(FieldName);
+        //        },
+        //        (value) =>
+        //        {
+        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+        //            var accessor = new ObjectAccessor(metaDataProvider);
+        //            accessor.SetField(FieldName, value);
+        //        })
+        //    {
+        //    }
+        //}
 
     }
 }
