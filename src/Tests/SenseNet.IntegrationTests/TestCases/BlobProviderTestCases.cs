@@ -202,7 +202,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 var updatedText = "Cras lobortis consequat nisi..";
                 var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
 
-                Assert.IsNull(dbFile.FileStream);
                 var stream = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFile.Stream : dbFile.ExternalStream;
                 Assert.IsNotNull(stream);
                 Assert.AreEqual(dbFile.Size, stream.Length);
@@ -222,14 +221,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 if (NeedExternal(BlobStoragePlatform.ExpectedBlobProviderDataType, updatedText, 20))
                 {
                     Assert.IsNull(dbFile.Stream);
-                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
                     Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
                     Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
                 }
                 else
                 {
                     Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
                     Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                     Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
                 }
@@ -342,13 +339,11 @@ namespace SenseNet.IntegrationTests.TestCases
             var updatedText = "Cras lobortis consequat nisi..";
             var dbFiles = CopyFileRowTest(initialText, updatedText, 222);
 
-            Assert.IsNull(dbFiles[0].FileStream);
             var stream0 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[0].Stream : dbFiles[0].ExternalStream;
             Assert.IsNotNull(stream0);
             Assert.AreEqual(dbFiles[0].Size, stream0.Length);
             Assert.AreEqual(initialText, GetStringFromBytes(stream0));
 
-            Assert.IsNull(dbFiles[1].FileStream);
             var stream1 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[1].Stream : dbFiles[1].ExternalStream;
             Assert.IsNotNull(stream1);
             Assert.AreEqual(dbFiles[1].Size, stream1.Length);
@@ -368,24 +363,20 @@ namespace SenseNet.IntegrationTests.TestCases
             if (NeedExternal(BlobStoragePlatform.ExpectedExternalBlobProviderType))
             {
                 Assert.IsNull(dbFiles[0].Stream);
-                Assert.IsTrue(dbFiles[0].FileStream == null || dbFiles[0].FileStream.Length == 0);
                 Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
                 Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
 
                 Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
-                Assert.IsTrue(dbFiles[1].FileStream == null || dbFiles[1].FileStream.Length == 0);
                 Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
 
             }
             else
             {
-                Assert.IsNull(dbFiles[0].FileStream);
                 Assert.IsNotNull(dbFiles[0].Stream);
                 Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
                 Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
 
-                Assert.IsNull(dbFiles[1].FileStream);
                 Assert.IsNotNull(dbFiles[1].Stream);
                 Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));

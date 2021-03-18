@@ -87,8 +87,6 @@ namespace SenseNet.IntegrationTests.Platforms
                 RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid")),
                 Timestamp = reader.GetSafeLongFromBytes("Timestamp")
             };
-            if (reader.FieldCount > 16)
-                file.FileStream = reader.GetSafeByteArray("FileStream");
             file.ExternalStream = GetExternalData(file);
 
             return file;
