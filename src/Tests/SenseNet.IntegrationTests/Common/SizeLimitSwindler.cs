@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using SenseNet.BlobStorage.IntegrationTests;
 using SenseNet.IntegrationTests.Infrastructure;
 
 namespace SenseNet.IntegrationTests.Common
