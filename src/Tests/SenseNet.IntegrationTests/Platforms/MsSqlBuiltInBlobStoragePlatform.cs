@@ -47,10 +47,23 @@ namespace SenseNet.IntegrationTests.Platforms
 
             return dbFiles.ToArray();
         }
+        public DbFile LoadDbFile(int fileId)
+        {
+            var sql = $@"SELECT * FROM Files WHERE FileId = {fileId}";
+            using (var ctx = GetDataContext())
+                return ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    return await reader.ReadAsync(cancel)
+                        ? GetFileFromReader(reader)
+                        : null;
+                }).GetAwaiter().GetResult();
+        }
         private SnDataContext GetDataContext()
         {
             return ((RelationalDataProviderBase)DataStore.DataProvider).CreateDataContext(CancellationToken.None);
         }
+
         private DbFile GetFileFromReader(IDataReader reader)
         {
             var file = new DbFile
@@ -80,14 +93,28 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         private byte[] GetExternalData(DbFile file)
         {
-            if (file.BlobProvider == null)
+            return GetExternalData(file.BlobProvider, file.BlobProviderData, file.Size);
+        }
+
+        //UNDONE:<?Blob: Platform independent code
+        public void ConfigureMinimumSizeForFileStreamInBytes(int cheat, out int originalValue)
+        {
+            originalValue = Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
+            Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes = cheat;
+        }
+
+        //UNDONE:<?Blob: Platform independent code
+        public byte[] GetExternalData(string blobProvider, string blobProviderData, long size)
+        {
+            if (blobProvider == null)
                 return new byte[0];
 
-            var provider = BlobStorageBase.GetProvider(file.BlobProvider);
-            var context = new BlobStorageContext(provider, file.BlobProviderData) { Length = file.Size };
+            var provider = BlobStorageBase.GetProvider(blobProvider);
+            var context = new BlobStorageContext(provider, blobProviderData) { Length = size };
             return GetExternalData(context);
         }
-        private byte[] GetExternalData(BlobStorageContext context)
+        //UNDONE:<?Blob: Platform independent code
+        public byte[] GetExternalData(BlobStorageContext context)
         {
             try
             {
@@ -104,10 +131,17 @@ namespace SenseNet.IntegrationTests.Platforms
             }
         }
 
-        public void ConfigureMinimumSizeForFileStreamInBytes(int cheat, out int originalValue)
+        public void UpdateFileCreationDate(int fileId, DateTime creationDate)
         {
-            originalValue = Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
-            Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes = cheat;
+            var sql = $"UPDATE Files SET CreationDate = @CreationDate WHERE FileId = {fileId}";
+            using (var ctx = GetDataContext())
+            {
+                ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@CreationDate", DbType.DateTime2, creationDate));
+                }).GetAwaiter().GetResult();
+            }
         }
+
     }
 }

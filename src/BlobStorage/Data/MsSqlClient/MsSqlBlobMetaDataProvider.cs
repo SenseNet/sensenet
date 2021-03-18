@@ -580,7 +580,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task CleanupAllFilesAsync(CancellationToken cancellationToken)
         {
-            while (await CleanupFilesAsync(cancellationToken)) { }
+            while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false)) { }
         }
     }
 }

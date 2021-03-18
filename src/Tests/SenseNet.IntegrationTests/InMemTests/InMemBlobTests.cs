@@ -69,6 +69,70 @@ namespace SenseNet.IntegrationTests.InMemTests
             TestCase.TestCase_WriteChunksBig();
         }
 
+        [TestMethod]
+        public void IntT_InMem_Blob_DeleteBinaryPropertySmall()
+        {
+            TestCase.TestCase_DeleteBinaryPropertySmall();
+        }
 
+        [TestMethod]
+        public void IntT_InMem_Blob_DeleteBinaryPropertyBig()
+        {
+            TestCase.TestCase_DeleteBinaryPropertyBig();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_CopyFileRowSmall()
+        {
+            TestCase.TestCase_CopyFileRowSmall();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_CopyFileRowBig()
+        {
+            TestCase.TestCase_CopyFileRowBig();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_BinaryCacheEntitySmall()
+        {
+            TestCase.TestCase_BinaryCacheEntitySmall();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_BinaryCacheEntityBig()
+        {
+            TestCase.TestCase_BinaryCacheEntityBig();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_DeleteSmall()
+        {
+            TestCase.TestCase_DeleteSmall();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_DeleteBig()
+        {
+            TestCase.TestCase_DeleteBig();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_DeletionPolicy_Default()
+        {
+            TestCase.TestCase_DeletionPolicy_Default();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_DeletionPolicy_Immediately()
+        {
+            TestCase.TestCase_DeletionPolicy_Immediately();
+        }
+
+        [TestMethod]
+        public void IntT_InMem_Blob_DeletionPolicy_BackgroundImmediately()
+        {
+            TestCase.TestCase_DeletionPolicy_BackgroundImmediately();
+        }
     }
 }

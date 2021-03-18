@@ -59,7 +59,6 @@ namespace SenseNet.IntegrationTests.MsSqlTests
             TestCase.TestCase_UpdateFileBigBig();
         }
 
-
         [TestMethod]
         public void IntT_MsSql_Blob_WriteChunksSmall()
         {
@@ -68,8 +67,68 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_Blob_WriteChunksBig()
         {
+            //UNDONE:<?Blob: Check database after this test
             TestCase.TestCase_WriteChunksBig();
         }
 
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeleteBinaryPropertySmall()
+        {
+            TestCase.TestCase_DeleteBinaryPropertySmall();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeleteBinaryPropertyBig()
+        {
+            TestCase.TestCase_DeleteBinaryPropertyBig();
+        }
+
+        [TestMethod]
+        public void IntT_MsSql_Blob_CopyFileRowSmall()
+        {
+            TestCase.TestCase_CopyFileRowSmall();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_CopyFileRowBig()
+        {
+            TestCase.TestCase_CopyFileRowBig();
+        }
+
+        [TestMethod]
+        public void IntT_MsSql_Blob_BinaryCacheEntitySmall()
+        {
+            TestCase.TestCase_BinaryCacheEntitySmall();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_BinaryCacheEntityBig()
+        {
+            TestCase.TestCase_BinaryCacheEntityBig();
+        }
+
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeleteSmall()
+        {
+            TestCase.TestCase_DeleteSmall();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeleteBig()
+        {
+            TestCase.TestCase_DeleteBig();
+        }
+
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeletionPolicy_Default()
+        {
+            TestCase.TestCase_DeletionPolicy_Default();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeletionPolicy_Immediately()
+        {
+            TestCase.TestCase_DeletionPolicy_Immediately();
+        }
+        [TestMethod]
+        public void IntT_MsSql_Blob_DeletionPolicy_BackgroundImmediately()
+        {
+            TestCase.TestCase_DeletionPolicy_BackgroundImmediately();
+        }
     }
 }
