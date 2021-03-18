@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -47,6 +49,11 @@ namespace SenseNet.ContentRepository.Tests
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <DefaultValue>@@currenttime@@</DefaultValue>
+      </Configuration>
+    </Field>
+   <Field name=""ConfigField"" type=""ShortText"">
+      <Configuration>
+        <DefaultValue>default</DefaultValue>
       </Configuration>
     </Field>
   </Fields>
@@ -139,6 +146,133 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void ContentType_Simple_RemoveField_Fluent()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdSimple);
+
+                var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
+                Assert.IsNotNull(fs1);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("SimpleTestContent")
+                    .Field("TestCount")
+                    .Delete();
+
+                cb.Apply();
+
+                fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.FirstOrDefault(fs => fs.Name == "TestCount");
+                Assert.IsNull(fs1);
+            });
+        }
+        [TestMethod]
+        public void ContentType_Simple_RemoveField_Standalone()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdSimple);
+
+                var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.First(fs => fs.Name == "TestCount");
+                Assert.IsNotNull(fs1);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("SimpleTestContent")
+                    .RemoveField("TestCount");
+
+                cb.Apply();
+
+                fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.FirstOrDefault(fs => fs.Name == "TestCount");
+                Assert.IsNull(fs1);
+            });
+        }
+        [TestMethod]
+        public void ContentType_Complex_RemoveConfig_Empty()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdComplex);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("ComplexTestContent")
+                    .Field("TestCount")
+                    .RemoveConfiguration("VisibleBrowse")
+                    .RemoveConfiguration("DefaultValue");
+
+                cb.Apply();
+
+                AssertContentTypeXml("ComplexTestContent", (document, manager) =>
+                {
+                    // the field should remain in the ctd
+                    var field = document.SelectSingleNode("ns:ContentType/ns:Fields/ns:Field[@name='TestCount']", manager);
+                    Assert.IsNotNull(field);
+
+                    var configNode = field.SelectSingleNode("ns:Configuration", manager);
+
+                    // the config node should have been removed
+                    Assert.IsNull(configNode, "The Configuration node should not be there anymore.");
+                });
+            });
+        }
+        [TestMethod]
+        public void ContentType_Complex_RemoveProperty()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdComplex);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("ComplexTestContent")
+                    .Field("TestCount")
+                    .RemoveProperty("Indexing");
+
+                cb.Apply();
+
+                AssertContentTypeXml("ComplexTestContent", (document, manager) =>
+                {
+                    // the field should remain in the ctd
+                    var field = document.SelectSingleNode("ns:ContentType/ns:Fields/ns:Field[@name='TestCount']", manager);
+                    Assert.IsNotNull(field);
+
+                    var childNode = field.SelectSingleNode("ns:Indexing", manager);
+
+                    // the Indexing node should have been removed
+                    Assert.IsNull(childNode, "The Indexing node should not be there anymore.");
+                });
+            });
+        }
+        [TestMethod]
+        public void ContentType_Complex_RemoveConfig()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdComplex);
+
+                var fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
+                Assert.AreEqual("123", fs1.DefaultValue);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("ComplexTestContent")
+                    .Field("TestCount")
+                    .RemoveConfiguration("Unknown")
+                    .RemoveConfiguration("DefaultValue");
+
+                cb.Apply();
+
+                fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
+                Assert.AreEqual(null, fs1.DefaultValue);
+
+                // the other config value is intact
+                Assert.AreEqual(FieldVisibility.Hide, fs1.VisibleBrowse);
+            });
+        }
+
+        [TestMethod]
         public void ContentType_Complex_FieldConfiguration()
         {
             Test(() =>
@@ -177,6 +311,46 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(true, fs2.Compulsory);
                 Assert.AreEqual("mycustomcontrol", fs2.ControlHint);
             });
+        }
+
+        [TestMethod]
+        public void ContentType_Complex_InsertFieldProperty()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdComplex);
+
+                var cb = new ContentTypeBuilder();
+
+                // define properties in reverse order
+                cb.Type("ComplexTestContent")
+                    .Field("ConfigField")
+                    .Description("desc")
+                    .DisplayName("disp");
+
+                cb.Apply();
+
+                var fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "ConfigField");
+
+                Assert.AreEqual("disp", fs1.DisplayName);
+                Assert.AreEqual("desc", fs1.Description);
+                Assert.AreEqual("default", fs1.DefaultValue);
+            });
+        }
+
+        private static void AssertContentTypeXml(string contentTypeName, Action<XmlDocument, XmlNamespaceManager> checkXml)
+        {
+            var ct = ContentType.GetByName(contentTypeName);
+            using (var ctStream = ct.Binary.GetStream())
+            {
+                var document = new XmlDocument();
+                document.Load(ctStream);
+
+                var m = new XmlNamespaceManager(document.NameTable);
+                m.AddNamespace("ns", "http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition");
+
+                checkXml(document, m);
+            }
         }
     }
 }

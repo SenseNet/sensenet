@@ -3,7 +3,8 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Tests.Core")]
-[assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")] //UNDONE:<?: Delete if SenseNet.BlobStorage.IntegrationTests is inactivated
+[assembly: InternalsVisibleTo("SenseNet.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests.Common")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.IntegrationTests")]

@@ -8,7 +8,7 @@
       <DisplayName>$Ctd-Group,Name-DisplayName</DisplayName>
       <Description>$Ctd-Group,Name-Description</Description>
       <Configuration>
-        <FieldIndex>80</FieldIndex>
+        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -19,7 +19,7 @@
     </Field>
     <Field name="DisplayName" type="ShortText">
       <Configuration>
-        <FieldIndex>60</FieldIndex>
+        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -27,7 +27,6 @@
     </Field>
     <Field name="Version" type="Version">
       <Configuration>
-      <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -37,8 +36,7 @@
       <DisplayName>$Ctd-Group,Members-DisplayName</DisplayName>
       <Description>$Ctd-Group,Members-Description</Description>
       <Configuration>
-        <!--<ReadOnly>true</ReadOnly>-->
-        <FieldIndex>20</FieldIndex>
+        <FieldIndex>10</FieldIndex>
         <AllowMultiple>true</AllowMultiple>
         <AllowedTypes>
           <Type>User</Type>
@@ -76,7 +74,6 @@
       <DisplayName>$Ctd-Group,Index-DisplayName</DisplayName>
       <Description>$Ctd-Group,Index-Description</Description>
       <Configuration>
-        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -84,7 +81,6 @@
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
-        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>

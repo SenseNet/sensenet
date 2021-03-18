@@ -395,6 +395,7 @@ namespace SenseNet.ContentRepository.InMemory
             // This method is not supported in this provider because the FileDoc
             // does not have enough information (IsDeleted & CreationDate).
 
+            //UNDONE:<?Blob: Implement this feature
             return STT.Task.CompletedTask;
         }
 
@@ -403,6 +404,7 @@ namespace SenseNet.ContentRepository.InMemory
             // This method is not supported in this provider because the FileDoc
             // does not have enough information (IsDeleted).
 
+            //UNDONE:<?Blob: Implement this feature
             return STT.Task.CompletedTask;
         }
 

@@ -103,9 +103,12 @@ namespace SenseNet.ContentRepository
 
                 try
                 {
-                    cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
-                    using (new SystemAccount())
-                        cached.Save();
+                    Retrier.Retry(3, 10, typeof(NodeIsOutOfDateException), () =>
+                    {
+                        cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
+                        using (new SystemAccount())
+                            cached.Save();
+                    });
                 }
                 catch (Exception e)
                 {

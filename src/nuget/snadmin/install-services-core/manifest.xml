@@ -1,8 +1,8 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>sensenet Services</Description>
-  <ReleaseDate>2021-02-17</ReleaseDate>
-  <Version>7.7.18</Version>
+  <ReleaseDate>2021-03-16</ReleaseDate>
+  <Version>7.7.19</Version>
   <Steps>
     <Phase>
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />

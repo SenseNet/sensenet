@@ -143,6 +143,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return reader.GetSafeBooleanFromByte(reader.GetOrdinal(columnName));
         }
+        public static bool GetSafeBooleanFromBoolean(this IDataReader reader, string columnName)
+        {
+            return reader.GetSafeBooleanFromBoolean(reader.GetOrdinal(columnName));
+        }
+        public static DateTime? GetSafeDateTime(this IDataReader reader, string columnName)
+        {
+            return reader.GetSafeDateTime(reader.GetOrdinal(columnName));
+        }
         public static string GetString(this IDataReader reader, string columnName)
         {
             return reader.GetString(reader.GetOrdinal(columnName));
