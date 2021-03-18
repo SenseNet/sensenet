@@ -4,10 +4,16 @@
 	<Description>$Ctd-ContentLink,Description</Description>
 	<Icon>Folder</Icon>
 	<Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name="Link" type="Reference">
       <DisplayName>$Ctd-ContentLink,Link-DisplayName</DisplayName>
       <Description>$Ctd-ContentLink,Link-Description</Description>
       <Configuration>
+        <FieldIndex>10</FieldIndex>
         <AllowMultiple>false</AllowMultiple>
       </Configuration>
     </Field>

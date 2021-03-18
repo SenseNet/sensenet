@@ -4,7 +4,7 @@
     <Languages>
       <Language cultureName="en">
         <data name="DisplayName" xml:space="preserve">
-					<value>WebHook Subscription</value>
+					<value>Webhook</value>
 				</data>
         <data name="Description" xml:space="preserve">
 					<value>Defines an event and a 3rd party service that should be called when the event is fired.</value>
@@ -66,7 +66,7 @@
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
-					<value>WebHook feliratkozás</value>
+					<value>Webhook</value>
 				</data>
         <data name="Description" xml:space="preserve">
 					<value>Definiál egy eseményt, aminek hatására meghívunk egy külső szolgáltatást.</value>
