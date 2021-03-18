@@ -593,10 +593,12 @@ namespace SenseNet.ContentRepository.InMemory
         public string Extension { get; set; }
         public string FileNameWithoutExtension { get; set; }
         public long Size { get; set; }
+        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
         public bool Staging { get; set; }
         public string BlobProvider { get; set; }
         public string BlobProviderData { get; set; }
         public byte[] Buffer { get; set; }
+        public bool IsDeleted { get; set; }
         public long Timestamp { get; set; }
 
         public FileDoc Clone()
@@ -608,10 +610,12 @@ namespace SenseNet.ContentRepository.InMemory
                 Extension = Extension,
                 FileNameWithoutExtension = FileNameWithoutExtension,
                 Size = Size,
+                CreationDate = CreationDate,
                 Staging = Staging,
                 BlobProvider = BlobProvider,
                 BlobProviderData = BlobProviderData,
                 Buffer = Buffer.ToArray(),
+                IsDeleted = IsDeleted,
                 Timestamp = Timestamp
             };
         }

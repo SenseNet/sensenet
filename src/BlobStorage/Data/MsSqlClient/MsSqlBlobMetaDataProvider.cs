@@ -585,7 +585,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
             {
                 if(_waitBetweenCleanupFilesMilliseconds != 0)
-                    await Task.Delay(_waitBetweenCleanupFilesMilliseconds).ConfigureAwait(false);
+                    await Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -60,16 +60,15 @@ namespace SenseNet.IntegrationTests.Platforms
                 Size = file.Size,
                 //Checksum = null,
                 Stream = file.Buffer,
-                //CreationDate = DateTime.MinValue,
+                CreationDate = file.CreationDate,
                 //RowGuid = Guid.Empty,
                 Timestamp = file.Timestamp,
                 Staging = file.Staging,
                 //StagingVersionId = 0,
                 //StagingPropertyTypeId = 0,
-                IsDeleted = false,
+                IsDeleted = file.IsDeleted,
                 BlobProvider = file.BlobProvider,
                 BlobProviderData = file.BlobProviderData,
-                //FileStream = null,
                 ExternalStream = GetExternalData(file),
             };
         }
@@ -117,40 +116,35 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             // $"UPDATE Files SET CreationDate = @CreationDate WHERE FileId = {fileId}";
             var db = ((InMemoryDataProvider)Providers.Instance.DataProvider).DB;
-            var file = db.Files
-                .Where(x => fileId == x.FileId)
-                .Select(CreateFromFileRow)
-                .FirstOrDefault();
+            var file = db.Files.FirstOrDefault(x => fileId == x.FileId);
             if (file != null)
                 file.CreationDate = creationDate;
         }
 
         public IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds)
         {
-            //UNDONE:<?Blob: implement swindler after implementation of CleanupFilesSetDeleteFlagAsync and CleanupFilesSetDeleteFlagImmediatelyAsync
-            throw new NotImplementedException();
-            //return new InMemWaitingBetweenCleanupFilesSwindler(milliseconds);
+            return new InMemWaitingBetweenCleanupFilesSwindler(milliseconds);
         }
-        //private class InMemWaitingBetweenCleanupFilesSwindler : Swindler<int>
-        //{
-        //    private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
-        //    public InMemWaitingBetweenCleanupFilesSwindler(int hack) : base(
-        //        hack,
-        //        () =>
-        //        {
-        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
-        //            var accessor = new ObjectAccessor(metaDataProvider);
-        //            return (int)accessor.GetField(FieldName);
-        //        },
-        //        (value) =>
-        //        {
-        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
-        //            var accessor = new ObjectAccessor(metaDataProvider);
-        //            accessor.SetField(FieldName, value);
-        //        })
-        //    {
-        //    }
-        //}
+        private class InMemWaitingBetweenCleanupFilesSwindler : Swindler<int>
+        {
+            private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
+            public InMemWaitingBetweenCleanupFilesSwindler(int hack) : base(
+                hack,
+                () =>
+                {
+                    var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    return (int)accessor.GetField(FieldName);
+                },
+                (value) =>
+                {
+                    var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    accessor.SetField(FieldName, value);
+                })
+            {
+            }
+        }
 
     }
 }

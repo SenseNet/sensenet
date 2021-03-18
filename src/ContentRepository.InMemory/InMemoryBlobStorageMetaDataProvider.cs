@@ -392,47 +392,62 @@ namespace SenseNet.ContentRepository.InMemory
 
         public virtual STT.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
-            // This method is not supported in this provider because the FileDoc
-            // does not have enough information (IsDeleted & CreationDate).
-
-            //UNDONE:<?Blob: Implement this feature
+            CleanupFilesSetDeleteFlag(false);
             return STT.Task.CompletedTask;
         }
 
         public virtual STT.Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken)
         {
-            // This method is not supported in this provider because the FileDoc
-            // does not have enough information (IsDeleted).
-
-            //UNDONE:<?Blob: Implement this feature
+            CleanupFilesSetDeleteFlag(true);
             return STT.Task.CompletedTask;
         }
 
-        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        private void CleanupFilesSetDeleteFlag(bool immediately)
         {
-            // Delete the orphaned files immediately (see the comment in the CleanupFilesSetDeleteFlagAsync).
-
             var db = DataProvider.DB;
+            var activeFileIds = db.BinaryProperties.Select(b => b.FileId).ToArray();
 
-            var allFileIds = db.BinaryProperties.Select(x => x.FileId).ToArray();
-            var filesIdsToDelete = db.Files
-                .Where(x => !x.Staging && !allFileIds.Contains(x.Id))
-                .Select(x=>x.FileId)
-                .ToArray();
-
-            foreach (var fileId in filesIdsToDelete)
+            var deletable = db.Files.Where(f => !f.Staging &&
+                                                !activeFileIds.Contains(f.FileId));
+            if (!immediately)
             {
-                Thread.Sleep(10); // Simulates the delay of a real database.
-                db.Files.Remove(fileId);
+                var timeLimit = DateTime.UtcNow.AddMinutes(-30.0d);
+                deletable = deletable.Where(f => f.CreationDate < timeLimit);
             }
 
-            // Done: return false because all items are deleted.
-            return STT.Task.FromResult(false);
+            foreach (var item in deletable)
+                item.IsDeleted = true;
         }
 
-        public virtual STT.Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancel)
         {
-            return CleanupFilesAsync(cancellationToken);
+            var db = DataProvider.DB;
+
+            var file = db.Files.FirstOrDefault(x => x.IsDeleted);
+            if (file == null)
+                return STT.Task.FromResult(false);
+            db.Files.Remove(file);
+
+            // delete bytes from the blob storage
+            var provider = BlobStorageBase.GetProvider(file.BlobProvider);
+            var ctx = new BlobStorageContext(provider, file.BlobProviderData)
+            {
+                VersionId = 0, PropertyTypeId = 0, FileId = file.FileId, Length = file.Size
+            };
+            ctx.Provider.DeleteAsync(ctx, cancel).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            return STT.Task.FromResult(true);
+        }
+
+        // Do not increase this value int he production scenario. It is only used in tests.
+        private int _waitBetweenCleanupFilesMilliseconds = 0;
+        public virtual async STT.Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        {
+            while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_waitBetweenCleanupFilesMilliseconds != 0)
+                    await STT.Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
