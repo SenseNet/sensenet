@@ -20,6 +20,8 @@ namespace SenseNet.IntegrationTests.Platforms
     /// </summary>
     public class MsSqlBuiltInBlobStoragePlatform : MsSqlPlatform, IBlobStoragePlatform
     {
+        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
+
         public Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
         public Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
         public bool CanUseBuiltInBlobProvider => true;
@@ -111,7 +113,7 @@ namespace SenseNet.IntegrationTests.Platforms
             if (blobProvider == null)
                 return new byte[0];
 
-            var provider = BlobStorageBase.GetProvider(blobProvider);
+            var provider = BlobProviderFactory.GetProvider(blobProvider);
             var context = new BlobStorageContext(provider, blobProviderData) { Length = size };
             return GetExternalData(context);
         }

@@ -14,6 +14,8 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemBlobStoragePlatform : InMemPlatform, IBlobStoragePlatform
     {
+        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
+
         public Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
         public Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
         public bool CanUseBuiltInBlobProvider => false;
@@ -91,7 +93,7 @@ namespace SenseNet.IntegrationTests.Platforms
             if (blobProvider == null)
                 return new byte[0];
 
-            var provider = BlobStorageBase.GetProvider(blobProvider);
+            var provider = BlobProviderFactory.GetProvider(blobProvider);
             var context = new BlobStorageContext(provider, blobProviderData) { Length = size };
             return GetExternalData(context);
         }
