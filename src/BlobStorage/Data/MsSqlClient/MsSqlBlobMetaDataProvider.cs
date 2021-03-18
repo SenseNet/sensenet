@@ -578,9 +578,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
+        // Do not increase this value int he production scenario. It is only used in tests.
+        private int _waitBetweenCleanupFilesMilliseconds = 0;
         public async Task CleanupAllFilesAsync(CancellationToken cancellationToken)
         {
-            while (await CleanupFilesAsync(cancellationToken)) { }
+            while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if(_waitBetweenCleanupFilesMilliseconds != 0)
+                    await Task.Delay(_waitBetweenCleanupFilesMilliseconds).ConfigureAwait(false);
+            }
         }
     }
 }
