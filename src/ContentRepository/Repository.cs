@@ -63,30 +63,30 @@ namespace SenseNet.ContentRepository
             // legacy behavior: set provider instance defaults
 
             //UNDONE: [DIBLOB] create a helper method for setting default instances?
-            //UNDONE: [DIBLOB] remove setter workaround for circular reference
-            var setFactoryBackReference = false;
+            if (!Providers.Instance.BlobProviders.Any(bp => bp is IBuiltInBlobProvider))
+            {
+                Providers.Instance.BlobProviders.Add(new BuiltInBlobProvider(
+                    Options.Create(DataOptions.GetLegacyConfiguration())));
+            }
+
+            //UNDONE: [DIBLOB] review blob service instance initialization
+            if (Providers.Instance.BlobProviderFactory == null)
+            {
+                Providers.Instance.BlobProviderFactory = new BlobProviderFactory(
+                    Providers.Instance.BlobProviderSelector,
+                    Providers.Instance.BlobProviders);
+            }
+
             if (Providers.Instance.BlobStorage == null)
             {
                 Providers.Instance.BlobStorage =
-                    new Storage.Data.BlobStorage(null, Providers.Instance.BlobMetaDataProvider);
-                setFactoryBackReference = true;
+                    new Storage.Data.BlobStorage(
+                        Providers.Instance.BlobProviders,
+                        Providers.Instance.BlobProviderFactory, 
+                        Providers.Instance.BlobMetaDataProvider);
             }
 
-            if (Providers.Instance.BlobProviderFactory == null)
-            {
-                var builtInBlobProvider = new BuiltInBlobProvider(Providers.Instance.BlobStorage,
-                    DataOptions.GetLegacyConfiguration());
-
-                Providers.Instance.BlobProviderFactory = new BlobProviderFactory(
-                    Providers.Instance.BlobProviderSelector,
-                    Providers.Instance.BlobProviders.Union(new[] {builtInBlobProvider}));
-
-                if (setFactoryBackReference)
-                {
-                    ((BlobStorageBase) Providers.Instance.BlobStorage).ProviderFactory =
-                        Providers.Instance.BlobProviderFactory;
-                }
-            }
+            Providers.Instance.BlobStorage.Initialize();
 
             var initialData = builder.InitialData;
             if (initialData != null)

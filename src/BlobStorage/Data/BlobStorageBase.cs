@@ -15,6 +15,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public interface IBlobStorage
     {
+        void Initialize();
+
         Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
             SnDataContext dataContext);
         Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext);
@@ -141,10 +143,26 @@ namespace SenseNet.ContentRepository.Storage.Data
         //UNDONE: [DIBLOB] hide this property and remove setter workaround for circular reference
         public IBlobProviderFactory ProviderFactory { get; set; }
 
-        protected BlobStorageBase(IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider)
+        private IBlobProvider[] Providers { get; }
+
+        protected BlobStorageBase(IEnumerable<IBlobProvider> providers,
+            IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider)
         {
+            Providers = providers.ToArray();
             DataProvider = metaProvider;
             ProviderFactory = providerFactory;
+        }
+
+        public void Initialize()
+        {
+            // This property injection is a workaround for the service circular reference caused
+            // by the built-in blob provider. It requires a BlobStorage instance to be able to
+            // create RepositoryStream instances.
+            // Ideally blob provider instances should not need a backreference to BlobStorage.
+
+            var builtin = (IBuiltInBlobProvider)Providers.Single(p => p is IBuiltInBlobProvider);
+            if (builtin.BlobStorage == null)
+                builtin.BlobStorage = this;
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable AccessToModifiedClosure
@@ -14,7 +15,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// <summary>
     /// Marker interface for pointing out the special built-in blob provider implementation.
     /// </summary>
-    public interface IBuiltInBlobProvider : IBlobProvider { }
+    public interface IBuiltInBlobProvider : IBlobProvider
+    {
+        IBlobStorage BlobStorage { get; set; }
+    }
 
     /// <summary>
     /// The built-in provider is responsible for saving bytes directly 
@@ -24,12 +28,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
         protected DataOptions DataOptions { get; }
-        private IBlobStorage BlobStorage { get; }
 
-        public BuiltInBlobProvider(IBlobStorage storage, DataOptions options)
+        // This property injection is a workaround for the service circular reference caused
+        // by the built-in blob provider. It requires a BlobStorage instance to be able to
+        // create RepositoryStream instances.
+        // Ideally blob provider instances should not need a backreference to BlobStorage.
+        public IBlobStorage BlobStorage { get; set; }
+
+        public BuiltInBlobProvider(IOptions<DataOptions> options)
         {
-            BlobStorage = storage;
-            DataOptions = options;
+            DataOptions = options?.Value ?? new DataOptions();
         }
 
         /// <inheritdoc />
@@ -125,6 +133,10 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
+            //UNDONE: [DIBLOB] remove null check?
+            if (BlobStorage == null)
+                throw new InvalidOperationException("BlobStorage back reference is not set.");
+
             return new RepositoryStream(context.FileId, context.Length, BlobStorage);
         }
 
@@ -133,6 +145,10 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
+
+            //UNDONE: [DIBLOB] remove null check?
+            if (BlobStorage == null)
+                throw new InvalidOperationException("BlobStorage back reference is not set.");
 
             if (stream is RepositoryStream repoStream)
                 return new RepositoryStream(repoStream.FileId, repoStream.Length, BlobStorage);

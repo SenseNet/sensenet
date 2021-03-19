@@ -1,12 +1,14 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
     public class BlobStorage : BlobStorageBase
     {
-        public BlobStorage(IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider) :
-            base(providerFactory, metaProvider)
+        public BlobStorage(IEnumerable<IBlobProvider> providers,
+            IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider) :
+            base(providers, providerFactory, metaProvider)
         {
         }
 

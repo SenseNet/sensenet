@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -46,9 +47,10 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
         {
+            var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());
+
             //TODO: get services and options from outside
-            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviderFactory,
-                DataOptions.GetLegacyConfiguration());
+            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviderFactory, dataOptions);
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {

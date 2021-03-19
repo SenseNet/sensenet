@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure
@@ -23,10 +24,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public MsSqlBlobMetaDataProvider(
             IBlobProviderFactory blobProviderFactory,
-            DataOptions options)
+            IOptions<DataOptions> options)
         {
             BlobProviderFactory = blobProviderFactory;
-            DataOptions = options;
+            DataOptions = options?.Value ?? new DataOptions();
         }
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */
