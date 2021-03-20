@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -725,6 +726,7 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
+            AssertRawData(dbFile, expectedText);
         }
         private void Assert_Big(DbFile dbFile, string expectedText)
         {
@@ -741,7 +743,27 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
+            AssertRawData(dbFile, expectedText);
         }
+        private void AssertRawData(DbFile dbFile, string expectedText)
+        {
+            byte[][] data = BlobStoragePlatform.GetRawData(dbFile.FileId);
+            var length = data.Select(d=>d.Length).Sum();
+            var buffer = new byte[length];
+            var offset = 0;
+            foreach (var item in data)
+            {
+                Array.Copy(item, 0, buffer, offset, item.Length);
+                offset += item.Length;
+            }
+
+            string actualText;
+            using (var stream = new IO.MemoryStream(buffer))
+                actualText = RepositoryTools.GetStreamString(stream);
+
+            Assert.AreEqual(expectedText, actualText);
+        }
+
 
         private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)
         {

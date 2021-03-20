@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -130,6 +131,29 @@ namespace SenseNet.IntegrationTests.Platforms
                 return null;
             }
         }
+
+        public byte[][] GetRawData(int fileId)
+        {
+            return GetRawDataAsync(fileId).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        private async Task<byte[][]> GetRawDataAsync(int fileId)
+        {
+            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
+                new DataOptions(), CancellationToken.None))
+            {
+                var script = "SELECT [Stream] FROM Files WHERE FileId = @FileId";
+                var bytes = await ctx.ExecuteScalarAsync(script, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@FileId", SqlDbType.Int, fileId)
+                    });
+                }).ConfigureAwait(false);
+
+                return new byte[][] {(byte[])bytes};
+            }
+        }
+
 
         public void UpdateFileCreationDate(int fileId, DateTime creationDate)
         {

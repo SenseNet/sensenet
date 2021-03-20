@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Schema;
 using SenseNet.Configuration;
@@ -14,9 +15,9 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemBlobStoragePlatform : InMemPlatform, IBlobStoragePlatform
     {
-        public Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
-        public Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
-        public bool CanUseBuiltInBlobProvider => false;
+        public virtual Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
+        public virtual Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
+        public virtual bool CanUseBuiltInBlobProvider => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
@@ -110,6 +111,24 @@ namespace SenseNet.IntegrationTests.Platforms
             {
                 return null;
             }
+        }
+
+        public byte[][] GetRawData(int fileId)
+        {
+            var dataProvider = (InMemoryDataProvider)Providers.Instance.DataProvider;
+            var db = dataProvider.DB;
+            var file = db.Files.Single(f => f.FileId == fileId);
+
+            return GetRawData(file.BlobProvider, file.BlobProviderData);
+        }
+        protected virtual byte[][] GetRawData(string blobProvider, string blobProviderData)
+        {
+            var provider = (InMemoryBlobProvider)BlobStorageBase.GetProvider(blobProvider);
+            var providerAcc = new ObjectAccessor(provider);
+            var providerData = (InMemoryBlobProviderData)provider.ParseData(blobProviderData);
+
+            var data = (Dictionary<Guid, byte[]>)providerAcc.GetField("_blobStorage");
+            return new[] { data[providerData.BlobId] };
         }
 
         public void UpdateFileCreationDate(int fileId, DateTime creationDate)

@@ -9,7 +9,7 @@ namespace SenseNet.IntegrationTests.Common
 {
     internal class LocalDiskChunkBlobProvider : IBlobProvider
     {
-        public static int ChunkByteSize { get;set; } = 10;
+        public static int ChunkSizeInBytes { get;set; } = 10;
 
         internal class LocalDiskChunkBlobProviderData
         {
@@ -23,7 +23,7 @@ namespace SenseNet.IntegrationTests.Common
 
         public LocalDiskChunkBlobProvider()
         {
-            _rootDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data\\" + GetType().Name);
+            _rootDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? "C:\\", "App_Data\\" + GetType().Name);
             if (Directory.Exists(_rootDirectory))
             {
                 foreach (var subdir in Directory.GetDirectories(_rootDirectory))
@@ -46,7 +46,7 @@ namespace SenseNet.IntegrationTests.Common
         {
             var id = Guid.NewGuid();
             CreateFolder(id);
-            context.BlobProviderData = new LocalDiskChunkBlobProviderData { Id = id, ChunkSize = ChunkByteSize };
+            context.BlobProviderData = new LocalDiskChunkBlobProviderData { Id = id, ChunkSize = ChunkSizeInBytes };
             return Task.CompletedTask;
         }
 
@@ -80,7 +80,7 @@ namespace SenseNet.IntegrationTests.Common
             return GetStreamForRead(context);
         }
 
-        public async System.Threading.Tasks.Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer,
+        public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer,
             CancellationToken cancellationToken)
         {
             var providerData = (LocalDiskChunkBlobProviderData)context.BlobProviderData;
@@ -138,7 +138,7 @@ namespace SenseNet.IntegrationTests.Common
             using (var stream = new FileStream(GetFilePath(id, chunkIndex), FileMode.OpenOrCreate))
                 stream.Write(bytes, 0, bytes.Length);
         }
-        public static async System.Threading.Tasks.Task WriteChunkAsync(Guid id, int chunkIndex, byte[] bytes,
+        public static async Task WriteChunkAsync(Guid id, int chunkIndex, byte[] bytes,
             CancellationToken cancellationToken)
         {
             using (var stream = new FileStream(GetFilePath(id, chunkIndex), FileMode.OpenOrCreate))

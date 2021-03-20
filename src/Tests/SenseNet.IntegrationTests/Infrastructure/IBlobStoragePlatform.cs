@@ -20,6 +20,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         byte[] GetExternalData(string blobProvider, string blobProviderData, long size);
         //UNDONE:<?Blob: Platform independent code
         byte[] GetExternalData(BlobStorageContext context);
+        byte[][] GetRawData(int fileId);
 
         void UpdateFileCreationDate(int fileId, DateTime creationDate);
         IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds);
