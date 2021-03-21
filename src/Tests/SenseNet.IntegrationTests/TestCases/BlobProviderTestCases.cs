@@ -726,7 +726,7 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
-            AssertRawData(dbFile, expectedText);
+            AssertRawData(dbFile, BlobStoragePlatform.UseChunk, expectedText);
         }
         private void Assert_Big(DbFile dbFile, string expectedText)
         {
@@ -743,11 +743,19 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
-            AssertRawData(dbFile, expectedText);
+            AssertRawData(dbFile, BlobStoragePlatform.UseChunk, expectedText);
         }
-        private void AssertRawData(DbFile dbFile, string expectedText)
+        private void AssertRawData(DbFile dbFile, bool useChunk, string expectedText)
         {
             byte[][] data = BlobStoragePlatform.GetRawData(dbFile.FileId);
+
+            if (dbFile.Size == 0L)
+                Assert.AreEqual(0, data.Length);
+            else if (useChunk)
+                Assert.AreNotEqual(1, data.Length);
+            else
+                Assert.AreEqual(1, data.Length);
+
             var length = data.Select(d=>d.Length).Sum();
             var buffer = new byte[length];
             var offset = 0;

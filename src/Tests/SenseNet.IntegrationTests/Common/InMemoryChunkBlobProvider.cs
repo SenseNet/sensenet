@@ -74,12 +74,6 @@ namespace SenseNet.IntegrationTests.Common
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
             var providerData = (InMemoryChunkBlobProviderData)context.BlobProviderData;
-
-            var chunkCount = context.Length / ChunkSizeInBytes;
-            if (context.Length % ChunkSizeInBytes > 0)
-                chunkCount++;
-            _blobStorage[providerData.Id] = new byte[chunkCount][];
-
             return new InMemoryChunkWriterStream(providerData, context.Length, _blobStorage[providerData.Id]);
         }
 

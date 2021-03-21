@@ -24,6 +24,7 @@ namespace SenseNet.IntegrationTests.Platforms
         public Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
         public Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
         public bool CanUseBuiltInBlobProvider => true;
+        public bool UseChunk => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {

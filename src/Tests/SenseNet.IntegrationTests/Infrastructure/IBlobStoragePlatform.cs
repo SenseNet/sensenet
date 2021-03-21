@@ -9,6 +9,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         Type ExpectedExternalBlobProviderType { get; }
         Type ExpectedBlobProviderDataType { get; }
         bool CanUseBuiltInBlobProvider { get; }
+        bool UseChunk { get; }
 
         DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary");
         DbFile LoadDbFile(int fileId);

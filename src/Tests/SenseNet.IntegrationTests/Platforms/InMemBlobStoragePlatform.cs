@@ -18,6 +18,7 @@ namespace SenseNet.IntegrationTests.Platforms
         public virtual Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
         public virtual Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
         public virtual bool CanUseBuiltInBlobProvider => false;
+        public virtual bool UseChunk => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {

@@ -15,6 +15,7 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         public override Type ExpectedExternalBlobProviderType => typeof(InMemoryChunkBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(InMemoryChunkBlobProviderData);
+        public override bool UseChunk => true;
 
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
