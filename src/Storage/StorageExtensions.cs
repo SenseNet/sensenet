@@ -12,6 +12,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         public static IServiceCollection AddSenseNetBlobStorage(this IServiceCollection services)
         {
+            services.AddSingleton<IBlobProviderStore, BlobProviderStore>();
             services.AddSingleton<IBlobStorage, BlobStorage>();
             services.AddSingleton<IExternalBlobProviderFactory, NullExternalBlobProviderFactory>();
             

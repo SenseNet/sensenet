@@ -195,7 +195,7 @@ namespace SenseNet.Configuration
         }
 
         //UNDONE: [DIBLOB] synchronize the registered instance in the DI and this one
-        public IBlobProviderStore BlobProviders { get; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
+        public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
         private Lazy<ISearchEngine> _searchEngine =
