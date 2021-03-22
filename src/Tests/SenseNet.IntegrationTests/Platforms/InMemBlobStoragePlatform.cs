@@ -129,7 +129,11 @@ namespace SenseNet.IntegrationTests.Platforms
             var providerData = (InMemoryBlobProviderData)provider.ParseData(blobProviderData);
 
             var data = (Dictionary<Guid, byte[]>)providerAcc.GetField("_blobStorage");
-            return new[] { data[providerData.BlobId] };
+            var buffer = data[providerData.BlobId];
+
+            if (buffer.Length == 0)
+                return new byte[0][];
+            return new[] { buffer };
         }
 
         public void UpdateFileCreationDate(int fileId, DateTime creationDate)
