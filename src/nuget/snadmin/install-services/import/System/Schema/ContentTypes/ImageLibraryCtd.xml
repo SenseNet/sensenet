@@ -1,7 +1,7 @@
 ﻿<ContentType name="ImageLibrary" parentType="Library" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-ImageLibrary,DisplayName</DisplayName>
   <Description>$Ctd-ImageLibrary,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>ImageLibrary</Icon>
   <AllowedChildTypes>
     Folder,Image
   </AllowedChildTypes>

@@ -2,7 +2,7 @@
 <ContentType name="Task" parentType="ListItem" handler="SenseNet.ContentRepository.Task" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-Task,DisplayName</DisplayName>
   <Description>$Ctd-Task,Description</Description>
-  <Icon>FormItem</Icon>
+  <Icon>Task</Icon>
   <Fields>
     <Field name="Name" type="ShortText">
       <Configuration>
