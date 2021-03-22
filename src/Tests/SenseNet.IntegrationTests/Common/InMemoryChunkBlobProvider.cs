@@ -66,10 +66,7 @@ namespace SenseNet.IntegrationTests.Common
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
             var providerData = (InMemoryChunkBlobProviderData)context.BlobProviderData;
-            if (context.Length == 0)
-                _blobStorage[providerData.Id] = new byte[0][];
-            var data = _blobStorage[providerData.Id];
-            return new InMemoryChunkWriterStream(providerData, context.Length, data);
+            return new InMemoryChunkWriterStream(providerData, context.Length, _blobStorage[providerData.Id]);
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
