@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.InMemory
         public InMemoryDataProvider DataProvider { get; set; }
 
         //UNDONE: [DIBLOB] get these services through the constructor later
-        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
+        private IBlobProviderStore BlobProviders => Providers.Instance.BlobProviders;
 
         public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
         {
@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerData = fileDoc.BlobProviderData;
 
-            var provider = BlobProviderFactory.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
 
             var result = new BlobStorageContext(provider, providerData)
             {
@@ -272,7 +272,7 @@ namespace SenseNet.ContentRepository.InMemory
 
             var rawData = fileDoc.Buffer;
 
-            var provider = BlobProviderFactory.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,
@@ -316,7 +316,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerTextData = fileDoc.BlobProviderData;
 
-            var provider = BlobProviderFactory.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,

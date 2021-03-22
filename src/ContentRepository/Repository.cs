@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,10 +7,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
@@ -62,32 +58,8 @@ namespace SenseNet.ContentRepository
         {
             // legacy behavior: set provider instance defaults
 
-            //UNDONE: [DIBLOB] create a helper method for setting default instances?
-            if (!Providers.Instance.BlobProviders.Any(bp => bp is IBuiltInBlobProvider))
-            {
-                Providers.Instance.BlobProviders.Add(new BuiltInBlobProvider(
-                    Options.Create(DataOptions.GetLegacyConfiguration())));
-            }
-
-            //UNDONE: [DIBLOB] review blob service instance initialization
-            if (Providers.Instance.BlobProviderFactory == null)
-            {
-                Providers.Instance.BlobProviderFactory = new BlobProviderFactory(
-                    Providers.Instance.BlobProviderSelector,
-                    Providers.Instance.BlobProviders);
-            }
-
-            if (Providers.Instance.BlobStorage == null)
-            {
-                Providers.Instance.BlobStorage =
-                    new Storage.Data.BlobStorage(
-                        Providers.Instance.BlobProviders,
-                        Providers.Instance.BlobProviderFactory, 
-                        Providers.Instance.BlobMetaDataProvider);
-            }
-
-            Providers.Instance.BlobStorage.Initialize();
-
+            Providers.Instance.InitializeBlobProviders();
+            
             var initialData = builder.InitialData;
             if (initialData != null)
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)

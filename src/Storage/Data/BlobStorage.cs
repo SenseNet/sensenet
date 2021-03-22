@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE: [DIBLOB] merge BlobStorage and BlobStorageBase classes
     public class BlobStorage : BlobStorageBase
     {
-        public BlobStorage(IEnumerable<IBlobProvider> providers,
-            IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider) :
-            base(providers, providerFactory, metaProvider)
+        public BlobStorage(IBlobProviderStore providers, IBlobProviderSelector selector,
+            IBlobStorageMetaDataProvider metaProvider) :
+            base(providers, selector, metaProvider)
         {
         }
 

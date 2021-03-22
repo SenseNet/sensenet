@@ -15,6 +15,7 @@ using SenseNet.Tools;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -152,18 +153,6 @@ namespace SenseNet.Configuration
             new BuiltInBlobProviderSelector(null);
         #endregion
 
-        #region IBlobProviderFactory
-
-        //UNDONE: [DIBLOB] register the provider factory as a service and set this instance
-        // REMOVE THIS PROPERTY LATER
-
-        /// <summary>
-        /// Legacy property for old APIs.
-        /// </summary>
-        public IBlobProviderFactory BlobProviderFactory { get; set; }
-
-        #endregion
-
         #region BlobStorage
 
         //UNDONE: [DIBLOB] register the blob storage as a service and set this instance
@@ -179,13 +168,34 @@ namespace SenseNet.Configuration
         public void ResetBlobProviders()
         {
             BlobStorage = null;
-            BlobProviderFactory = null;
             BlobProviderSelector = new BuiltInBlobProviderSelector(null);
             BlobMetaDataProvider = null;
             BlobProviders.Clear();
         }
 
-        public List<IBlobProvider> BlobProviders { get; } = new List<IBlobProvider>();
+        public void InitializeBlobProviders()
+        {
+            if (!Providers.Instance.BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
+            {
+                Providers.Instance.BlobProviders.AddProvider(new BuiltInBlobProvider(
+                    Options.Create(DataOptions.GetLegacyConfiguration())));
+            }
+
+            //UNDONE: [DIBLOB] review blob service instance initialization
+            if (Providers.Instance.BlobStorage == null)
+            {
+                Providers.Instance.BlobStorage =
+                    new ContentRepository.Storage.Data.BlobStorage(
+                        Providers.Instance.BlobProviders,
+                        Providers.Instance.BlobProviderSelector,
+                        Providers.Instance.BlobMetaDataProvider);
+            }
+
+            Providers.Instance.BlobStorage.Initialize();
+        }
+
+        //UNDONE: [DIBLOB] synchronize the registered instance in the DI and this one
+        public IBlobProviderStore BlobProviders { get; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
         private Lazy<ISearchEngine> _searchEngine =

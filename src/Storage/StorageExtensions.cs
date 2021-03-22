@@ -16,16 +16,8 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IExternalBlobProviderFactory, NullExternalBlobProviderFactory>();
             
             services.AddSenseNetBlobProvider<BuiltInBlobProvider>();
-            services.AddSingleton(provider =>
-            {
-                // register the built-in provider: find the already registered instance
-                return (IBuiltInBlobProvider) provider.GetServices<IBlobProvider>()
-                    .FirstOrDefault(p => p is BuiltInBlobProvider);
-            });
-
             services.AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>();
-            services.AddSingleton<IBlobProviderFactory, BlobProviderFactory>();
-
+            
             // default implementation is MS SQL
             services.AddSingleton<IBlobStorageMetaDataProvider, MsSqlBlobMetaDataProvider>();
 

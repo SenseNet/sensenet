@@ -50,7 +50,7 @@ namespace SenseNet.IntegrationTests.Platforms
             var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());
 
             //TODO: get services and options from outside
-            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviderFactory, dataOptions);
+            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders, dataOptions);
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {

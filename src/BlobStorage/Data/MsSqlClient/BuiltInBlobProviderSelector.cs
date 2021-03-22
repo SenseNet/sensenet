@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SenseNet.Configuration;
+﻿using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
@@ -13,26 +12,30 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
+        private IExternalBlobProviderFactory ExternalFactory { get; }
+
+        private IBlobProvider _externalProvider;
+
         /// <summary>
         /// A custom blob provider instance that will be used when the file size exceeds a certain configured value.
         /// </summary>
-        internal IBlobProvider ExternalBlobProvider { get; }
+        private IBlobProvider ExternalBlobProvider =>
+            _externalProvider ?? (_externalProvider = ExternalFactory?.GetBlobProvider());
 
         /// <summary>
         /// Initializes an instance of the BuiltInBlobProviderSelector
         /// </summary>
         public BuiltInBlobProviderSelector(IExternalBlobProviderFactory externalBlobProviderFactory)
         {
-            ExternalBlobProvider = externalBlobProviderFactory?.GetBlobProvider();
+            ExternalFactory = externalBlobProviderFactory;
         }
 
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        /// <param name="providers">Available blob providers (currently not used).</param>
         /// <param name="builtIn">The built-in provider to be used as a fallback.</param>
-        public IBlobProvider GetProvider(long fullSize, Dictionary<string, IBlobProvider> providers, IBlobProvider builtIn)
+        public IBlobProvider GetProvider(long fullSize, IBlobProvider builtIn)
         {
             //UNDONE: [DIBLOB] [CIRCLE] pin external provider here lazily to remove service reference
 

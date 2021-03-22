@@ -99,6 +99,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         Task CopyFromStreamAsync(int versionId, string token, Stream input,
             CancellationToken cancellationToken);
 
+        IBlobProvider GetProvider(long streamSize);
+        IBlobProvider GetProvider(string providerName);
+
         /*================================================================== Maintenance*/
 
         Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken);
@@ -139,18 +142,16 @@ namespace SenseNet.ContentRepository.Storage.Data
     public abstract class BlobStorageBase : IBlobStorage
     {
         private IBlobStorageMetaDataProvider DataProvider { get; }
-
-        //UNDONE: [DIBLOB] hide this property and remove setter workaround for circular reference
-        public IBlobProviderFactory ProviderFactory { get; set; }
-
-        private IBlobProvider[] Providers { get; }
-
-        protected BlobStorageBase(IEnumerable<IBlobProvider> providers,
-            IBlobProviderFactory providerFactory, IBlobStorageMetaDataProvider metaProvider)
+        private IBlobProviderSelector ProviderSelector { get; }
+        private IBlobProviderStore Providers { get; }
+        
+        protected BlobStorageBase(IBlobProviderStore providers,
+            IBlobProviderSelector selector,
+            IBlobStorageMetaDataProvider metaProvider)
         {
-            Providers = providers.ToArray();
+            ProviderSelector = selector;
+            Providers = providers;
             DataProvider = metaProvider;
-            ProviderFactory = providerFactory;
         }
 
         public void Initialize()
@@ -160,7 +161,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             // create RepositoryStream instances.
             // Ideally blob provider instances should not need a backreference to BlobStorage.
 
-            var builtin = (IBuiltInBlobProvider)Providers.Single(p => p is IBuiltInBlobProvider);
+            var builtin = Providers.BuiltInBlobProvider;
             if (builtin.BlobStorage == null)
                 builtin.BlobStorage = this;
         }
@@ -177,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
-            var blobProvider = ProviderFactory.GetProvider(value.Size);
+            var blobProvider = ProviderSelector.GetProvider(value.Size, Providers.BuiltInBlobProvider);
             if (value.FileId > 0 && value.Stream == null)
                 return DataProvider.InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
             else
@@ -192,7 +193,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public async Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
-            var blobProvider = ProviderFactory.GetProvider(value.Size);
+            var blobProvider = ProviderSelector.GetProvider(value.Size, Providers.BuiltInBlobProvider);
             await DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
             dataContext.NeedToCleanupFiles = true;
         }
@@ -352,7 +353,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
             CancellationToken cancellationToken)
         {
-            var blobProvider = ProviderFactory.GetProvider(fullSize);
+            var blobProvider = ProviderSelector.GetProvider(fullSize, Providers.BuiltInBlobProvider);
             return DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,
                 cancellationToken);
         }
@@ -554,7 +555,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /*==================================================================== Provider */
-
+        
         /// <summary>
         /// Gets an instance of the built-in provider.
         /// </summary>
@@ -565,19 +566,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        [Obsolete("Get providers through the IBlobProviderFactory service instead.", true)]
         public IBlobProvider GetProvider(long fullSize)
         {
-            throw new InvalidOperationException("Get providers through the IBlobProviderFactory service instead.");
+            return ProviderSelector.GetProvider(fullSize, Providers.BuiltInBlobProvider);
         }
 
         /// <summary>
         /// Gets the blob provider instance with the specified name. Default is the built-in provider.
         /// </summary>
-        [Obsolete("Get providers through the IBlobProviderFactory service instead.", true)]
         public IBlobProvider GetProvider(string providerName)
         {
-            throw new InvalidOperationException("Get providers through the IBlobProviderFactory service instead.");
+            return Providers.GetProvider(providerName);
         }
     }
 }

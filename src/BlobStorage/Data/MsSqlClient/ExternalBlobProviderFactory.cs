@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
@@ -8,7 +7,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public interface IExternalBlobProviderFactory
     {
-        //UNDONE: [DIBLOB] [CIRCLE] remove IBlobProvider reference --> GetBlobProviderType
         IBlobProvider GetBlobProvider();
     }
 
@@ -27,11 +25,19 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// <typeparam name="T">The main blob provider type.</typeparam>
     public class ExternalBlobProviderFactory<T> : IExternalBlobProviderFactory where T : IBlobProvider
     {
-        private readonly IBlobProvider _provider;
-        public ExternalBlobProviderFactory(IEnumerable<IBlobProvider> providers)
+        private IBlobProvider _provider;
+        private readonly IBlobProviderStore _providers;
+        
+        public ExternalBlobProviderFactory(IBlobProviderStore providers)
         {
-            _provider = providers?.FirstOrDefault(p => p.GetType().FullName == typeof(T).FullName);
+            _providers = providers;
         }
-        public IBlobProvider GetBlobProvider() { return _provider; }
+
+        public IBlobProvider GetBlobProvider()
+        {
+            //UNDONE [DIBLOB] compare provider types or type full names?
+            return _provider ?? (_provider =
+                       _providers?.Values.FirstOrDefault(p => p.GetType().FullName == typeof(T).FullName));
+        }
     }
 }

@@ -86,7 +86,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder AddBlobProvider(this IRepositoryBuilder repositoryBuilder,
             IBlobProvider provider)
         {
-            Configuration.Providers.Instance.BlobProviders.Add(provider);
+            Configuration.Providers.Instance.BlobProviders.AddProvider(provider);
             return repositoryBuilder;
         }
 

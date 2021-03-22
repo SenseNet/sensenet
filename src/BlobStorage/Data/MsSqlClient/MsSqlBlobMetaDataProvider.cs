@@ -20,13 +20,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
         private DataOptions DataOptions { get; }
-        private IBlobProviderFactory BlobProviderFactory { get; }
+        private IBlobProviderStore Providers { get; }
 
-        public MsSqlBlobMetaDataProvider(
-            IBlobProviderFactory blobProviderFactory,
-            IOptions<DataOptions> options)
+        public MsSqlBlobMetaDataProvider(IBlobProviderStore providers, IOptions<DataOptions> options)
         {
-            BlobProviderFactory = blobProviderFactory;
+            Providers = providers;
             DataOptions = options?.Value ?? new DataOptions();
         }
 
@@ -75,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     var length = reader.GetSafeInt64(0);
                     var providerName = reader.GetSafeString(1);
                     var providerData = reader.GetSafeString(2);
-                    var provider = BlobProviderFactory.GetProvider(providerName);
+                    var provider = Providers.GetProvider(providerName);
 
                     return new BlobStorageContext(provider, providerData)
                     {
@@ -321,7 +319,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 var fileId = reader.GetInt32("FileId");
                 var providerName = reader.GetSafeString("BlobProvider");
                 var providerTextData = reader.GetSafeString("BlobProviderData");
-                var provider = BlobProviderFactory.GetProvider(providerName);
+                var provider = Providers.GetProvider(providerName);
                 var context = new BlobStorageContext(provider, providerTextData)
                 {
                     VersionId = versionId,
@@ -392,7 +390,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                 byte[] rawData = null;
 
-                var provider = BlobProviderFactory.GetProvider(providerName);
+                var provider = Providers.GetProvider(providerName);
                 var context = new BlobStorageContext(provider, providerTextData)
                 {
                     VersionId = versionId,
@@ -572,7 +570,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         }
 
                         // delete bytes from the blob storage
-                        var provider = BlobProviderFactory.GetProvider(providerName);
+                        var provider = Providers.GetProvider(providerName);
                         var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
                         await ctx.Provider.DeleteAsync(ctx, cancel).ConfigureAwait(false);

@@ -105,7 +105,6 @@ namespace SenseNet.Tests.Core.Implementations
         private static void EditFileStream(FileDoc fileRecord, Action<XmlDocument> action)
         {
             var blobStorage = Providers.Instance.BlobStorage;
-            var blobProviderFactory = Providers.Instance.BlobProviderFactory;
             var ctx = blobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None)
                 .GetAwaiter().GetResult();
             var blobProvider = ctx.Provider;
@@ -118,7 +117,7 @@ namespace SenseNet.Tests.Core.Implementations
 
             var ctdString = gcXmlDoc.OuterXml;
 
-            var blobProvider2 = blobProviderFactory.GetProvider(ctdString.Length);
+            var blobProvider2 = blobStorage.GetProvider(ctdString.Length);
             var ctx2 = new BlobStorageContext(blobProvider)
             {
                 VersionId = ctx.VersionId,

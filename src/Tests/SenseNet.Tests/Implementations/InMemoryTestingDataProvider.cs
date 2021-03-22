@@ -30,7 +30,6 @@ namespace SenseNet.Tests.Implementations
 
         //UNDONE: [DIBLOB] get these services through the constructor later
         private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
-        private static IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
 
         public void InitializeForTests()
         {
@@ -120,7 +119,7 @@ namespace SenseNet.Tests.Implementations
 
             var ctdString = gcXmlDoc.OuterXml;
 
-            var blobProvider2 = BlobProviderFactory.GetProvider(ctdString.Length);
+            var blobProvider2 = BlobStorage.GetProvider(ctdString.Length);
             var ctx2 = new BlobStorageContext(blobProvider)
             {
                 VersionId = ctx.VersionId,

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -14,9 +15,10 @@ namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryBlobProviderSelector : IBlobProviderSelector
     {
-        public IBlobProvider GetProvider(long fullSize, Dictionary<string, IBlobProvider> providers, IBlobProvider builtIn)
+        public IBlobProvider GetProvider(long fullSize, IBlobProvider builtIn)
         {
-            return providers[typeof(InMemoryBlobProvider).FullName];
+            //UNDONE: [DIREF] get provider store service through the constructor
+            return Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
         }
     }
 

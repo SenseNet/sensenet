@@ -22,6 +22,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
     {
         public RepositoryBuilder CreateRepositoryBuilder()
         {
+            Providers.Instance.ResetBlobProviders();
+
             var builder = new RepositoryBuilder();
 
             OnBeforeGettingRepositoryBuilder(builder);

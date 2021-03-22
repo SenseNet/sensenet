@@ -29,7 +29,6 @@ namespace SenseNet.ContentRepository.InMemory
         public InMemoryDataBase DB { get; } = new InMemoryDataBase();
 
         //UNDONE: [DIBLOB] get these services through the constructor later
-        private IBlobProviderFactory BlobProviderFactory => Providers.Instance.BlobProviderFactory;
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         
         /* =============================================================================================== Nodes */
@@ -1749,7 +1748,7 @@ namespace SenseNet.ContentRepository.InMemory
                                                  && blobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                     {
                         buffer = data.GetBlobBytes(blobProviderData, propertyType.Name);
-                        var blobProvider = BlobProviderFactory.GetProvider(buffer.Length);
+                        var blobProvider = BlobStorage.GetProvider(buffer.Length);
                         var blobStorageContext = new BlobStorageContext(blobProvider)
                         {
                             FileId = binProp.FileId,
