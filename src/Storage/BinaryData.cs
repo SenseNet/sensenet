@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage
         // ReSharper disable once InconsistentNaming
         private BinaryDataValue __privateValue;
 
-        //UNDONE: [DIBLOB] get this service through the constructor later
+        //TODO: [DIBLOB] get this service through the constructor later
         private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         // =============================================== Accessor Interface

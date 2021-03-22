@@ -37,8 +37,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="builtIn">The built-in provider to be used as a fallback.</param>
         public IBlobProvider GetProvider(long fullSize, IBlobProvider builtIn)
         {
-            //UNDONE: [DIBLOB] [CIRCLE] pin external provider here lazily to remove service reference
-
             // The default algorithm chooses the blob provider based on binary size: below a limit, we 
             // save files to the db, above we use the configured external provider (if there is any).
             if (fullSize < BlobStorage.MinimumSizeForBlobProviderInBytes)

@@ -20,7 +20,7 @@ namespace SenseNet.IntegrationTests.Platforms
     /// </summary>
     public class MsSqlBuiltInBlobStoragePlatform : MsSqlPlatform, IBlobStoragePlatform
     {
-        //UNDONE: [DIREF] get blob service through the constructor
+        //TODO: [DIREF] get blob service through the constructor
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         public Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);

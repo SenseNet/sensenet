@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
-        //UNDONE: [DIREF] get options from DI through constructor
+        //TODO: [DIREF] get options from DI through constructor
         private DataOptions DataOptions { get; } = DataOptions.GetLegacyConfiguration();
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE

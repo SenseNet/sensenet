@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         public BlobStorageClient() : base(null, null, null)
         {
-            //UNDONE: [DIBLOB] how to get providers?
+            //UNDONE: [DIBLOB] how do we use BlobStorageClient?
             // How do we use this class? How will we get the meta provider and the selector here?
             // Should we simply get them through the constructor?
             // Can we use the built-in classes as defaults?

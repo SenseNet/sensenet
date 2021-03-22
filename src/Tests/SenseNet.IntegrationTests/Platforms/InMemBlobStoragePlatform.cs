@@ -14,7 +14,7 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemBlobStoragePlatform : InMemPlatform, IBlobStoragePlatform
     {
-        //UNDONE: [DIREF] get blob service through the constructor
+        //TODO: [DIREF] get blob service through the constructor
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         public Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);

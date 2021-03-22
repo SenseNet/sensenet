@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
+namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
     /// Internal interface for aiding the built-in blob provider selector class.

@@ -28,7 +28,7 @@ namespace SenseNet.Tests.Implementations
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB => ((InMemoryDataProvider)MainProvider).DB;
 
-        //UNDONE: [DIBLOB] get these services through the constructor later
+        //TODO: [DIBLOB] get these services through the constructor later
         private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         public void InitializeForTests()

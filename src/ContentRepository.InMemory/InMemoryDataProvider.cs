@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.InMemory
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB { get; } = new InMemoryDataBase();
 
-        //UNDONE: [DIBLOB] get these services through the constructor later
+        //TODO: [DIBLOB] get these services through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         
         /* =============================================================================================== Nodes */

@@ -492,7 +492,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
             if (binaryCacheEntity == null)
             {
-                //UNDONE: [DIBLOB] get the storage service through the constructor later
+                //TODO: [DIBLOB] get the storage service through the constructor later
 
                 // Not in cache, load it from the database
                 binaryCacheEntity = Providers.Instance.BlobStorage.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, CancellationToken.None)

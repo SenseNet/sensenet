@@ -67,7 +67,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private IBlobStorage BlobStorage { get; }
 
-        //UNDONE: [DIBLOB] is this new parameter order OK?
         public RepositoryStream(int fileId, long size, IBlobStorage storage, byte[] binary = null)
         {
             Length = size;

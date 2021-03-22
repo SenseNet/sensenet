@@ -5,14 +5,9 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public interface IBlobProviderStore : IDictionary<string, IBlobProvider>
-    {
-        IBuiltInBlobProvider BuiltInBlobProvider { get; }
-        void AddProvider(IBlobProvider provider);
-        IBlobProvider GetProvider(string providerName);
-    }
-
-    //UNDONE: [DIBLOB] add comment about provider store
+    /// <summary>
+    /// <inheritdoc cref="IBlobProviderStore"/>
+    /// </summary>
     public class BlobProviderStore : Dictionary<string, IBlobProvider>, IBlobProviderStore
     {
         private IBuiltInBlobProvider _builtInProvider;

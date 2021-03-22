@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public IBlobProvider GetProvider(long fullSize, IBlobProvider builtIn)
         {
-            //UNDONE: [DIREF] get provider store service through the constructor
+            //TODO: [DIREF] get provider store service through the constructor
             return Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
         }
     }

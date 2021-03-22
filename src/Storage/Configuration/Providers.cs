@@ -143,21 +143,20 @@ namespace SenseNet.Configuration
         #endregion
 
         #region IBlobStorageMetaDataProvider
-        //UNDONE: [DIBLOB] set provider above (default: MsSqlBlobMetaDataProvider)
+
         public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider { get; set; }
+
         #endregion
 
         #region IBlobProviderSelector
-        //UNDONE: [DIBLOB] set provider above (default: BuiltInBlobProviderSelector)
+
         public virtual IBlobProviderSelector BlobProviderSelector { get; set; } = 
             new BuiltInBlobProviderSelector(null);
+
         #endregion
 
         #region BlobStorage
-
-        //UNDONE: [DIBLOB] register the blob storage as a service and set this instance
-        // REMOVE THIS PROPERTY LATER
-
+        
         /// <summary>
         /// Legacy property for old APIs.
         /// </summary>

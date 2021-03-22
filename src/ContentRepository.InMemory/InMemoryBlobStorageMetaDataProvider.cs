@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public InMemoryDataProvider DataProvider { get; set; }
 
-        //UNDONE: [DIBLOB] get these services through the constructor later
+        //TODO: [DIBLOB] get these services through the constructor later
         private IBlobProviderStore BlobProviders => Providers.Instance.BlobProviders;
 
         public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
