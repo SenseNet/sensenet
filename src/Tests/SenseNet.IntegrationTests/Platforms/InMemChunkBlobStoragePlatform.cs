@@ -19,7 +19,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
-            return new InMemoryChunkBlobProviderSelector();
+            return new TestBlobProviderSelector(typeof(InMemoryChunkBlobProvider), false);
         }
 
         protected override byte[][] GetRawData(string blobProvider, string blobProviderData)

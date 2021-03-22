@@ -9,14 +9,6 @@ using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.IntegrationTests.Common
 {
-    public class InMemoryChunkBlobProviderSelector : IBlobProviderSelector
-    {
-        public IBlobProvider GetProvider(long fullSize, Dictionary<string, IBlobProvider> providers, IBlobProvider builtIn)
-        {
-            return providers[typeof(InMemoryChunkBlobProvider).FullName];
-        }
-    }
-
     public class InMemoryChunkBlobProviderData
     {
         public Guid Id { get; set; }
