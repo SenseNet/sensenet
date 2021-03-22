@@ -751,7 +751,9 @@ namespace SenseNet.IntegrationTests.TestCases
 
             if (dbFile.Size == 0L)
                 Assert.AreEqual(0, data.Length);
-            else if (useChunk)
+            else if (useChunk && dbFile.BlobProvider == null)
+                Assert.AreEqual(1, data.Length);
+            else if (useChunk && dbFile.BlobProvider != null)
                 Assert.AreNotEqual(1, data.Length);
             else
                 Assert.AreEqual(1, data.Length);

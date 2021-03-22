@@ -9,7 +9,7 @@ namespace SenseNet.IntegrationTests.Common
 {
     internal class LocalDiskChunkBlobProvider : IBlobProvider
     {
-        public static int ChunkSizeInBytes { get;set; } = 10;
+        public int ChunkSizeInBytes { get;set; } = 10;
 
         internal class LocalDiskChunkBlobProviderData
         {
@@ -19,7 +19,7 @@ namespace SenseNet.IntegrationTests.Common
 
         }
 
-        private static string _rootDirectory;
+        private readonly string _rootDirectory;
 
         public LocalDiskChunkBlobProvider()
         {
@@ -69,7 +69,7 @@ namespace SenseNet.IntegrationTests.Common
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
             var providerData = (LocalDiskChunkBlobProviderData)context.BlobProviderData;
-            return new FileSystemChunkWriterStream(providerData, context.Length);
+            return new FileSystemChunkWriterStream(this, providerData, context.Length);
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
@@ -123,29 +123,29 @@ namespace SenseNet.IntegrationTests.Common
 
         /*====================================================================================================*/
 
-        private static string GetDirectoryPath(Guid id)
+        private string GetDirectoryPath(Guid id)
         {
             return Path.Combine(_rootDirectory, id.ToString());
         }
 
-        private static string GetFilePath(Guid id, int chunkIndex)
+        private string GetFilePath(Guid id, int chunkIndex)
         {
             return Path.Combine(GetDirectoryPath(id), chunkIndex.ToString());
         }
 
-        public static void WriteChunk(Guid id, int chunkIndex, byte[] bytes)
+        public void WriteChunk(Guid id, int chunkIndex, byte[] bytes)
         {
             using (var stream = new FileStream(GetFilePath(id, chunkIndex), FileMode.OpenOrCreate))
                 stream.Write(bytes, 0, bytes.Length);
         }
-        public static async Task WriteChunkAsync(Guid id, int chunkIndex, byte[] bytes,
+        public async Task WriteChunkAsync(Guid id, int chunkIndex, byte[] bytes,
             CancellationToken cancellationToken)
         {
             using (var stream = new FileStream(GetFilePath(id, chunkIndex), FileMode.OpenOrCreate))
                 await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
         }
 
-        private static void CreateFolder(Guid id)
+        private void CreateFolder(Guid id)
         {
             Directory.CreateDirectory(GetDirectoryPath(id));
         }
