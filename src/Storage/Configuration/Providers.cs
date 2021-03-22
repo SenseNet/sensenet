@@ -174,13 +174,14 @@ namespace SenseNet.Configuration
 
         public void InitializeBlobProviders()
         {
+            // add built-in provider manually if necessary
             if (!Providers.Instance.BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
             {
                 Providers.Instance.BlobProviders.AddProvider(new BuiltInBlobProvider(
                     Options.Create(DataOptions.GetLegacyConfiguration())));
             }
 
-            //UNDONE: [DIBLOB] review blob service instance initialization
+            // assemble the main api instance if necessary (for tests)
             if (Providers.Instance.BlobStorage == null)
             {
                 Providers.Instance.BlobStorage =
@@ -193,7 +194,6 @@ namespace SenseNet.Configuration
             Providers.Instance.BlobStorage.Initialize();
         }
 
-        //UNDONE: [DIBLOB] synchronize the registered instance in the DI and this one
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>

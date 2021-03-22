@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 cmd.Parameters.AddRange(new[]
                 {
-                    sqlCtx.CreateParameter("@MaxSize", DbType.Int32, BlobStorage.BinaryCacheSize),
+                    sqlCtx.CreateParameter("@MaxSize", DbType.Int32, Configuration.BlobStorage.BinaryCacheSize),
                     sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId),
                     sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
                 });

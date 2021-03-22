@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// Entry point for accessing the blob storage directly. Most of the methods here require a preliminary 
     /// request to the portal to gain access to a token that identifies the blob you want to work with.
     /// </summary>
-    public class BlobStorageClient : BlobStorageBase
+    public class BlobStorageClient : BlobStorage
     {
         public BlobStorageClient() : base(null, null, null)
         {
