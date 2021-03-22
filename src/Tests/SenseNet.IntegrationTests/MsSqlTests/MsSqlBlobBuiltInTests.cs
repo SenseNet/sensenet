@@ -60,73 +60,73 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_WriteChunksSmall()
+        public void IntT_MsSql_Blob_BuiltIn_WriteChunksSmall()
         {
             TestCase.TestCase_WriteChunksSmall();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_WriteChunksBig()
+        public void IntT_MsSql_Blob_BuiltIn_WriteChunksBig()
         {
             //UNDONE:<?Blob: Check database after this test
             TestCase.TestCase_WriteChunksBig();
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_DeleteBinaryPropertySmall()
+        public void IntT_MsSql_Blob_BuiltIn_DeleteBinaryPropertySmall()
         {
             TestCase.TestCase_DeleteBinaryPropertySmall();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_DeleteBinaryPropertyBig()
+        public void IntT_MsSql_Blob_BuiltIn_DeleteBinaryPropertyBig()
         {
             TestCase.TestCase_DeleteBinaryPropertyBig();
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_CopyFileRowSmall()
+        public void IntT_MsSql_Blob_BuiltIn_CopyFileRowSmall()
         {
             TestCase.TestCase_CopyFileRowSmall();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_CopyFileRowBig()
+        public void IntT_MsSql_Blob_BuiltIn_CopyFileRowBig()
         {
             TestCase.TestCase_CopyFileRowBig();
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_BinaryCacheEntitySmall()
+        public void IntT_MsSql_Blob_BuiltIn_BinaryCacheEntitySmall()
         {
             TestCase.TestCase_BinaryCacheEntitySmall();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_BinaryCacheEntityBig()
+        public void IntT_MsSql_Blob_BuiltIn_BinaryCacheEntityBig()
         {
             TestCase.TestCase_BinaryCacheEntityBig();
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_DeleteSmall()
+        public void IntT_MsSql_Blob_BuiltIn_DeleteSmall()
         {
             TestCase.TestCase_DeleteSmall();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_DeleteBig()
+        public void IntT_MsSql_Blob_BuiltIn_DeleteBig()
         {
             TestCase.TestCase_DeleteBig();
         }
 
         [TestMethod]
-        public void IntT_MsSql_Blob_DeletionPolicy_Default()
+        public void IntT_MsSql_Blob_BuiltIn_DeletionPolicy_Default()
         {
             TestCase.TestCase_DeletionPolicy_Default();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_DeletionPolicy_Immediately()
+        public void IntT_MsSql_Blob_BuiltIn_DeletionPolicy_Immediately()
         {
             TestCase.TestCase_DeletionPolicy_Immediately();
         }
         [TestMethod]
-        public void IntT_MsSql_Blob_DeletionPolicy_BackgroundImmediately()
+        public void IntT_MsSql_Blob_BuiltIn_DeletionPolicy_BackgroundImmediately()
         {
             TestCase.TestCase_DeletionPolicy_BackgroundImmediately();
         }
