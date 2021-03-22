@@ -21,10 +21,10 @@ namespace SenseNet.IntegrationTests.Platforms
     /// </summary>
     public class MsSqlBuiltInBlobStoragePlatform : MsSqlPlatform, IBlobStoragePlatform
     {
-        public Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
-        public Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
-        public bool CanUseBuiltInBlobProvider => true;
-        public bool UseChunk => false;
+        public virtual Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
+        public virtual Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
+        public virtual bool CanUseBuiltInBlobProvider => true;
+        public virtual bool UseChunk => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
@@ -137,7 +137,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return GetRawDataAsync(fileId).ConfigureAwait(false).GetAwaiter().GetResult();
         }
-        private async Task<byte[][]> GetRawDataAsync(int fileId)
+        protected virtual async Task<byte[][]> GetRawDataAsync(int fileId)
         {
             using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
                 new DataOptions(), CancellationToken.None))
