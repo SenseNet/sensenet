@@ -81,7 +81,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         PropertyTypeId = propertyTypeId,
                         FileId = fileId,
                         Length = length,
-                        BlobProviderData = provider is BuiltInBlobProvider
+                        BlobProviderData = provider is IBuiltInBlobProvider
                             ? new BuiltinBlobProviderData()
                             : provider.ParseData(providerData)
                     };
@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             // write the stream beforehand and get the generated provider data.
             // Note that the external provider does not need an existing record
             // in the Files table to work, it just stores the bytes. 
-            if (!(blobProvider is BuiltInBlobProvider))
+            if (!(blobProvider is IBuiltInBlobProvider))
             {
                 await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken).ConfigureAwait(false);
 
@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             // was saved into the Files table, because simple varbinary
             // column must exist before we can write a stream into the record.
             // ReSharper disable once InvertIf
-            if (blobProvider is BuiltInBlobProvider && value.Stream != null)
+            if (blobProvider is IBuiltInBlobProvider && value.Stream != null)
             {
                 ctx.FileId = value.FileId;
                 ctx.BlobProviderData = new BuiltinBlobProviderData();
@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             var streamLength = value.Stream?.Length ?? 0;
             var isExternal = false;
-            if (!(blobProvider is BuiltInBlobProvider))
+            if (!(blobProvider is IBuiltInBlobProvider))
             {
                 // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
                 var ctx = new BlobStorageContext(blobProvider)
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 value.BlobProviderData = null;
             }
 
-            if (blobProvider is BuiltInBlobProvider)
+            if (blobProvider is IBuiltInBlobProvider)
             {
                 // MS-SQL does not support stream size over [Int32.MaxValue].
                 if (streamLength > int.MaxValue)
@@ -219,7 +219,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if(!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            var sql = blobProvider is BuiltInBlobProvider
+            var sql = blobProvider is IBuiltInBlobProvider
                 ? UpdateBinaryPropertyScript
                 : UpdateBinaryPropertyNewFilerowScript;
             var fileId = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (fileId > 0 && fileId != value.FileId)
                 value.FileId = fileId;
 
-            if (blobProvider is BuiltInBlobProvider)
+            if (blobProvider is IBuiltInBlobProvider)
             {
                 // Stream exists and is loaded -> write it
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
@@ -328,7 +328,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     Length = size
                 };
                 Stream stream = null;
-                if (provider is BuiltInBlobProvider)
+                if (provider is IBuiltInBlobProvider)
                 {
                     context.BlobProviderData = new BuiltinBlobProviderData();
                     var streamIndex = reader.GetOrdinal("Stream");
@@ -398,7 +398,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     FileId = fileId,
                     Length = length
                 };
-                if (provider is BuiltInBlobProvider)
+                if (provider is IBuiltInBlobProvider)
                 {
                     context.BlobProviderData = new BuiltinBlobProviderData();
                     if (!reader.IsDBNull(5))
@@ -422,7 +422,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;
             string blobProviderData = null;
-            if (!(blobProvider is BuiltInBlobProvider))
+            if (!(blobProvider is IBuiltInBlobProvider))
             {
                 await blobProvider.AllocateAsync(ctx, cancellationToken).ConfigureAwait(false);
                 blobProviderName = blobProvider.GetType().FullName;

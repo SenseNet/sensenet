@@ -201,8 +201,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var ctx = await GetBlobStorageContextAsync(fileId, cancellationToken).ConfigureAwait(false);
             var provider = ctx.Provider;
 
-            //UNDONE: [DIBLOB] probably add this method to the IBuiltInBlobProvider interface and use that
-            if (provider is BuiltInBlobProvider builtInBlobProvider)
+            if (provider is IBuiltInBlobProvider builtInBlobProvider)
                 return builtInBlobProvider.ReadRandom(ctx, position, count);
 
             var realCount = Convert.ToInt32(Math.Min(ctx.Length - position, count));
@@ -315,7 +314,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId, cancellationToken).ConfigureAwait(false);
 
-                if (context.Provider is BuiltInBlobProvider)
+                if (context.Provider is IBuiltInBlobProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when
                     // the binary should be saved into a regular SQL varbinary column.

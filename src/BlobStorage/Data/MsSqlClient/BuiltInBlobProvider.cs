@@ -13,11 +13,12 @@ using SenseNet.Configuration;
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary>
-    /// Marker interface for pointing out the special built-in blob provider implementation.
+    /// Interface for pointing out the special built-in blob provider implementation.
     /// </summary>
     public interface IBuiltInBlobProvider : IBlobProvider
     {
         IBlobStorage BlobStorage { get; set; }
+        byte[] ReadRandom(BlobStorageContext context, long offset, int count);
     }
 
     /// <summary>
@@ -133,7 +134,6 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
-            //UNDONE: [DIBLOB] remove null check?
             if (BlobStorage == null)
                 throw new InvalidOperationException("BlobStorage back reference is not set.");
 
@@ -145,8 +145,6 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
-
-            //UNDONE: [DIBLOB] remove null check?
             if (BlobStorage == null)
                 throw new InvalidOperationException("BlobStorage back reference is not set.");
 
@@ -167,7 +165,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
 
         private const string LoadBinaryFragmentScript = @"SELECT SUBSTRING([Stream], @Position, @Count) FROM dbo.Files WHERE FileId = @FileId";
         #endregion
-        internal byte[] ReadRandom(BlobStorageContext context, long offset, int count)
+        public byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
             //UNDONE: [DIREF] get connection string through constructor (new options class)
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, CancellationToken.None))
