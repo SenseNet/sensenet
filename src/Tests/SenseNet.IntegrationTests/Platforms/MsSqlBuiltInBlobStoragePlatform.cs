@@ -143,7 +143,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 new DataOptions(), CancellationToken.None))
             {
                 var script = "SELECT [Stream] FROM Files WHERE FileId = @FileId";
-                var bytes = await ctx.ExecuteScalarAsync(script, cmd =>
+                var scalar = await ctx.ExecuteScalarAsync(script, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -151,7 +151,12 @@ namespace SenseNet.IntegrationTests.Platforms
                     });
                 }).ConfigureAwait(false);
 
-                return new byte[][] {(byte[])bytes};
+                if(scalar == DBNull.Value )
+                    return new byte[0][];
+                var buffer = (byte[]) scalar;
+                if(buffer.Length == 0)
+                    return new byte[0][];
+                return new [] {buffer};
             }
         }
 
