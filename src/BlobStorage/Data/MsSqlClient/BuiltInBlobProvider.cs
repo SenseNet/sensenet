@@ -111,6 +111,13 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
 
 
         /// <inheritdoc />
+        public Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            // do nothing
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             return new RepositoryStream(context.FileId, context.Length);

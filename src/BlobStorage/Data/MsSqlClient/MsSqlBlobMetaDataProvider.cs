@@ -256,9 +256,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     FileId = value.FileId,
                     Length = streamLength,
                 };
-
-                using (var stream = blobProvider.GetStreamForWrite(ctx))
-                    value.Stream?.CopyTo(stream);
+                if (streamLength == 0)
+                {
+                    await blobProvider.ClearAsync(ctx, dataContext.CancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    using (var stream = blobProvider.GetStreamForWrite(ctx))
+                        value.Stream?.CopyTo(stream);
+                }
             }
         }
 

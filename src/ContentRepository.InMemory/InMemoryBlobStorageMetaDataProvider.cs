@@ -176,8 +176,16 @@ namespace SenseNet.ContentRepository.InMemory
                 Length = streamLength,
             };
 
-            using (var stream = blobProvider.GetStreamForWrite(newCtx))
-                value.Stream?.CopyTo(stream);
+            if(streamLength == 0)
+            {
+                blobProvider.ClearAsync(newCtx, dataContext.CancellationToken)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            else
+            {
+                using (var stream = blobProvider.GetStreamForWrite(newCtx))
+                    value.Stream?.CopyTo(stream);
+            }
 
             return STT.Task.CompletedTask;
         }

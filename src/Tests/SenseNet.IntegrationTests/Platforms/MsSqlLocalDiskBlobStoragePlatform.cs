@@ -51,7 +51,11 @@ namespace SenseNet.IntegrationTests.Platforms
             }
 
             if (blobProvider == null)
+            {
+                if (buffer.Length == 0)
+                    return new byte[0][];
                 return new [] {buffer};
+            }
 
             return GetRawDataAsync(blobProvider, blobProviderData);
         }

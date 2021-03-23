@@ -42,6 +42,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken);
         /// <summary>
+        /// Clears the binary record. Clear operation is not equivalent to Delete. After Delete the record does not exist
+        /// but after Clear it does. Getting reader stream of the cleared binary record returns a 0 length stream
+        /// instead of null.
+        /// </summary>
+        /// <param name="context">A context object that holds information about the binary data.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken);
+        /// <summary>
         /// Returns a stream that serves bytes from the blob storage. This stream cannot be used to
         /// write bytes to the storage, it is a readonly stream, but it supports Seek.
         /// </summary>

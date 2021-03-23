@@ -53,6 +53,14 @@ namespace SenseNet.IntegrationTests.Common
             return Task.CompletedTask;
         }
 
+        public async Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            var id = GetData(context).Id;
+            //UNDONE:DB:BLOB (?) Write a wrapped cancellable async solution
+            DeleteFile(id);
+            await CreateFileAsync(id, null, cancellationToken);
+        }
+
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             return GetStream(context, FileMode.Open);

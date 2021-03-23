@@ -163,6 +163,13 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        public STT.Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            var data = (InMemoryBlobProviderData)context.BlobProviderData;
+            _blobStorage[data.BlobId] = new byte[0];
+            return STT.Task.CompletedTask;
+        }
+
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             var data = (InMemoryBlobProviderData) context.BlobProviderData;

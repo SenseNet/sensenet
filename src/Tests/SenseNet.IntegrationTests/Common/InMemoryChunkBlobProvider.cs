@@ -57,6 +57,13 @@ namespace SenseNet.IntegrationTests.Common
             return Task.CompletedTask;
         }
 
+        public Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            var data = (InMemoryChunkBlobProviderData)context.BlobProviderData;
+            _blobStorage[data.Id] = new byte[0][];
+            return Task.CompletedTask;
+        }
+
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             var providerData = (InMemoryChunkBlobProviderData)context.BlobProviderData;

@@ -158,6 +158,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
                 file.Save();
                 var fileId = file.Id;
+                var blobProviderBefore = file.Binary.BlobProvider;
+                var fileRowIdBefore = file.Binary.FileId;
+
                 file = Node.Load<File>(fileId);
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(updatedContent));
 
@@ -165,6 +168,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Save();
 
                 // assert
+                var blobProviderAfter = file.Binary.BlobProvider;
+                var fileRowIdAfter = file.Binary.FileId;
+                // if blob provider before and after is built-in, the existing file row is updated, else re-created.
+                if(blobProviderAfter == null && blobProviderBefore == null)
+                    Assert.AreEqual(fileRowIdBefore, fileRowIdAfter);
+                else
+                    Assert.AreNotEqual(fileRowIdBefore, fileRowIdAfter);
+
                 var dbFiles = BlobStoragePlatform.LoadDbFiles(file.VersionId);
                 Assert.AreEqual(1, dbFiles.Length);
                 var dbFile = dbFiles[0];
@@ -773,7 +784,6 @@ namespace SenseNet.IntegrationTests.TestCases
 
             Assert.AreEqual(expectedText, actualText);
         }
-
 
         private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)
         {
