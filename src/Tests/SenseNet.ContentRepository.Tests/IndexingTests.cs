@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
@@ -549,12 +550,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR")]
         public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync()
         {
-            //UNDONE: [DIBLOB] test fails because of inmem blob providers are not preserved
-            Assert.Fail("Inmem blob providers are not preserved");
-
             // Temporary storages for manage repository's restart.
             InMemoryDataProvider dataProvider = null;
             InMemorySearchEngine searchProvider = null;
+            InMemoryBlobProvider blobProvider = null;
 
             // Storage for new contents' ids and version ids
             var ids = new Tuple<int, int>[4];
@@ -565,6 +564,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Memorize instances.
                 dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
                 searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
+                blobProvider = (InMemoryBlobProvider)Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
 
                 // Create 8 activities.
                 for (int i = 0; i < 4; i++)
@@ -605,8 +605,8 @@ namespace SenseNet.ContentRepository.Tests
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                        .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider));
-
+                        .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                        .AddBlobProvider(blobProvider);
                 }, () =>
                 {
                     // Do nothing but started successfully
