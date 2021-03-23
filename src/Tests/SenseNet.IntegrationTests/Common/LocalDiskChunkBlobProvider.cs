@@ -55,7 +55,6 @@ namespace SenseNet.IntegrationTests.Common
             cancellationToken.ThrowIfCancellationRequested();
 
             var id = GetData(context).Id;
-            //UNDONE:DB:BLOB (?) Write a wrapped cancellable async solution
             DeleteFolder(id);
             return Task.CompletedTask;
         }
@@ -65,7 +64,6 @@ namespace SenseNet.IntegrationTests.Common
             cancellationToken.ThrowIfCancellationRequested();
 
             var id = GetData(context).Id;
-            //UNDONE:DB:BLOB (?) Write a wrapped cancellable async solution
             DeleteFolder(id);
             CreateFolder(id);
             return Task.CompletedTask;

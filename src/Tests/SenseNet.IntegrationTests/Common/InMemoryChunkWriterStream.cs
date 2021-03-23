@@ -146,7 +146,6 @@ namespace SenseNet.IntegrationTests.Common
 
             SetPosition(Position + count);
         }
-        //UNDONE:DB:BLOB: Override WriteAsync instead of Write
 
         protected override void Dispose(bool disposing)
         {
