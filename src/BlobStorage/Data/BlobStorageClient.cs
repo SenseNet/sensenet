@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 // ReSharper disable CheckNamespace
@@ -12,21 +11,16 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public class BlobStorageClient : BlobStorage
     {
-        public BlobStorageClient() : base(null, null, null)
-        {
-            //UNDONE: [DIBLOB] how do we use BlobStorageClient?
-            // How do we use this class? How will we get the meta provider and the selector here?
-            // Should we simply get them through the constructor?
-            // Can we use the built-in classes as defaults?
-            throw new NotImplementedException("BlobStorageClient is not fully modified to support the new API.");
-        }
+        public BlobStorageClient(IBlobProviderStore providers,
+            IBlobProviderSelector selector,
+            IBlobStorageMetaDataProvider metaProvider) : base(providers, selector, metaProvider) {}
 
         /// <summary>
         /// Gets a readonly stream that contains a blob entry in the blob storage.
         /// </summary>
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation containig
+        /// <returns>A Task that represents the asynchronous operation containing
         /// a readonly stream that comes from the blob storage directly.</returns>
         public async Task<Stream> GetStreamForReadAsync(string token, CancellationToken cancellationToken)
         {
