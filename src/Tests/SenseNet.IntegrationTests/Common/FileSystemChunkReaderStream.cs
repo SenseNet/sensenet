@@ -127,9 +127,5 @@ namespace SenseNet.IntegrationTests.Common
         {
             throw new NotSupportedException();
         }
-
-        //=======================================================================
-
-
     }
 }

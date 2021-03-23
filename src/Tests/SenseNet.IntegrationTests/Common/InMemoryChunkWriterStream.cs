@@ -158,6 +158,5 @@ namespace SenseNet.IntegrationTests.Common
                 base.Dispose(disposing);
             }
         }
-
     }
 }
