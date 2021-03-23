@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            //UNDONE: [DIREF] get connection string through constructor
+            //TODO: [DIREF] get connection string through constructor
             return new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, token);
         }
         /* =========================================================================================== Platform specific implementations */
