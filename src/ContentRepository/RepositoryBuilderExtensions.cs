@@ -83,6 +83,10 @@ namespace SenseNet.Extensions.DependencyInjection
             return repositoryBuilder;
         }
 
+        /// <summary>
+        /// Legacy API for tests and tools. In production use the AddSenseNetBlobProvider method
+        /// instead to register a blob provider service in DI.
+        /// </summary>
         public static IRepositoryBuilder AddBlobProvider(this IRepositoryBuilder repositoryBuilder,
             IBlobProvider provider)
         {

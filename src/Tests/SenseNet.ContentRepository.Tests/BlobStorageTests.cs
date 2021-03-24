@@ -10,14 +10,13 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class BlobStorageTests
     {
-        //UNDONE: [DIBLOB] add real blob storage tests
-
         [TestMethod]
         public void BlobStorage_Services_Basic()
         {
             var provider = BuildServiceProvider();
             var bs = provider.GetService<IBlobStorage>();
 
+            // check if the service is accessible
             Assert.IsNotNull(bs);
         }
         private IServiceProvider BuildServiceProvider()
@@ -28,6 +27,7 @@ namespace SenseNet.ContentRepository.Tests
             services.Configure<BlobStorageOptions>(options => {});
             services.AddSenseNetBlobStorage();
 
+            // make sure the services can be registered and there is no circular reference
             var provider = services.BuildServiceProvider();
 
             return provider;
