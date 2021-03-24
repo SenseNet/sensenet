@@ -20,12 +20,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
         private DataOptions DataOptions { get; }
+        private BlobStorageOptions BlobStorageOptions { get; }
         private IBlobProviderStore Providers { get; }
 
-        public MsSqlBlobMetaDataProvider(IBlobProviderStore providers, IOptions<DataOptions> options)
+        public MsSqlBlobMetaDataProvider(IBlobProviderStore providers, IOptions<DataOptions> dataOptions,
+            IOptions<BlobStorageOptions> blobStorageOptions)
         {
             Providers = providers;
-            DataOptions = options?.Value ?? new DataOptions();
+            DataOptions = dataOptions?.Value ?? new DataOptions();
+            BlobStorageOptions = blobStorageOptions?.Value ?? new BlobStorageOptions();
         }
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */
@@ -371,7 +374,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 cmd.Parameters.AddRange(new[]
                 {
-                    sqlCtx.CreateParameter("@MaxSize", DbType.Int32, Configuration.BlobStorage.BinaryCacheSize),
+                    sqlCtx.CreateParameter("@MaxSize", DbType.Int32, BlobStorageOptions.BinaryCacheSize),
                     sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId),
                     sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
                 });

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -28,7 +29,8 @@ namespace SenseNet.IntegrationTests.Platforms
 
             builder.UseBlobProviderSelector(new BuiltInBlobProviderSelector(
                 new ExternalBlobProviderFactory<InMemoryBlobProvider>(
-                    Providers.Instance.BlobProviders)));
+                    Providers.Instance.BlobProviders),
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration())));
             builder.AddBlobProvider(new InMemoryBlobProvider());
 
             base.OnBeforeGettingRepositoryBuilder(builder);

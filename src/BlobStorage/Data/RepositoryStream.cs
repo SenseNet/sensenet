@@ -67,6 +67,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private IBlobStorage BlobStorage { get; }
 
+        //TODO: [DIBLOB] get configuration from an options instance through the constructor
+        private BlobStorageOptions BlobStorageOptions { get; } = BlobStorageOptions.GetLegacyConfiguration();
+
         public RepositoryStream(int fileId, long size, IBlobStorage storage, byte[] binary = null)
         {
             Length = size;
@@ -118,11 +121,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 while (bytesRead < realCount)
                 {
-                    //UNDONE: [DIBLOB] get configuration from an options instance through the constructor
-
                     // bytes to load from the db
                     var bytesToReadInThisIteration = (int)Math.Min(this.Length - Position - bytesRead,
-                        Configuration.BlobStorage.BinaryChunkSize);
+                        BlobStorageOptions.BinaryChunkSize);
 
                     // bytes that we will copy to the buffer of the caller
                     var bytesToStoreInThisIteration = Math.Min(bytesToReadInThisIteration, realCount - bytesRead);
@@ -194,17 +195,15 @@ namespace SenseNet.ContentRepository.Storage.Data
             return true;
         }
 
-        private static int GetInnerBufferSize(int realCount)
+        private int GetInnerBufferSize(int realCount)
         {
-            //UNDONE: [DIBLOB] get configuration from an options instance through the constructor
-
             // Determine the inner buffer size. It should not be bigger 
             // than all the data that will be loaded in this Read method call.
-            return realCount <= Configuration.BlobStorage.BinaryChunkSize
-                ? Math.Min(Configuration.BlobStorage.BinaryChunkSize, Configuration.BlobStorage.BinaryBufferSize)
+            return realCount <= BlobStorageOptions.BinaryChunkSize
+                ? Math.Min(BlobStorageOptions.BinaryChunkSize, BlobStorageOptions.BinaryBufferSize)
                 : Math.Min(
-                    (realCount / Configuration.BlobStorage.BinaryChunkSize + 1) *
-                    Configuration.BlobStorage.BinaryChunkSize, Configuration.BlobStorage.BinaryBufferSize);
+                    (realCount / BlobStorageOptions.BinaryChunkSize + 1) *
+                    BlobStorageOptions.BinaryChunkSize, BlobStorageOptions.BinaryBufferSize);
         }
     }
 }

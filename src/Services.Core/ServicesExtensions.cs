@@ -34,6 +34,7 @@ namespace SenseNet.Extensions.DependencyInjection
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
+            services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));

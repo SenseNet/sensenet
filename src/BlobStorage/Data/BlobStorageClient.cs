@@ -1,6 +1,9 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
+
 // ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -13,7 +16,8 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         public BlobStorageClient(IBlobProviderStore providers,
             IBlobProviderSelector selector,
-            IBlobStorageMetaDataProvider metaProvider) : base(providers, selector, metaProvider) {}
+            IBlobStorageMetaDataProvider metaProvider,
+            IOptions<BlobStorageOptions> blobStorageOptions) : base(providers, selector, metaProvider, blobStorageOptions) {}
 
         /// <summary>
         /// Gets a readonly stream that contains a blob entry in the blob storage.

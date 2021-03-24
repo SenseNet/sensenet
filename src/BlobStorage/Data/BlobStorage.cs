@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -19,14 +20,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         private IBlobStorageMetaDataProvider DataProvider { get; }
         private IBlobProviderSelector ProviderSelector { get; }
         private IBlobProviderStore Providers { get; }
+        internal BlobStorageOptions  BlobStorageConfig { get; }
         
         public BlobStorage(IBlobProviderStore providers,
             IBlobProviderSelector selector,
-            IBlobStorageMetaDataProvider metaProvider)
+            IBlobStorageMetaDataProvider metaProvider,
+            IOptions<BlobStorageOptions> blobStorageOptions)
         {
             ProviderSelector = selector;
             Providers = providers;
             DataProvider = metaProvider;
+            BlobStorageConfig = blobStorageOptions?.Value ?? new BlobStorageOptions();
         }
 
         public void Initialize()
@@ -332,7 +336,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException("Error during saving binary chunk to stream.", e);
             }
         }
-        private static async Task CopyFromStreamByChunksAsync(BlobStorageContext context, Stream input,
+        private async Task CopyFromStreamByChunksAsync(BlobStorageContext context, Stream input,
             CancellationToken cancellationToken)
         {
             // This method should be used only when the client has a stream and
@@ -340,7 +344,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             // not have a special write stream for that case. In every other case
             // the blobprovider API should be used that exposes a writable stream.
 
-            var buffer = new byte[Configuration.BlobStorage.BinaryChunkSize];
+            var buffer = new byte[BlobStorageConfig.BinaryChunkSize];
             int read;
             long offset = 0;
 
@@ -366,8 +370,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task DeleteOrphanedFilesAsync(CancellationToken cancellationToken)
         {
-            //UNDONE: [DIBLOB] create new blob config class for options instances
-            switch (Configuration.BlobStorage.BlobDeletionPolicy)
+            switch (BlobStorageConfig.BlobDeletionPolicy)
             {
                 case BlobDeletionPolicy.BackgroundDelayed:
                     // Do nothing, the blob deletion is a maintenance task.

@@ -150,8 +150,9 @@ namespace SenseNet.Configuration
 
         #region IBlobProviderSelector
 
-        public virtual IBlobProviderSelector BlobProviderSelector { get; set; } = 
-            new BuiltInBlobProviderSelector(null);
+        public virtual IBlobProviderSelector BlobProviderSelector { get; set; } =
+            new BuiltInBlobProviderSelector(null, 
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
 
         #endregion
 
@@ -167,7 +168,9 @@ namespace SenseNet.Configuration
         public void ResetBlobProviders()
         {
             BlobStorage = null;
-            BlobProviderSelector = new BuiltInBlobProviderSelector(null);
+            BlobProviderSelector = new BuiltInBlobProviderSelector(null,
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+
             BlobMetaDataProvider = null;
             BlobProviders.Clear();
         }
@@ -188,7 +191,8 @@ namespace SenseNet.Configuration
                     new ContentRepository.Storage.Data.BlobStorage(
                         Providers.Instance.BlobProviders,
                         Providers.Instance.BlobProviderSelector,
-                        Providers.Instance.BlobMetaDataProvider);
+                        Providers.Instance.BlobMetaDataProvider,
+                        Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
             }
 
             Providers.Instance.BlobStorage.Initialize();

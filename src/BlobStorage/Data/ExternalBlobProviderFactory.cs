@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public IBlobProvider GetBlobProvider()
         {
-            //UNDONE [DIBLOB] compare provider types or type full names?
+            //TODO: [DIBLOB] compare provider types or type full names?
             return _provider ?? (_provider =
                        _providers?.Values.FirstOrDefault(p => p.GetType().FullName == typeof(T).FullName));
         }

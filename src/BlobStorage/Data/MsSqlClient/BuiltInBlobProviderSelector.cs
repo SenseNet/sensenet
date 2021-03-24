@@ -1,4 +1,7 @@
-﻿namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
+﻿using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
+
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary>
     /// The selector class is responsible for choosing the blob
@@ -11,6 +14,7 @@
     public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
         private IExternalBlobProviderFactory ExternalFactory { get; }
+        private BlobStorageOptions BlobStorageConfig { get; }
 
         private IBlobProvider _externalProvider;
 
@@ -23,9 +27,11 @@
         /// <summary>
         /// Initializes an instance of the BuiltInBlobProviderSelector
         /// </summary>
-        public BuiltInBlobProviderSelector(IExternalBlobProviderFactory externalBlobProviderFactory)
+        public BuiltInBlobProviderSelector(IExternalBlobProviderFactory externalBlobProviderFactory,
+            IOptions<BlobStorageOptions> blobStorageConfig)
         {
             ExternalFactory = externalBlobProviderFactory;
+            BlobStorageConfig = blobStorageConfig?.Value ?? new BlobStorageOptions();
         }
 
         /// <summary>
@@ -37,7 +43,7 @@
         {
             // The default algorithm chooses the blob provider based on binary size: below a limit, we 
             // save files to the db, above we use the configured external provider (if there is any).
-            if (fullSize < Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes)
+            if (fullSize < BlobStorageConfig.MinimumSizeForBlobProviderInBytes)
                 return builtIn;
 
             return ExternalBlobProvider ?? builtIn;

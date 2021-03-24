@@ -25,6 +25,7 @@ namespace SenseNet.ContentRepository.Tests
             var services = new ServiceCollection();
 
             services.Configure<DataOptions>(options => {});
+            services.Configure<BlobStorageOptions>(options => {});
             services.AddSenseNetBlobStorage();
 
             var provider = services.BuildServiceProvider();

@@ -709,12 +709,18 @@ namespace SenseNet.IntegrationTests.TestCases
             var result = (Nodes: nodes, Versions: versions, Binaries: binaries, Files: files, LongTexts: longTexts, AllCounts: all, AllCountsExceptFiles: allExceptFiles);
             return await STT.Task.FromResult(result);
         }
+
+        //TODO: [DIBLOB] replace this swindler technology with local service and options instances
         private class BlobDeletionPolicySwindler : Swindler<BlobDeletionPolicy>
         {
             public BlobDeletionPolicySwindler(BlobDeletionPolicy hack) : base(
                 hack,
-                () => Configuration.BlobStorage.BlobDeletionPolicy,
-                (value) => { Configuration.BlobStorage.BlobDeletionPolicy = value; })
+                () => ((ContentRepository.Storage.Data.BlobStorage)Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy,
+                (value) =>
+                {
+                    ((ContentRepository.Storage.Data.BlobStorage)Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy =
+                        value;
+                })
             {
             }
         }
