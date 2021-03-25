@@ -14,6 +14,8 @@ namespace SenseNet.IntegrationTests.TestCases
     {
         public void DP_RefProp_Install(Func<Node, PropertyType, int[]> getReferencesFromDatabase)
         {
+            Cache.Reset();
+
             IsolatedIntegrationTest(() =>
             {
                 var group = Group.Administrators;
@@ -22,6 +24,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var fromDb = getReferencesFromDatabase(group, propertyType);
 
                 // ASSERT
+                Assert.IsNotNull(fromDb);
+                Assert.AreEqual(2, fromDb.Length);
                 Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
                     string.Join(",", fromDb.OrderBy(x => x)));
             });
