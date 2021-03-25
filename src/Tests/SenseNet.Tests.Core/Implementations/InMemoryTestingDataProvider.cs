@@ -315,8 +315,11 @@ namespace SenseNet.Tests.Core.Implementations
                         case DataType.Int:
                         case DataType.Currency:
                         case DataType.DateTime:
-                        case DataType.Reference:
                             version.DynamicProperties.TryGetValue(name, out result);
+                            break;
+                        case DataType.Reference:
+                            result = DB.ReferenceProperties
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
                             break;
                         case DataType.Text:
                             result = DB.LongTextProperties
@@ -347,8 +350,17 @@ namespace SenseNet.Tests.Core.Implementations
                         case DataType.Int:
                         case DataType.Currency:
                         case DataType.DateTime:
-                        case DataType.Reference:
                             version.DynamicProperties[name] = value;
+                            break;
+                        case DataType.Reference:
+                            if (!(value is List<int> listValue))
+                                throw new ArgumentException($"The value is {value.GetType().Name}. Expected: string");
+                            var existingRef = DB.ReferenceProperties
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id);
+                            if (existingRef == null)
+                                throw new ApplicationException($"The property does not exist: {name}.");
+                            existingRef.Value = listValue;
+                            //UNDONE:<?:RefProp: Maybe empty list causes any problem.
                             break;
                         case DataType.Text:
                             if (!(value is string stringValue))
