@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryBlobProviderSelector : IBlobProviderSelector
     {
-        public IBlobProvider GetProvider(long fullSize, IBlobProvider builtIn)
+        public IBlobProvider GetProvider(long fullSize)
         {
             //TODO: [DIREF] get provider store service through the constructor
             return Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];

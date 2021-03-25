@@ -54,7 +54,9 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
-            return new BuiltInBlobProviderSelector(null,
+            return new BuiltInBlobProviderSelector(
+                Providers.Instance.BlobProviders,
+                null,
                 Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
         }
         public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()

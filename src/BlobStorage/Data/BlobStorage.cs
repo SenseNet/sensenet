@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
-            var blobProvider = ProviderSelector.GetProvider(value.Size, Providers.BuiltInBlobProvider);
+            var blobProvider = ProviderSelector.GetProvider(value.Size);
             if (value.FileId > 0 && value.Stream == null)
                 return DataProvider.InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
             else
@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public async Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
-            var blobProvider = ProviderSelector.GetProvider(value.Size, Providers.BuiltInBlobProvider);
+            var blobProvider = ProviderSelector.GetProvider(value.Size);
             await DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
             dataContext.NeedToCleanupFiles = true;
         }
@@ -231,7 +231,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
             CancellationToken cancellationToken)
         {
-            var blobProvider = ProviderSelector.GetProvider(fullSize, Providers.BuiltInBlobProvider);
+            var blobProvider = ProviderSelector.GetProvider(fullSize);
             return DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,
                 cancellationToken);
         }
@@ -447,7 +447,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fullSize">Full binary length.</param>
         public IBlobProvider GetProvider(long fullSize)
         {
-            return ProviderSelector.GetProvider(fullSize, Providers.BuiltInBlobProvider);
+            return ProviderSelector.GetProvider(fullSize);
         }
 
         /// <summary>
