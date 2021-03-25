@@ -22,11 +22,9 @@ namespace SenseNet.IntegrationTests.InMemTests
 
         private int[] GetReferencesFromDb(Node node, PropertyType propertyType)
         {
-            var version = GetDatabase().Versions.FirstOrDefault(x => x.VersionId == node.VersionId);
-            if (version == null)
-                return null;
-            var value = version.DynamicProperties[propertyType.Name] as IEnumerable<int>;
-            return value == null ? null : value.ToArray();
+            var refData = GetDatabase().ReferenceProperties
+                .FirstOrDefault(x => x.VersionId == node.VersionId && x.PropertyTypeId == propertyType.Id);
+            return refData?.Value.ToArray();
         }
 
         [TestMethod] public void IntT_InMem_DP_RefProp_Install() { TestCase.DP_RefProp_Install(GetReferencesFromDb); }
