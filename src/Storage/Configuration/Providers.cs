@@ -150,9 +150,7 @@ namespace SenseNet.Configuration
 
         #region IBlobProviderSelector
 
-        public virtual IBlobProviderSelector BlobProviderSelector { get; set; } =
-            new BuiltInBlobProviderSelector(null, 
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+        public virtual IBlobProviderSelector BlobProviderSelector { get; set; }
 
         #endregion
 
@@ -168,34 +166,41 @@ namespace SenseNet.Configuration
         public void ResetBlobProviders()
         {
             BlobStorage = null;
-            BlobProviderSelector = new BuiltInBlobProviderSelector(null,
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
-
+            BlobProviderSelector = null;
             BlobMetaDataProvider = null;
             BlobProviders.Clear();
+
+            // add default internal blob provider
+            BlobProviders.AddProvider(new BuiltInBlobProvider(
+                Options.Create(DataOptions.GetLegacyConfiguration())));
         }
 
         public void InitializeBlobProviders()
         {
             // add built-in provider manually if necessary
-            if (!Providers.Instance.BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
+            if (!BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
             {
-                Providers.Instance.BlobProviders.AddProvider(new BuiltInBlobProvider(
+                BlobProviders.AddProvider(new BuiltInBlobProvider(
                     Options.Create(DataOptions.GetLegacyConfiguration())));
             }
 
-            // assemble the main api instance if necessary (for tests)
-            if (Providers.Instance.BlobStorage == null)
+            if (BlobProviderSelector == null)
             {
-                Providers.Instance.BlobStorage =
-                    new ContentRepository.Storage.Data.BlobStorage(
-                        Providers.Instance.BlobProviders,
-                        Providers.Instance.BlobProviderSelector,
-                        Providers.Instance.BlobMetaDataProvider,
-                        Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+                BlobProviderSelector = new BuiltInBlobProviderSelector(null,
+                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
             }
 
-            Providers.Instance.BlobStorage.Initialize();
+            // assemble the main api instance if necessary (for tests)
+            if (BlobStorage == null)
+            {
+                BlobStorage = new ContentRepository.Storage.Data.BlobStorage(
+                    BlobProviders,
+                    BlobProviderSelector,
+                    BlobMetaDataProvider,
+                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+            }
+
+            BlobStorage.Initialize();
         }
 
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());

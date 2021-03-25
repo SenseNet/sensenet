@@ -24,13 +24,7 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
-            // Re-set the external provider factory so that it serves
-            // the in-memory provider as the external.
-
-            builder.UseBlobProviderSelector(new BuiltInBlobProviderSelector(
-                new ExternalBlobProviderFactory<InMemoryBlobProvider>(
-                    Providers.Instance.BlobProviders),
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration())));
+            // in-memory provider works as a regular provider
             builder.AddBlobProvider(new InMemoryBlobProvider());
 
             base.OnBeforeGettingRepositoryBuilder(builder);
