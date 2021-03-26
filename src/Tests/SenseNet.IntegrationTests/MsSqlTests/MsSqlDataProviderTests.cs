@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -11,6 +12,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.MsSqlTests
 {
@@ -21,7 +23,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         {
             return new MsSqlDataContext(ConnectionStrings.ConnectionString, new DataOptions(), cancellation);
         }
-        public async Task<int[]> GetReferencesFromDbAsync(Node node, PropertyType propertyType, CancellationToken cancellation)
+        public async Task<int[]> GetReferencesFromDbAsync(int versionId, int propertyTypeId, CancellationToken cancellation)
         {
             var sql = "SELECT ReferredNodeId FROM ReferenceProperties " +
                       "WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId";
@@ -32,8 +34,8 @@ namespace SenseNet.IntegrationTests.MsSqlTests
                 {
                     cmd.Parameters.AddRange(new[]
                     {
-                        ctx.CreateParameter("@VersionId", DbType.Int32, node.VersionId),
-                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyType.Id)
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId)
 
                     });
                 }, async (reader, cancel) =>
@@ -51,15 +53,55 @@ namespace SenseNet.IntegrationTests.MsSqlTests
                 return resultArray.Length == 0 ? null : resultArray;
             }
         }
-        private int[] GetReferencesFromDb(Node node, PropertyType propertyType)
+        private int[] GetReferencesFromDb(int versionId, int propertyTypeId)
         {
-            return GetReferencesFromDbAsync(node, propertyType, CancellationToken.None)
+            return GetReferencesFromDbAsync(versionId, propertyTypeId, CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        [TestMethod] public void IntT_MsSql_DP_RefProp_Install() { TestCase.DP_RefProp_Install(GetReferencesFromDb); }
-        [TestMethod] public void IntT_MsSql_DP_RefProp_Insert() { TestCase.DP_RefProp_Insert(GetReferencesFromDb); }
-        [TestMethod] public void IntT_MsSql_DP_RefProp_Update() { TestCase.DP_RefProp_Update(GetReferencesFromDb); }
-        [TestMethod] public void IntT_MsSql_DP_RefProp_Delete() { TestCase.DP_RefProp_Delete(GetReferencesFromDb); }
+        private async Task CleanupAsync(IEnumerable<int> nodeIds, IEnumerable<int> versionIds, CancellationToken cancellation)
+        {
+            var nodeIdString = string.Join(", ", nodeIds);
+            var versionIdString = string.Join(", ", versionIds);
+            var sql = @$"DELETE FROM Nodes WHERE NodeId IN ({nodeIdString})
+DELETE FROM Versions WHERE VersionId IN ({versionIdString})
+DELETE FROM LongTextProperties WHERE VersionId IN ({versionIdString})
+DELETE FROM ReferenceProperties WHERE VersionId IN ({versionIdString})
+DELETE FROM Files WHERE FileId IN (SELECT FileId FROM BinaryProperties WHERE VersionId IN ({versionIdString}))
+DELETE FROM BinaryProperties WHERE VersionId IN ({versionIdString})
+";
+            using (var ctx = CreateDataContext(cancellation))
+            {
+                var _ = await ctx.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
+            }
+        }
+        private void Cleanup(IEnumerable<int> nodeIds, IEnumerable<int> versionIds)
+        {
+            CleanupAsync(nodeIds, versionIds, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        //[TestMethod] public void IntT_MsSql_DP_RefProp_Install() { TestCase.DP_RefProp_Install(GetReferencesFromDb); }
+        //[TestMethod] public void IntT_MsSql_DP_RefProp_Insert() { TestCase.DP_RefProp_Insert(GetReferencesFromDb); }
+        //[TestMethod] public void IntT_MsSql_DP_RefProp_Update() { TestCase.DP_RefProp_Update(GetReferencesFromDb); }
+        //[TestMethod] public void IntT_MsSql_DP_RefProp_Delete() { TestCase.DP_RefProp_Delete(GetReferencesFromDb); }
+
+        /**/
+
+        //[TestInitialize]
+        //public void InitializeTest()
+        //{
+        //    TestCase.TestInitializer = InitializeMsSqlDataProviderTests;
+        //}
+        //private void InitializeMsSqlDataProviderTests(RepositoryBuilder builder)
+        //{
+        //    int q = 1;
+        //}
+
+        [TestMethod] public void UT_MsSql_DP_Node_InsertDraft() { TestCase.UT_Node_InsertDraft(Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_Node_InsertPublic() { TestCase.UT_Node_InsertPublic(Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_Insert() { TestCase.UT_RefProp_Insert(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_Update() { TestCase.UT_RefProp_Update(GetReferencesFromDb, Cleanup); }
+
     }
 }
