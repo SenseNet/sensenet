@@ -101,6 +101,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                                 nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                                 versionData.VersionId = reader.GetInt32("VersionId");
+                                versionData.NodeId = nodeHeadData.NodeId;
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("VersionTimestamp");
                             }
                             else
