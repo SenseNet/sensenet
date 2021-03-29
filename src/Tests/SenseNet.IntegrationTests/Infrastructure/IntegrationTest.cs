@@ -75,17 +75,5 @@ namespace SenseNet.IntegrationTests.Infrastructure
         {
             TestContext.FinishTestTest();
         }
-
-        [ClassInitialize]
-        public void _initializeClass(TestContext testContext)
-        {
-            Logger.Log($"InitializeClass {this.GetType().Name}");
-        }
-        [ClassCleanup]
-        public void _cleanupClass()
-        {
-            Logger.Log($"CleanupClass {this.GetType().Name}");
-            TestCaseBase.CleanupClass();
-        }
     }
 }

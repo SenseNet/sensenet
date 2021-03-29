@@ -594,7 +594,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         public void TestCase_DeletionPolicy_Default()
         {
-            IsolatedIntegrationTest((sandbox) =>
+            IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
                 var tdp = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
@@ -614,7 +614,7 @@ namespace SenseNet.IntegrationTests.TestCases
         }
         public void TestCase_DeletionPolicy_Immediately()
         {
-            IsolatedIntegrationTest((sandbox) =>
+            IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
                 var tdp = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
@@ -630,7 +630,7 @@ namespace SenseNet.IntegrationTests.TestCases
         }
         public void TestCase_DeletionPolicy_BackgroundImmediately()
         {
-            IsolatedIntegrationTest((sandbox) =>
+            IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
                 var tdp = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();

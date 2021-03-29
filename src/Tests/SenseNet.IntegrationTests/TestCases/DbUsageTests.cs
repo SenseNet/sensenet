@@ -17,7 +17,7 @@ namespace SenseNet.IntegrationTests.TestCases
         public async Task DbUsage_PreviewsVersionsBlobsTexts()
         {
             //UNDONE:<?IntT: Use ExclusiveBlock component in the DbUsage integration tests.
-            await IsolatedIntegrationTestAsync(async () =>
+            await IntegrationTestAsync(async () =>
             {
                 var user1 = new User(Node.LoadNode("/Root/IMS/Public"))
                 {
