@@ -17,7 +17,7 @@ using Task = System.Threading.Tasks.Task;
 namespace SenseNet.IntegrationTests.MsSqlTests
 {
     [TestClass]
-    public class MsSqlDataProviderTests : IntegrationTest<MsSqlPlatform, DataProviderTestCases>
+    public class MsSqlDataProviderTests : IntegrationTest<MsSqlDataProviderPlatform, DataProviderTestCases>
     {
         private MsSqlDataContext CreateDataContext(CancellationToken cancellation)
         {
@@ -98,10 +98,16 @@ DELETE FROM BinaryProperties WHERE VersionId IN ({versionIdString})
         //    int q = 1;
         //}
 
+
         [TestMethod] public void UT_MsSql_DP_Node_InsertDraft() { TestCase.UT_Node_InsertDraft(Cleanup); }
         [TestMethod] public void UT_MsSql_DP_Node_InsertPublic() { TestCase.UT_Node_InsertPublic(Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_Node_UpdateFirstDraft() { TestCase.UT_Node_UpdateFirstDraft(Cleanup); }
+
+
         [TestMethod] public void UT_MsSql_DP_RefProp_Insert() { TestCase.UT_RefProp_Insert(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_MsSql_DP_RefProp_Update() { TestCase.UT_RefProp_Update(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_Update3to0() { TestCase.UT_RefProp_Update3to0(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_Update0to3() { TestCase.UT_RefProp_Update0to3(GetReferencesFromDb, Cleanup); }
 
     }
 }

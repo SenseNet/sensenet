@@ -163,31 +163,9 @@ namespace SenseNet.IntegrationTests.TestCases
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
                 var dp = Providers.Instance.DataProvider;
-                NodeHeadData nodeHeadData = new NodeHeadData
-                {
-                    Name = "UT_RefProp_Insert",
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    ContentListId = 0,
-                    ContentListTypeId = 0,
-                    DisplayName = "UT_RefProp_Insert DisplayName",
-                    Index = 42,
-                    ParentNodeId = 7899778,
-                    Path = "/TEST/UT_RefProp_Insert",
-                    OwnerId = 4321234,
-                    NodeTypeId = 654186,
-                };
-                VersionData versionData = new VersionData
-                {
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    Version = VersionNumber.Parse("1.42.D"),
-                };
-                DynamicPropertyData dynamicData = new DynamicPropertyData
+                var nodeHeadData = CreateNodeHeadData("UT_Node_InsertDraft");
+                var versionData = CreateVersionData("1.42.D");
+                var dynamicData = new DynamicPropertyData
                 {
                     ContentListProperties = new Dictionary<PropertyType, object>(),
                     DynamicProperties = new Dictionary<PropertyType, object>(),
@@ -214,31 +192,9 @@ namespace SenseNet.IntegrationTests.TestCases
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
                 var dp = Providers.Instance.DataProvider;
-                NodeHeadData nodeHeadData = new NodeHeadData
-                {
-                    Name = "UT_RefProp_Insert",
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    ContentListId = 0,
-                    ContentListTypeId = 0,
-                    DisplayName = "UT_RefProp_Insert DisplayName",
-                    Index = 42,
-                    ParentNodeId = 7899778,
-                    Path = "/TEST/UT_RefProp_Insert",
-                    OwnerId = 4321234,
-                    NodeTypeId = 654186,
-                };
-                VersionData versionData = new VersionData
-                {
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    Version = VersionNumber.Parse("42.0.A"),
-                };
-                DynamicPropertyData dynamicData = new DynamicPropertyData
+                var nodeHeadData = CreateNodeHeadData("UT_Node_InsertPublic");
+                var versionData = CreateVersionData("42.0.A");
+                var dynamicData = new DynamicPropertyData
                 {
                     ContentListProperties = new Dictionary<PropertyType, object>(),
                     DynamicProperties = new Dictionary<PropertyType, object>(),
@@ -258,6 +214,40 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(versionData.VersionId, loaded.LastMajorVersionId);
             });
         }
+        public void UT_Node_UpdateFirstDraft(Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var dp = Providers.Instance.DataProvider;
+                var nodeHeadData = CreateNodeHeadData("UT_Node_InsertDraft");
+                var versionData = CreateVersionData("0.1.D");
+                var dynamicData = new DynamicPropertyData
+                {
+                    ContentListProperties = new Dictionary<PropertyType, object>(),
+                    DynamicProperties = new Dictionary<PropertyType, object>(),
+                    ReferenceProperties = new Dictionary<PropertyType, List<int>>()
+                };
+
+                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                nodeIds.Add(nodeHeadData.NodeId);
+                versionIds.Add(versionData.VersionId);
+                var expectedIndex = nodeHeadData.Index + 1;
+
+                // ACTION
+                nodeHeadData.Index++;
+//versionData.NodeId = nodeHeadData.NodeId;
+                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, null, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var loaded = dp.LoadNodeHeadAsync(nodeHeadData.NodeId, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                Assert.AreEqual(expectedIndex, loaded.Index);
+            });
+        }
 
         public void UT_RefProp_Insert(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
@@ -270,31 +260,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 var propType = new PropertyType(schema, "TestReferenceProperty", 9999, DataType.Reference, 1234, false);
                 schema.PropertyTypes.Add(propType);
                 var expectedIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
-                NodeHeadData nodeHeadData = new NodeHeadData
-                {
-                    Name = "UT_RefProp_Insert",
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    ContentListId = 0,
-                    ContentListTypeId = 0,
-                    DisplayName = "UT_RefProp_Insert DisplayName",
-                    Index = 42,
-                    ParentNodeId = 7899778,
-                    Path = "/TEST/UT_RefProp_Insert",
-                    OwnerId = 4321234,
-                    NodeTypeId = 654186,
-                };
-                VersionData versionData = new VersionData
-                {
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    Version = VersionNumber.Parse("1.42.D"),
-                };
-                DynamicPropertyData dynamicData = new DynamicPropertyData
+                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Insert");
+                var versionData = CreateVersionData("1.42.D");
+                var dynamicData = new DynamicPropertyData
                 {
                     ContentListProperties = new Dictionary<PropertyType, object>(),
                     DynamicProperties = new Dictionary<PropertyType, object>(),
@@ -325,31 +293,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 schema.PropertyTypes.Add(propType);
                 var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
                 var expectedIds = new List<int> { 12345, 23456, 34567 };
-                NodeHeadData nodeHeadData = new NodeHeadData
-                {
-                    Name = "UT_RefProp_Insert",
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    ContentListId = 0,
-                    ContentListTypeId = 0,
-                    DisplayName = "UT_RefProp_Insert DisplayName",
-                    Index = 42,
-                    ParentNodeId = 7899778,
-                    Path = "/TEST/UT_RefProp_Insert",
-                    OwnerId = 4321234,
-                    NodeTypeId = 654186,
-                };
-                VersionData versionData = new VersionData
-                {
-                    CreatedById = 1,
-                    ModifiedById = 1,
-                    CreationDate = DateTime.UtcNow,
-                    ModificationDate = DateTime.UtcNow,
-                    Version = VersionNumber.Parse("1.42.D"),
-                };
-                DynamicPropertyData dynamicData = new DynamicPropertyData
+                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update");
+                var versionData = CreateVersionData("1.42.D");
+                var dynamicData = new DynamicPropertyData
                 {
                     ContentListProperties = new Dictionary<PropertyType, object>(),
                     DynamicProperties = new Dictionary<PropertyType, object>(),
@@ -371,6 +317,118 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
                     string.Join(",", after.OrderBy(x => x)));
             });
+        }
+        public void UT_RefProp_Update3to0(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var dp = Providers.Instance.DataProvider;
+                var schema = new TestSchema();
+                var propType = new PropertyType(schema, "TestReferenceProperty", 9999, DataType.Reference, 1234, false);
+                schema.PropertyTypes.Add(propType);
+                var initialIds = new List<int> { 2345, 3456, 4567 };
+                var expectedIds = new List<int>();
+                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update3to0");
+                var versionData = CreateVersionData("42.0.A");
+                var dynamicData = new DynamicPropertyData
+                {
+                    ContentListProperties = new Dictionary<PropertyType, object>(),
+                    DynamicProperties = new Dictionary<PropertyType, object>(),
+                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                };
+
+                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                nodeIds.Add(nodeHeadData.NodeId);
+                versionIds.Add(versionData.VersionId);
+
+                // ACTION
+                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, null, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                Assert.IsNull(after);
+            });
+        }
+        public void UT_RefProp_Update0to3(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var dp = Providers.Instance.DataProvider;
+                var schema = new TestSchema();
+                var propType = new PropertyType(schema, "TestReferenceProperty", 9999, DataType.Reference, 1234, false);
+                schema.PropertyTypes.Add(propType);
+                var initialIds = new List<int>();
+                var expectedIds = new List<int> { 2345, 3456, 4567 };
+                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update0to3");
+                var versionData = CreateVersionData("42.0.A");
+                var dynamicData = new DynamicPropertyData
+                {
+                    ContentListProperties = new Dictionary<PropertyType, object>(),
+                    DynamicProperties = new Dictionary<PropertyType, object>(),
+                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                };
+
+                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                nodeIds.Add(nodeHeadData.NodeId);
+                versionIds.Add(versionData.VersionId);
+
+                // ACTION
+                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, null, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                    string.Join(",", after.OrderBy(x => x)));
+            });
+        }
+
+        /* ====================================================================== TOOLS */
+
+        private Random _random = new Random();
+        private int Rng()
+        {
+            return _random.Next(100000, int.MaxValue);
+        }
+
+        private NodeHeadData CreateNodeHeadData(string name)
+        {
+            return new NodeHeadData
+            {
+                Name = name,
+                CreatedById = Rng(),
+                ModifiedById = Rng(),
+                CreationDate = DateTime.UtcNow,
+                ModificationDate = DateTime.UtcNow,
+                ContentListId = 0,
+                ContentListTypeId = 0,
+                DisplayName = $"{name} DisplayName",
+                Index = Rng(),
+                ParentNodeId = Rng(),
+                Path = $"/TEST/{name}",
+                OwnerId = Rng(),
+                NodeTypeId = Rng(),
+            };
+        }
+        private VersionData CreateVersionData(string version)
+        {
+            return new VersionData
+            {
+                CreatedById = 1,
+                ModifiedById = 1,
+                CreationDate = DateTime.UtcNow,
+                ModificationDate = DateTime.UtcNow,
+                Version = VersionNumber.Parse(version),
+            };
         }
     }
 }
