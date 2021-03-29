@@ -14,9 +14,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         /* ==================================================================== */
 
-        //private static string _lastPlatformName;
-        //private static RepositoryInstance _repositoryInstance;
-
         public void NoRepoIntegrationTest(Action callback)
         {
             var platformName = Platform.GetType().Name;
@@ -150,12 +147,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
             }
         }
 
-        [Obsolete("##", true)]
-        public static void CleanupClass()
-        {
-        }
-
-
         //UNDONE:<?IntT: Consider the instructions in the following block
         //public void IntegrationTest(Action callback)
         //{
@@ -207,6 +198,5 @@ namespace SenseNet.IntegrationTests.Infrastructure
         {
             return new UserBlock(user);
         }
-
     }
 }
