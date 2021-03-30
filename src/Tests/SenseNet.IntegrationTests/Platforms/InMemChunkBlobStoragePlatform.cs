@@ -13,6 +13,7 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemChunkBlobStoragePlatform : InMemBlobStoragePlatform
     {
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         public override Type ExpectedExternalBlobProviderType => typeof(InMemoryChunkBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(InMemoryChunkBlobProviderData);
         public override bool UseChunk => true;
@@ -21,10 +22,14 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new TestBlobProviderSelector(typeof(InMemoryChunkBlobProvider), false);
         }
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return new[] { new InMemoryChunkBlobProvider() };
+        }
 
         protected override byte[][] GetRawData(string blobProvider, string blobProviderData)
         {
-            var provider = (InMemoryChunkBlobProvider)BlobStorageBase.GetProvider(blobProvider);
+            var provider = (InMemoryChunkBlobProvider)BlobStorage.GetProvider(blobProvider);
             var providerAcc = new ObjectAccessor(provider);
             var providerData = (InMemoryChunkBlobProviderData)provider.ParseData(blobProviderData);
 

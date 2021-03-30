@@ -214,6 +214,8 @@ namespace SenseNet.ODataTests
 
         protected static RepositoryBuilder CreateRepositoryBuilder()
         {
+            Providers.Instance.ResetBlobProviders();
+
             var dataProvider = new InMemoryDataProvider();
 
             return new RepositoryBuilder()
@@ -223,6 +225,7 @@ namespace SenseNet.ODataTests
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

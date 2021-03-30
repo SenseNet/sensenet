@@ -7,8 +7,6 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
@@ -58,10 +56,10 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            // Required early configuration
-            BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
-            BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
+            // legacy behavior: set provider instance defaults
 
+            Providers.Instance.InitializeBlobProviders();
+            
             var initialData = builder.InitialData;
             if (initialData != null)
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)

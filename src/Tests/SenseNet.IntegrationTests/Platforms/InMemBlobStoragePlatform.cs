@@ -15,6 +15,9 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemBlobStoragePlatform : InMemPlatform, IBlobStoragePlatform
     {
+        //TODO: [DIREF] get blob service through the constructor
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
         public virtual Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
         public virtual Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
         public virtual bool CanUseBuiltInBlobProvider => false;
@@ -92,7 +95,7 @@ namespace SenseNet.IntegrationTests.Platforms
             if (blobProvider == null)
                 return new byte[0];
 
-            var provider = BlobStorageBase.GetProvider(blobProvider);
+            var provider = BlobStorage.GetProvider(blobProvider);
             var context = new BlobStorageContext(provider, blobProviderData) { Length = size };
             return GetExternalData(context);
         }
@@ -124,7 +127,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         protected virtual byte[][] GetRawData(string blobProvider, string blobProviderData)
         {
-            var provider = (InMemoryBlobProvider)BlobStorageBase.GetProvider(blobProvider);
+            var provider = (InMemoryBlobProvider)BlobStorage.GetProvider(blobProvider);
             var providerAcc = new ObjectAccessor(provider);
             var providerData = (InMemoryBlobProviderData)provider.ParseData(blobProviderData);
 

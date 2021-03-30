@@ -16,6 +16,8 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlLocalDiskChunkBlobStoragePlatform : MsSqlBuiltInBlobStoragePlatform
     {
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
         public override Type ExpectedExternalBlobProviderType => typeof(LocalDiskChunkBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData);
         public override bool UseChunk => true;
@@ -23,6 +25,10 @@ namespace SenseNet.IntegrationTests.Platforms
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
             return new TestBlobProviderSelector(typeof(LocalDiskChunkBlobProvider), true);
+        }
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return new[] { new LocalDiskChunkBlobProvider() };
         }
 
         protected override async Task<byte[][]> GetRawDataAsync(int fileId)
@@ -62,10 +68,9 @@ namespace SenseNet.IntegrationTests.Platforms
 
             return GetRawDataAsync(blobProvider, blobProviderData);
         }
-
         private byte[][] GetRawDataAsync(string blobProvider, string blobProviderData)
         {
-            var provider = (LocalDiskChunkBlobProvider)BlobStorageBase.GetProvider(blobProvider);
+            var provider = (LocalDiskChunkBlobProvider)BlobStorage.GetProvider(blobProvider);
             var providerData = (LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData)provider.ParseData(blobProviderData);
 
             var providerAcc = new ObjectAccessor(provider);

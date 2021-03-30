@@ -21,6 +21,8 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class BlobProviderTestCases : BlobStorageTestCaseBase
     {
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
         public void TestCase_CreateFileSmall()
         {
             IntegrationTest((sandbox) =>
@@ -502,7 +504,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var propertyTypeId = PropertyType.GetByName("Binary").Id;
 
                 // action
-                var binaryCacheEntity = ContentRepository.Storage.Data.BlobStorage.LoadBinaryCacheEntityAsync(
+                var binaryCacheEntity = BlobStorage.LoadBinaryCacheEntityAsync(
                     file.VersionId, propertyTypeId, CancellationToken.None).GetAwaiter().GetResult();
 
                 // assert
@@ -560,7 +562,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Save();
                 var fileId = file.Binary.FileId;
                 // memorize blob storage context for further check
-                var ctx = BlobStorageComponents.DataProvider.GetBlobStorageContextAsync(file.Binary.FileId, false,
+                var ctx = BlobStorage.GetBlobStorageContextAsync(file.Binary.FileId, false,
                     file.VersionId, propertyTypeId, CancellationToken.None).GetAwaiter().GetResult();
                 BlobStoragePlatform.UpdateFileCreationDate(file.Binary.FileId, DateTime.UtcNow.AddDays(-1));
 
@@ -574,7 +576,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsFalse(IsDeleted(ctx, external));
 
                 // Action #2
-                ContentRepository.Storage.Data.BlobStorage.CleanupFilesSetFlagAsync(CancellationToken.None)
+                BlobStorage.CleanupFilesSetFlagAsync(CancellationToken.None)
                     .GetAwaiter().GetResult();
 
                 // Assert #2
@@ -584,7 +586,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsFalse(IsDeleted(ctx, external));
 
                 // Action #3
-                var _ = ContentRepository.Storage.Data.BlobStorage.CleanupFilesAsync(CancellationToken.None)
+                var _ = BlobStorage.CleanupFilesAsync(CancellationToken.None)
                     .GetAwaiter().GetResult();
 
                 // Assert #3
@@ -710,12 +712,18 @@ namespace SenseNet.IntegrationTests.TestCases
             var result = (Nodes: nodes, Versions: versions, Binaries: binaries, Files: files, LongTexts: longTexts, AllCounts: all, AllCountsExceptFiles: allExceptFiles);
             return await STT.Task.FromResult(result);
         }
+
+        //TODO: [DIBLOB] replace this swindler technology with local service and options instances
         private class BlobDeletionPolicySwindler : Swindler<BlobDeletionPolicy>
         {
             public BlobDeletionPolicySwindler(BlobDeletionPolicy hack) : base(
                 hack,
-                () => Configuration.BlobStorage.BlobDeletionPolicy,
-                (value) => { Configuration.BlobStorage.BlobDeletionPolicy = value; })
+                () => ((ContentRepository.Storage.Data.BlobStorage)Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy,
+                (value) =>
+                {
+                    ((ContentRepository.Storage.Data.BlobStorage)Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy =
+                        value;
+                })
             {
             }
         }
@@ -729,7 +737,7 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(dbFile.Size, buffer.Length);
             Assert.AreEqual(expectedText, GetStringFromBytes(buffer));
 
-            var ctx = BlobStorageBase.GetBlobStorageContextAsync(dbFile.FileId, CancellationToken.None)
+            var ctx = BlobStorage.GetBlobStorageContextAsync(dbFile.FileId, CancellationToken.None)
                 .GetAwaiter().GetResult();
             var expectedDataType = BlobStoragePlatform.CanUseBuiltInBlobProvider
                 ? typeof(BuiltinBlobProviderData)
@@ -746,7 +754,7 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(dbFile.Size, buffer.Length);
             Assert.AreEqual(expectedText, GetStringFromBytes(buffer));
 
-            var ctx = BlobStorageBase.GetBlobStorageContextAsync(dbFile.FileId, CancellationToken.None)
+            var ctx = BlobStorage.GetBlobStorageContextAsync(dbFile.FileId, CancellationToken.None)
                 .GetAwaiter().GetResult();
             var expectedDataType = !NeedExternal(BlobStoragePlatform.ExpectedBlobProviderDataType)
                 ? typeof(BuiltinBlobProviderData)

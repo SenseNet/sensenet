@@ -492,8 +492,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
             if (binaryCacheEntity == null)
             {
+                //TODO: [DIBLOB] get the storage service through the constructor later
+
                 // Not in cache, load it from the database
-                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, CancellationToken.None)
+                binaryCacheEntity = Providers.Instance.BlobStorage.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
                 // insert the binary cache entity into the 
@@ -513,7 +515,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (binaryCacheEntity == null || binaryCacheEntity.Length == -1)
                 return null;
 
-            return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
+            return new SnStream(binaryCacheEntity.Context, Providers.Instance.BlobStorage, binaryCacheEntity.RawData);
         }
 
         /* =============================================================================================== NodeHead */

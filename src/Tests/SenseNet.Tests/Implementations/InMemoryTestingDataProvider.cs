@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -26,6 +27,9 @@ namespace SenseNet.Tests.Implementations
 
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB => ((InMemoryDataProvider)MainProvider).DB;
+
+        //TODO: [DIBLOB] get these services through the constructor later
+        private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         public void InitializeForTests()
         {

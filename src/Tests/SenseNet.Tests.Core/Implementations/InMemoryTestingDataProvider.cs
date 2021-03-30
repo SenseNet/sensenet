@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -103,7 +104,8 @@ namespace SenseNet.Tests.Core.Implementations
         }
         private static void EditFileStream(FileDoc fileRecord, Action<XmlDocument> action)
         {
-            var ctx = BlobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None)
+            var blobStorage = Providers.Instance.BlobStorage;
+            var ctx = blobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None)
                 .GetAwaiter().GetResult();
             var blobProvider = ctx.Provider;
 
@@ -115,7 +117,7 @@ namespace SenseNet.Tests.Core.Implementations
 
             var ctdString = gcXmlDoc.OuterXml;
 
-            var blobProvider2 = BlobStorage.GetProvider(ctdString.Length);
+            var blobProvider2 = blobStorage.GetProvider(ctdString.Length);
             var ctx2 = new BlobStorageContext(blobProvider)
             {
                 VersionId = ctx.VersionId,
@@ -302,6 +304,7 @@ namespace SenseNet.Tests.Core.Implementations
 
         public Task<object> GetPropertyValueAsync(int versionId, string name)
         {
+            var blobStorage = Providers.Instance.BlobStorage;
             var pt = ActiveSchema.PropertyTypes[name];
             object result = null;
             lock (DB)
@@ -323,7 +326,7 @@ namespace SenseNet.Tests.Core.Implementations
                                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
                             break;
                         case DataType.Binary:
-                            result = BlobStorage.LoadBinaryPropertyAsync(versionId, pt.Id, null).GetAwaiter().GetResult();
+                            result = blobStorage.LoadBinaryPropertyAsync(versionId, pt.Id, null).GetAwaiter().GetResult();
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

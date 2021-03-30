@@ -30,7 +30,7 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            //UNDONE: [DIREF] get options from DI through constructor
+            //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 try

@@ -65,12 +65,19 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public int FileId { get; set; }
 
-        public RepositoryStream(int fileId, long size, byte[] binary = null)
+        private IBlobStorage BlobStorage { get; }
+
+        //TODO: [DIBLOB] get configuration from an options instance through the constructor
+        private BlobStorageOptions BlobStorageOptions { get; } = BlobStorageOptions.GetLegacyConfiguration();
+
+        public RepositoryStream(int fileId, long size, IBlobStorage storage, byte[] binary = null)
         {
             Length = size;
             FileId = fileId;
             if (binary != null)
                 _innerBuffer = binary;
+
+            BlobStorage = storage;
         }
 
         public override void SetLength(long value)
@@ -115,13 +122,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                 while (bytesRead < realCount)
                 {
                     // bytes to load from the db
-                    var bytesToReadInThisIteration = (int)Math.Min(this.Length - Position - bytesRead, BlobStorage.BinaryChunkSize);
+                    var bytesToReadInThisIteration = (int)Math.Min(this.Length - Position - bytesRead,
+                        BlobStorageOptions.BinaryChunkSize);
 
                     // bytes that we will copy to the buffer of the caller
                     var bytesToStoreInThisIteration = Math.Min(bytesToReadInThisIteration, realCount - bytesRead);
 
                     // stores the current chunk
-                    var tempBuffer = BlobStorageBase.LoadBinaryFragmentAsync(this.FileId, Position + bytesRead,
+                    var tempBuffer = BlobStorage.LoadBinaryFragmentAsync(this.FileId, Position + bytesRead,
                         bytesToReadInThisIteration, CancellationToken.None).GetAwaiter().GetResult();
 
                     // first iteration: create inner buffer for caching a part of the stream in memory
@@ -187,13 +195,15 @@ namespace SenseNet.ContentRepository.Storage.Data
             return true;
         }
 
-        private static int GetInnerBufferSize(int realCount)
+        private int GetInnerBufferSize(int realCount)
         {
             // Determine the inner buffer size. It should not be bigger 
             // than all the data that will be loaded in this Read method call.
-            return realCount <= BlobStorage.BinaryChunkSize
-                ? Math.Min(BlobStorage.BinaryChunkSize, BlobStorage.BinaryBufferSize)
-                : Math.Min((realCount / BlobStorage.BinaryChunkSize + 1) * BlobStorage.BinaryChunkSize, BlobStorage.BinaryBufferSize);
+            return realCount <= BlobStorageOptions.BinaryChunkSize
+                ? Math.Min(BlobStorageOptions.BinaryChunkSize, BlobStorageOptions.BinaryBufferSize)
+                : Math.Min(
+                    (realCount / BlobStorageOptions.BinaryChunkSize + 1) *
+                    BlobStorageOptions.BinaryChunkSize, BlobStorageOptions.BinaryBufferSize);
         }
     }
 }

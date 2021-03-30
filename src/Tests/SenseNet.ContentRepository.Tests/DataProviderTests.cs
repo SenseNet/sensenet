@@ -26,7 +26,6 @@ using SenseNet.Search.Querying;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
-using BlobStorage = SenseNet.Configuration.BlobStorage;
 using IsolationLevel = System.Data.IsolationLevel;
 using STT = System.Threading.Tasks;
 
@@ -776,7 +775,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                Assert.AreEqual(BlobDeletionPolicy.BackgroundDelayed, BlobStorage.BlobDeletionPolicy);
+                var config = BlobStorageOptions.GetLegacyConfiguration();
+                Assert.AreEqual(BlobDeletionPolicy.BackgroundDelayed, config.BlobDeletionPolicy);
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 DP_ForceDelete_TheTest();
@@ -847,12 +847,18 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
             Assert.IsNull(Node.Load<File>(f4.Id));
         }
+
+        //TODO: [DIBLOB] replace this swindler technology with local service and options instances
         private class BlobDeletionPolicySwindler : Swindler<BlobDeletionPolicy>
         {
-            public BlobDeletionPolicySwindler(BlobDeletionPolicy hack):base(
+            public BlobDeletionPolicySwindler(BlobDeletionPolicy hack) : base(
                 hack,
-                () => BlobStorage.BlobDeletionPolicy,
-                (value) => { BlobStorage.BlobDeletionPolicy = value; })
+                () => ((Storage.Data.BlobStorage)Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy,
+                (value) =>
+                {
+                    ((Storage.Data.BlobStorage) Providers.Instance.BlobStorage).BlobStorageConfig.BlobDeletionPolicy =
+                        value;
+                })
             {
             }
         }

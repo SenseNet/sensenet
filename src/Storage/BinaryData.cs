@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using System.Globalization;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable ArrangeThisQualifier
 
@@ -18,6 +19,9 @@ namespace SenseNet.ContentRepository.Storage
     {
         // ReSharper disable once InconsistentNaming
         private BinaryDataValue __privateValue;
+
+        //TODO: [DIBLOB] get this service through the constructor later
+        private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         // =============================================== Accessor Interface
 
