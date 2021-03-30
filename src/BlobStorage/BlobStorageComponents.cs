@@ -1,13 +1,12 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    [Obsolete("Register services using the new dependency injection methods.", true)]
     /// <summary>
     /// Contains provider instances for the blob storage.
     /// </summary>
+    [Obsolete("Register services using the new dependency injection methods.", true)]
     public class BlobStorageComponents
     {
         /// <summary>
