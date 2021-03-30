@@ -46,6 +46,8 @@ namespace SenseNet.Extensions.DependencyInjection
 
             var dataProvider = new InMemoryDataProvider();
 
+            Providers.Instance.ResetBlobProviders();
+
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
@@ -55,6 +57,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseExclusiveLockDataProviderExtension(new InMemoryExclusiveLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(new InMemorySearchEngine(initialIndex))

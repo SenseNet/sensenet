@@ -71,7 +71,7 @@ END
             };
             var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
 
-            //UNDONE: [DIREF] get options from DI through constructor
+            //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(script, async (reader, cancel) =>

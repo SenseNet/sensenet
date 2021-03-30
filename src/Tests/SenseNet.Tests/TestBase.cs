@@ -86,7 +86,8 @@ namespace SenseNet.Tests
             Cache.Reset();
             ContentTypeManager.Reset();
             Providers.Instance.NodeTypeManeger = null;
-            
+            Providers.Instance.ResetBlobProviders();
+
             OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
@@ -140,6 +141,7 @@ namespace SenseNet.Tests
         {
             Cache.Reset();
             ContentTypeManager.Reset();
+            Providers.Instance.ResetBlobProviders();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
@@ -170,6 +172,7 @@ namespace SenseNet.Tests
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

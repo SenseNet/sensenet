@@ -199,7 +199,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 " + whereClausePart + @"
 )
 ";
-            //UNDONE: [DIREF] get options from DI through constructor
+            //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>

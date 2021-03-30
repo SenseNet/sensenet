@@ -10,7 +10,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Implementations;
-using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -244,12 +243,13 @@ namespace SenseNet.Tests.SelfTest
                     new byte[] {4, 4 }
                 };
                 var chunkSize = chunks[0].Length;
+                var blobStorage = Providers.Instance.BlobStorage;
 
                 // START CHUNK
                 var versionId = file.VersionId;
                 var propertyTypeId = PropertyType.GetByName("Binary").Id;
                 var fullSize = 50L;
-                var token = await BlobStorage.StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None)
+                var token = await blobStorage.StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None)
                     .ConfigureAwait(false);
 
                 // WRITE CHUNKS
@@ -257,12 +257,12 @@ namespace SenseNet.Tests.SelfTest
                 {
                     var offset = i * chunkSize;
                     var chunk = chunks[i];
-                    await BlobStorage.WriteChunkAsync(versionId, token, chunk, offset, fullSize,
+                    await blobStorage.WriteChunkAsync(versionId, token, chunk, offset, fullSize,
                         CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // COMMIT CHUNK
-                await BlobStorage.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, CancellationToken.None)
+                await blobStorage.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, CancellationToken.None)
                     .ConfigureAwait(false);
 
                 // ASSERT

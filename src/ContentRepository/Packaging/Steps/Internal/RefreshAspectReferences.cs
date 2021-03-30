@@ -26,7 +26,7 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
-            //UNDONE: [DIREF] get options from DI through constructor
+            //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(Script, async (reader, cancel) =>

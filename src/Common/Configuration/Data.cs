@@ -30,7 +30,7 @@ namespace SenseNet.Configuration
 
     public class DataOptions
     {
-        //UNDONE: [DIREF] remove legacy data configuration when upper layers are ready.
+        //TODO: [DIREF] remove legacy data configuration when upper layers are ready.
         /// <summary>
         /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
         /// </summary>
