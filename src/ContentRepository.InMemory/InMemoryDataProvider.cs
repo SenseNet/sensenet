@@ -59,7 +59,6 @@ namespace SenseNet.ContentRepository.InMemory
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
                     // Manage ReferenceProperties
-//UNDONE:<?:RefProps: Check ReferenceProperties in InsertNodeAsync
                     foreach (var item in dynamicData.ReferenceProperties)
                         SaveReferencePropertySafe(versionId, item.Key.Id, item.Value);
 
@@ -134,7 +133,6 @@ namespace SenseNet.ContentRepository.InMemory
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
                     // Manage ReferenceProperties
-//UNDONE:<?:RefProps: Check ReferenceProperties in UpdateNodeAsync
                     foreach (var item in dynamicData.ReferenceProperties)
                         SaveReferencePropertySafe(versionId, item.Key.Id, item.Value);
 
@@ -380,7 +378,6 @@ foreach (var prop in versionDoc.DynamicProperties)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
 
                     // Load appropriate ReferenceProperties
-//UNDONE:<?:RefProps: ok
                     var referencePropertyTypeIds = nodeData.PropertyTypes
                         .Where(p => p.DataType == DataType.Reference)
                         .Select(p => p.Id)
@@ -2185,14 +2182,6 @@ foreach (var prop in versionDoc.DynamicProperties)
                 dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
             }
 
-//UNDONE:<?:RefProps: delete commented lines
-//foreach (var item in dynamicData.ReferenceProperties)
-//{
-//    var propertyType = item.Key;
-//    if (EmptyReferencesFilterSafe(propertyType, item.Value))
-//        dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
-//}
-
             return new VersionDoc
             {
                 VersionId = versionData.VersionId,
@@ -2239,23 +2228,6 @@ foreach (var prop in versionDoc.DynamicProperties)
                 var clone = GetCloneSafe(sourceItem.Value, dataType);
                 target[propertyType.Name] = clone;
             }
-//UNDONE:<?:RefProps: delete commented lines
-//foreach (var sourceItem in dynamicData.ReferenceProperties)
-//{
-//    var propertyType = sourceItem.Key;
-//    var dataType = propertyType.DataType;
-//    var clone = GetCloneSafe(sourceItem.Value, dataType);
-//    if (dataType == DataType.Reference)
-//    {
-//        // Remove empty references
-//        if (!((IEnumerable<int>)clone).Any())
-//        {
-//            target.Remove(propertyType.Name);
-//            continue;
-//        }
-//    }
-//    target[propertyType.Name] = clone;
-//}
         }
         private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
         {

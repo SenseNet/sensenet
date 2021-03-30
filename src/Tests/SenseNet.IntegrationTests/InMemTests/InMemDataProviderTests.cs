@@ -5,10 +5,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
+using SenseNet.Testing;
 
 namespace SenseNet.IntegrationTests.InMemTests
 {
@@ -26,10 +28,26 @@ namespace SenseNet.IntegrationTests.InMemTests
                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
             return refData?.Value.ToArray();
         }
+        private void Cleanup(IEnumerable<int> nodeIds, IEnumerable<int> versionIds)
+        {
+            var db = GetDatabase();
+            db.Nodes.Clear();
+            db.Versions.Clear();
+            db.LongTextProperties.Clear();
+            db.ReferenceProperties.Clear();
+            db.BinaryProperties.Clear();
+            db.Files.Clear();
+        }
 
-        //[TestMethod] public void IntT_InMem_DP_RefProp_Install() { TestCase.DP_RefProp_Install(GetReferencesFromDb); }
-        //[TestMethod] public void IntT_InMem_DP_RefProp_Insert() { TestCase.DP_RefProp_Insert(GetReferencesFromDb); }
-        //[TestMethod] public void IntT_InMem_DP_RefProp_Update() { TestCase.DP_RefProp_Update(GetReferencesFromDb); }
-        //[TestMethod] public void IntT_InMem_DP_RefProp_Delete() { TestCase.DP_RefProp_Delete(GetReferencesFromDb); }
+        [TestMethod] public void UT_InMem_DP_Node_InsertDraft() { TestCase.UT_Node_InsertDraft(Cleanup); }
+        [TestMethod] public void UT_InMem_DP_Node_InsertPublic() { TestCase.UT_Node_InsertPublic(Cleanup); }
+        [TestMethod] public void UT_InMem_DP_Node_UpdateFirstDraft() { TestCase.UT_Node_UpdateFirstDraft(Cleanup); }
+
+        [TestMethod] public void UT_InMem_DP_RefProp_Insert() { TestCase.UT_RefProp_Insert(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_InMem_DP_RefProp_Load() { TestCase.UT_RefProp_Load(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_InMem_DP_RefProp_Update() { TestCase.UT_RefProp_Update(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_InMem_DP_RefProp_Update3to0() { TestCase.UT_RefProp_Update3to0(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_InMem_DP_RefProp_Update0to3() { TestCase.UT_RefProp_Update0to3(GetReferencesFromDb, Cleanup); }
+
     }
 }
