@@ -556,7 +556,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
                         // Manage ReferenceProperties
-                        if (dynamicData.LongTextProperties.Any())
+                        if (dynamicData.ReferenceProperties.Any())
                             await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage LongTextProperties
