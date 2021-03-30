@@ -2,7 +2,7 @@
 <ContentType name="Memo" parentType="ListItem" handler="SenseNet.ContentRepository.GenericContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-Memo,DisplayName</DisplayName>
   <Description>$Ctd-Memo,Description</Description>
-  <Icon>Document</Icon>
+  <Icon>Memo</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <Fields>
     <Field name="Description" type="LongText">
