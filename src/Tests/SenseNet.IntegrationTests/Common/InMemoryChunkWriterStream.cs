@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Policy;
+using System.Text;
 
 namespace SenseNet.IntegrationTests.Common
 {
-    internal class FileSystemChunkWriterStream : Stream
+    public class InMemoryChunkWriterStream : Stream
     {
-        private LocalDiskChunkBlobProvider _blobProvider;
-
         private Guid _id;
         private readonly int _chunkSize;
 
@@ -14,13 +15,14 @@ namespace SenseNet.IntegrationTests.Common
         private int _currentChunkPosition;
         private byte[] _buffer;
         private bool _flushIsNecessary;
-        
-        public FileSystemChunkWriterStream(LocalDiskChunkBlobProvider blobProvider, LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize)
+        private byte[][] _data;
+
+        public InMemoryChunkWriterStream(InMemoryChunkBlobProviderData providerData, long fullSize, byte[][] data)
         {
-            _blobProvider = blobProvider;
             Length = fullSize;
             _chunkSize = providerData.ChunkSize;
             _id = providerData.Id;
+            _data = data;
         }
 
         public override bool CanRead => false;
@@ -42,6 +44,7 @@ namespace SenseNet.IntegrationTests.Common
             _currentChunkPosition = (position % _chunkSize).ToInt();
             _position = position;
         }
+
 
         public override void Flush()
         {
@@ -72,7 +75,9 @@ namespace SenseNet.IntegrationTests.Common
                 Array.ConstrainedCopy(_buffer, 0, bytes, 0, bytesToWrite);
             }
 
-            _blobProvider.WriteChunk(_id,chunkIndex, bytes);
+            // write to target
+            _data[chunkIndex] = new byte[bytesToWrite];
+            Array.Copy(bytes, _data[chunkIndex], bytesToWrite);
 
             _flushIsNecessary = false;
         }

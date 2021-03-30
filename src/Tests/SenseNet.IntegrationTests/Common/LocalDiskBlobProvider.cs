@@ -48,9 +48,15 @@ namespace SenseNet.IntegrationTests.Common
             cancellationToken.ThrowIfCancellationRequested();
 
             var id = GetData(context).Id;
-            //UNDONE:DB:BLOB (?) Write a wrapped cancellable async solution
             DeleteFile(id);
             return Task.CompletedTask;
+        }
+
+        public async Task ClearAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            var id = GetData(context).Id;
+            DeleteFile(id);
+            await CreateFileAsync(id, null, cancellationToken);
         }
 
         public Stream GetStreamForRead(BlobStorageContext context)
@@ -131,6 +137,7 @@ namespace SenseNet.IntegrationTests.Common
             if (File.Exists(filePath))
                 File.Delete(filePath);
         }
+
         private Stream GetStream(BlobStorageContext context, FileMode mode)
         {
             return new FileStream(GetPath(GetData(context).Id), mode);

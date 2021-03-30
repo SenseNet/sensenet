@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Tools;
 
 namespace SenseNet.IntegrationTests.Common
 {
@@ -10,30 +13,13 @@ namespace SenseNet.IntegrationTests.Common
             return Convert.ToInt32(input);
         }
 
-
-        //public static long GetSafeInt64(this IDataReader reader, int index)
-        //{
-        //    return reader.IsDBNull(index) ? 0 : reader.GetInt64(index);
-        //}
-        //public static int GetSafeInt32(this IDataReader reader, int index)
-        //{
-        //    return reader.IsDBNull(index) ? 0 : reader.GetInt32(index);
-        //}
-        //public static DateTime? GetSafeDateTime(this IDataReader reader, int index)
-        //{
-        //    return reader.IsDBNull(index) ? (DateTime?)null : reader.GetDateTime(index);
-        //}
-        //public static string GetSafeString(this IDataReader reader, int index)
-        //{
-        //    return reader.IsDBNull(index) ? null : reader.GetString(index);
-        //}
-        //public static bool GetSafeBoolFromBit(this IDataReader reader, int index)
-        //{
-        //    return !reader.IsDBNull(index) && reader.GetBoolean(index);
-        //}
-        //public static byte[] GetSafeBytes(this IDataReader reader, int index)
-        //{
-        //    return reader.IsDBNull(index) ? null : (byte[])reader[index];
-        //}
+        public static IRepositoryBuilder AddBlobProviders(this IRepositoryBuilder repositoryBuilder,
+            IEnumerable<IBlobProvider> blobProviders)
+        {
+            if (blobProviders != null)
+                foreach (var blobProvider in blobProviders)
+                    Configuration.Providers.Instance.BlobProviders.AddProvider(blobProvider);
+            return repositoryBuilder;
+        }
     }
 }

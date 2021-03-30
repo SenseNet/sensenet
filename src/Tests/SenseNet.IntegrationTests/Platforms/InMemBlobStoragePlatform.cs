@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Schema;
 using SenseNet.Configuration;
@@ -17,9 +18,10 @@ namespace SenseNet.IntegrationTests.Platforms
         //TODO: [DIREF] get blob service through the constructor
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
-        public Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
-        public Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
-        public bool CanUseBuiltInBlobProvider => false;
+        public virtual Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
+        public virtual Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);
+        public virtual bool CanUseBuiltInBlobProvider => false;
+        public virtual bool UseChunk => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
@@ -63,16 +65,15 @@ namespace SenseNet.IntegrationTests.Platforms
                 Size = file.Size,
                 //Checksum = null,
                 Stream = file.Buffer,
-                //CreationDate = DateTime.MinValue,
+                CreationDate = file.CreationDate,
                 //RowGuid = Guid.Empty,
                 Timestamp = file.Timestamp,
                 Staging = file.Staging,
                 //StagingVersionId = 0,
                 //StagingPropertyTypeId = 0,
-                IsDeleted = false,
+                IsDeleted = file.IsDeleted,
                 BlobProvider = file.BlobProvider,
                 BlobProviderData = file.BlobProviderData,
-                //FileStream = null,
                 ExternalStream = GetExternalData(file),
             };
         }
@@ -116,44 +117,61 @@ namespace SenseNet.IntegrationTests.Platforms
             }
         }
 
+        public byte[][] GetRawData(int fileId)
+        {
+            var dataProvider = (InMemoryDataProvider)Providers.Instance.DataProvider;
+            var db = dataProvider.DB;
+            var file = db.Files.Single(f => f.FileId == fileId);
+
+            return GetRawData(file.BlobProvider, file.BlobProviderData);
+        }
+        protected virtual byte[][] GetRawData(string blobProvider, string blobProviderData)
+        {
+            var provider = (InMemoryBlobProvider)BlobStorage.GetProvider(blobProvider);
+            var providerAcc = new ObjectAccessor(provider);
+            var providerData = (InMemoryBlobProviderData)provider.ParseData(blobProviderData);
+
+            var data = (Dictionary<Guid, byte[]>)providerAcc.GetField("_blobStorage");
+            var buffer = data[providerData.BlobId];
+
+            if (buffer.Length == 0)
+                return new byte[0][];
+            return new[] { buffer };
+        }
+
         public void UpdateFileCreationDate(int fileId, DateTime creationDate)
         {
             // $"UPDATE Files SET CreationDate = @CreationDate WHERE FileId = {fileId}";
             var db = ((InMemoryDataProvider)Providers.Instance.DataProvider).DB;
-            var file = db.Files
-                .Where(x => fileId == x.FileId)
-                .Select(CreateFromFileRow)
-                .FirstOrDefault();
+            var file = db.Files.FirstOrDefault(x => fileId == x.FileId);
             if (file != null)
                 file.CreationDate = creationDate;
         }
 
         public IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds)
         {
-            //UNDONE:<?Blob: implement swindler after implementation of CleanupFilesSetDeleteFlagAsync and CleanupFilesSetDeleteFlagImmediatelyAsync
-            throw new NotImplementedException();
-            //return new InMemWaitingBetweenCleanupFilesSwindler(milliseconds);
+            return new InMemWaitingBetweenCleanupFilesSwindler(milliseconds);
         }
-        //private class InMemWaitingBetweenCleanupFilesSwindler : Swindler<int>
-        //{
-        //    private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
-        //    public InMemWaitingBetweenCleanupFilesSwindler(int hack) : base(
-        //        hack,
-        //        () =>
-        //        {
-        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
-        //            var accessor = new ObjectAccessor(metaDataProvider);
-        //            return (int)accessor.GetField(FieldName);
-        //        },
-        //        (value) =>
-        //        {
-        //            var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
-        //            var accessor = new ObjectAccessor(metaDataProvider);
-        //            accessor.SetField(FieldName, value);
-        //        })
-        //    {
-        //    }
-        //}
+        private class InMemWaitingBetweenCleanupFilesSwindler : Swindler<int>
+        {
+            private static readonly string FieldName = "_waitBetweenCleanupFilesMilliseconds";
+            public InMemWaitingBetweenCleanupFilesSwindler(int hack) : base(
+                hack,
+                () =>
+                {
+                    var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    return (int)accessor.GetField(FieldName);
+                },
+                (value) =>
+                {
+                    var metaDataProvider = (InMemoryBlobStorageMetaDataProvider)Providers.Instance.BlobMetaDataProvider;
+                    var accessor = new ObjectAccessor(metaDataProvider);
+                    accessor.SetField(FieldName, value);
+                })
+            {
+            }
+        }
 
     }
 }

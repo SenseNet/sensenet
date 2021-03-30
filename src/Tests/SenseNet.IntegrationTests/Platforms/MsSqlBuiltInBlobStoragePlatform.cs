@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -23,9 +24,10 @@ namespace SenseNet.IntegrationTests.Platforms
         //TODO: [DIREF] get blob service through the constructor
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
-        public Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
-        public Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
-        public bool CanUseBuiltInBlobProvider => true;
+        public virtual Type ExpectedExternalBlobProviderType => null; // typeof(BuiltInBlobProvider);
+        public virtual Type ExpectedBlobProviderDataType => null; // typeof(BuiltinBlobProviderData);
+        public virtual bool CanUseBuiltInBlobProvider => true;
+        public virtual bool UseChunk => false;
 
         public DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
@@ -90,8 +92,6 @@ namespace SenseNet.IntegrationTests.Platforms
                 RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid")),
                 Timestamp = reader.GetSafeLongFromBytes("Timestamp")
             };
-            if (reader.FieldCount > 16)
-                file.FileStream = reader.GetSafeByteArray("FileStream");
             file.ExternalStream = GetExternalData(file);
 
             return file;
@@ -135,6 +135,34 @@ namespace SenseNet.IntegrationTests.Platforms
                 return null;
             }
         }
+
+        public byte[][] GetRawData(int fileId)
+        {
+            return GetRawDataAsync(fileId).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        protected virtual async Task<byte[][]> GetRawDataAsync(int fileId)
+        {
+            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
+                new DataOptions(), CancellationToken.None))
+            {
+                var script = "SELECT [Stream] FROM Files WHERE FileId = @FileId";
+                var scalar = await ctx.ExecuteScalarAsync(script, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@FileId", SqlDbType.Int, fileId)
+                    });
+                }).ConfigureAwait(false);
+
+                if(scalar == DBNull.Value )
+                    return new byte[0][];
+                var buffer = (byte[]) scalar;
+                if(buffer.Length == 0)
+                    return new byte[0][];
+                return new [] {buffer};
+            }
+        }
+
 
         public void UpdateFileCreationDate(int fileId, DateTime creationDate)
         {

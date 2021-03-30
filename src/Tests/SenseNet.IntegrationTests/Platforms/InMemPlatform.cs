@@ -22,13 +22,13 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemPlatform : Platform
     {
-        public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
-        {
-            // in-memory provider works as a regular provider
-            builder.AddBlobProvider(new InMemoryBlobProvider());
+        //public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
+        //{
+        //    // in-memory provider works as a regular provider
+        //    builder.AddBlobProvider(new InMemoryBlobProvider());
 
-            base.OnBeforeGettingRepositoryBuilder(builder);
-        }
+        //    base.OnBeforeGettingRepositoryBuilder(builder);
+        //}
 
         public override DataProvider GetDataProvider()
         {
@@ -38,6 +38,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemorySharedLockDataProvider();
         }
+
         public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
         {
             return new InMemoryExclusiveLockDataProvider();
@@ -50,6 +51,11 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemoryBlobProviderSelector();
         }
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return new[] { new InMemoryBlobProvider() };
+        }
+
         public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
         {
             return new InMemoryAccessTokenDataProvider();

@@ -9,6 +9,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         Type ExpectedExternalBlobProviderType { get; }
         Type ExpectedBlobProviderDataType { get; }
         bool CanUseBuiltInBlobProvider { get; }
+        bool UseChunk { get; }
 
         DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary");
         DbFile LoadDbFile(int fileId);
@@ -20,6 +21,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         byte[] GetExternalData(string blobProvider, string blobProviderData, long size);
         //UNDONE:<?Blob: Platform independent code
         byte[] GetExternalData(BlobStorageContext context);
+        byte[][] GetRawData(int fileId);
 
         void UpdateFileCreationDate(int fileId, DateTime creationDate);
         IDisposable SwindleWaitingBetweenCleanupFiles(int milliseconds);

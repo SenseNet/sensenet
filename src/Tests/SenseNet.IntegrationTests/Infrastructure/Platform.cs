@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.IntegrationTests.Common;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Security;
@@ -37,6 +38,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseTestingDataProviderExtension(GetTestingDataProviderExtension())
                 .UseSharedLockDataProviderExtension(GetSharedLockDataProviderExtension())
                 .UseExclusiveLockDataProviderExtension(GetExclusiveLockDataProviderExtension())
+                .AddBlobProviders(GetBlobProviders()) // extension for platforms
                 .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
@@ -61,6 +63,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public abstract DataProvider GetDataProvider();
         public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
+        public abstract IEnumerable<IBlobProvider> GetBlobProviders();
         public abstract IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension();
         public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
         public abstract IBlobProviderSelector GetBlobProviderSelector();

@@ -3,9 +3,9 @@ using System.IO;
 
 namespace SenseNet.IntegrationTests.Common
 {
-    internal class FileSystemChunkReaderStream : Stream
+    class InMemoryChunkReaderStream : Stream
     {
-        private readonly string _directoryPath;
+        private readonly byte[][] _data;
 
         private readonly int _chunkSize;
         private int _currentChunkIndex;
@@ -13,9 +13,9 @@ namespace SenseNet.IntegrationTests.Common
         private int _loadedChunkIndex = -1;
         private byte[] _loadedBytes;
 
-        public FileSystemChunkReaderStream(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize, string directoryPath)
+        public InMemoryChunkReaderStream(InMemoryChunkBlobProviderData providerData, long fullSize, byte[][] data)
         {
-            _directoryPath = directoryPath;
+            _data = data;
             Length = fullSize;
             _chunkSize = providerData.ChunkSize;
         }
@@ -23,6 +23,7 @@ namespace SenseNet.IntegrationTests.Common
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => false;
+
 
         public override long Length { get; }
 
@@ -73,19 +74,10 @@ namespace SenseNet.IntegrationTests.Common
             }
             return totalCount;
         }
-
         private byte[] LoadChunk(int chunkIndex)
         {
-            var path = Path.Combine(_directoryPath, chunkIndex.ToString());
-            using (var stream = new FileStream(path, FileMode.Open))
-            {
-                var streamLength = stream.Length.ToInt();
-                var bytes = new byte[streamLength];
-                stream.Read(bytes, 0, streamLength);
-                return bytes;
-            }
+            return _data[chunkIndex];
         }
-
         private int CopyBytes(byte[] source, int sourceOffset, byte[] target, int targetOffset, int expectedCount)
         {
             var availableSourceCount = source.Length - sourceOffset;

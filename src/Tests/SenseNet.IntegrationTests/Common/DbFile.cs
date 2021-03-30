@@ -26,7 +26,6 @@ namespace SenseNet.IntegrationTests.Common
         public bool? IsDeleted;
         public string BlobProvider;
         public string BlobProviderData;
-        public byte[] FileStream; //UNDONE:<?IntT: Delete FileStream property
         public byte[] ExternalStream;
     }
 }

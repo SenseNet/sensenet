@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -159,6 +160,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
                 file.Save();
                 var fileId = file.Id;
+                var blobProviderBefore = file.Binary.BlobProvider;
+                var fileRowIdBefore = file.Binary.FileId;
+
                 file = Node.Load<File>(fileId);
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(updatedContent));
 
@@ -166,6 +170,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Save();
 
                 // assert
+                var blobProviderAfter = file.Binary.BlobProvider;
+                var fileRowIdAfter = file.Binary.FileId;
+                // if blob provider before and after is built-in, the existing file row is updated, else re-created.
+                if(blobProviderAfter == null && blobProviderBefore == null)
+                    Assert.AreEqual(fileRowIdBefore, fileRowIdAfter);
+                else
+                    Assert.AreNotEqual(fileRowIdBefore, fileRowIdAfter);
+
                 var dbFiles = BlobStoragePlatform.LoadDbFiles(file.VersionId);
                 Assert.AreEqual(1, dbFiles.Length);
                 var dbFile = dbFiles[0];
@@ -204,7 +216,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 var updatedText = "Cras lobortis consequat nisi..";
                 var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
 
-                Assert.IsNull(dbFile.FileStream);
                 var stream = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFile.Stream : dbFile.ExternalStream;
                 Assert.IsNotNull(stream);
                 Assert.AreEqual(dbFile.Size, stream.Length);
@@ -224,14 +235,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 if (NeedExternal(BlobStoragePlatform.ExpectedBlobProviderDataType, updatedText, 20))
                 {
                     Assert.IsNull(dbFile.Stream);
-                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
                     Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
                     Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
                 }
                 else
                 {
                     Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
                     Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                     Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
                 }
@@ -344,13 +353,11 @@ namespace SenseNet.IntegrationTests.TestCases
             var updatedText = "Cras lobortis consequat nisi..";
             var dbFiles = CopyFileRowTest(initialText, updatedText, 222);
 
-            Assert.IsNull(dbFiles[0].FileStream);
             var stream0 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[0].Stream : dbFiles[0].ExternalStream;
             Assert.IsNotNull(stream0);
             Assert.AreEqual(dbFiles[0].Size, stream0.Length);
             Assert.AreEqual(initialText, GetStringFromBytes(stream0));
 
-            Assert.IsNull(dbFiles[1].FileStream);
             var stream1 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[1].Stream : dbFiles[1].ExternalStream;
             Assert.IsNotNull(stream1);
             Assert.AreEqual(dbFiles[1].Size, stream1.Length);
@@ -370,24 +377,20 @@ namespace SenseNet.IntegrationTests.TestCases
             if (NeedExternal(BlobStoragePlatform.ExpectedExternalBlobProviderType))
             {
                 Assert.IsNull(dbFiles[0].Stream);
-                Assert.IsTrue(dbFiles[0].FileStream == null || dbFiles[0].FileStream.Length == 0);
                 Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
                 Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
 
                 Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
-                Assert.IsTrue(dbFiles[1].FileStream == null || dbFiles[1].FileStream.Length == 0);
                 Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
 
             }
             else
             {
-                Assert.IsNull(dbFiles[0].FileStream);
                 Assert.IsNotNull(dbFiles[0].Stream);
                 Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
                 Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
 
-                Assert.IsNull(dbFiles[1].FileStream);
                 Assert.IsNotNull(dbFiles[1].Stream);
                 Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
@@ -742,6 +745,7 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
+            AssertRawData(dbFile, BlobStoragePlatform.UseChunk, expectedText);
         }
         private void Assert_Big(DbFile dbFile, string expectedText)
         {
@@ -758,6 +762,35 @@ namespace SenseNet.IntegrationTests.TestCases
             Assert.AreEqual(expectedDataType, ctx.BlobProviderData.GetType());
             Assert.AreEqual(dbFile.FileId, ctx.FileId);
             Assert.AreEqual(dbFile.Size, ctx.Length);
+            AssertRawData(dbFile, BlobStoragePlatform.UseChunk, expectedText);
+        }
+        private void AssertRawData(DbFile dbFile, bool useChunk, string expectedText)
+        {
+            byte[][] data = BlobStoragePlatform.GetRawData(dbFile.FileId);
+
+            if (dbFile.Size == 0L)
+                Assert.AreEqual(0, data.Length);
+            else if (useChunk && dbFile.BlobProvider == null)
+                Assert.AreEqual(1, data.Length);
+            else if (useChunk && dbFile.BlobProvider != null)
+                Assert.AreNotEqual(1, data.Length);
+            else
+                Assert.AreEqual(1, data.Length);
+
+            var length = data.Select(d=>d.Length).Sum();
+            var buffer = new byte[length];
+            var offset = 0;
+            foreach (var item in data)
+            {
+                Array.Copy(item, 0, buffer, offset, item.Length);
+                offset += item.Length;
+            }
+
+            string actualText;
+            using (var stream = new IO.MemoryStream(buffer))
+                actualText = RepositoryTools.GetStreamString(stream);
+
+            Assert.AreEqual(expectedText, actualText);
         }
 
         private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)

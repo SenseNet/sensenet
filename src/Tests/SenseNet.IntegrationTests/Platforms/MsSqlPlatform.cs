@@ -41,6 +41,12 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new MsSqlSharedLockDataProvider();
         }
+
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return null;
+        }
+
         public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
         {
             return new MsSqlExclusiveLockDataProvider();

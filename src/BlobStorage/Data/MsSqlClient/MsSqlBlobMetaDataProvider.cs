@@ -266,9 +266,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     FileId = value.FileId,
                     Length = streamLength,
                 };
-
-                using (var stream = blobProvider.GetStreamForWrite(ctx))
-                    value.Stream?.CopyTo(stream);
+                if (streamLength == 0)
+                {
+                    await blobProvider.ClearAsync(ctx, dataContext.CancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    using (var stream = blobProvider.GetStreamForWrite(ctx))
+                        value.Stream?.CopyTo(stream);
+                }
             }
         }
 
@@ -595,7 +601,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
             {
                 if(_waitBetweenCleanupFilesMilliseconds != 0)
-                    await Task.Delay(_waitBetweenCleanupFilesMilliseconds).ConfigureAwait(false);
+                    await Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
             }
         }
     }
