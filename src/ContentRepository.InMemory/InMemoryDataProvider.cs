@@ -352,11 +352,6 @@ namespace SenseNet.ContentRepository.InMemory
                         VersionTimestamp = versionDoc.Timestamp
                     };
 
-//UNDONE:<?:RefProps: delete this check
-foreach (var prop in versionDoc.DynamicProperties)
-    if(DataType.Reference == (nodeData.PropertyTypes[prop.Key]?.DataType ?? DataType.Int))
-        throw new Exception("##");
-
                     var dynamicProps = versionDoc.DynamicProperties;
                     foreach (var propertyType in nodeData.PropertyTypes)
                         if (dynamicProps.TryGetValue(propertyType.Name, out var value))
