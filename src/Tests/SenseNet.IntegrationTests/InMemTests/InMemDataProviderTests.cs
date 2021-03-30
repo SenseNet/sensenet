@@ -17,7 +17,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     [TestClass]
     public class InMemDataProviderTests : IntegrationTest<InMemPlatform, DataProviderTestCases>
     {
-        InMemoryDataBase GetDatabase()
+        private InMemoryDataBase GetDatabase()
         {
             return ((InMemoryDataProvider)Providers.Instance.DataProvider).DB;
         }
@@ -48,6 +48,6 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod] public void UT_InMem_DP_RefProp_Update() { TestCase.UT_RefProp_Update(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_InMem_DP_RefProp_Update3to0() { TestCase.UT_RefProp_Update3to0(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_InMem_DP_RefProp_Update0to3() { TestCase.UT_RefProp_Update0to3(GetReferencesFromDb, Cleanup); }
-
+        [TestMethod] public void UT_InMem_DP_RefProp_NewVersionAndUpdate() { TestCase.UT_RefProp_NewVersionAndUpdate(GetReferencesFromDb, Cleanup); }
     }
 }

@@ -477,6 +477,63 @@ namespace SenseNet.IntegrationTests.TestCases
                     string.Join(",", after.OrderBy(x => x)));
             });
         }
+        /// <summary>
+        /// UT_RefProp_Update.
+        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
+        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
+        /// The second parameter is a method that clears the main tables
+        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
+        /// Note that the blobs do not need to be deleted.
+        /// </summary>
+        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
+        /// <param name="cleanup">Method that clears the main tables.</param>
+        public void UT_RefProp_NewVersionAndUpdate(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var dp = Providers.Instance.DataProvider;
+                var schema = CreateSchema("UT_RefProp_NewVersionAndUpdate", out var nodeType, out var propType);
+
+                var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                var expectedIds = new List<int> { 12345, 23456, 34567 };
+                var nodeHeadData = CreateNodeHeadData("UT_RefProp_NewVersionAndUpdate", nodeType.Id);
+                var versionData = CreateVersionData("1.42.D");
+                var dynamicData = new DynamicPropertyData
+                {
+                    ContentListProperties = new Dictionary<PropertyType, object>(),
+                    DynamicProperties = new Dictionary<PropertyType, object>(),
+                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                };
+
+                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                nodeIds.Add(nodeHeadData.NodeId);
+                var versionIdBefore = versionData.VersionId;
+                versionIds.Add(versionIdBefore);
+
+                // ACTION
+                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None,
+                        expectedVersionId: 0).ConfigureAwait(false).GetAwaiter().GetResult();
+                var versionIdAfter = versionData.VersionId;
+                versionIds.Add(versionIdAfter);
+
+                // ASSERT
+                Assert.AreNotEqual(versionIdBefore, versionIdAfter);
+                var initial = string.Join(",",
+                    initialIds.OrderBy(x => x));
+                var before = string.Join(",",
+                    getReferencesFromDatabase(versionIdBefore, 9999).OrderBy(x => x));
+                Assert.AreEqual(initial, before);
+                var expected = string.Join(",",
+                    expectedIds.OrderBy(x => x));
+                var after = string.Join(",",
+                    getReferencesFromDatabase(versionIdAfter, 9999).OrderBy(x => x));
+                Assert.AreEqual(expected, after);
+            });
+        }
 
         /* ====================================================================== TOOLS */
 

@@ -23,7 +23,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         {
             return new MsSqlDataContext(ConnectionStrings.ConnectionString, new DataOptions(), cancellation);
         }
-        public async Task<int[]> GetReferencesFromDbAsync(int versionId, int propertyTypeId, CancellationToken cancellation)
+        private async Task<int[]> GetReferencesFromDbAsync(int versionId, int propertyTypeId, CancellationToken cancellation)
         {
             var sql = "SELECT ReferredNodeId FROM ReferenceProperties " +
                       "WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId";
@@ -91,5 +91,6 @@ DELETE FROM BinaryProperties WHERE VersionId IN ({versionIdString})
         [TestMethod] public void UT_MsSql_DP_RefProp_Update() { TestCase.UT_RefProp_Update(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_MsSql_DP_RefProp_Update3to0() { TestCase.UT_RefProp_Update3to0(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_MsSql_DP_RefProp_Update0to3() { TestCase.UT_RefProp_Update0to3(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_NewVersionAndUpdate() { TestCase.UT_RefProp_NewVersionAndUpdate(GetReferencesFromDb, Cleanup); }
     }
 }

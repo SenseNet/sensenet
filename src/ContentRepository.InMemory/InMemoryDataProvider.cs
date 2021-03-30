@@ -200,7 +200,6 @@ namespace SenseNet.ContentRepository.InMemory
                         SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
 
                     // Manage ReferenceProperties
-//UNDONE:<?:RefProps: Check ReferenceProperties in CopyAndUpdateNodeAsync
                     CopyReferencePropertiesSafe(sourceVersionId, targetVersionId);
                     foreach (var item in dynamicData.ReferenceProperties)
                         SaveReferencePropertySafe(targetVersionId, item.Key.Id, item.Value);
