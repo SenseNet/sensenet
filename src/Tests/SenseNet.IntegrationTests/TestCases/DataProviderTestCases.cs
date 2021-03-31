@@ -121,16 +121,19 @@ namespace SenseNet.IntegrationTests.TestCases
             try
             {
                 SnTrace.EnableAll();
-                var platformName = Platform.GetType().FullName;
-                if (_repositoryBuilder == null || _lastPlatformName != platformName)
-                {
-                    SnTrace.Write("------------------------------- CreateRepositoryBuilder");
-                    _repositoryBuilder = Platform.CreateRepositoryBuilder();
-                    _lastPlatformName = platformName;
-                    BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
-                    BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
-                }
-                TestInitializer?.Invoke(_repositoryBuilder);
+                //var platformName = Platform.GetType().FullName;
+                //if (_repositoryBuilder == null || _lastPlatformName != platformName)
+                //{
+                //    SnTrace.Write("------------------------------- CreateRepositoryBuilder");
+                //    _repositoryBuilder = Platform.CreateRepositoryBuilder();
+                //    _lastPlatformName = platformName;
+                //    //BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
+                //    //BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
+                //}
+                var builder = Platform.CreateRepositoryBuilder();
+                if(Providers.Instance.BlobStorage == null)
+                    Providers.Instance.InitializeBlobProviders();
+                TestInitializer?.Invoke(builder);
                 callback();
             }
             finally
