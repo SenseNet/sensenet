@@ -1,7 +1,7 @@
 <ContentType name="EventList" parentType="ItemList" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-EventList,DisplayName</DisplayName>
   <Description>$Ctd-EventList,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>EventList</Icon>
   <AllowedChildTypes>CalendarEvent</AllowedChildTypes>
   <Fields>
     <Field name="DisplayName" type="ShortText">

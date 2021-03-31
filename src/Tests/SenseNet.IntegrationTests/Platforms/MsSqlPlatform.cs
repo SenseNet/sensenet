@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -40,17 +41,29 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new MsSqlSharedLockDataProvider();
         }
+
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return null;
+        }
+
         public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
         {
             return new MsSqlExclusiveLockDataProvider();
         }
         public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
         {
-            return new MsSqlBlobMetaDataProvider();
+            //TODO: get services and options from outside
+            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
+                Options.Create(DataOptions.GetLegacyConfiguration()),
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
-            return new BuiltInBlobProviderSelector();
+            return new BuiltInBlobProviderSelector(
+                Providers.Instance.BlobProviders,
+                null,
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
         }
         public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
         {

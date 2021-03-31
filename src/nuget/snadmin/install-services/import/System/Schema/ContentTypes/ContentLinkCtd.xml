@@ -2,7 +2,7 @@
 <ContentType name="ContentLink" parentType="GenericContent" handler="SenseNet.ContentRepository.ContentLink" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-ContentLink,DisplayName</DisplayName>
 	<Description>$Ctd-ContentLink,Description</Description>
-	<Icon>Folder</Icon>
+	<Icon>ContentLink</Icon>
 	<Fields>
     <Field name="Name" type="ShortText">
       <Configuration>

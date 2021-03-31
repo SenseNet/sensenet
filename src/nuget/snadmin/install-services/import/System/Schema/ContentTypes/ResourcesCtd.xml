@@ -2,7 +2,7 @@
 <ContentType name="Resources" parentType="SystemFolder" handler="SenseNet.ContentRepository.SystemFolder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-Resources,DisplayName</DisplayName>
   <Description>$Ctd-Resources,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>Resources</Icon>
   <AllowedChildTypes>
     Resource
   </AllowedChildTypes>

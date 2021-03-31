@@ -12,7 +12,7 @@ namespace SenseNet.Packaging.Steps.Internal
 {
     public partial class ReindexBinaries
     {
-        //UNDONE: [DIREF] get options from DI through constructor
+        //TODO: [DIREF] get options from DI through constructor
         private static class DataHandler
         {
             internal static void InstallTables(CancellationToken cancellationToken)

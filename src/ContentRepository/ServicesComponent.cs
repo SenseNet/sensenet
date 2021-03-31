@@ -849,6 +849,39 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+            builder.Patch("7.7.19", "7.7.19.1", "2021-03-30", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("BinaryFieldSetting").Icon("FieldSetting");
+                    cb.Type("ContentLink").Icon("ContentLink");
+                    cb.Type("DocumentLibrary").Icon("DocumentLibrary");
+                    cb.Type("Email").Icon("Email");
+                    cb.Type("EventList").Icon("EventList");
+                    cb.Type("ExecutableFile").Icon("ExecutableFile");
+                    cb.Type("ImageLibrary").Icon("ImageLibrary");
+                    cb.Type("Library").Icon("Library");
+                    cb.Type("LinkList").Icon("LinkList");
+                    cb.Type("Memo").Icon("Memo");
+                    cb.Type("MemoList").Icon("MemoList");
+                    cb.Type("NullFieldSetting").Icon("FieldSetting");
+                    cb.Type("PermissionChoiceFieldSetting").Icon("FieldSetting");
+                    cb.Type("Profiles").Icon("Profiles");
+                    cb.Type("Resources").Icon("Resources");
+                    cb.Type("Sites").Icon("Sites");
+                    cb.Type("SystemFile").Icon("SystemFile");
+                    cb.Type("SystemFolder").Icon("SystemFolder");
+                    cb.Type("Task").Icon("Task");
+                    cb.Type("TaskList").Icon("TaskList");
+                    cb.Type("TrashBag").Icon("TrashBag");
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
     }
 }

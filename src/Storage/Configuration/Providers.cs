@@ -13,7 +13,9 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -140,31 +142,66 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
-        private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =
-            new Lazy<IBlobStorageMetaDataProvider>(() =>
-            {
-                var blobMetaClassName = BlobStorage.MetadataProviderClassName;
-                return string.IsNullOrEmpty(blobMetaClassName)
-                    ? new MsSqlBlobMetaDataProvider()
-                    : CreateProviderInstance<IBlobStorageMetaDataProvider>(blobMetaClassName, "BlobMetaDataProvider");
-            });
-        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider
-        {
-            get { return _blobMetaDataProvider.Value; }
-            set { _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>(() => value); }
-        }
+        #region IBlobStorageMetaDataProvider
+
+        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider { get; set; }
+
         #endregion
 
-        #region private Lazy<IBlobProviderSelector> _blobProviderSelector = new Lazy<IBlobProviderSelector>
-        private Lazy<IBlobProviderSelector> _blobProviderSelector =
-            new Lazy<IBlobProviderSelector>(() => new BuiltInBlobProviderSelector());
-        public virtual IBlobProviderSelector BlobProviderSelector
-        {
-            get { return _blobProviderSelector.Value; }
-            set { _blobProviderSelector = new Lazy<IBlobProviderSelector>(() => value); }
-        }
+        #region IBlobProviderSelector
+
+        public virtual IBlobProviderSelector BlobProviderSelector { get; set; }
+
         #endregion
+
+        #region BlobStorage
+        
+        /// <summary>
+        /// Legacy property for old APIs.
+        /// </summary>
+        public IBlobStorage BlobStorage { get; set; }
+
+        #endregion
+
+        public void ResetBlobProviders()
+        {
+            BlobStorage = null;
+            BlobProviderSelector = null;
+            BlobMetaDataProvider = null;
+            BlobProviders.Clear();
+
+            // add default internal blob provider
+            BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration())));
+        }
+
+        public void InitializeBlobProviders()
+        {
+            // add built-in provider manually if necessary
+            if (!BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
+            {
+                BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration())));
+            }
+
+            if (BlobProviderSelector == null)
+            {
+                BlobProviderSelector = new BuiltInBlobProviderSelector(BlobProviders,
+                    null, Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+            }
+
+            // assemble the main api instance if necessary (for tests)
+            if (BlobStorage == null)
+            {
+                BlobStorage = new ContentRepository.Storage.Data.BlobStorage(
+                    BlobProviders,
+                    BlobProviderSelector,
+                    BlobMetaDataProvider,
+                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+            }
+
+            BlobStorage.Initialize();
+        }
+
+        public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
         private Lazy<ISearchEngine> _searchEngine =

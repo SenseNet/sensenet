@@ -1,9 +1,5 @@
-﻿using SenseNet.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
@@ -17,53 +13,43 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
-        //UNDONE: [DIREF] eliminate static provider property
+        private IBlobProviderStore BlobProviders { get; }
+        private IExternalBlobProviderFactory ExternalFactory { get; }
+        private BlobStorageOptions BlobStorageConfig { get; }
+
+        private IBlobProvider _externalProvider;
+
         /// <summary>
-        /// A custom blob provider instance that can be configured in the <see cref="BlobStorage"/> section.
+        /// A custom blob provider instance that will be used when the file size exceeds a certain configured value.
         /// </summary>
-        protected internal static IBlobProvider ExternalBlobProvider { get; set; }
+        private IBlobProvider ExternalBlobProvider =>
+            _externalProvider ?? (_externalProvider = ExternalFactory?.GetBlobProvider());
 
         /// <summary>
         /// Initializes an instance of the BuiltInBlobProviderSelector
         /// </summary>
-        public BuiltInBlobProviderSelector()
+        public BuiltInBlobProviderSelector(
+            IBlobProviderStore blobProviderStore,
+            IExternalBlobProviderFactory externalBlobProviderFactory,
+            IOptions<BlobStorageOptions> blobStorageConfig)
         {
-            // check if there is a configuration for an external blob provider
-            if (string.IsNullOrEmpty(BlobStorage.BlobProviderClassName) || ExternalBlobProvider != null)
-                return;
-
-            try
-            {
-                ExternalBlobProvider = (IBlobProvider)TypeResolver.CreateInstance(BlobStorage.BlobProviderClassName);
-                SnLog.WriteInformation("External BlobProvider created by configuration. Type: " + BlobStorage.BlobProviderClassName,
-                    EventId.RepositoryLifecycle);
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex);
-            }
-
-            // We throw an exception in a static constructor (which will prevent this type to work)
-            // because if something is wrong with the blob provider configuration, it will affect
-            // the whole system and it should be resolved immediately.
-            if (ExternalBlobProvider == null)
-                throw new ConfigurationErrorsException("Unknown blob provider name in configuration: " + BlobStorage.BlobProviderClassName);
+            BlobProviders = blobProviderStore;
+            ExternalFactory = externalBlobProviderFactory;
+            BlobStorageConfig = blobStorageConfig?.Value ?? new BlobStorageOptions();
         }
 
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        /// <param name="providers">Available blob providers (currently not used).</param>
-        /// <param name="builtIn">The built-in provider to be used as a fallback.</param>
-        public IBlobProvider GetProvider(long fullSize, Dictionary<string, IBlobProvider> providers, IBlobProvider builtIn)
+        public IBlobProvider GetProvider(long fullSize)
         {
             // The default algorithm chooses the blob provider based on binary size: below a limit, we 
             // save files to the db, above we use the configured external provider (if there is any).
-            if (fullSize < BlobStorage.MinimumSizeForBlobProviderInBytes)
-                return builtIn;
+            if (fullSize < BlobStorageConfig.MinimumSizeForBlobProviderInBytes)
+                return BlobProviders.BuiltInBlobProvider;
 
-            return ExternalBlobProvider ?? builtIn;
+            return ExternalBlobProvider ?? BlobProviders.BuiltInBlobProvider;
         }
     }
 }

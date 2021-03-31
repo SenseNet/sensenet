@@ -1,4 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
+
+using System;
+
 namespace SenseNet.Configuration
 {
     /// <summary>
@@ -33,6 +36,7 @@ namespace SenseNet.Configuration
         Immediately,
     }
 
+    [Obsolete("Use BlobStorageOptions with DI instead.")]
     /// <summary>
     /// Provides configuration values needed by the blob storage. Looks for values 
     /// in the sensenet/blobstorage section. All properties have default values,
@@ -82,5 +86,34 @@ namespace SenseNet.Configuration
         /// </summary>
         public static BlobDeletionPolicy BlobDeletionPolicy { get; set; } =
             GetValue<BlobDeletionPolicy>(SectionName, "BlobDeletionPolicy");
+    }
+
+    public class BlobStorageOptions
+    {
+        [Obsolete("Get configuration through dependency injection instead.")]
+        public static BlobStorageOptions GetLegacyConfiguration()
+        {
+            return new BlobStorageOptions
+            {
+                BinaryBufferSize = BlobStorage.BinaryBufferSize,
+                BinaryCacheSize = BlobStorage.BinaryCacheSize,
+                BinaryChunkSize = BlobStorage.BinaryChunkSize,
+                MinimumSizeForBlobProviderKb = BlobStorage.MinimumSizeForBlobProviderInBytes / 1024,
+                BlobDeletionPolicy = BlobStorage.BlobDeletionPolicy
+            };
+        }
+
+        public int BinaryChunkSize { get; set; } = 1048576;
+        public int BinaryBufferSize { get; set; } = 1048576;
+        public int BinaryCacheSize { get; set; } = 1048576;
+
+        private int? _minimumSizeForBlobProviderInBytes;
+        public int MinimumSizeForBlobProviderInBytes =>
+            _minimumSizeForBlobProviderInBytes ??
+            (_minimumSizeForBlobProviderInBytes = MinimumSizeForBlobProviderKb * 1024).Value;
+
+        public int MinimumSizeForBlobProviderKb { get; set; } = 500;
+
+        public BlobDeletionPolicy BlobDeletionPolicy { get; set; }
     }
 }

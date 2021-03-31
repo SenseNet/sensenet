@@ -2,7 +2,7 @@
 <ContentType name="TrashBag" parentType="Folder" handler="SenseNet.ContentRepository.TrashBag" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-TrashBag,DisplayName</DisplayName>
   <Description>$Ctd-TrashBag,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>TrashBag</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <Fields>
     <Field name="DisplayName" type="ShortText">

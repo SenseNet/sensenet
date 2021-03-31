@@ -5,6 +5,8 @@ namespace SenseNet.IntegrationTests.Common
 {
     internal class FileSystemChunkWriterStream : Stream
     {
+        private LocalDiskChunkBlobProvider _blobProvider;
+
         private Guid _id;
         private readonly int _chunkSize;
 
@@ -13,8 +15,9 @@ namespace SenseNet.IntegrationTests.Common
         private byte[] _buffer;
         private bool _flushIsNecessary;
         
-        public FileSystemChunkWriterStream(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize)
+        public FileSystemChunkWriterStream(LocalDiskChunkBlobProvider blobProvider, LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize)
         {
+            _blobProvider = blobProvider;
             Length = fullSize;
             _chunkSize = providerData.ChunkSize;
             _id = providerData.Id;
@@ -69,7 +72,7 @@ namespace SenseNet.IntegrationTests.Common
                 Array.ConstrainedCopy(_buffer, 0, bytes, 0, bytesToWrite);
             }
 
-            LocalDiskChunkBlobProvider.WriteChunk(_id,chunkIndex, bytes);
+            _blobProvider.WriteChunk(_id,chunkIndex, bytes);
 
             _flushIsNecessary = false;
         }
@@ -138,7 +141,6 @@ namespace SenseNet.IntegrationTests.Common
 
             SetPosition(Position + count);
         }
-        //UNDONE:DB:BLOB: Override WriteAsync instead of Write
 
         protected override void Dispose(bool disposing)
         {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -16,10 +17,10 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public InMemoryDataProvider DataProvider { get; set; }
 
-        public InMemoryBlobStorageMetaDataProvider()
-        {
-            
-        }
+        //TODO: [DIBLOB] get these services through the constructor later
+        private IBlobProviderStore BlobProviders => Providers.Instance.BlobProviders;
+        private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
         public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
         {
             DataProvider = dataProvider;
@@ -36,7 +37,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerData = fileDoc.BlobProviderData;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
 
             var result = new BlobStorageContext(provider, providerData)
             {
@@ -44,7 +45,7 @@ namespace SenseNet.ContentRepository.InMemory
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
+                BlobProviderData = provider is IBuiltInBlobProvider
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
@@ -176,8 +177,16 @@ namespace SenseNet.ContentRepository.InMemory
                 Length = streamLength,
             };
 
-            using (var stream = blobProvider.GetStreamForWrite(newCtx))
-                value.Stream?.CopyTo(stream);
+            if(streamLength == 0)
+            {
+                blobProvider.ClearAsync(newCtx, dataContext.CancellationToken)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            else
+            {
+                using (var stream = blobProvider.GetStreamForWrite(newCtx))
+                    value.Stream?.CopyTo(stream);
+            }
 
             return STT.Task.CompletedTask;
         }
@@ -272,7 +281,7 @@ namespace SenseNet.ContentRepository.InMemory
 
             var rawData = fileDoc.Buffer;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,
@@ -316,7 +325,7 @@ namespace SenseNet.ContentRepository.InMemory
             var providerName = fileDoc.BlobProvider;
             var providerTextData = fileDoc.BlobProviderData;
 
-            var provider = BlobStorageBase.GetProvider(providerName);
+            var provider = BlobProviders.GetProvider(providerName);
             var context = new BlobStorageContext(provider, providerTextData)
             {
                 VersionId = versionId,
@@ -392,47 +401,62 @@ namespace SenseNet.ContentRepository.InMemory
 
         public virtual STT.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
-            // This method is not supported in this provider because the FileDoc
-            // does not have enough information (IsDeleted & CreationDate).
-
-            //UNDONE:<?Blob: Implement this feature
+            CleanupFilesSetDeleteFlag(false);
             return STT.Task.CompletedTask;
         }
 
         public virtual STT.Task CleanupFilesSetDeleteFlagImmediatelyAsync(CancellationToken cancellationToken)
         {
-            // This method is not supported in this provider because the FileDoc
-            // does not have enough information (IsDeleted).
-
-            //UNDONE:<?Blob: Implement this feature
+            CleanupFilesSetDeleteFlag(true);
             return STT.Task.CompletedTask;
         }
 
-        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        private void CleanupFilesSetDeleteFlag(bool immediately)
         {
-            // Delete the orphaned files immediately (see the comment in the CleanupFilesSetDeleteFlagAsync).
-
             var db = DataProvider.DB;
+            var activeFileIds = db.BinaryProperties.Select(b => b.FileId).ToArray();
 
-            var allFileIds = db.BinaryProperties.Select(x => x.FileId).ToArray();
-            var filesIdsToDelete = db.Files
-                .Where(x => !x.Staging && !allFileIds.Contains(x.Id))
-                .Select(x=>x.FileId)
-                .ToArray();
-
-            foreach (var fileId in filesIdsToDelete)
+            var deletable = db.Files.Where(f => !f.Staging &&
+                                                !activeFileIds.Contains(f.FileId));
+            if (!immediately)
             {
-                Thread.Sleep(10); // Simulates the delay of a real database.
-                db.Files.Remove(fileId);
+                var timeLimit = DateTime.UtcNow.AddMinutes(-30.0d);
+                deletable = deletable.Where(f => f.CreationDate < timeLimit);
             }
 
-            // Done: return false because all items are deleted.
-            return STT.Task.FromResult(false);
+            foreach (var item in deletable)
+                item.IsDeleted = true;
         }
 
-        public virtual STT.Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancel)
         {
-            return CleanupFilesAsync(cancellationToken);
+            var db = DataProvider.DB;
+
+            var file = db.Files.FirstOrDefault(x => x.IsDeleted);
+            if (file == null)
+                return STT.Task.FromResult(false);
+            db.Files.Remove(file);
+
+            // delete bytes from the blob storage
+            var provider = BlobStorage.GetProvider(file.BlobProvider);
+            var ctx = new BlobStorageContext(provider, file.BlobProviderData)
+            {
+                VersionId = 0, PropertyTypeId = 0, FileId = file.FileId, Length = file.Size
+            };
+            ctx.Provider.DeleteAsync(ctx, cancel).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            return STT.Task.FromResult(true);
+        }
+
+        // Do not increase this value int he production scenario. It is only used in tests.
+        private int _waitBetweenCleanupFilesMilliseconds = 0;
+        public virtual async STT.Task CleanupAllFilesAsync(CancellationToken cancellationToken)
+        {
+            while (await CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_waitBetweenCleanupFilesMilliseconds != 0)
+                    await STT.Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 <ContentType name="DocumentLibrary" parentType="Library" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-DocumentLibrary,DisplayName</DisplayName>
   <Description>$Ctd-DocumentLibrary,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>DocumentLibrary</Icon>
   <AllowedChildTypes>
     Folder,File
   </AllowedChildTypes>

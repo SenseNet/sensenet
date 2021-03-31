@@ -1,7 +1,7 @@
 <ContentType name="Email" parentType="Folder" handler="SenseNet.ContentRepository.Folder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-Email,DisplayName</DisplayName>
   <Description>$Ctd-Email,Description</Description>
-  <Icon>Document</Icon>
+  <Icon>Email</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <AllowedChildTypes>
     File

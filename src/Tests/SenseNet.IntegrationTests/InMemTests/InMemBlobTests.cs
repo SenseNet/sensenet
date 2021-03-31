@@ -74,7 +74,6 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.TestCase_DeleteBinaryPropertySmall();
         }
-
         [TestMethod]
         public void IntT_InMem_Blob_DeleteBinaryPropertyBig()
         {
@@ -86,7 +85,6 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.TestCase_CopyFileRowSmall();
         }
-
         [TestMethod]
         public void IntT_InMem_Blob_CopyFileRowBig()
         {
@@ -98,22 +96,18 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.TestCase_BinaryCacheEntitySmall();
         }
-
         [TestMethod]
         public void IntT_InMem_Blob_BinaryCacheEntityBig()
         {
             TestCase.TestCase_BinaryCacheEntityBig();
         }
 
-        //UNDONE:<?Blob: implement inmem features (Deleted flag, deletion date)
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_Blob_DeleteSmall()
         {
             TestCase.TestCase_DeleteSmall();
         }
-
-        //UNDONE:<?Blob: implement inmem features (Deleted flag, deletion date)
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_Blob_DeleteBig()
         {
             TestCase.TestCase_DeleteBig();
@@ -124,15 +118,12 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.TestCase_DeletionPolicy_Default();
         }
-
         [TestMethod]
         public void IntT_InMem_Blob_DeletionPolicy_Immediately()
         {
             TestCase.TestCase_DeletionPolicy_Immediately();
         }
-
-        //UNDONE:<?Blob: implement inmem features (Deleted flag, deletion date)
-        //[TestMethod]
+        [TestMethod]
         public void IntT_InMem_Blob_DeletionPolicy_BackgroundImmediately()
         {
             TestCase.TestCase_DeletionPolicy_BackgroundImmediately();

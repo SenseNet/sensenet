@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -18,6 +22,14 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemPlatform : Platform
     {
+        //public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
+        //{
+        //    // in-memory provider works as a regular provider
+        //    builder.AddBlobProvider(new InMemoryBlobProvider());
+
+        //    base.OnBeforeGettingRepositoryBuilder(builder);
+        //}
+
         public override DataProvider GetDataProvider()
         {
             return new InMemoryDataProvider();
@@ -26,6 +38,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemorySharedLockDataProvider();
         }
+
         public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
         {
             return new InMemoryExclusiveLockDataProvider();
@@ -38,6 +51,11 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemoryBlobProviderSelector();
         }
+        public override IEnumerable<IBlobProvider> GetBlobProviders()
+        {
+            return new[] { new InMemoryBlobProvider() };
+        }
+
         public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
         {
             return new InMemoryAccessTokenDataProvider();
