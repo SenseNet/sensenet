@@ -52,15 +52,17 @@ namespace SenseNet.Packaging.Steps
             Logger.LogMessage("startIndexingEngine: " + startIndexingEngine);
             Logger.LogMessage("indexPath: " + indexPath);
 
-            var startSettings = context.RepositoryStartSettings ?? new RepositoryStartSettings
+            var startSettings = (context.RepositoryStartSettings ?? new RepositoryBuilder
             {
                 StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
                 StartWorkflowEngine = StartWorkflowEngine,
                 Console = context.Console
-            };
+            }) as RepositoryBuilder;
 
+            // make sure we call the appropriate Start method
+            // with the RepositoryBuilder parameter
             Repository.Start(startSettings);
 
             context.Console.WriteLine("Ok.");

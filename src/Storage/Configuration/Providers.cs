@@ -188,6 +188,11 @@ namespace SenseNet.Configuration
                     null, Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
             }
 
+            if (BlobMetaDataProvider == null)
+                BlobMetaDataProvider = new MsSqlBlobMetaDataProvider(BlobProviders,
+                    Options.Create(DataOptions.GetLegacyConfiguration()),
+                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+
             // assemble the main api instance if necessary (for tests)
             if (BlobStorage == null)
             {
