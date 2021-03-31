@@ -1,13 +1,14 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Tests.Core;
 using SenseNet.Tools.CommandLineArguments;
 using SenseNet.Tools.SnInitialDataGenerator;
 
 namespace SnInitialDataGenerator.Tests
 {
     [TestClass]
-    public class ArgumentsTests
+    public class ArgumentsTests : TestBase
     {
         private static readonly char VOL = Path.VolumeSeparatorChar;
         private static readonly char DIR = Path.DirectorySeparatorChar;
