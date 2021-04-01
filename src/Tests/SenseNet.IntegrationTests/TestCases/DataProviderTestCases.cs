@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Xml;
+using System.Xml.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -13,6 +14,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.Testing;
 using SenseNet.Tools;
 using SR = SenseNet.ContentRepository.SR;
 
@@ -272,29 +274,38 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_Load", out var nodeType, out var propType);
-
-                var expectedIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Insert", nodeType.Id);
-                var versionData = CreateVersionData("1.42.D");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } }
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                // ACTION
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                versionIds.Add(versionData.VersionId);
+                    var expectedIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_Insert", nodeType.Id);
+                    var versionData = CreateVersionData("1.42.D");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } }
+                    };
 
-                // ASSERT
-                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
+                    // ACTION
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    versionIds.Add(versionData.VersionId);
+
+                    // ASSERT
+                    var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                    Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                        string.Join(",", after.OrderBy(x => x)));
+                }
             });
         }
         /// <summary>
@@ -313,36 +324,45 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_Load", out var nodeType, out var propType);
-
-                var expectedIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Load", nodeType.Id);
-                var versionData = CreateVersionData("1.42.D");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } }
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                versionIds.Add(versionData.VersionId);
+                    var expectedIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_Load", nodeType.Id);
+                    var versionData = CreateVersionData("1.42.D");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } }
+                    };
 
-                // ACTION
-                var nodeData = dp.LoadNodesAsync(new[] {versionData.VersionId}, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult().FirstOrDefault();
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    versionIds.Add(versionData.VersionId);
 
-                // ASSERT
-                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
-                Assert.IsNotNull(nodeData);
-                var loaded = (IEnumerable<int>)nodeData.GetDynamicRawData(propType);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", loaded.OrderBy(x => x)));
+                    // ACTION
+                    var nodeData = dp.LoadNodesAsync(new[] { versionData.VersionId }, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().FirstOrDefault();
+
+                    // ASSERT
+                    var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                    Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                        string.Join(",", after.OrderBy(x => x)));
+                    Assert.IsNotNull(nodeData);
+                    var loaded = (IEnumerable<int>)nodeData.GetDynamicRawData(propType);
+                    Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                        string.Join(",", loaded.OrderBy(x => x)));
+                }
             });
         }
         /// <summary>
@@ -361,34 +381,43 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_Update", out var nodeType, out var propType);
-
-                var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
-                var expectedIds = new List<int> { 12345, 23456, 34567 };
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update", nodeType.Id);
-                var versionData = CreateVersionData("1.42.D");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> {{propType, initialIds}}
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                versionIds.Add(versionData.VersionId);
+                    var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                    var expectedIds = new List<int> { 12345, 23456, 34567 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update", nodeType.Id);
+                    var versionData = CreateVersionData("1.42.D");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                    };
 
-                // ACTION
-                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> {{propType, expectedIds}};
-                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    versionIds.Add(versionData.VersionId);
 
-                // ASSERT
-                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
+                    // ACTION
+                    dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                    dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                    Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                        string.Join(",", after.OrderBy(x => x)));
+                }
             });
         }
         /// <summary>
@@ -406,33 +435,42 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_Update3to0", out var nodeType, out var propType);
-
-                var initialIds = new List<int> { 2345, 3456, 4567 };
-                var expectedIds = new List<int>();
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update3to0", nodeType.Id);
-                var versionData = CreateVersionData("42.0.A");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                versionIds.Add(versionData.VersionId);
+                    var initialIds = new List<int> { 2345, 3456, 4567 };
+                    var expectedIds = new List<int>();
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update3to0", nodeType.Id);
+                    var versionData = CreateVersionData("42.0.A");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                    };
 
-                // ACTION
-                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
-                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    versionIds.Add(versionData.VersionId);
 
-                // ASSERT
-                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
-                Assert.IsNull(after);
+                    // ACTION
+                    dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                    dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                    Assert.IsNull(after);
+                }
             });
         }
         /// <summary>
@@ -450,34 +488,43 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_Update0to3", out var nodeType, out var propType);
-
-                var initialIds = new List<int>();
-                var expectedIds = new List<int> { 2345, 3456, 4567 };
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update0to3", nodeType.Id);
-                var versionData = CreateVersionData("42.0.A");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                versionIds.Add(versionData.VersionId);
+                    var initialIds = new List<int>();
+                    var expectedIds = new List<int> { 2345, 3456, 4567 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_Update0to3", nodeType.Id);
+                    var versionData = CreateVersionData("42.0.A");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                    };
 
-                // ACTION
-                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
-                dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    versionIds.Add(versionData.VersionId);
 
-                // ASSERT
-                var after = getReferencesFromDatabase(versionData.VersionId, 9999);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
+                    // ACTION
+                    dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                    dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var after = getReferencesFromDatabase(versionData.VersionId, 9999);
+                    Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
+                        string.Join(",", after.OrderBy(x => x)));
+                }
             });
         }
         /// <summary>
@@ -496,45 +543,54 @@ namespace SenseNet.IntegrationTests.TestCases
             var versionIds = new List<int>();
             DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
             {
-                var dp = Providers.Instance.DataProvider;
                 var schema = CreateSchema("UT_RefProp_NewVersionAndUpdate", out var nodeType, out var propType);
-
-                var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
-                var expectedIds = new List<int> { 12345, 23456, 34567 };
-                var nodeHeadData = CreateNodeHeadData("UT_RefProp_NewVersionAndUpdate", nodeType.Id);
-                var versionData = CreateVersionData("1.42.D");
-                var dynamicData = new DynamicPropertyData
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
                 {
-                    ContentListProperties = new Dictionary<PropertyType, object>(),
-                    DynamicProperties = new Dictionary<PropertyType, object>(),
-                    ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
-                };
+                    var dp = Providers.Instance.DataProvider;
 
-                dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                nodeIds.Add(nodeHeadData.NodeId);
-                var versionIdBefore = versionData.VersionId;
-                versionIds.Add(versionIdBefore);
+                    var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                    var expectedIds = new List<int> { 12345, 23456, 34567 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_NewVersionAndUpdate", nodeType.Id);
+                    var versionData = CreateVersionData("1.42.D");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                    };
 
-                // ACTION
-                dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
-                dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None,
-                        expectedVersionId: 0).ConfigureAwait(false).GetAwaiter().GetResult();
-                var versionIdAfter = versionData.VersionId;
-                versionIds.Add(versionIdAfter);
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    var versionIdBefore = versionData.VersionId;
+                    versionIds.Add(versionIdBefore);
 
-                // ASSERT
-                Assert.AreNotEqual(versionIdBefore, versionIdAfter);
-                var initial = string.Join(",",
-                    initialIds.OrderBy(x => x));
-                var before = string.Join(",",
-                    getReferencesFromDatabase(versionIdBefore, 9999).OrderBy(x => x));
-                Assert.AreEqual(initial, before);
-                var expected = string.Join(",",
-                    expectedIds.OrderBy(x => x));
-                var after = string.Join(",",
-                    getReferencesFromDatabase(versionIdAfter, 9999).OrderBy(x => x));
-                Assert.AreEqual(expected, after);
+                    // ACTION
+                    dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                    dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None,
+                            expectedVersionId: 0).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var versionIdAfter = versionData.VersionId;
+                    versionIds.Add(versionIdAfter);
+
+                    // ASSERT
+                    Assert.AreNotEqual(versionIdBefore, versionIdAfter);
+                    var initial = string.Join(",",
+                        initialIds.OrderBy(x => x));
+                    var before = string.Join(",",
+                        getReferencesFromDatabase(versionIdBefore, 9999).OrderBy(x => x));
+                    Assert.AreEqual(initial, before);
+                    var expected = string.Join(",",
+                        expectedIds.OrderBy(x => x));
+                    var after = string.Join(",",
+                        getReferencesFromDatabase(versionIdAfter, 9999).OrderBy(x => x));
+                    Assert.AreEqual(expected, after);
+                }
             });
         }
 
@@ -546,13 +602,8 @@ namespace SenseNet.IntegrationTests.TestCases
             return _random.Next(100000, int.MaxValue);
         }
 
-
         private TestSchema CreateSchema(string testName, out NodeType nodeType, out PropertyType propertyType)
         {
-            XmlDocument xd0 = new XmlDocument();
-            xd0.LoadXml(@"<?xml version=""1.0"" encoding=""utf-8""?><StorageSchema xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema""></StorageSchema>");
-            NodeTypeManager.Current.Clear();
-
             var schema = new TestSchema();
             propertyType = new PropertyType(schema, "TestReferenceProperty", 9999, DataType.Reference, 1234, false);
             schema.PropertyTypes.Add(propertyType);
@@ -561,10 +612,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 $"{testName}_ClassName", null);
             nodeType.AddPropertyType(propertyType);
             schema.NodeTypes.Add(nodeType);
-
-            XmlDocument xd = new XmlDocument();
-            xd.LoadXml(schema.ToXml());
-            NodeTypeManager.Current.Load(xd);
 
             return schema;
         }
