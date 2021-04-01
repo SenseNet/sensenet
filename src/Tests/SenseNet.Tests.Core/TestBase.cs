@@ -31,39 +31,30 @@ namespace SenseNet.Tests.Core
     {
         public TestContext TestContext { get; set; }
 
-        private SnTrace.Operation _testMethodOperation;
-
-        [TestInitialize]
-        public void InitializeTest()
+        protected virtual void InitializeTest()
         {
-            // workaround for having a half-started repository
-            if (RepositoryInstance.Started())
-                RepositoryInstance.Shutdown();
+            // do nothing;
+        }
+        [TestInitialize]
+        public void _initializeTest()
+        {
+            //// workaround for having a half-started repository
+            //if (RepositoryInstance.Started())
+            //    RepositoryInstance.Shutdown();
 
-            SnTrace.Test.Enabled = true;
-
-            if (_testMethodOperation != null)
-            {
-                SnTrace.Test.Write("The operation was forced to close.");
-                _testMethodOperation.Successful = false;
-                _testMethodOperation.Dispose();
-            }
-            _testMethodOperation = SnTrace.Test.StartOperation("TESTMETHOD: " + TestContext.TestName);
+            TestContext.StartTest();
+            InitializeTest();
         }
 
-        [TestCleanup]
-        public void CleanupTest()
+        protected virtual void CleanupTest()
         {
-            SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("{0}: {1}", TestContext.TestName, TestContext.CurrentTestOutcome);
-
-            if (_testMethodOperation != null)
-            {
-                _testMethodOperation.Successful = true;
-                _testMethodOperation.Dispose();
-            }
-
-            SnTrace.Flush();
+            // do nothing;
+        }
+        [TestCleanup]
+        public void _cleanupTest()
+        {
+            CleanupTest();
+            TestContext.FinishTestTest();
         }
 
         protected void Test(Action callback)

@@ -24,14 +24,15 @@ namespace SenseNet.Tests.Core
         {
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =
-                    SnTrace.Test.StartOperation("TESTMETHOD: " + testContext.TestName);
+                    SnTrace.Test.StartOperation($"TESTMETHOD: {testContext.FullyQualifiedTestClassName}.{testContext.TestName}" );
         }
         public static void FinishTestTest(this TestContext testContext)
         {
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
             {
                 var op = (SnTrace.Operation)testContext.Properties["SnTrace.Operation"];
-                SnTrace.Test.Write("TESTMETHOD: {0}: {1}", testContext.TestName, testContext.CurrentTestOutcome);
+                SnTrace.Test.Write("TESTMETHOD: {0}.{1}: {2}", 
+                    testContext.FullyQualifiedTestClassName, testContext.TestName, testContext.CurrentTestOutcome);
                 if (op != null)
                 {
                     op.Successful = true;
