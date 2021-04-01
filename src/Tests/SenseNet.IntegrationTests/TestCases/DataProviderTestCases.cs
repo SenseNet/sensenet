@@ -1,22 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
-using System.Xml;
-using System.Xml.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Testing;
-using SenseNet.Tools;
-using SR = SenseNet.ContentRepository.SR;
 
 namespace SenseNet.IntegrationTests.TestCases
 {
@@ -25,113 +17,10 @@ namespace SenseNet.IntegrationTests.TestCases
     /// </summary>
     public class DataProviderTestCases : TestCaseBase
     {
-        /*
-        public void DP_RefProp_Install(Func<int, int, int[]> getReferencesFromDatabase)
-        {
-            Cache.Reset();
-
-            IsolatedIntegrationTest(() =>
-            {
-                var group = Group.Administrators;
-                var expectedIds = group.Members.Select(x => x.Id).ToList();
-                var propertyType = ActiveSchema.PropertyTypes["Members"];
-                var fromDb = getReferencesFromDatabase(group.VersionId, propertyType.Id);
-
-                // ASSERT
-                Assert.IsNotNull(fromDb);
-                Assert.AreEqual(2, fromDb.Length);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", fromDb.OrderBy(x => x)));
-            });
-        }
-        public void DP_RefProp_Insert(Func<int, int, int[]> getReferencesFromDatabase)
-        {
-            IsolatedIntegrationTest(() =>
-            {
-                var propertyType = ActiveSchema.PropertyTypes["Members"];
-                var expectedIds = new List<int>();
-
-                var user1 = new User(OrganizationalUnit.Portal) {Name = "User-1", Email = "user1@example.com", Enabled = true};
-                user1.Save();
-                expectedIds.Add(user1.Id);
-                var user2 = new User(OrganizationalUnit.Portal) {Name = "User-2", Email = "user2@example.com", Enabled = true};
-                user2.Save();
-                expectedIds.Add(user2.Id);
-
-                // ACTION
-                var group1 = new Group(OrganizationalUnit.Portal) {Name = "Group-1", Members = new[] {user1, user2}};
-                group1.Save();
-
-                // ASSERT
-                var after = getReferencesFromDatabase(group1.VersionId, propertyType.Id);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
-            });
-        }
-        public void DP_RefProp_Update(Func<int, int, int[]> getReferencesFromDatabase)
-        {
-            Cache.Reset();
-
-            IsolatedIntegrationTest(() =>
-            {
-                var group = Group.Administrators;
-                var expectedIds = group.Members.Select(x => x.Id).ToList();
-                var propertyType = ActiveSchema.PropertyTypes["Members"];
-
-                var user = new User(OrganizationalUnit.Portal) {Name = "User-1", Email = "user1@example.com", Enabled = true};
-                user.Save();
-                expectedIds.Add(user.Id);
-
-                // ACTION
-                Group.Administrators.AddMember(user);
-
-                // ASSERT
-                var after = getReferencesFromDatabase(group.VersionId, propertyType.Id);
-                Assert.AreEqual(string.Join(",", expectedIds.OrderBy(x => x)),
-                    string.Join(",", after.OrderBy(x => x)));
-            });
-        }
-        public void DP_RefProp_Delete(Func<int, int, int[]> getReferencesFromDatabase)
-        {
-            IsolatedIntegrationTest(() =>
-            {
-                var propertyType = ActiveSchema.PropertyTypes["Members"];
-
-                var user1 = new User(OrganizationalUnit.Portal) {Name = "User-1", Email = "user1@example.com", Enabled = true};
-                user1.Save();
-                var user2 = new User(OrganizationalUnit.Portal) {Name = "User-2", Email = "user2@example.com", Enabled = true};
-                user2.Save();
-                var group1 = new Group(OrganizationalUnit.Portal) {Name = "Group-1", Members = new[] { user1, user2 }};
-                group1.Save();
-
-                // ACTION
-                group1 = Node.Load<Group>(group1.Id);
-                group1.ClearReference(propertyType);
-                group1.Save();
-
-                // ASSERT
-                var after = getReferencesFromDatabase(group1.VersionId, propertyType.Id);
-                Assert.IsNull(after);
-            });
-        }
-        */
-
-        private static string _lastPlatformName;
-        private static RepositoryBuilder _repositoryBuilder;
         private void DataProviderUnitTest(IEnumerable<int> nodes, IEnumerable<int> versions, Action<IEnumerable<int>, IEnumerable<int>> cleanup, Action callback)
         {
             try
             {
-                SnTrace.EnableAll();
-                //var platformName = Platform.GetType().FullName;
-                //if (_repositoryBuilder == null || _lastPlatformName != platformName)
-                //{
-                //    SnTrace.Write("------------------------------- CreateRepositoryBuilder");
-                //    _repositoryBuilder = Platform.CreateRepositoryBuilder();
-                //    _lastPlatformName = platformName;
-                //    //BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
-                //    //BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
-                //}
                 var builder = Platform.CreateRepositoryBuilder();
                 if(Providers.Instance.BlobStorage == null)
                     Providers.Instance.InitializeBlobProviders();
