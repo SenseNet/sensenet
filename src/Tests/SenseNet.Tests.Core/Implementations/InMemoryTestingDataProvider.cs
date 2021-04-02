@@ -363,7 +363,6 @@ namespace SenseNet.Tests.Core.Implementations
                             if (existingRef == null)
                                 throw new ApplicationException($"The property does not exist: {name}.");
                             existingRef.Value = listValue;
-                            //UNDONE:<?:RefProp: Maybe empty list causes any problem.
                             break;
                         case DataType.Text:
                             if (!(value is string stringValue))
