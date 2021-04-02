@@ -2231,10 +2231,17 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
 
-                //UNDONE:<?:RefProps: Delete ReferenceProperties in DeleteVersionsSafe
-
                 foreach (var versionId in versionIds)
                 {
+                    foreach (var refPropId in DB.ReferenceProperties
+                        .Where(x => x.VersionId == versionId)
+                        .Select(x => x.ReferencePropertyId)
+                        .ToArray())
+                    {
+                        var item = DB.ReferenceProperties.FirstOrDefault(x => x.ReferencePropertyId == refPropId);
+                        DB.ReferenceProperties.Remove(item);
+                    }
+
                     foreach (var longTextPropId in DB.LongTextProperties
                         .Where(x => x.VersionId == versionId)
                         .Select(x => x.LongTextPropertyId)
@@ -2243,6 +2250,7 @@ namespace SenseNet.ContentRepository.InMemory
                         var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
                         DB.LongTextProperties.Remove(item);
                     }
+
                     var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
                     DB.Versions.Remove(versionItem);
                 }

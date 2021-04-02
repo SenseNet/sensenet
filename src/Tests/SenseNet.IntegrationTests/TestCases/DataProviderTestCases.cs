@@ -459,6 +459,59 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
+        public void UT_RefProp_DeleteVersion(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var schema = CreateSchema("UT_RefProp_NewVersionAndUpdate", out var nodeType, out var propType);
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
+                {
+                    var dp = Providers.Instance.DataProvider;
+
+                    var initialIds = new List<int> { 2345, 3456, 4567, 5678, 6789 };
+                    var expectedIds = new List<int> { 12345, 23456, 34567 };
+                    var nodeHeadData = CreateNodeHeadData("UT_RefProp_NewVersionAndUpdate", nodeType.Id);
+                    var versionData = CreateVersionData("1.42.D");
+                    var dynamicData = new DynamicPropertyData
+                    {
+                        ContentListProperties = new Dictionary<PropertyType, object>(),
+                        DynamicProperties = new Dictionary<PropertyType, object>(),
+                        ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, initialIds } }
+                    };
+
+                    dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    nodeIds.Add(nodeHeadData.NodeId);
+                    var versionIdBefore = versionData.VersionId;
+                    versionIds.Add(versionIdBefore);
+
+                    dynamicData.ReferenceProperties = new Dictionary<PropertyType, List<int>> { { propType, expectedIds } };
+                    dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, new int[0], CancellationToken.None,
+                            expectedVersionId: 0).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var versionIdAfter = versionData.VersionId;
+                    versionIds.Add(versionIdAfter);
+
+                    // ACTION
+                    var versionIdsToDelete = new[] {versionIdAfter};
+                    dp.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var before = getReferencesFromDatabase(versionIdBefore, 9999);
+                    var after = getReferencesFromDatabase(versionIdAfter, 9999);
+                    Assert.IsNotNull(before);
+                    Assert.IsNull(after);
+                }
+            });
+        }
 
         private (NodeHeadData Node, VersionData Version) InsertNode(string name, int nodeTypeId, PropertyType refPropType, List<int> refPropValue, DataProvider dp)
         {

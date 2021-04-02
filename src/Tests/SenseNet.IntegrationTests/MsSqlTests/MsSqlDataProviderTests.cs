@@ -91,5 +91,6 @@ DELETE FROM BinaryProperties WHERE VersionId IN ({versionIdString})
         [TestMethod] public void UT_MsSql_DP_RefProp_NewVersionAndUpdate() { TestCase.UT_RefProp_NewVersionAndUpdate(GetReferencesFromDb, Cleanup); }
 
         [TestMethod] public void UT_MsSql_DP_RefProp_DeleteNode() { TestCase.UT_RefProp_DeleteNode(GetReferencesFromDb, Cleanup); }
+        [TestMethod] public void UT_MsSql_DP_RefProp_DeleteVersion() { TestCase.UT_RefProp_DeleteVersion(GetReferencesFromDb, Cleanup); }
     }
 }
