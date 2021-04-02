@@ -981,10 +981,11 @@ namespace SenseNet.ContentRepository.InMemory
                     {
                         if (v == null)
                             return false;
-                        //UNDONE:<?:RefProps: Rewrite ReferenceProperty query in QueryNodesByReferenceAndTypeAsync
-                        if (!v.DynamicProperties.TryGetValue(referenceName, out var refs))
+                        var refs = DB.ReferenceProperties
+                            .Where(r => r.VersionId == v.VersionId).ToArray();
+                        if (refs.Length == 0)
                             return false;
-                        return ((IEnumerable<int>)refs).Contains(referredNodeId);
+                        return refs.Any(r=>r.Value.Contains(referredNodeId));
                     })
                     .Select(v => v.NodeId)
                     .ToArray();
