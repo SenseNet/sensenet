@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.IntegrationTests.Infrastructure;
@@ -15,6 +16,14 @@ namespace SenseNet.IntegrationTests.TestCases
     /// <summary>
     /// Unit test cases for any DataProvider
     /// </summary>
+    /// <remarks>
+    /// Used callbacks:
+    /// <c>cleanup</c>: method that clears the main tables
+    /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
+    /// Note that the blobs do not need to be deleted.
+    /// <c>getReferencesFromDatabase</c>: method that returns the referred nodeIds from the ReferenceProperties by
+    /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
+    /// </remarks>
     public class DataProviderTestCases : TestCaseBase
     {
         private void DataProviderUnitTest(IEnumerable<int> nodes, IEnumerable<int> versions, Action<IEnumerable<int>, IEnumerable<int>> cleanup, Action callback)
@@ -37,12 +46,6 @@ namespace SenseNet.IntegrationTests.TestCases
         {
         }
 
-        /// <summary>
-        /// UT_Node_InsertDraft. The parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_Node_InsertDraft(Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -72,12 +75,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(0, loaded.LastMajorVersionId);
             });
         }
-        /// <summary>
-        /// UT_Node_InsertPublic. The parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_Node_InsertPublic(Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -107,12 +104,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(versionData.VersionId, loaded.LastMajorVersionId);
             });
         }
-        /// <summary>
-        /// UT_Node_UpdateFirstDraft. The parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_Node_UpdateFirstDraft(Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -147,16 +138,6 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
-        /// <summary>
-        /// UT_RefProp_Insert. The parameter is a method that clears the main tables
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_Insert(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -197,16 +178,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        /// <summary>
-        /// UT_RefProp_Load. The parameter is a method that clears the main tables
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_Load(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -254,16 +225,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        /// <summary>
-        /// UT_RefProp_Update.
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_Update(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -309,15 +270,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        /// <summary>
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_Update3to0(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -362,15 +314,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        /// <summary>
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_Update0to3(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -416,16 +359,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        /// <summary>
-        /// UT_RefProp_Update.
-        /// The first parameter is a method that returns the referred nodeIds from the ReferenceProperties by
-        /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
-        /// The second parameter is a method that clears the main tables
-        /// (Nodes, Versions, LongTextProperties, ReferenceProperties, BinaryProperties and Files).
-        /// Note that the blobs do not need to be deleted.
-        /// </summary>
-        /// <param name="getReferencesFromDatabase">getReferencesFromDatabase(versionId, propertyTypeId).</param>
-        /// <param name="cleanup">Method that clears the main tables.</param>
         public void UT_RefProp_NewVersionAndUpdate(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
         {
             var nodeIds = new List<int>();
@@ -481,6 +414,67 @@ namespace SenseNet.IntegrationTests.TestCases
                     Assert.AreEqual(expected, after);
                 }
             });
+        }
+
+        public void UT_RefProp_DeleteNode(Func<int, int, int[]> getReferencesFromDatabase, Action<IEnumerable<int>, IEnumerable<int>> cleanup)
+        {
+            var nodeIds = new List<int>();
+            var versionIds = new List<int>();
+            DataProviderUnitTest(nodeIds, versionIds, cleanup, () =>
+            {
+                var schema = CreateSchema("UT_RefProp_Update3to0", out var nodeType, out var propType);
+                using (new Swindler<string>(schema.ToXml(),
+                    () => NodeTypeManager.Current.ToXml(),
+                    value =>
+                    {
+                        NodeTypeManager.Current.Clear();
+                        NodeTypeManager.Current.Load(value);
+                    }))
+                {
+                    var dp = Providers.Instance.DataProvider;
+
+                    var initialIds1 = new List<int> { 2345, 3456, 4567 };
+                    var insertResult1 = InsertNode("UT_RefProp_Update3to0_1", nodeType.Id, propType, initialIds1, dp);
+                    var nodeId1 = insertResult1.Node.NodeId;
+                    var versionId1 = insertResult1.Version.VersionId;
+                    nodeIds.Add(nodeId1);
+                    versionIds.Add(versionId1);
+
+                    var initialIds2 = new List<int> { 5678, 6789 };
+                    var insertResult2 = InsertNode("UT_RefProp_Update3to0_2", nodeType.Id, propType, initialIds2, dp);
+                    var nodeId2 = insertResult2.Node.NodeId;
+                    var versionId2 = insertResult2.Version.VersionId;
+                    nodeIds.Add(nodeId2);
+                    versionIds.Add(versionId2);
+                    
+                    // ACTION
+                    dp.DeleteNodeAsync(insertResult1.Node, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var after1 = getReferencesFromDatabase(insertResult1.Version.VersionId, 9999);
+                    var after2 = getReferencesFromDatabase(insertResult2.Version.VersionId, 9999);
+                    Assert.IsNull(after1);
+                    Assert.IsNotNull(after2);
+                }
+            });
+        }
+
+        private (NodeHeadData Node, VersionData Version) InsertNode(string name, int nodeTypeId, PropertyType refPropType, List<int> refPropValue, DataProvider dp)
+        {
+            var nodeHeadData = CreateNodeHeadData(name, nodeTypeId);
+            var versionData = CreateVersionData("42.0.A");
+            var dynamicData = new DynamicPropertyData
+            {
+                ContentListProperties = new Dictionary<PropertyType, object>(),
+                DynamicProperties = new Dictionary<PropertyType, object>(),
+                ReferenceProperties = new Dictionary<PropertyType, List<int>> { { refPropType, refPropValue } }
+            };
+
+            dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            return (nodeHeadData, versionData);
         }
 
         /* ====================================================================== TOOLS */

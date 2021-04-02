@@ -44,5 +44,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod] public void UT_InMem_DP_RefProp_Update3to0() { TestCase.UT_RefProp_Update3to0(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_InMem_DP_RefProp_Update0to3() { TestCase.UT_RefProp_Update0to3(GetReferencesFromDb, Cleanup); }
         [TestMethod] public void UT_InMem_DP_RefProp_NewVersionAndUpdate() { TestCase.UT_RefProp_NewVersionAndUpdate(GetReferencesFromDb, Cleanup); }
+
+        [TestMethod] public void UT_InMem_DP_RefProp_DeleteNode() { TestCase.UT_RefProp_DeleteNode(GetReferencesFromDb, Cleanup); }
     }
 }

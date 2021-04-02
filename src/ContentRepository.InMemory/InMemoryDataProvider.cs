@@ -427,7 +427,6 @@ namespace SenseNet.ContentRepository.InMemory
                             .Where(l => versionIds.Contains(l.VersionId))
                             .Select(l => l.LongTextPropertyId)
                             .ToArray();
-//UNDONE:<?:RefProps: Check ReferenceProperties in DeleteNodeAsync 1
                         var refPropIds = DB.ReferenceProperties
                             .Where(l => versionIds.Contains(l.VersionId))
                             .Select(l => l.ReferencePropertyId)
@@ -436,7 +435,6 @@ namespace SenseNet.ContentRepository.InMemory
                         BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
 
                         //foreach (var refPropPropId in refPropPropIds) ...
-//UNDONE:<?:RefProps: Check ReferenceProperties in DeleteNodeAsync 2
                         foreach (var refPropId in refPropIds)
                             DB.ReferenceProperties.Remove(refPropId);
 
@@ -644,7 +642,6 @@ namespace SenseNet.ContentRepository.InMemory
                 DB.LongTextProperties.Remove(longTextRow);
 
             // Drop ReferenceProperty ContentList properties
-//UNDONE:<?:RefProps: Check ReferenceProperties in DeleteContentListPropertiesInTree
             var referenceRowsToDelete = DB.ReferenceProperties
                 .Where(x =>
                     affectedVersionIds.Contains(x.VersionId) &&
