@@ -1768,7 +1768,6 @@ namespace SenseNet.ContentRepository.InMemory
                 }
             }
 
-            //UNDONE:<?:RefProps: Check ReferenceProperties installation in InstallNodeSafe
             if (dData?.ReferenceProperties != null)
             {
                 foreach (var refPropItem in dData.ReferenceProperties)
