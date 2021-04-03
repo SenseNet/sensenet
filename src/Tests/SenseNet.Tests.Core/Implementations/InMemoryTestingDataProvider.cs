@@ -357,7 +357,7 @@ namespace SenseNet.Tests.Core.Implementations
                             break;
                         case DataType.Reference:
                             if (!(value is List<int> listValue))
-                                throw new ArgumentException($"The value is {value.GetType().Name}. Expected: string");
+                                throw new ArgumentException($"The value is {value.GetType().Name}. Expected: List<int>");
                             var existingRef = DB.ReferenceProperties
                                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id);
                             if (existingRef == null)
