@@ -1842,7 +1842,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                                 if (versionData.DynamicProperties == null)
                                     continue;
 
-                                var properties = versionData.DynamicProperties;
+                                var properties = versionData.ReferenceProperties;
                                 List<int> references = null;
                                 foreach (var property in properties)
                                 {

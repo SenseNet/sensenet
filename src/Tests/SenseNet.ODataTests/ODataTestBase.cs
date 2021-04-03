@@ -27,6 +27,7 @@ using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Accessors;
+using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 
@@ -173,39 +174,19 @@ namespace SenseNet.ODataTests
     {
         public TestContext TestContext { get; set; }
 
-        private SnTrace.Operation _testMethodOperation;
-
         [TestInitialize]
         public void InitializeTest()
         {
             //// workaround for having a half-started repository
             //if (RepositoryInstance.Started())
             //    RepositoryInstance.Shutdown();
-
-            SnTrace.Test.Enabled = true;
-            //SnTrace.Test.Write("START test: {0}", TestContext.TestName);
-            if (_testMethodOperation != null)
-            {
-                SnTrace.Test.Write("The operation was forced to close.");
-                _testMethodOperation.Successful = false;
-                _testMethodOperation.Dispose();
-            }
-            _testMethodOperation = SnTrace.Test.StartOperation("TESTMETHOD: " + TestContext.TestName);
+            TestContext.StartTest();
         }
 
         [TestCleanup]
         public void CleanupTest()
         {
-            SnTrace.Test.Enabled = true;
-            //SnTrace.Test.Write("END test: {0}", TestContext.TestName);
-
-            if (_testMethodOperation != null)
-            {
-                _testMethodOperation.Successful = true;
-                _testMethodOperation.Dispose();
-            }
-
-            SnTrace.Flush();
+            TestContext.FinishTestTest();
         }
 
         #region Infrastructure

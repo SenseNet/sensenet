@@ -13,6 +13,7 @@ namespace SenseNet.ContentRepository.InMemory
         public DataCollection<NodeDoc> Nodes { get; }
         public DataCollection<VersionDoc> Versions { get; }
         public DataCollection<LongTextPropertyDoc> LongTextProperties { get; }
+        public DataCollection<ReferencePropertyDoc> ReferenceProperties { get; }
         public DataCollection<BinaryPropertyDoc> BinaryProperties { get; }
         public DataCollection<FileDoc> Files { get; }
         public DataCollection<TreeLockDoc> TreeLocks { get; }
@@ -34,6 +35,7 @@ namespace SenseNet.ContentRepository.InMemory
             Nodes = new DataCollection<NodeDoc>(this, 1247);
             Versions = new DataCollection<VersionDoc>(this, 260);
             LongTextProperties = new DataCollection<LongTextPropertyDoc>(this);
+            ReferenceProperties = new DataCollection<ReferencePropertyDoc>(this);
             BinaryProperties = new DataCollection<BinaryPropertyDoc>(this, 112);
             Files = new DataCollection<FileDoc>(this, 112);
             TreeLocks = new DataCollection<TreeLockDoc>(this);
@@ -46,6 +48,7 @@ namespace SenseNet.ContentRepository.InMemory
                 {typeof(NodeDoc), Nodes},
                 {typeof(VersionDoc), Versions},
                 {typeof(LongTextPropertyDoc), LongTextProperties},
+                {typeof(ReferencePropertyDoc), ReferenceProperties},
                 {typeof(BinaryPropertyDoc), BinaryProperties},
                 {typeof(FileDoc), Files},
                 {typeof(TreeLockDoc), TreeLocks},

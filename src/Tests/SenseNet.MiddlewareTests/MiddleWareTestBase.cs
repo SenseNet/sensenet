@@ -9,10 +9,11 @@ using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.MiddlewareTests
 {
-    public abstract class MiddleWareTestBase
+    public abstract class MiddleWareTestBase : TestBase
     {
         public async Task MiddlewareTestAsync(
             Action<IServiceCollection> configureServices,

@@ -436,8 +436,10 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
                         var value = ParseDynamicValue(line.Substring(p1 + 1).Trim(), dataType);
                         var propertyType = data.EnsurePropertyType(name, dataType);
-
-                        data.DynamicProperties.Add(propertyType, value);
+                        if(dataType == DataType.Reference)
+                            data.ReferenceProperties.Add(propertyType, (List<int>)value);
+                        else
+                            data.DynamicProperties.Add(propertyType, value);
                     }
                     else
                         throw GetCannotParseDynamicPropertiesException(lineNumber, line);

@@ -562,6 +562,26 @@ namespace SenseNet.ContentRepository.InMemory
             };
         }
     }
+    public class ReferencePropertyDoc : IDataDocument
+    {
+        public int Id => ReferencePropertyId;
+
+        public int ReferencePropertyId { get; set; }
+        public int VersionId { get; set; }
+        public int PropertyTypeId { get; set; }
+        public List<int> Value { get; set; }
+
+        public ReferencePropertyDoc Clone()
+        {
+            return new ReferencePropertyDoc
+            {
+                ReferencePropertyId = ReferencePropertyId,
+                VersionId = VersionId,
+                PropertyTypeId = PropertyTypeId,
+                Value = Value
+            };
+        }
+    }
 
     public class BinaryPropertyDoc : IDataDocument
     {

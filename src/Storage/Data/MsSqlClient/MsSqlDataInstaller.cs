@@ -23,6 +23,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             public static readonly string Nodes = "Nodes";
             public static readonly string Versions = "Versions";
             public static readonly string LongTextProperties = "LongTextProperties";
+            public static readonly string ReferenceProperties = "ReferenceProperties";
             public static readonly string BinaryProperties = "BinaryProperties";
             public static readonly string Files = "Files";
         }
@@ -55,6 +56,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             AddNodesTable(dataSet);
             AddVersionsTable(dataSet);
             AddLongTextPropertiesTable(dataSet);
+            AddReferencePropertiesTable(dataSet);
             AddBinaryPropertiesTable(dataSet);
             AddFilesTable(dataSet);
         }
@@ -151,6 +153,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
             dataSet.Tables.Add(longTexts);
         }
+        private static void AddReferencePropertiesTable(DataSet dataSet)
+        {
+            var refs = new DataTable(TableName.ReferenceProperties);
+            refs.Columns.AddRange(new[]
+            {
+                new DataColumn {ColumnName = "ReferencePropertyId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "VersionId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "PropertyTypeId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "ReferredNodeId", DataType = typeof(int), AllowDBNull = false},
+            });
+            dataSet.Tables.Add(refs);
+        }
         private static void AddBinaryPropertiesTable(DataSet dataSet)
         {
             var binaryProperties = new DataTable(TableName.BinaryProperties);
@@ -215,9 +229,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             var versions = dataSet.Tables[TableName.Versions];
             var longTexts = dataSet.Tables[TableName.LongTextProperties];
+            var refProps = dataSet.Tables[TableName.ReferenceProperties];
             var binaryProperties = dataSet.Tables[TableName.BinaryProperties];
             var files = dataSet.Tables[TableName.Files];
             var longTextId = 0;
+            var refPropId = 0;
             foreach (var version in data.Versions)
             {
                 var props = data.DynamicProperties.FirstOrDefault(x => x.VersionId == version.VersionId);
@@ -230,6 +246,20 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                             data.Schema.PropertyTypes.FirstOrDefault(x => x.Name == longTextData.Key.Name)?.Id ?? 0;
                         SetLongTextPropertyRow(longTextRow, ++longTextId, version.VersionId, propertyTypeId, longTextData.Value);
                         longTexts.Rows.Add(longTextRow);
+                    }
+                }
+                if (props?.ReferenceProperties != null)
+                {
+                    foreach (var referenceData in props.ReferenceProperties)
+                    {
+                        var propertyTypeId =
+                            data.Schema.PropertyTypes.FirstOrDefault(x => x.Name == referenceData.Key.Name)?.Id ?? 0;
+                        foreach (var value in referenceData.Value)
+                        {
+                            var refPropRow = refProps.NewRow();
+                            SetReferencePropertyRow(refPropRow, ++refPropId, version.VersionId, propertyTypeId, value);
+                            refProps.Rows.Add(refPropRow);
+                        }
                     }
                 }
                 if (props?.BinaryProperties != null)
@@ -328,6 +358,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["Length"] = value?.Length;
             row["Value"] = value;
         }
+        private static void SetReferencePropertyRow(DataRow row, int id, int versionId, int propertyTypeId, int value)
+        {
+            row["ReferencePropertyId"] = id;
+            row["VersionId"] = versionId;
+            row["PropertyTypeId"] = propertyTypeId;
+            row["ReferredNodeId"] = value;
+        }
         private static void SetBinaryPropertyRow(DataRow row, int versionId, int propertyTypeId, BinaryDataValue data)
         {
             row["BinaryPropertyId"] = data.Id;
@@ -387,6 +424,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await BulkInsertAsync(dataSet, TableName.Nodes, connectionString, cancellationToken).ConfigureAwait(false);
             await BulkInsertAsync(dataSet, TableName.Versions, connectionString, cancellationToken).ConfigureAwait(false);
             await BulkInsertAsync(dataSet, TableName.LongTextProperties, connectionString, cancellationToken).ConfigureAwait(false);
+            await BulkInsertAsync(dataSet, TableName.ReferenceProperties, connectionString, cancellationToken).ConfigureAwait(false);
             await BulkInsertAsync(dataSet, TableName.BinaryProperties, connectionString, cancellationToken).ConfigureAwait(false);
             await BulkInsertAsync(dataSet, TableName.Files, connectionString, cancellationToken).ConfigureAwait(false);
             //await BulkInsertAsync(dataSet, TableName.Entities, connectionString, cancellationToken).ConfigureAwait(false);

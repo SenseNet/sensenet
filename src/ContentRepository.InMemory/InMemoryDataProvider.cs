@@ -61,6 +61,10 @@ namespace SenseNet.ContentRepository.InMemory
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
+                    // Manage ReferenceProperties
+                    foreach (var item in dynamicData.ReferenceProperties)
+                        SaveReferencePropertySafe(versionId, item.Key.Id, item.Value);
+
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, true);
@@ -131,6 +135,10 @@ namespace SenseNet.ContentRepository.InMemory
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
+                    // Manage ReferenceProperties
+                    foreach (var item in dynamicData.ReferenceProperties)
+                        SaveReferencePropertySafe(versionId, item.Key.Id, item.Value);
+
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, false, false);
@@ -193,6 +201,11 @@ namespace SenseNet.ContentRepository.InMemory
                     CopyLongTextPropertiesSafe(sourceVersionId, targetVersionId);
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
+
+                    // Manage ReferenceProperties
+                    CopyReferencePropertiesSafe(sourceVersionId, targetVersionId);
+                    foreach (var item in dynamicData.ReferenceProperties)
+                        SaveReferencePropertySafe(targetVersionId, item.Key.Id, item.Value);
 
                     // Manage BinaryProperties
                     // (copy old values is unnecessary because all binary properties were loaded before save).
@@ -361,6 +374,18 @@ namespace SenseNet.ContentRepository.InMemory
                     foreach (var item in longTextProps)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
 
+                    // Load appropriate ReferenceProperties
+                    var referencePropertyTypeIds = nodeData.PropertyTypes
+                        .Where(p => p.DataType == DataType.Reference)
+                        .Select(p => p.Id)
+                        .ToArray();
+                    var refProps = DB.ReferenceProperties
+                        .Where(x => x.VersionId == versionId &&
+                                    referencePropertyTypeIds.Contains(x.PropertyTypeId))
+                        .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
+                    foreach (var item in refProps)
+                        nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Reference));
+
                     result.Add(nodeData);
                 }
                 return STT.Task.FromResult((IEnumerable<NodeData>)result);
@@ -402,8 +427,16 @@ namespace SenseNet.ContentRepository.InMemory
                             .Where(l => versionIds.Contains(l.VersionId))
                             .Select(l => l.LongTextPropertyId)
                             .ToArray();
+                        var refPropIds = DB.ReferenceProperties
+                            .Where(l => versionIds.Contains(l.VersionId))
+                            .Select(l => l.ReferencePropertyId)
+                            .ToArray();
 
                         BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
+
+                        //foreach (var refPropPropId in refPropPropIds) ...
+                        foreach (var refPropId in refPropIds)
+                            DB.ReferenceProperties.Remove(refPropId);
 
                         foreach (var longTextPropId in longTextPropIds)
                             DB.LongTextProperties.Remove(longTextPropId);
@@ -608,6 +641,14 @@ namespace SenseNet.ContentRepository.InMemory
             foreach (var longTextRow in longTextRowsToDelete)
                 DB.LongTextProperties.Remove(longTextRow);
 
+            // Drop ReferenceProperty ContentList properties
+            var referenceRowsToDelete = DB.ReferenceProperties
+                .Where(x =>
+                    affectedVersionIds.Contains(x.VersionId) &&
+                    contentListPropertyTypeIds.Contains(x.PropertyTypeId))
+                .ToArray();
+            foreach (var referenceRow in referenceRowsToDelete)
+                DB.ReferenceProperties.Remove(referenceRow);
 
             foreach (var versionDoc in affectedVersions)
             {
@@ -940,9 +981,11 @@ namespace SenseNet.ContentRepository.InMemory
                     {
                         if (v == null)
                             return false;
-                        if (!v.DynamicProperties.TryGetValue(referenceName, out var refs))
+                        var refs = DB.ReferenceProperties
+                            .Where(r => r.VersionId == v.VersionId).ToArray();
+                        if (refs.Length == 0)
                             return false;
-                        return ((IEnumerable<int>)refs).Contains(referredNodeId);
+                        return refs.Any(r=>r.Value.Contains(referredNodeId));
                     })
                     .Select(v => v.NodeId)
                     .ToArray();
@@ -1726,6 +1769,23 @@ namespace SenseNet.ContentRepository.InMemory
                 }
             }
 
+            if (dData?.ReferenceProperties != null)
+            {
+                foreach (var refPropItem in dData.ReferenceProperties)
+                {
+                    var propertyType = refPropItem.Key;
+                    var value = refPropItem.Value;
+
+                    DB.ReferenceProperties.Insert(new ReferencePropertyDoc
+                    {
+                        ReferencePropertyId = DB.ReferenceProperties.GetNextId(),
+                        VersionId = dData.VersionId,
+                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id,
+                        Value = value
+                    });
+                }
+            }
+
             if (dData?.BinaryProperties != null)
             {
                 foreach (var binPropItem in dData.BinaryProperties)
@@ -1818,7 +1878,6 @@ namespace SenseNet.ContentRepository.InMemory
         }
 
         /* =============================================================================================== Usage */
-
 
         public override STT.Task LoadDatabaseUsageAsync(
             Action<NodeModel> nodeVersionCallback,
@@ -1967,6 +2026,22 @@ namespace SenseNet.ContentRepository.InMemory
                 });
             }
         }
+        private void CopyReferencePropertiesSafe(int sourceVersionId, int targetVersionId)
+        {
+            foreach (var existing in DB.ReferenceProperties.Where(x => x.VersionId == targetVersionId).ToArray())
+                DB.ReferenceProperties.Remove(existing);
+
+            foreach (var src in DB.ReferenceProperties.Where(x => x.VersionId == sourceVersionId).ToArray())
+            {
+                DB.ReferenceProperties.Insert(new ReferencePropertyDoc
+                {
+                    ReferencePropertyId = DB.ReferenceProperties.GetNextId(),
+                    VersionId = targetVersionId,
+                    PropertyTypeId = src.PropertyTypeId,
+                    Value = src.Value
+                });
+            }
+        }
         private void SaveLongTextPropertySafe(int versionId, int propertyTypeId, string value)
         {
             var existing = DB.LongTextProperties
@@ -1981,6 +2056,24 @@ namespace SenseNet.ContentRepository.InMemory
                 VersionId = versionId,
                 PropertyTypeId = propertyTypeId,
                 Length = value.Length,
+                Value = value
+            });
+        }
+        private void SaveReferencePropertySafe(int versionId, int propertyTypeId, List<int> value)
+        {
+            var existing = DB.ReferenceProperties
+                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
+            if (existing != null)
+                DB.ReferenceProperties.Remove(existing);
+            if (value == null)
+                return;
+            if (value.Count == 0)
+                return;
+            DB.ReferenceProperties.Insert(new ReferencePropertyDoc
+            {
+                ReferencePropertyId = DB.ReferenceProperties.GetNextId(),
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
                 Value = value
             });
         }
@@ -2083,13 +2176,6 @@ namespace SenseNet.ContentRepository.InMemory
                 dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
             }
 
-            foreach (var item in dynamicData.ReferenceProperties)
-            {
-                var propertyType = item.Key;
-                if (EmptyReferencesFilterSafe(propertyType, item.Value))
-                    dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
-            }
-
             return new VersionDoc
             {
                 VersionId = versionData.VersionId,
@@ -2136,22 +2222,6 @@ namespace SenseNet.ContentRepository.InMemory
                 var clone = GetCloneSafe(sourceItem.Value, dataType);
                 target[propertyType.Name] = clone;
             }
-            foreach (var sourceItem in dynamicData.ReferenceProperties)
-            {
-                var propertyType = sourceItem.Key;
-                var dataType = propertyType.DataType;
-                var clone = GetCloneSafe(sourceItem.Value, dataType);
-                if (dataType == DataType.Reference)
-                {
-                    // Remove empty references
-                    if (!((IEnumerable<int>)clone).Any())
-                    {
-                        target.Remove(propertyType.Name);
-                        continue;
-                    }
-                }
-                target[propertyType.Name] = clone;
-            }
         }
         private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
         {
@@ -2163,6 +2233,15 @@ namespace SenseNet.ContentRepository.InMemory
 
                 foreach (var versionId in versionIds)
                 {
+                    foreach (var refPropId in DB.ReferenceProperties
+                        .Where(x => x.VersionId == versionId)
+                        .Select(x => x.ReferencePropertyId)
+                        .ToArray())
+                    {
+                        var item = DB.ReferenceProperties.FirstOrDefault(x => x.ReferencePropertyId == refPropId);
+                        DB.ReferenceProperties.Remove(item);
+                    }
+
                     foreach (var longTextPropId in DB.LongTextProperties
                         .Where(x => x.VersionId == versionId)
                         .Select(x => x.LongTextPropertyId)
@@ -2171,6 +2250,7 @@ namespace SenseNet.ContentRepository.InMemory
                         var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
                         DB.LongTextProperties.Remove(item);
                     }
+
                     var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
                     DB.Versions.Remove(versionItem);
                 }

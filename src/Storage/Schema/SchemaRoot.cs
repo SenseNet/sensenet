@@ -91,6 +91,12 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 op.Successful = true;
             }
         }
+        public void Load(string schemaXml)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(schemaXml);
+            Load(xml);
+        }
         public void Load(XmlDocument schemaXml)
         {
             Load(BuildDataSetFromXml(schemaXml));

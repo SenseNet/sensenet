@@ -14,9 +14,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         /* ==================================================================== */
 
-        private static string _lastPlatformName;
-        private static RepositoryInstance _repositoryInstance;
-
         public void NoRepoIntegrationTest(Action callback)
         {
             var platformName = Platform.GetType().Name;
@@ -27,232 +24,128 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public void IntegrationTest(Action callback)
         {
-            IntegrationTest(false, null, callback, null);
+            IntegrationTest(null, callback, null);
         }
         public void IntegrationTest(Action<RepositoryBuilder> initialize, Action callback)
         {
-            IntegrationTest(false, initialize, callback, null);
+            IntegrationTest(initialize, callback, null);
         }
         public void IntegrationTest(Action<SystemFolder> callback)
         {
-            IntegrationTest(false, null, null, callback);
+            IntegrationTest(null, null, callback);
         }
         public void IntegrationTest(Action<RepositoryBuilder> initialize, Action<SystemFolder> callback)
         {
-            IntegrationTest(false, initialize, null, callback);
+            IntegrationTest(initialize, null, callback);
         }
-        public void IsolatedIntegrationTest(Action callback)
-        {
-            IntegrationTest(true, null, callback, null);
-        }
-        public void IsolatedIntegrationTest(Action<RepositoryBuilder> initialize, Action callback)
-        {
-            IntegrationTest(true, initialize, callback, null);
-        }
-        public void IsolatedIntegrationTest(Action<SystemFolder> callback)
-        {
-            IntegrationTest(true, null, null, callback);
-        }
-        public void IsolatedIntegrationTest(Action<RepositoryBuilder> initialize, Action<SystemFolder> callback)
-        {
-            IntegrationTest(true, initialize, null, callback);
-        }
-        private void IntegrationTest(bool isolated, Action<RepositoryBuilder> initialize,
+        private void IntegrationTest(Action<RepositoryBuilder> initialize,
             Action callback, Action<SystemFolder> callbackWithSandbox)
         {
-            var platformName = Platform.GetType().Name;
-            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var builder = Platform.CreateRepositoryBuilder();
+            initialize?.Invoke(builder);
 
-            if (needToStartNew)
+            using (var repository = Repository.Start(builder))
             {
-                Logger.Log("  (cleanup repository)");
-                _repositoryInstance?.Dispose();
-                _repositoryInstance = null;
-                _lastPlatformName = null;
-
-                var builder = Platform.CreateRepositoryBuilder();
-                initialize?.Invoke(builder);
-
-                Logger.Log("  start new repository");
-                _repositoryInstance = Repository.Start(builder);
-                _lastPlatformName = platformName;
-
-                //PrepareRepository();
-            }
-
-            SystemFolder sandbox = null;
-            try
-            {
-                using (new SystemAccount())
-                    if (callback != null) callback(); else callbackWithSandbox(sandbox = CreateSandbox());
-
-            }
-            finally
-            {
-                if(sandbox!=null)
-                    using (new SystemAccount())
-                        sandbox.ForceDelete();
-
-                if (isolated)
+                SystemFolder sandbox = null;
+                try
                 {
-                    Logger.Log("  cleanup repository");
-                    _repositoryInstance?.Dispose();
-                    _repositoryInstance = null;
-                    _lastPlatformName = null;
+                    using (new SystemAccount())
+                    {
+                        if (callback != null)
+                            callback();
+                        else
+                            callbackWithSandbox(sandbox = CreateSandbox());
+                    }
+                }
+                finally
+                {
+                    if(sandbox!=null)
+                        using (new SystemAccount())
+                            sandbox.ForceDelete();
                 }
             }
         }
 
         public void IntegrationTest<T>(Action<T> callback) where T : GenericContent
         {
-            IntegrationTest(false, null, null, callback);
+            IntegrationTest(null, null, callback);
         }
         public void IntegrationTest<T>(Action<RepositoryBuilder> initialize, Action<T> callback) where T : GenericContent
         {
-            IntegrationTest(false, initialize, null, callback);
+            IntegrationTest(initialize, null, callback);
         }
-        public void IsolatedIntegrationTest<T>(Action<T> callback) where T : GenericContent
-        {
-            IntegrationTest(true, null, null, callback);
-        }
-        public void IsolatedIntegrationTest<T>(Action<RepositoryBuilder> initialize, Action<T> callback) where T : GenericContent
-        {
-            IntegrationTest(true, initialize, null, callback);
-        }
-        private void IntegrationTest<T>(bool isolated, Action<RepositoryBuilder> initialize,
+        private void IntegrationTest<T>(Action<RepositoryBuilder> initialize,
             Action callback, Action<T> callbackWithSandbox) where T : GenericContent
         {
-            var platformName = Platform.GetType().Name;
-            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var builder = Platform.CreateRepositoryBuilder();
+            initialize?.Invoke(builder);
 
-            if (needToStartNew)
+            using (var repository = Repository.Start(builder))
             {
-                Logger.Log("  (cleanup repository)");
-                _repositoryInstance?.Dispose();
-                _repositoryInstance = null;
-                _lastPlatformName = null;
-
-                var builder = Platform.CreateRepositoryBuilder();
-                initialize?.Invoke(builder);
-
-                Logger.Log("  start new repository");
-                _repositoryInstance = Repository.Start(builder);
-                _lastPlatformName = platformName;
-
-                //PrepareRepository();
-            }
-
-            T sandbox = null;
-            try
-            {
-                using (new SystemAccount())
-                    if (callback != null) callback(); else callbackWithSandbox(sandbox = CreateSandbox<T>());
-
-            }
-            finally
-            {
-                if (sandbox != null)
-                    using (new SystemAccount())
-                        sandbox.ForceDelete();
-
-                if (isolated)
+                T sandbox = null;
+                try
                 {
-                    Logger.Log("  cleanup repository");
-                    _repositoryInstance?.Dispose();
-                    _repositoryInstance = null;
-                    _lastPlatformName = null;
+                    using (new SystemAccount())
+                    {
+                        if (callback != null)
+                            callback();
+                        else
+                            callbackWithSandbox(sandbox = CreateSandbox<T>());
+                    }
+
+                }
+                finally
+                {
+                    if (sandbox != null)
+                        using (new SystemAccount())
+                            sandbox.ForceDelete();
                 }
             }
         }
 
         public Task IntegrationTestAsync(Func<Task> callback)
         {
-            return IntegrationTestAsync(false, null, callback, null);
+            return IntegrationTestAsync(null, callback, null);
         }
         public Task IntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
         {
-            return IntegrationTestAsync(false, initialize, callback, null);
+            return IntegrationTestAsync(initialize, callback, null);
         }
         public Task IntegrationTestAsync(Func<SystemFolder, Task> callback)
         {
-            return IntegrationTestAsync(false, null, null, callback);
+            return IntegrationTestAsync(null, null, callback);
         }
         public Task IntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<SystemFolder, Task> callback)
         {
-            return IntegrationTestAsync(false, initialize, null, callback);
+            return IntegrationTestAsync(initialize, null, callback);
         }
-        public Task IsolatedIntegrationTestAsync(Func<Task> callback)
-        {
-            return IntegrationTestAsync(true, null, callback, null);
-        }
-        public Task IsolatedIntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
-        {
-            return IntegrationTestAsync(true, initialize, callback, null);
-        }
-        public Task IsolatedIntegrationTestAsync(Func<SystemFolder, Task> callback)
-        {
-            return IntegrationTestAsync(true, null, null, callback);
-        }
-        public Task IsolatedIntegrationTestAsync(Action<RepositoryBuilder> initialize, Func<SystemFolder, Task> callback)
-        {
-            return IntegrationTestAsync(true, initialize, null, callback);
-        }
-        private async Task IntegrationTestAsync(bool isolated, Action<RepositoryBuilder> initialize,
+        private async Task IntegrationTestAsync(Action<RepositoryBuilder> initialize,
             Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
         {
-            var platformName = Platform.GetType().Name;
-            var needToStartNew = isolated || _repositoryInstance == null || platformName != _lastPlatformName;
+            var builder = Platform.CreateRepositoryBuilder();
+            initialize?.Invoke(builder);
 
-            if (needToStartNew)
+            using (var repository = Repository.Start(builder))
             {
-                Logger.Log("  (cleanup repository)");
-                _repositoryInstance?.Dispose();
-                _repositoryInstance = null;
-                _lastPlatformName = null;
-
-                var builder = Platform.CreateRepositoryBuilder();
-
-                Logger.Log("  start new repository");
-                _repositoryInstance = Repository.Start(builder);
-                _lastPlatformName = platformName;
-
-                //PrepareRepository();
-            }
-
-            SystemFolder sandbox = null;
-            try
-            {
-                using (new SystemAccount())
+                SystemFolder sandbox = null;
+                try
                 {
-                    if (callback != null)
-                        await callback();
-                    else
-                        await callbackWithSandbox(sandbox = CreateSandbox());
-                }
-            }
-            finally
-            {
-                if (sandbox != null)
                     using (new SystemAccount())
-                        sandbox.ForceDelete();
-
-                if (isolated)
+                    {
+                        if (callback != null)
+                            await callback();
+                        else
+                            await callbackWithSandbox(sandbox = CreateSandbox());
+                    }
+                }
+                finally
                 {
-                    Logger.Log("  cleanup repository");
-                    _repositoryInstance?.Dispose();
-                    _repositoryInstance = null;
-                    _lastPlatformName = null;
+                    if (sandbox != null)
+                        using (new SystemAccount())
+                            sandbox.ForceDelete();
                 }
             }
         }
-
-        public static void CleanupClass()
-        {
-            Logger.Log("  ((cleanup repository))");
-            _repositoryInstance?.Dispose();
-            _repositoryInstance = null;
-        }
-
 
         //UNDONE:<?IntT: Consider the instructions in the following block
         //public void IntegrationTest(Action callback)
@@ -305,6 +198,5 @@ namespace SenseNet.IntegrationTests.Infrastructure
         {
             return new UserBlock(user);
         }
-
     }
 }

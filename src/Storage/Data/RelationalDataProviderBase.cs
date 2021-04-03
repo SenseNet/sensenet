@@ -104,6 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                                 nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                                 versionData.VersionId = reader.GetInt32("VersionId");
+                                versionData.NodeId = nodeHeadData.NodeId;
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("VersionTimestamp");
                             }
                             else
@@ -558,7 +559,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
                         // Manage ReferenceProperties
-                        if (dynamicData.LongTextProperties.Any())
+                        if (dynamicData.ReferenceProperties.Any())
                             await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage LongTextProperties

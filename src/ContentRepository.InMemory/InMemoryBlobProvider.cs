@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.InMemory
 
     public class InMemoryBlobProvider : IBlobProvider
     {
-        private Dictionary<Guid, byte[]> _blobStorage = new Dictionary<Guid, byte[]>();
+        private readonly Dictionary<Guid, byte[]> _blobStorage = new Dictionary<Guid, byte[]>();
 
         public STT.Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
