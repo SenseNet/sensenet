@@ -1248,10 +1248,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary></summary>
+        /// <summary>Finalizes an AD sync task for a user, group or organizational unit.
+        /// This action is intended for internal use by the Task Management module.</summary>
         /// <snCategory>AdSync</snCategory>
         /// <param name="content"></param>
-        /// <param name="result"></param>
+        /// <param name="result">Result of the AD sync task.</param>
         [ODataAction]
         public static void Ad2PortalSyncFinalizer(Content content, SnTaskResult result)
         {

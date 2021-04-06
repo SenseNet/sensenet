@@ -56,11 +56,11 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
         // ================================================================================= OData API
 
-        /// <summary></summary>
+        /// <summary>Encrypts a short text using the current crypto service provider.</summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
+        /// <param name="text">The text to encrypt.</param>
+        /// <returns>The encrypted text.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -69,11 +69,11 @@ namespace SenseNet.ContentRepository.Security.Cryptography
             return Encrypt(text);
         }
 
-        /// <summary></summary>
+        /// <summary>Decrypts a short encrypted text using the current crypto service provider.</summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
+        /// <param name="text">The text to decrypt.</param>
+        /// <returns>A clear text original value.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]

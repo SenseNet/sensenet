@@ -1492,10 +1492,13 @@ namespace SenseNet.Preview
 
         /* ========================================================================================== OData interface */
 
-        /// <summary></summary>
+        /// <summary>Gets all preview images for a content. If any of the images are
+        /// missing or the page count is not yet determined, it starts preview
+        /// generation and waits for it to complete. This may last long in case
+        /// of a huge document.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <returns></returns>
+        /// <returns>The list of preview images. Thumbnail images are not included.</returns>
         [ODataFunction("GetPreviewImages", Description = "$Action,GetPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1505,11 +1508,24 @@ namespace SenseNet.Preview
             return Current != null ? Current.GetPreviewImages(content) : null;
         }
 
-        /// <summary></summary>
+        /// <summary>Gets the path and image dimensions of a specific preview page of a document.
+        /// If the page count for the content is available but the image does not exist, this
+        /// action will start preview generation in the background (but will not wait for it).
+        /// </summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="page"></param>
-        /// <returns></returns>
+        /// <param name="page">A specific page number to check.</param>
+        /// <returns>A custom object containing image path and dimensions.
+        /// In case the image is not available yet, it will return a similar object with the
+        /// PreviewAvailable property set to null.
+        /// </returns>
+        /// <example>
+        /// {
+        ///    PreviewAvailable: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A/preview1.png",
+        ///    Width: 500,
+        ///    Height: 800
+        /// }
+        /// </example>
         [ODataFunction]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1533,10 +1549,31 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
-        /// <summary></summary>
+        /// <summary>Gets path and dimension information for existing preview images.
+        /// This action will not start preview generation, only return a list
+        /// of consecutive preview images starting from the beginning.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// A list of custom objects containing path and dimensions of preview images.
+        /// Thumbnail images are not included.
+        /// </returns>
+        /// <example>
+        /// [
+        ///     {
+        ///         PreviewAvailable: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A/preview1.png",
+        ///         Width: 500,
+        ///         Height: 800,
+        ///         Index: 1
+        ///     },
+        ///     {
+        ///         PreviewAvailable: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A/preview2.png",
+        ///         Width: 500,
+        ///         Height: 800,
+        ///         Index: 2
+        ///     }
+        /// ]
+        /// </example>
         [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1554,10 +1591,20 @@ namespace SenseNet.Preview
             }
         }
 
-        /// <summary></summary>
+        /// <summary>Gets the number of preview pages of a document. If preview generation
+        /// is not yet started, this action will start the process in the background.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <returns></returns>
+        /// <returns>Page count of a document. In case previews are not yet available
+        /// or not possible to generate them, this value will contain one of the
+        /// following statuses:
+        /// NoProvider: -5
+        /// Postponed: -4
+        /// Error: -3
+        /// NotSupported: -2
+        /// InProgress: -1
+        /// EmptyDocument: 0
+        /// </returns>
         [ODataAction(Description = "Get page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1588,11 +1635,20 @@ namespace SenseNet.Preview
             return pageCount;
         }
 
-        /// <summary></summary>
+        /// <summary>Gets the id and path of the folder containing preview images
+        /// for the specified target version of a content.
+        /// Tha target version can be specified by the version url parameter. This
+        /// action does not generate preview images.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="empty"></param>
-        /// <returns></returns>
+        /// <param name="empty">True if the preview folder should be deleted and re-created.</param>
+        /// <returns>A custom object containing the id and path of the folder.</returns>
+        /// <example>
+        /// {
+        ///     Id: 1234
+        ///     Path: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A"
+        /// }
+        /// </example>
         [ODataAction(Description = "Get previews folder")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1611,10 +1667,17 @@ namespace SenseNet.Preview
             };
         }
 
-        /// <summary></summary>
+        /// <summary>Sets the preview status if a document.
+        /// Available options are the following:
+        /// NoProvider,
+        /// Postponed,
+        /// Error,
+        /// NotSupported,
+        /// InProgress,
+        /// EmptyDocument</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="status"></param>
+        /// <param name="status">Preview status value as a string.</param>
         [ODataAction(Description = "Set preview status")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1626,10 +1689,11 @@ namespace SenseNet.Preview
             SetPreviewStatus(content.ContentHandler as File, status);
         }
 
-        /// <summary></summary>
+        /// <summary>Sets the page count of the document.
+        /// This action does not generate preview images.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="pageCount"></param>
+        /// <param name="pageCount">Page count value</param>
         [ODataAction(Description = "Set page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1641,7 +1705,8 @@ namespace SenseNet.Preview
             SavePageCount(content.ContentHandler as File, pageCount);
         }
 
-        /// <summary></summary>
+        /// <summary>Sets the initial security-related properties (Owner, CreatedBy, etc.)
+        /// of a preview image automatically. The values come from the original document.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         [ODataAction]
@@ -1673,10 +1738,12 @@ namespace SenseNet.Preview
             previewImage.Save(SavingMode.KeepVersion);
         }
 
-        /// <summary></summary>
+        /// <summary>Sets the preview status of the document to In progress
+        /// and starts generating preview images - regardless of existing images.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <returns></returns>
+        /// <returns>A custom object containing the current page count (likely to be
+        /// -1 meaning In progress and 0 as the current preview count).</returns>
         [ODataAction(Description = "Regenerate preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1696,11 +1763,18 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = 0 };
         }
 
-        /// <summary></summary>
+        /// <summary>Checks the number of pages and preview images of a document.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="generateMissing"></param>
-        /// <returns></returns>
+        /// <param name="generateMissing">True if preview image generation should start
+        /// in case images are missing.</param>
+        /// <returns>A custom object containing page and preview count.</returns>
+        /// <example> 
+        /// {
+        ///     PageCount: 5,
+        ///     PreviewCount: 5
+        /// }
+        /// </example>
         [ODataAction(Description = "Check preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1756,10 +1830,12 @@ namespace SenseNet.Preview
             return new { file.PageCount, PreviewCount = existingCount };
         }
 
-        /// <summary></summary>
+        /// <summary>Finalizes a preview generation task for a document.
+        /// This action is intended for internal use by the Task Management
+        /// module.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <param name="result"></param>
+        /// <param name="result">Result of the preview generation task.</param>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)
