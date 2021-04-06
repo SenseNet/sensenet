@@ -11,7 +11,9 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
@@ -1495,6 +1497,59 @@ namespace SenseNet.ODataTests
             var sides = url.Split('?');
             var response = await ODataGetAsync(sides[0], "?" + sides[1]);
             return response.Result;
+        }
+
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1383")]
+        public async Task OD_GET_FIX_TypeIsFieldWhenContentTypeIsSeeOnly()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var container = Node.LoadNode("/Root/IMS/Public");
+                var user = new User(container) {Name = "user1", Enabled = true, Email = "user1@example.com"};
+                user.Save();
+                ContentTypeInstaller.InstallContentType(
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder1"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder2"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder3"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>"
+                );
+                var contentType0 = ContentType.GetByName("SystemFolder");
+                var contentType1 = ContentType.GetByName("TestFolder1");
+                var contentType2 = ContentType.GetByName("TestFolder2");
+                var contentType3 = ContentType.GetByName("TestFolder3");
+                SecurityHandler.CreateAclEditor()
+                    //.BreakInheritance(contentType1.Id, new EntryType[0])
+                    .Allow(contentType1.Id, user.Id, false, PermissionType.Open)
+                    .Allow(contentType2.Id, user.Id, false, PermissionType.See)
+                    .Apply();
+
+                using (new CurrentUserBlock(user))
+                {
+                    // pre checks
+                    Assert.AreEqual("Public\\user1", User.Current.Name);
+                    Assert.IsFalse(contentType0.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(contentType1.Security.HasPermission(PermissionType.Open));
+                    Assert.IsTrue(contentType2.Security.HasPermission(PermissionType.See));
+
+
+                    // ACTION
+                    var queryText = "TypeIs:ContentType .AUTOFILTERS:OFF";
+                    var odataQueryText = queryText.Replace(":", "%3a").Replace(" ", "+");
+                    var response = await ODataGetAsync(
+                        "/OData.svc/Root",
+                        "?metadata=no&$select=Name,Type&query=" + odataQueryText)
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    var entities = GetEntities(response).ToArray();
+                    Assert.IsFalse(entities.Any(x => x.Name == contentType0.Name));
+                    var ct1 = entities.FirstOrDefault(x => x.Name == contentType1.Name);
+                    var ct2 = entities.FirstOrDefault(x => x.Name == contentType2.Name);
+                    Assert.IsNotNull(ct1?.ContentType);
+                    Assert.IsNotNull(ct2?.ContentType);
+                }
+
+
+            }).ConfigureAwait(false);
         }
 
         /* ============================================================================ OTHER TESTS */
