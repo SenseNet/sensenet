@@ -535,6 +535,10 @@ namespace SenseNet.ContentRepository
             // check fields without underlying properties (e.g. Icon)
             if (!this.ContentHandler.HasProperty(fieldName) && this.Fields.ContainsKey(fieldName))
             {
+                // Type is a field but not a property. It is always allowed.
+                if (fieldName == "Type")
+                    return true;
+
                 // Size is a field but not a property. It must be inaccessible even with Preview permissions,
                 // because it relies on the Binary field that is forbidden for preview-only users.
                 if (fieldName == "Size")
