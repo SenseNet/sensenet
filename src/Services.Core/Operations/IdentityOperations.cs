@@ -26,7 +26,9 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="password">Password</param>
         /// <returns>A custom object containing basic user data. If the credentials are not valid,
         /// the request throws a <see cref="SenseNetSecurityException"/> and return a 404 response.
-        /// For example:
+        /// </returns>
+        /// <example>
+        /// <code>
         /// {
         ///     id: 1234,
         ///     email: "mail@example.com",
@@ -34,7 +36,8 @@ namespace SenseNet.Services.Core.Operations
         ///     name: "example",
         ///     loginName: "example"
         /// }
-        /// </returns>
+        /// </code>
+        /// </example>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]

@@ -52,6 +52,7 @@ namespace SenseNet.Services.Core
         /// <returns>An array of permission entries relevant for the provided
         /// user and their groups.</returns>
         /// <example>
+        /// <code>
         /// [
         ///      {
         ///          "identity": {
@@ -78,6 +79,7 @@ namespace SenseNet.Services.Core
         ///             }
         ///      }
         /// ]
+        /// </code>
         /// </example>
         [ODataFunction]
         public static object GetPermissionOverview(Content content, string identity)

@@ -18,11 +18,15 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         /// <param name="clientType">Client type (currently: adminui).</param>
         /// <returns>A custom object containing the url of the Identity Server used by the repository
         /// and the appropriate client id that should be used by the client.
+        /// </returns>
+        /// <example>
+        /// <code>
         /// {
         ///     "authority": "https://example.is.sensenet.cloud",
         ///     "client_id": "abcdefg"
         /// }
-        /// </returns>
+        /// </code>
+        /// </example>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]

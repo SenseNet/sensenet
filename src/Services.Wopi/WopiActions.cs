@@ -23,12 +23,14 @@ namespace SenseNet.Services.Wopi
         /// <param name="action">The required WOPI action: edit or open</param>
         /// <returns>A custom object containing WOPI-related properties.</returns>
         /// <example>
+        /// <code>
         /// {
         ///     "accesstoken": "token",
         ///     "expiration": 12345678,
         ///     "actionUrl": "https://wopiurl",
         ///     "faviconUrl": "https://favicon.ico"
         /// }
+        /// </code>
         /// </example>
         [ODataFunction]
         [RequiredPermissions(N.P.Open)]

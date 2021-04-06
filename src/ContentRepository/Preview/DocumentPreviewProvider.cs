@@ -1520,11 +1520,13 @@ namespace SenseNet.Preview
         /// PreviewAvailable property set to null.
         /// </returns>
         /// <example>
+        /// <code>
         /// {
         ///    PreviewAvailable: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A/preview1.png",
         ///    Width: 500,
         ///    Height: 800
         /// }
+        /// </code>
         /// </example>
         [ODataFunction]
         [ContentTypes(N.CT.File)]
@@ -1559,6 +1561,7 @@ namespace SenseNet.Preview
         /// Thumbnail images are not included.
         /// </returns>
         /// <example>
+        /// <code>
         /// [
         ///     {
         ///         PreviewAvailable: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A/preview1.png",
@@ -1573,6 +1576,7 @@ namespace SenseNet.Preview
         ///         Index: 2
         ///     }
         /// ]
+        /// </code>
         /// </example>
         [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.CT.File)]
@@ -1594,17 +1598,18 @@ namespace SenseNet.Preview
         /// <summary>Gets the number of preview pages of a document. If preview generation
         /// is not yet started, this action will start the process in the background.</summary>
         /// <snCategory>Preview</snCategory>
-        /// <param name="content"></param>
-        /// <returns>Page count of a document. In case previews are not yet available
-        /// or not possible to generate them, this value will contain one of the
+        /// <remarks>
+        /// In case previews are not yet available or not possible to generate them, this value will contain one of the
         /// following statuses:
-        /// NoProvider: -5
-        /// Postponed: -4
-        /// Error: -3
-        /// NotSupported: -2
-        /// InProgress: -1
-        /// EmptyDocument: 0
-        /// </returns>
+        /// - NoProvider: -5
+        /// - Postponed: -4
+        /// - Error: -3
+        /// - NotSupported: -2
+        /// - InProgress: -1
+        /// - EmptyDocument: 0
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <returns>Page count of a document or a status code.</returns>
         [ODataAction(Description = "Get page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
@@ -1644,10 +1649,12 @@ namespace SenseNet.Preview
         /// <param name="empty">True if the preview folder should be deleted and re-created.</param>
         /// <returns>A custom object containing the id and path of the folder.</returns>
         /// <example>
+        /// <code>
         /// {
         ///     Id: 1234
         ///     Path: "/Root/Content/DocLib/MyDoc.docx/Previews/1.0.A"
         /// }
+        /// </code>
         /// </example>
         [ODataAction(Description = "Get previews folder")]
         [ContentTypes(N.CT.File)]
@@ -1669,12 +1676,13 @@ namespace SenseNet.Preview
 
         /// <summary>Sets the preview status if a document.
         /// Available options are the following:
-        /// NoProvider,
-        /// Postponed,
-        /// Error,
-        /// NotSupported,
-        /// InProgress,
-        /// EmptyDocument</summary>
+        /// - NoProvider,
+        /// - Postponed,
+        /// - Error,
+        /// - NotSupported,
+        /// - InProgress,
+        /// - EmptyDocument
+        /// </summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         /// <param name="status">Preview status value as a string.</param>
@@ -1769,11 +1777,13 @@ namespace SenseNet.Preview
         /// <param name="generateMissing">True if preview image generation should start
         /// in case images are missing.</param>
         /// <returns>A custom object containing page and preview count.</returns>
-        /// <example> 
+        /// <example>
+        /// <code>
         /// {
         ///     PageCount: 5,
         ///     PreviewCount: 5
         /// }
+        /// </code>
         /// </example>
         [ODataAction(Description = "Check preview images")]
         [ContentTypes(N.CT.File)]

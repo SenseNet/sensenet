@@ -24,6 +24,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="create">Any non-null value in case of the first Upload request.</param>
         /// <returns>A custom object containing basic properties of the uploaded file.</returns>
         /// <example>
+        /// <code>
         /// {
         ///     "Url": "/Root/Content/myfile.docx",
         ///     "Name": "myfile.docx",
@@ -31,6 +32,7 @@ namespace SenseNet.Services.Core.Operations
         ///     "Type": "File",
         ///     "Id": 4567
         /// }
+        /// </code>
         /// </example>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
