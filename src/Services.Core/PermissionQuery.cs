@@ -44,11 +44,43 @@ namespace SenseNet.Services.Core
             public object Identity;
         }
 
-        /// <summary></summary>
+        /// <summary>Gets aggregated permission information on the content
+        /// for the specified user.</summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
-        /// <param name="identity"></param>
-        /// <returns></returns>
+        /// <param name="identity">User content path.</param>
+        /// <returns>An array of permission entries relevant for the provided
+        /// user and their groups.</returns>
+        /// <example>
+        /// <code>
+        /// [
+        ///      {
+        ///          "identity": {
+        ///              "id": 1234,
+        ///              "path": "/Root/IMS/Public/user1",
+        ///              "name": "user1",
+        ///              "displayName": "User 1",
+        ///              "kind": "User",
+        ///              "domain": "public"
+        ///          },
+        ///         "permissions": [
+        ///             {
+        ///                 "name": "See",
+        ///                 "index": 0,
+        ///                 "type": "allowed",
+        ///                 "allowfrom": [
+        ///                     "path": "/Root/Content/SampleWorkspace",
+        ///                     "identity": "..../IdentitfiedUsers"
+        ///                 ],
+        ///                 "denyfrom": [
+        ///                     "path": "/Root/Content",
+        ///                     "identity": "..../alba"
+        ///                 ]
+        ///             }
+        ///      }
+        /// ]
+        /// </code>
+        /// </example>
         [ODataFunction]
         public static object GetPermissionOverview(Content content, string identity)
         {

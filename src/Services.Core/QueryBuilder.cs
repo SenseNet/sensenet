@@ -108,11 +108,13 @@ namespace SenseNet.Services.Core
             return sb.ToString();
         }
 
-        /// <summary></summary>
+        /// <summary>Gets saved queries accessible by the current user.
+        /// Queries can be in the following places: either in a public folder under the
+        /// current workspace or private queries under the profile of the current user.</summary>
         /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
-        /// <param name="onlyPublic"></param>
-        /// <returns></returns>
+        /// <param name="onlyPublic">True if only public queries should be returned.</param>
+        /// <returns>A list of Query content items.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetQueries(Content content, bool onlyPublic = false)
@@ -147,14 +149,14 @@ namespace SenseNet.Services.Core
                  c.InTree(RepositoryPath.Combine(wsPath, QueryContainerName))) && c.TypeIs(QueryTypeName));
         }
 
-        /// <summary></summary>
+        /// <summary>Add or edit a saved content query.</summary>
         /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
-        /// <param name="query"></param>
-        /// <param name="displayName"></param>
-        /// <param name="queryType"></param>
+        /// <param name="query">Query text.</param>
+        /// <param name="displayName">Display name for the saved query.</param>
+        /// <param name="queryType">Type of the query (Public or Private).</param>
         /// <param name="uiFilters">Technical data containing filter information.</param>
-        /// <returns></returns>
+        /// <returns>The Query content.</returns>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         public static object SaveQuery(Content content, string query, string displayName, 

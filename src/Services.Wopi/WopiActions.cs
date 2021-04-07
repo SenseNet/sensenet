@@ -16,12 +16,22 @@ namespace SenseNet.Services.Wopi
     {
         private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
 
-        /// <summary></summary>
+        /// <summary>Gets document and security information required by the WOPI protocol.</summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
+        /// <param name="action">The required WOPI action: edit or open</param>
+        /// <returns>A custom object containing WOPI-related properties.</returns>
+        /// <example>
+        /// <code>
+        /// {
+        ///     "accesstoken": "token",
+        ///     "expiration": 12345678,
+        ///     "actionUrl": "https://wopiurl",
+        ///     "faviconUrl": "https://favicon.ico"
+        /// }
+        /// </code>
+        /// </example>
         [ODataFunction]
         [RequiredPermissions(N.P.Open)]
         public static object GetWopiData(Content content, HttpContext context, string action)
@@ -58,7 +68,7 @@ namespace SenseNet.Services.Wopi
             };
         }
 
-        /// <summary></summary>
+        /// <summary>This method serves only action listing and will not actually execute.</summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
@@ -72,7 +82,7 @@ namespace SenseNet.Services.Wopi
             return null;
         }
 
-        /// <summary></summary>
+        /// <summary>This method serves only action listing and will not actually execute.</summary>
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>

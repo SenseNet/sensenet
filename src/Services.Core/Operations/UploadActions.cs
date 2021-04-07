@@ -8,21 +8,32 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class UploadActions
     {
-        /// <summary></summary>
+        /// <summary>Uploads a whole file or only a chunk.</summary>
         /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <param name="FileLength"></param>
-        /// <param name="ContentType"></param>
-        /// <param name="PropertyName"></param>
-        /// <param name="FileText"></param>
-        /// <param name="Overwrite"></param>
-        /// <param name="ContentId"></param>
-        /// <param name="FileName"></param>
-        /// <param name="ChunkToken"></param>
-        /// <param name="UseChunk"></param>
-        /// <param name="create"></param>
-        /// <returns></returns>
+        /// <param name="FileLength">Full length of the file.</param>
+        /// <param name="ContentType">Content Type name. Default: File</param>
+        /// <param name="PropertyName">Binary property name. Default: Binary</param>
+        /// <param name="FileText">Text file content if applicable.</param>
+        /// <param name="Overwrite">True if overwrite an existing file.</param>
+        /// <param name="ContentId">Id of an existing content if known.</param>
+        /// <param name="FileName">Name of the uploaded file.</param>
+        /// <param name="ChunkToken">Chunk token received from a previous Upload request.</param>
+        /// <param name="UseChunk">True if the client wants to upload the file in chunks.</param>
+        /// <param name="create">Any non-null value in case of the first Upload request.</param>
+        /// <returns>A custom object containing basic properties of the uploaded file.</returns>
+        /// <example>
+        /// <code>
+        /// {
+        ///     "Url": "/Root/Content/myfile.docx",
+        ///     "Name": "myfile.docx",
+        ///     "Length": 1234,
+        ///     "Type": "File",
+        ///     "Id": 4567
+        /// }
+        /// </code>
+        /// </example>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
@@ -61,11 +72,12 @@ namespace SenseNet.Services.Core.Operations
             return handler.ExecuteAsync(context.RequestAborted);
         }
 
-        /// <summary></summary>
+        /// <summary>Finalizes a multi step upload operation and
+        /// makes the content available for modifications.</summary>
         /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <returns></returns>
+        /// <returns>An empty result.</returns>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]

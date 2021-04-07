@@ -10,6 +10,14 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class DiagnosticOperations
     {
+        /// <summary>
+        /// Gets database usage information about the repository.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="force">True if the data should be refreshed from the database. Default: false</param>
+        /// <returns>A <see cref="DatabaseUsage"/> object containing content, preview, binary
+        /// and version count information.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]

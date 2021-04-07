@@ -18,13 +18,26 @@ namespace SenseNet.Services.Core.Operations
 
     public static class IdentityOperations
     {
-        /// <summary></summary>
+        /// <summary>Validates the provided user credentials.</summary>
         /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <param name="userName"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
+        /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
+        /// <param name="password">Password</param>
+        /// <returns>A custom object containing basic user data. If the credentials are not valid,
+        /// the request throws a <see cref="SenseNetSecurityException"/> and return a 404 response.
+        /// </returns>
+        /// <example>
+        /// <code>
+        /// {
+        ///     id: 1234,
+        ///     email: "mail@example.com",
+        ///     username: "example",
+        ///     name: "example",
+        ///     loginName: "example"
+        /// }
+        /// </code>
+        /// </example>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
@@ -72,14 +85,15 @@ namespace SenseNet.Services.Core.Operations
             throw new SenseNetSecurityException("Invalid username or password.");
         }
 
-        /// <summary></summary>
+        /// <summary>Creates an external user who registered using one of the available
+        /// external providers.</summary>
         /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <param name="provider"></param>
-        /// <param name="userId"></param>
-        /// <param name="claims"></param>
-        /// <returns></returns>
+        /// <param name="provider">Name of the provider (e.g. Google, GitHub).</param>
+        /// <param name="userId">External user id given by the provider.</param>
+        /// <param name="claims">List of claims given by the provider.</param>
+        /// <returns>The newly created user content.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -100,14 +114,14 @@ namespace SenseNet.Services.Core.Operations
             return Content.Create(user);
         }
 
-        /// <summary></summary>
+        /// <summary>Creates a local user who registered using a username and password.</summary>
         /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
-        /// <param name="loginName"></param>
-        /// <param name="password"></param>
-        /// <param name="email"></param>
-        /// <returns></returns>
+        /// <param name="loginName">Login name.</param>
+        /// <param name="password">Password.</param>
+        /// <param name="email">Email address.</param>
+        /// <returns>The newly created user content.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
