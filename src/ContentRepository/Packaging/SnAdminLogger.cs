@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace SenseNet.Packaging
 {
@@ -153,6 +154,31 @@ namespace SenseNet.Packaging
                 Console.Write(value);
             if (newLine)
                 Console.WriteLine();
+        }
+    }
+
+    public class PackagingILogger : IPackagingLogger
+    {
+        private readonly ILogger _logger;
+
+        public PackagingILogger(ILogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public LogLevel AcceptedLevel => LogLevel.Default;
+        public string LogFilePath => null;
+
+        public void Initialize(LogLevel level, string logFilePath) {}
+
+        public void WriteTitle(string title)
+        {
+            _logger.LogInformation(title);
+        }
+
+        public void WriteMessage(string message)
+        {
+            _logger.LogTrace(message);
         }
     }
 }

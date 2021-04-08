@@ -23,17 +23,29 @@ namespace SenseNet.Packaging
     public static class Logger
     {
         public static LogLevel Level { get; private set; }
-        private static IPackagingLogger[] _loggers = new IPackagingLogger[0];
+        private static readonly List<IPackagingLogger> _loggers = new List<IPackagingLogger>();
         public static int Errors { get; set; }
         public static string PackageName { get; set; }
 
-        public static void Create(LogLevel level, string logfilePath = null)
+        public static void Create(LogLevel level, string logfilePath = null, params IPackagingLogger[] loggers)
         {
             Level = level;
-            _loggers = (from t in TypeResolver.GetTypesByInterface(typeof(IPackagingLogger))
-                        select (IPackagingLogger)Activator.CreateInstance(t)).ToArray<IPackagingLogger>();
+
+            _loggers.Clear();
+            _loggers.AddRange(CreateDefaultLoggers());
+            _loggers.AddRange(loggers.Where(lg => lg != null));
+
             foreach (var logger in _loggers)
                 logger.Initialize(level, logfilePath);
+        }
+
+        private static IPackagingLogger[] CreateDefaultLoggers()
+        {
+            return new IPackagingLogger[]
+            {
+                new SnAdminLogger(),
+                new SnAdminConsoleLogger()
+            };
         }
 
         public static string GetLogFileName()
