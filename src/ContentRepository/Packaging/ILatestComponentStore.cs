@@ -1,24 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.Storage;
 
 namespace SenseNet.ContentRepository.Packaging
 {
     public interface ILatestComponentStore
     {
         /// <summary>
-        /// Returns latest version of the component identified by the given <paramref name="componentId"/>.
+        /// Returns latest releases
+        /// </summary>
+        /// <returns>A set of ReleaseInfos.</returns>
+        Task<IEnumerable<ReleaseInfo>> GetLatestReleases(CancellationToken cancel);
+        /// <summary>
+        /// Returns all latest component versions.
         /// The value is provided from a central storage.
         /// </summary>
-        /// <param name="componentId">Id of the component.</param>
-        /// <returns><see cref="Version"/> or null.</returns>
-        Version GetLatestVersion(string componentId);
+        /// <returns>String-version pairs of the ComponentIds and Versions.</returns>
+        Task<IDictionary<string, Version>> GetLatestComponentVersions(CancellationToken cancel);
     }
+
     public class DefaultLatestComponentStore : ILatestComponentStore
     {
-        public Version GetLatestVersion(string componentId)
+        public Task<IEnumerable<ReleaseInfo>> GetLatestReleases(CancellationToken cancel)
         {
-            return null;
+            return System.Threading.Tasks.Task.FromResult<IEnumerable<ReleaseInfo>>(new ReleaseInfo[0]);
+        }
+        public Task<IDictionary<string, Version>> GetLatestComponentVersions(CancellationToken cancel)
+        {
+            return System.Threading.Tasks.Task.FromResult<IDictionary<string, Version>>(new Dictionary<string, Version>());
         }
     }
 

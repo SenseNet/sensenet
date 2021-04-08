@@ -67,17 +67,25 @@ namespace SenseNet.Services.Core.Operations
         /// </remarks>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
-        /// <returns>A <see cref="RepositoryVersionInfo"/> instance containing package, component, assembly
-        /// versions.</returns>
+        /// <returns>A <see cref="RepositoryVersionView"/> instance containing releases, packages, components, assemblies.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static RepositoryVersionView GetVersionInfo(Content content, HttpContext httpContext)
+        public static async Task<RepositoryVersionView> GetVersionInfo(Content content, HttpContext httpContext)
         {
+            var componentStore = httpContext.RequestServices.GetService<ILatestComponentStore>()
+                                 ?? new DefaultLatestComponentStore();
+
+            var latestReleases =
+                await componentStore.GetLatestReleases(httpContext.RequestAborted);
+            var latestVersions =
+                await componentStore.GetLatestComponentVersions(httpContext.RequestAborted);
+
             var sharedVersionInfo = RepositoryVersionInfo.Instance;
             var components = sharedVersionInfo.Components.ToArray();
             var versionInfoView = new RepositoryVersionView
             {
+                LatestReleases = latestReleases,
                 Components = components
                     .Select(component => new SnComponentView
                     {
@@ -92,11 +100,9 @@ namespace SenseNet.Services.Core.Operations
                 DatabaseAvailable = sharedVersionInfo.DatabaseAvailable
             };
 
-            var componentStore = httpContext.RequestServices.GetService<ILatestComponentStore>()
-                                 ?? new DefaultLatestComponentStore();
-
             foreach (var componentView in versionInfoView.Components)
-                componentView.LatestVersion = componentStore.GetLatestVersion(componentView.ComponentId);
+                componentView.LatestVersion =
+                    latestVersions.TryGetValue(componentView.ComponentId, out var version) ? version : null;
 
             return versionInfoView;
         }
