@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -26,6 +28,19 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataBuiltInOperationMethodTests : ODataTestBase
     {
+        private class TestLatestComponentStore : ILatestComponentStore
+        {
+            private readonly IDictionary<string, Version> _data;
+            public TestLatestComponentStore(IDictionary<string, Version> data)
+            {
+                _data = data;
+            }
+            public Version GetLatestVersion(string componentId)
+            {
+                return _data.TryGetValue(componentId, out var version) ? version : null;
+            }
+        }
+
         /* ====================================================================== RepositoryTools */
 
         [TestMethod]
@@ -33,7 +48,15 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataGetAsync($"/OData.svc/('Root')/GetVersionInfo", "")
+                var container = new ServiceCollection();
+                var latestComponentStore = new TestLatestComponentStore(new Dictionary<string, Version>
+                {
+                    { "SenseNet.Services", new Version(128, 256) }
+                });
+                container.AddSingleton<ILatestComponentStore>(latestComponentStore);
+                var services = container.BuildServiceProvider();
+
+                var response = ODataGetAsync($"/OData.svc/('Root')/GetVersionInfo", "", services)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 AssertNoError(response);
@@ -43,6 +66,7 @@ namespace SenseNet.ODataTests
                 Assert.IsNotNull(result["Assemblies"]);
                 Assert.IsNotNull(result["InstalledPackages"]);
                 Assert.IsNotNull(result["DatabaseAvailable"]);
+                Assert.AreEqual("128.256", result["Components"][0]["LatestVersion"].ToString());
             });
         }
 
@@ -543,7 +567,6 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-
 
         /* ====================================================================== TOOLS */
 
