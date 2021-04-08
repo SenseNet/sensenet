@@ -13,20 +13,30 @@ namespace SenseNet.Services.Core.Operations
     public static class DiagnosticOperations
     {
         /// <summary>
-        /// Provides version information about all components / packages / assemblies of the running sensenet system.
+        /// Provides version information about all releases / components / packages / assemblies of the running sensenet system.
         /// </summary>
         /// <snCategory>Other</snCategory>
         /// <remarks>
         /// For example:
         /// <code>
         /// {
+        ///   "LatestReleases": [
+        ///     {
+        ///       "ProductName": "SenseNet.Services",
+        ///       "DisplayName": "sensenet Services",
+        ///       "Version": "1.2",
+        ///       "ReleaseData": "2021-04-06"
+        ///     },
+        ///     ...
+        ///   ],
         ///   "Components": [
         ///     {
         ///       "ComponentId": "SenseNet.Services",
         ///       "Version": "7.7.13.4",
         ///       "LatestVersion": "7.8",
         ///       "Description": "sensenet Services"
-        ///     }
+        ///     },
+        ///     ...
         ///   ],
         ///   "Assemblies": {
         ///     "SenseNet": [
