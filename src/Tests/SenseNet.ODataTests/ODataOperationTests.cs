@@ -285,7 +285,7 @@ namespace SenseNet.ODataTests
             {
                 // ACTION
                 var response = await ODataGetAsync(
-                    "/OData.svc/Root('IMS')/Function22", "?param1=asdf",
+                    "/OData.svc/Root('IMS')/Function22", "?param1=asdf", null,
                     new TestConfigForSystemParametersTest()).ConfigureAwait(false);
 
                 // ASSERT
@@ -304,7 +304,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataPostAsync(
                     "/OData.svc/Root('IMS')/Function22", "",
-                    "{param1:\"asdf\"}", new TestConfigForSystemParametersTest()).ConfigureAwait(false);
+                    "{param1:\"asdf\"}", null, new TestConfigForSystemParametersTest())
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var expected = $"## Function22 called. Config: {nameof(TestConfigForSystemParametersTest)}. Param1: asdf.";

@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -17,6 +19,7 @@ using SenseNet.ODataTests.Accessors;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Storage;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using SSCO = SenseNet.Services.Core.Operations;
@@ -26,6 +29,26 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataBuiltInOperationMethodTests : ODataTestBase
     {
+        private class TestLatestComponentStore : ILatestComponentStore
+        {
+            private readonly IEnumerable<ReleaseInfo> _releaseData;
+            private readonly IDictionary<string, Version> _componentData; 
+            public TestLatestComponentStore(IEnumerable<ReleaseInfo> releaseData, IDictionary<string, Version> componentData)
+            {
+                _releaseData = releaseData;
+                _componentData = componentData;
+            }
+
+            public Task<IEnumerable<ReleaseInfo>> GetLatestReleasesAsync(CancellationToken cancel)
+            {
+                return Task.FromResult(_releaseData);
+            }
+            public Task<IDictionary<string, Version>> GetLatestComponentVersionsAsync(CancellationToken cancel)
+            {
+                return Task.FromResult(_componentData);
+            }
+        }
+
         /* ====================================================================== RepositoryTools */
 
         [TestMethod]
@@ -33,16 +56,48 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataGetAsync($"/OData.svc/('Root')/GetVersionInfo", "")
+                var container = new ServiceCollection();
+                var latestComponentStore = new TestLatestComponentStore(new[]
+                    {
+                        new ReleaseInfo
+                        {
+                            ProductName = "Product1", DisplayName = "Product 1",
+                            Version = new Version(1, 2), ReleaseData = DateTime.Today.AddDays(-2.0)
+                        },
+                        new ReleaseInfo
+                        {
+                            ProductName = "Product2", DisplayName = "Product 2",
+                            Version = new Version(2, 3), ReleaseData = DateTime.Today.AddDays(-1.0)
+                        },
+                    },
+                    new Dictionary<string, Version>
+                    {
+                        {"Component1", new Version(7, 8)},
+                        {"Component2", new Version(6, 7)},
+                        {"SenseNet.Services", new Version(7, 8)},
+                    });
+
+                container.AddSingleton<ILatestComponentStore>(latestComponentStore);
+                var services = container.BuildServiceProvider();
+
+                // ACTION
+                var response = ODataGetAsync($"/OData.svc/('Root')/GetVersionInfo", "", services)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                // ASSERT
                 AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
+                Assert.IsNotNull(result["LatestReleases"]);
                 Assert.IsNotNull(result["Components"]);
                 Assert.IsNotNull(result["Assemblies"]);
                 Assert.IsNotNull(result["InstalledPackages"]);
                 Assert.IsNotNull(result["DatabaseAvailable"]);
+                Assert.AreEqual("Product1", result["LatestReleases"][0]["ProductName"].ToString());
+                Assert.AreEqual("Product2", result["LatestReleases"][1]["ProductName"].ToString());
+                Assert.AreEqual("1.2", result["LatestReleases"][0]["Version"].ToString());
+                Assert.AreEqual("2.3", result["LatestReleases"][1]["Version"].ToString());
+                Assert.AreEqual("7.8", result["Components"][0]["LatestVersion"].ToString());
             });
         }
 
@@ -543,7 +598,6 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-
 
         /* ====================================================================== TOOLS */
 
