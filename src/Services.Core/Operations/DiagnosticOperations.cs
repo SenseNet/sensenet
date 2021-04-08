@@ -87,9 +87,9 @@ namespace SenseNet.Services.Core.Operations
                                  ?? new DefaultLatestComponentStore();
 
             var latestReleases =
-                await componentStore.GetLatestReleases(httpContext.RequestAborted);
+                await componentStore.GetLatestReleasesAsync(httpContext.RequestAborted);
             var latestVersions =
-                await componentStore.GetLatestComponentVersions(httpContext.RequestAborted);
+                await componentStore.GetLatestComponentVersionsAsync(httpContext.RequestAborted);
 
             var sharedVersionInfo = RepositoryVersionInfo.Instance;
             var components = sharedVersionInfo.Components.ToArray();

@@ -39,11 +39,11 @@ namespace SenseNet.ODataTests
                 _componentData = componentData;
             }
 
-            public Task<IEnumerable<ReleaseInfo>> GetLatestReleases(CancellationToken cancel)
+            public Task<IEnumerable<ReleaseInfo>> GetLatestReleasesAsync(CancellationToken cancel)
             {
                 return Task.FromResult(_releaseData);
             }
-            public Task<IDictionary<string, Version>> GetLatestComponentVersions(CancellationToken cancel)
+            public Task<IDictionary<string, Version>> GetLatestComponentVersionsAsync(CancellationToken cancel)
             {
                 return Task.FromResult(_componentData);
             }
