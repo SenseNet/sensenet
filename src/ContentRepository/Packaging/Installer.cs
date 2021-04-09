@@ -35,7 +35,9 @@ namespace SenseNet.Packaging
         {
             RepositoryBuilder = repositoryBuilder;
             WorkingDirectory = workingDirectory;
-            _logger = new PackagingILogger(logger);
+
+            if (logger != null)
+                _logger = new PackagingILogger(logger);
         }
 
         /// <summary>
