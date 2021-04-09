@@ -2,7 +2,7 @@
 <ContentType name="TrashBin" parentType="Workspace" handler="SenseNet.ContentRepository.TrashBin" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-TrashBin,DisplayName</DisplayName>
   <Description>$Ctd-TrashBin,Description</Description>
-  <Icon>trash</Icon>
+  <Icon>TrashBin</Icon>
   <AllowedChildTypes>
     TrashBag
   </AllowedChildTypes>
