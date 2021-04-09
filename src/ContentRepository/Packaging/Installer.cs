@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -20,6 +21,7 @@ namespace SenseNet.Packaging
     {
         public RepositoryBuilder RepositoryBuilder { get; }
         private string WorkingDirectory { get; }
+        private readonly IPackagingLogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Installer"/> class.
@@ -28,10 +30,14 @@ namespace SenseNet.Packaging
         /// to install or import anything.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
-        public Installer(RepositoryBuilder repositoryBuilder = null, string workingDirectory = null)
+        public Installer(RepositoryBuilder repositoryBuilder = null, string workingDirectory = null,
+            ILogger logger = null)
         {
             RepositoryBuilder = repositoryBuilder;
             WorkingDirectory = workingDirectory;
+
+            if (logger != null)
+                _logger = new PackagingILogger(logger);
         }
 
         /// <summary>
@@ -48,7 +54,7 @@ namespace SenseNet.Packaging
             RepositoryBuilder.StartIndexingEngine(false);
 
             Logger.PackageName = packageName;
-            Logger.Create(LogLevel.Default);
+            Logger.Create(LogLevel.Default, null, _logger);
             Logger.LogMessage("Accessing sensenet database...");
 
             // Make sure that the database exists and contains the schema
@@ -112,7 +118,7 @@ namespace SenseNet.Packaging
                 throw new ArgumentNullException(nameof(packageName));
 
             Logger.PackageName = packageName;
-            Logger.Create(LogLevel.Default);
+            Logger.Create(LogLevel.Default, null, _logger);
 
             // prepare package: extract it to the file system
             var packageFolder = UnpackEmbeddedPackage(assembly, packageName);
@@ -132,7 +138,7 @@ namespace SenseNet.Packaging
                 throw new ArgumentNullException(nameof(packagePath));
 
             Logger.PackageName = Path.GetFileName(packagePath);
-            Logger.Create(LogLevel.Default);
+            Logger.Create(LogLevel.Default, null, _logger);
 
             // prepare package: extract it to the file system
             var packageFolder = UnpackFileSystemPackage(packagePath);
@@ -150,7 +156,7 @@ namespace SenseNet.Packaging
         public Installer Import(string sourcePath, string targetPath = null)
         {
             Logger.PackageName = "import";
-            Logger.Create(LogLevel.Default);
+            Logger.Create(LogLevel.Default, null, _logger);
 
             if (RepositoryBuilder == null)
             {

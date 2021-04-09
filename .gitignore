@@ -260,3 +260,4 @@ paket-files/
 /src/Services.Core.Install/*.zip
 **/App_Data/LuceneIndex
 **/App_Data/LocalIndex
+**/App_Data/Logs
