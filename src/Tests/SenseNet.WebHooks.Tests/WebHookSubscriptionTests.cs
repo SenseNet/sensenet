@@ -332,45 +332,25 @@ namespace SenseNet.WebHooks.Tests
         public async Task Test_Versioning(VersioningType versioningType, ApprovingType approvingType,
             Func<File, Task> action, string expectedEventLog, string subscribedEvents = null)
         {
-            // subscribe to all events by default
-            if (subscribedEvents == null)
-                subscribedEvents = @"""All""";
+            File file = null;
 
-            var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
-            var webHookClient = new TestWebHookClient();
-
-            await Test((builder) =>
+            await Test_WebHook(() =>
                 {
-                    builder
-                        .UseComponent(new WebHookComponent())
-                        .UseEventDistributor(new EventDistributor())
-                        .AddAsyncEventProcessors(new LocalWebHookProcessor(
-                            store,
-                            webHookClient,
-                            new NullLogger<LocalWebHookProcessor>()));
+                    file = CreateFile(versioningType, approvingType);
+                    return Task.CompletedTask;
                 },
                 async () =>
                 {
-                    var file = CreateFile(versioningType, approvingType);
-
-                    // subscribe to all versioning events
-                    var wh = await CreateWebHookSubscriptionAsync(@"{
-    ""Path"": ""/Root/Content"",
-    ""ContentTypes"": [ 
-        {
-            ""Name"": ""File"", 
-            ""Events"": [ " + subscribedEvents + @"  ] 
-        }
-    ] 
-}");
-                    store.Subscriptions.Add(wh);
-
                     await action(file);
-                    
-                    var eventLog = string.Join(",", webHookClient.Requests.Select(r => r.EventName));
+                    return file;
+                },
+                (result, client, subscription) =>
+                {
+                    var eventLog = string.Join(",", client.Requests.Select(r => r.EventName));
 
                     Assert.AreEqual(expectedEventLog, eventLog);
-                });
+                },
+                subscribedEvents);
         }
 
         [TestMethod]
@@ -416,8 +396,107 @@ namespace SenseNet.WebHooks.Tests
                     Assert.AreEqual("WebHookFilter;WebHookHeaders", wh.InvalidFields);
                 });
         }
+        
+        [TestMethod]
+        public async Task WebHookSubscription_Payload_Default()
+        {
+            await Test_WebHook((file, client, subscription) =>
+                {
+                    var request = client.Requests.First();
 
-        private Task<WebHookSubscription> CreateWebHookSubscriptionAsync(string filter, string headers = null)
+                    // default properties are there
+                    Assert.AreEqual(((File)file).Id, request.NodeId);
+                    Assert.AreEqual("Modify", request.EventName);
+                });
+        }
+        [TestMethod]
+        public async Task WebHookSubscription_Payload_Custom()
+        {
+            await Test_WebHook((file, client, subscription) =>
+                {
+                    var request = client.Requests.First();
+
+                    // custom property is sent
+                    Assert.IsTrue(string.Equals(request.GetPostPropertyString("text"), "hello", StringComparison.InvariantCulture));
+
+                    // default properties are NOT there
+                    Assert.AreEqual(0, request.NodeId);
+                    Assert.AreEqual(null, request.EventName);
+                }, payload: "{ \"text\": \"hello\" }");
+        }
+
+        internal async Task Test_WebHook(Action<object, TestWebHookClient, WebHookSubscription> assertAction,
+            string subscribedEvents = null, string headers = null, string payload = null)
+        {
+            File file = null;
+
+            await Test_WebHook(() =>
+                {
+                    file = CreateFile();
+                    return Task.CompletedTask;
+                },
+                () =>
+                {
+                    file.Index = 42;
+                    file.Save(SavingMode.KeepVersion);
+                    return Task.FromResult((object)file);
+                }, 
+                assertAction,
+                subscribedEvents,
+                headers,
+                payload);
+        }
+
+        internal async Task Test_WebHook(Func<Task> actionBeforeSubscription, Func<Task<object>> actionAfterSubscription,
+            Action<object, TestWebHookClient, WebHookSubscription> assertAction, 
+            string subscribedEvents = null, string headers = null, string payload = null)
+        {
+            // subscribe to all events by default
+            if (subscribedEvents == null)
+                subscribedEvents = @"""All""";
+
+            var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
+            var webHookClient = new TestWebHookClient();
+
+            await Test((builder) =>
+                {
+                    builder
+                        .UseComponent(new WebHookComponent())
+                        .UseEventDistributor(new EventDistributor())
+                        .AddAsyncEventProcessors(new LocalWebHookProcessor(
+                            store,
+                            webHookClient,
+                            new NullLogger<LocalWebHookProcessor>()));
+                },
+                async () =>
+                {
+                    if (actionBeforeSubscription != null)
+                        await actionBeforeSubscription();
+
+                    // create a new subscription
+                    var wh = await CreateWebHookSubscriptionAsync(@"{
+    ""Path"": ""/Root/Content"",
+    ""ContentTypes"": [ 
+        {
+            ""Name"": ""File"", 
+            ""Events"": [ " + subscribedEvents + @"  ] 
+        }
+    ] 
+}", 
+                        headers, payload);
+
+                    store.Subscriptions.Add(wh);
+
+                    object result = null;
+
+                    if (actionAfterSubscription != null)
+                        result = await actionAfterSubscription();
+
+                    assertAction?.Invoke(result, webHookClient, wh);
+                });
+        }
+
+        private Task<WebHookSubscription> CreateWebHookSubscriptionAsync(string filter, string headers = null, string payload = null)
         {
             var container = RepositoryTools.CreateStructure("/Root/System/WebHooks", "SystemFolder") ??
                 Content.Load("/Root/System/WebHooks");
@@ -429,6 +508,7 @@ namespace SenseNet.WebHooks.Tests
                 //Filter = "{ \"Path\": \"/Root/Content\", \"ContentTypes\": [ { \"Name\": \"Folder\", \"Events\": [ \"Create\", \"Publish\" ] } ] }",
                 Headers = headers,
                 //Headers = "{ \"h1-custom\": \"value1\", \"h2-custom\": \"value2\" }",
+                Payload = payload,
                 AllowIncrementalNaming = true
             };
             wh.Save();
@@ -436,7 +516,7 @@ namespace SenseNet.WebHooks.Tests
             return Node.LoadAsync<WebHookSubscription>(wh.Id, CancellationToken.None);
         }
 
-        private File CreateFile(VersioningType versioningType, ApprovingType approvingType)
+        private File CreateFile(VersioningType versioningType = VersioningType.Inherited, ApprovingType approvingType = ApprovingType.False)
         {
             var parent = (RepositoryTools.CreateStructure("/Root/Content/Docs", "DocumentLibrary")
                           ?? Content.Load("/Root/Content/Docs")).ContentHandler;

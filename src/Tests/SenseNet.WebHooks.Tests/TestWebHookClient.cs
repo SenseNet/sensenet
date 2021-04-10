@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Dynamic;
-using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SenseNet.WebHooks.Tests
 {
@@ -16,17 +16,27 @@ namespace SenseNet.WebHooks.Tests
         private IDictionary<string, object> _postProperties;
         public IDictionary<string, object> PostProperties => _postProperties ??= GetPostProperties();
 
-        public int NodeId => PostProperties.TryGetValue("nodeId", out var en) ? ((JsonElement)en).GetInt32() : 0;
-        public string Path => PostProperties.TryGetValue("path", out var en) ? ((JsonElement)en).GetString() : null;
-        public string EventName => PostProperties.TryGetValue("eventName", out var en) ? ((JsonElement)en).GetString() : null;
+        public int NodeId => GetPostPropertyInt("nodeId");
+        public string Path => GetPostPropertyString("path");
+        public string EventName => GetPostPropertyString("eventName");
+
+        public string GetPostPropertyString(string name)
+        {
+            return PostProperties.TryGetValue(name, out var en) ? (string)en : null;
+        }
+        public int GetPostPropertyInt(string name)
+        {
+            return PostProperties.TryGetValue(name, out var en) ? Convert.ToInt32(en) : 0;
+        }
 
         private IDictionary<string, object> GetPostProperties()
         {
             if (PostData == null)
                 return new Dictionary<string, object>();
 
-            var postJson = JsonSerializer.Serialize(PostData);
-            var postObject = JsonSerializer.Deserialize<ExpandoObject>(postJson) as IDictionary<string, object>;
+            var postJson = JsonConvert.SerializeObject(PostData);
+            var postObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(postJson);
+
             return postObject ?? new Dictionary<string, object>();
         }
     }

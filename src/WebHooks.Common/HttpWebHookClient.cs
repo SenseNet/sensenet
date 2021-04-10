@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.WebHooks
@@ -70,10 +70,8 @@ namespace SenseNet.WebHooks
 
         private static StringContent GetStringContent(object postData, IDictionary<string, string> headers)
         {
-            var content = new StringContent(
-                postData == null ? string.Empty : JsonSerializer.Serialize(postData),
-                Encoding.UTF8,
-                "application/json");
+            var postText = postData == null ? string.Empty : JsonConvert.SerializeObject(postData);
+            var content = new StringContent(postText, Encoding.UTF8, "application/json");
 
             if (headers?.Any() ?? false)
             {

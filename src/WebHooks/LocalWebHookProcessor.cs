@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Nito.AsyncEx;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
@@ -52,27 +54,41 @@ namespace SenseNet.WebHooks
                 .Select(si => _webHookClient.SendAsync(
                 si.Subscription.Url,
                 si.Subscription.HttpMethod,
-                new
-                {
-                    nodeId = node.Id,
-                    versionId = node.VersionId,
-                    version = node.Version?.ToString(),
-                    previousVersion = previousVersion?.ToString(),
-                    versionModificationDate = node.VersionModificationDate,
-                    modifiedBy = node.ModifiedById,
-                    path = node.Path,
-                    name = node.Name,
-                    displayName = node.DisplayName,
-                    eventName = si.EventType.ToString(),
-                    subscriptionId = si.Subscription.Id,
-                    sentTime = DateTime.UtcNow
-                },
+                GetPayload(si.Subscription, si.EventType, node, previousVersion),
                 si.Subscription.HttpHeaders,
                 cancel));
 
             //TODO: handle responses: webhook statistics implementation
 
             await sendingTasks.WhenAll().ConfigureAwait(false);
+        }
+
+        private object GetPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node,
+            VersionNumber previousVersion)
+        {
+            return string.IsNullOrWhiteSpace(subscription.Payload) 
+                ? GetDefaultPayload(subscription, eventType, node, previousVersion) 
+                : JsonConvert.DeserializeObject(subscription.Payload);
+        }
+
+        private object GetDefaultPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node, 
+            VersionNumber previousVersion)
+        {
+            return new
+            {
+                nodeId = node.Id,
+                versionId = node.VersionId,
+                version = node.Version?.ToString(),
+                previousVersion = previousVersion?.ToString(),
+                versionModificationDate = node.VersionModificationDate,
+                modifiedBy = node.ModifiedById,
+                path = node.Path,
+                name = node.Name,
+                displayName = node.DisplayName,
+                eventName = eventType.ToString(),
+                subscriptionId = subscription.Id,
+                sentTime = DateTime.UtcNow
+            };
         }
     }
 }
