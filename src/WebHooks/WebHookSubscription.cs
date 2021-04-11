@@ -94,6 +94,14 @@ namespace SenseNet.WebHooks
         private const string IsValidPropertyName = "IsValid";
         public bool IsValid => string.IsNullOrEmpty(InvalidFields);
 
+        private const string PayloadPropertyName = "WebHookPayload";
+        [RepositoryProperty(PayloadPropertyName, RepositoryDataType.Text)]
+        public string Payload
+        {
+            get => base.GetProperty<string>(PayloadPropertyName);
+            set => base.SetProperty(PayloadPropertyName, value);
+        }
+
         private static WebHookEventType[] AllEventTypes { get; } = (WebHookEventType[])Enum.GetValues(typeof(WebHookEventType));
 
         public WebHookEventType[] GetRelevantEventTypes(ISnEvent snEvent)
@@ -303,6 +311,25 @@ namespace SenseNet.WebHooks
             { HeadersPropertyName, false }
         };
 
+        public override void Save(NodeSaveSettings settings)
+        {
+            // validate payload
+            if (!string.IsNullOrWhiteSpace(Payload))
+            {
+                try
+                {
+                    var _ = JsonConvert.DeserializeObject(Payload);
+                }
+                catch (Exception ex)
+                {
+                    // could not parse value
+                    throw new InvalidOperationException("Could not parse payload value.", ex);
+                }
+            }
+
+            base.Save(settings);
+        }
+
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
@@ -402,6 +429,7 @@ namespace SenseNet.WebHooks
                 case HttpMethodPropertyName: return HttpMethod;
                 case FilterPropertyName: return Filter;
                 case HeadersPropertyName: return Headers;
+                case PayloadPropertyName: return Payload;
                 default: return base.GetProperty(name);
             }
         }
@@ -428,6 +456,9 @@ namespace SenseNet.WebHooks
                     break;
                 case HeadersPropertyName:
                     Headers = (string)value;
+                    break;
+                case PayloadPropertyName:
+                    Payload = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);
