@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Preview;
 
@@ -23,6 +24,23 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDocumentPreviewProvider<T>(this IServiceCollection services) where T : DocumentPreviewProvider
         {
             return services.AddSingleton<IPreviewProvider, T>();
+        }
+
+        /// <summary>
+        /// Adds the default ILatestComponentStore implementation to the service collection.
+        /// </summary>
+        public static IServiceCollection AddLatestComponentStore(this IServiceCollection services)
+        {
+            // add the default, empty implementation
+            return services.AddLatestComponentStore<DefaultLatestComponentStore>();
+        }
+        /// <summary>
+        /// Adds the provided ILatestComponentStore implementation to the service collection.
+        /// </summary>
+        public static IServiceCollection AddLatestComponentStore<T>(this IServiceCollection services)
+            where T : class, ILatestComponentStore
+        {
+            return services.AddSingleton<ILatestComponentStore, T>();
         }
 
         /// <summary>
