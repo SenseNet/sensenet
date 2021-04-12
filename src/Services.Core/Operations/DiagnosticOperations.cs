@@ -83,8 +83,7 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async Task<RepositoryVersionView> GetVersionInfo(Content content, HttpContext httpContext)
         {
-            var componentStore = httpContext.RequestServices.GetService<ILatestComponentStore>()
-                                 ?? new DefaultLatestComponentStore();
+            var componentStore = httpContext.RequestServices.GetService<ILatestComponentStore>();
 
             var latestReleases =
                 await componentStore.GetLatestReleasesAsync(httpContext.RequestAborted);
