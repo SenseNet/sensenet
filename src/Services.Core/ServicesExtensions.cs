@@ -64,6 +64,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetBlobStorage()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
+                .AddLatestComponentStore()
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
                 .AddSenseNetRegistration();
