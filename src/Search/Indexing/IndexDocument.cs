@@ -43,6 +43,7 @@ namespace SenseNet.Search.Indexing
         private class FieldDictionary : IDictionary<string, IndexField>
         {
             private readonly Action _invalidate;
+
             public FieldDictionary(Action invalidate)
             {
                 _invalidate = invalidate;
@@ -63,14 +64,14 @@ namespace SenseNet.Search.Indexing
 
             public void Add(KeyValuePair<string, IndexField> item)
             {
-                _invalidate();
                 UnderlyingCollection.Add(item);
+                _invalidate();
             }
 
             public void Clear()
             {
-                _invalidate();
                 _underlyingStorage.Clear();
+                _invalidate();
             }
 
             public bool Contains(KeyValuePair<string, IndexField> item)
@@ -85,8 +86,9 @@ namespace SenseNet.Search.Indexing
 
             bool ICollection<KeyValuePair<string, IndexField>>.Remove(KeyValuePair<string, IndexField> item)
             {
+                var result = UnderlyingCollection.Remove(item);
                 _invalidate();
-                return UnderlyingCollection.Remove(item);
+                return result;
             }
 
             public int Count => _underlyingStorage.Count;
@@ -94,8 +96,8 @@ namespace SenseNet.Search.Indexing
 
             public void Add(string key, IndexField value)
             {
-                _invalidate();
                 _underlyingStorage.Add(key, value);
+                _invalidate();
             }
 
             public bool ContainsKey(string key)
@@ -105,8 +107,9 @@ namespace SenseNet.Search.Indexing
 
             public bool Remove(string key)
             {
+                var result = _underlyingStorage.Remove(key);
                 _invalidate();
-                return _underlyingStorage.Remove(key);
+                return result;
             }
 
             public bool TryGetValue(string key, out IndexField value)
@@ -119,8 +122,8 @@ namespace SenseNet.Search.Indexing
                 get => _underlyingStorage[key];
                 set
                 {
-                    _invalidate();
                     _underlyingStorage[key] = value;
+                    _invalidate();
                 }
             }
 
