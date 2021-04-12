@@ -849,7 +849,7 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
-            builder.Patch("7.7.19", "7.7.19.1", "2021-03-30", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.19", "7.7.19.2", "2021-04-12", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region CTD changes
@@ -877,6 +877,7 @@ namespace SenseNet.ContentRepository
                     cb.Type("Task").Icon("Task");
                     cb.Type("TaskList").Icon("TaskList");
                     cb.Type("TrashBag").Icon("TrashBag");
+                    cb.Type("TrashBin").Icon("TrashBin");
 
                     cb.Apply();
 
