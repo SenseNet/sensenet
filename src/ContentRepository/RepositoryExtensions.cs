@@ -27,7 +27,7 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds the default IServiceCollection implementation to the service collection.
+        /// Adds the default ILatestComponentStore implementation to the service collection.
         /// </summary>
         public static IServiceCollection AddLatestComponentStore(this IServiceCollection services)
         {
@@ -35,7 +35,7 @@ namespace SenseNet.Extensions.DependencyInjection
             return services.AddLatestComponentStore<DefaultLatestComponentStore>();
         }
         /// <summary>
-        /// Adds the provided IServiceCollection implementation to the service collection.
+        /// Adds the provided ILatestComponentStore implementation to the service collection.
         /// </summary>
         public static IServiceCollection AddLatestComponentStore<T>(this IServiceCollection services)
             where T : class, ILatestComponentStore
