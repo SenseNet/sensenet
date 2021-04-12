@@ -21,9 +21,7 @@ namespace SenseNet.Search.Tests
             Assert.IsFalse(indexDoc.Any(f => f.Name == passwordFieldName));
             Assert.IsNull(indexDoc.GetStringValue(passwordFieldName));
 
-            var indexDocAcc = new ObjectAccessor(indexDoc);
-            var fields = (Dictionary<string, IndexField>)indexDocAcc.GetFieldOrProperty("_fields");
-            Assert.IsFalse(fields.ContainsKey(passwordFieldName));
+            Assert.IsFalse(indexDoc.Fields.ContainsKey(passwordFieldName));
         }
         [TestMethod, TestCategory("IR")]
         public void IndexDoc_Security_CannotAddPasswordHash()
@@ -35,9 +33,7 @@ namespace SenseNet.Search.Tests
             Assert.IsFalse(indexDoc.Any(f => f.Name == passwordHashFieldName));
             Assert.IsNull(indexDoc.GetStringValue(passwordHashFieldName));
 
-            var indexDocAcc = new ObjectAccessor(indexDoc);
-            var fields = (Dictionary<string, IndexField>)indexDocAcc.GetFieldOrProperty("_fields");
-            Assert.IsFalse(fields.ContainsKey(passwordHashFieldName));
+            Assert.IsFalse(indexDoc.Fields.ContainsKey(passwordHashFieldName));
         }
     }
 }
