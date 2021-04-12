@@ -19,6 +19,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 // ReSharper disable UnusedVariable
@@ -803,6 +804,54 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(expected, actual);
             });
+        }
+
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_SimpleSerializationWhenSaveNode()
+        {
+            int GetCountOfTraceMessages(TestSnTracer tracer, int versionId)
+            {
+                var lines = tracer.Lines.ToArray();
+                var msg = $"Serialize IndexDocument. VersionId: {versionId}";
+                return lines.Count(x => x.Split('\t').Last() == msg);
+            }
+
+            Test(() =>
+            {
+                using (new Swindler<bool>(true,
+                    () => SnTrace.Index.Enabled,
+                    value => { SnTrace.Index.Enabled = value; }))
+                {
+                    var localTracer = new TestSnTracer();
+                    try
+                    {
+                        SnTrace.SnTracers.Add(localTracer);
+
+                        localTracer.Lines.Clear();
+                        var root = CreateTestRoot();
+                        // Expectation: 2 lines: start and end of a trace operation.
+                        Assert.AreEqual(2, GetCountOfTraceMessages(localTracer, root.VersionId));
+
+                        var file = new File(root) { Name = Guid.NewGuid().ToString() };
+                        file.Binary.SetStream(RepositoryTools.GetStreamFromString("fileContent"));
+
+                        localTracer.Lines.Clear();
+                        file.Save();
+                        Assert.AreEqual(2, GetCountOfTraceMessages(localTracer, file.VersionId));
+                    }
+                    finally
+                    {
+                        SnTrace.SnTracers.Remove(localTracer);
+                    }
+                }
+            });
+        }
+        private class TestSnTracer : ISnTracer
+        {
+            public List<string> Lines { get; } = new List<string>();
+            public void Write(string line) { Lines.Add(line); }
+            public void Flush() { /* do nothing */ }
         }
 
         private GenericContent CreateTestRoot()

@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
@@ -38,6 +39,100 @@ namespace SenseNet.Search.Indexing
     [Serializable]
     public class IndexDocument : IEnumerable<IndexField>
     {
+        #region private class FieldDictionary : IDictionary<string, IndexField>
+        private class FieldDictionary : IDictionary<string, IndexField>
+        {
+            private readonly Action _invalidate;
+
+            public FieldDictionary(Action invalidate)
+            {
+                _invalidate = invalidate;
+            }
+
+            private readonly Dictionary<string, IndexField> _underlyingStorage = new Dictionary<string, IndexField>();
+            private ICollection<KeyValuePair<string, IndexField>> UnderlyingCollection
+                => (ICollection<KeyValuePair<string, IndexField>>)_underlyingStorage;
+
+            public IEnumerator<KeyValuePair<string, IndexField>> GetEnumerator()
+            {
+                return _underlyingStorage.GetEnumerator();
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public void Add(KeyValuePair<string, IndexField> item)
+            {
+                UnderlyingCollection.Add(item);
+                _invalidate();
+            }
+
+            public void Clear()
+            {
+                _underlyingStorage.Clear();
+                _invalidate();
+            }
+
+            public bool Contains(KeyValuePair<string, IndexField> item)
+            {
+                return _underlyingStorage.Contains(item);
+            }
+
+            void ICollection<KeyValuePair<string, IndexField>>.CopyTo(KeyValuePair<string, IndexField>[] array, int arrayIndex)
+            {
+                UnderlyingCollection.CopyTo(array, arrayIndex);
+            }
+
+            bool ICollection<KeyValuePair<string, IndexField>>.Remove(KeyValuePair<string, IndexField> item)
+            {
+                var result = UnderlyingCollection.Remove(item);
+                _invalidate();
+                return result;
+            }
+
+            public int Count => _underlyingStorage.Count;
+            bool ICollection<KeyValuePair<string, IndexField>>.IsReadOnly => UnderlyingCollection.IsReadOnly;
+
+            public void Add(string key, IndexField value)
+            {
+                _underlyingStorage.Add(key, value);
+                _invalidate();
+            }
+
+            public bool ContainsKey(string key)
+            {
+                return _underlyingStorage.ContainsKey(key);
+            }
+
+            public bool Remove(string key)
+            {
+                var result = _underlyingStorage.Remove(key);
+                _invalidate();
+                return result;
+            }
+
+            public bool TryGetValue(string key, out IndexField value)
+            {
+                return _underlyingStorage.TryGetValue(key, out value);
+            }
+
+            public IndexField this[string key]
+            {
+                get => _underlyingStorage[key];
+                set
+                {
+                    _underlyingStorage[key] = value;
+                    _invalidate();
+                }
+            }
+
+            public ICollection<string> Keys => _underlyingStorage.Keys;
+            public ICollection<IndexField> Values => _underlyingStorage.Values;
+        }
+        #endregion
+
+
         /// <summary>
         /// Represents an index document that will be not included in the index.
         /// </summary>
@@ -59,8 +154,14 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         public static List<string> ForbiddenFields = new List<string>(new[] { "Password", "PasswordHash" });
 
-        private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
-        public Dictionary<string, IndexField> Fields => _fields;
+        private readonly FieldDictionary _fields;
+
+        public IDictionary<string, IndexField> Fields => _fields;
+
+        public IndexDocument()
+        {
+            _fields = new FieldDictionary(Invalidate);
+        }
 
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
@@ -340,15 +441,28 @@ namespace SenseNet.Search.Indexing
             }
         }
 
+        [NonSerialized]
+        private string _serializedIndexDocument;
+        private void Invalidate()
+        {
+            _serializedIndexDocument = null;
+        }
         public string Serialize(bool oneLine = false)
         {
-            using (var writer = new StringWriter())
+            if (_serializedIndexDocument == null)
             {
-                var settings = oneLine ? OneLineSerializerSettings : FormattedSerializerSettings;
-                JsonSerializer.Create(settings).Serialize(writer, this);
-                var serializedDoc = writer.GetStringBuilder().ToString();
-                return serializedDoc;
+                using (var op = SnTrace.Index.StartOperation($"Serialize IndexDocument. VersionId: {VersionId}"))
+                {
+                    using (var writer = new StringWriter())
+                    {
+                        var settings = oneLine ? OneLineSerializerSettings : FormattedSerializerSettings;
+                        JsonSerializer.Create(settings).Serialize(writer, this);
+                        _serializedIndexDocument = writer.GetStringBuilder().ToString();
+                    }
+                    op.Successful = true;
+                }
             }
+            return _serializedIndexDocument;
         }
     }
 }
