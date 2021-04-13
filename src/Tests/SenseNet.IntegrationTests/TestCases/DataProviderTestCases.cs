@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -24,7 +25,6 @@ namespace SenseNet.IntegrationTests.TestCases
         // ReSharper disable once InconsistentNaming
         protected ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
 
-        [TestMethod]
         public async Task DP_InsertNode()
         {
             await IntegrationTestAsync(async () =>
@@ -70,7 +70,6 @@ namespace SenseNet.IntegrationTests.TestCases
 
             });
         }
-        [TestMethod]
         public async Task DP_Update()
         {
             await IntegrationTestAsync(async () =>
@@ -112,7 +111,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
-        [TestMethod]
         public async Task DP_CopyAndUpdate_NewVersion()
         {
             await IntegrationTestAsync(async () =>
@@ -166,7 +164,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data, "BrowseApplication");
             });
         }
-        [TestMethod]
         public async Task DP_CopyAndUpdate_ExpectedVersion()
         {
             await IntegrationTestAsync(async () =>
@@ -223,7 +220,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data, "BrowseApplication");
             });
         }
-        [TestMethod]
         public async Task DP_UpdateNodeHead()
         {
             await IntegrationTestAsync(async () =>
@@ -281,6 +277,97 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(expectedLastMinor, reloadedHead.LastMinorVersionId);
                 Assert.AreEqual("File1 Content", RepositoryTools.GetStreamString(reloaded.Binary.GetStream()));
                 Assert.IsNull(Node.LoadNodeByVersionId(deletedVersionId));
+            });
+        }
+
+        public async Task DP_HandleAllDynamicProps()
+        {
+            var contentTypeName = "TestContent";
+            var ctd = $"<ContentType name='{contentTypeName}' parentType='GenericContent'" + @"
+             handler='SenseNet.ContentRepository.GenericContent'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <Fields>
+    <Field name='ShortText1' type='ShortText'/>
+    <Field name='LongText1' type='LongText'/>
+    <Field name='Integer1' type='Integer'/>
+    <Field name='Number1' type='Number'/>
+    <Field name='DateTime1' type='DateTime'/>
+    <Field name='Reference1' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            await IntegrationTestAsync(async () =>
+            {
+                Node node = null;
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(ctd);
+                    var unused = ContentType.GetByName(contentTypeName); // preload schema
+
+                    var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                    root.Save();
+
+                    // ACTION-1 CREATE
+                    // Create all kind of dynamic properties
+                    node = new GenericContent(root, contentTypeName)
+                    {
+                        Name = $"{contentTypeName}1",
+                        ["ShortText1"] = "ShortText value 1",
+                        ["LongText1"] = "LongText value 1",
+                        ["Integer1"] = 42,
+                        ["Number1"] = 42.56m,
+                        ["DateTime1"] = new DateTime(1111, 11, 11)
+                    };
+                    node.AddReference("Reference1", Repository.Root);
+                    node.AddReference("Reference1", root);
+                    node.Save();
+
+                    // ASSERT-1
+                    Assert.AreEqual("ShortText value 1", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 1", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(42, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.56m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 11), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((int[])await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+
+                    // ACTION-2 UPDATE-1
+                    node = Node.Load<GenericContent>(node.Id);
+                    // Update all kind of dynamic properties
+                    node["ShortText1"] = "ShortText value 2";
+                    node["LongText1"] = "LongText value 2";
+                    node["Integer1"] = 43;
+                    node["Number1"] = 42.099m;
+                    node["DateTime1"] = new DateTime(1111, 11, 22);
+                    node.RemoveReference("Reference1", Repository.Root);
+                    node.Save();
+
+                    // ASSERT-2
+                    Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{root.Id}", ArrayToString((int[])await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+
+                    // ACTION-3 UPDATE-2
+                    node = Node.Load<GenericContent>(node.Id);
+                    // Remove existing references
+                    node.RemoveReference("Reference1", root);
+                    node.Save();
+
+                    // ASSERT-3
+                    Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.IsNull(await TDP.GetPropertyValueAsync(node.VersionId, "Reference1"));
+                }
+                finally
+                {
+                    node?.ForceDelete();
+                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                }
             });
         }
 
@@ -357,10 +444,10 @@ namespace SenseNet.IntegrationTests.TestCases
         //        return await ctx.ExecuteScalarAsync(sql);
         //}
 
-        //protected string ArrayToString(int[] array)
-        //{
-        //    return string.Join(",", array.Select(x => x.ToString()));
-        //}
+        protected string ArrayToString(int[] array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
         //protected string ArrayToString(List<int> array)
         //{
         //    return string.Join(",", array.Select(x => x.ToString()));

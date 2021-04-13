@@ -322,7 +322,7 @@ namespace SenseNet.Tests.Core.Implementations
                             break;
                         case DataType.Reference:
                             result = DB.ReferenceProperties
-                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value.ToArray();
                             break;
                         case DataType.Text:
                             result = DB.LongTextProperties

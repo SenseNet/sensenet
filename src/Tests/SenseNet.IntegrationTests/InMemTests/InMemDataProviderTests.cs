@@ -19,5 +19,8 @@ namespace SenseNet.IntegrationTests.InMemTests
         public Task InMem_DP_CopyAndUpdate_ExpectedVersion() { return TestCase.DP_CopyAndUpdate_ExpectedVersion(); }
         [TestMethod]
         public Task InMem_DP_UpdateNodeHead() { return TestCase.DP_UpdateNodeHead(); }
+
+        [TestMethod]
+        public Task InMem_DP_HandleAllDynamicProps() { return TestCase.DP_HandleAllDynamicProps(); }
     }
 }
