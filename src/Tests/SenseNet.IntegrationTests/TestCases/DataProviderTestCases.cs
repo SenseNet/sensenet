@@ -25,6 +25,8 @@ namespace SenseNet.IntegrationTests.TestCases
         // ReSharper disable once InconsistentNaming
         protected ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
 
+        /* ================================================================================================== */
+
         public async Task DP_InsertNode()
         {
             await IntegrationTestAsync(async () =>
@@ -419,6 +421,90 @@ namespace SenseNet.IntegrationTests.TestCases
                 int[] expected = await TDP.GetChildNodeIdsByParentNodeIdAsync(Repository.Root.Id);
 
                 Assert.AreEqual(string.Join(",", expected), string.Join(",", loaded));
+            });
+        }
+
+        public async Task DP_Move()
+        {
+            await MoveTest(async (source, target) =>
+            {
+                var sourceTimestampBefore = source.NodeTimestamp;
+
+                // ACTION: Node.Move(source.Path, target.Path);
+                var srcNodeHeadData = source.Data.GetNodeHeadData();
+                await DP.MoveNodeAsync(srcNodeHeadData, target.Id, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreNotEqual(sourceTimestampBefore, srcNodeHeadData.Timestamp);
+
+                //There are further asserts in the caller. See the MoveTest method.
+            });
+        }
+        public async Task DP_Move_DataStore_NodeHead()
+        {
+            await MoveTest(async (source, target) =>
+            {
+                var sourceTimestampBefore = source.NodeTimestamp;
+
+                // ACTION
+                var sourceNodeHead = NodeHead.Get(source.Id);
+                await DataStore.MoveNodeAsync(sourceNodeHead, target.Id, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreNotEqual(sourceTimestampBefore, sourceNodeHead.Timestamp);
+
+                //There are further asserts in the caller. See the MoveTest method.
+            });
+        }
+        public async Task DP_Move_DataStore_NodeData()
+        {
+            await MoveTest(async (source, target) =>
+            {
+                var sourceTimestampBefore = source.NodeTimestamp;
+                source.Index++; // ensure private source.Data
+
+                // ACTION
+                await DataStore.MoveNodeAsync(source.Data, target.Id, CancellationToken.None);
+
+                // ASSERT
+                // timestamp is changed because the source.Data is private
+                Assert.AreNotEqual(sourceTimestampBefore, source.NodeTimestamp);
+
+                //There are further asserts in the caller. See the MoveTest method.
+            });
+        }
+        private async Task MoveTest(Func<Node, Node, Task> callback)
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // Create a small subtree
+                var root = CreateTestRoot();
+                var rootPath = root.Path;
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+                // ACTION: Node.Move(source.Path, target.Path);
+                await callback(source, target);
+
+                // ASSERT
+                Cache.Reset(); // simulates PathDependency operation (see the Node.MoveTo method).
+                target = Node.Load<SystemFolder>(target.Id);
+                source = Node.Load<SystemFolder>(source.Id);
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual(rootPath, root.Path);
+                Assert.AreEqual(rootPath + "/Target", target.Path);
+                Assert.AreEqual(rootPath + "/Target/Source", source.Path);
+                Assert.AreEqual(rootPath + "/Target/Source/F1", f1.Path);
+                Assert.AreEqual(rootPath + "/Target/Source/F2", f2.Path);
+                Assert.AreEqual(rootPath + "/Target/Source/F1/F3", f3.Path);
+                Assert.AreEqual(rootPath + "/Target/Source/F1/F4", f4.Path);
             });
         }
 

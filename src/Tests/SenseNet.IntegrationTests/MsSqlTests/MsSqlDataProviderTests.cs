@@ -31,5 +31,12 @@ namespace SenseNet.IntegrationTests.MsSqlTests
 
         [TestMethod]
         public Task MsSql_DP_LoadChildren() { return TestCase.DP_LoadChildren(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Move() { return TestCase.DP_Move(); }
+        [TestMethod]
+        public Task MsSql_DP_Move_DataStore_NodeHead() { return TestCase.DP_Move_DataStore_NodeHead(); }
+        [TestMethod]
+        public Task MsSql_DP_Move_DataStore_NodeData() { return TestCase.DP_Move_DataStore_NodeData(); }
     }
 }
