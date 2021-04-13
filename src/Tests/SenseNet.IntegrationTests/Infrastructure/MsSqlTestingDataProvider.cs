@@ -121,6 +121,29 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
             throw new NotImplementedException();
         }
 
+        public async Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId)
+        {
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                return await ctx.ExecuteReaderAsync(
+                    "SELECT * FROM Nodes WHERE ParentNodeId = @ParentNodeId",
+                    cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, parentNodeId)
+                        });
+                    },
+                    async (reader, cancel) =>
+                    {
+                        var result = new List<int>();
+                        while (await reader.ReadAsync(cancel))
+                            result.Add(reader.GetSafeInt32(0));
+                        return result.Count == 0 ? null : result.ToArray();
+                    });
+            }
+        }
+
         public async Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
         {
             using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))

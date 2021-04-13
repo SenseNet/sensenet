@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.IntegrationTests.Infrastructure;
@@ -368,6 +368,57 @@ namespace SenseNet.IntegrationTests.TestCases
                     node?.ForceDelete();
                     ContentTypeInstaller.RemoveContentType(contentTypeName);
                 }
+            });
+        }
+
+        public async Task DP_Rename()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // Create a small subtree
+                var root = CreateTestRoot();
+                var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(root) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+                // ACTION: Rename root
+                root = Node.Load<SystemFolder>(root.Id);
+                var originalPath = root.Path;
+                var newName = Guid.NewGuid() + "-RENAMED";
+                root.Name = newName;
+                var nodeData = root.Data;
+                nodeData.Path = RepositoryPath.Combine(root.ParentPath, root.Name); // ApplySettings
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData(false);
+                var versionIdsToDelete = new int[0];
+                await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, originalPath);
+
+                // ASSERT
+                Cache.Reset();
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual("/Root/" + newName, root.Path);
+                Assert.AreEqual("/Root/" + newName + "/F1", f1.Path);
+                Assert.AreEqual("/Root/" + newName + "/F2", f2.Path);
+                Assert.AreEqual("/Root/" + newName + "/F1/F3", f3.Path);
+                Assert.AreEqual("/Root/" + newName + "/F1/F4", f4.Path);
+            });
+        }
+
+        public async Task DP_LoadChildren()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                Cache.Reset();
+                var loaded = Repository.Root.Children.Select(x => x.Id.ToString()).ToArray();
+
+                int[] expected = await TDP.GetChildNodeIdsByParentNodeIdAsync(Repository.Root.Id);
+
+                Assert.AreEqual(string.Join(",", expected), string.Join(",", loaded));
             });
         }
 

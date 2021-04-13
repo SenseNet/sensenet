@@ -24,6 +24,7 @@ namespace SenseNet.Tests.Core.Implementations
         void SetContentHandler(string contentTypeName, string handler);
         void AddField(string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null);
 
+        Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId);
         Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId);
         Task<VersionData> GetVersionDataAsync(int versionId);
         Task<int> GetBinaryPropertyCountAsync(string path);

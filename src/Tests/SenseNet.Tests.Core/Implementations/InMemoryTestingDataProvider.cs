@@ -174,6 +174,15 @@ namespace SenseNet.Tests.Core.Implementations
                 typeNode.Properties.Add(fieldName);
         }
 
+        public Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId)
+        {
+            var result = DB.Nodes
+                .Where(x => x.ParentNodeId == parentNodeId)
+                .Select(x => x.NodeId)
+                .ToArray();
+            return Task.FromResult(result);
+        }
+
         public Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
         {
             lock (DB)

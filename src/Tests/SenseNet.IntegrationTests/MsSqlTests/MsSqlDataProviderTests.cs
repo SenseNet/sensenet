@@ -25,5 +25,11 @@ namespace SenseNet.IntegrationTests.MsSqlTests
 
         [TestMethod]
         public Task MsSql_DP_HandleAllDynamicProps() { return TestCase.DP_HandleAllDynamicProps(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Rename() { return TestCase.DP_Rename(); }
+
+        [TestMethod]
+        public Task MsSql_DP_LoadChildren() { return TestCase.DP_LoadChildren(); }
     }
 }

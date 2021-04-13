@@ -22,5 +22,11 @@ namespace SenseNet.IntegrationTests.InMemTests
 
         [TestMethod]
         public Task InMem_DP_HandleAllDynamicProps() { return TestCase.DP_HandleAllDynamicProps(); }
+
+        [TestMethod]
+        public Task InMem_DP_Rename() { return TestCase.DP_Rename(); }
+
+        [TestMethod]
+        public Task InMem_DP_LoadChildren() { return TestCase.DP_LoadChildren(); }
     }
 }
