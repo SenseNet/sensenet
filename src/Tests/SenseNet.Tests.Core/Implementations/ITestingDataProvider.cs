@@ -31,6 +31,10 @@ namespace SenseNet.Tests.Core.Implementations
         Task<int> GetFileCountAsync(string path);
         Task<int> GetLongTextCountAsync(string path);
 
+        Task<long> GetAllFileSize();
+        Task<long> GetAllFileSizeInSubtree(string path);
+        Task<long> GetFileSize(string path);
+
         Task<object> GetPropertyValueAsync(int versionId, string name);
         Task UpdateDynamicPropertyAsync(int versionId, string name, object value);
 

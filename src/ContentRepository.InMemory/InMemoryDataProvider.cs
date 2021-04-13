@@ -1616,8 +1616,8 @@ namespace SenseNet.ContentRepository.InMemory
                     ? DB.Nodes
                         .Where(n => n.Path == path || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))
                     : DB.Nodes
-                        .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-                        .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
+                        .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                        //.SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
 
                 var result = collection
                     .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))

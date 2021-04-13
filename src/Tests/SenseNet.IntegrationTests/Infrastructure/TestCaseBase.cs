@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
@@ -198,5 +201,13 @@ namespace SenseNet.IntegrationTests.Infrastructure
         {
             return new UserBlock(user);
         }
+
+        protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        {
+            var e = string.Join(", ", expected.Select(x => x.ToString()));
+            var a = string.Join(", ", actual.Select(x => x.ToString()));
+            Assert.AreEqual(e, a);
+        }
+
     }
 }

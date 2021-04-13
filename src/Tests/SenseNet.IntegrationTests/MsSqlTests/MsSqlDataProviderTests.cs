@@ -38,5 +38,45 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public Task MsSql_DP_Move_DataStore_NodeHead() { return TestCase.DP_Move_DataStore_NodeHead(); }
         [TestMethod]
         public Task MsSql_DP_Move_DataStore_NodeData() { return TestCase.DP_Move_DataStore_NodeData(); }
+
+        [TestMethod]
+        public Task MsSql_DP_RefreshCacheAfterSave() { return TestCase.DP_RefreshCacheAfterSave(); }
+
+        [TestMethod]
+        public Task MsSql_DP_LazyLoadedBigText() { return TestCase.DP_LazyLoadedBigText(); }
+        [TestMethod]
+        public Task MsSql_DP_LazyLoadedBigTextVsCache() { return TestCase.DP_LazyLoadedBigTextVsCache(); }
+
+        [TestMethod]
+        public Task MsSql_DP_LoadChildTypesToAllow() { return TestCase.DP_LoadChildTypesToAllow(); }
+
+        [TestMethod]
+        public Task MsSql_DP_ContentListTypesInTree() { return TestCase.DP_ContentListTypesInTree(); }
+
+        [TestMethod]
+        public Task MsSql_DP_ForceDelete() { return TestCase.DP_ForceDelete(); }
+        [TestMethod]
+        public Task MsSql_DP_DeleteDeleted() { return TestCase.DP_DeleteDeleted(); }
+
+        [TestMethod]
+        public Task MsSql_DP_GetVersionNumbers() { return TestCase.DP_GetVersionNumbers(); }
+        [TestMethod]
+        public Task MsSql_DP_GetVersionNumbers_MissingNode() { return TestCase.DP_GetVersionNumbers_MissingNode(); }
+
+        [TestMethod]
+        public Task MsSql_DP_LoadBinaryPropertyValues() { return TestCase.DP_LoadBinaryPropertyValues(); }
+
+        [TestMethod]
+        public Task MsSql_DP_NodeEnumerator() { return TestCase.DP_NodeEnumerator(); }
+
+        [TestMethod]
+        public Task MsSql_DP_NameSuffix() { return TestCase.DP_NameSuffix(); }
+
+        [TestMethod]
+        public Task MsSql_DP_TreeSize_Root() { return TestCase.DP_TreeSize_Root(); }
+        [TestMethod]
+        public Task MsSql_DP_TreeSize_Subtree() { return TestCase.DP_TreeSize_Subtree(); }
+        [TestMethod]
+        public Task MsSql_DP_TreeSize_Item() { return TestCase.DP_TreeSize_Item(); }
     }
 }

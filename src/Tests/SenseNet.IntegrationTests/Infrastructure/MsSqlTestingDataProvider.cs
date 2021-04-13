@@ -239,6 +239,35 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
                 return (int)await ctx.ExecuteScalarAsync("SELECT COUNT (1) FROM LongTextProperties NOLOCK", cmd => { });
         }
 
+        public async Task<long> GetAllFileSize()
+        {
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync("SELECT SUM(Size) FROM Files");
+        }
+        public async Task<long> GetAllFileSizeInSubtree(string path)
+        {
+            var sql = @$"SELECT SUM(Size) FROM Files f
+    JOIN BinaryProperties b ON b.FileId = f.FileId
+    JOIN Versions v ON v.VersionId = b.VersionId
+    JOIN Nodes n on n.NodeId = v.NodeId
+WHERE Path LIKE '{path}%'";
+
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync(sql);
+        }
+        public async Task<long> GetFileSize(string path)
+        {
+            var sql = $@"SELECT SUM(Size) FROM Files f
+    JOIN BinaryProperties b ON b.FileId = f.FileId
+    JOIN Versions v ON v.VersionId = b.VersionId
+    JOIN Nodes n on n.NodeId = v.NodeId
+WHERE Path = '{path}'";
+
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync(sql);
+
+        }
+
         public async Task<object> GetPropertyValueAsync(int versionId, string name)
         {
             var propertyType = ActiveSchema.PropertyTypes[name];
