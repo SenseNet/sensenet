@@ -10,7 +10,7 @@ using SenseNet.IntegrationTests.TestCases;
 namespace SenseNet.IntegrationTests.InMemTests
 {
     [TestClass]
-    public class InMemDataProviderTests : IntegrationTest<InMemPlatform, DataProviderTestCases>
+    public class InMemDataProviderUnitTests : IntegrationTest<InMemPlatform, DataProviderUnitTestCases>
     {
         private InMemoryDataBase GetDatabase()
         {

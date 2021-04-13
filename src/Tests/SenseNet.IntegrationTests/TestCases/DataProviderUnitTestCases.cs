@@ -24,7 +24,7 @@ namespace SenseNet.IntegrationTests.TestCases
     /// <c>getReferencesFromDatabase</c>: method that returns the referred nodeIds from the ReferenceProperties by
     /// the given versionId and propertyTypeId: getReferencesFromDatabase(versionId, propertyTypeId)
     /// </remarks>
-    public class DataProviderTestCases : TestCaseBase
+    public class DataProviderUnitTestCases : TestCaseBase
     {
         private void DataProviderUnitTest(IEnumerable<int> nodes, IEnumerable<int> versions, Action<IEnumerable<int>, IEnumerable<int>> cleanup, Action callback)
         {

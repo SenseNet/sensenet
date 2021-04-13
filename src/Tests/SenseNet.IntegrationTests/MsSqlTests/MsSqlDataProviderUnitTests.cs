@@ -14,7 +14,7 @@ using Task = System.Threading.Tasks.Task;
 namespace SenseNet.IntegrationTests.MsSqlTests
 {
     [TestClass]
-    public class MsSqlDataProviderTests : IntegrationTest<MsSqlDataProviderPlatform, DataProviderTestCases>
+    public class MsSqlDataProviderUnitTests : IntegrationTest<MsSqlDataProviderPlatform, DataProviderUnitTestCases>
     {
         private MsSqlDataContext CreateDataContext(CancellationToken cancellation)
         {
