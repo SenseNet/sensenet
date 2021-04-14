@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search;
+using SenseNet.Testing;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.Infrastructure
@@ -49,6 +51,11 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             using (var repository = Repository.Start(builder))
             {
+                Cache.Reset(); 
+                ContentTypeManager.Reset();
+
+                this.Platform.OnAfterRepositoryStart(repository);
+
                 SystemFolder sandbox = null;
                 try
                 {
@@ -85,6 +92,11 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             using (var repository = Repository.Start(builder))
             {
+                Cache.Reset();
+                ContentTypeManager.Reset();
+
+                this.Platform.OnAfterRepositoryStart(repository);
+
                 T sandbox = null;
                 try
                 {
@@ -130,6 +142,11 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             using (var repository = Repository.Start(builder))
             {
+                Cache.Reset();
+                ContentTypeManager.Reset();
+
+                this.Platform.OnAfterRepositoryStart(repository);
+
                 SystemFolder sandbox = null;
                 try
                 {
@@ -207,6 +224,13 @@ namespace SenseNet.IntegrationTests.Infrastructure
             var e = string.Join(", ", expected.Select(x => x.ToString()));
             var a = string.Join(", ", actual.Select(x => x.ToString()));
             Assert.AreEqual(e, a);
+        }
+        protected static ContentQuery CreateSafeContentQuery(string qtext, QuerySettings settings = null)
+        {
+            var cquery = ContentQuery.CreateQuery(qtext, settings ?? QuerySettings.AdminSettings);
+            var cqueryAcc = new ObjectAccessor(cquery);
+            cqueryAcc.SetFieldOrProperty("IsSafe", true);
+            return cquery;
         }
 
     }
