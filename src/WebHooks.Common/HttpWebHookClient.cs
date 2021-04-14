@@ -38,6 +38,8 @@ namespace SenseNet.WebHooks
 
             try
             {
+                AddWellKnownHeaders(client, headers);
+
                 HttpResponseMessage response;
                 switch (httpMethod.ToUpper())
                 {
@@ -60,13 +62,31 @@ namespace SenseNet.WebHooks
                         break;
                 }
 
-                _logger.LogTrace($"WebHook service request completed with {response.StatusCode}. Url: {url} Http method: {httpMethod}");
+                var msg = $"WebHook service request completed with {response.StatusCode}. Url: {url} Http method: {httpMethod}";
+
+                if (response.IsSuccessStatusCode)
+                    _logger.LogTrace(msg);
+                else
+                    _logger.LogWarning(msg);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Error during webhook service call. Url: {url} Http method: {httpMethod}");
             }
         }
+
+        private static void AddWellKnownHeaders(HttpClient client, IDictionary<string, string> headers)
+        {
+            if (headers == null)
+                return;
+
+            if (headers.TryGetValue("Authorization", out var authValue))
+            {
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authValue);
+            }
+        }
+
+        private static readonly string[] HeadersToSkip = new[] {"Authorization"};
 
         private static StringContent GetStringContent(object postData, IDictionary<string, string> headers)
         {
@@ -75,7 +95,7 @@ namespace SenseNet.WebHooks
 
             if (headers?.Any() ?? false)
             {
-                foreach (var header in headers)
+                foreach (var header in headers.Where(h => !HeadersToSkip.Contains(h.Key)))
                 {
                     content.Headers.Add(header.Key, header.Value);
                 }
