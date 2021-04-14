@@ -78,5 +78,24 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public Task MsSql_DP_TreeSize_Subtree() { return TestCase.DP_TreeSize_Subtree(); }
         [TestMethod]
         public Task MsSql_DP_TreeSize_Item() { return TestCase.DP_TreeSize_Item(); }
+
+        /* ================================================================================================== ShortText escape */
+
+        //[TestMethod]
+        //public async Task DP_ShortText_Escape() { return TestCase.DP_ShortText_Escape(); }
+
+        /* ================================================================================================== NodeQuery */
+
+        [TestMethod]
+        public Task MsSql_DP_NodeQuery_InstanceCount() { return TestCase.DP_NodeQuery_InstanceCount(); }
+        [TestMethod]
+        public Task MsSql_DP_NodeQuery_ChildrenIdentifiers() { return TestCase.DP_NodeQuery_ChildrenIdentifiers(); }
+
+        [TestMethod]
+        public Task MsSql_DP_NodeQuery_QueryNodesByTypeAndPathAndName() { return TestCase.DP_NodeQuery_QueryNodesByTypeAndPathAndName(); }
+        [TestMethod]
+        public Task MsSql_DP_NodeQuery_QueryNodesByTypeAndPathAndProperty() { return TestCase.DP_NodeQuery_QueryNodesByTypeAndPathAndProperty(); }
+        [TestMethod]
+        public Task MsSql_DP_NodeQuery_QueryNodesByReferenceAndType() { return TestCase.DP_NodeQuery_QueryNodesByReferenceAndType(); }
     }
 }

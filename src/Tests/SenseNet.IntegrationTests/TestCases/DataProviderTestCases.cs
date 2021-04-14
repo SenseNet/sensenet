@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -930,6 +930,390 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT
                 var expectedSize = (long)await TDP.GetFileSize("/Root/System/Schema/ContentTypes/GenericContent/Folder");
                 Assert.AreEqual(expectedSize, size);
+            });
+        }
+
+        /* ================================================================================================== ShortText escape */
+
+        //UNDONE:<?:IntT:!!! Only MsSql serializes the dynamic properties
+        //public async Task DP_ShortText_Escape()
+        //{
+        //    await IntegrationTestAsync(() =>
+        //    {
+        //        var properties = new PropertyType[]
+        //        {
+        //            PropertyType.GetByName("Domain"),
+        //            PropertyType.GetByName("FullName"),
+        //            PropertyType.GetByName("Email"),
+        //            PropertyType.GetByName("LoginName"),
+        //        };
+        //        var inputValues = new[]
+        //        {
+        //            "Domain1",
+        //            "LastName\tFirstName",
+        //            "a@b.c \\ d@e.f",
+        //            "asdf\\\r\nqwer",
+        //        };
+        //        var data = new Dictionary<PropertyType, object>();
+        //        for (int i = 0; i < inputValues.Length; i++)
+        //        {
+        //            data.Add(properties[i], inputValues[i]);
+        //        }
+
+
+        //        // ACTION
+        //        var serialized = DP.SerializeDynamicProperties(data);
+        //        var deserialized = DP.DeserializeDynamicProperties(serialized);
+
+        //        // ASSERT
+        //        var keys = deserialized.Keys.ToArray();
+        //        var values = deserialized.Values.ToArray();
+        //        for (int i = 0; i < inputValues.Length; i++)
+        //        {
+        //            Assert.AreEqual(properties[i], keys[i]);
+        //            Assert.AreEqual(inputValues[i], values[i]);
+        //        }
+
+        //        return Task.CompletedTask;
+        //    });
+        //}
+
+        /* ================================================================================================== NodeQuery */
+
+        public async Task DP_NodeQuery_InstanceCount()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var expectedFolderCount = CreateSafeContentQuery("+Type:Folder .COUNTONLY").Execute().Count;
+                var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
+                var expectedAggregated = expectedFolderCount + expectedSystemFolderCount;
+
+                var folderTypeTypeId = ActiveSchema.NodeTypes["Folder"].Id;
+                var systemFolderTypeTypeId = ActiveSchema.NodeTypes["SystemFolder"].Id;
+
+                // ACTION-1
+                var actualFolderCount1 = await DP.InstanceCountAsync(new[] { folderTypeTypeId }, CancellationToken.None);
+                var actualSystemFolderCount1 = await DP.InstanceCountAsync(new[] { systemFolderTypeTypeId }, CancellationToken.None);
+                var actualAggregated1 = await DP.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId }, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(expectedFolderCount, actualFolderCount1);
+                Assert.AreEqual(expectedSystemFolderCount, actualSystemFolderCount1);
+                Assert.AreEqual(expectedAggregated, actualAggregated1);
+
+                // add a systemFolder to check inheritance in counts
+                var folder = new SystemFolder(Repository.Root) { Name = "Folder-1" };
+                folder.Save();
+
+                // ACTION-1
+                var actualFolderCount2 = await DP.InstanceCountAsync(new[] { folderTypeTypeId }, CancellationToken.None);
+                var actualSystemFolderCount2 = await DP.InstanceCountAsync(new[] { systemFolderTypeTypeId }, CancellationToken.None);
+                var actualAggregated2 = await DP.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId }, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(expectedFolderCount, actualFolderCount2);
+                Assert.AreEqual(expectedSystemFolderCount + 1, actualSystemFolderCount2);
+                Assert.AreEqual(expectedAggregated + 1, actualAggregated2);
+
+            });
+        }
+        public async Task DP_NodeQuery_ChildrenIdentifiers()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
+
+                // ACTION
+                var result = await DP.GetChildrenIdentifiersAsync(Repository.Root.Id, CancellationToken.None);
+
+                // ASSERT
+                AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
+            });
+        }
+
+        public async Task DP_NodeQuery_QueryNodesByTypeAndPathAndName()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var r = new SystemFolder(Repository.Root) { Name = "R" }; r.Save();
+                var ra = new Folder(r) { Name = "A" }; ra.Save();
+                var raf = new Folder(ra) { Name = "F" }; raf.Save();
+                var rafa = new Folder(raf) { Name = "A" }; rafa.Save();
+                var rafb = new Folder(raf) { Name = "B" }; rafb.Save();
+                var ras = new SystemFolder(ra) { Name = "S" }; ras.Save();
+                var rasa = new SystemFolder(ras) { Name = "A" }; rasa.Save();
+                var rasb = new SystemFolder(ras) { Name = "B" }; rasb.Save();
+                var rb = new Folder(r) { Name = "B" }; rb.Save();
+                var rbf = new Folder(rb) { Name = "F" }; rbf.Save();
+                var rbfa = new Folder(rbf) { Name = "A" }; rbfa.Save();
+                var rbfb = new Folder(rbf) { Name = "B" }; rbfb.Save();
+                var rbs = new SystemFolder(rb) { Name = "S" }; rbs.Save();
+                var rbsa = new SystemFolder(rbs) { Name = "A" }; rbsa.Save();
+                var rbsb = new SystemFolder(rbs) { Name = "B" }; rbsb.Save();
+                var rc = new Folder(r) { Name = "C" }; rc.Save();
+                var rcf = new Folder(rc) { Name = "F" }; rcf.Save();
+                var rcfa = new Folder(rcf) { Name = "A" }; rcfa.Save();
+                var rcfb = new Folder(rcf) { Name = "B" }; rcfb.Save();
+                var rcs = new SystemFolder(rc) { Name = "S" }; rcs.Save();
+                var rcsa = new SystemFolder(rcs) { Name = "A" }; rcsa.Save();
+                var rcsb = new SystemFolder(rcs) { Name = "B" }; rcsb.Save();
+
+                var typeF = ActiveSchema.NodeTypes["Folder"].Id;
+                var typeS = ActiveSchema.NodeTypes["SystemFolder"].Id;
+
+                // ACTION-1 (type: 1, path: 1, name: -)
+                var nodeTypeIds = new[] { typeF };
+                var pathStart = new[] { "/Root/R/A" };
+                var result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null, CancellationToken.None);
+                // ASSERT-1
+                var expected = CreateSafeContentQuery("+Type:Folder +InTree:'/Root/R/A' .SORT:Path .AUTOFILTERS:OFF")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(3, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-2 (type: 2, path: 1, name: -)
+                nodeTypeIds = new[] { typeF, typeS };
+                pathStart = new[] { "/Root/R/A" };
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null, CancellationToken.None);
+                // ASSERT-2
+                expected = CreateSafeContentQuery("+Type:(Folder SystemFolder) +InTree:/Root/R/A .SORT:Path .AUTOFILTERS:OFF")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(6, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-3 (type: 1, path: 2, name: -)
+                nodeTypeIds = new[] { typeF };
+                pathStart = new[] { "/Root/R/A", "/Root/R/B" };
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null, CancellationToken.None);
+                // ASSERT-3
+                expected = CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/A .SORT:Path .AUTOFILTERS:OFF")
+                    .Execute().Identifiers.Skip(1)
+                    .Union(CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/B .SORT:Path .AUTOFILTERS:OFF")
+                        .Execute().Identifiers.Skip(1)).ToArray();
+                Assert.AreEqual(6, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-4 (type: -, path: 1, name: A)
+                pathStart = new[] { "/Root/R" };
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(null, pathStart, true, "A", CancellationToken.None);
+                // ASSERT-4
+                expected = CreateSafeContentQuery("+Name:A +InTree:/Root/R .SORT:Path .AUTOFILTERS:OFF").Execute().Identifiers.ToArray();
+                Assert.AreEqual(7, expected.Length);
+                AssertSequenceEqual(expected, result);
+            });
+        }
+        public async Task DP_NodeQuery_QueryNodesByTypeAndPathAndProperty()
+        {
+            var contentType1 = "TestContent1";
+            var contentType2 = "TestContent2";
+            var ctd1 = $"<ContentType name='{contentType1}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Str' type='ShortText'/>
+    <Field name='Int' type='Integer'/>
+  </Fields>
+</ContentType>
+";
+            var ctd2 = $"<ContentType name='{contentType2}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Str' type='ShortText'/>
+    <Field name='Int' type='Integer'/>
+  </Fields>
+</ContentType>
+";
+            SystemFolder root = null;
+            await IntegrationTestAsync(async () =>
+            {
+                ContentTypeInstaller.InstallContentType(ctd1, ctd2);
+                var unused = ContentType.GetByName(contentType1); // preload schema
+
+                root = new SystemFolder(Repository.Root) {Name = "R"};
+                root.Save();
+                var ra = new GenericContent(root, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                ra.Save();
+                var raf = new GenericContent(ra, contentType1) {Name = "F"};
+                raf.Save();
+                var rafa = new GenericContent(raf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rafa.Save();
+                var rafb = new GenericContent(raf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rafb.Save();
+                var ras = new GenericContent(ra, contentType2) {Name = "S"};
+                ras.Save();
+                var rasa = new GenericContent(ras, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rasa.Save();
+                var rasb = new GenericContent(ras, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rasb.Save();
+                var rb = new GenericContent(root, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rb.Save();
+                var rbf = new GenericContent(rb, contentType1) {Name = "F"};
+                rbf.Save();
+                var rbfa = new GenericContent(rbf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rbfa.Save();
+                var rbfb = new GenericContent(rbf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rbfb.Save();
+                var rbs = new GenericContent(rb, contentType2) {Name = "S"};
+                rbs.Save();
+                var rbsa = new GenericContent(rbs, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rbsa.Save();
+                var rbsb = new GenericContent(rbs, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rbsb.Save();
+                var rc = new GenericContent(root, contentType1) {Name = "C"};
+                rc.Save();
+                var rcf = new GenericContent(rc, contentType1) {Name = "F"};
+                rcf.Save();
+                var rcfa = new GenericContent(rcf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rcfa.Save();
+                var rcfb = new GenericContent(rcf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rcfb.Save();
+                var rcs = new GenericContent(rc, contentType2) {Name = "S"};
+                rcs.Save();
+                var rcsa = new GenericContent(rcs, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
+                rcsa.Save();
+                var rcsb = new GenericContent(rcs, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
+                rcsb.Save();
+
+                var type1 = ActiveSchema.NodeTypes[contentType1].Id;
+                var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+                var property1 = new List<QueryPropertyData>
+                    {new QueryPropertyData {PropertyName = "Int", QueryOperator = Operator.Equal, Value = 42}};
+                var property2 = new List<QueryPropertyData>
+                    {new QueryPropertyData {PropertyName = "Str", QueryOperator = Operator.Equal, Value = "str1"}};
+
+                // ACTION-1 (type: 1, path: 1, prop: -)
+                var result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] {type1}, "/Root/R/A", true, null,
+                    CancellationToken.None);
+                // ASSERT-1
+                // Skip(1) because the NodeQuery does not contain the subtree root.
+                var expected = CreateSafeContentQuery($"+Type:{contentType1} +InTree:/Root/R/A .SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(3, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-2 (type: 2, path: 1, prop: -)
+                result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] {type1, type2}, "/Root/R/A", true, null,
+                    CancellationToken.None);
+                // ASSERT-2
+                // Skip(1) because the NodeQuery does not contain the subtree root.
+                expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +InTree:/Root/R/A .SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(6, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-3 (type: 1, path: 1, prop: Int:42)
+                result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] {type1}, "/Root/R/A", true, property1,
+                    CancellationToken.None);
+                // ASSERT-3
+                // Skip(1) because the NodeQuery does not contain the subtree root.
+                expected = CreateSafeContentQuery($"+Int:42 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(1, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-4 (type: -, path: 1,  prop: Int:42)
+                result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property1,
+                    CancellationToken.None);
+                // ASSERT-4
+                // Skip(1) is unnecessary because the subtree root is not a query hit.
+                expected = CreateSafeContentQuery("+Int:42 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
+                Assert.AreEqual(7, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-5 (type: 1, path: 1, prop: Str:"str1")
+                result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] {type1}, "/Root/R/A", true, property2,
+                    CancellationToken.None);
+                // ASSERT-5
+                // Skip(1) because the NodeQuery does not contain the subtree root.
+                expected = CreateSafeContentQuery($"+Str:str1 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(1, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-6 (type: -, path: 1,  prop: Str:"str2")
+                result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property2,
+                    CancellationToken.None);
+                // ASSERT-6
+                // Skip(1) is unnecessary because the subtree root is not a query hit.
+                expected = CreateSafeContentQuery("+Str:str1 +InTree:/Root/R .SORT:Path").Execute().Identifiers
+                    .ToArray();
+                Assert.AreEqual(7, expected.Length);
+                AssertSequenceEqual(expected, result);
+            });
+        }
+
+        public async Task DP_NodeQuery_QueryNodesByReferenceAndType()
+        {
+            var contentType1 = "TestContent1";
+            var contentType2 = "TestContent2";
+            var ctd1 = $"<ContentType name='{contentType1}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Ref' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            var ctd2 = $"<ContentType name='{contentType2}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Ref' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            SystemFolder root = null;
+            await IntegrationTestAsync(async () =>
+            {
+                ContentTypeInstaller.InstallContentType(ctd1, ctd2);
+                var unused = ContentType.GetByName(contentType1); // preload schema
+
+                root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                root.Save();
+                var refs = new GenericContent(root, contentType1) {Name = "Refs"};
+                refs.Save();
+                var ref1 = new GenericContent(refs, contentType1) {Name = "R1"};
+                ref1.Save();
+                var ref2 = new GenericContent(refs, contentType2) {Name = "R2"};
+                ref2.Save();
+
+                var r1 = new NodeList<Node>(new[] {ref1.Id});
+                var r2 = new NodeList<Node>(new[] {ref2.Id});
+                var n1 = new GenericContent(root, contentType1) {Name = "N1", ["Ref"] = r1};
+                n1.Save();
+                var n2 = new GenericContent(root, contentType1) {Name = "N2", ["Ref"] = r2};
+                n2.Save();
+                var n3 = new GenericContent(root, contentType2) {Name = "N3", ["Ref"] = r1};
+                n3.Save();
+                var n4 = new GenericContent(root, contentType2) {Name = "N4", ["Ref"] = r2};
+                n4.Save();
+
+                var type1 = ActiveSchema.NodeTypes[contentType1].Id;
+                var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+
+                // ACTION-1 (type: T1, ref: R1)
+                var result =
+                    await DP.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] {type1}, CancellationToken.None);
+                // ASSERT-1
+                //((InMemorySearchEngine)Providers.Instance.SearchEngine).Index.Save("D:\\index-asdf.txt");
+                var expected = CreateSafeContentQuery($"+Type:{contentType1} +Ref:{ref1.Id} .SORT:Id")
+                    .Execute().Identifiers.ToArray();
+                Assert.AreEqual(1, expected.Length);
+                AssertSequenceEqual(expected, result.OrderBy(x => x));
+
+                // ACTION-2 (type: T1,T2, ref: R1)
+                result = await DP.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] {type1, type2},
+                    CancellationToken.None);
+                // ASSERT-1
+                expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +Ref:{ref1.Id} .SORT:Id")
+                    .Execute().Identifiers.ToArray();
+                Assert.AreEqual(2, expected.Length);
+                AssertSequenceEqual(expected, result.OrderBy(x => x));
             });
         }
 
