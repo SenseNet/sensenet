@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Threading;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -31,6 +30,12 @@ namespace SenseNet.IntegrationTests.Platforms
             ConnectionStrings.ConnectionString = ConnectionString;
             PrepareDatabase();
             base.OnBeforeGettingRepositoryBuilder(builder);
+        }
+        public override void OnAfterRepositoryStart(RepositoryInstance repository)
+        {
+            var state = DistributedIndexingActivityQueue.GetCurrentState();
+            DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
+            base.OnAfterRepositoryStart(repository);
         }
 
         public override DataProvider GetDataProvider()
