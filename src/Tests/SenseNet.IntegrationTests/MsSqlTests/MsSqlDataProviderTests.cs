@@ -1,11 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
-using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.IntegrationTests.MsSqlTests
 {
@@ -82,7 +79,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         /* ================================================================================================== ShortText escape */
 
         //[TestMethod]
-        //public async Task DP_ShortText_Escape() { return TestCase.DP_ShortText_Escape(); }
+        //public Task MsSql_DP_ShortText_Escape() { return TestCase.DP_ShortText_Escape(); }
 
         /* ================================================================================================== NodeQuery */
 
@@ -97,5 +94,90 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public Task MsSql_DP_NodeQuery_QueryNodesByTypeAndPathAndProperty() { return TestCase.DP_NodeQuery_QueryNodesByTypeAndPathAndProperty(); }
         [TestMethod]
         public Task MsSql_DP_NodeQuery_QueryNodesByReferenceAndType() { return TestCase.DP_NodeQuery_QueryNodesByReferenceAndType(); }
+
+        /* ================================================================================================== TreeLock */
+
+        [TestMethod]
+        public Task MsSql_DP_LoadEntityTree() { return TestCase.DP_LoadEntityTree(); }
+        [TestMethod]
+        public Task MsSql_DP_TreeLock() { return TestCase.DP_TreeLock(); }
+
+        /* ================================================================================================== IndexDocument */
+
+        [TestMethod]
+        public Task MsSql_DP_LoadIndexDocuments() { return TestCase.DP_LoadIndexDocuments(); }
+        [TestMethod]
+        public Task MsSql_DP_SaveIndexDocumentById() { return TestCase.DP_SaveIndexDocumentById(); }
+
+        /* ================================================================================================== IndexingActivities */
+
+        [TestMethod]
+        public Task MsSql_DP_IA_GetLastIndexingActivityId() { return TestCase.DP_IA_GetLastIndexingActivityId(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadIndexingActivities_Page() { return TestCase.DP_IA_LoadIndexingActivities_Page(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadIndexingActivities_PageUnprocessed() { return TestCase.DP_IA_LoadIndexingActivities_PageUnprocessed(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadIndexingActivities_Gaps() { return TestCase.DP_IA_LoadIndexingActivities_Gaps(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadIndexingActivities_Executable() { return TestCase.DP_IA_LoadIndexingActivities_Executable(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadIndexingActivities_ExecutableAndFinished() { return TestCase.DP_IA_LoadIndexingActivities_ExecutableAndFinished(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_UpdateRunningState() { return TestCase.DP_IA_UpdateRunningState(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_RefreshLockTime() { return TestCase.DP_IA_DeleteFinished(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_DeleteFinished() { return TestCase.DP_IA_DeleteFinished(); }
+        [TestMethod]
+        public Task MsSql_DP_IA_LoadFull() { return TestCase.DP_IA_LoadFull(); }
+
+        /* ================================================================================================== Nodes */
+
+        [TestMethod]
+        public Task MsSql_DP_CopyAndUpdateNode_Rename() { return TestCase.DP_CopyAndUpdateNode_Rename(); }
+        [TestMethod]
+        public Task MsSql_DP_LoadNodes() { return TestCase.DP_LoadNodes(); }
+        [TestMethod]
+        public Task MsSql_DP_LoadNodeHeadByVersionId_Missing() { return TestCase.DP_LoadNodeHeadByVersionId_Missing(); }
+        [TestMethod]
+        public Task MsSql_DP_NodeAndVersion_CountsAndTimestamps() { return TestCase.DP_NodeAndVersion_CountsAndTimestamps(); }
+
+        /* ================================================================================================== Errors */
+
+        [TestMethod]
+        public Task MsSql_DP_Error_InsertNode_AlreadyExists() { return TestCase.DP_Error_InsertNode_AlreadyExists(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_UpdateNode_Deleted() { return TestCase.DP_Error_UpdateNode_Deleted(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_UpdateNode_MissingVersion() { return TestCase.DP_Error_UpdateNode_MissingVersion(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_UpdateNode_OutOfDate() { return TestCase.DP_Error_UpdateNode_OutOfDate(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_CopyAndUpdateNode_Deleted() { return TestCase.DP_Error_CopyAndUpdateNode_Deleted(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_CopyAndUpdateNode_MissingVersion() { return TestCase.DP_Error_CopyAndUpdateNode_MissingVersion(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_CopyAndUpdateNode_OutOfDate() { return TestCase.DP_Error_CopyAndUpdateNode_OutOfDate(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_UpdateNodeHead_Deleted() { return TestCase.DP_Error_UpdateNodeHead_Deleted(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_UpdateNodeHead_OutOfDate() { return TestCase.DP_Error_UpdateNodeHead_OutOfDate(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_DeleteNode() { return TestCase.DP_Error_DeleteNode(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_MoveNode_MissingSource() { return TestCase.DP_Error_MoveNode_MissingSource(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_MoveNode_MissingTarget() { return TestCase.DP_Error_MoveNode_MissingTarget(); }
+        [TestMethod]
+        public Task MsSql_DP_Error_MoveNode_OutOfDate() { return TestCase.DP_Error_MoveNode_OutOfDate(); }
+
+        [TestMethod]
+        public Task MsSql_DP_Error_QueryNodesByReferenceAndTypeAsync() { return TestCase.DP_Error_QueryNodesByReferenceAndTypeAsync(); }
     }
 }

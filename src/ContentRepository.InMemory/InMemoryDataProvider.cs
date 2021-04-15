@@ -1312,20 +1312,28 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult(result.ToArray());
         }
 
-        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory,
+            int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var skipFinished = waitingActivityIds == null || waitingActivityIds.Length == 0;
             var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
             lock (DB.IndexingActivities)
             {
-                var finishedActivitiyIds = DB.IndexingActivities
-                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x => x.IndexingActivityId)
-                    .ToArray();
+                var finishedActivityIds = skipFinished
+                    ? DB.IndexingActivities
+                        .Where(x => x.RunningState == IndexingActivityRunningState.Done)
+                        .Select(x => x.IndexingActivityId)
+                        .ToArray()
+                    : DB.IndexingActivities
+                        .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) &&
+                                    x.RunningState == IndexingActivityRunningState.Done)
+                        .Select(x => x.IndexingActivityId)
+                        .ToArray();
                 return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
                 {
                     Activities = activities,
-                    FinishedActivitiyIds = finishedActivitiyIds
+                    FinishedActivitiyIds = skipFinished ? new int[0] : finishedActivityIds
                 });
             }
         }

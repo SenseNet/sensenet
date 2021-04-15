@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
@@ -1244,7 +1249,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 AssertSequenceEqual(expected, result);
             });
         }
-
         public async Task DP_NodeQuery_QueryNodesByReferenceAndType()
         {
             var contentType1 = "TestContent1";
@@ -1317,7 +1321,1311 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
-        /* ================================================================================================== */
+        /* ================================================================================================== TreeLock */
+
+        public async Task DP_LoadEntityTree()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // ACTION
+                var treeData = await DataStore.LoadEntityTreeAsync(CancellationToken.None);
+
+                // ASSERT check the right ordering: every node follows it's parent node.
+                var tree = new Dictionary<int, EntityTreeNodeData>();
+                foreach (var node in treeData)
+                {
+                    if (node.ParentId != 0)
+                        if (!tree.ContainsKey(node.ParentId))
+                            Assert.Fail($"The parent is not yet loaded. Id: {node.Id}, ParentId: {node.ParentId}");
+                    tree.Add(node.Id, node);
+                }
+            });
+        }
+        public async Task DP_TreeLock()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var path = "/Root/Folder-1";
+                var childPath = "/root/folder-1/folder-2";
+                var anotherPath = "/Root/Folder-2";
+                var timeLimit = DateTime.UtcNow.AddHours(-8.0);
+
+                // Pre check: there is no lock
+                var tlocks = await DP.LoadAllTreeLocksAsync(CancellationToken.None);
+                Assert.AreEqual(0, tlocks.Count);
+
+                // ACTION: create a lock
+                var tlockId = await DP.AcquireTreeLockAsync(path, timeLimit, CancellationToken.None);
+
+                // Check: there is one lock ant it matches
+                tlocks = await DP.LoadAllTreeLocksAsync(CancellationToken.None);
+                Assert.AreEqual(1, tlocks.Count);
+                Assert.AreEqual(tlockId, tlocks.First().Key);
+                Assert.AreEqual(path, tlocks.First().Value);
+
+                // Check: path and subpath are locked
+                Assert.IsTrue(await DP.IsTreeLockedAsync(path, timeLimit, CancellationToken.None));
+                Assert.IsTrue(await DP.IsTreeLockedAsync(childPath, timeLimit, CancellationToken.None));
+
+                // Check: outer path is not locked
+                Assert.IsFalse(await DP.IsTreeLockedAsync(anotherPath, timeLimit, CancellationToken.None));
+
+                // ACTION: try to create a lock fot a subpath
+                var childLlockId = await DP.AcquireTreeLockAsync(childPath, timeLimit, CancellationToken.None);
+
+                // Check: subPath cannot be locked
+                Assert.AreEqual(0, childLlockId);
+
+                // Check: there is still only one lock
+                tlocks = await DP.LoadAllTreeLocksAsync(CancellationToken.None);
+                Assert.AreEqual(1, tlocks.Count);
+                Assert.AreEqual(tlockId, tlocks.First().Key);
+                Assert.AreEqual(path, tlocks.First().Value);
+
+                // ACTION: Release the lock
+                await DP.ReleaseTreeLockAsync(new[] { tlockId }, CancellationToken.None);
+
+                // Check: there is no lock
+                tlocks = await DP.LoadAllTreeLocksAsync(CancellationToken.None);
+                Assert.AreEqual(0, tlocks.Count);
+
+                // Check: path and subpath are not locked
+                Assert.IsFalse(await DP.IsTreeLockedAsync(path, timeLimit, CancellationToken.None));
+                Assert.IsFalse(await DP.IsTreeLockedAsync(childPath, timeLimit, CancellationToken.None));
+
+            });
+        }
+
+        /* ================================================================================================== IndexDocument */
+
+        public async Task DP_LoadIndexDocuments()
+        {
+            const string fileContent = "File content.";
+            const string testRootPath = "/Root/TestRoot";
+
+            void CreateStructure()
+            {
+                var root = CreateFolder(Repository.Root, "TestRoot");
+                var file1 = CreateFile(root, "File1", fileContent);
+                var file2 = CreateFile(root, "File2", fileContent);
+                var folder1 = CreateFolder(root, "Folder1");
+                var file3 = CreateFile(folder1, "File3", fileContent);
+                var file4 = CreateFile(folder1, "File4", fileContent);
+                file4.CheckOut();
+                var folder2 = CreateFolder(folder1, "Folder2");
+                var fileA5 = CreateFile(folder2, "File5", fileContent);
+                var fileA6 = CreateFile(folder2, "File6", fileContent);
+            }
+
+            await IntegrationTestAsync(async () =>
+            {
+                var fileNodeType = ActiveSchema.NodeTypes["File"];
+                var systemFolderType = ActiveSchema.NodeTypes["SystemFolder"];
+
+                // ARRANGE
+                CreateStructure();
+                var testRoot = Node.Load<SystemFolder>(testRootPath);
+                var testRootChildren = testRoot.Children.ToArray();
+
+                // ACTION
+                var oneVersion = await DP.LoadIndexDocumentsAsync(new[] { testRoot.VersionId }, CancellationToken.None);
+                var moreVersions = (await DP.LoadIndexDocumentsAsync(testRootChildren.Select(x => x.VersionId).ToArray(), CancellationToken.None)).ToArray();
+                var subTreeAll = DP.LoadIndexDocumentsAsync(testRootPath, new int[0]).ToArray();
+                var onlyFiles = DP.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id }).ToArray();
+                var onlySystemFolders = DP.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id }).ToArray();
+
+                // ASSERT
+                Assert.AreEqual(testRootPath, oneVersion.First().Path);
+                Assert.AreEqual(3, moreVersions.Length);
+                Assert.AreEqual(10, subTreeAll.Length);
+                Assert.AreEqual(3, onlyFiles.Length);
+                Assert.AreEqual(7, onlySystemFolders.Length);
+            });
+        }
+        public async Task DP_SaveIndexDocumentById()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var node = CreateTestRoot();
+                var versionIds = new[] { node.VersionId };
+                var loadResult = await DP.LoadIndexDocumentsAsync(versionIds, CancellationToken.None);
+                var docData = loadResult.First();
+
+                // ACTION
+                docData.IndexDocument.Add(
+                    new IndexField("TestField", "TestValue",
+                        IndexingMode.Default, IndexStoringMode.Default, IndexTermVector.Default));
+                await DP.SaveIndexDocumentAsync(node.VersionId, docData.IndexDocument.Serialize(), CancellationToken.None);
+
+                // ASSERT (check additional field existence)
+                loadResult = await DP.LoadIndexDocumentsAsync(versionIds, CancellationToken.None);
+                docData = loadResult.First();
+                var testField = docData.IndexDocument.FirstOrDefault(x => x.Name == "TestField");
+                Assert.IsNotNull(testField);
+                Assert.AreEqual("TestValue", testField.StringValue);
+            });
+        }
+
+        /* ================================================================================================== IndexingActivities */
+
+        public async Task DP_IA_GetLastIndexingActivityId()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var result = await DP.GetLastIndexingActivityIdAsync(CancellationToken.None);
+                Assert.AreEqual(lastId, result);
+            });
+        }
+        public async Task DP_IA_LoadIndexingActivities_Page()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var from = lastId - 10;
+                var to = lastId;
+                var count = 5;
+                var factory = new TestIndexingActivityFactory();
+
+                // ACTION
+                var result = await DP.LoadIndexingActivitiesAsync(from, to, count, false, factory, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(5, result.Length);
+                Assert.AreEqual(100, result[0].NodeId);
+                Assert.AreEqual(101, result[1].NodeId);
+                Assert.AreEqual(102, result[2].NodeId);
+                Assert.AreEqual(103, result[3].NodeId);
+                Assert.AreEqual(104, result[4].NodeId);
+                Assert.IsFalse(result[0].IsUnprocessedActivity);
+                Assert.IsFalse(result[1].IsUnprocessedActivity);
+                Assert.IsFalse(result[2].IsUnprocessedActivity);
+                Assert.IsFalse(result[3].IsUnprocessedActivity);
+                Assert.IsFalse(result[4].IsUnprocessedActivity);
+            });
+        }
+        public async Task DP_IA_LoadIndexingActivities_PageUnprocessed()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var from = lastId - 10;
+                var to = lastId;
+                var count = 5;
+                var factory = new TestIndexingActivityFactory();
+
+                // ACTION
+                var result = await DP.LoadIndexingActivitiesAsync(from, to, count, true, factory, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(5, result.Length);
+                Assert.AreEqual(100, result[0].NodeId);
+                Assert.AreEqual(101, result[1].NodeId);
+                Assert.AreEqual(102, result[2].NodeId);
+                Assert.AreEqual(103, result[3].NodeId);
+                Assert.AreEqual(104, result[4].NodeId);
+                Assert.IsTrue(result[0].IsUnprocessedActivity);
+                Assert.IsTrue(result[1].IsUnprocessedActivity);
+                Assert.IsTrue(result[2].IsUnprocessedActivity);
+                Assert.IsTrue(result[3].IsUnprocessedActivity);
+                Assert.IsTrue(result[4].IsUnprocessedActivity);
+            });
+        }
+        public async Task DP_IA_LoadIndexingActivities_Gaps()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var gaps = new[] { lastId - 10, lastId - 9, lastId - 5 };
+                var factory = new TestIndexingActivityFactory();
+
+                // ACTION
+                var result = await DP.LoadIndexingActivitiesAsync(gaps, false, factory, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(3, result.Length);
+                Assert.AreEqual(100, result[0].NodeId);
+                Assert.AreEqual(101, result[1].NodeId);
+                Assert.AreEqual(105, result[2].NodeId);
+            });
+        }
+        public async Task DP_IA_LoadIndexingActivities_Executable()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var factory = new TestIndexingActivityFactory();
+                var timeout = 120;
+
+                // ACTION
+                var result = await DP.LoadExecutableIndexingActivitiesAsync(factory, 10, timeout, null, CancellationToken.None);
+                Assert.IsNotNull(result.FinishedActivitiyIds);
+                Assert.AreEqual(0, result.FinishedActivitiyIds.Length);
+
+                // ASSERT
+                var expectedIds = "45,46,50,51,52,53,55,100,101,102";
+                Assert.AreEqual(expectedIds, string.Join(",", result.Activities.Select(x => x.NodeId.ToString())));
+            });
+        }
+        public async Task DP_IA_LoadIndexingActivities_ExecutableAndFinished()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var factory = new TestIndexingActivityFactory();
+                var timeout = 120;
+                var waitingActivityIds = new[] { firstId, firstId + 1, firstId + 2, firstId + 3, firstId + 4, firstId + 5 };
+
+                // ACTION-2
+                var result = await DP.LoadExecutableIndexingActivitiesAsync(factory, 10, timeout, waitingActivityIds, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(3, result.FinishedActivitiyIds.Length);
+                Assert.AreEqual(firstId, result.FinishedActivitiyIds[0]);
+                Assert.AreEqual(firstId + 1, result.FinishedActivitiyIds[1]);
+                Assert.AreEqual(firstId + 2, result.FinishedActivitiyIds[2]);
+
+                var expectedIds = "45,46,50,51,52,53,55,100,101,102";
+                Assert.AreEqual(expectedIds, string.Join(",", result.Activities.Select(x => x.NodeId.ToString())));
+            });
+        }
+        public async Task DP_IA_UpdateRunningState()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var gaps = new[] { lastId - 10, lastId - 9, lastId - 8 };
+                var factory = new TestIndexingActivityFactory();
+                var before = await DP.LoadIndexingActivitiesAsync(gaps, false, factory, CancellationToken.None);
+                Assert.AreEqual(IndexingActivityRunningState.Waiting, before[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Waiting, before[1].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Waiting, before[2].RunningState);
+
+                // ACTION
+                await DP.UpdateIndexingActivityRunningStateAsync(gaps[0], IndexingActivityRunningState.Done, CancellationToken.None);
+                await DP.UpdateIndexingActivityRunningStateAsync(gaps[1], IndexingActivityRunningState.Running, CancellationToken.None);
+
+                // ASSERT
+                var after = await DP.LoadIndexingActivitiesAsync(gaps, false, factory, CancellationToken.None);
+                Assert.AreEqual(IndexingActivityRunningState.Done, after[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Running, after[1].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Waiting, after[2].RunningState);
+            });
+        }
+        public async Task DP_IA_RefreshLockTime()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                var startTime = DateTime.UtcNow;
+
+                var activityIds = new[] { firstId + 5, firstId + 6 };
+                var factory = new TestIndexingActivityFactory();
+                var before = await DP.LoadIndexingActivitiesAsync(activityIds, false, factory, CancellationToken.None);
+                Assert.AreEqual(47, before[0].NodeId);
+                Assert.AreEqual(48, before[1].NodeId);
+
+                // ACTION
+                await DP.RefreshIndexingActivityLockTimeAsync(activityIds, CancellationToken.None);
+
+                // ASSERT
+                var after = await DP.LoadIndexingActivitiesAsync(activityIds, false, factory, CancellationToken.None);
+                Assert.AreEqual(47, before[0].NodeId);
+                Assert.AreEqual(48, before[1].NodeId);
+                Assert.IsTrue(after[0].LockTime >= startTime);
+                Assert.IsTrue(after[1].LockTime >= startTime);
+            });
+        }
+        public async Task DP_IA_DeleteFinished()
+        {
+            await IndexingActivityTest(async (firstId, lastId) =>
+            {
+                // ACTION
+                await DP.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None);
+
+                // ASSERT
+                var result = await DP.LoadIndexingActivitiesAsync(firstId, lastId, 100, false, new TestIndexingActivityFactory(), CancellationToken.None);
+                Assert.AreEqual(lastId - firstId - 2, result.Length);
+                Assert.AreEqual(firstId + 3, result.First().Id);
+            });
+        }
+        public async Task DP_IA_LoadFull()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                await DP.DeleteAllIndexingActivitiesAsync(CancellationToken.None);
+                var node = CreateFolder(Repository.Root, "Folder-1");
+
+                // ACTION
+                var result = await DP.LoadIndexingActivitiesAsync(0, 1000, 1000, false, new TestIndexingActivityFactory(), CancellationToken.None);
+
+                // ASSERT (IndexDocument loaded)
+                Assert.AreEqual(1, result.Length);
+                Assert.AreEqual(node.VersionId, result[0].IndexDocumentData.IndexDocument.VersionId);
+            });
+        }
+
+        #region Tools for IndexingActivities
+        private async Task IndexingActivityTest(Func<int, int, Task> callback)
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                await DP.DeleteAllIndexingActivitiesAsync(CancellationToken.None);
+
+                var now = DateTime.UtcNow;
+                var firstId = await CreateActivityAsync(42, "/R/42", "Done");             // 1
+                await CreateActivityAsync(43, "/R/43", "Done");                           // 2
+                await CreateActivityAsync(44, "/R/44", "Done");                           // 3
+                await CreateActivityAsync(45, "/R/45", "Running", now.AddMinutes(-2.1));  // 4
+                await CreateActivityAsync(46, "/R/46", "Running", now.AddMinutes(-2.0));  // 5
+                await CreateActivityAsync(47, "/R/47", "Running", now.AddMinutes(-1.9));  // 6 skip
+                await CreateActivityAsync(48, "/R/48", "Running", now.AddMinutes(-1.8));  // 7 skip
+                await CreateActivityAsync(50, "/R/50", "Waiting");                        // 8
+                await CreateActivityAsync(51, "/R/51", "Waiting");                        // 9
+                await CreateActivityAsync(52, "/R/52", "Waiting");                        // 10
+                await CreateActivityAsync(52, "/R/525", "Waiting");                       // 11 skip
+                await CreateActivityAsync(53, "/R/A", "Waiting");                         // 12
+                await CreateActivityAsync(54, "/R/A/A", "Waiting");                       // 13 skip
+                await CreateActivityAsync(55, "/R/B/B", "Waiting");                       // 14
+                await CreateActivityAsync(56, "/R/B", "Waiting");                         // 15 skip
+                await CreateActivityAsync(57, "/R/B", "Waiting");                         // 16 skip
+                await CreateActivityAsync(100, "/R/100", "Waiting");                      // 17
+                await CreateActivityAsync(101, "/R/101", "Waiting");                      // 18
+                await CreateActivityAsync(102, "/R/102", "Waiting");                      // 19
+                await CreateActivityAsync(103, "/R/103", "Waiting");                      // 20
+                await CreateActivityAsync(104, "/R/104", "Waiting");                      // 21
+                await CreateActivityAsync(105, "/R/105", "Waiting");                      // 22
+                await CreateActivityAsync(106, "/R/106", "Waiting");                      // 23
+                await CreateActivityAsync(107, "/R/107", "Waiting");                      // 24
+                await CreateActivityAsync(108, "/R/108", "Waiting");                      // 25
+                await CreateActivityAsync(109, "/R/109", "Waiting");                      // 26
+                var lastId = await CreateActivityAsync(110, "/R/110", "Waiting");         // 27
+
+                try
+                {
+                    await callback(firstId, lastId);
+                }
+                finally
+                {
+                    await DP.DeleteAllIndexingActivitiesAsync(CancellationToken.None);
+                }
+            });
+        }
+        private async Task<int> CreateActivityAsync(int nodeId, string path, string runningState, DateTime? lockTime = null)
+        {
+            var activity = new TestIndexingActivity(nodeId, path, runningState, lockTime);
+            await DP.RegisterIndexingActivityAsync(activity, CancellationToken.None);
+            return activity.Id;
+        }
+        private class TestIndexingActivityFactory : IIndexingActivityFactory
+        {
+            public IIndexingActivity CreateActivity(IndexingActivityType activityType)
+            {
+                return new TestIndexingActivity();
+            }
+        }
+        private class TestIndexingActivity : IIndexingActivity
+        {
+            public TestIndexingActivity() { }
+            public TestIndexingActivity(int nodeId, string path, string runningState, DateTime? lockTime = null)
+            {
+                NodeId = nodeId;
+                Path = path;
+                RunningState =
+                    (IndexingActivityRunningState)Enum.Parse(typeof(IndexingActivityRunningState), runningState, true);
+                LockTime = lockTime;
+            }
+            public int Id { get; set; }
+            public IndexingActivityType ActivityType { get; set; } = IndexingActivityType.AddDocument;
+            public DateTime CreationDate { get; set; } = DateTime.UtcNow.AddMinutes(-2);
+            public IndexingActivityRunningState RunningState { get; set; }
+            public DateTime? LockTime { get; set; }
+            public int NodeId { get; set; }
+            public int VersionId { get; set; }
+            public string Path { get; set; }
+            public long? VersionTimestamp { get; set; }
+            public IndexDocumentData IndexDocumentData { get; set; }
+            public bool FromDatabase { get; set; }
+            public bool IsUnprocessedActivity { get; set; }
+            public string Extension { get; set; }
+        }
+        #endregion
+
+
+        /* ================================================================================================== Nodes */
+
+        public async Task DP_CopyAndUpdateNode_Rename()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                node.Save();
+                var childNode = CreateFolder(node, "Folder-2");
+                var version1 = node.Version.ToString();
+                var versionId1 = node.VersionId;
+                node.CheckOut();
+                var versionId2 = node.VersionId;
+                var originalPath = node.Path;
+
+                node = Node.Load<SystemFolder>(node.Id);
+                node.Index++;
+                var expectedName = "RENAMED-" + node.Name;
+                node.Name = expectedName;
+                node.Data.Path = RepositoryPath.Combine(node.ParentPath, node.Name); // ApplySettings
+                node.Version = VersionNumber.Parse(version1); // ApplySettings
+                var nodeData = node.Data;
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData(false);
+                var versionIdsToDelete = new[] { versionId2 };
+                var expectedVersionId = versionId1;
+
+                // ACTION: simulate a modification, rename and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                await DataStore.DataProvider
+                    .CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None,
+                        expectedVersionId, originalPath);
+
+                // ASSERT
+                Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(node.Id);
+                Assert.AreEqual(expectedName, reloaded.Name);
+                reloaded = Node.Load<SystemFolder>(childNode.Id);
+                Assert.AreEqual($"/Root/{expectedName}/Folder-2", reloaded.Path);
+            });
+        }
+        public async Task DP_LoadNodes()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var expected = new[] { Repository.Root.VersionId, User.Administrator.VersionId };
+                var versionIds = new[] { Repository.Root.VersionId, 999999, User.Administrator.VersionId };
+
+                // ACTION
+                var loadResult = await DP.LoadNodesAsync(versionIds, CancellationToken.None);
+
+                // ASSERT
+                var actual = loadResult.Select(x => x.VersionId);
+                AssertSequenceEqual(expected.OrderBy(x => x), actual.OrderBy(x => x));
+            });
+        }
+        public async Task DP_LoadNodeHeadByVersionId_Missing()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // ACTION
+                var result = await DP.LoadNodeHeadByVersionIdAsync(99999, CancellationToken.None);
+
+                // ASSERT (returns null instead of throw any exception)
+                Assert.IsNull(result);
+            });
+        }
+        public async Task DP_NodeAndVersion_CountsAndTimestamps()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // ACTIONS
+                var allNodeCountBefore = await DP.GetNodeCountAsync(null, CancellationToken.None);
+                var allVersionCountBefore = await DP.GetVersionCountAsync(null, CancellationToken.None);
+
+                var node = CreateTestRoot();
+                var child = CreateFolder(node, "Folder-2");
+                child.CheckOut();
+
+                var nodeCount = await DP.GetNodeCountAsync(node.Path, CancellationToken.None);
+                var versionCount = await DP.GetVersionCountAsync(node.Path, CancellationToken.None);
+                var allNodeCountAfter = await DP.GetNodeCountAsync(null, CancellationToken.None);
+                var allVersionCountAfter = await DP.GetVersionCountAsync(null, CancellationToken.None);
+
+                node = Node.Load<SystemFolder>(node.Id);
+                var nodeTimeStamp = (await TDP.GetNodeHeadDataAsync(node.Id)).Timestamp;
+                var versionTimeStamp = (await TDP.GetVersionDataAsync(node.VersionId)).Timestamp;
+
+                // ASSERTS
+                Assert.AreEqual(allNodeCountBefore + 2, allNodeCountAfter);
+                Assert.AreEqual(allVersionCountBefore + 3, allVersionCountAfter);
+                Assert.AreEqual(2, nodeCount);
+                Assert.AreEqual(3, versionCount);
+                Assert.AreEqual(node.NodeTimestamp, nodeTimeStamp);
+                Assert.AreEqual(node.VersionTimestamp, versionTimeStamp);
+            });
+        }
+
+        /* ================================================================================================== Errors */
+
+        public async Task DP_Error_InsertNode_AlreadyExists()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = CreateTestRoot();
+                try
+                {
+                    var node = new SystemFolder(Repository.Root) { Name = newNode.Name };
+                    var nodeData = node.Data;
+                    nodeData.Path = RepositoryPath.Combine(node.ParentPath, node.Name);
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+
+                    // ACTION
+                    await DP.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None);
+                    Assert.Fail("NodeAlreadyExistsException was not thrown.");
+                }
+                catch (NodeAlreadyExistsException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_UpdateNode_Deleted()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                try
+                {
+                    var node = Node.LoadNode(Identifiers.PortalRootId);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 99999;
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_UpdateNode_MissingVersion()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    versionData.VersionId = 99999;
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_UpdateNode_OutOfDate()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_CopyAndUpdateNode_Deleted()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 99999;
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_CopyAndUpdateNode_MissingVersion()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    versionData.VersionId = 99999;
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_CopyAndUpdateNode_OutOfDate()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_UpdateNodeHead_Deleted()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = CreateTestRoot();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 999999;
+                    await DP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_UpdateNodeHead_OutOfDate()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode = CreateTestRoot();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_DeleteNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // Create a small subtree
+                var root = CreateTestRoot();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DP.DeleteNodeAsync(nodeHeadData, CancellationToken.None);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_MoveNode_MissingSource()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var root = CreateTestRoot();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.NodeId = 999999;
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_MoveNode_MissingTarget()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var root = CreateTestRoot();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    await DP.MoveNodeAsync(nodeHeadData, 999999, CancellationToken.None);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        public async Task DP_Error_MoveNode_OutOfDate()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var root = CreateTestRoot();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        public async Task DP_Error_QueryNodesByReferenceAndTypeAsync()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                try
+                {
+                    await DP.QueryNodesByReferenceAndTypeAsync(null, 1, new[] { 1 }, CancellationToken.None);
+                }
+                catch (ArgumentNullException)
+                {
+                    // ignored
+                }
+
+                try
+                {
+                    await DP.QueryNodesByReferenceAndTypeAsync("", 1, new[] { 1 }, CancellationToken.None);
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.IsTrue(e.Message.Contains("cannot be empty"));
+                }
+
+                try
+                {
+                    await DP.QueryNodesByReferenceAndTypeAsync("PropertyNameThatCertainlyDoesNotExist", 1, new[] { 1 }, CancellationToken.None);
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.IsTrue(e.Message.Contains("not found"));
+                }
+            });
+        }
+
+        /* ================================================================================================== Transaction */
+
+        //UNDONE:<?:IntT: Uncomment and implement transaction test cases and tests (CannotCommitDataProvider)
+        /**/
+        //[TestMethod]
+        //public async Task DP_Transaction_InsertNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+
+        //        // ACTION
+        //        try
+        //        {
+        //            var newNode = new SystemFolder(Repository.Root)
+        //            {
+        //                Name = Guid.NewGuid().ToString(),
+        //                Description = "Description-1",
+        //                Index = 42
+        //            };
+        //            var nodeData = newNode.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            var versionData = nodeData.GetVersionData();
+        //            var dynamicData = nodeData.GetDynamicData(false);
+        //            // Call low level API
+        //            await HDP.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT (all operation need to be rolled back)
+        //        var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+
+        //        Assert.AreEqual(countsBefore, countsAfter);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_UpdateNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        var newNode =
+        //            new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
+        //        newNode.Save();
+        //        var nodeTimeStampBefore = newNode.NodeTimestamp;
+        //        var versionTimeStampBefore = newNode.VersionTimestamp;
+
+        //        // ACTION
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(newNode.Id);
+        //            node.Index++;
+        //            node.Description = "Description-MODIFIED";
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            var versionData = nodeData.GetVersionData();
+        //            var dynamicData = nodeData.GetDynamicData(false);
+        //            var versionIdsToDelete = new int[0];
+        //            // Call low level API
+        //            await HDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT (all operation need to be rolled back)
+        //        Cache.Reset();
+        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
+        //        var nodeTimeStampAfter = reloaded.NodeTimestamp;
+        //        var versionTimeStampAfter = reloaded.VersionTimestamp;
+        //        Assert.AreEqual(nodeTimeStampBefore, nodeTimeStampAfter);
+        //        Assert.AreEqual(versionTimeStampBefore, versionTimeStampAfter);
+        //        Assert.AreEqual(42, reloaded.Index);
+        //        Assert.AreEqual("Description-1", reloaded.Description);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_CopyAndUpdateNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        var newNode =
+        //            new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
+        //        newNode.Save();
+        //        var version1 = newNode.Version.ToString();
+        //        var versionId1 = newNode.VersionId;
+        //        newNode.CheckOut();
+        //        var version2 = newNode.Version.ToString();
+        //        var versionId2 = newNode.VersionId;
+        //        var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+
+        //        // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(newNode.Id);
+        //            node.Index++;
+        //            node.Description = "Description-MODIFIED";
+        //            node.Version = VersionNumber.Parse(version1); // ApplySettings
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            var versionData = nodeData.GetVersionData();
+        //            var dynamicData = nodeData.GetDynamicData(false);
+        //            var versionIdsToDelete = new[] { versionId2 };
+        //            var expectedVersionId = versionId1;
+        //            // Call low level API
+        //            await HDP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, expectedVersionId);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT (all operation need to be rolled back)
+        //        var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+        //        Cache.Reset();
+        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
+        //        Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+        //        Assert.AreEqual(version2, reloaded.Version.ToString());
+        //        Assert.AreEqual(versionId2, reloaded.VersionId);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_UpdateNodeHead()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        var newNode =
+        //            new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+        //        newNode.Save();
+        //        var version1 = newNode.Version.ToString();
+        //        var versionId1 = newNode.VersionId;
+        //        newNode.CheckOut();
+        //        var version2 = newNode.Version.ToString();
+        //        var versionId2 = newNode.VersionId;
+        //        newNode.Index++;
+        //        newNode.Description = "Description-MODIFIED";
+        //        newNode.Save();
+        //        var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+
+        //        // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(newNode.Id);
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            var versionData = nodeData.GetVersionData();
+        //            var dynamicData = nodeData.GetDynamicData(false);
+        //            var versionIdsToDelete = new[] { versionId2 };
+        //            var currentVersionId = newNode.VersionId;
+        //            var expectedVersionId = versionId1;
+        //            // Call low level API
+        //            await HDP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT (all operation need to be rolled back)
+        //        var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+        //        Cache.Reset();
+        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
+        //        Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+        //        Assert.AreEqual(version2, reloaded.Version.ToString());
+        //        Assert.AreEqual(versionId2, reloaded.VersionId);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_MoveNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        // Create a small subtree
+        //        var rootName = Guid.NewGuid().ToString();
+        //        var root = new SystemFolder(Repository.Root) { Name = rootName }; root.Save();
+        //        var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+        //        var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+        //        var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+        //        var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+        //        var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+        //        var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+        //        // ACTION
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(source.Id);
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            // Call low level API
+        //            await HDP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT
+        //        Cache.Reset();
+        //        target = Node.Load<SystemFolder>(target.Id);
+        //        source = Node.Load<SystemFolder>(source.Id);
+        //        f1 = Node.Load<SystemFolder>(f1.Id);
+        //        f2 = Node.Load<SystemFolder>(f2.Id);
+        //        f3 = Node.Load<SystemFolder>(f3.Id);
+        //        f4 = Node.Load<SystemFolder>(f4.Id);
+        //        Assert.AreEqual($"/Root/{rootName}", root.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Target", target.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Source", source.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Source/F1", f1.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Source/F2", f2.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Source/F1/F3", f3.Path);
+        //        Assert.AreEqual($"/Root/{rootName}/Source/F1/F4", f4.Path);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_RenameNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        var root = CreateFolder(Repository.Root, "F");
+        //        var f1 = CreateFolder(root, "F1");
+        //        var f11 = CreateFolder(f1, "F11");
+        //        var f12 = CreateFolder(f1, "F12");
+        //        var f2 = CreateFolder(root, "F2");
+        //        var f21 = CreateFolder(f2, "F21");
+        //        var f22 = CreateFolder(f2, "F22");
+        //        var expectedPaths = (new[] { f1, f11, f12, f2, f21, f22 })
+        //            .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+        //            .ToArray();
+
+        //        // ACTION: rename root
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(root.Id);
+        //            var originalPath = node.Path;
+        //            node.Name = "X";
+        //            node.Data.Path = node.ParentPath + "/X"; // illegal operation but this test requires
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            var versionData = nodeData.GetVersionData();
+        //            var dynamicData = nodeData.GetDynamicData(false);
+        //            var versionIdsToDelete = new int[0];
+        //            // Call low level API
+        //            await HDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, originalPath);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT (all operation need to be rolled back)
+        //        var paths = (new[] { f1, f11, f12, f2, f21, f22 })
+        //            .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+        //            .ToArray();
+        //        AssertSequenceEqual(expectedPaths, paths);
+        //    });
+        //}
+        //[TestMethod]
+        //public async Task DP_Transaction_DeleteNode()
+        //{
+        //    await IntegrationTestAsync(async () =>
+        //    {
+        //        // Create a small subtree
+        //        var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Test root" };
+        //        root.Save();
+        //        var f1 = new SystemFolder(root) { Name = "F1", Description = "Folder-1" };
+        //        f1.Save();
+        //        var f2 = new File(root) { Name = "F2" };
+        //        f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+        //        f2.Save();
+        //        var f3 = new SystemFolder(f1) { Name = "F3" };
+        //        f3.Save();
+        //        var f4 = new File(root) { Name = "F4" };
+        //        f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+        //        f4.Save();
+
+        //        var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+
+        //        // ACTION
+        //        try
+        //        {
+        //            var node = Node.Load<SystemFolder>(root.Id);
+        //            var nodeData = node.Data;
+        //            var nodeHeadData = nodeData.GetNodeHeadData();
+        //            // Call low level API
+        //            await HDP.DeleteNodeAsync(nodeHeadData, CancellationToken.None);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            // ignored
+        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+        //        }
+
+        //        // ASSERT
+        //        Assert.IsNotNull(Node.Load<SystemFolder>(root.Id));
+        //        Assert.IsNotNull(Node.Load<SystemFolder>(f1.Id));
+        //        Assert.IsNotNull(Node.Load<File>(f2.Id));
+        //        Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
+        //        Assert.IsNotNull(Node.Load<File>(f4.Id));
+        //        var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+        //        Assert.AreEqual(countsBefore, countsAfter);
+        //    });
+        //}
+
+        //#region Tools for Transactions
+        //private static MsSqlDataProvider HDP => new CannotCommitDataProvider();
+
+        //private class CannotCommitTransaction : TransactionWrapper
+        //{
+        //    public CannotCommitTransaction(DbTransaction transaction, DataOptions options, CancellationToken cancellationToken)
+        //        : base(transaction, options, cancellationToken) { }
+        //    public override void Commit()
+        //    {
+        //        throw new NotSupportedException("This transaction cannot commit anything.");
+        //    }
+        //}
+        //private class TestDataContext : MsSqlDataContext
+        //{
+        //    public TestDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken)
+        //        : base(connectionString, options, cancellationToken)
+        //    {
+
+        //    }
+        //    public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+        //        CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
+        //    {
+        //        return new CannotCommitTransaction(underlyingTransaction, new DataOptions(), cancellationToken);
+        //    }
+        //}
+        //private class CannotCommitDataProvider : MsSqlDataProvider
+        //{
+        //    public override SnDataContext CreateDataContext(CancellationToken token)
+        //    {
+        //        return new TestDataContext(ConnectionStrings.ForStorageTests, new DataOptions(), token);
+        //    }
+        //}
+        //#endregion
+
+        /* ================================================================================================== Schema */
+
+        public async Task DP_Schema_ExclusiveUpdate()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                await TDP.EnsureOneUnlockedSchemaLockAsync();
+
+                var ed = new SchemaEditor();
+                ed.Load();
+                var timestampBefore = ed.SchemaTimestamp;
+
+                // ACTION: try to start update with wrong timestamp
+                try
+                {
+                    var unused = await DP.StartSchemaUpdateAsync(timestampBefore - 1, CancellationToken.None);
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException e)
+                {
+                    Assert.AreEqual("Storage schema is out of date.", e.Message);
+                }
+
+                // ACTION: start update normally
+                var @lock = await DP.StartSchemaUpdateAsync(timestampBefore, CancellationToken.None);
+
+                // ACTION: try to start update again
+                try
+                {
+                    var unused = await DP.StartSchemaUpdateAsync(timestampBefore, CancellationToken.None);
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException e)
+                {
+                    Assert.AreEqual("Schema is locked by someone else.", e.Message);
+                }
+
+                // ACTION: try to finish with invalid @lock
+                try
+                {
+                    var unused = await DP.FinishSchemaUpdateAsync("wrong-lock", CancellationToken.None);
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException e)
+                {
+                    Assert.AreEqual("Schema is locked by someone else.", e.Message);
+                }
+
+                // ACTION: finish normally
+                timestampBefore = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
+
+                // ASSERT: start update is allowed again
+                @lock = await DP.StartSchemaUpdateAsync(timestampBefore, CancellationToken.None);
+                // cleanup
+                var timestampAfter = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
+                // Bonus assert: change detection
+                Assert.AreNotEqual(timestampBefore, timestampAfter);
+            });
+        }
+
+
+
+
+        /* ================================================================================================== TOOLS */
 
         private void GenerateTestData(NodeData nodeData, params string[] excludedProperties)
         {
