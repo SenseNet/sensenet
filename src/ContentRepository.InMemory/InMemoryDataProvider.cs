@@ -26,10 +26,15 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemoryDataProvider : DataProvider
     {
         // ReSharper disable once InconsistentNaming
-        public InMemoryDataBase DB { get; } = new InMemoryDataBase();
+        public InMemoryDataBase DB { get; }
 
         //TODO: [DIBLOB] get these services through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
+        public InMemoryDataProvider()
+        {
+            DB = new InMemoryDataBase();
+        }
         
         /* =============================================================================================== Nodes */
 
