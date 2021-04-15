@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -471,13 +472,28 @@ namespace SenseNet.Tests.Core.Implementations
             sharedLockRow.CreationDate = value;
         }
 
-        public DataProvider CreateCannotCommitDataProvider()
+        public DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider)
         {
-            throw new NotImplementedException();
+            var inMemDp = (InMemoryDataProvider) mainDataProvider;
+            inMemDp.DB.TransactionFactory = new InMemoryCannotCommitTransactionFactory();
+            return inMemDp;
         }
         #region CreateCannotCommitDataProvider classes
-        private class InMemoryCannotCommitDataProvider : InMemoryDataProvider
+        private class InMemoryCannotCommitTransactionFactory : ITransactionFactory
         {
+            public InMemoryTransaction CreateTransaction(InMemoryDataBase db)
+            {
+                return new InMemoryCannotCommitTransaction(db);
+            }
+        }
+
+        public class InMemoryCannotCommitTransaction : InMemoryTransaction
+        {
+            public InMemoryCannotCommitTransaction(InMemoryDataBase db) : base(db) { }
+            public override void Commit()
+            {
+                throw new NotSupportedException("This transaction cannot commit anything.");
+            }
         }
         #endregion
 

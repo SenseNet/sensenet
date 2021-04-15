@@ -279,6 +279,8 @@ namespace SenseNet.ContentRepository.InMemory
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
                 }
                 catch (Exception e)
                 {

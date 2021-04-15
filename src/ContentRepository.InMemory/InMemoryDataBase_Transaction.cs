@@ -8,17 +8,17 @@ namespace SenseNet.ContentRepository.InMemory
 {
     public interface ITransactionFactory
     {
-        IDbTransaction CreateTransaction(InMemoryDataBase db);
+        InMemoryTransaction CreateTransaction(InMemoryDataBase db);
     }
-    internal class InMemoryTransactionFactory : ITransactionFactory
+    public class InMemoryTransactionFactory : ITransactionFactory
     {
-        public IDbTransaction CreateTransaction(InMemoryDataBase db)
+        public InMemoryTransaction CreateTransaction(InMemoryDataBase db)
         {
             return new InMemoryTransaction(db);
         }
     }
 
-    internal class InMemoryTransaction : IDbTransaction
+    public class InMemoryTransaction : IDbTransaction
     {
         /* ================================================================================= Participants */
 
@@ -125,7 +125,7 @@ namespace SenseNet.ContentRepository.InMemory
                 Monitor.Exit(_db);
         }
 
-        public void Commit()
+        public virtual void Commit()
         {
             foreach (var participant in _participants)
                 participant.Commit();
@@ -141,17 +141,12 @@ namespace SenseNet.ContentRepository.InMemory
     public partial class InMemoryDataBase
     {
         internal InMemoryTransaction Transaction { get; set; }
-        private ITransactionFactory _transactionFactory;
-
-        public InMemoryDataBase(ITransactionFactory transactionFactory = null)
-        {
-            _transactionFactory = transactionFactory ?? new InMemoryTransactionFactory();
-        }
+        public ITransactionFactory TransactionFactory { get; set; } = new InMemoryTransactionFactory();
 
         public IDbTransaction BeginTransaction()
         {
             Transaction?.Rollback();
-            Transaction = new InMemoryTransaction(this);
+            Transaction = TransactionFactory.CreateTransaction(this);
             return Transaction;
         }
 

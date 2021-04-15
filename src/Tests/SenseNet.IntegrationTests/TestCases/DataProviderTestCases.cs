@@ -34,7 +34,7 @@ namespace SenseNet.IntegrationTests.TestCases
         // ReSharper disable once InconsistentNaming
         protected ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
         // ReSharper disable once InconsistentNaming
-        private DataProvider CCDP => TDP.CreateCannotCommitDataProvider();
+        private DataProvider CCDP => TDP.CreateCannotCommitDataProvider(DP);
 
         /* ================================================================================================== */
 

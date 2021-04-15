@@ -465,7 +465,7 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
             }
         }
 
-        public DataProvider CreateCannotCommitDataProvider()
+        public DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider)
         {
             return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
         }

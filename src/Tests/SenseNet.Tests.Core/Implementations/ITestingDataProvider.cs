@@ -46,6 +46,6 @@ namespace SenseNet.Tests.Core.Implementations
         DateTime GetSharedLockCreationDate(int nodeId);
         void SetSharedLockCreationDate(int nodeId, DateTime value);
 
-        DataProvider CreateCannotCommitDataProvider();
+        DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider);
     }
 }
