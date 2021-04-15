@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -461,6 +464,47 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
                 }).GetAwaiter().GetResult();
             }
         }
+
+        public DataProvider CreateCannotCommitDataProvider()
+        {
+            return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
+        }
+        #region MsSqlCannotCommitDataProvider classes
+        private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
+        {
+            private readonly string _connectionString;
+            public MsSqlCannotCommitDataProvider(string connectionString)
+            {
+                _connectionString = connectionString;
+            }
+            public override SnDataContext CreateDataContext(CancellationToken token)
+            {
+                return new MsSqlCannotCommitDataContext(_connectionString, new DataOptions(), token);
+            }
+        }
+        private class MsSqlCannotCommitDataContext : MsSqlDataContext
+        {
+            public MsSqlCannotCommitDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken)
+                : base(connectionString, options, cancellationToken)
+            {
+
+            }
+            public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+                CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
+            {
+                return new MsSqlCannotCommitTransaction(underlyingTransaction, new DataOptions(), cancellationToken);
+            }
+        }
+        private class MsSqlCannotCommitTransaction : TransactionWrapper
+        {
+            public MsSqlCannotCommitTransaction(DbTransaction transaction, DataOptions options, CancellationToken cancellationToken)
+                : base(transaction, options, cancellationToken) { }
+            public override void Commit()
+            {
+                throw new NotSupportedException("This transaction cannot commit anything.");
+            }
+        }
+        #endregion
 
         public async Task ClearIndexingActivitiesAsync()
         {

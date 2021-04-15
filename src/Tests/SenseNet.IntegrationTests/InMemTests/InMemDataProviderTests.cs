@@ -179,5 +179,27 @@ namespace SenseNet.IntegrationTests.InMemTests
 
         [TestMethod]
         public Task IntT_InMem_DP_Error_QueryNodesByReferenceAndTypeAsync() { return TestCase.DP_Error_QueryNodesByReferenceAndTypeAsync(); }
+
+        /* ================================================================================================== Transaction */
+
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_InsertNode() { return TestCase.DP_Transaction_InsertNode(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_UpdateNode() { return TestCase.DP_Transaction_UpdateNode(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_CopyAndUpdateNode() { return TestCase.DP_Transaction_CopyAndUpdateNode(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_UpdateNodeHead() { return TestCase.DP_Transaction_UpdateNodeHead(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_MoveNode() { return TestCase.DP_Transaction_MoveNode(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_RenameNode() { return TestCase.DP_Transaction_RenameNode(); }
+        [TestMethod]
+        public Task IntT_InMem_DP_Transaction_DeleteNode() { return TestCase.DP_Transaction_DeleteNode(); }
+
+        /* ================================================================================================== Schema */
+
+        [TestMethod]
+        public Task IntT_InMem_DP_Schema_ExclusiveUpdate() { return TestCase.DP_Schema_ExclusiveUpdate(); }
     }
 }

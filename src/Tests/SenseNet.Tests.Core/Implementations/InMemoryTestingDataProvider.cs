@@ -471,6 +471,16 @@ namespace SenseNet.Tests.Core.Implementations
             sharedLockRow.CreationDate = value;
         }
 
+        public DataProvider CreateCannotCommitDataProvider()
+        {
+            throw new NotImplementedException();
+        }
+        #region CreateCannotCommitDataProvider classes
+        private class InMemoryCannotCommitDataProvider : InMemoryDataProvider
+        {
+        }
+        #endregion
+
         public virtual string TestMethodThatIsNotInterfaceMember(string input)
         {
             return input + input;

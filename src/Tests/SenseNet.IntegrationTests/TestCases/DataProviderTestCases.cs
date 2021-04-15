@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,8 @@ namespace SenseNet.IntegrationTests.TestCases
         protected DataProvider DP => DataStore.DataProvider;
         // ReSharper disable once InconsistentNaming
         protected ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+        // ReSharper disable once InconsistentNaming
+        private DataProvider CCDP => TDP.CreateCannotCommitDataProvider();
 
         /* ================================================================================================== */
 
@@ -2218,349 +2221,335 @@ namespace SenseNet.IntegrationTests.TestCases
 
         /* ================================================================================================== Transaction */
 
-        //UNDONE:<?:IntT: Uncomment and implement transaction test cases and tests (CannotCommitDataProvider)
-        /**/
-        //[TestMethod]
-        //public async Task DP_Transaction_InsertNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+        public async Task DP_Transaction_InsertNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                string errorMessage = null;
 
-        //        // ACTION
-        //        try
-        //        {
-        //            var newNode = new SystemFolder(Repository.Root)
-        //            {
-        //                Name = Guid.NewGuid().ToString(),
-        //                Description = "Description-1",
-        //                Index = 42
-        //            };
-        //            var nodeData = newNode.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            var versionData = nodeData.GetVersionData();
-        //            var dynamicData = nodeData.GetDynamicData(false);
-        //            // Call low level API
-        //            await HDP.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ACTION
+                try
+                {
+                    var newNode = new SystemFolder(Repository.Root)
+                    {
+                        Name = Guid.NewGuid().ToString(),
+                        Description = "Description-1",
+                        Index = 42
+                    };
+                    var nodeData = newNode.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    // Call low level API
+                    await CCDP.InsertNodeAsync(nodeHeadData, versionData, dynamicData, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ASSERT (all operation need to be rolled back)
-        //        var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                Assert.AreEqual(countsBefore, countsAfter);
+            });
+        }
+        public async Task DP_Transaction_UpdateNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var nodeTimeStampBefore = newNode.NodeTimestamp;
+                var versionTimeStampBefore = newNode.VersionTimestamp;
+                string errorMessage = null;
 
-        //        Assert.AreEqual(countsBefore, countsAfter);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_UpdateNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        var newNode =
-        //            new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
-        //        newNode.Save();
-        //        var nodeTimeStampBefore = newNode.NodeTimestamp;
-        //        var versionTimeStampBefore = newNode.VersionTimestamp;
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    node.Description = "Description-MODIFIED";
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+                    // Call low level API
+                    await CCDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ACTION
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(newNode.Id);
-        //            node.Index++;
-        //            node.Description = "Description-MODIFIED";
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            var versionData = nodeData.GetVersionData();
-        //            var dynamicData = nodeData.GetDynamicData(false);
-        //            var versionIdsToDelete = new int[0];
-        //            // Call low level API
-        //            await HDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
+                // ASSERT (all operation need to be rolled back)
+                Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                var nodeTimeStampAfter = reloaded.NodeTimestamp;
+                var versionTimeStampAfter = reloaded.VersionTimestamp;
+                Assert.AreEqual(nodeTimeStampBefore, nodeTimeStampAfter);
+                Assert.AreEqual(versionTimeStampBefore, versionTimeStampAfter);
+                Assert.AreEqual(42, reloaded.Index);
+                Assert.AreEqual("Description-1", reloaded.Description);
+            });
+        }
+        public async Task DP_Transaction_CopyAndUpdateNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var version1 = newNode.Version.ToString();
+                var versionId1 = newNode.VersionId;
+                newNode.CheckOut();
+                var version2 = newNode.Version.ToString();
+                var versionId2 = newNode.VersionId;
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+                string errorMessage = null;
 
-        //        // ASSERT (all operation need to be rolled back)
-        //        Cache.Reset();
-        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
-        //        var nodeTimeStampAfter = reloaded.NodeTimestamp;
-        //        var versionTimeStampAfter = reloaded.VersionTimestamp;
-        //        Assert.AreEqual(nodeTimeStampBefore, nodeTimeStampAfter);
-        //        Assert.AreEqual(versionTimeStampBefore, versionTimeStampAfter);
-        //        Assert.AreEqual(42, reloaded.Index);
-        //        Assert.AreEqual("Description-1", reloaded.Description);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_CopyAndUpdateNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        var newNode =
-        //            new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
-        //        newNode.Save();
-        //        var version1 = newNode.Version.ToString();
-        //        var versionId1 = newNode.VersionId;
-        //        newNode.CheckOut();
-        //        var version2 = newNode.Version.ToString();
-        //        var versionId2 = newNode.VersionId;
-        //        var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+                // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    node.Description = "Description-MODIFIED";
+                    node.Version = VersionNumber.Parse(version1); // ApplySettings
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new[] { versionId2 };
+                    var expectedVersionId = versionId1;
+                    // Call low level API
+                    await CCDP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, expectedVersionId);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(newNode.Id);
-        //            node.Index++;
-        //            node.Description = "Description-MODIFIED";
-        //            node.Version = VersionNumber.Parse(version1); // ApplySettings
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            var versionData = nodeData.GetVersionData();
-        //            var dynamicData = nodeData.GetDynamicData(false);
-        //            var versionIdsToDelete = new[] { versionId2 };
-        //            var expectedVersionId = versionId1;
-        //            // Call low level API
-        //            await HDP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, expectedVersionId);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+                Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
+                Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
+        public async Task DP_Transaction_UpdateNodeHead()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var version1 = newNode.Version.ToString();
+                var versionId1 = newNode.VersionId;
+                newNode.CheckOut();
+                var version2 = newNode.Version.ToString();
+                var versionId2 = newNode.VersionId;
+                newNode.Index++;
+                newNode.Description = "Description-MODIFIED";
+                newNode.Save();
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+                string errorMessage = null;
 
-        //        // ASSERT (all operation need to be rolled back)
-        //        var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
-        //        Cache.Reset();
-        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
-        //        Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
-        //        Assert.AreEqual(version2, reloaded.Version.ToString());
-        //        Assert.AreEqual(versionId2, reloaded.VersionId);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_UpdateNodeHead()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        var newNode =
-        //            new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
-        //        newNode.Save();
-        //        var version1 = newNode.Version.ToString();
-        //        var versionId1 = newNode.VersionId;
-        //        newNode.CheckOut();
-        //        var version2 = newNode.Version.ToString();
-        //        var versionId2 = newNode.VersionId;
-        //        newNode.Index++;
-        //        newNode.Description = "Description-MODIFIED";
-        //        newNode.Save();
-        //        var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
+                // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new[] { versionId2 };
+                    var currentVersionId = newNode.VersionId;
+                    var expectedVersionId = versionId1;
+                    // Call low level API
+                    await CCDP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(newNode.Id);
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            var versionData = nodeData.GetVersionData();
-        //            var dynamicData = nodeData.GetDynamicData(false);
-        //            var versionIdsToDelete = new[] { versionId2 };
-        //            var currentVersionId = newNode.VersionId;
-        //            var expectedVersionId = versionId1;
-        //            // Call low level API
-        //            await HDP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete, CancellationToken.None);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
+                Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
+                Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
+        public async Task DP_Transaction_MoveNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // Create a small subtree
+                var rootName = Guid.NewGuid().ToString();
+                var root = new SystemFolder(Repository.Root) { Name = rootName }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                string errorMessage = null;
 
-        //        // ASSERT (all operation need to be rolled back)
-        //        var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
-        //        Cache.Reset();
-        //        var reloaded = Node.Load<SystemFolder>(newNode.Id);
-        //        Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
-        //        Assert.AreEqual(version2, reloaded.Version.ToString());
-        //        Assert.AreEqual(versionId2, reloaded.VersionId);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_MoveNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        // Create a small subtree
-        //        var rootName = Guid.NewGuid().ToString();
-        //        var root = new SystemFolder(Repository.Root) { Name = rootName }; root.Save();
-        //        var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-        //        var target = new SystemFolder(root) { Name = "Target" }; target.Save();
-        //        var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
-        //        var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
-        //        var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
-        //        var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    // Call low level API
+                    await CCDP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ACTION
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(source.Id);
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            // Call low level API
-        //            await HDP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
+                // ASSERT
+                Cache.Reset();
+                target = Node.Load<SystemFolder>(target.Id);
+                source = Node.Load<SystemFolder>(source.Id);
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual($"/Root/{rootName}", root.Path);
+                Assert.AreEqual($"/Root/{rootName}/Target", target.Path);
+                Assert.AreEqual($"/Root/{rootName}/Source", source.Path);
+                Assert.AreEqual($"/Root/{rootName}/Source/F1", f1.Path);
+                Assert.AreEqual($"/Root/{rootName}/Source/F2", f2.Path);
+                Assert.AreEqual($"/Root/{rootName}/Source/F1/F3", f3.Path);
+                Assert.AreEqual($"/Root/{rootName}/Source/F1/F4", f4.Path);
+            });
+        }
+        public async Task DP_Transaction_RenameNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var root = CreateFolder(Repository.Root, "F");
+                var f1 = CreateFolder(root, "F1");
+                var f11 = CreateFolder(f1, "F11");
+                var f12 = CreateFolder(f1, "F12");
+                var f2 = CreateFolder(root, "F2");
+                var f21 = CreateFolder(f2, "F21");
+                var f22 = CreateFolder(f2, "F22");
+                var expectedPaths = (new[] { f1, f11, f12, f2, f21, f22 })
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+                string errorMessage = null;
 
-        //        // ASSERT
-        //        Cache.Reset();
-        //        target = Node.Load<SystemFolder>(target.Id);
-        //        source = Node.Load<SystemFolder>(source.Id);
-        //        f1 = Node.Load<SystemFolder>(f1.Id);
-        //        f2 = Node.Load<SystemFolder>(f2.Id);
-        //        f3 = Node.Load<SystemFolder>(f3.Id);
-        //        f4 = Node.Load<SystemFolder>(f4.Id);
-        //        Assert.AreEqual($"/Root/{rootName}", root.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Target", target.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Source", source.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Source/F1", f1.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Source/F2", f2.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Source/F1/F3", f3.Path);
-        //        Assert.AreEqual($"/Root/{rootName}/Source/F1/F4", f4.Path);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_RenameNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        var root = CreateFolder(Repository.Root, "F");
-        //        var f1 = CreateFolder(root, "F1");
-        //        var f11 = CreateFolder(f1, "F11");
-        //        var f12 = CreateFolder(f1, "F12");
-        //        var f2 = CreateFolder(root, "F2");
-        //        var f21 = CreateFolder(f2, "F21");
-        //        var f22 = CreateFolder(f2, "F22");
-        //        var expectedPaths = (new[] { f1, f11, f12, f2, f21, f22 })
-        //            .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
-        //            .ToArray();
+                // ACTION: rename root
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var originalPath = node.Path;
+                    node.Name = "X";
+                    node.Data.Path = node.ParentPath + "/X"; // illegal operation but this test requires
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+                    // Call low level API
+                    await CCDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, originalPath);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ACTION: rename root
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(root.Id);
-        //            var originalPath = node.Path;
-        //            node.Name = "X";
-        //            node.Data.Path = node.ParentPath + "/X"; // illegal operation but this test requires
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            var versionData = nodeData.GetVersionData();
-        //            var dynamicData = nodeData.GetDynamicData(false);
-        //            var versionIdsToDelete = new int[0];
-        //            // Call low level API
-        //            await HDP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, CancellationToken.None, originalPath);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
 
-        //        // ASSERT (all operation need to be rolled back)
-        //        var paths = (new[] { f1, f11, f12, f2, f21, f22 })
-        //            .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
-        //            .ToArray();
-        //        AssertSequenceEqual(expectedPaths, paths);
-        //    });
-        //}
-        //[TestMethod]
-        //public async Task DP_Transaction_DeleteNode()
-        //{
-        //    await IntegrationTestAsync(async () =>
-        //    {
-        //        // Create a small subtree
-        //        var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Test root" };
-        //        root.Save();
-        //        var f1 = new SystemFolder(root) { Name = "F1", Description = "Folder-1" };
-        //        f1.Save();
-        //        var f2 = new File(root) { Name = "F2" };
-        //        f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-        //        f2.Save();
-        //        var f3 = new SystemFolder(f1) { Name = "F3" };
-        //        f3.Save();
-        //        var f4 = new File(root) { Name = "F4" };
-        //        f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-        //        f4.Save();
+                // ASSERT (all operation need to be rolled back)
+                var paths = (new[] { f1, f11, f12, f2, f21, f22 })
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+                AssertSequenceEqual(expectedPaths, paths);
+            });
+        }
+        public async Task DP_Transaction_DeleteNode()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Test root" };
+                root.Save();
+                var f1 = new SystemFolder(root) { Name = "F1", Description = "Folder-1" };
+                f1.Save();
+                var f2 = new File(root) { Name = "F2" };
+                f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" };
+                f3.Save();
+                var f4 = new File(root) { Name = "F4" };
+                f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f4.Save();
 
-        //        var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                string errorMessage = null;
 
-        //        // ACTION
-        //        try
-        //        {
-        //            var node = Node.Load<SystemFolder>(root.Id);
-        //            var nodeData = node.Data;
-        //            var nodeHeadData = nodeData.GetNodeHeadData();
-        //            // Call low level API
-        //            await HDP.DeleteNodeAsync(nodeHeadData, CancellationToken.None);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            // ignored
-        //            // hackedNodeHeadData threw an exception when Timestamp's setter was called.
-        //        }
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    // Call low level API
+                    await CCDP.DeleteNodeAsync(nodeHeadData, CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    while (e.InnerException != null)
+                        e = e.InnerException;
+                    errorMessage = e.Message;
+                }
 
-        //        // ASSERT
-        //        Assert.IsNotNull(Node.Load<SystemFolder>(root.Id));
-        //        Assert.IsNotNull(Node.Load<SystemFolder>(f1.Id));
-        //        Assert.IsNotNull(Node.Load<File>(f2.Id));
-        //        Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
-        //        Assert.IsNotNull(Node.Load<File>(f4.Id));
-        //        var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
-        //        Assert.AreEqual(countsBefore, countsAfter);
-        //    });
-        //}
+                // ASSERT (special error was thrown)
+                Assert.AreEqual("This transaction cannot commit anything.", errorMessage);
 
-        //#region Tools for Transactions
-        //private static MsSqlDataProvider HDP => new CannotCommitDataProvider();
-
-        //private class CannotCommitTransaction : TransactionWrapper
-        //{
-        //    public CannotCommitTransaction(DbTransaction transaction, DataOptions options, CancellationToken cancellationToken)
-        //        : base(transaction, options, cancellationToken) { }
-        //    public override void Commit()
-        //    {
-        //        throw new NotSupportedException("This transaction cannot commit anything.");
-        //    }
-        //}
-        //private class TestDataContext : MsSqlDataContext
-        //{
-        //    public TestDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken)
-        //        : base(connectionString, options, cancellationToken)
-        //    {
-
-        //    }
-        //    public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
-        //        CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
-        //    {
-        //        return new CannotCommitTransaction(underlyingTransaction, new DataOptions(), cancellationToken);
-        //    }
-        //}
-        //private class CannotCommitDataProvider : MsSqlDataProvider
-        //{
-        //    public override SnDataContext CreateDataContext(CancellationToken token)
-        //    {
-        //        return new TestDataContext(ConnectionStrings.ForStorageTests, new DataOptions(), token);
-        //    }
-        //}
-        //#endregion
+                // ASSERT
+                Assert.IsNotNull(Node.Load<SystemFolder>(root.Id));
+                Assert.IsNotNull(Node.Load<SystemFolder>(f1.Id));
+                Assert.IsNotNull(Node.Load<File>(f2.Id));
+                Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
+                Assert.IsNotNull(Node.Load<File>(f4.Id));
+                var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                Assert.AreEqual(countsBefore, countsAfter);
+            });
+        }
 
         /* ================================================================================================== Schema */
 
