@@ -126,7 +126,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public Task IntT_InMem_DP_IA_UpdateRunningState() { return TestCase.DP_IA_UpdateRunningState(); }
         [TestMethod]
-        public Task IntT_InMem_DP_IA_RefreshLockTime() { return TestCase.DP_IA_DeleteFinished(); }
+        public Task IntT_InMem_DP_IA_RefreshLockTime() { return TestCase.DP_IA_RefreshLockTime(); }
         [TestMethod]
         public Task IntT_InMem_DP_IA_DeleteFinished() { return TestCase.DP_IA_DeleteFinished(); }
         [TestMethod]
