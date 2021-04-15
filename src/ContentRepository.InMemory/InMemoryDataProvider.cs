@@ -1543,6 +1543,7 @@ namespace SenseNet.ContentRepository.InMemory
                 if (schemaLock != DB.SchemaLock)
                     throw new DataException("Schema is locked by someone else.");
                 DB.SchemaLock = null;
+                DB.Schema.Timestamp++;
                 return STT.Task.FromResult(DB.Schema.Timestamp);
             }
         }

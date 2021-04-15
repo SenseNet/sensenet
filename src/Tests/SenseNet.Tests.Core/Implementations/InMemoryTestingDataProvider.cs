@@ -454,7 +454,8 @@ namespace SenseNet.Tests.Core.Implementations
 
         public Task EnsureOneUnlockedSchemaLockAsync()
         {
-            throw new NotImplementedException();
+            //DB.SchemaLock = Guid.NewGuid().ToString();
+            return Task.CompletedTask;
         }
 
         private DataCollection<SharedLockDoc> GetSharedLocks()
