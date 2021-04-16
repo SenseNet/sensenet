@@ -2,8 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
+    <Version>1.1.0</Version>
+    <Authors>kavics,tusmester</Authors>
+    <Company>Sense/Net Inc.</Company>
+    <Copyright>Copyright © Sense/Net Inc.</Copyright>
+    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sensenet csp content repository test unittest</PackageTags>
+    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Product>sensenet Test Core</Product>
+    <Description>Helper library for writing tests of sensenet ContentRepository under MSTest platform.</Description>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
