@@ -26,10 +26,15 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemoryDataProvider : DataProvider
     {
         // ReSharper disable once InconsistentNaming
-        public InMemoryDataBase DB { get; } = new InMemoryDataBase();
+        public InMemoryDataBase DB { get; }
 
         //TODO: [DIBLOB] get these services through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
+        public InMemoryDataProvider()
+        {
+            DB = new InMemoryDataBase();
+        }
         
         /* =============================================================================================== Nodes */
 
@@ -274,6 +279,8 @@ namespace SenseNet.ContentRepository.InMemory
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
                 }
                 catch (Exception e)
                 {
@@ -1312,20 +1319,28 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult(result.ToArray());
         }
 
-        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory,
+            int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var skipFinished = waitingActivityIds == null || waitingActivityIds.Length == 0;
             var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
             lock (DB.IndexingActivities)
             {
-                var finishedActivitiyIds = DB.IndexingActivities
-                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x => x.IndexingActivityId)
-                    .ToArray();
+                var finishedActivityIds = skipFinished
+                    ? DB.IndexingActivities
+                        .Where(x => x.RunningState == IndexingActivityRunningState.Done)
+                        .Select(x => x.IndexingActivityId)
+                        .ToArray()
+                    : DB.IndexingActivities
+                        .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) &&
+                                    x.RunningState == IndexingActivityRunningState.Done)
+                        .Select(x => x.IndexingActivityId)
+                        .ToArray();
                 return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
                 {
                     Activities = activities,
-                    FinishedActivitiyIds = finishedActivitiyIds
+                    FinishedActivitiyIds = skipFinished ? new int[0] : finishedActivityIds
                 });
             }
         }
@@ -1528,6 +1543,7 @@ namespace SenseNet.ContentRepository.InMemory
                 if (schemaLock != DB.SchemaLock)
                     throw new DataException("Schema is locked by someone else.");
                 DB.SchemaLock = null;
+                DB.Schema.Timestamp++;
                 return STT.Task.FromResult(DB.Schema.Timestamp);
             }
         }
@@ -1616,8 +1632,8 @@ namespace SenseNet.ContentRepository.InMemory
                     ? DB.Nodes
                         .Where(n => n.Path == path || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))
                     : DB.Nodes
-                        .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-                        .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
+                        .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                        //.SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
 
                 var result = collection
                     .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))

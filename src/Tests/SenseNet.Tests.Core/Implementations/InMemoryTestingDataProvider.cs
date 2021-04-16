@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -174,6 +175,15 @@ namespace SenseNet.Tests.Core.Implementations
                 typeNode.Properties.Add(fieldName);
         }
 
+        public Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId)
+        {
+            var result = DB.Nodes
+                .Where(x => x.ParentNodeId == parentNodeId)
+                .Select(x => x.NodeId)
+                .ToArray();
+            return Task.FromResult(result);
+        }
+
         public Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
         {
             lock (DB)
@@ -302,6 +312,46 @@ namespace SenseNet.Tests.Core.Implementations
             }
         }
 
+        public Task<long> GetAllFileSize()
+        {
+            var result = DB.Files.Sum(f => f.Size);
+            return Task.FromResult(result);
+        }
+        public async Task<long> GetAllFileSizeInSubtree(string path)
+        {
+            var nodeIds = DB.Nodes
+                .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                .Select(n => n.NodeId)
+                .ToArray();
+            return await GetFileSizesByNodeIds(nodeIds);
+        }
+        public async Task<long> GetFileSize(string path)
+        {
+            var nodeId = DB.Nodes.FirstOrDefault(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))?.NodeId ?? 0;
+            if (nodeId == 0)
+                return 0L;
+            return await GetFileSizesByNodeIds(new[] {nodeId});
+        }
+        private Task<long> GetFileSizesByNodeIds(int[] nodeIds)
+        {
+            //var nodeId = DB.Nodes.First(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).NodeId;
+
+            var versionIds = DB.Versions
+                .Where(v => nodeIds.Contains(v.NodeId))
+                .Select(v => v.VersionId)
+                .ToArray();
+            var fileIds = DB.BinaryProperties
+                .Where(b => versionIds.Contains(b.VersionId))
+                .Select(b => b.FileId)
+                .ToArray();
+            var result = DB.Files
+                .Where(f => fileIds.Contains(f.FileId))
+                .Sum(f => f.Size);
+
+            return Task.FromResult(result);
+        }
+
+
         public Task<object> GetPropertyValueAsync(int versionId, string name)
         {
             var blobStorage = Providers.Instance.BlobStorage;
@@ -322,7 +372,7 @@ namespace SenseNet.Tests.Core.Implementations
                             break;
                         case DataType.Reference:
                             result = DB.ReferenceProperties
-                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value.ToArray();
                             break;
                         case DataType.Text:
                             result = DB.LongTextProperties
@@ -404,7 +454,8 @@ namespace SenseNet.Tests.Core.Implementations
 
         public Task EnsureOneUnlockedSchemaLockAsync()
         {
-            throw new NotImplementedException();
+            //DB.SchemaLock = Guid.NewGuid().ToString();
+            return Task.CompletedTask;
         }
 
         private DataCollection<SharedLockDoc> GetSharedLocks()
@@ -421,6 +472,31 @@ namespace SenseNet.Tests.Core.Implementations
             var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
             sharedLockRow.CreationDate = value;
         }
+
+        public DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider)
+        {
+            var inMemDp = (InMemoryDataProvider) mainDataProvider;
+            inMemDp.DB.TransactionFactory = new InMemoryCannotCommitTransactionFactory();
+            return inMemDp;
+        }
+        #region CreateCannotCommitDataProvider classes
+        private class InMemoryCannotCommitTransactionFactory : ITransactionFactory
+        {
+            public InMemoryTransaction CreateTransaction(InMemoryDataBase db)
+            {
+                return new InMemoryCannotCommitTransaction(db);
+            }
+        }
+
+        public class InMemoryCannotCommitTransaction : InMemoryTransaction
+        {
+            public InMemoryCannotCommitTransaction(InMemoryDataBase db) : base(db) { }
+            public override void Commit()
+            {
+                throw new NotSupportedException("This transaction cannot commit anything.");
+            }
+        }
+        #endregion
 
         public virtual string TestMethodThatIsNotInterfaceMember(string input)
         {

@@ -24,11 +24,16 @@ namespace SenseNet.Tests.Core.Implementations
         void SetContentHandler(string contentTypeName, string handler);
         void AddField(string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null);
 
+        Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId);
         Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId);
         Task<VersionData> GetVersionDataAsync(int versionId);
         Task<int> GetBinaryPropertyCountAsync(string path);
         Task<int> GetFileCountAsync(string path);
         Task<int> GetLongTextCountAsync(string path);
+
+        Task<long> GetAllFileSize();
+        Task<long> GetAllFileSizeInSubtree(string path);
+        Task<long> GetFileSize(string path);
 
         Task<object> GetPropertyValueAsync(int versionId, string name);
         Task UpdateDynamicPropertyAsync(int versionId, string name, object value);
@@ -40,5 +45,7 @@ namespace SenseNet.Tests.Core.Implementations
 
         DateTime GetSharedLockCreationDate(int nodeId);
         void SetSharedLockCreationDate(int nodeId, DateTime value);
+
+        DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider);
     }
 }

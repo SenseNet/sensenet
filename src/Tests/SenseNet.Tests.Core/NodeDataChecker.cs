@@ -60,7 +60,7 @@ namespace SenseNet.Tests.Core
                     case DataType.Binary:
                         break;
                     case DataType.Reference:
-                        Assert_AreEqual((IEnumerable<int>)expectedValue, (IEnumerable<int>)actualValue, $"ReferenceProperty '{propertyType.Name}'");
+                        Assert_AreEqual((IEnumerable<int>)expectedValue, (IEnumerable<int>)actualValue ?? new int[0], $"ReferenceProperty '{propertyType.Name}'");
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

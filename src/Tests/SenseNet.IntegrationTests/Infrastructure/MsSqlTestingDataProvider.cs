@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -121,6 +124,29 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
             throw new NotImplementedException();
         }
 
+        public async Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId)
+        {
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                return await ctx.ExecuteReaderAsync(
+                    "SELECT * FROM Nodes WHERE ParentNodeId = @ParentNodeId",
+                    cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, parentNodeId)
+                        });
+                    },
+                    async (reader, cancel) =>
+                    {
+                        var result = new List<int>();
+                        while (await reader.ReadAsync(cancel))
+                            result.Add(reader.GetSafeInt32(0));
+                        return result.Count == 0 ? null : result.ToArray();
+                    });
+            }
+        }
+
         public async Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
         {
             using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
@@ -214,6 +240,35 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
         {
             using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
                 return (int)await ctx.ExecuteScalarAsync("SELECT COUNT (1) FROM LongTextProperties NOLOCK", cmd => { });
+        }
+
+        public async Task<long> GetAllFileSize()
+        {
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync("SELECT SUM(Size) FROM Files");
+        }
+        public async Task<long> GetAllFileSizeInSubtree(string path)
+        {
+            var sql = @$"SELECT SUM(Size) FROM Files f
+    JOIN BinaryProperties b ON b.FileId = f.FileId
+    JOIN Versions v ON v.VersionId = b.VersionId
+    JOIN Nodes n on n.NodeId = v.NodeId
+WHERE Path LIKE '{path}%'";
+
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync(sql);
+        }
+        public async Task<long> GetFileSize(string path)
+        {
+            var sql = $@"SELECT SUM(Size) FROM Files f
+    JOIN BinaryProperties b ON b.FileId = f.FileId
+    JOIN Versions v ON v.VersionId = b.VersionId
+    JOIN Nodes n on n.NodeId = v.NodeId
+WHERE Path = '{path}'";
+
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                return (long)await ctx.ExecuteScalarAsync(sql);
+
         }
 
         public async Task<object> GetPropertyValueAsync(int versionId, string name)
@@ -409,6 +464,47 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
                 }).GetAwaiter().GetResult();
             }
         }
+
+        public DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider)
+        {
+            return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
+        }
+        #region MsSqlCannotCommitDataProvider classes
+        private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
+        {
+            private readonly string _connectionString;
+            public MsSqlCannotCommitDataProvider(string connectionString)
+            {
+                _connectionString = connectionString;
+            }
+            public override SnDataContext CreateDataContext(CancellationToken token)
+            {
+                return new MsSqlCannotCommitDataContext(_connectionString, new DataOptions(), token);
+            }
+        }
+        private class MsSqlCannotCommitDataContext : MsSqlDataContext
+        {
+            public MsSqlCannotCommitDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken)
+                : base(connectionString, options, cancellationToken)
+            {
+
+            }
+            public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+                CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
+            {
+                return new MsSqlCannotCommitTransaction(underlyingTransaction, new DataOptions(), cancellationToken);
+            }
+        }
+        private class MsSqlCannotCommitTransaction : TransactionWrapper
+        {
+            public MsSqlCannotCommitTransaction(DbTransaction transaction, DataOptions options, CancellationToken cancellationToken)
+                : base(transaction, options, cancellationToken) { }
+            public override void Commit()
+            {
+                throw new NotSupportedException("This transaction cannot commit anything.");
+            }
+        }
+        #endregion
 
         public async Task ClearIndexingActivitiesAsync()
         {

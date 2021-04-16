@@ -18,6 +18,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public interface IPlatform
     {
         RepositoryBuilder CreateRepositoryBuilder();
+        void OnAfterRepositoryStart(RepositoryInstance repository);
     }
     public abstract class Platform : IPlatform
     {
@@ -60,6 +61,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public virtual void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder) { }
         public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
+        public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider();
         public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
