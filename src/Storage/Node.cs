@@ -3567,11 +3567,20 @@ namespace SenseNet.ContentRepository.Storage
             targetNode.AssertLock();
             sourceNode.MoveTo(targetNode);
         }
+
         /// <summary>
         /// Moves the <see cref="Node"/> instance to another location. The new location is a <see cref="Node"/> instance 
         /// that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void MoveTo(Node target)
+        {
+            MoveTo(target, false);
+        }
+        public virtual void MoveToTrash(Node target)
+        {
+            MoveTo(target, true);
+        }
+        private void MoveTo(Node target, bool toTrash)
         {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
@@ -3606,12 +3615,24 @@ namespace SenseNet.ContentRepository.Storage
                 IDictionary<string, object> customData;
                 using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
-                    var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                     ContentProtector.AssertIsDeletable(this.Path);
-                    FireOnMoving(args);
-                    if (args.Cancel)
-                        throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
-                    customData = args.GetCustomData();
+
+                    CancellableNodeEventArgs cancellableEventArgs;
+                    if (toTrash)
+                    {
+                        cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Deleting);
+                        FireOnDeleting(cancellableEventArgs);
+                    }
+                    else
+                    {
+                        var eventArgs = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
+                        cancellableEventArgs = eventArgs;
+                        FireOnMoving(eventArgs);
+                    }
+
+                    if (cancellableEventArgs.Cancel)
+                        throw new CancelNodeEventException(cancellableEventArgs.CancelMessage, cancellableEventArgs.EventType, this);
+                    customData = cancellableEventArgs.GetCustomData();
 
                     var pathToInvalidate = String.Concat(this.Path, "/");
 
@@ -3664,7 +3685,10 @@ namespace SenseNet.ContentRepository.Storage
 
                 SnLog.WriteAudit(AuditEvent.ContentMoved, GetLoggerPropertiesAfterMove(new object[] { this, originalPath, targetPath }));
 
-                FireOnMoved(target, customData, originalPath);
+                if(toTrash)
+                    FireOnDeleted(customData);
+                else
+                    FireOnMoved(target, customData, originalPath);
 
                 audit.Successful = true;
             }
