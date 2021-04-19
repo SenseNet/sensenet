@@ -3530,8 +3530,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        #region // ================================================================================================= Move methods
-
         //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
@@ -3548,6 +3546,10 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataStore.LoadChildTypesToAllowAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult();
         }
+
+        #region // ================================================================================================= Move methods
+
+        private enum MoveOption { Regular, ToTrash, FromTrash }
 
         /// <summary>
         /// Moves the <see cref="Node"/> identified by the source path to another location. 
@@ -3574,14 +3576,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void MoveTo(Node target)
         {
-            MoveTo(target, false);
-        }
-        public virtual void MoveToTrash(Node target)
-        {
-            MoveTo(target, true);
-        }
-        private void MoveTo(Node target, bool toTrash)
-        {
+            var moveOption = GetMoveOption(this, target);
+
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
             this.AssertLock();
@@ -3618,16 +3614,21 @@ namespace SenseNet.ContentRepository.Storage
                     ContentProtector.AssertIsDeletable(this.Path);
 
                     CancellableNodeEventArgs cancellableEventArgs;
-                    if (toTrash)
+
+                    switch (moveOption)
                     {
-                        cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Deleting);
-                        FireOnDeleting(cancellableEventArgs);
-                    }
-                    else
-                    {
-                        var eventArgs = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
-                        cancellableEventArgs = eventArgs;
-                        FireOnMoving(eventArgs);
+                        case MoveOption.FromTrash:
+                        case MoveOption.Regular:
+                            var eventArgs = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
+                            cancellableEventArgs = eventArgs;
+                            FireOnMoving(eventArgs);
+                            break;
+                        case MoveOption.ToTrash:
+                            cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Deleting);
+                            FireOnDeleting(cancellableEventArgs);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
                     }
 
                     if (cancellableEventArgs.Cancel)
@@ -3685,13 +3686,34 @@ namespace SenseNet.ContentRepository.Storage
 
                 SnLog.WriteAudit(AuditEvent.ContentMoved, GetLoggerPropertiesAfterMove(new object[] { this, originalPath, targetPath }));
 
-                if(toTrash)
-                    FireOnDeleted(customData);
-                else
-                    FireOnMoved(target, customData, originalPath);
+                switch (moveOption)
+                {
+                    case MoveOption.FromTrash:
+                    case MoveOption.Regular:
+                        FireOnMoved(target, customData, originalPath);
+                        break;
+                    case MoveOption.ToTrash:
+                        FireOnDeleted(customData);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
+                }
 
                 audit.Successful = true;
             }
+        }
+
+        private static readonly string TrashPath = "/Root/Trash/TrashBag";
+        private MoveOption GetMoveOption(Node source, Node target)
+        {
+            var sourceIsInTrash = source.Path.StartsWith(TrashPath, StringComparison.OrdinalIgnoreCase);
+            var targetIsInTrash = target.Path.StartsWith(TrashPath, StringComparison.OrdinalIgnoreCase);
+
+            return sourceIsInTrash == targetIsInTrash
+                ? MoveOption.Regular
+                : sourceIsInTrash
+                    ? MoveOption.FromTrash
+                    : MoveOption.ToTrash;
         }
 
         /// <summary>

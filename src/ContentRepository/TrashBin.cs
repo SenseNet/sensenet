@@ -307,7 +307,7 @@ namespace SenseNet.ContentRepository
 
             try
             {
-                node.MoveToTrash(targetParent);
+                node.MoveTo(targetParent);
                 
                 AccessProvider.Current.SetCurrentUser(User.Administrator);
                 
