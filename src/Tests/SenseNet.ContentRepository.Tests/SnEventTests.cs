@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
@@ -132,262 +133,138 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         #endregion
+        # region private void EventProcessorTest(Action callback)
+        private void EventProcessorTest(string eventHeadInLog, string eventName, string cancellableEventName, Action align, Action action)
+        {
+            Test(builder =>
+            {
+                builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
+                builder.UseEventDistributor(new TestEventDistributor());
+                builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
+                builder.UseAsyncEventProcessors(new IEventProcessor[]
+                {
+                    new TestPushNotificationEventProcessor(),
+                    new TestWebHookEventProcessor(),
+                    new TestEmailSenderEventProcessor()
+                });
+            }, () =>
+            {
+                EnsureCleanTestSnTracer();
+
+                align();
+
+                // ACTION
+                using (var op = SnTrace.Test.StartOperation($"-------- TEST: NODE.{eventHeadInLog}"))
+                {
+                    action();
+                    op.Successful = true;
+                }
+
+                Thread.Sleep(300);
+
+                // ASSERT
+                var tracer = GetTestTracer();
+                var lines = tracer.Log.Where(x => x != null && x.Contains("\tTest\t"))
+                    .Select(x =>
+                    {
+                        var fields = x.Split('\t');
+                        return $"{fields[6],-6} {fields[8]}";
+                    })
+                    //.SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE.DELETE"))
+                    .ToList();
+
+                if (!((EventDistributor)Providers.Instance.EventDistributor).IsFeatureEnabled(0))
+                    Assert.Inconclusive();
+
+                // All cancellable event, and state need to exist in the log for all NodeObserver types
+                foreach (var @event in new[] { cancellableEventName })
+                {
+                    foreach (var state in new[] { "Start", "End" })
+                    {
+                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
+                        {
+                            var line = lines.FirstOrDefault(x =>
+                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
+                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
+                        }
+                    }
+                }
+
+                // All not cancellable event, and state need to exist in the log for all types
+                foreach (var @event in new[] { eventName })
+                {
+                    foreach (var state in new[] { "Start", "End" })
+                    {
+                        foreach (var type in new[] {"TestPushNotificationEventProcessor",
+                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
+                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
+                        {
+                            var line = lines.FirstOrDefault(x =>
+                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
+                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
+                        }
+                    }
+                }
+
+                // Async processors finished after end of the test
+                var p0 = lines.IndexOf($"End    -------- TEST: NODE.{eventHeadInLog}");
+                var p1 = lines.IndexOf($"End    ProcessEvent TestEmailSenderEventProcessor {eventName}");
+                var p2 = lines.IndexOf($"End    ProcessEvent TestWebHookEventProcessor {eventName}");
+                var p3 = lines.IndexOf($"End    ProcessEvent TestPushNotificationEventProcessor {eventName}");
+                Assert.IsTrue(p0 > 0);
+                Assert.IsTrue(p1 > p0);
+                Assert.IsTrue(p2 > p0);
+                Assert.IsTrue(p3 > p0);
+            });
+        }
+        #endregion
 
         [TestMethod]
         public void Event_EventProcessor_1()
         {
-            Test(builder =>
-            {
-                builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
-                builder.UseEventDistributor(new TestEventDistributor());
-                builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
-                builder.UseAsyncEventProcessors(new IEventProcessor[]
+            Node node = null;
+            EventProcessorTest("SAVE", "NodeModifiedEvent", "NodeModifyingEvent",
+                () =>
                 {
-                    new TestPushNotificationEventProcessor(),
-                    new TestWebHookEventProcessor(),
-                    new TestEmailSenderEventProcessor()
-                });
-            }, () =>
-            {
-                EnsureCleanTestSnTracer();
-                var node = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
-                node.Save();
-
-                // ACTION
-                node.Index++;
-                using (var op = SnTrace.Test.StartOperation("-------- TEST: NODE.SAVE"))
-                {
+                    node = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
                     node.Save();
-                    op.Successful = true;
-                }
-
-                Thread.Sleep(2000);
-
-                // ASSERT
-                var tracer = GetTestTracer();
-                var lines = tracer.Log.Where(x => x != null && x.Contains("\tTest\t"))
-                    .Select(x =>
-                    {
-                        var fields = x.Split('\t');
-                        return $"{fields[6],-6} {fields[8]}";
-                    })
-                    .SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE.SAVE"))
-                    .ToList();
-
-                if(!((EventDistributor)Providers.Instance.EventDistributor).IsFeatureEnabled(0))
-                    Assert.Inconclusive();
-
-                // All cancellable event, and state need to exist in the log for all NodeObserver types
-                foreach (var @event in new[] { "NodeModifyingEvent"/*, "NodeModifiedEvent"*/ })
+                },
+                () =>
                 {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2",
-                            "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // All not cancellable event, and state need to exist in the log for all types
-                foreach (var @event in new[] { /*"NodeModifyingEvent", */"NodeModifiedEvent" })
-                {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"TestPushNotificationEventProcessor",
-                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
-                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // Async processors finished after end of the test
-                var p0 = lines.IndexOf("End    -------- TEST: NODE.SAVE");
-                var p1 = lines.IndexOf("End    ProcessEvent TestEmailSenderEventProcessor NodeModifiedEvent");
-                var p2 = lines.IndexOf("End    ProcessEvent TestWebHookEventProcessor NodeModifiedEvent");
-                var p3 = lines.IndexOf("End    ProcessEvent TestPushNotificationEventProcessor NodeModifiedEvent");
-                Assert.IsTrue(p0 > 0);
-                Assert.IsTrue(p1 > p0);
-                Assert.IsTrue(p2 > p0);
-                Assert.IsTrue(p3 > p0);
-            });
+                    node.Index++;
+                    node.Save();
+                });
         }
         [TestMethod]
         public void Event_EventProcessor_Delete()
         {
-            Test(builder =>
-            {
-                builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
-                builder.UseEventDistributor(new TestEventDistributor());
-                builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
-                builder.UseAsyncEventProcessors(new IEventProcessor[]
+            Node node = null;
+            EventProcessorTest("DELETE", "NodeDeletedEvent", "NodeDeletingEvent",
+                () =>
                 {
-                    new TestPushNotificationEventProcessor(),
-                    new TestWebHookEventProcessor(),
-                    new TestEmailSenderEventProcessor()
-                });
-            }, () =>
-            {
-                EnsureCleanTestSnTracer();
-                var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                node.Save();
-
-                // ACTION
-                using (var op = SnTrace.Test.StartOperation("-------- TEST: NODE.DELETE"))
+                    node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                    node.Save();
+                },
+                () =>
                 {
                     node.Delete();
-                    op.Successful = true;
-                }
-
-                Thread.Sleep(2000);
-
-                // ASSERT
-                var tracer = GetTestTracer();
-                var lines = tracer.Log.Where(x => x != null && x.Contains("\tTest\t"))
-                    .Select(x =>
-                    {
-                        var fields = x.Split('\t');
-                        return $"{fields[6],-6} {fields[8]}";
-                    })
-                    //.SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE.DELETE"))
-                    .ToList();
-
-                if (!((EventDistributor)Providers.Instance.EventDistributor).IsFeatureEnabled(0))
-                    Assert.Inconclusive();
-
-                // All cancellable event, and state need to exist in the log for all NodeObserver types
-                foreach (var @event in new[] { "NodeDeletingEvent" })
-                {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2",
-                            "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // All not cancellable event, and state need to exist in the log for all types
-                foreach (var @event in new[] { "NodeDeletedEvent" })
-                {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"TestPushNotificationEventProcessor",
-                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
-                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // Async processors finished after end of the test
-                var p0 = lines.IndexOf("End    -------- TEST: NODE.DELETE");
-                var p1 = lines.IndexOf("End    ProcessEvent TestEmailSenderEventProcessor NodeDeletedEvent");
-                var p2 = lines.IndexOf("End    ProcessEvent TestWebHookEventProcessor NodeDeletedEvent");
-                var p3 = lines.IndexOf("End    ProcessEvent TestPushNotificationEventProcessor NodeDeletedEvent");
-                Assert.IsTrue(p0 > 0);
-                Assert.IsTrue(p1 > p0);
-                Assert.IsTrue(p2 > p0);
-                Assert.IsTrue(p3 > p0);
-            });
+                });
         }
         [TestMethod]
         public void Event_EventProcessor_ForceDelete()
         {
-            Test(builder =>
-            {
-                builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
-                builder.UseEventDistributor(new TestEventDistributor());
-                builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
-                builder.UseAsyncEventProcessors(new IEventProcessor[]
+            Node node = null;
+            EventProcessorTest("FORCED-DELETE", "NodeForcedDeletedEvent", "NodeForcedDeletingEvent",
+                () =>
                 {
-                    new TestPushNotificationEventProcessor(),
-                    new TestWebHookEventProcessor(),
-                    new TestEmailSenderEventProcessor()
-                });
-            }, () =>
-            {
-                EnsureCleanTestSnTracer();
-                var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                node.Save();
-
-                // ACTION
-                using (var op = SnTrace.Test.StartOperation("-------- TEST: NODE.FORCED-DELETE"))
+                    node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                    node.Save();
+                },
+                () =>
                 {
                     node.ForceDelete();
-                    op.Successful = true;
-                }
-
-                Thread.Sleep(2000);
-
-                // ASSERT
-                var tracer = GetTestTracer();
-                var lines = tracer.Log.Where(x => x != null && x.Contains("\tTest\t"))
-                    .Select(x =>
-                    {
-                        var fields = x.Split('\t');
-                        return $"{fields[6],-6} {fields[8]}";
-                    })
-                    //.SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE.DELETE"))
-                    .ToList();
-
-                if (!((EventDistributor)Providers.Instance.EventDistributor).IsFeatureEnabled(0))
-                    Assert.Inconclusive();
-
-                // All cancellable event, and state need to exist in the log for all NodeObserver types
-                foreach (var @event in new[] { "NodeForcedDeletingEvent" })
-                {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2",
-                            "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // All not cancellable event, and state need to exist in the log for all types
-                foreach (var @event in new[] { "NodeForcedDeletedEvent" })
-                {
-                    foreach (var state in new[] { "Start", "End" })
-                    {
-                        foreach (var type in new[] {"TestPushNotificationEventProcessor",
-                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
-                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
-                        {
-                            var line = lines.FirstOrDefault(x =>
-                                x.Contains(state) && x.Contains(@event) && x.Contains(type));
-                            Assert.IsNotNull(line, $"Missing line {state}, {@event}, {type}");
-                        }
-                    }
-                }
-
-                // Async processors finished after end of the test
-                var p0 = lines.IndexOf("End    -------- TEST: NODE.FORCED-DELETE");
-                var p1 = lines.IndexOf("End    ProcessEvent TestEmailSenderEventProcessor NodeForcedDeletedEvent");
-                var p2 = lines.IndexOf("End    ProcessEvent TestWebHookEventProcessor NodeForcedDeletedEvent");
-                var p3 = lines.IndexOf("End    ProcessEvent TestPushNotificationEventProcessor NodeForcedDeletedEvent");
-                Assert.IsTrue(p0 > 0);
-                Assert.IsTrue(p1 > p0);
-                Assert.IsTrue(p2 > p0);
-                Assert.IsTrue(p3 > p0);
-            });
+                });
         }
+
     }
 }
