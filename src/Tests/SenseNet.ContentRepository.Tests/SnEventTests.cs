@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
         # region private void EventProcessorTest(Action callback)
-        private void EventProcessorTest(string eventHeadInLog, string eventName, string cancellableEventName, Action align, Action action)
+        private void EventProcessorTest(string eventHeadInLog, string eventName, string cancellableEventName, bool testAsynchrony, Action align, Action action)
         {
             Test(builder =>
             {
@@ -206,6 +206,9 @@ namespace SenseNet.ContentRepository.Tests
                     }
                 }
 
+                if (!testAsynchrony)
+                    return;
+
                 // Async processors finished after end of the test
                 var p0 = lines.IndexOf($"End    -------- TEST: NODE.{eventHeadInLog}");
                 var p1 = lines.IndexOf($"End    ProcessEvent TestEmailSenderEventProcessor {eventName}");
@@ -223,7 +226,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Event_EventProcessor_1()
         {
             Node node = null;
-            EventProcessorTest("SAVE", "NodeModifiedEvent", "NodeModifyingEvent",
+            EventProcessorTest("SAVE", "NodeModifiedEvent", "NodeModifyingEvent", true,
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
@@ -239,7 +242,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Event_EventProcessor_Delete()
         {
             Node node = null;
-            EventProcessorTest("DELETE", "NodeDeletedEvent", "NodeDeletingEvent",
+            EventProcessorTest("DELETE", "NodeDeletedEvent", "NodeDeletingEvent", false,
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
@@ -254,7 +257,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Event_EventProcessor_ForceDelete()
         {
             Node node = null;
-            EventProcessorTest("FORCED-DELETE", "NodeForcedDeletedEvent", "NodeForcedDeletingEvent",
+            EventProcessorTest("FORCED-DELETE", "NodeForcedDeletedEvent", "NodeForcedDeletingEvent", false,
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
@@ -263,6 +266,24 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     node.ForceDelete();
+                });
+        }
+        [TestMethod]
+        public void Event_EventProcessor_Restore()
+        {
+            TrashBag trashBag = null;
+            EventProcessorTest("RESTORE", "NodeRestoredEvent", "NodeRestoringEvent", false,
+                () =>
+                {
+                    var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                    node.Save();
+                    node.Delete();
+
+                    trashBag = (TrashBag)Node.Load<TrashBin>("/Root/Trash").Children.First();
+                },
+                () =>
+                {
+                    TrashBin.Restore(trashBag);
                 });
         }
 

@@ -171,6 +171,16 @@ namespace SenseNet.ContentRepository.Storage.Events
             InvokeEventHandlers<NodeEventArgs>(Deleted, sender, e);
             FireNodeEvent(disabledObservers, observer => { observer.OnNodeDeleted(sender, e); });
         }
+        public static void FireOnNodeRestoring(CancellableNodeEventHandler Restoring, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
+        {
+            InvokeCancelEventHandlers(Restoring, sender, e);
+            FireNodeEvent(disabledObservers, observer => { observer.OnNodeRestoring(sender, e); });
+        }
+        public static void FireOnNodeRestored(EventHandler<NodeEventArgs> Restored, Node sender, NodeEventArgs e, List<Type> disabledObservers)
+        {
+            InvokeEventHandlers<NodeEventArgs>(Restored, sender, e);
+            FireNodeEvent(disabledObservers, observer => { observer.OnNodeRestored(sender, e); });
+        }
         internal static void FireOnNodeDeletingPhysically(CancellableNodeEventHandler DeletingPhysically, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(DeletingPhysically, sender, e);
@@ -246,6 +256,8 @@ namespace SenseNet.ContentRepository.Storage.Events
         protected internal virtual void OnNodeModified(object sender, NodeEventArgs e) { }
         protected internal virtual void OnNodeDeleting(object sender, CancellableNodeEventArgs e) { }
         protected internal virtual void OnNodeDeleted(object sender, NodeEventArgs e) { }
+        protected internal virtual void OnNodeRestoring(object sender, CancellableNodeEventArgs e) { }
+        protected internal virtual void OnNodeRestored(object sender, NodeEventArgs e) { }
         protected internal virtual void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e) { }
         protected internal virtual void OnNodeDeletedPhysically(object sender, NodeEventArgs e) { }
         protected internal virtual void OnNodeMoving(object sender, CancellableNodeOperationEventArgs e) { }

@@ -19,6 +19,7 @@
         public static readonly AuditEvent LockTakenOver = new AuditEvent("LockTakenOver", 11009);
         public static readonly AuditEvent ContentMoved = new AuditEvent("ContentMoved", 11010);
         public static readonly AuditEvent ContentCopied = new AuditEvent("ContentCopied", 11011);
+        public static readonly AuditEvent ContentRestored = new AuditEvent("ContentRestored", 11012);
 
         public AuditEvent(string auditCategory, int eventId)
             : this(auditCategory, eventId, auditCategory, auditCategory)

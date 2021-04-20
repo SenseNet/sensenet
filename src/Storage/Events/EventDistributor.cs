@@ -29,7 +29,7 @@ namespace SenseNet.Events
 
     public class EventDistributor : IEventDistributor
     {
-        private bool __isFeatureEnabled = false;
+        private bool __isFeatureEnabled = true;
         internal bool IsFeatureEnabled(int id)
         {
             //TODO: remove master switch after porting node observers to the SnEvent infrastructure

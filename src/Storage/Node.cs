@@ -3617,7 +3617,6 @@ namespace SenseNet.ContentRepository.Storage
 
                     switch (moveOption)
                     {
-                        case MoveOption.FromTrash:
                         case MoveOption.Regular:
                             var eventArgs = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                             cancellableEventArgs = eventArgs;
@@ -3626,6 +3625,10 @@ namespace SenseNet.ContentRepository.Storage
                         case MoveOption.ToTrash:
                             cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Deleting);
                             FireOnDeleting(cancellableEventArgs);
+                            break;
+                        case MoveOption.FromTrash:
+                            cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Restoring);
+                            FireOnRestoring(cancellableEventArgs);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
@@ -3688,12 +3691,14 @@ namespace SenseNet.ContentRepository.Storage
 
                 switch (moveOption)
                 {
-                    case MoveOption.FromTrash:
                     case MoveOption.Regular:
                         FireOnMoved(target, customData, originalPath);
                         break;
                     case MoveOption.ToTrash:
                         FireOnDeleted(customData);
+                        break;
+                    case MoveOption.FromTrash:
+                        FireOnRestored(customData);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
@@ -4511,6 +4516,14 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public event EventHandler<NodeEventArgs> Deleted;
         /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is restored from the temporarily deleted state.
+        /// </summary>
+        public event CancellableNodeEventHandler Restoring;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is restored from the temporarily deleted state.
+        /// </summary>
+        public event EventHandler<NodeEventArgs> Restored;
+        /// <summary>
         /// Occurs before this <see cref="Node"/> instance is deleted physically.
         /// </summary>
         public event CancellableNodeEventHandler DeletingPhysically;
@@ -4621,6 +4634,28 @@ namespace SenseNet.ContentRepository.Storage
             EventDistributor.FireNodeObserverEventAsync(new NodeDeletedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
+        private void FireOnRestoring(CancellableNodeEventArgs e)
+        {
+            OnRestoring(this, e);
+            if (e.Cancel)
+                return;
+            NodeObserver.FireOnNodeRestoring(Restoring, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeRestoringEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
+        }
+        private void FireOnRestored(IDictionary<string, object> customData)
+        {
+            NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Restored, customData);
+            OnRestored(this, e);
+            NodeObserver.FireOnNodeRestored(Restored, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeRestoredEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
         private void FireOnDeletingPhysically(CancellableNodeEventArgs e)
         {
             OnDeletingPhysically(this, e);
@@ -4717,6 +4752,16 @@ namespace SenseNet.ContentRepository.Storage
         /// Raises the <see cref="Deleted"/> event.
         /// </summary>
         protected virtual void OnDeleted(object sender, NodeEventArgs e) { }
+
+        /// <summary>
+        /// Raises the <see cref="Restoring"/> event.
+        /// </summary>
+        protected virtual void OnRestoring(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Restored"/> event.
+        /// </summary>
+        protected virtual void OnRestored(object sender, NodeEventArgs e) { }
+
         /// <summary>
         /// Raises the <see cref="DeletingPhysically"/> event.
         /// </summary>
