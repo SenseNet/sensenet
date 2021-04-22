@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\WebHooks.Common\SenseNet.WebHooks.Common.csproj" />
   </ItemGroup>

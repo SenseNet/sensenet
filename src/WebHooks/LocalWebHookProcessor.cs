@@ -12,12 +12,25 @@ using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.WebHooks
 {
+    internal interface IWebHookEventProcessor : IEventProcessor
+    {
+        /// <summary>
+        /// Test method for firing a webhook directly.
+        /// </summary>
+        /// <param name="subscription">The webhook instance to fire.</param>
+        /// <param name="eventType">Event type</param>
+        /// <param name="node">Related content.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task FireWebHookAsync(WebHookSubscription subscription, WebHookEventType eventType, Node node, CancellationToken cancel);
+    }
+
     /// <summary>
     /// Event processor implementation for sending webhooks. Gets relevant subscriptions
     /// for an event from the configured subscription store and sends requests using
     /// the configured webhook client.
     /// </summary>
-    public class LocalWebHookProcessor : IEventProcessor
+    public class LocalWebHookProcessor : IWebHookEventProcessor
     {
         private readonly ILogger<LocalWebHookProcessor> _logger;
         private readonly IWebHookClient _webHookClient;
@@ -61,6 +74,12 @@ namespace SenseNet.WebHooks
             //TODO: handle responses: webhook statistics implementation
 
             await sendingTasks.WhenAll().ConfigureAwait(false);
+        }
+
+        public Task FireWebHookAsync(WebHookSubscription subscription, WebHookEventType eventType, Node node, CancellationToken cancel)
+        {
+            return _webHookClient.SendAsync(subscription.Url, subscription.HttpMethod,
+                GetPayload(subscription, eventType, node, null), subscription.HttpHeaders, cancel);
         }
 
         private object GetPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node,
