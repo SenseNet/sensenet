@@ -1036,7 +1036,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT
                 var fileLength = fileContent.Length + 3; // + 3 byte BOM
-                Assert.AreEqual(2 * fileLength, folderSize);
+                Assert.AreEqual(0, folderSize);
                 Assert.AreEqual(5 * fileLength, treeSize);
             });
         }
