@@ -2931,14 +2931,14 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: finish normally (clears the record)
-                var unused1 = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
+                timestampBefore = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
 
                 // ASSERT: start update is allowed again
                 @lock = await DP.StartSchemaUpdateAsync(timestampBefore, CancellationToken.None);
                 // cleanup
                 var timestampAfter = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
-                // Bonus assert: there is no any changes (deleting record does not change the timestamp)
-                Assert.AreEqual(timestampBefore, timestampAfter);
+                // Bonus assert: change detection
+                Assert.AreNotEqual(timestampBefore, timestampAfter);
             });
         }
 
