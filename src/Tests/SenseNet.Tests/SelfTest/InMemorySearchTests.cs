@@ -22,7 +22,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.SelfTest
 {
-    [TestClass]
+    //[TestClass]
     public class InMemorySearchTests : TestBase
     {
         [TestMethod, TestCategory("IR")]

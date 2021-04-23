@@ -13,7 +13,7 @@ using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.SelfTest
 {
-    [TestClass]
+    //[TestClass]
     public class InMemoryDataProviderTests : TestBase
     {
         [TestMethod]
