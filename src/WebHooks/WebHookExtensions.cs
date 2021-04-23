@@ -23,6 +23,10 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IEventProcessor, LocalWebHookProcessor>();
             services.AddSingleton<IWebHookSubscriptionStore, BuiltInWebHookSubscriptionStore>();
 
+            // add the same processor instance as an IWebHookEventProcessor service (forwarding)
+            services.AddSingleton(providers => 
+                providers.GetServices<IEventProcessor>().FirstOrDefault(p => p is IWebHookEventProcessor) as IWebHookEventProcessor);
+
             return services;
         }
 
