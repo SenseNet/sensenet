@@ -1543,7 +1543,7 @@ namespace SenseNet.ContentRepository.InMemory
                 if (schemaLock != DB.SchemaLock)
                     throw new DataException("Schema is locked by someone else.");
                 DB.SchemaLock = null;
-                DB.Schema.Timestamp++;
+                // Do not increment (DB.Schema.Timestamp++;) because the CreateSchemaWriter modifies the timestamp.
                 return STT.Task.FromResult(DB.Schema.Timestamp);
             }
         }
