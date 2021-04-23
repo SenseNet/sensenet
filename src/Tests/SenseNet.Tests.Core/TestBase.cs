@@ -246,6 +246,10 @@ namespace SenseNet.Tests.Core
         {
             return string.Join(",", array.Select(x => x.ToString()));
         }
+        protected string ArrayToString(IEnumerable<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
         protected string ArrayToString(IEnumerable<object> array)
         {
             return string.Join(",", array.Select(x => x.ToString()));

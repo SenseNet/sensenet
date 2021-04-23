@@ -370,7 +370,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(42, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
                     Assert.AreEqual(42.56m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
                     Assert.AreEqual(new DateTime(1111, 11, 11), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((IEnumerable<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-2 UPDATE-1
                     node = Node.Load<GenericContent>(node.Id);
@@ -389,7 +389,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
                     Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
                     Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual($"{root.Id}", ArrayToString((IEnumerable<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-3 UPDATE-2
                     node = Node.Load<GenericContent>(node.Id);
