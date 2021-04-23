@@ -26,9 +26,9 @@
           <Path>/Root/IMS</Path>
         </SelectionRoot>
         <DefaultValue>/Root/IMS/BuiltIn/Portal/Admin</DefaultValue>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="InheritableVersioningMode" type="InheritableVersioningMode">
