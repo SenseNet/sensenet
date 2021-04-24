@@ -75,9 +75,6 @@ namespace SenseNet.Tests.Core
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            Providers.Instance.NodeTypeManeger = null;
             Providers.Instance.ResetBlobProviders();
 
             OnTestInitialize();
@@ -89,7 +86,7 @@ namespace SenseNet.Tests.Core
             Indexing.IsOuterSearchEngineEnabled = true;
 
             Cache.Reset();
-            ContentTypeManager.Reset();
+            ResetContentTypeManager();
 
             OnBeforeRepositoryStart(builder);
 
@@ -97,6 +94,7 @@ namespace SenseNet.Tests.Core
             {
                 PrepareRepository();
 
+                User.Current = User.Administrator;
                 if (useCurrentUser)
                     callback();
                 else
@@ -105,6 +103,12 @@ namespace SenseNet.Tests.Core
             }
 
             OnAfterRepositoryShutdown();
+        }
+
+        private void ResetContentTypeManager()
+        {
+            var acc = new TypeAccessor(typeof(ContentTypeManager));
+            acc.InvokeStatic("ResetPrivate");
         }
 
         protected virtual void OnTestInitialize() { }
@@ -131,16 +135,20 @@ namespace SenseNet.Tests.Core
         }
         private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            Providers.Instance.Components.Clear();
             Providers.Instance.ResetBlobProviders();
+
+            OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
 
             using (Repository.Start(builder))
             {
