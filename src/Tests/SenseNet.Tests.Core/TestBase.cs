@@ -246,7 +246,13 @@ namespace SenseNet.Tests.Core
             await tasks.WhenAll();
         }
 
-
+        protected string ArrayToString(int[] array, bool sort = false)
+        {
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
+        }
         protected string ArrayToString(IEnumerable<object> array, bool sort = false)
         {
             var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
