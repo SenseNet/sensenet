@@ -170,105 +170,8 @@ namespace SenseNet.ODataTests
     #endregion
 
     [TestClass]
-    public class ODataTestBase
+    public class ODataTestBase : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public void InitializeTest()
-        {
-            //// workaround for having a half-started repository
-            //if (RepositoryInstance.Started())
-            //    RepositoryInstance.Shutdown();
-            TestContext.StartTest();
-        }
-
-        [TestCleanup]
-        public void CleanupTest()
-        {
-            TestContext.FinishTestTest();
-        }
-
-        #region Infrastructure
-
-        private static RepositoryInstance _repository;
-
-        protected static RepositoryBuilder CreateRepositoryBuilder()
-        {
-            Providers.Instance.ResetBlobProviders();
-
-            var dataProvider = new InMemoryDataProvider();
-
-            return new RepositoryBuilder()
-                .UseAccessProvider(new DesktopAccessProvider())
-                .UseDataProvider(dataProvider)
-                .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .StartWorkflowEngine(false)
-                //.DisableNodeObservers()
-                //.EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
-        }
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
-        {
-            return new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                    {
-                        Id = x.Id,
-                        OwnerId = x.OwnerId,
-                        ParentId = x.ParentId,
-                        IsInherited = true,
-                        HasExplicitEntry = x.Id == 2
-                    }),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
-        }
-
-        private static InitialData _initialData;
-        protected static InitialData GetInitialData()
-        {
-            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance, null));
-        }
-
-        private static InMemoryIndex _initialIndex;
-        protected static InMemoryIndex GetInitialIndex()
-        {
-            var index = new InMemoryIndex();
-            index.Load(new StringReader(InMemoryTestIndex.Index));
-            _initialIndex = index;
-            return _initialIndex;
-        }
-
-        [ClassCleanup]
-        public void CleanupClass()
-        {
-            _repository?.Dispose();
-        }
-        #endregion
-
         protected void ODataTest(Action callback)
         {
             ODataTestAsync(null, null, () =>
@@ -339,45 +242,39 @@ namespace SenseNet.ODataTests
 
         private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback, bool reused)
         {
+            Providers.Instance.ResetBlobProviders();
+
+            OnTestInitialize();
+
+            var builder = base.CreateRepositoryBuilderForTestInstance(); //CreateRepositoryBuilder();
+
+            //UNDONE:<?:   do not call discovery and providers setting in the static ctor of ODataMiddleware
+            var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
+            OperationCenter.Operations.Clear();
+            OperationCenter.Discover();
+            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
+
+            initialize?.Invoke(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
             Cache.Reset();
+            ResetContentTypeManager();
 
-            if (!reused || _repository == null)
+            using (var repo = Repository.Start(builder))
             {
-                _repository?.Dispose();
-                _repository = null;
-
-                var repoBuilder = CreateRepositoryBuilder();
-                if (initialize != null)
-                    initialize(repoBuilder);
-
-                Indexing.IsOuterSearchEngineEnabled = true;
-                _repository = Repository.Start(repoBuilder);
-            }
-
-            if (user == null)
-            {
-                using (new SystemAccount())
-                    await callback().ConfigureAwait(false);
-            }
-            else
-            {
-                IUser backup = null;
-                try
+                User.Current = user ?? User.Administrator;
+                if (user == null)
                 {
-                    backup = User.Current;
+                    User.Current = User.Administrator;
+                    using (new SystemAccount())
+                        await callback().ConfigureAwait(false);
+                }
+                else
+                {
                     User.Current = user;
                     await callback().ConfigureAwait(false);
                 }
-                finally
-                {
-                    User.Current = backup;
-                }
-            }
-
-            if (!reused)
-            {
-                _repository?.Dispose();
-                _repository = null;
             }
         }
 
@@ -476,49 +373,6 @@ namespace SenseNet.ODataTests
             return cquery;
         }
 
-        protected static readonly string CarContentType = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='Car' parentType='ListItem' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
-  <DisplayName>Car,DisplayName</DisplayName>
-  <Description>Car,Description</Description>
-  <Icon>Car</Icon>
-  <AllowIncrementalNaming>true</AllowIncrementalNaming>
-  <Fields>
-    <Field name='Name' type='ShortText'/>
-    <Field name='Make' type='ShortText'/>
-    <Field name='Model' type='ShortText'/>
-    <Field name='Style' type='Choice'>
-      <Configuration>
-        <AllowMultiple>false</AllowMultiple>
-        <AllowExtraValue>true</AllowExtraValue>
-        <Options>
-          <Option value='Sedan' selected='true'>Sedan</Option>
-          <Option value='Coupe'>Coupe</Option>
-          <Option value='Cabrio'>Cabrio</Option>
-          <Option value='Roadster'>Roadster</Option>
-          <Option value='SUV'>SUV</Option>
-          <Option value='Van'>Van</Option>
-        </Options>
-      </Configuration>
-    </Field>
-    <Field name='StartingDate' type='DateTime'/>
-    <Field name='Color' type='Color'>
-      <Configuration>
-        <DefaultValue>#ff0000</DefaultValue>
-        <Palette>#ff0000;#f0d0c9;#e2a293;#d4735e;#65281a</Palette>
-      </Configuration>
-    </Field>
-    <Field name='EngineSize' type='ShortText'/>
-    <Field name='Power' type='ShortText'/>
-    <Field name='Price' type='Number'/>
-    <Field name='Description' type='LongText'/>
-  </Fields>
-</ContentType>
-";
-        protected static void InstallCarContentType()
-        {
-            ContentTypeInstaller.InstallContentType(CarContentType);
-        }
-
         protected static void EnsureManagerOfAdmin()
         {
             Cache.Reset();
@@ -548,7 +402,6 @@ namespace SenseNet.ODataTests
             content.Save();
         }
 
-
         protected static Workspace CreateWorkspace(string name = null)
         {
             var workspaces = Node.LoadNode("/Root/Workspaces");
@@ -577,7 +430,6 @@ namespace SenseNet.ODataTests
             systemFolder.Save();
             return systemFolder;
         }
-
 
         protected static JObject GetObject(ODataResponse response)
         {
@@ -709,42 +561,6 @@ namespace SenseNet.ODataTests
                 .Replace("\n", "")
                 .Replace("\t", "")
                 .Replace(" ", "");
-        }
-
-        protected string ArrayToString(int[] array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(List<int> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(IEnumerable<object> array, bool sort = false)
-        {
-            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
-            if (sort)
-                strings = strings.OrderBy(x => x);
-            return string.Join(",", strings);
-        }
-        protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
-        {
-            var e = string.Join(", ", expected.Select(x => x.ToString()));
-            var a = string.Join(", ", actual.Select(x => x.ToString()));
-            Assert.AreEqual(e, a);
-        }
-
-        protected class CurrentUserBlock : IDisposable
-        {
-            private readonly IUser _backup;
-            public CurrentUserBlock(IUser user)
-            {
-                _backup = User.Current;
-                User.Current = user;
-            }
-            public void Dispose()
-            {
-                User.Current = _backup;
-            }
         }
 
         protected class AllowPermissionBlock : IDisposable

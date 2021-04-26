@@ -105,7 +105,7 @@ namespace SenseNet.Tests.Core
             OnAfterRepositoryShutdown();
         }
 
-        private void ResetContentTypeManager()
+        protected void ResetContentTypeManager()
         {
             var acc = new TypeAccessor(typeof(ContentTypeManager));
             acc.InvokeStatic("ResetPrivate");
@@ -167,8 +167,8 @@ namespace SenseNet.Tests.Core
             var dataProvider = new InMemoryDataProvider();
 
             return new RepositoryBuilder()
-                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
@@ -246,21 +246,13 @@ namespace SenseNet.Tests.Core
             await tasks.WhenAll();
         }
 
-        protected string ArrayToString(int[] array)
+
+        protected string ArrayToString(IEnumerable<object> array, bool sort = false)
         {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(List<int> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(IEnumerable<int> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(IEnumerable<object> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
         }
 
         protected void RebuildIndex()
@@ -374,7 +366,6 @@ namespace SenseNet.Tests.Core
         {
             ContentTypeInstaller.InstallContentType(CarContentType);
         }
-
 
 
         protected void PrepareRepository()
