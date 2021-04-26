@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Storage.Events;
 
 namespace SenseNet.ContentRepository.i18n
 {
@@ -36,7 +33,14 @@ namespace SenseNet.ContentRepository.i18n
             }
         }
 
-        protected override void OnModified(object sender, Storage.Events.NodeEventArgs e)
+        protected override void OnCreated(object sender, NodeEventArgs e)
+        {
+            base.OnCreated(sender, e);
+
+            SenseNetResourceManager.Reset();
+        }
+
+        protected override void OnModified(object sender, NodeEventArgs e)
         {
             base.OnModified(sender, e);
 
