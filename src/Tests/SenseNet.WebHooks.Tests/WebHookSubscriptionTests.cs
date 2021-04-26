@@ -100,7 +100,7 @@ namespace SenseNet.WebHooks.Tests
     ""ContentTypes"": [ 
         {
             ""Name"": ""Folder"", 
-            ""Events"": [ ""Create"", ""Delete"" ] 
+            ""Events"": [ ""Create"", ""Delete"", ""MoveToTrash"", ""RestoreFromTrash"" ] 
         }
     ] 
 }");
@@ -110,10 +110,14 @@ namespace SenseNet.WebHooks.Tests
                     var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
                     var event2 = new TestEvent1(new TestNodeEventArgs(node1, NodeEvent.Created));
                     var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
+                    var event4 = new NodeDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.Deleted));
+                    var event5 = new NodeRestoredEvent(new TestNodeEventArgs(node1, NodeEvent.Restored));
 
                     Assert.AreEqual(WebHookEventType.Create, wh.GetRelevantEventTypes(event1).Single());
                     Assert.AreEqual(0, wh.GetRelevantEventTypes(event2).Length);
                     Assert.AreEqual(WebHookEventType.Delete, wh.GetRelevantEventTypes(event3).Single());
+                    Assert.AreEqual(WebHookEventType.MoveToTrash, wh.GetRelevantEventTypes(event4).Single());
+                    Assert.AreEqual(WebHookEventType.RestoreFromTrash, wh.GetRelevantEventTypes(event5).Single());
                 });
         }
         [TestMethod]

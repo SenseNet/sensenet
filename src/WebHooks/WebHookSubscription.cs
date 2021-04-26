@@ -145,10 +145,19 @@ namespace SenseNet.WebHooks
                 case NodeModifiedEvent _:
                     return CollectEvents(WebHookEventType.Modify);
                 case NodeForcedDeletedEvent _:
-                    // Delete means deleted permanently. Delete to Trash should be
-                    // a separate event in the future.
+                    // Delete permanently
                     if (selectedEvents.Contains(WebHookEventType.Delete))
                         return new[] { WebHookEventType.Delete };
+                    break;
+                case NodeDeletedEvent _:
+                    // Delete to Trash
+                    if (selectedEvents.Contains(WebHookEventType.MoveToTrash))
+                        return new[] { WebHookEventType.MoveToTrash };
+                    break;
+                case NodeRestoredEvent _:
+                    // Restored from Trash
+                    if (selectedEvents.Contains(WebHookEventType.RestoreFromTrash))
+                        return new[] { WebHookEventType.RestoreFromTrash };
                     break;
             }
 

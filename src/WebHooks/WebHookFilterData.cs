@@ -26,7 +26,9 @@ namespace SenseNet.WebHooks
         Reject,
         Draft,
         Pending,
-        CheckOut
+        CheckOut,
+        MoveToTrash,
+        RestoreFromTrash
     }
 
     public class ContentTypeFilterData
