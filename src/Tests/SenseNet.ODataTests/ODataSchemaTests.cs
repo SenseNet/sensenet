@@ -46,7 +46,7 @@ namespace SenseNet.ODataTests
             var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             var fieldName1 = "Field123456";
 
-            await IsolatedODataTestAsync(() =>
+            await ODataTestAsync(() =>
             {
                 var myType = ContentType.GetByName(contentTypeName);
                 Assert.IsNull(myType);

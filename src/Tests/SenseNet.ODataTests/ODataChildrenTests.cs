@@ -28,7 +28,7 @@ namespace SenseNet.ODataTests
         #region Infrastructure
         private async Task ODataChildrenTest(Func<Task> callback)
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 EnsureTestStructure();
                 await callback().ConfigureAwait(false);

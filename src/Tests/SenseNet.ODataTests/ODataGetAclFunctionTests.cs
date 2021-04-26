@@ -16,7 +16,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetAcl_InheritedAndLocalOnly()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
@@ -95,7 +95,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetAcl_InheritedCombined()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
@@ -156,7 +156,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetAcl_Break()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
@@ -229,7 +229,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetAcl_SeeOnlyIdentities()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
@@ -305,7 +305,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetAcl_InvisibleSource()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");

@@ -178,7 +178,7 @@ namespace SenseNet.ODataTests
             {
                 callback();
                 return Task.CompletedTask;
-            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         protected void ODataTest(IUser user, Action callback)
         {
@@ -186,61 +186,30 @@ namespace SenseNet.ODataTests
             {
                 callback();
                 return Task.CompletedTask;
-            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
-
         protected void ODataTest(Action<RepositoryBuilder> initialize, Action callback)
         {
             ODataTestAsync(null, initialize, () =>
             {
                 callback();
                 return Task.CompletedTask;
-            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         protected Task ODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, null, callback, true);
+            return ODataTestAsync(null, null, callback);
         }
         protected Task ODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, null, callback, true);
+            return ODataTestAsync(user, null, callback);
         }
-
-        protected void IsolatedODataTest(Action callback)
+        protected Task ODataTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
         {
-            IsolatedODataTestAsync(null, null, () =>
-            {
-                callback();
-                return Task.CompletedTask;
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            return ODataTestAsync(null, initialize, callback);
         }
-        protected void IsolatedODataTest(Action<RepositoryBuilder> initialize, Action callback)
-        {
-            IsolatedODataTestAsync(null, initialize, () =>
-            {
-                callback();
-                return Task.CompletedTask;
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        protected Task IsolatedODataTestAsync(Func<Task> callback)
-        {
-            return IsolatedODataTestAsync(null, null, callback);
-        }
-        protected Task IsolatedODataTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
-        {
-            return IsolatedODataTestAsync(null, initialize, callback);
-        }
-        protected Task IsolatedODataTestAsync(IUser user, Func<Task> callback)
-        {
-            return IsolatedODataTestAsync(user, null, callback);
-        }
-        protected Task IsolatedODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
-        {
-            return ODataTestAsync(user, initialize, callback, false);
-        }
-
-        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback, bool reused)
+        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
         {
             Providers.Instance.ResetBlobProviders();
 

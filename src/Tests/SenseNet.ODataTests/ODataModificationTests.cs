@@ -19,7 +19,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_PUT_Rename()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ALIGN
                 InstallCarContentType();
@@ -108,7 +108,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_PATCH_Rename()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ALIGN
                 InstallCarContentType();
@@ -192,7 +192,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_FIX_NameEncoding_CreateAndRename()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
@@ -224,7 +224,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_FIX_ModifyWithInvisibleParent()
         {
-            await IsolatedODataTestAsync(
+            await ODataTestAsync(
                 builder => { builder.AddAllTestPolicies(); },
                 async () =>
             {
@@ -279,7 +279,7 @@ namespace SenseNet.ODataTests
 
         private async Task ModifyingTest(string httpMethod, bool byId)
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 InstallCarContentType();

@@ -17,7 +17,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
@@ -50,7 +50,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_ShortenedResponse()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
@@ -77,7 +77,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_MissingParent()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ACTION 1: Create
                 var response = await ODataPostAsync(
@@ -93,7 +93,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_ExplicitType()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -122,7 +122,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_References()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 EnsureReferenceTestStructure(testRoot);
@@ -178,7 +178,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_UnderById()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
@@ -205,7 +205,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_ExplicitType_UnderById()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -231,7 +231,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_FromTemplate()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -263,7 +263,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_POST_Creation_FIX_InconsistentNameAfterCreation()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
