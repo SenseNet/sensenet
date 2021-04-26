@@ -75,9 +75,6 @@ namespace SenseNet.Tests.Core
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            Providers.Instance.NodeTypeManeger = null;
             Providers.Instance.ResetBlobProviders();
 
             OnTestInitialize();
@@ -89,7 +86,7 @@ namespace SenseNet.Tests.Core
             Indexing.IsOuterSearchEngineEnabled = true;
 
             Cache.Reset();
-            ContentTypeManager.Reset();
+            ResetContentTypeManager();
 
             OnBeforeRepositoryStart(builder);
 
@@ -97,6 +94,7 @@ namespace SenseNet.Tests.Core
             {
                 PrepareRepository();
 
+                User.Current = User.Administrator;
                 if (useCurrentUser)
                     callback();
                 else
@@ -105,6 +103,12 @@ namespace SenseNet.Tests.Core
             }
 
             OnAfterRepositoryShutdown();
+        }
+
+        protected void ResetContentTypeManager()
+        {
+            var acc = new TypeAccessor(typeof(ContentTypeManager));
+            acc.InvokeStatic("ResetPrivate");
         }
 
         protected virtual void OnTestInitialize() { }
@@ -131,16 +135,20 @@ namespace SenseNet.Tests.Core
         }
         private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            Providers.Instance.Components.Clear();
             Providers.Instance.ResetBlobProviders();
+
+            OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
 
             using (Repository.Start(builder))
             {
@@ -159,8 +167,8 @@ namespace SenseNet.Tests.Core
             var dataProvider = new InMemoryDataProvider();
 
             return new RepositoryBuilder()
-                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
@@ -238,21 +246,19 @@ namespace SenseNet.Tests.Core
             await tasks.WhenAll();
         }
 
-        protected string ArrayToString(int[] array)
+        protected string ArrayToString(int[] array, bool sort = false)
         {
-            return string.Join(",", array.Select(x => x.ToString()));
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
         }
-        protected string ArrayToString(List<int> array)
+        protected string ArrayToString(IEnumerable<object> array, bool sort = false)
         {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(IEnumerable<int> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        protected string ArrayToString(IEnumerable<object> array)
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
         }
 
         protected void RebuildIndex()
@@ -366,7 +372,6 @@ namespace SenseNet.Tests.Core
         {
             ContentTypeInstaller.InstallContentType(CarContentType);
         }
-
 
 
         protected void PrepareRepository()

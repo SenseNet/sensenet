@@ -8,20 +8,30 @@ using SenseNet.Portal.Virtualization;
 using SenseNet.Tests.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Threading;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Security;
+using SenseNet.Security.Data;
 using SenseNet.Services.Wopi;
 using SenseNet.Testing;
 using SenseNet.Tests.Core.Implementations;
+using File = SenseNet.ContentRepository.File;
+
 // ReSharper disable CoVariantArrayConversion
 
 namespace SenseNet.Services.Wopi.Tests
 {
     [TestClass]
-    public class SharedLockTests : TestBase
+    //UNDONE:<?: test: SharedLockTests class need to be inherited from TestBase
+    public class SharedLockTests //: TestBase
     {
         private ISharedLockDataProviderExtension GetDataProvider()
         {
@@ -734,5 +744,78 @@ namespace SenseNet.Services.Wopi.Tests
         {
             _wopiHandlerAcc.InvokeStatic("SaveFile", file, lockValue);
         }
+
+        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
+        {
+            var dataProvider = new InMemoryDataProvider();
+
+            return new RepositoryBuilder()
+                .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseInitialData(GetInitialData())
+                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .AddBlobProvider(new InMemoryBlobProvider())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .StartWorkflowEngine(false)
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(SettingsCache))
+                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+        }
+
+        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
+        {
+            return new MemoryDataProvider(new DatabaseStorage
+            {
+                Aces = new List<StoredAce>
+                {
+                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
+                },
+                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
+                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
+                    {
+                        Id = x.Id,
+                        OwnerId = x.OwnerId,
+                        ParentId = x.ParentId,
+                        IsInherited = true,
+                        HasExplicitEntry = x.Id == 2
+                    }),
+                Memberships = new List<Membership>
+                {
+                    new Membership
+                    {
+                        GroupId = Identifiers.AdministratorsGroupId,
+                        MemberId = Identifiers.AdministratorUserId,
+                        IsUser = true
+                    }
+                },
+                Messages = new List<Tuple<int, DateTime, byte[]>>()
+            });
+        }
+
+        private static InitialData _initialData;
+        protected static InitialData GetInitialData()
+        {
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance, null));
+        }
+
+        private static InMemoryIndex _initialIndex;
+        protected static InMemoryIndex GetInitialIndex()
+        {
+            if (_initialIndex == null)
+            {
+                var index = new InMemoryIndex();
+                index.Load(new StringReader(InMemoryTestIndex.Index));
+                _initialIndex = index;
+            }
+            return _initialIndex.Clone();
+        }
+
     }
 }

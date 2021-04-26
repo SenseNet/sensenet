@@ -12,7 +12,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_Entity()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 InstallCarContentType();
@@ -35,7 +35,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_Entity_Permanent()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 InstallCarContentType();
@@ -58,7 +58,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_Collection()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 InstallCarContentType();
@@ -111,7 +111,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_ById()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 InstallCarContentType();
@@ -135,7 +135,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_ByAction_DefaultParam()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 await DeleteByAction(string.Empty, false);
             }).ConfigureAwait(false);
@@ -143,7 +143,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_ByAction_Trash()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 await DeleteByAction("{ 'permanent': false }", false);
             }).ConfigureAwait(false);
@@ -151,7 +151,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_DELETE_ByAction_Permanent()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 await DeleteByAction("{ 'permanent': true }", true);
             }).ConfigureAwait(false);

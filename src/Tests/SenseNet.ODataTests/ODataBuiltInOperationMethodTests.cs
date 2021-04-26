@@ -225,7 +225,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_BuiltIn_TakeLockOver()
         {
-            IsolatedODataTest(() =>
+            ODataTest(() =>
             {
                 var systemFolderCtdId = ContentType.GetByName("SystemFolder").Id;
                 var user = CreateUser("xy@email.com");
@@ -259,7 +259,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_BuiltIn_TakeOwnership()
         {
-            IsolatedODataTest(() =>
+            ODataTest(() =>
             {
                 File file;
                 using (new CurrentUserBlock(User.Administrator))
