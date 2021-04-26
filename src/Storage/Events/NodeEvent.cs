@@ -14,7 +14,8 @@ namespace SenseNet.ContentRepository.Storage.Events
         Moved = 4,
         Copied = 5,
         PermissionChanged = 6,
-        Loaded = 7
+        Loaded = 7,
+        Restored = 8
     }
     public enum CancellableNodeEvent
     {
@@ -24,6 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         DeletingPhysically = 13,
         Moving = 14,
         Copying = 15,
-        PermissionChanging = 16
+        PermissionChanging = 16,
+        Restoring = 17
     }
 }

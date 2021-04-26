@@ -3530,8 +3530,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        #region // ================================================================================================= Move methods
-
         //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
@@ -3548,6 +3546,10 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataStore.LoadChildTypesToAllowAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult();
         }
+
+        #region // ================================================================================================= Move methods
+
+        private enum MoveOption { Regular, ToTrash, FromTrash }
 
         /// <summary>
         /// Moves the <see cref="Node"/> identified by the source path to another location. 
@@ -3567,12 +3569,15 @@ namespace SenseNet.ContentRepository.Storage
             targetNode.AssertLock();
             sourceNode.MoveTo(targetNode);
         }
+
         /// <summary>
         /// Moves the <see cref="Node"/> instance to another location. The new location is a <see cref="Node"/> instance 
         /// that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void MoveTo(Node target)
         {
+            var moveOption = GetMoveOption(this, target);
+
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
             this.AssertLock();
@@ -3606,12 +3611,32 @@ namespace SenseNet.ContentRepository.Storage
                 IDictionary<string, object> customData;
                 using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
-                    var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                     ContentProtector.AssertIsDeletable(this.Path);
-                    FireOnMoving(args);
-                    if (args.Cancel)
-                        throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
-                    customData = args.GetCustomData();
+
+                    CancellableNodeEventArgs cancellableEventArgs;
+
+                    switch (moveOption)
+                    {
+                        case MoveOption.Regular:
+                            var eventArgs = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
+                            cancellableEventArgs = eventArgs;
+                            FireOnMoving(eventArgs);
+                            break;
+                        case MoveOption.ToTrash:
+                            cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Deleting);
+                            FireOnDeleting(cancellableEventArgs);
+                            break;
+                        case MoveOption.FromTrash:
+                            cancellableEventArgs = new CancellableNodeEventArgs(target, CancellableNodeEvent.Restoring);
+                            FireOnRestoring(cancellableEventArgs);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
+                    }
+
+                    if (cancellableEventArgs.Cancel)
+                        throw new CancelNodeEventException(cancellableEventArgs.CancelMessage, cancellableEventArgs.EventType, this);
+                    customData = cancellableEventArgs.GetCustomData();
 
                     var pathToInvalidate = String.Concat(this.Path, "/");
 
@@ -3664,10 +3689,36 @@ namespace SenseNet.ContentRepository.Storage
 
                 SnLog.WriteAudit(AuditEvent.ContentMoved, GetLoggerPropertiesAfterMove(new object[] { this, originalPath, targetPath }));
 
-                FireOnMoved(target, customData, originalPath);
+                switch (moveOption)
+                {
+                    case MoveOption.Regular:
+                        FireOnMoved(target, customData, originalPath);
+                        break;
+                    case MoveOption.ToTrash:
+                        FireOnDeleted(customData);
+                        break;
+                    case MoveOption.FromTrash:
+                        FireOnRestored(customData);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(moveOption), moveOption, null);
+                }
 
                 audit.Successful = true;
             }
+        }
+
+        private static readonly string TrashPath = "/Root/Trash/TrashBag";
+        private MoveOption GetMoveOption(Node source, Node target)
+        {
+            var sourceIsInTrash = source.Path.StartsWith(TrashPath, StringComparison.OrdinalIgnoreCase);
+            var targetIsInTrash = target.Path.StartsWith(TrashPath, StringComparison.OrdinalIgnoreCase);
+
+            return sourceIsInTrash == targetIsInTrash
+                ? MoveOption.Regular
+                : sourceIsInTrash
+                    ? MoveOption.FromTrash
+                    : MoveOption.ToTrash;
         }
 
         /// <summary>
@@ -4465,6 +4516,14 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public event EventHandler<NodeEventArgs> Deleted;
         /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is restored from the temporarily deleted state.
+        /// </summary>
+        public event CancellableNodeEventHandler Restoring;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is restored from the temporarily deleted state.
+        /// </summary>
+        public event EventHandler<NodeEventArgs> Restored;
+        /// <summary>
         /// Occurs before this <see cref="Node"/> instance is deleted physically.
         /// </summary>
         public event CancellableNodeEventHandler DeletingPhysically;
@@ -4575,6 +4634,28 @@ namespace SenseNet.ContentRepository.Storage
             EventDistributor.FireNodeObserverEventAsync(new NodeDeletedEvent(e), _disabledObservers)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
+        private void FireOnRestoring(CancellableNodeEventArgs e)
+        {
+            OnRestoring(this, e);
+            if (e.Cancel)
+                return;
+            NodeObserver.FireOnNodeRestoring(Restoring, this, e, _disabledObservers);
+
+            var canceled = EventDistributor.FireCancellableNodeObserverEventAsync(
+                    new NodeRestoringEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (canceled)
+                e.Cancel = true;
+        }
+        private void FireOnRestored(IDictionary<string, object> customData)
+        {
+            NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Restored, customData);
+            OnRestored(this, e);
+            NodeObserver.FireOnNodeRestored(Restored, this, e, _disabledObservers);
+
+            EventDistributor.FireNodeObserverEventAsync(new NodeRestoredEvent(e), _disabledObservers)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
         private void FireOnDeletingPhysically(CancellableNodeEventArgs e)
         {
             OnDeletingPhysically(this, e);
@@ -4671,6 +4752,16 @@ namespace SenseNet.ContentRepository.Storage
         /// Raises the <see cref="Deleted"/> event.
         /// </summary>
         protected virtual void OnDeleted(object sender, NodeEventArgs e) { }
+
+        /// <summary>
+        /// Raises the <see cref="Restoring"/> event.
+        /// </summary>
+        protected virtual void OnRestoring(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Restored"/> event.
+        /// </summary>
+        protected virtual void OnRestored(object sender, NodeEventArgs e) { }
+
         /// <summary>
         /// Raises the <see cref="DeletingPhysically"/> event.
         /// </summary>
