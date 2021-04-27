@@ -183,6 +183,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
                 if (NeedToCreate<NodeType>(origSchema.NodeTypes, currentType))
                 {
+                    if (currentType.ClassName == null)
+                        throw new InvalidSchemaException("ClassName cannot be null. NodeType: " + currentType.Name);
                     writer.CreateNodeType(currentType.Parent, currentType.Name, currentType.ClassName);
                 }
                 else

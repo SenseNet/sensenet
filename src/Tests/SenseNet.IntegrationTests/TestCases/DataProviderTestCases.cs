@@ -16,11 +16,13 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Security;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using Task = System.Threading.Tasks.Task;
@@ -437,7 +439,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         public async Task DP_Move()
         {
-            await MoveTest(async (source, target) =>
+            await DpMoveTest(async (source, target) =>
             {
                 var sourceTimestampBefore = source.NodeTimestamp;
 
@@ -448,12 +450,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT
                 Assert.AreNotEqual(sourceTimestampBefore, srcNodeHeadData.Timestamp);
 
-                //There are further asserts in the caller. See the MoveTest method.
+                //There are further asserts in the caller. See the DpMoveTest method.
             });
         }
         public async Task DP_Move_DataStore_NodeHead()
         {
-            await MoveTest(async (source, target) =>
+            await DpMoveTest(async (source, target) =>
             {
                 var sourceTimestampBefore = source.NodeTimestamp;
 
@@ -464,12 +466,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT
                 Assert.AreNotEqual(sourceTimestampBefore, sourceNodeHead.Timestamp);
 
-                //There are further asserts in the caller. See the MoveTest method.
+                //There are further asserts in the caller. See the DpMoveTest method.
             });
         }
         public async Task DP_Move_DataStore_NodeData()
         {
-            await MoveTest(async (source, target) =>
+            await DpMoveTest(async (source, target) =>
             {
                 var sourceTimestampBefore = source.NodeTimestamp;
                 source.Index++; // ensure private source.Data
@@ -481,10 +483,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 // timestamp is changed because the source.Data is private
                 Assert.AreNotEqual(sourceTimestampBefore, source.NodeTimestamp);
 
-                //There are further asserts in the caller. See the MoveTest method.
+                //There are further asserts in the caller. See the DpMoveTest method.
             });
         }
-        private async Task MoveTest(Func<Node, Node, Task> callback)
+        private async Task DpMoveTest(Func<Node, Node, Task> callback)
         {
             await IntegrationTestAsync(async () =>
             {
@@ -2610,9 +2612,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreNotEqual(timestampBefore, timestampAfter);
             });
         }
-
-
-
 
         /* ================================================================================================== TOOLS */
 

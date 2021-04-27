@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
