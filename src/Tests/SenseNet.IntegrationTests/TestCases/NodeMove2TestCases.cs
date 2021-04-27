@@ -553,6 +553,8 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
+        /* ================================================================================= TOOLS */
+
         private void MoveTest(Action<SystemFolder> callback)
         {
             try
@@ -582,8 +584,6 @@ namespace SenseNet.IntegrationTests.TestCases
                 throw e.InnerException;
             }
         }
-
-        #region Tools for Move tests
 
         private void MoveNode(string encodedSourcePath, string encodedTargetPath, SystemFolder testRoot, bool clearTarget = false)
         {
@@ -753,7 +753,6 @@ namespace SenseNet.IntegrationTests.TestCases
             return (Aspect)aspectContent.ContentHandler;
         }
 
-        #region ListDefs
         private static readonly string _listDef1 = @"<?xml version='1.0' encoding='utf-8'?>
 <ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'>
 	<DisplayName>Cars title</DisplayName>
@@ -798,8 +797,5 @@ namespace SenseNet.IntegrationTests.TestCases
 	</Fields>
 </ContentListDefinition>
 ";
-        #endregion
-
-        #endregion
     }
 }
