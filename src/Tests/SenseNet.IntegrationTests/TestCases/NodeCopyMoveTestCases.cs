@@ -11,7 +11,6 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class NodeCopyMoveTestCases : TestCaseBase
     {
-        //UNDONE:<?IntT: Missing test cases for non ContentList data
         //UNDONE:<?IntT: Missing test cases for IsSystem flag
 
         /* ==================================================================================== TOOLS */
