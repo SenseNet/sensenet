@@ -13,7 +13,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_AllowedChildTypes_Post()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var root = CreateTestRoot();
 
@@ -53,7 +53,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_AllowedChildTypes_Patch()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var root = CreateTestRoot();
 

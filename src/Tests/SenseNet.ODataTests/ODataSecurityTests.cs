@@ -18,7 +18,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetPermissions_ACL()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 SnAclEditor.Create(new SnSecurityContext(User.Current))
                     .Allow(2, 1, false, PermissionType.Custom01)
@@ -51,7 +51,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_GetPermissions_ACE()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 SnAclEditor.Create(new SnSecurityContext(User.Current))
                     .Allow(2, Identifiers.AdministratorUserId, false, PermissionType.Custom01)
@@ -86,7 +86,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_Administrator()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 SecurityHandler.CreateAclEditor()
                     .Allow(Repository.Root.Id, Group.Administrators.Id, false, PermissionType.Open)
@@ -216,7 +216,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_SetPermissions()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -244,7 +244,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_SetPermissions_NotPropagates()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -281,7 +281,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_Break()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");

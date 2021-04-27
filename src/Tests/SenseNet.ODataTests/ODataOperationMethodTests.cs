@@ -1649,7 +1649,7 @@ namespace SenseNet.ODataTests
         {
             using (new PolicyStoreSwindler())
             {
-                IsolatedODataTest(builder =>
+                ODataTest(builder =>
                 {
                     OperationCenter.Policies.Clear();
 
@@ -2706,7 +2706,7 @@ namespace SenseNet.ODataTests
                 return operationNames;
             }
 
-            IsolatedODataTestAsync(() =>
+            ODataTestAsync(() =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -2803,7 +2803,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Actions_FilteredByPolicy()
         {
-            IsolatedODataTest(builder =>
+            ODataTest(builder =>
                 {
                     builder.AddAllTestPolicies();
                 },

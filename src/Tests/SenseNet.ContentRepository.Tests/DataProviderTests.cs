@@ -370,7 +370,8 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(42, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
                     Assert.AreEqual(42.56m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
                     Assert.AreEqual(new DateTime(1111, 11, 11), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}",
+                        ArrayToString((int[])await TDP.GetPropertyValueAsync(node.VersionId, "Reference1").ConfigureAwait(false)));
 
                     // ACTION-2 UPDATE-1
                     node = Node.Load<GenericContent>(node.Id);
@@ -389,7 +390,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
                     Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
                     Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual($"{root.Id}", ArrayToString((int[])await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-3 UPDATE-2
                     node = Node.Load<GenericContent>(node.Id);
@@ -1036,7 +1037,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT
                 var fileLength = fileContent.Length + 3; // + 3 byte BOM
-                Assert.AreEqual(2 * fileLength, folderSize);
+                Assert.AreEqual(0, folderSize);
                 Assert.AreEqual(5 * fileLength, treeSize);
             });
         }
@@ -2931,14 +2932,14 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: finish normally (clears the record)
-                var unused1 = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
+                timestampBefore = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
 
                 // ASSERT: start update is allowed again
                 @lock = await DP.StartSchemaUpdateAsync(timestampBefore, CancellationToken.None);
                 // cleanup
                 var timestampAfter = await DP.FinishSchemaUpdateAsync(@lock, CancellationToken.None);
-                // Bonus assert: there is no any changes (deleting record does not change the timestamp)
-                Assert.AreEqual(timestampBefore, timestampAfter);
+                // Bonus assert: change detection
+                Assert.AreNotEqual(timestampBefore, timestampAfter);
             });
         }
 

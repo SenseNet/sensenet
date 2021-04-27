@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -22,6 +23,7 @@ namespace SenseNet.Tests.Core
         }
         private static void StartTestPrivate(TestContext testContext)
         {
+            Providers.Instance = new Providers();
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =
                     SnTrace.Test.StartOperation($"TESTMETHOD: {testContext.FullyQualifiedTestClassName}.{testContext.TestName}" );

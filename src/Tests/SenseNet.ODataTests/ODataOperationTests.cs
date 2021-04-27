@@ -922,7 +922,7 @@ namespace SenseNet.ODataTests
             }
 
             // this needs to be isolated so that test content can be created freely
-            IsolatedODataTest(() =>
+            ODataTest(() =>
             {
                 // create at least one app with a scenario
                 var parentPath1 = "/Root/(apps)/GenericContent";

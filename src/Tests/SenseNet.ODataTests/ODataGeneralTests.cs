@@ -468,7 +468,7 @@ namespace SenseNet.ODataTests
         {
             //Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
 
@@ -521,7 +521,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_ContentQuery()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var folderName = "OData_ContentQuery";
                 InstallCarContentType();
@@ -574,7 +574,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_ContentQuery_Nested()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var managers = new User[3];
                 var resources = new User[9];
@@ -690,7 +690,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_AspectField_AspectNotFound()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var workspace = CreateWorkspace("Workspace1");
 
@@ -707,7 +707,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Select_AspectField()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var workspace = CreateWorkspace();
@@ -773,7 +773,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_AspectField()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var aspectName = "Aspect1";
@@ -824,7 +824,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_AspectField_FieldNotFound()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var aspectName = "Aspect1";
@@ -847,7 +847,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_AspectField_FieldNotFoundButAspectFound()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var aspectName = "Aspect1";
@@ -888,7 +888,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_ThroughReference()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -914,7 +914,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Filter_ThroughReference_TopSkip()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 // ARRANGE
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -964,7 +964,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Expand()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 //EnsureCleanAdministratorsGroup();
                 //var count = CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .COUNTONLY").Execute().Count;
@@ -1161,7 +1161,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_UserAvatarByRef()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1204,7 +1204,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_UserAvatarUpdateRef()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1253,7 +1253,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_UserAvatarUpdateRefByPath()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1303,7 +1303,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_UserAvatarByInnerData()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1349,7 +1349,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1502,7 +1502,7 @@ namespace SenseNet.ODataTests
         [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1383")]
         public async Task OD_GET_FIX_TypeIsFieldWhenContentTypeIsSeeOnly()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var container = Node.LoadNode("/Root/IMS/Public");
                 var user = new User(container) {Name = "user1", Enabled = true, Email = "user1@example.com"};
@@ -1557,7 +1557,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_SnJsonConverterTest_SimpleProjection()
         {
-            await IsolatedODataTestAsync(() =>
+            await ODataTestAsync(() =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -1589,7 +1589,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_SnJsonConverterTest_WithExpand()
         {
-            await IsolatedODataTestAsync(() =>
+            await ODataTestAsync(() =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -1627,7 +1627,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_GET_Urls_CurrentSite()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 var site = CreateWorkspace();
                 var siteParentPath = RepositoryPath.GetParentPath(site.Path);
@@ -1655,7 +1655,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_SortingByMappedDateTimeAspectField()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
@@ -1811,7 +1811,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_FIX_DoNotUrlDecodeTheRequestStream()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -1835,7 +1835,7 @@ namespace SenseNet.ODataTests
         {
             //Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");
 
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -1862,7 +1862,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_FIX_Copy_RightExceptionIfTargetExists()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
