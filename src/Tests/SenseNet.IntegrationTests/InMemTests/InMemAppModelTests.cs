@@ -9,8 +9,8 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemAppModelTests : IntegrationTest<InMemPlatform, AppModelTestCases>
     {
         [TestMethod]
-        public void IntT_InMem_AppModel_ResolveFromPredefinedPaths_First() { TestCase.AppModel_ResolveFromPredefinedPaths_First(); }
+        public void IntT_InMem_AppModel_ResolveFromPredefinedPaths_First() { Assert.Inconclusive(); TestCase.AppModel_ResolveFromPredefinedPaths_First(); }
         [TestMethod]
-        public void IntT_InMem_AppModel_ResolveFromPredefinedPaths_All() { TestCase.AppModel_ResolveFromPredefinedPaths_All(); }
+        public void IntT_InMem_AppModel_ResolveFromPredefinedPaths_All() { Assert.Inconclusive(); TestCase.AppModel_ResolveFromPredefinedPaths_All(); }
     }
 }
