@@ -3576,10 +3576,10 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void MoveTo(Node target)
         {
-            var moveOption = GetMoveOption(this, target);
-
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
+
+            var moveOption = GetMoveOption(this, target);
             this.AssertLock();
             AssertMoving(target);
 
