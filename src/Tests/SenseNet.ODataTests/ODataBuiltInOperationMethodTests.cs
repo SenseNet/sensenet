@@ -62,12 +62,12 @@ namespace SenseNet.ODataTests
                         new ReleaseInfo
                         {
                             ProductName = "Product1", DisplayName = "Product 1",
-                            Version = new Version(1, 2), ReleaseData = DateTime.Today.AddDays(-2.0)
+                            Version = new Version(1, 2), ReleaseDate = DateTime.Today.AddDays(-2.0)
                         },
                         new ReleaseInfo
                         {
                             ProductName = "Product2", DisplayName = "Product 2",
-                            Version = new Version(2, 3), ReleaseData = DateTime.Today.AddDays(-1.0)
+                            Version = new Version(2, 3), ReleaseDate = DateTime.Today.AddDays(-1.0)
                         },
                     },
                     new Dictionary<string, Version>

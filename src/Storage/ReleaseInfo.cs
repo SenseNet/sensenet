@@ -9,7 +9,7 @@ namespace SenseNet.Storage
         public string ProductName { get; set; }
         public string DisplayName { get; set; }
         public Version Version { get; set; }
-        public DateTime ReleaseData { get; set; }
+        public DateTime ReleaseDate { get; set; }
     }
 
 }
