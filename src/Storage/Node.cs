@@ -1414,7 +1414,18 @@ namespace SenseNet.ContentRepository.Storage
             else
             {
                 var visibleItems = nodeList.GetIdentifiers()
-                    .Where(nodeId => SecurityHandler.HasPermission(user, nodeId, PermissionType.See));
+                    .Where(nodeId =>
+                    {
+                        try
+                        {
+                            return SecurityHandler.HasPermission(user, nodeId, PermissionType.See);
+                        }
+                        catch (EntityNotFoundException)
+                        {
+                            // If user is deleted, remove her id from the list.
+                            return true;
+                        }
+                    });
                 foreach (var id in visibleItems)
                     nodeList.Remove(id);
             }
