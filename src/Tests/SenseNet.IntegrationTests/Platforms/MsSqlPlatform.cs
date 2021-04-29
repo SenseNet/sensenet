@@ -61,7 +61,8 @@ namespace SenseNet.IntegrationTests.Platforms
             //TODO: get services and options from outside
             return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
                 Options.Create(DataOptions.GetLegacyConfiguration()),
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
+                Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {

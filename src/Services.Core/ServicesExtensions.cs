@@ -33,6 +33,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="configuration">The main app configuration instance.</param>
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
+            // set the current app configuration as the global configuration for sensenet legacy config classes
+            SnConfig.Instance = configuration;
+
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
@@ -51,7 +54,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 options.SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString;
                 options.SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString;
             });
-            
+
             return services;
         }
 
