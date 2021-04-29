@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SenseNet.Configuration
@@ -56,6 +57,44 @@ namespace SenseNet.Configuration
             return string.IsNullOrEmpty(configValue)
                 ? defaultValue ?? ConnectionString 
                 : configValue;
+        }
+    }
+
+    public class ConnectionStringOptions
+    {
+        private string _securityDatabase;
+        private string _signalRDatabase;
+
+        //TODO: [DIREF] remove legacy configuration when upper layers are ready.
+        /// <summary>
+        /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
+        /// </summary>
+        /// <returns>A new instance of ConnectionStringOptions filled with static configuration values.</returns>
+        [Obsolete]
+        public static ConnectionStringOptions GetLegacyConnectionStrings()
+        {
+            return new ConnectionStringOptions
+            {
+                ConnectionString = ConnectionStrings.ConnectionString,
+                SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString,
+                SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString
+            };
+        }
+
+        //UNDONE: find a proper name for connection string properties
+        // Maybe: Repository, Security, SignalR?
+        public string ConnectionString { get; set; }
+
+        public string SecurityDatabase
+        {
+            get => _securityDatabase ?? ConnectionString;
+            set => _securityDatabase = value;
+        }
+
+        public string SignalRDatabase
+        {
+            get => _signalRDatabase ?? ConnectionString;
+            set => _signalRDatabase = value;
         }
     }
 }
