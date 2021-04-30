@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Security;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
@@ -33,6 +34,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="configuration">The main app configuration instance.</param>
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
+            // set the current app configuration as the global configuration for the legacy SnConfig api
+            services.SetSenseNetConfiguration(configuration);
+
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
@@ -109,6 +113,10 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.PropertyCollector = new EventPropertyCollector();
 
 #pragma warning restore 618
+
+            var securityDataProvider = provider.GetService<ISecurityDataProvider>();
+            if (securityDataProvider != null)
+                Providers.Instance.SecurityDataProvider = securityDataProvider;
 
             return provider;
         }
