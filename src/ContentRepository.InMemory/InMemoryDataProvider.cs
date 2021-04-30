@@ -434,6 +434,7 @@ namespace SenseNet.ContentRepository.InMemory
                             .Where(l => versionIds.Contains(l.VersionId))
                             .Select(l => l.LongTextPropertyId)
                             .ToArray();
+                        //UNDONE:<? Check behavior by this script: DELETE ReferenceProperties WHERE (VersionId IN (SELECT VersionId FROM @VID)) OR (ReferredNodeId IN(SELECT NodeId FROM @NIDpartition))
                         var refPropIds = DB.ReferenceProperties
                             .Where(l => versionIds.Contains(l.VersionId))
                             .Select(l => l.ReferencePropertyId)

@@ -727,7 +727,11 @@ namespace SenseNet.OData
                                 }
 
                                 var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
-                                var nodes = refValues.Select(rv => rv.Type == JTokenType.Integer ? Node.LoadNode(Convert.ToInt32(rv.ToString())) : Node.LoadNode(rv.ToString()));
+                                var nodes = refValues
+                                    .Select(rv => rv.Type == JTokenType.Integer
+                                        ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
+                                        : Node.LoadNode(rv.ToString()))
+                                    .Where(x => x != null); // filter unknown or invisible items
 
                                 if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                     field.SetData(nodes);

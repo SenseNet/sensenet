@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
-using SenseNet.Security;
+using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
@@ -25,6 +25,8 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataGeneralTests : ODataTestBase
     {
+        private readonly ContentFactory _factory = new ContentFactory();
+
         [TestMethod]
         public async Task OD_GET_NoRequest()
         {
@@ -1901,6 +1903,276 @@ namespace SenseNet.ODataTests
 
             sourcePath = sourceContent.Path;
             targetContainerPath = targetFolder.Path;
+        }
+
+        [TestMethod]
+        public async Task OD_FIX_GroupMembers_DeleteOneAndAddNew()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 4)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(3));
+                group.Save();
+
+                // ACTION-1
+                var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
+                var response = await ODataDeleteAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?permanent=true")
+                    .ConfigureAwait(false);
+
+                // ASSERT-1
+                AssertNoError(response);
+
+                // ACTION-2
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataPostAsync(
+                        $"/OData.svc{resourcePath}/AddMembers",
+                        null, $"(models=[{{\"contentIds\": [{users[3].Id}]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(new[] { users[0].Id, users[2].Id, users[3].Id }, actual);
+            });
+        }
+        [TestMethod]
+        public async Task OD_FIX_GroupMembers_DeleteAllAndAddNew()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 2)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(1));
+                group.Save();
+
+                // ACTION-1
+                var resourcePath = ODataMiddleware.GetEntityUrl(users[0].Path);
+                var response = await ODataDeleteAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?permanent=true")
+                    .ConfigureAwait(false);
+
+                // ASSERT-1
+                AssertNoError(response);
+
+                // ACTION-2
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataPostAsync(
+                        $"/OData.svc{resourcePath}/AddMembers",
+                        null, $"(models=[{{\"contentIds\": [{users[1].Id}]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(new[] { users[1].Id }, actual);
+            });
+        }
+        [TestMethod]
+        public async Task OD_FIX_GroupMembers_AddUnknown()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 4)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(3));
+                group.Save();
+
+                // ACTION-1
+                var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
+                var response = await ODataDeleteAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?permanent=true")
+                    .ConfigureAwait(false);
+
+                // ASSERT-1
+                AssertNoError(response);
+
+                // ACTION-2
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataPostAsync(
+                        $"/OData.svc{resourcePath}/AddMembers",
+                        null, $"(models=[{{\"contentIds\": [{users[3].Id}, 99999]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(new[] { users[0].Id, users[2].Id, users[3].Id }, actual);
+            });
+        }
+        [TestMethod]
+        public async Task OD_FIX_Reference_DeleteOneAndAddNew()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 4)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(3));
+                group.Save();
+
+                // ACTION-1
+                var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
+                var response = await ODataDeleteAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?permanent=true")
+                    .ConfigureAwait(false);
+
+                // ASSERT-1
+                AssertNoError(response);
+
+                // ACTION-2
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                var allUserIds = $"{users[0].Id},{users[2].Id},{users[3].Id}";
+                response = await ODataPatchAsync(
+                        $"/OData.svc{resourcePath}",
+                        null, $"(models=[{{\"Members\": [{allUserIds}]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(new[] { users[0].Id, users[2].Id, users[3].Id }, actual);
+            });
+        }
+        [TestMethod]
+        public async Task OD_FIX_Reference_DeleteAllAndAddNew()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 2)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(1));
+                group.Save();
+
+                // ACTION-1
+                var resourcePath = ODataMiddleware.GetEntityUrl(users[0].Path);
+                var response = await ODataDeleteAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?permanent=true")
+                    .ConfigureAwait(false);
+
+                // ASSERT-1
+                AssertNoError(response);
+
+                // ACTION-2
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataPatchAsync(
+                        $"/OData.svc{resourcePath}",
+                        null, $"(models=[{{\"Members\": [{users[1].Id}]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(new[] { users[1].Id }, actual);
+            });
+        }
+        [TestMethod]
+        public async Task OD_FIX_Reference_AddUnknown()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                var group = new Group(publicDomain) { Name = "G1" };
+                var users = Enumerable.Range(1, 4)
+                    .Select(x => _factory.CreateUserAndSave("U" + x))
+                    .ToArray();
+                group.AddReferences("Members", users.Take(3));
+                group.Save();
+
+                // ACTION
+                var resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                var allUserIds = users.Select(u => u.Id);
+                var allUserIdString = string.Join(",", users.Select(u => u.Id.ToString()));
+                var response = await ODataPatchAsync(
+                        $"/OData.svc{resourcePath}",
+                        null, $"(models=[{{\"Members\": [{allUserIdString}, 99999]}}])")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+
+                resourcePath = ODataMiddleware.GetEntityUrl(group.Path);
+                response = await ODataGetAsync(
+                        $"/OData.svc{resourcePath}",
+                        "?metadata=no&$expand=Members&$select=Id,Name,Path,Members/Id")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+                var rawMembers = (JArray)entity.AllProperties["Members"];
+                var actual = rawMembers.Select(y => y["Id"].Value<int>()).ToArray();
+                AssertSequenceEqual(allUserIds, actual);
+            });
         }
 
         /* ============================================================================ TOOLS */
