@@ -40,12 +40,10 @@ namespace SenseNet.Services.Core
             // set provider instances for legacy code (task manager, preview provider)
             Services.AddSenseNetProviderInstances();
 
-            var configuration = Services.GetService<IConfiguration>();
             var components = Services.GetServices<ISnComponent>().ToArray();
             var eventProcessors = Services.GetServices<IEventProcessor>().ToArray();
 
             var repositoryBuilder = new RepositoryBuilder(Services)
-                .UseConfiguration(configuration)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
                 .UseComponent(components)
