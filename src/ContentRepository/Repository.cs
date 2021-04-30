@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
 {
@@ -57,6 +58,9 @@ namespace SenseNet.ContentRepository
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
             // legacy behavior: set provider instance defaults
+
+            if (Providers.Instance.SecurityDataProvider == null)
+                Providers.Instance.SecurityDataProvider = builder.Services?.GetService<ISecurityDataProvider>();
 
             Providers.Instance.InitializeBlobProviders();
             

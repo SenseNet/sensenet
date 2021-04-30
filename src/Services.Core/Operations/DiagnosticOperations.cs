@@ -25,7 +25,7 @@ namespace SenseNet.Services.Core.Operations
         ///       "ProductName": "SenseNet.Services",
         ///       "DisplayName": "sensenet Services",
         ///       "Version": "1.2",
-        ///       "ReleaseData": "2021-04-06"
+        ///       "ReleaseDate": "2021-04-06"
         ///     },
         ///     ...
         ///   ],

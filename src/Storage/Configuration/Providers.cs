@@ -239,35 +239,8 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<ISecurityDataProvider> _securityDataProvider = new Lazy<ISecurityDataProvider>
-        private Lazy<ISecurityDataProvider> _securityDataProvider = new Lazy<ISecurityDataProvider>(() =>
-        {
-            ISecurityDataProvider securityDataProvider = null;
-
-            try
-            {
-                securityDataProvider = (ISecurityDataProvider)TypeResolver.CreateInstance(SecurityDataProviderClassName);
-            }
-            catch (TypeNotFoundException)
-            {
-                throw new ConfigurationException($"Security data provider implementation not found: {SecurityDataProviderClassName}");
-            }
-            catch (InvalidCastException)
-            {
-                throw new ConfigurationException($"Invalid security data provider implementation: {SecurityDataProviderClassName}");
-            }
-
-            SnLog.WriteInformation("SecurityDataProvider created: " + securityDataProvider.GetType().FullName);
-
-            return securityDataProvider;
-        });
-        public virtual ISecurityDataProvider SecurityDataProvider
-        {
-            get { return _securityDataProvider.Value; }
-            set { _securityDataProvider = new Lazy<ISecurityDataProvider>(() => value); }
-        }
-        #endregion
-
+        public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
+        
         #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
         private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 
             CreateProviderInstance<IPreviewProvider>(DocumentPreviewProviderClassName,"DocumentPreviewProvider"));

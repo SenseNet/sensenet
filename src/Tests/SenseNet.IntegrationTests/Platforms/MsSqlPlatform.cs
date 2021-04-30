@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -81,7 +82,10 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
-            return new EFCSecurityDataProvider(connectionString: ConnectionString);
+            return new EFCSecurityDataProvider(Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
+            {
+                ConnectionString = ConnectionString
+            }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
         public override ITestingDataProviderExtension GetTestingDataProviderExtension()
         {
