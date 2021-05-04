@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.ODataTests.Responses;
 using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
@@ -1552,6 +1553,164 @@ namespace SenseNet.ODataTests
 
 
             }).ConfigureAwait(false);
+        }
+
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedModifiedByFieldWhenContentTypeIsSeeOnly()
+        {
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy", "Id,Name,ModifiedBy/Id");
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedModifiedByFieldWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy", null);
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldsWhenContentTypeIsSeeOnly()
+        {
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy,CreatedBy,Owner,CheckedOutTo", "Id,Name,ModifiedBy/Id,CreatedBy/Id,Owner/Id,CheckedOutTo/Id");
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldsWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy,CreatedBy,Owner,CheckedOutTo", null);
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldChainWhenContentTypeIsSeeOnly()
+        {
+            /*
+{
+  "d": {
+    "__count": 2,
+    "results": [
+      {
+        "Id": 1383,
+        "Name": "TestFolder2",
+// WRONG:
+        "ModifiedBy": {
+          "__deferred": { "uri": "/odata.svc/Root/System/Schema/ContentTypes/GenericContent/Folder/SystemFolder('TestFolder2')/ModifiedBy" }
+        }
+      },
+      {
+        "Id": 1382,
+        "Name": "TestFolder1",
+// EXPECTED
+        "ModifiedBy": {
+          "Id": 10,
+          "CreatedBy": {
+            "Id": 10
+          }
+        }
+      }
+    ]
+  }
+}
+
+            */
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy/CreatedBy", "Id,Name,ModifiedBy/Id,ModifiedBy/CreatedBy/Id");
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.CreatedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.CreatedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldChainWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var entities = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy/CreatedBy", null);
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity1.ModifiedBy.CreatedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(User.Somebody.Id, entity2.ModifiedBy.CreatedBy.Id);
+        }
+        private async Task<ODataEntityResponse[]> GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(string expand, string select)
+        {
+            ODataEntityResponse[] result = null;
+            await ODataTestAsync(async () =>
+            {
+                var container = Node.LoadNode("/Root/IMS/Public");
+                var user = new User(container) { Name = "user1", Enabled = true, Email = "user1@example.com" };
+                user.Save();
+                ContentTypeInstaller.InstallContentType(
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder1"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder2"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>");
+                var contentType0 = ContentType.GetByName("SystemFolder");
+                var contentType1 = ContentType.GetByName("TestFolder1");
+                var contentType2 = ContentType.GetByName("TestFolder2");
+                SecurityHandler.CreateAclEditor()
+                    //.BreakInheritance(contentType1.Id, new EntryType[0])
+                    .Allow(contentType1.Id, user.Id, false, PermissionType.Open)
+                    .Allow(contentType2.Id, user.Id, false, PermissionType.See)
+                    .Apply();
+
+                using (new CurrentUserBlock(user))
+                {
+                    // pre checks
+                    Assert.AreEqual("Public\\user1", User.Current.Name);
+                    Assert.IsFalse(contentType0.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(contentType1.Security.HasPermission(PermissionType.Open));
+                    Assert.IsTrue(contentType2.Security.HasPermission(PermissionType.See));
+
+
+                    // ACTION
+                    var queryText = "+TypeIs:ContentType +Name:TestFolder* .AUTOFILTERS:OFF";
+                    var odataQueryText = queryText.Replace("+", "%2B").Replace(":", "%3a").Replace(" ", "+");
+                    var selectParam = select == null ? "" : $"&$select={select}";
+                    var response = await ODataGetAsync(
+                        "/OData.svc/Root",
+                        $"?metadata=no&$expand={expand}{selectParam}&query={odataQueryText}")
+                        .ConfigureAwait(false);
+
+                    result = GetEntities(response).ToArray();
+                }
+            }).ConfigureAwait(false);
+
+            return result;
         }
 
         /* ============================================================================ OTHER TESTS */
