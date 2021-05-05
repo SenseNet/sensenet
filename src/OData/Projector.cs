@@ -126,6 +126,12 @@ namespace SenseNet.OData
             }
         }
 
+        private static readonly string[] HeadOnlyExpandableFields = {"CreatedBy", "ModifiedBy"};
+        protected bool IsHeadOnlyExpandableField(string name)
+        {
+            return HeadOnlyExpandableFields.Contains(name);
+        }
+
         protected ODataActionItem[] GetActions(Content content, HttpContext httpContext)
         {
             return ODataTools.GetActionItems(content, this.Request, httpContext).ToArray();
