@@ -931,7 +931,8 @@ namespace SenseNet.ODataTests
 
                 CreateApp(parent.ContentHandler, "app1", "SC1,SC2");
                 CreateApp(parent.ContentHandler, "app2", "SC2,SC3");
-                
+                ApplicationStorage.Invalidate();
+
                 var dar = new DefaultActionResolver();
 
                 // check if the default action list contains the app-based client action
