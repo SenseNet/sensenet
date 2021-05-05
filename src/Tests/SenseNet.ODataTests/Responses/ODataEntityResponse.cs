@@ -105,6 +105,17 @@ namespace SenseNet.ODataTests.Responses
             }
         }
 
+        private ODataEntityResponse _owner;
+        public ODataEntityResponse Owner
+        {
+            get
+            {
+                if (_owner == null)
+                    _owner = GetEntity("Owner");
+                return _owner;
+            }
+        }
+
         private ODataEntityResponse _manager;
         public ODataEntityResponse Manager
         {
