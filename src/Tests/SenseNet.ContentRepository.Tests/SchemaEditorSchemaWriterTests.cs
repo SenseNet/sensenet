@@ -207,7 +207,7 @@ namespace SenseNet.ContentRepository.Tests
                 SetSchemaItemId(ed2.PropertyTypes["PT1"], 1);
 
                 //-- edit
-                ed2.CreateNodeType(null, "NT1");
+                ed2.CreateNodeType(null, "NT1", "T1");
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
 
                 //-- register
@@ -216,7 +216,7 @@ namespace SenseNet.ContentRepository.Tests
                 //-- test
                 string expectedLog = @"
 				Open();
-				CreateNodeType(parent=<[null]>, name=<NT1>, className=<>);
+				CreateNodeType(parent=<[null]>, name=<NT1>, className=<T1>);
 				AddPropertyTypeToPropertySet(propertyType=<PT1>, owner=<NT1>, isDeclared=<True>);
 				Close();
 				".Replace("\r\n", "").Replace("\t", "");
@@ -237,13 +237,13 @@ namespace SenseNet.ContentRepository.Tests
                 //-- create original
                 ed1.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed1.PropertyTypes["PT1"], 1);
-                ed1.CreateNodeType(null, "NT1");
+                ed1.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed1.NodeTypes["NT1"], 1);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT1"], ed1.NodeTypes["NT1"]);
                 //-- create current
                 ed2.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed2.PropertyTypes["PT1"], 1);
-                ed2.CreateNodeType(null, "NT1");
+                ed2.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed2.NodeTypes["NT1"], 1);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
 
@@ -272,9 +272,9 @@ namespace SenseNet.ContentRepository.Tests
                 ed1.CreatePropertyType("PT1", DataType.String); SetSchemaItemId(ed1.PropertyTypes["PT1"], 1);
                 ed1.CreatePropertyType("PT2", DataType.String); SetSchemaItemId(ed1.PropertyTypes["PT1"], 2);
                 ed1.CreatePropertyType("PT3", DataType.String); SetSchemaItemId(ed1.PropertyTypes["PT1"], 3);
-                NodeType nt1 = ed1.CreateNodeType(null, "NT1"); SetSchemaItemId(ed1.NodeTypes["NT1"], 1);
-                NodeType nt2 = ed1.CreateNodeType(null, "NT2"); SetSchemaItemId(ed1.NodeTypes["NT2"], 2);
-                NodeType nt3 = ed1.CreateNodeType(nt1, "NT3"); SetSchemaItemId(ed1.NodeTypes["NT3"], 3);
+                NodeType nt1 = ed1.CreateNodeType(null, "NT1", "T1"); SetSchemaItemId(ed1.NodeTypes["NT1"], 1);
+                NodeType nt2 = ed1.CreateNodeType(null, "NT2", "T2"); SetSchemaItemId(ed1.NodeTypes["NT2"], 2);
+                NodeType nt3 = ed1.CreateNodeType(nt1, "NT3", "T3"); SetSchemaItemId(ed1.NodeTypes["NT3"], 3);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT1"], ed1.NodeTypes["NT1"]);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT2"], ed1.NodeTypes["NT2"]);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT3"], ed1.NodeTypes["NT3"]);
@@ -283,9 +283,9 @@ namespace SenseNet.ContentRepository.Tests
                 ed2.CreatePropertyType("PT1", DataType.String); SetSchemaItemId(ed2.PropertyTypes["PT1"], 1);
                 ed2.CreatePropertyType("PT2", DataType.String); SetSchemaItemId(ed2.PropertyTypes["PT1"], 2);
                 ed2.CreatePropertyType("PT3", DataType.String); SetSchemaItemId(ed2.PropertyTypes["PT1"], 3);
-                nt1 = ed2.CreateNodeType(null, "NT1"); SetSchemaItemId(ed2.NodeTypes["NT1"], 1);
-                nt2 = ed2.CreateNodeType(null, "NT2"); SetSchemaItemId(ed2.NodeTypes["NT2"], 2);
-                nt3 = ed2.CreateNodeType(nt1, "NT3"); SetSchemaItemId(ed2.NodeTypes["NT3"], 3);
+                nt1 = ed2.CreateNodeType(null, "NT1", "T1"); SetSchemaItemId(ed2.NodeTypes["NT1"], 1);
+                nt2 = ed2.CreateNodeType(null, "NT2", "T2"); SetSchemaItemId(ed2.NodeTypes["NT2"], 2);
+                nt3 = ed2.CreateNodeType(nt1, "NT3", "T3"); SetSchemaItemId(ed2.NodeTypes["NT3"], 3);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT2"], ed2.NodeTypes["NT2"]);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT3"], ed2.NodeTypes["NT3"]);
@@ -299,7 +299,7 @@ namespace SenseNet.ContentRepository.Tests
                 //-- test
                 string expectedLog = @"
 				Open();
-				ModifyNodeType(nodeType=<NT3>, parent=<NT2>, className=<>);
+				ModifyNodeType(nodeType=<NT3>, parent=<NT2>, className=<T3>);
 				RemovePropertyTypeFromPropertySet(propertyType=<PT1>, owner=<NT3>);
 				AddPropertyTypeToPropertySet(propertyType=<PT2>, owner=<NT3>, isDeclared=<True>);
 				Close();
@@ -333,13 +333,13 @@ namespace SenseNet.ContentRepository.Tests
                 //-- create original
                 ed1.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed1.PropertyTypes["PT1"], 1);
-                ed1.CreateNodeType(null, "NT1");
+                ed1.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed1.NodeTypes["NT1"], 1);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT1"], ed1.NodeTypes["NT1"]);
                 //-- create current
                 ed2.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed2.PropertyTypes["PT1"], 1);
-                ed2.CreateNodeType(null, "NT1");
+                ed2.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed2.NodeTypes["NT1"], 1);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
 
@@ -372,19 +372,19 @@ namespace SenseNet.ContentRepository.Tests
                 //-- create original
                 ed1.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed1.PropertyTypes["PT1"], 1);
-                ed1.CreateNodeType(null, "NT1");
+                ed1.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed1.NodeTypes["NT1"], 1);
                 ed1.AddPropertyTypeToPropertySet(ed1.PropertyTypes["PT1"], ed1.NodeTypes["NT1"]);
                 //-- create current
                 ed2.CreatePropertyType("PT1", DataType.String);
                 SetSchemaItemId(ed2.PropertyTypes["PT1"], 1);
-                ed2.CreateNodeType(null, "NT1");
+                ed2.CreateNodeType(null, "NT1", "T1");
                 SetSchemaItemId(ed2.NodeTypes["NT1"], 1);
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
 
                 //-- edit
                 ed2.DeleteNodeType(ed2.NodeTypes["NT1"]);
-                ed2.CreateNodeType(null, "NT1");
+                ed2.CreateNodeType(null, "NT1", "T1");
                 ed2.AddPropertyTypeToPropertySet(ed2.PropertyTypes["PT1"], ed2.NodeTypes["NT1"]);
 
                 //-- register
@@ -394,7 +394,7 @@ namespace SenseNet.ContentRepository.Tests
                 string expectedLog = @"
 				Open();
 				DeleteNodeType(nodeType=<NT1>);
-				CreateNodeType(parent=<[null]>, name=<NT1>, className=<>);
+				CreateNodeType(parent=<[null]>, name=<NT1>, className=<T1>);
 				AddPropertyTypeToPropertySet(propertyType=<PT1>, owner=<NT1>, isDeclared=<True>);
 				Close();
 				".Replace("\r\n", "").Replace("\t", "").Replace(" ", "");

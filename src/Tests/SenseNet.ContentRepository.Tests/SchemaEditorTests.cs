@@ -111,36 +111,36 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_CreateNodeType_Null()
         {
-            //-- nev nem lehet null
-            new SchemaEditor().CreateNodeType(null, null);
+            //-- The name cannot be null
+            new SchemaEditor().CreateNodeType(null, null, "T1");
         }
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void SchemaEditor_CreateNodeType_TwoNodeWithSameName()
         {
-            //-- nevutkozes
+            //-- Name collision
             SchemaEditor editor = new SchemaEditor();
-            editor.CreateNodeType(null, "NodeType");
-            editor.CreateNodeType(null, "NodeType");
+            editor.CreateNodeType(null, "NodeType", "T1");
+            editor.CreateNodeType(null, "NodeType", "T2");
         }
         [TestMethod]
         [ExpectedException(typeof(InvalidSchemaException))]
         public void SchemaEditor_CreateNodeType_WrongContext()
         {
-            //-- hiba: rossz context (PropertySlot)
+            //-- wrong context (PropertySlot)
             SchemaEditor editor1 = new SchemaEditor();
             SchemaEditor editor2 = new SchemaEditor();
-            NodeType nt1 = editor1.CreateNodeType(null, "NT1");
-            editor2.CreateNodeType(nt1, "NT2");
+            NodeType nt1 = editor1.CreateNodeType(null, "NT1", "T1");
+            editor2.CreateNodeType(nt1, "NT2", "T2");
         }
         [TestMethod]
         public void SchemaEditor_CreateNodeType_Child()
         {
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(null, "NT2");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(null, "NT2", "T2");
             NodeType nt3 = editor.CreateNodeType(nt1, "NT3", "NT3class");
-            NodeType nt4 = editor.CreateNodeType(null, "NT4");
+            NodeType nt4 = editor.CreateNodeType(null, "NT4", "T4");
 
             Assert.IsTrue(Object.ReferenceEquals(nt1, editor.NodeTypes["NT1"]), "#1");
             Assert.IsTrue(Object.ReferenceEquals(nt2, editor.NodeTypes["NT2"]), "#2");
@@ -153,8 +153,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull(nt1.Parent, "#9");
             Assert.IsNull(nt2.Parent, "#10");
 
-            Assert.IsTrue(nt1.ClassName == null, "#11");
-            Assert.IsTrue(nt2.ClassName == null, "#12");
+            Assert.IsTrue(nt1.ClassName == "T1", "#11");
+            Assert.IsTrue(nt2.ClassName == "T2", "#12");
             Assert.IsTrue(nt3.ClassName == "NT3class", "#13");
         }
         [TestMethod]
@@ -162,9 +162,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
             editor.AddPropertyTypeToPropertySet(slot, nt1);
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
             Assert.IsNotNull(nt2.PropertyTypes["slot"]);
             Assert.IsTrue(nt1.Id == 0, "Id was not 0");
         }
@@ -173,26 +173,26 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_ModifyNodeType_Null()
         {
-            //-- hiba: Target item cannot be null
+            //-- Target item cannot be null
             new SchemaEditor().ModifyNodeType(null, (string)null);
         }
         [TestMethod]
         [ExpectedException(typeof(SchemaEditorCommandException))]
         public void SchemaEditor_ModifyNodeType_WrongContxt()
         {
-            //-- hiba: rossz context
+            //-- wrong context
             SchemaEditor editor1 = new SchemaEditor();
             SchemaEditor editor2 = new SchemaEditor();
-            NodeType nt = editor1.CreateNodeType(null, "NT");
+            NodeType nt = editor1.CreateNodeType(null, "NT", "T");
             editor2.ModifyNodeType(nt, (string)null);
         }
         [TestMethod]
         public void SchemaEditor_ModifyNodeType()
         {
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt = editor.CreateNodeType(null, "NT1");
+            NodeType nt = editor.CreateNodeType(null, "NT1", "T1");
 
-            Assert.IsTrue(nt.Name == "NT1" && nt.ClassName == null, "#1");
+            Assert.IsTrue(nt.Name == "NT1" && nt.ClassName == "T1", "#1");
             editor.ModifyNodeType(nt, "class1");
             Assert.IsTrue(nt.ClassName == "class1", "#2");
             Assert.IsTrue(nt.Id == 0, "Id was not 0");
@@ -202,7 +202,7 @@ namespace SenseNet.ContentRepository.Tests
         public void SchemaEditor_ModifyNodeType_Circular()
         {
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt = editor.CreateNodeType(null, "NT1");
+            NodeType nt = editor.CreateNodeType(null, "NT1", "T1");
             editor.ModifyNodeType(nt, nt);
         }
 
@@ -210,17 +210,17 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_RemoveNodeType_Null()
         {
-            //-- hiba: Target item cannot be null
+            //-- Target item cannot be null
             new SchemaEditor().DeleteNodeType(null);
         }
         [TestMethod]
         [ExpectedException(typeof(SchemaEditorCommandException))]
         public void SchemaEditor_RemoveNodeType_WrongContext()
         {
-            //-- hiba: rossz context
+            //-- rossz context
             SchemaEditor editor1 = new SchemaEditor();
             SchemaEditor editor2 = new SchemaEditor();
-            NodeType nt = editor1.CreateNodeType(null, "NT");
+            NodeType nt = editor1.CreateNodeType(null, "NT", "T");
             editor2.DeleteNodeType(nt);
         }
         [TestMethod]
@@ -228,9 +228,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
 
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
             PropertyType slot1 = editor.CreatePropertyType("Slot1", DataType.String);
             PropertyType slot2 = editor.CreatePropertyType("Slot2", DataType.String);
             PropertyType slot3 = editor.CreatePropertyType("Slot3", DataType.String);
@@ -276,13 +276,13 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(InvalidSchemaException))]
         public void SchemaEditor_CreatePropertyType_WrongNodeTypeContext()
         {
-            //-- hiba: rossz context (NodeType)
+            //-- wrong context (NodeType)
             SchemaEditor editor1 = new SchemaEditor();
             SchemaEditor editor2 = new SchemaEditor();
             editor1.CreatePropertyType("slot", DataType.String);
-            editor1.CreateNodeType(null, "nt");
+            editor1.CreateNodeType(null, "nt", "t");
             editor2.CreatePropertyType("slot", DataType.String);
-            editor2.CreateNodeType(null, "nt");
+            editor2.CreateNodeType(null, "nt", "t");
 
             NodeType owner = editor2.NodeTypes["nt"];
             PropertyType slot = editor1.PropertyTypes["slot"];
@@ -292,13 +292,13 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(InvalidSchemaException))]
         public void SchemaEditor_CreatePropertyType_WrongPropertySlotContext()
         {
-            //-- hiba: rossz context (PropertySlot)
+            //-- wrong context (PropertySlot)
             SchemaEditor editor1 = new SchemaEditor();
             SchemaEditor editor2 = new SchemaEditor();
             editor1.CreatePropertyType("slot", DataType.String);
-            editor1.CreateNodeType(null, "nt");
+            editor1.CreateNodeType(null, "nt", "t");
             editor2.CreatePropertyType("slot", DataType.String);
-            editor2.CreateNodeType(null, "nt");
+            editor2.CreateNodeType(null, "nt", "t");
 
             NodeType owner = editor1.NodeTypes["nt"];
             PropertyType slot = editor2.PropertyTypes["slot"];
@@ -311,7 +311,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreateContentListPropertyType(DataType.String, 0);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
             editor.AddPropertyTypeToPropertySet(pt1, nt1);
         }
         [TestMethod]
@@ -319,9 +319,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreatePropertyType("PT1", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
 
             editor.AddPropertyTypeToPropertySet(pt1, nt2);
 
@@ -337,11 +337,11 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreatePropertyType("PT1", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
-            NodeType nt4 = editor.CreateNodeType(nt3, "NT4");
-            NodeType nt5 = editor.CreateNodeType(nt4, "NT5");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
+            NodeType nt4 = editor.CreateNodeType(nt3, "NT4", "T4");
+            NodeType nt5 = editor.CreateNodeType(nt4, "NT5", "T5");
 
             editor.AddPropertyTypeToPropertySet(pt1, nt2);
             editor.AddPropertyTypeToPropertySet(pt1, nt4);
@@ -363,11 +363,11 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreatePropertyType("PT1", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
-            NodeType nt4 = editor.CreateNodeType(nt3, "NT4");
-            NodeType nt5 = editor.CreateNodeType(nt4, "NT5");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
+            NodeType nt4 = editor.CreateNodeType(nt3, "NT4", "T4");
+            NodeType nt5 = editor.CreateNodeType(nt4, "NT5", "T5");
 
             editor.AddPropertyTypeToPropertySet(pt1, nt4);
             editor.AddPropertyTypeToPropertySet(pt1, nt2);
@@ -389,11 +389,11 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreatePropertyType("PT1", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
-            NodeType nt4 = editor.CreateNodeType(nt3, "NT4");
-            NodeType nt5 = editor.CreateNodeType(nt4, "NT5");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
+            NodeType nt4 = editor.CreateNodeType(nt3, "NT4", "T4");
+            NodeType nt5 = editor.CreateNodeType(nt4, "NT5", "T5");
 
             editor.AddPropertyTypeToPropertySet(pt1, nt4);
             editor.AddPropertyTypeToPropertySet(pt1, nt2);
@@ -416,11 +416,11 @@ namespace SenseNet.ContentRepository.Tests
         {
             SchemaEditor editor = new SchemaEditor();
             PropertyType pt1 = editor.CreatePropertyType("PT1", DataType.String);
-            NodeType nt1 = editor.CreateNodeType(null, "NT1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "NT2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "NT3");
-            NodeType nt4 = editor.CreateNodeType(nt3, "NT4");
-            NodeType nt5 = editor.CreateNodeType(nt4, "NT5");
+            NodeType nt1 = editor.CreateNodeType(null, "NT1", "T1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "NT2", "T2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "NT3", "T3");
+            NodeType nt4 = editor.CreateNodeType(nt3, "NT4", "T4");
+            NodeType nt5 = editor.CreateNodeType(nt4, "NT5", "T5");
 
             editor.AddPropertyTypeToPropertySet(pt1, nt4);
             editor.AddPropertyTypeToPropertySet(pt1, nt2);
@@ -463,13 +463,13 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(InvalidSchemaException))]
         public void SchemaEditor_RemovePropertyType_WrongContext()
         {
-            //-- hiba: hibas context
+            //-- wrong context
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt = editor.CreateNodeType(null, "nt");
+            NodeType nt = editor.CreateNodeType(null, "nt", "t");
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String, 0);
             editor.AddPropertyTypeToPropertySet(slot, nt);
             SchemaEditor editor1 = new SchemaEditor();
-            nt = editor1.CreateNodeType(null, "nt");
+            nt = editor1.CreateNodeType(null, "nt", "t");
             slot = editor1.CreatePropertyType("slot", DataType.String, 0);
             editor1.AddPropertyTypeToPropertySet(slot, nt);
 
@@ -479,18 +479,18 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_RemovePropertyType_NodeTypeNull()
         {
-            //---- hiba: Target item cannot be null
+            //---- Target item cannot be null
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt = editor.CreateNodeType(null, "nt");
+            NodeType nt = editor.CreateNodeType(null, "nt", "t");
             new SchemaEditor().RemovePropertyTypeFromPropertySet(null, nt);
         }
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_RemovePropertyType_NullPropertyType()
         {
-            //---- hiba: Target item cannot be null
+            //---- Target item cannot be null
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt = editor.CreateNodeType(null, "nt");
+            NodeType nt = editor.CreateNodeType(null, "nt", "t");
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String, 0);
             editor.AddPropertyTypeToPropertySet(slot, nt);
             new SchemaEditor().RemovePropertyTypeFromPropertySet(slot, null);
@@ -499,15 +499,15 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void SchemaEditor_RemovePropertyType_NullNull()
         {
-            //---- hiba: Target item cannot be null
+            //---- Target item cannot be null
             new SchemaEditor().RemovePropertyTypeFromPropertySet(null, null);
         }
         [TestMethod]
         public void SchemaEditor_RemovePropertyType_Inherited()
         {
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt1 = editor.CreateNodeType(null, "nt1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "nt2");
+            NodeType nt1 = editor.CreateNodeType(null, "nt1", "t1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "nt2", "t2");
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String, 0);
             editor.AddPropertyTypeToPropertySet(slot, nt1);
 
@@ -522,22 +522,22 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void SchemaEditor_RemovePropertyType_FromDeclarerType()
         {
-            //-- krealunk egy torolhetot es felulirjuk
+            //-- create a deletable and inherit from it
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt1 = editor.CreateNodeType(null, "nt1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "nt2");
+            NodeType nt1 = editor.CreateNodeType(null, "nt1", "t1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "nt2", "t2");
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String, 0);
             editor.AddPropertyTypeToPropertySet(slot, nt1);
 
-            //-- meg kell jelenjen mindketton
+            //-- propertyType need to appear on both nodeType
             PropertyType pt1 = nt1.PropertyTypes["slot"];
             PropertyType pt2 = nt2.PropertyTypes["slot"];
 
-            //-- toroljuk a deklaralas eredeti helyerol
+            //-- delete from the original place
             PropertyType pt = editor.PropertyTypes["slot"];
             editor.RemovePropertyTypeFromPropertySet(pt, nt1);
 
-            //-- el kell tunjon mindkettorol
+            //-- propertyType need to disappear from both nodeType
             pt1 = nt1.PropertyTypes["slot"];
             pt2 = nt2.PropertyTypes["slot"];
             Assert.IsNull(nt1.PropertyTypes["slot"], "Ancestor PropertyType was not deleted");
@@ -547,23 +547,23 @@ namespace SenseNet.ContentRepository.Tests
         public void SchemaEditor_RemovePropertyType_FromTopReDeclarerType()
         {
             SchemaEditor editor = new SchemaEditor();
-            NodeType nt1 = editor.CreateNodeType(null, "nt1");
-            NodeType nt2 = editor.CreateNodeType(nt1, "nt2");
-            NodeType nt3 = editor.CreateNodeType(nt2, "nt3");
+            NodeType nt1 = editor.CreateNodeType(null, "nt1", "t1");
+            NodeType nt2 = editor.CreateNodeType(nt1, "nt2", "t2");
+            NodeType nt3 = editor.CreateNodeType(nt2, "nt3", "t3");
             PropertyType slot = editor.CreatePropertyType("slot", DataType.String, 0);
             editor.AddPropertyTypeToPropertySet(slot, nt2);
             editor.AddPropertyTypeToPropertySet(slot, nt1);
 
-            //-- meg kell jelenjen mindharmon
+            //-- propertyType need to appear in all three nodeTypes
             PropertyType pt1 = nt1.PropertyTypes["slot"];
             PropertyType pt2 = nt2.PropertyTypes["slot"];
             PropertyType pt3 = nt3.PropertyTypes["slot"];
 
-            //-- toroljuk a deklaralas eredeti helyerol
+            //-- delete from the original place
             PropertyType pt = editor.PropertyTypes["slot"];
             editor.RemovePropertyTypeFromPropertySet(pt, nt1);
 
-            //-- el kell tunjon mindkettorol
+            //-- propertyType need to disappear from all three nodeTypes
             pt1 = nt1.PropertyTypes["slot"];
             pt2 = nt2.PropertyTypes["slot"];
             pt3 = nt3.PropertyTypes["slot"];
