@@ -63,6 +63,7 @@ namespace SenseNet.OData
         }
 
         private List<Property> _expandTree;
+        private List<Property> _headOnlyExpandTree;
 
         private List<Property> _selectTree;
 
@@ -77,12 +78,24 @@ namespace SenseNet.OData
 
             // pre building property tree by expansions
             _expandTree = new List<Property>();
+            _headOnlyExpandTree = new List<Property>();
             foreach (var item in this.Request.Expand)
             {
                 var chain = item.Split('/').Select(s => s.Trim()).ToArray();
                 prop = Property.EnsureChild(_expandTree, chain[0]);
                 for (int i = 1; i < chain.Length; i++)
                     prop = prop.EnsureChild(chain[i]);
+            }
+            foreach (var item in this.Request.Expand)
+            {
+                var chain = item.Split('/').Select(s => s.Trim()).ToArray();
+                prop = Property.EnsureChild(_headOnlyExpandTree, chain[0]);
+                for (int i = 1; i < chain.Length; i++)
+                {
+                    if (!IsHeadOnlyExpandableField(chain[i]))
+                        break;
+                    prop = prop.EnsureChild(chain[i]);
+                }
             }
 
             // pre building property tree by selection
@@ -125,7 +138,7 @@ namespace SenseNet.OData
         internal override ODataEntity Project(Content content, HttpContext httpContext)
         {
             if (content.ContentHandler.IsHeadOnly)
-                return Project(content, new List<Property>(0), _selectTree, httpContext);
+                return Project(content, _headOnlyExpandTree, _selectTree, httpContext);
             return Project(content, _expandTree, _selectTree, httpContext);
         }
         private ODataEntity Project(Content content, List<Property> expandTree, List<Property> selectTree, HttpContext httpContext)
@@ -194,7 +207,12 @@ namespace SenseNet.OData
                         var expansion = GetPropertyFromList(propertyName, expandTree);
                         if (expansion != null)
                         {
-                            outfields.Add(propertyName, Project(field, expansion.Children, property.Children ?? Property.JokerList, httpContext));
+                            if (IsAllowedField(content, field.Name))
+                                outfields.Add(propertyName,
+                                    Project(field, expansion.Children, property.Children ?? Property.JokerList,
+                                        httpContext));
+                            else
+                                outfields.Add(propertyName, null);
                         }
                         else
                         {

@@ -95,6 +95,28 @@ namespace SenseNet.ODataTests.Responses
             }
         }
 
+        private ODataEntityResponse _modifiedBy;
+        public ODataEntityResponse ModifiedBy
+        {
+            get
+            {
+                if (_modifiedBy == null)
+                    _modifiedBy = GetEntity("ModifiedBy");
+                return _modifiedBy;
+            }
+        }
+
+        private ODataEntityResponse _owner;
+        public ODataEntityResponse Owner
+        {
+            get
+            {
+                if (_owner == null)
+                    _owner = GetEntity("Owner");
+                return _owner;
+            }
+        }
+
         private ODataEntityResponse _manager;
         public ODataEntityResponse Manager
         {
