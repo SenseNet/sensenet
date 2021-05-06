@@ -80,6 +80,7 @@ namespace SenseNet.OData
             {
                 Title = SNSR.GetString(a.Text),
                 Name = a.Name,
+                OpId = ODataTools.GetOperationId(a.Name, a.ActionParameters),
                 Target = string.Concat(selfUrl, "/", a.Name),
                 Forbidden = a.Forbidden,
                 Parameters = a.ActionParameters.Select(p => new ODataOperationParameter

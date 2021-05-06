@@ -457,8 +457,8 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var expected =
-                    "{\"title\":\"Function2\",\"name\":\"Function2\",\"target\":\"/odata.svc/Root('IMS')/Function2\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}," +
-                    "{\"title\":\"Function22\",\"name\":\"Function22\",\"target\":\"/odata.svc/Root('IMS')/Function22\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}";
+                    "{\"title\":\"Function2\",\"name\":\"Function2\",\"opId\":\"Function2(param1)\",\"target\":\"/odata.svc/Root('IMS')/Function2\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}," +
+                    "{\"title\":\"Function22\",\"name\":\"Function22\",\"opId\":\"Function22(param1)\",\"target\":\"/odata.svc/Root('IMS')/Function22\",\"forbidden\":false,\"parameters\":[{\"name\":\"param1\",\"type\":\"string\",\"required\":true}]}";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var p0 = raw.IndexOf("{\"title\":\"Function2\"", StringComparison.Ordinal);
@@ -483,8 +483,8 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var expected =
-                    "{\"Name\":\"Function2\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
-                    "{\"Name\":\"Function22\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
+                    "{\"Name\":\"Function2\",\"OpId\":\"Function2(param1)\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
+                    "{\"Name\":\"Function22\",\"OpId\":\"Function22(param1)\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
@@ -510,8 +510,8 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var expected =
-                    "{\"Name\":\"Function2\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
-                    "{\"Name\":\"Function22\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
+                    "{\"Name\":\"Function2\",\"OpId\":\"Function2(param1)\",\"DisplayName\":\"Function2\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function2\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}," +
+                    "{\"Name\":\"Function22\",\"OpId\":\"Function22(param1)\",\"DisplayName\":\"Function22\",\"Index\":0,\"Icon\":\"Application\",\"Url\":\"/odata.svc/Root('IMS')/Function22\",\"IsODataAction\":true,\"ActionParameters\":[\"param1\"],\"Scenario\":null,\"Forbidden\":false}";
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
