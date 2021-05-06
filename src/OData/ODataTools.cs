@@ -61,6 +61,16 @@ namespace SenseNet.OData
         {
             return string.Concat(GetODataUrl(path, escapeApostrophes), "/", operationName);
         }
+        /// <summary>
+        /// Returns operation id.
+        /// </summary>
+        /// <param name="name">Name of the operation</param>
+        /// <param name="parameters">Array of <see cref="ActionParameter"/>.</param>
+        /// <returns></returns>
+        public static string GetOperationId(string name, ActionParameter[] parameters)
+        {
+            return $"{name}({string.Join(",", parameters.Select(p => p.Name))})";
+        }
 
         internal static IEnumerable<ActionBase> GetActions(Content content, ODataRequest request, HttpContext httpContext)
         {
@@ -72,6 +82,7 @@ namespace SenseNet.OData
             return GetActionsWithScenario(content, request, httpContext).Select(a => new ODataActionItem
             {
                 Name = a.Action.Name,
+                OpId = ODataTools.GetOperationId(a.Action.Name, a.Action.ActionParameters),
                 DisplayName = SNSR.GetString(a.Action.Text),
                 Icon = a.Action.Icon,
                 Index = a.Action.Index,

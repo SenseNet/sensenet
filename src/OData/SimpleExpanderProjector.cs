@@ -51,11 +51,13 @@ namespace SenseNet.OData
         }
 
         private List<Property> _expandTree;
+        private List<Property> _headOnlyExpandTree;
 
         internal override void Initialize(Content container)
         {
             // pre building property tree by expansions
             _expandTree = new List<Property>();
+            _headOnlyExpandTree = new List<Property>();
             foreach (var item in this.Request.Expand)
             {
                 var chain = item.Split('/').Select(s => s.Trim()).ToArray();
@@ -63,9 +65,24 @@ namespace SenseNet.OData
                 for (int i = 1; i < chain.Length; i++)
                     prop = prop.EnsureChild(chain[i]);
             }
+
+            foreach (var item in this.Request.Expand)
+            {
+                var chain = item.Split('/').Select(s => s.Trim()).ToArray();
+                var prop = Property.EnsureChild(_headOnlyExpandTree, chain[0]);
+                for (int i = 1; i < chain.Length; i++)
+                {
+                    if (!IsHeadOnlyExpandableField(chain[i]))
+                        break;
+                    prop = prop.EnsureChild(chain[i]);
+                }
+            }
         }
         internal override ODataEntity Project(Content content, HttpContext httpContext)
         {
+            //return Project(content, _expandTree, httpContext);
+            if (content.ContentHandler.IsHeadOnly)
+                return Project(content, _headOnlyExpandTree, httpContext);
             return Project(content, _expandTree, httpContext);
         }
         private ODataEntity Project(Content content, List<Property> expandTree, HttpContext httpContext)
@@ -76,7 +93,6 @@ namespace SenseNet.OData
                 outfields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata, httpContext));
             var fields = content.Fields.Values;
 
-            var expansionEnabled = !content.ContentHandler.IsHeadOnly;
             foreach (var field in fields)
             {
                 if (ODataMiddleware.DisabledFieldNames.Contains(field.Name))
@@ -84,11 +100,11 @@ namespace SenseNet.OData
 
                 var propertyName = field.Name;
 
-                var expansion = expansionEnabled ? GetExpansion(propertyName, expandTree) : null;
-
+                var expansion = GetExpansion(propertyName, expandTree);
                 if (expansion != null)
                 {
-                    outfields.Add(propertyName, Project(field, expansion.Children, httpContext));
+                    outfields.Add(propertyName,
+                        base.IsAllowedField(content, field.Name) ? Project(field, expansion.Children, httpContext) : null);
                 }
                 else
                 {

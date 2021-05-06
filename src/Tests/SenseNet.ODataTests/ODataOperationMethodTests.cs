@@ -2518,6 +2518,65 @@ namespace SenseNet.ODataTests
                 }
             });
         }
+        [TestMethod]
+        public void OD_MBO_Actions_ActionIds()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content", null),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content, HttpContext ctx, string a", null),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content, string a", "int x"),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content, HttpContext ctx, string b, int c", null),
+                        new Attribute[] { new ODataFunction(), });
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content, string d, int e", "int x"),
+                        new Attribute[] { new ODataFunction(), });
+                    AddMethod(new TestMethodInfo("op",
+                            "Content content, HttpContext ctx, string p, int q", "int x, int y"),
+                        new Attribute[] { new ODataFunction(), });
+
+                    // ACTION-1: metadata
+                    var response1 = ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    // ASSERT-1
+                    var entity = GetEntity(response1);
+                    var operations1 = entity.MetadataActions.Union(entity.MetadataFunctions).Where(x => x.Name == "op").ToArray();
+                    var ids1 = string.Join("|", operations1.Select(x => x.OpId).OrderBy(x => x));
+                    Assert.AreEqual(6, operations1.Length);
+
+                    // ACTION-2: Actions expanded field
+                    var response2 = ODataGetAsync("/OData.svc/Root('IMS')", "?metadata=no&$expand=Actions&$select=Id,Actions")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    entity = GetEntity(response2);
+                    var operations2 = entity.Actions.Where(x => x.Name == "op").ToArray();
+                    var ids2 = string.Join("|", operations1.Select(x => x.OpId).OrderBy(x => x));
+                    Assert.AreEqual(6, operations2.Length);
+
+                    // ACTION-3: Actions field only
+                    var response3 = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    // ASSERT-3
+                    var entities = GetEntities(response3);
+                    var operations3 = entities.Where(x => x.Name == "op").ToArray();
+                    var ids3 = string.Join("|", operations1.Select(x => x.OpId).OrderBy(x => x));
+                    Assert.AreEqual(6, operations3.Length);
+
+                    // ASSERT-4 OpIds
+                    Assert.AreEqual("op()|op(a)|op(a,x)|op(b,c)|op(d,e,x)|op(p,q,x,y)", ids1);
+                    Assert.AreEqual(ids1, ids2);
+                    Assert.AreEqual(ids1, ids3);
+                }
+            });
+        }
 
         [TestMethod]
         public void OD_MBO_Actions_ActionProperties_ActionField()
@@ -2548,18 +2607,21 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(3, operations.Length);
 
                     Assert.AreEqual("op0", operations[0].Name);
+                    Assert.AreEqual("op0()", operations[0].OpId);
                     Assert.AreEqual("", string.Join(",", operations[0].ActionParameters));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op0", operations[0].Url);
                     Assert.AreEqual(true, operations[0].IsODataAction);
                     Assert.AreEqual(false, operations[0].Forbidden);
 
                     Assert.AreEqual("op1", operations[1].Name);
+                    Assert.AreEqual("op1(a)", operations[1].OpId);
                     Assert.AreEqual("a", string.Join(",", operations[1].ActionParameters));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op1", operations[1].Url);
                     Assert.AreEqual(true, operations[1].IsODataAction);
                     Assert.AreEqual(false, operations[1].Forbidden);
 
                     Assert.AreEqual("op2", operations[2].Name);
+                    Assert.AreEqual("op2(b,c)", operations[2].OpId);
                     Assert.AreEqual("b,c", string.Join(",", operations[2].ActionParameters));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op2", operations[2].Url);
                     Assert.AreEqual(true, operations[2].IsODataAction);
@@ -2596,18 +2658,21 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(3, operations.Length);
 
                     Assert.AreEqual("op0", operations[0].Name);
+                    Assert.AreEqual("op0()", operations[0].OpId);
                     Assert.AreEqual("", string.Join(",", operations[0].Parameters.Select(x => x.Name)));
                     Assert.AreEqual("", string.Join(",", operations[0].Parameters.Select(x => x.Type)));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op0", operations[0].Target);
                     Assert.AreEqual(false, operations[0].Forbidden);
 
                     Assert.AreEqual("op1", operations[1].Name);
+                    Assert.AreEqual("op1(a)", operations[1].OpId);
                     Assert.AreEqual("a", string.Join(",", operations[1].Parameters.Select(x => x.Name)));
                     Assert.AreEqual("string", string.Join(",", operations[1].Parameters.Select(x => x.Type)));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op1", operations[1].Target);
                     Assert.AreEqual(false, operations[1].Forbidden);
 
                     Assert.AreEqual("op2", operations[2].Name);
+                    Assert.AreEqual("op2(b,c)", operations[2].OpId);
                     Assert.AreEqual("b,c", string.Join(",", operations[2].Parameters.Select(x => x.Name)));
                     Assert.AreEqual("string,int", string.Join(",", operations[2].Parameters.Select(x => x.Type)));
                     Assert.AreEqual("/odata.svc/Root('IMS')/op2", operations[2].Target);
@@ -3166,6 +3231,8 @@ namespace SenseNet.ODataTests
                     case "List<int>": return typeof(List<int>);
                     case "Stack<int>": return typeof(Stack<int>);
                     case "Dictionary<int-int>": return typeof(Dictionary<int, int>);
+
+                    case "HttpContext": return typeof(HttpContext);
 
                     default:
                         throw new ApplicationException("Unknown type: " + src);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -194,7 +195,8 @@ namespace SenseNet.ContentRepository.InMemory
                 {
                     var versionIdList = subItem.Value;
                     foreach (var versionId in deletableVersionIds) //TODO: Thread safety. See the comment above.
-                        versionIdList.Remove(versionId);
+                        Retrier.Retry(3, 1, typeof(ArgumentOutOfRangeException),
+                            () => {versionIdList.Remove(versionId); });
                     if (versionIdList.Count == 0)
                         keysToDelete.Add(subItem.Key);
                 }

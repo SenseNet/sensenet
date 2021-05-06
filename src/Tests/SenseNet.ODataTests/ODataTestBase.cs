@@ -435,6 +435,7 @@ namespace SenseNet.ODataTests
             return new ODataActionItem
             {
                 Name = ((JValue)operation["Name"]).Value<string>(),
+                OpId = ((JValue)operation["OpId"]).Value<string>(),
                 DisplayName = ((JValue)operation["DisplayName"]).Value<string>(),
                 Icon = ((JValue)operation["Icon"]).Value<string>(),
                 Index = ((JValue)operation["Index"]).Value<int>(),

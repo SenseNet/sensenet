@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.ODataTests.Responses;
 using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
@@ -1149,6 +1150,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(actions.Any());
                 var action = (JObject) actions[0];
                 Assert.IsNotNull(action["Name"]);
+                Assert.IsNotNull(action["OpId"]);
                 Assert.IsNotNull(action["DisplayName"]);
                 Assert.IsNotNull(action["Index"]);
                 Assert.IsNotNull(action["Icon"]);
@@ -1552,6 +1554,203 @@ namespace SenseNet.ODataTests
 
 
             }).ConfigureAwait(false);
+        }
+
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedModifiedByFieldWhenContentTypeIsSeeOnly()
+        {
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy", "Id,Name,ModifiedBy/Id");
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedModifiedByFieldWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy", null);
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldsWhenContentTypeIsSeeOnly()
+        {
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy,CreatedBy,Owner,CheckedOutTo", "Id,Name,ModifiedBy/Id,CreatedBy/Id,Owner/Id,CheckedOutTo/Id");
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldsWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy,CreatedBy,Owner,CheckedOutTo", null);
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldChainWhenContentTypeIsSeeOnly()
+        {
+            /*
+    ...
+    "results": [
+      {
+        "Id": 1383, "Name": "TestFolder2",
+// WRONG:
+        "ModifiedBy": {
+          "__deferred": {
+            "uri": "/odata.svc/Root/System/Schema/ContentTypes/GenericContent/Folder/SystemFolder('TestFolder2')/ModifiedBy" }
+        }},
+      {
+        "Id": 1382, "Name": "TestFolder1",
+// EXPECTED
+        "ModifiedBy": {
+          "Id": 10,
+          "CreatedBy": { "Id": 10 },
+          "Owner": { "Id": 10, "ModifiedBy": { "Id": 10 } }
+        }}
+    ]
+             */
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy/CreatedBy,ModifiedBy/Manager/ModifiedBy",
+                "Id,ParentId,Name,ModifiedBy/Id,ModifiedBy/Name,ModifiedBy/CreatedBy/Id,ModifiedBy/CreatedBy/Name,ModifiedBy/Manager/Id,,ModifiedBy/Manager/Name,ModifiedBy/Manager/ModifiedBy/Id,ModifiedBy/Manager/ModifiedBy/Name");
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+            var somebody = User.Somebody;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.CreatedBy.Id);
+            Assert.IsNull(entity1.ModifiedBy.Manager);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.CreatedBy.Id);
+            Assert.IsNull(entity2.ModifiedBy.Manager);
+        }
+        [TestMethod, Description("Reproduction test for https://github.com/SenseNet/sensenet/issues/1443")]
+        public async Task OD_GET_FIX_ExpandedFieldChainWhenContentTypeIsSeeOnly_NoSelect()
+        {
+            var response = await GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(
+                "ModifiedBy/CreatedBy,ModifiedBy/Manager/ModifiedBy",
+                null);
+            var entities = response.entities;
+            var workerUser = response.worker;
+            var managerUser = response.manager;
+            var somebody = User.Somebody;
+
+            Assert.AreEqual(2, entities.Length);
+            var entity1 = entities.Single(x => x.Name == "TestFolder1");
+            var entity2 = entities.Single(x => x.Name == "TestFolder2");
+            Assert.IsFalse(entity1.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.Id);
+            Assert.AreEqual(workerUser.Id, entity1.ModifiedBy.CreatedBy.Id);
+            Assert.IsNull(entity1.ModifiedBy.Manager);
+            Assert.IsFalse(entity2.ModifiedBy.IsDeferred);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.Id);
+            Assert.AreEqual(workerUser.Id, entity2.ModifiedBy.CreatedBy.Id);
+            Assert.IsNull(entity2.ModifiedBy.Manager);
+        }
+        private async Task<(ODataEntityResponse[] entities, User requester, User worker, User manager, string rawResponse)> GetEntitiesFor_FIX_ExpandedFieldsWhenContentTypeIsSeeOnlyTests(string expand, string select)
+        {
+            ODataEntityResponse[] result = null;
+            User requesterUser = null;
+            User workerUser = null;
+            User managerUser = null;
+            string rawResponse = null;
+            await ODataTestAsync(async () =>
+            {
+                var container = Node.LoadNode("/Root/IMS/Public");
+                requesterUser = new User(container) { Name = "requester", Enabled = true, Email = "requester@example.com" };
+                requesterUser.Save();
+                managerUser = new User(container) { Name = "manager", Enabled = true, Email = "manager@example.com" };
+                managerUser.Save();
+                workerUser = new User(container) { Name = "worker", Enabled = true, Email = "worker@example.com" };
+                var workerUserContent = Content.Create(workerUser);
+                workerUserContent["Manager"] = managerUser;
+                workerUserContent.Save();
+
+                ContentTypeInstaller.InstallContentType(
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder1"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
+                    @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder2"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>");
+                var contentType0 = ContentType.GetByName("SystemFolder");
+                var contentType1 = ContentType.GetByName("TestFolder1");
+                var contentType2 = ContentType.GetByName("TestFolder2");
+                SecurityHandler.CreateAclEditor()
+                    //.BreakInheritance(contentType1.Id, new EntryType[0])
+                    .Allow(contentType1.Id, requesterUser.Id, false, PermissionType.Open)
+                    .Allow(contentType2.Id, requesterUser.Id, false, PermissionType.See)
+                    .Allow(requesterUser.Id, requesterUser.Id, false, PermissionType.Open)
+                    .Allow(managerUser.Id, requesterUser.Id, false, PermissionType.Open)
+                    .Allow(workerUser.Id, requesterUser.Id, false, PermissionType.See)
+                    .Apply();
+                contentType1.ModifiedBy = workerUser;
+                contentType1.Save();
+                contentType2.ModifiedBy = workerUser;
+                contentType2.Save();
+
+                using (new CurrentUserBlock(requesterUser))
+                {
+                    // pre checks
+                    Assert.AreEqual("Public\\requester", User.Current.Name);
+                    Assert.IsFalse(contentType0.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(contentType1.Security.HasPermission(PermissionType.Open));
+                    Assert.IsTrue(contentType2.Security.HasPermission(PermissionType.See));
+
+                    // ACTION
+                    var queryText = "+TypeIs:ContentType +Name:TestFolder* .AUTOFILTERS:OFF";
+                    var odataQueryText = queryText.Replace("+", "%2B").Replace(":", "%3a").Replace(" ", "+");
+                    var selectParam = select == null ? "" : $"&$select={select}";
+                    var response = await ODataGetAsync(
+                        "/OData.svc/Root",
+                        $"?metadata=no&$expand={expand}{selectParam}&query={odataQueryText}")
+                        .ConfigureAwait(false);
+                    rawResponse = response.Result;
+
+                    result = GetEntities(response).ToArray();
+                }
+            }).ConfigureAwait(false);
+
+            return (result, requesterUser, workerUser, managerUser, rawResponse);
         }
 
         /* ============================================================================ OTHER TESTS */

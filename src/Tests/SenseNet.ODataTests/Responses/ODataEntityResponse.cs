@@ -12,6 +12,7 @@ namespace SenseNet.ODataTests.Responses
     {
         public string Title { get; set; }
         public string Name { get; set; }
+        public string OpId { get; set; }
         public string Target { get; set; }
         public bool Forbidden { get; set; }
         public OperationParameter[] Parameters { get; set; }
@@ -91,6 +92,28 @@ namespace SenseNet.ODataTests.Responses
                 if (_createdBy == null)
                     _createdBy = GetEntity("CreatedBy");
                 return _createdBy;
+            }
+        }
+
+        private ODataEntityResponse _modifiedBy;
+        public ODataEntityResponse ModifiedBy
+        {
+            get
+            {
+                if (_modifiedBy == null)
+                    _modifiedBy = GetEntity("ModifiedBy");
+                return _modifiedBy;
+            }
+        }
+
+        private ODataEntityResponse _owner;
+        public ODataEntityResponse Owner
+        {
+            get
+            {
+                if (_owner == null)
+                    _owner = GetEntity("Owner");
+                return _owner;
             }
         }
 
@@ -187,6 +210,7 @@ namespace SenseNet.ODataTests.Responses
                 {
                     Title = operation["title"].Value<string>(),
                     Name = operation["name"].Value<string>(),
+                    OpId = operation["opId"].Value<string>(),
                     Target = operation["target"].Value<string>(),
                     Forbidden = operation["forbidden"].Value<bool>(),
                     Parameters = operation["parameters"].Select(p => new OperationParameter
@@ -215,6 +239,7 @@ namespace SenseNet.ODataTests.Responses
                 var item = new ODataActionItem
                 {
                     Name = operation["Name"].Value<string>(),
+                    OpId = operation["OpId"].Value<string>(),
                     DisplayName = operation["DisplayName"].Value<string>(),
                     Icon = operation["Icon"].Value<string>(),
                     Index = operation["Index"].Value<int>(),

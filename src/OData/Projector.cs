@@ -80,6 +80,7 @@ namespace SenseNet.OData
             {
                 Title = SNSR.GetString(a.Text),
                 Name = a.Name,
+                OpId = ODataTools.GetOperationId(a.Name, a.ActionParameters),
                 Target = string.Concat(selfUrl, "/", a.Name),
                 Forbidden = a.Forbidden,
                 Parameters = a.ActionParameters.Select(p => new ODataOperationParameter
@@ -124,6 +125,12 @@ namespace SenseNet.OData
                 default:
                     return content.IsAllowedField(fieldName);
             }
+        }
+
+        private static readonly string[] HeadOnlyExpandableFields = {"CreatedBy", "ModifiedBy"};
+        protected bool IsHeadOnlyExpandableField(string name)
+        {
+            return HeadOnlyExpandableFields.Contains(name);
         }
 
         protected ODataActionItem[] GetActions(Content content, HttpContext httpContext)
