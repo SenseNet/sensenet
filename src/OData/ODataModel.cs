@@ -25,11 +25,13 @@ namespace SenseNet.OData
         public string Title { get; set; }
         [JsonProperty(PropertyName = "name", Order = 2)]
         public string Name { get; set; }
-        [JsonProperty(PropertyName = "target", Order = 3)]
+        [JsonProperty(PropertyName = "opId", Order = 3)]
+        public string OpId { get; set; }
+        [JsonProperty(PropertyName = "target", Order = 4)]
         public string Target { get; set; }
-        [JsonProperty(PropertyName = "forbidden", Order = 4)]
+        [JsonProperty(PropertyName = "forbidden", Order = 5)]
         public bool Forbidden { get; set; }
-        [JsonProperty(PropertyName = "parameters", Order = 5)]
+        [JsonProperty(PropertyName = "parameters", Order = 6)]
         public ODataOperationParameter[] Parameters { get; set; }
     }
     internal class ODataOperationParameter
@@ -121,6 +123,7 @@ namespace SenseNet.OData
 <ContentType name=""Action"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <Fields>
     <Field name=""Name"" type=""ShortText"" />
+    <Field name=""OpId"" type=""ShortText"" />
     <Field name=""DisplayName"" type=""ShortText"" />
     <Field name=""Index"" type=""Integer"" />
     <Field name=""Icon"" type=""ShortText"" />
@@ -137,6 +140,10 @@ namespace SenseNet.OData
         /// Gets or sets the name of the Action.
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Gets or sets the identifier of the Action.
+        /// </summary>
+        public string OpId { get; set; }
         /// <summary>
         /// Gets or sets the human readable name of the Action.
         /// </summary>

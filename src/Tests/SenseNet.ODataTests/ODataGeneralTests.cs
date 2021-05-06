@@ -1149,6 +1149,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(actions.Any());
                 var action = (JObject) actions[0];
                 Assert.IsNotNull(action["Name"]);
+                Assert.IsNotNull(action["OpId"]);
                 Assert.IsNotNull(action["DisplayName"]);
                 Assert.IsNotNull(action["Index"]);
                 Assert.IsNotNull(action["Icon"]);
