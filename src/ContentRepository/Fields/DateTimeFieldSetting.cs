@@ -324,7 +324,7 @@ namespace SenseNet.ContentRepository.Fields
 
         protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
-            return new SenseNet.Search.Indexing.DateTimeIndexHandler();
+            return new DateTimeIndexHandler();
         }
     }
 }
