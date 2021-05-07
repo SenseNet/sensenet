@@ -1558,6 +1558,12 @@ namespace SenseNet.ContentRepository.Schema
                 WriteElement(writer, XmlConvert.ToString(value.Value), elementName);
         }
 
+        protected void WriteElement(XmlWriter writer, DateTime? value, string elementName)
+        {
+            if (value.HasValue)
+                WriteElement(writer, XmlConvert.ToString(value.Value, XmlDateTimeSerializationMode.Utc), elementName);
+        }
+
         protected void WriteElement(XmlWriter writer, string value, string elementName)
         {
             if (value == null)
