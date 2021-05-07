@@ -22,9 +22,46 @@ namespace SenseNet.ContentRepository.Fields
 
     public class DateTimeFieldSetting : FieldSetting
     {
+        private const string MaxValueName = "MaxValue";
+        private const string MinValueName = "MinValue";
+
         public const string DateTimeModeName = "DateTimeMode";
         public const string PrecisionName = "Precision";
         public static readonly DateTimePrecision DefaultPrecision = DateTimePrecision.Minute;
+
+        private DateTime? _minValue;
+        public DateTime? MinValue
+        {
+            get
+            {
+                if (_minValue.HasValue)
+                    return _minValue.Value;
+                return ((DateTimeFieldSetting) ParentFieldSetting)?.MinValue;
+            }
+            set
+            {
+                if (!_mutable)
+                    throw new InvalidOperationException("Setting MinValue is not allowed within readonly instance.");
+                _minValue =  value;
+            }
+        }
+
+        private DateTime? _maxValue;
+        public DateTime? MaxValue
+        {
+            get
+            {
+                if (_maxValue.HasValue)
+                    return _maxValue.Value;
+                return ((DateTimeFieldSetting) ParentFieldSetting)?.MaxValue;
+            }
+            set
+            {
+                if (!_mutable)
+                    throw new InvalidOperationException("Setting MaxValue is not allowed within readonly instance.");
+                _maxValue = value;
+            }
+        }
 
         private DateTimeMode? _dateTimeMode;
         [JsonConverter(typeof(StringEnumConverter))]
@@ -73,6 +110,14 @@ namespace SenseNet.ContentRepository.Fields
             {
                 switch (node.LocalName)
                 {
+                    case MinValueName:
+                        if (DateTime.TryParse(node.InnerXml, out var minValue))
+                            _minValue = minValue;
+                        break;
+                    case MaxValueName:
+                        if (DateTime.TryParse(node.InnerXml, out var maxValue))
+                            _maxValue = maxValue;
+                        break;
                     case DateTimeModeName:
                         ParseEnumValue(node.InnerXml, ref _dateTimeMode);
                         break;
@@ -85,12 +130,16 @@ namespace SenseNet.ContentRepository.Fields
         protected override void ParseConfiguration(Dictionary<string, object> info)
         {
             base.ParseConfiguration(info);
+            _minValue = GetConfigurationNullableValue<DateTime>(info, MinValueName, null);
+            _maxValue = GetConfigurationNullableValue<DateTime>(info, MaxValueName, null);
             _dateTimeMode = GetConfigurationNullableValue<DateTimeMode>(info, DateTimeModeName, null);
             _precision = GetConfigurationNullableValue<DateTimePrecision>(info, PrecisionName, null);
         }
         protected override Dictionary<string, object> WriteConfiguration()
         {
             var result = base.WriteConfiguration();
+            result.Add(MinValueName, _minValue);
+            result.Add(MaxValueName, _maxValue);
             result.Add(DateTimeModeName, _dateTimeMode);
             result.Add(PrecisionName, _precision);
             return result;
@@ -98,10 +147,41 @@ namespace SenseNet.ContentRepository.Fields
 
         protected override void WriteConfiguration(XmlWriter writer)
         {
+            WriteElement(writer, _minValue, MinValueName);
+            WriteElement(writer, _maxValue, MaxValueName);
             if (this._dateTimeMode.HasValue)
                 WriteElement(writer, this._dateTimeMode.Value.ToString(), DateTimeModeName);
             if(this._precision.HasValue)
                 WriteElement(writer, this._precision.Value.ToString(), PrecisionName);
+        }
+
+        public override FieldValidationResult ValidateData(object value, Field field)
+        {
+            if ((value == null) && (this.Compulsory ?? false))
+                return new FieldValidationResult(CompulsoryName);
+
+            if (value != null)
+            {
+                var dateTimeValue = (DateTime)value;
+                var min = this.MinValue ?? DateTime.MinValue;
+                var max = this.MaxValue ?? DateTime.MaxValue;
+
+                if (dateTimeValue < min)
+                {
+                    var result = new FieldValidationResult(MinValueName);
+                    result.AddParameter(MinValueName, min);
+                    return result;
+                }
+
+                if (dateTimeValue > max)
+                {
+                    var result = new FieldValidationResult(MaxValueName);
+                    result.AddParameter(MaxValueName, max);
+                    return result;
+                }
+
+            }
+            return FieldValidationResult.Successful;
         }
 
         protected override void CopyPropertiesFrom(FieldSetting source)
@@ -110,6 +190,8 @@ namespace SenseNet.ContentRepository.Fields
 
             var etSource = (DateTimeFieldSetting)source;
 
+            MinValue = etSource.MinValue;
+            MaxValue = etSource.MaxValue;
             DateTimeMode = etSource.DateTimeMode;
             Precision = etSource.Precision;
         }
@@ -117,6 +199,39 @@ namespace SenseNet.ContentRepository.Fields
         public override IDictionary<string, FieldMetadata> GetFieldMetadata()
         {
             var fmd = base.GetFieldMetadata();
+
+            var minFs = new DateTimeFieldSetting
+            {
+                Name = MinValueName,
+                DisplayName = GetTitleString(MinValueName),
+                Description = GetDescString(MinValueName),
+                ShortName = "DateTime",
+                FieldClassName = typeof(DateTimeField).FullName
+            };
+            var maxFs = new DateTimeFieldSetting
+            {
+                Name = MaxValueName,
+                DisplayName = GetTitleString(MaxValueName),
+                Description = GetDescString(MaxValueName),
+                ShortName = "DateTime",
+                FieldClassName = typeof(DateTimeField).FullName
+            };
+
+            fmd.Add(MinValueName, new FieldMetadata
+            {
+                FieldName = MinValueName,
+                CanRead = true,
+                CanWrite = true,
+                FieldSetting = minFs
+            });
+
+            fmd.Add(MaxValueName, new FieldMetadata
+            {
+                FieldName = MaxValueName,
+                CanRead = true,
+                CanWrite = true,
+                FieldSetting = maxFs
+            });
 
             fmd.Add(DateTimeModeName, new FieldMetadata
             {
@@ -133,6 +248,25 @@ namespace SenseNet.ContentRepository.Fields
                     AllowMultiple = false,
                     AllowExtraValue = false,
                     DefaultValue = ((int)Fields.DateTimeMode.DateAndTime).ToString(),
+                    FieldClassName = typeof(ChoiceField).FullName,
+                }
+            });
+
+            fmd.Add(PrecisionName, new FieldMetadata
+            {
+                FieldName = PrecisionName,
+                CanRead = true,
+                CanWrite = true,
+                FieldSetting = new ChoiceFieldSetting
+                {
+                    Name = PrecisionName,
+                    DisplayName = GetTitleString(PrecisionName),
+                    Description = GetDescString(PrecisionName),
+                    EnumTypeName = typeof(DateTimePrecision).FullName,
+                    DisplayChoice = DisplayChoice.RadioButtons,
+                    AllowMultiple = false,
+                    AllowExtraValue = false,
+                    DefaultValue = ((int)DefaultPrecision).ToString(),
                     FieldClassName = typeof(ChoiceField).FullName,
                 }
             });
@@ -190,7 +324,7 @@ namespace SenseNet.ContentRepository.Fields
 
         protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
-            return new SenseNet.Search.Indexing.DateTimeIndexHandler();
+            return new DateTimeIndexHandler();
         }
     }
 }

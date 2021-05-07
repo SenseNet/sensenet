@@ -206,7 +206,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -249,7 +249,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -269,7 +269,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -283,7 +283,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -312,7 +312,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)
@@ -331,8 +331,8 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
-            tc.Add(ed.CreateNodeType(null, String.Concat("NT0")));
-            tc.Add(ed.CreateNodeType(null, String.Concat("NT1")));
+            tc.Add(ed.CreateNodeType(null, "NT0", "T1"));
+            tc.Add(ed.CreateNodeType(null, "NT1", "T2"));
             try
             {
                 tc["NT1"] = ed.NodeTypes["NT0"];
@@ -347,7 +347,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed = new SchemaEditor();
             for (int i = 0; i < 5; i++)
-                ed.CreateNodeType(null, String.Concat("NT", i));
+                ed.CreateNodeType(null, $"NT{i}", $"T{i}");
 
             var tc = TypeCollectionAccessor<NodeType>.Create(ed);
             foreach (NodeType nt in ed.NodeTypes)

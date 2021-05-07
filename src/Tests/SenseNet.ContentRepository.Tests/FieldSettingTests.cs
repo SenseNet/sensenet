@@ -1445,6 +1445,73 @@ namespace SenseNet.ContentRepository.Tests.Schema
         }
 
         [TestMethod]
+        public void FieldSetting_Validation_DateTime()
+        {
+            Test(() =>
+            {
+                var testRoot = CreateTestRoot();
+
+                ContentTypeInstaller.InstallContentType(@"<?xml version='1.0' encoding='utf-8'?>
+				<ContentType name='ValidatedContent' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+					<Fields>
+						<Field name='DateTimeTest' type='DateTime'>
+							<Configuration>
+								<MinValue>2020-01-11</MinValue>
+								<MaxValue>2020-05-07</MaxValue>
+							</Configuration>
+						</Field>
+					</Fields>
+				</ContentType>");
+
+                var dMin = new DateTime(2020, 1, 11);
+                var dMax = new DateTime(2020, 5, 7);
+
+                SNC.Content content = SNC.Content.CreateNew("ValidatedContent", testRoot, "abc");
+                Assert.AreEqual(DateTime.MinValue, (DateTime)content["DateTimeTest"], "#1");
+                content["DateTimeTest"] = dMin.AddTicks(-1); Assert.IsFalse(content.IsValid, "#2");
+                content["DateTimeTest"] = dMin;              Assert.IsTrue(content.IsValid, "#3");
+                content["DateTimeTest"] = dMin.AddTicks(1);  Assert.IsTrue(content.IsValid, "#4");
+                content["DateTimeTest"] = dMax.AddTicks(-1); Assert.IsTrue(content.IsValid, "#5");
+                content["DateTimeTest"] = dMax;              Assert.IsTrue(content.IsValid, "#6");
+                content["DateTimeTest"] = dMax.AddTicks(1);  Assert.IsFalse(content.IsValid, "#7");
+
+                // change field + save tests
+                var fieldValue = new DateTime(2020, 1, 12); // initial valid value
+                content = SNC.Content.CreateNew("ValidatedContent", testRoot, "abc");
+                content.ContentHandler["DateTimeTest"] = fieldValue;
+
+                var field = (DateTimeField)content.Fields["DateTimeTest"];
+
+                // case 1 (valid)
+                fieldValue = new DateTime(2020, 1, 13);
+                field.SetData(fieldValue);
+                new ObjectAccessor(field).Invoke("Save", false);
+                var result = (DateTime)content.ContentHandler["DateTimeTest"];
+                bool isValid = field.IsValid;
+                Assert.AreEqual(fieldValue, result);
+                Assert.IsTrue(isValid);
+
+                // case 2 (invalid)
+                fieldValue = new DateTime(1999, 12, 1);
+                field.SetData(fieldValue);
+                new ObjectAccessor(field).Invoke("Save", false);
+                result = (DateTime)content.ContentHandler["DateTimeTest"];
+                isValid = field.IsValid;
+                Assert.AreEqual(fieldValue, result);
+                Assert.IsFalse(isValid);
+
+                // case 3 (valid)
+                fieldValue = new DateTime(2020, 1, 14);
+                field.SetData(fieldValue);
+                new ObjectAccessor(field).Invoke("Save", false);
+                result = (DateTime)content.ContentHandler["DateTimeTest"];
+                isValid = field.IsValid;
+                Assert.AreEqual(fieldValue, result);
+                Assert.IsTrue(isValid);
+            });
+        }
+
+        [TestMethod]
         public void FieldSetting_Validation_Inheritance()
         {
             Test(() =>
