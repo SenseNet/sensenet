@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -473,7 +474,10 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
         private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
         {
             private readonly string _connectionString;
-            public MsSqlCannotCommitDataProvider(string connectionString)
+            public MsSqlCannotCommitDataProvider(string connectionString) : base(Options.Create(new ConnectionStringOptions
+            {
+                ConnectionString = connectionString
+            }))
             {
                 _connectionString = connectionString;
             }

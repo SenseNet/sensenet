@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -20,12 +21,17 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         //TODO: [DIREF] get options from DI through constructor
         private DataOptions DataOptions { get; } = DataOptions.GetLegacyConfiguration();
+        private ConnectionStringOptions ConnectionStrings { get; }
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
+        public MsSqlDataProvider(IOptions<ConnectionStringOptions> connectionOptions)
+        {
+            ConnectionStrings = connectionOptions?.Value ?? ConnectionStringOptions.GetLegacyConnectionStrings();
+        }
+
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            //TODO: [DIREF] get connection string through constructor
             return new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, token);
         }
         /* =========================================================================================== Platform specific implementations */

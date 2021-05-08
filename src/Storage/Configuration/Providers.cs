@@ -38,7 +38,6 @@ namespace SenseNet.Configuration
             "SenseNet.Diagnostics.EventPropertyCollector");
         public static string AuditEventWriterClassName { get; internal set; } = GetProvider("AuditEventWriter",
             typeof(DatabaseAuditEventWriter).FullName);
-        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -129,12 +128,10 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
-        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
-        {
-            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
-            return dbp;
-        });
+        #region DataProvider
+        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() => new MsSqlDataProvider(Options.Create(
+            ConnectionStringOptions.GetLegacyConnectionStrings())));
+
         public virtual DataProvider DataProvider
         {
             get { return _dataProvider.Value; }

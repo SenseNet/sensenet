@@ -28,6 +28,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
+            //UNDONE: [DIREF]: do not set the global connection string
             ConnectionStrings.ConnectionString = ConnectionString;
             PrepareDatabase();
             base.OnBeforeGettingRepositoryBuilder(builder);
@@ -41,7 +42,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider()
         {
-            return new MsSqlDataProvider();
+            return new MsSqlDataProvider(Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
         }
         public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
         {

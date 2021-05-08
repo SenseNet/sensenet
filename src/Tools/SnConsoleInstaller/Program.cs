@@ -27,7 +27,6 @@ namespace SnConsoleInstaller
                 .SetConsole(Console.Out)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
-                .UseDataProvider(new MsSqlDataProvider())
                 .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex")) as RepositoryBuilder;
 
             new Installer(builder, null, logger)
@@ -48,6 +47,7 @@ namespace SnConsoleInstaller
                             .ReadFrom.Configuration(hb.Configuration)
                             .CreateLogger());
                     })
+                    .AddSenseNetDataProvider()
                     .AddEFCSecurityDataProvider(options =>
                     {
                         options.ConnectionString = ConnectionStrings.ConnectionString;

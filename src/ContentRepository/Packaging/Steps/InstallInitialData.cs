@@ -1,4 +1,6 @@
 ﻿using System.Threading;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -31,7 +33,11 @@ namespace SenseNet.Packaging.Steps
 
             var initialData = InitialData.Load(new SenseNetServicesInitialData(), null);
 
-            MsSqlDataInstaller.InstallInitialDataAsync(initialData, new MsSqlDataProvider(), connectionString,
+            MsSqlDataInstaller.InstallInitialDataAsync(initialData, 
+                new MsSqlDataProvider(Options.Create<ConnectionStringOptions>(new ConnectionStringOptions
+                {
+                    ConnectionString = connectionString
+                })), connectionString,
                 CancellationToken.None).GetAwaiter().GetResult();
         }
     }
