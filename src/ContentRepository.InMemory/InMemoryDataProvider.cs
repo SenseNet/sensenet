@@ -804,7 +804,22 @@ namespace SenseNet.ContentRepository.InMemory
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = new List<NodeHead>();
+                foreach (var path in paths)
+                {
+                    var hit = DB.Nodes.FirstOrDefault(x => x.Path == path);
+                    if (hit != null)
+                    {
+                        result.Add(NodeDocToNodeHeadSafe(hit));
+                        if (!resolveAll)
+                            break;
+                    }
+                }
+                return STT.Task.FromResult((IEnumerable<NodeHead>)result);
+            }
         }
 
         private NodeHead NodeDocToNodeHeadSafe(NodeDoc nodeDoc)
