@@ -88,7 +88,7 @@ namespace SenseNet.Tests.Core.Implementations
         public void SetContentHandler(string contentTypeName, string handler)
         {
             var fileRecord = DB.Files.First(ff =>
-                ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == contentTypeName);
+                ff.Extension == "ContentType" && ff.FileNameWithoutExtension == contentTypeName);
 
             // change handler in the blob
             EditFileStream(fileRecord, xDoc =>
@@ -141,7 +141,7 @@ namespace SenseNet.Tests.Core.Implementations
         public void AddField(string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null)
         {
             var fileRecord = DB.Files.First(ff =>
-                ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == contentTypeName);
+                ff.Extension == "ContentType" && ff.FileNameWithoutExtension == contentTypeName);
 
             // change field in the blob
             EditFileStream(fileRecord, xDoc =>

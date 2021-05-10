@@ -37,7 +37,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             return originalExtension.Length == 0
                 ? string.Empty
-                : string.Concat(".", originalExtension);
+                : originalExtension; // string.Concat(".", originalExtension);
         }
 
 
