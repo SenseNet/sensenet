@@ -825,39 +825,68 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await IntegrationTestAsync(async () =>
             {
+                ContentTypeInstaller.InstallContentType(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""File2"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Binary2"" type=""Binary"">
+      <DisplayName>$Ctd-File,Binary-DisplayName</DisplayName>
+      <Description>$Ctd-File,Binary-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>");
+
                 var root = CreateFolder(Repository.Root, "TestRoot");
-                var file = CreateFile(root, "File-1.txt", "File content.");
+                var file = new File(root, "File2") { Name = "File-1.txt" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString("File content."));
+                var binary2 = new BinaryData {FileName = "File-1.SecondaryStream", ContentType = "text2/plain2"};
+                binary2.SetStream(RepositoryTools.GetStreamFromString("File secondary content."));
+                file.SetProperty("Binary2", binary2);
+                file.Save();
 
                 var versionId = file.VersionId;
                 var fileId = file.Binary.FileId;
                 var propertyTypeId = file.Binary.PropertyType.Id;
+                var propertyTypeId2 = file.PropertyTypes.Single(x => x.Name == "Binary2").Id;
 
                 // ACTION-1: Load existing
                 var result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, CancellationToken.None);
+                var result2 = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId2, CancellationToken.None);
                 // ASSERT-1
-                //UNDONE:<?:IntT:!!! Fix fileext: mssql returns: "File1..txt"
                 Assert.IsNotNull(result);
                 Assert.AreEqual("File-1", result.FileName.FileNameWithoutExtension);
                 Assert.AreEqual("txt", result.FileName.Extension);
                 Assert.AreEqual(3L + "File content.".Length, result.Size); // +UTF-8 BOM
                 Assert.AreEqual("text/plain", result.ContentType);
+                Assert.IsNotNull(result2);
+                Assert.AreEqual("File-1", result2.FileName.FileNameWithoutExtension);
+                Assert.AreEqual("SecondaryStream", result2.FileName.Extension);
+                Assert.AreEqual(3L + "File secondary content.".Length, result2.Size); // +UTF-8 BOM
+                Assert.AreEqual("text2/plain2", result2.ContentType);
 
                 // ACTION-2: Missing Binary
                 result = await DP.LoadBinaryPropertyValueAsync(versionId, 999999, CancellationToken.None);
-                // ASSERT-2 (not loaded and no exceptin was thrown)
+                // ASSERT-2 (not loaded and no exception was thrown)
                 Assert.IsNull(result);
 
                 // ACTION-3: Staging
                 await TDP.SetFileStagingAsync(fileId, true);
                 result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, CancellationToken.None);
-                // ASSERT-3 (not loaded and no exceptin was thrown)
+                // ASSERT-3 (not loaded and no exception was thrown)
                 Assert.IsNull(result);
 
                 // ACTION-4: Missing File (inconsistent but need to be handled)
                 await TDP.DeleteFileAsync(fileId);
 
                 result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, CancellationToken.None);
-                // ASSERT-4 (not loaded and no exceptin was thrown)
+                // ASSERT-4 (not loaded and no exception was thrown)
                 Assert.IsNull(result);
             });
         }

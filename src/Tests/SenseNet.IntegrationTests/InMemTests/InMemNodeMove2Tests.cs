@@ -37,11 +37,11 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public void IntT_InMem_NodeMove_2_ContentList_NodeTreeToContentListItem() { TestCase.NodeMove_2_ContentList_NodeTreeToContentListItem(); }
         [TestMethod]
-        public void IntT_InMem_NodeMove_2_ContentList_NodeWithContentListToNode() { Assert.Inconclusive(); TestCase.NodeMove_2_ContentList_NodeWithContentListToNode(); }
+        public void IntT_InMem_NodeMove_2_ContentList_NodeWithContentListToNode() { TestCase.NodeMove_2_ContentList_NodeWithContentListToNode(); }
         [TestMethod]
-        public void IntT_InMem_NodeMove_2_ContentList_ContentListToNode() { Assert.Inconclusive(); TestCase.NodeMove_2_ContentList_ContentListToNode(); }
+        public void IntT_InMem_NodeMove_2_ContentList_ContentListToNode() { TestCase.NodeMove_2_ContentList_ContentListToNode(); }
         [TestMethod]
-        public void IntT_InMem_NodeMove_2_ContentList_ContentListTreeToNode() { Assert.Inconclusive(); TestCase.NodeMove_2_ContentList_ContentListTreeToNode(); }
+        public void IntT_InMem_NodeMove_2_ContentList_ContentListTreeToNode() { TestCase.NodeMove_2_ContentList_ContentListTreeToNode(); }
         [TestMethod]
         public void IntT_InMem_NodeMove_2_ContentList_ContentListItemToNode() { TestCase.NodeMove_2_ContentList_ContentListItemToNode(); }
         [TestMethod]

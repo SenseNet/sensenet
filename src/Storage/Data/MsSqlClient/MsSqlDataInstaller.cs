@@ -389,7 +389,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["FileId"] = data.FileId;
             row["ContentType"] = data.ContentType;
             row["FileNameWithoutExtension"] = data.FileName.FileNameWithoutExtension;
-            row["Extension"] = "." + data.FileName.Extension;
+            row["Extension"] = data.FileName.Extension;
             row["Size"] = buffer?.Length ?? data.Size;
             row["Stream"] = buffer;
             row["CreationDate"] = DateTime.UtcNow;

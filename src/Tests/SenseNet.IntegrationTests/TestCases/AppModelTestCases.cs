@@ -29,7 +29,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                     // ASSERT
                     Assert.IsNotNull(nodeHead);
-                    Assert.IsTrue(nodeHead.Path == "/Root/System", "Path does not equal the expected");
+                    Assert.AreEqual("/Root/System", nodeHead.Path);
                 }
                 finally
                 {

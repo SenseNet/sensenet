@@ -63,7 +63,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public Task IntT_MsSql_DP_GetVersionNumbers_MissingNode() { return TestCase.DP_GetVersionNumbers_MissingNode(); }
 
         [TestMethod]
-        public Task IntT_MsSql_DP_LoadBinaryPropertyValues() { Assert.Inconclusive(); return TestCase.DP_LoadBinaryPropertyValues(); }
+        public Task IntT_MsSql_DP_LoadBinaryPropertyValues() { return TestCase.DP_LoadBinaryPropertyValues(); }
 
         [TestMethod]
         public Task IntT_MsSql_DP_NodeEnumerator() { return TestCase.DP_NodeEnumerator(); }

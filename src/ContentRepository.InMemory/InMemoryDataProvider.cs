@@ -520,11 +520,14 @@ namespace SenseNet.ContentRepository.InMemory
                         // In this case the ContentListId is null, because the ContentListId is the NodeId.
                         targetContentListId = targetNodeId;
 
+                    var updateContentListReferences = targetContentListTypeId > 0;
+
                     if (sourceContentListTypeId != 0 && sourceContentListId != 0
                                                      && (targetContentListTypeId == 0 ||
                                                          targetContentListTypeId != sourceContentListTypeId)
                                                      && !targetIsTrashBag)
                     {
+                        updateContentListReferences = true;
                         DeleteContentListPropertiesInTree(sourceNode);
                         sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
                     }
@@ -553,8 +556,11 @@ namespace SenseNet.ContentRepository.InMemory
                         var clone = node.Clone();
                         clone.Path = clone.Path.Replace(originalParentPath, targetNode.Path);
                         ManageSystemFlag(clone, systemFlagUpdatingStrategy, systemFolderIds);
-                        clone.ContentListId = targetContentListId;
-                        clone.ContentListTypeId = targetContentListTypeId;
+                        if (updateContentListReferences)
+                        {
+                            clone.ContentListId = targetContentListId;
+                            clone.ContentListTypeId = targetContentListTypeId;
+                        }
                         DB.Nodes.Remove(node);
                         DB.Nodes.Insert(clone);
                     }
@@ -565,8 +571,11 @@ namespace SenseNet.ContentRepository.InMemory
                     updatedSourceNode.ParentNodeId = targetNodeId;
                     updatedSourceNode.Path = updatedSourceNode.Path.Replace(originalParentPath, targetNode.Path);
                     ManageSystemFlag(updatedSourceNode, systemFlagUpdatingStrategy, systemFolderIds);
-                    updatedSourceNode.ContentListId = targetContentListId;
-                    updatedSourceNode.ContentListTypeId = targetContentListTypeId;
+                    if(updateContentListReferences)
+                    {
+                        updatedSourceNode.ContentListId = targetContentListId;
+                        updatedSourceNode.ContentListTypeId = targetContentListTypeId;
+                    }
                     DB.Nodes.Remove(sourceNode);
                     DB.Nodes.Insert(updatedSourceNode);
 
@@ -804,7 +813,22 @@ namespace SenseNet.ContentRepository.InMemory
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = new List<NodeHead>();
+                foreach (var path in paths)
+                {
+                    var hit = DB.Nodes.FirstOrDefault(x => x.Path == path);
+                    if (hit != null)
+                    {
+                        result.Add(NodeDocToNodeHeadSafe(hit));
+                        if (!resolveAll)
+                            break;
+                    }
+                }
+                return STT.Task.FromResult((IEnumerable<NodeHead>)result);
+            }
         }
 
         private NodeHead NodeDocToNodeHeadSafe(NodeDoc nodeDoc)
@@ -1843,7 +1867,7 @@ namespace SenseNet.ContentRepository.InMemory
                     {
                         FileId = binProp.FileId,
                         FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
-                        Extension = "." + binProp.FileName.Extension,
+                        Extension = binProp.FileName.Extension,
                         ContentType = binProp.ContentType,
                         Size = binProp.Size,
                         Timestamp = binProp.Timestamp,
