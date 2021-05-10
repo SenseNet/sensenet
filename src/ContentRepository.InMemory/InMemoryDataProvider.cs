@@ -520,11 +520,14 @@ namespace SenseNet.ContentRepository.InMemory
                         // In this case the ContentListId is null, because the ContentListId is the NodeId.
                         targetContentListId = targetNodeId;
 
+                    var updateContentListReferences = targetContentListTypeId > 0;
+
                     if (sourceContentListTypeId != 0 && sourceContentListId != 0
                                                      && (targetContentListTypeId == 0 ||
                                                          targetContentListTypeId != sourceContentListTypeId)
                                                      && !targetIsTrashBag)
                     {
+                        updateContentListReferences = true;
                         DeleteContentListPropertiesInTree(sourceNode);
                         sourceNode = DB.Nodes.First(x => x.Id == sourceNodeId); // ensure the last modified row
                     }
@@ -553,8 +556,11 @@ namespace SenseNet.ContentRepository.InMemory
                         var clone = node.Clone();
                         clone.Path = clone.Path.Replace(originalParentPath, targetNode.Path);
                         ManageSystemFlag(clone, systemFlagUpdatingStrategy, systemFolderIds);
-                        clone.ContentListId = targetContentListId;
-                        clone.ContentListTypeId = targetContentListTypeId;
+                        if (updateContentListReferences)
+                        {
+                            clone.ContentListId = targetContentListId;
+                            clone.ContentListTypeId = targetContentListTypeId;
+                        }
                         DB.Nodes.Remove(node);
                         DB.Nodes.Insert(clone);
                     }
@@ -565,8 +571,11 @@ namespace SenseNet.ContentRepository.InMemory
                     updatedSourceNode.ParentNodeId = targetNodeId;
                     updatedSourceNode.Path = updatedSourceNode.Path.Replace(originalParentPath, targetNode.Path);
                     ManageSystemFlag(updatedSourceNode, systemFlagUpdatingStrategy, systemFolderIds);
-                    updatedSourceNode.ContentListId = targetContentListId;
-                    updatedSourceNode.ContentListTypeId = targetContentListTypeId;
+                    if(updateContentListReferences)
+                    {
+                        updatedSourceNode.ContentListId = targetContentListId;
+                        updatedSourceNode.ContentListTypeId = targetContentListTypeId;
+                    }
                     DB.Nodes.Remove(sourceNode);
                     DB.Nodes.Insert(updatedSourceNode);
 
