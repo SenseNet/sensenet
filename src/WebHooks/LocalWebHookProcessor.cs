@@ -95,15 +95,15 @@ namespace SenseNet.WebHooks
         {
             return new
             {
-                nodeId = node.Id,
-                versionId = node.VersionId,
-                version = node.Version?.ToString(),
+                nodeId = node?.Id ?? 0,
+                versionId = node?.VersionId ?? 0,
+                version = node?.Version?.ToString(),
                 previousVersion = previousVersion?.ToString(),
-                versionModificationDate = node.VersionModificationDate,
-                modifiedBy = node.ModifiedById,
-                path = node.Path,
-                name = node.Name,
-                displayName = node.DisplayName,
+                versionModificationDate = node?.VersionModificationDate ?? DateTime.MinValue,
+                modifiedBy = node?.ModifiedById ?? 0,
+                path = node?.Path,
+                name = node?.Name,
+                displayName = node?.DisplayName,
                 eventName = eventType.ToString(),
                 subscriptionId = subscription.Id,
                 sentTime = DateTime.UtcNow
