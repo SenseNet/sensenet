@@ -45,5 +45,23 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
+
+        /// <summary>
+        /// Adds the default MS SQL data provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDataProvider(this IServiceCollection services)
+        {
+            return services.AddSenseNetDataProvider<MsSqlDataProvider>();
+        }
+
+        /// <summary>
+        /// Adds a data provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDataProvider<T>(this IServiceCollection services)
+            where T : DataProvider
+        {
+            //UNDONE: [DIREF] register and get service using an interface
+            return services.AddSingleton<DataProvider, T>();
+        }
     }
 }

@@ -30,6 +30,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static Dictionary<string, string[]> _columnNames;
 
+        //UNDONE: [DIREF] get connection string through constructor
+
         public static async Task InstallInitialDataAsync(InitialData data, MsSqlDataProvider dataProvider, string connectionString,
             CancellationToken cancellationToken)
         {

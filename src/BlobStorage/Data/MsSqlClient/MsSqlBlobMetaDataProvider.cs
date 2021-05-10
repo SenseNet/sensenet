@@ -22,13 +22,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private DataOptions DataOptions { get; }
         private BlobStorageOptions BlobStorageOptions { get; }
         private IBlobProviderStore Providers { get; }
+        private ConnectionStringOptions ConnectionStrings { get; }
 
         public MsSqlBlobMetaDataProvider(IBlobProviderStore providers, IOptions<DataOptions> dataOptions,
-            IOptions<BlobStorageOptions> blobStorageOptions)
+            IOptions<BlobStorageOptions> blobStorageOptions, IOptions<ConnectionStringOptions> connectionOptions)
         {
             Providers = providers;
             DataOptions = dataOptions?.Value ?? new DataOptions();
             BlobStorageOptions = blobStorageOptions?.Value ?? new BlobStorageOptions();
+            ConnectionStrings = connectionOptions?.Value ?? new ConnectionStringOptions();
         }
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */

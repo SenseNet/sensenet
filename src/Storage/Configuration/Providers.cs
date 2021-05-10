@@ -38,7 +38,6 @@ namespace SenseNet.Configuration
             "SenseNet.Diagnostics.EventPropertyCollector");
         public static string AuditEventWriterClassName { get; internal set; } = GetProvider("AuditEventWriter",
             typeof(DatabaseAuditEventWriter).FullName);
-        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -129,12 +128,10 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
-        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
-        {
-            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
-            return dbp;
-        });
+        #region DataProvider
+        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() => new MsSqlDataProvider(Options.Create(
+            ConnectionStringOptions.GetLegacyConnectionStrings())));
+
         public virtual DataProvider DataProvider
         {
             get { return _dataProvider.Value; }
@@ -171,7 +168,8 @@ namespace SenseNet.Configuration
             BlobProviders.Clear();
 
             // add default internal blob provider
-            BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration())));
+            BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
+                Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings())));
         }
 
         public void InitializeBlobProviders()
@@ -179,7 +177,8 @@ namespace SenseNet.Configuration
             // add built-in provider manually if necessary
             if (!BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
             {
-                BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration())));
+                BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
+                    Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings())));
             }
 
             if (BlobProviderSelector == null)
@@ -191,7 +190,8 @@ namespace SenseNet.Configuration
             if (BlobMetaDataProvider == null)
                 BlobMetaDataProvider = new MsSqlBlobMetaDataProvider(BlobProviders,
                     Options.Create(DataOptions.GetLegacyConfiguration()),
-                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
+                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
+                    Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
 
             // assemble the main api instance if necessary (for tests)
             if (BlobStorage == null)

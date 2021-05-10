@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
@@ -48,7 +47,6 @@ namespace SenseNet.Services.Core
                 .UseTracer(new SnFileSystemTracer())
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
-                .UseDataProvider(new MsSqlDataProvider())
                 .UsePackagingDataProviderExtension(new MsSqlPackagingDataProvider())
                 .StartWorkflowEngine(false)
                 .UseEventDistributor(new EventDistributor())

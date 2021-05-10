@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
         protected DataOptions DataOptions { get; }
+        private ConnectionStringOptions ConnectionStrings { get; }
 
         // This property injection is a workaround for the service circular reference caused
         // by the built-in blob provider. It requires a BlobStorage instance to be able to
@@ -36,9 +35,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         // Ideally blob provider instances should not need a backreference to BlobStorage.
         public IBlobStorage BlobStorage { get; set; }
 
-        public BuiltInBlobProvider(IOptions<DataOptions> options)
+        public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
             DataOptions = options?.Value ?? new DataOptions();
+            ConnectionStrings = connectionOptions?.Value ?? new ConnectionStringOptions();
         }
 
         /// <inheritdoc />
