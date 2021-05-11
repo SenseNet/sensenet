@@ -577,7 +577,7 @@
 
 //        internal static void SetContentHandler(string contentTypeName, string handler)
 //        {
-//            var testingDataProvider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+//            var testingDataProvider = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
 //            if (testingDataProvider == null)
 //                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 

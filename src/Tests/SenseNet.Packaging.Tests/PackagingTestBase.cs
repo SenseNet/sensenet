@@ -123,7 +123,7 @@ namespace SenseNet.Packaging.Tests
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            var dataProvider = DataStore.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

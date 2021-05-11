@@ -111,7 +111,7 @@ namespace SenseNet.ContentRepository.Tests
                 folder.ForceDelete();
 
                 // load audit log entries
-                var entries = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10);
+                var entries = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10);
                 var relatedEntries = entries.Where(e => e.ContentId == folderId).ToArray();
 
                 // assertions

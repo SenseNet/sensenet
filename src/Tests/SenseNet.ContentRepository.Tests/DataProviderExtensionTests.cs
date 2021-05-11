@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Tests
             table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId()});
             table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId() });
 
-            var testingDataProvider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
             testingDataProvider.InitializeForTests();
 
             // ACTION
@@ -43,8 +43,7 @@ namespace SenseNet.ContentRepository.Tests
             builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider());
 
             // ACTION: Call a not interface method
-            var actual = ((InMemoryTestingDataProvider) DataStore
-                    .GetDataProviderExtension<ITestingDataProviderExtension>())
+            var actual = ((InMemoryTestingDataProvider) DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>())
                 .TestMethodThatIsNotInterfaceMember("asdf");
 
             // ASSERT

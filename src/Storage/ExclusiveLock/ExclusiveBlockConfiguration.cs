@@ -53,7 +53,7 @@ namespace SenseNet.ContentRepository.Storage
         public TimeSpan WaitTimeout { get; set; }
 
         internal IExclusiveLockDataProviderExtension DataProvider { get; } =
-            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>() ??
+            DataStore.DataProvider.GetExtension<IExclusiveLockDataProviderExtension>() ??
             DefaultExclusiveLockDataProviderExtension.Instance;
 
         internal CancellationToken CancellationToken { get; set; }

@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Tests
         // ReSharper disable once InconsistentNaming
         private static DataProvider DP => DataStore.DataProvider;
         // ReSharper disable once InconsistentNaming
-        private static ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+        private static ITestingDataProviderExtension TDP => DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
 
         /* ================================================================================================== Transaction */
 

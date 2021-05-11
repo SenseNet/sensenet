@@ -18,7 +18,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder UseExclusiveLockDataProviderExtension(this IRepositoryBuilder builder, 
             IExclusiveLockDataProviderExtension provider)
         {
-            DataStore.SetDataProviderExtension(typeof(IExclusiveLockDataProviderExtension), provider);
+            DataStore.DataProvider.SetExtension(typeof(IExclusiveLockDataProviderExtension), provider);
             return builder;
         }
         /// <summary>

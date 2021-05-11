@@ -1727,7 +1727,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ContentTypeManager.Reset();
             }
 
-            var provider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            var provider = DataStore.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             if (provider is InMemoryPackageStorageProvider inMemProvider)
             {
                 foreach (var package in GetInitialPackages())

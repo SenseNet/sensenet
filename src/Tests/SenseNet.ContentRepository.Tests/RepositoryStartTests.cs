@@ -587,7 +587,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), DataStore.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
     }

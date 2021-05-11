@@ -58,17 +58,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public static decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
-        /// <summary>
-        /// Returns a data provider extension instance by it's type.
-        /// The type need to be an implementation of the <see cref="IDataProviderExtension"/> interface.
-        /// </summary>
-        /// <typeparam name="T">Type of the requested extension.</typeparam>
-        /// <returns>Requested data provider extension instance or null.</returns>
+        [Obsolete("##", true)] //UNDONE:<?DatStore: Delete method or provide a right description
         public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
         {
             return DataProvider.GetExtension<T>();
         }
-
+        [Obsolete("##", true)] //UNDONE:<?DatStore: Delete method or provide a right description
         public static void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)
         {
             DataProvider.SetExtension(providerType, provider);
