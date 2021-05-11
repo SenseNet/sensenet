@@ -26,6 +26,13 @@ namespace SenseNet.IntegrationTests.Infrastructure
             TestInitializer?.Invoke(builder);
             callback();
         }
+        public async Task NoRepoIntegrationTestAsync(Func<Task> callback)
+        {
+            var platformName = Platform.GetType().Name;
+            var builder = Platform.CreateRepositoryBuilder();
+            TestInitializer?.Invoke(builder);
+            await callback().ConfigureAwait(false);
+        }
 
         public void IntegrationTest(Action callback)
         {
