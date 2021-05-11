@@ -264,6 +264,67 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
+        public async Task AccessToken_GetOrAdd_WithFeature()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await AccessToken_GetOrAdd(42, 142, "testfeature");
+            });
+        }
+        public async Task AccessToken_GetOrAdd_WithContent()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await AccessToken_GetOrAdd(42, 142);
+            });
+        }
+        public async Task AccessToken_GetOrAdd_WithUser()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await AccessToken_GetOrAdd(42);
+            });
+        }
+        private async Task AccessToken_GetOrAdd(int userId, int contentId = 0, string feature = null)
+        {
+            var timeout1 = TimeSpan.FromMinutes(3);
+            var timeout2 = TimeSpan.FromMinutes(10);
+            var timeout3 = TimeSpan.FromMinutes(20);
+
+            // create three different tokens
+            var savedToken1 = await AccessTokenVault.CreateTokenAsync(userId, timeout1, contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+            var savedToken2 = await AccessTokenVault.CreateTokenAsync(userId, timeout2, contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+            var savedToken3 = await AccessTokenVault.CreateTokenAsync(userId, timeout3, contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+
+            // ACTION: get a token with the same parameters
+            var token = await AccessTokenVault.GetOrAddTokenAsync(userId, timeout3, contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+
+            // ASSERT: we should get the last one
+            AssertTokensAreEqual(savedToken3, token);
+
+            // ACTION: get a token with shorter expiration time
+            token = await AccessTokenVault.GetOrAddTokenAsync(userId, timeout2, contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+
+            // ASSERT: we should get the previous one
+            AssertTokensAreEqual(savedToken2, token);
+
+            // ACTION: get a token with an even shorter expiration time
+            token = await AccessTokenVault.GetOrAddTokenAsync(userId, TimeSpan.FromMinutes(7), contentId, feature,
+                CancellationToken.None).ConfigureAwait(false);
+
+            // ASSERT: we should get a totally new one, because the first 
+            // token (savedToken1) expires too soon. 
+            Assert.AreNotEqual(savedToken1.Value, token.Value);
+            Assert.AreNotEqual(savedToken2.Value, token.Value);
+            Assert.AreNotEqual(savedToken3.Value, token.Value);
+            Assert.IsTrue(token.ExpirationDate < savedToken2.ExpirationDate);
+        }
+
         public async Task AccessToken_Exists()
         {
             await NoRepoIntegrationTestAsync(async () =>

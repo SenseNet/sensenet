@@ -37,6 +37,13 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public async Task IntT_MsSql_AccessToken_GetByUser() { await TestCase.AccessToken_GetByUser().ConfigureAwait(false); }
 
         [TestMethod]
+        public async Task IntT_MsSql_AccessToken_GetOrAdd_WithFeature() { await TestCase.AccessToken_GetOrAdd_WithFeature().ConfigureAwait(false); }
+        [TestMethod]
+        public async Task IntT_MsSql_AccessToken_GetOrAdd_WithContent() { await TestCase.AccessToken_GetOrAdd_WithContent().ConfigureAwait(false); }
+        [TestMethod]
+        public async Task IntT_MsSql_AccessToken_GetOrAdd_WithUser() { await TestCase.AccessToken_GetOrAdd_WithUser().ConfigureAwait(false); }
+
+        [TestMethod]
         public async Task IntT_MsSql_AccessToken_Exists() { await TestCase.AccessToken_Exists().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_MsSql_AccessToken_Exists_Missing() { await TestCase.AccessToken_Exists_Missing().ConfigureAwait(false); }
