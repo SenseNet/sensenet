@@ -602,7 +602,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
 
                 Assert.AreEqual(BlobDeletionPolicy.BackgroundDelayed, Configuration.BlobStorage.BlobDeletionPolicy);
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -622,7 +622,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.Immediately))
@@ -638,7 +638,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 using (BlobStoragePlatform.SwindleWaitingBetweenCleanupFiles(10))

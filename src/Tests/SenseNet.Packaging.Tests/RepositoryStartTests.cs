@@ -328,7 +328,7 @@
 //        public Task InitializePackagingTest()
 //        {
 //            //DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
-//            DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+//            Providers.Instance.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
 
 //            // make sure that every test starts with a clean slate (no existing installed components)
 //            return PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);
@@ -577,7 +577,7 @@
 
 //        internal static void SetContentHandler(string contentTypeName, string handler)
 //        {
-//            var testingDataProvider = DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
+//            var testingDataProvider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
 //            if (testingDataProvider == null)
 //                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 

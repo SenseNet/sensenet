@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static ITestingDataProviderExtension GetTestingDataProvider()
         {
-            return DataStore.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            return Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
         }
     }
 

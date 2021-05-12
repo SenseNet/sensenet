@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Tests
         private void Initialize()
         {
             Providers.Instance.DataProvider = GetMainDataProvider();
-            DataStore.DataProvider.SetExtension(typeof(IExclusiveLockDataProviderExtension), 
+            Providers.Instance.DataProvider.SetExtension(typeof(IExclusiveLockDataProviderExtension), 
                 GetDataProviderExtension());
             SnTrace.Custom.Enabled = true;
             SnTrace.System.Enabled = true;

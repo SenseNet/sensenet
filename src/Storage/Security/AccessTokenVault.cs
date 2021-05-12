@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 // ReSharper disable CheckNamespace
@@ -18,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Security
     {
         private const int MinimumTokenExpirationMinutes = 5;
 
-        private static IAccessTokenDataProviderExtension Storage => DataStore.DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
+        private static IAccessTokenDataProviderExtension Storage => Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
 
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.
