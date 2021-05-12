@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Services.Core.Cors;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Services.Core.Tests
 {
