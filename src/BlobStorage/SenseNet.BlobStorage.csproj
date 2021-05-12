@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.2" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.6" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.7" />
   </ItemGroup>
 
   <ItemGroup>
