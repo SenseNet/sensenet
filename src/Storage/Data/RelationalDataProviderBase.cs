@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId),
                                 ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
                                 ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
-                                ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, nodeHeadData.Path),
+                                ctx.CreateParameter("@Path", DbType.String, PathMaxLength, nodeHeadData.Path),
                                 ctx.CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
                                 ctx.CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
                                 ctx.CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
@@ -1008,7 +1008,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
                 {
-                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
                 }).ConfigureAwait(false);
                 return result != 0;
             }
@@ -1133,7 +1133,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
                 {
-                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
@@ -1361,7 +1361,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
                     {
-                        cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                        cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
                     },
                     async (reader, cancel) =>
                     {
@@ -1396,7 +1396,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
                     for (var i = 0; i < parentChain.Length; i++)
                         cmd.Parameters.Add(
-                            ctx.CreateParameter("@Path" + i, DbType.String, DataStore.PathMaxLength, parentChain[i]));
+                            ctx.CreateParameter("@Path" + i, DbType.String, PathMaxLength, parentChain[i]));
                 }).ConfigureAwait(false);
                 return (result == null || result == DBNull.Value) ? 0 : (int)result;
             }
@@ -1555,9 +1555,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cmd.Parameters.AddRange(new[]
                         {
-                            ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path),
-                            ctx.CreateParameter("@Offset", DbType.Int32, DataStore.PathMaxLength, offset),
-                            ctx.CreateParameter("@Count", DbType.Int32, DataStore.PathMaxLength, blockSize),
+                            ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path),
+                            ctx.CreateParameter("@Offset", DbType.Int32, PathMaxLength, offset),
+                            ctx.CreateParameter("@Count", DbType.Int32, PathMaxLength, blockSize),
                         });
                     }, (reader, cancel) =>
                     {
@@ -1827,7 +1827,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@LockTime", DbType.DateTime2, (object)activity.LockTime ?? DBNull.Value),
                         ctx.CreateParameter("@NodeId", DbType.Int32, activity.NodeId),
                         ctx.CreateParameter("@VersionId", DbType.Int32, activity.VersionId),
-                        ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, (object)activity.Path ?? DBNull.Value),
+                        ctx.CreateParameter("@Path", DbType.String, PathMaxLength, (object)activity.Path ?? DBNull.Value),
                         ctx.CreateParameter("@VersionTimestamp", DbType.Int64, (object)activity.VersionTimestamp ?? DBNull.Value),
                         ctx.CreateParameter("@Extension", DbType.String, int.MaxValue, (object)activity.Extension ?? DBNull.Value),
                     });
