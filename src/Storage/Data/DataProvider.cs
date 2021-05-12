@@ -307,7 +307,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 6 - Load all dynamic properties by PropertyTypes collection of the new NodeData instance.
         ///     Every property value need to be set to the NodeData instance with the NodeData.SetDynamicRawData method.
         ///     Do not load binary property values (DataType.Binary).
-        ///     Do not load text properties (DataType.Text) that are longer than the DataStore.TextAlternationSizeLimit value.
+        ///     Do not load text properties (DataType.Text) that are longer than the TextAlternationSizeLimit value.
         /// 7 - Return the collected NodeData set.
         /// </remarks>
         /// <param name="versionIds">VersionIds of nodes to load.</param>
