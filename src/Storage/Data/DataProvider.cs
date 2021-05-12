@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -950,7 +951,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>Transformed or wrapped exception.</returns>
         protected virtual Exception GetException(Exception innerException, string message = null)
         {
-            return DataStore.GetException(innerException, message);
+            return Providers.Instance.DataStore.GetException(innerException, message);
         }
 
         /// <summary>

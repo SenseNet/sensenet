@@ -8,6 +8,7 @@ using System.Xml;
 using SenseNet.Diagnostics;
 using System.Linq;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 // ReSharper disable ArrangeThisQualifier
 
@@ -86,7 +87,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             using (var op = SnTrace.Database.StartOperation("Load storage schema."))
             {
                 Clear();
-                var schemaData = DataStore.LoadSchemaAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var schemaData = Providers.Instance.DataStore.LoadSchemaAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Load(schemaData);
                 op.Successful = true;
             }

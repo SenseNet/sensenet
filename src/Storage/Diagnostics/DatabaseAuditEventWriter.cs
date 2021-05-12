@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools.Diagnostics;
 
@@ -10,8 +11,8 @@ namespace SenseNet.Diagnostics
     {
         public void Write(IAuditEvent auditEvent, IDictionary<string, object> properties)
         {
-            DataStore.WriteAuditEventAsync(new AuditEventInfo(auditEvent, properties), CancellationToken.None)
-                .GetAwaiter().GetResult();
+            Providers.Instance.DataStore
+                .WriteAuditEventAsync(new AuditEventInfo(auditEvent, properties), CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

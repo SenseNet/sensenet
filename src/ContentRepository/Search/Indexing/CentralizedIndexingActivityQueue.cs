@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -11,6 +12,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class CentralizedIndexingActivityQueue
     {
+        private static DataStore DataStore => Providers.Instance.DataStore;
+
         private static readonly int MaxCount = 10;
         private static readonly int RunningTimeoutInSeconds = Configuration.Indexing.IndexingActivityTimeoutInSeconds;
         private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;

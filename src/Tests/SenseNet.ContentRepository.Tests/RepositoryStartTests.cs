@@ -193,7 +193,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreSame(dbProvider, DataStore.DataProvider);
+                Assert.AreSame(dbProvider, Providers.Instance.DataStore.DataProvider);
                 Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
                 Assert.AreEqual(accessProvider, AccessProvider.Current);
                 Assert.AreEqual(emvrProvider, Providers.Instance.ElevatedModificationVisibilityRuleProvider);

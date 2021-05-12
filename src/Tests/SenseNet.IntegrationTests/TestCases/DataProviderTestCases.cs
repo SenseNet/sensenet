@@ -31,6 +31,8 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class DataProviderTestCases : TestCaseBase
     {
+        private DataStore DataStore => Providers.Instance.DataStore;
+        
         // ReSharper disable once InconsistentNaming
         protected DataProvider DP => DataStore.DataProvider;
         // ReSharper disable once InconsistentNaming

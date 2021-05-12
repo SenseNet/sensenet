@@ -46,7 +46,7 @@ namespace SenseNet.Tests.Core.Tests
                 }
 
                 InitialData.Save(@"D:\_InitialData", null,
-                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                    () => ((InMemoryDataProvider)Providers.Instance.DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\_InitialData\index.txt");
@@ -59,7 +59,7 @@ namespace SenseNet.Tests.Core.Tests
             Test(() =>
             {
                 InitialData.Save(@"D:\_InitialData", null,
-                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                    () => ((InMemoryDataProvider)Providers.Instance.DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");

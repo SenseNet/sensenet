@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -20,6 +21,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     /// </summary>
     public static class IndexManager // alias LuceneManager
     {
+        private static DataStore DataStore => Providers.Instance.DataStore;
+
         #region /* ==================================================================== Managing index */
 
         /// <summary>

@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository
             
             var initialData = builder.InitialData;
             if (initialData != null)
-                DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
+                Providers.Instance.DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
             RepositoryInstance repositoryInstance = null;

@@ -1889,7 +1889,8 @@ namespace SenseNet.ContentRepository.Storage.Security
 	            var securityContext = SecurityContext;
 	            DeleteEverythingAndRestart();
 
-	            var entityTreeNodes = DataStore.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
+	            var entityTreeNodes = Providers.Instance.DataStore
+                    .LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
 	            foreach (var entityTreeNode in entityTreeNodes)
 	                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
 	        }

@@ -21,6 +21,7 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class BlobProviderTestCases : BlobStorageTestCaseBase
     {
+        private DataStore DataStore => Providers.Instance.DataStore;
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
         public void TestCase_CreateFileSmall()

@@ -267,7 +267,7 @@ namespace SenseNet.ContentRepository.Storage
             if (this.OwnerNode.SavingState != ContentSavingState.Finalized)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.General.Error_AccessToNotFinalizedBinary_2, this.OwnerNode.Path, this.PropertyType.Name));
 
-            return DataStore.GetBinaryStream(OwnerNode.Id, OwnerNode.VersionId, PropertyType.Id);
+            return Providers.Instance.DataStore.GetBinaryStream(OwnerNode.Id, OwnerNode.VersionId, PropertyType.Id);
         }
         public Stream GetStreamWithoutDbRead()
         {
