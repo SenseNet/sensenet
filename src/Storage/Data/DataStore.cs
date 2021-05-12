@@ -59,12 +59,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         public decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
 
-        [Obsolete("##", true)] //UNDONE:<?DatStore: Delete method or provide a right description
+        [Obsolete("Use DataProvider.GetExtension method.", true)]
         public T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
         {
             return DataProvider.GetExtension<T>();
         }
-        [Obsolete("##", true)] //UNDONE:<?DatStore: Delete method or provide a right description
+        [Obsolete("Use DataProvider.SetExtension method", true)]
         public void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)
         {
             DataProvider.SetExtension(providerType, provider);

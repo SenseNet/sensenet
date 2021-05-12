@@ -26,6 +26,8 @@ namespace SenseNet.Services.Tests
     [TestClass]
     public class WopiTests : TestBase
     {
+        private DataStore DataStore => Providers.Instance.DataStore;
+
         /* --------------------------------------------------------- GetLock */
 
         [TestMethod]
@@ -1648,11 +1650,11 @@ namespace SenseNet.Services.Tests
 
         private ISharedLockDataProviderExtension GetDataProvider()
         {
-            return DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>();
+            return Providers.Instance.DataProvider.GetExtension<ISharedLockDataProviderExtension>();
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -1660,7 +1662,7 @@ namespace SenseNet.Services.Tests
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
