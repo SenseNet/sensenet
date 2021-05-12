@@ -33,6 +33,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public virtual int PathMaxLength { get; } = 450;
         /// <summary>
+        /// Gets the size limit for preloading and caching long text values.
+        /// </summary>
+        public virtual int TextAlternationSizeLimit { get; } = 4000;
+        /// <summary>
         /// Gets the allowed minimum of a <see cref="DateTime"/> value.
         /// </summary>
         public DateTime DateTimeMinValue => DateTime.MinValue;

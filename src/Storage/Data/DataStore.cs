@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Default size limit for preloading and caching long text values.
         /// </summary>
-        public const int TextAlternationSizeLimit = 4000;
+        public static int TextAlternationSizeLimit => DataProvider.TextAlternationSizeLimit;
 
         /// <summary>
         /// Gets the current DataProvider instance.

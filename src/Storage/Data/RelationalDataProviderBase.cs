@@ -680,7 +680,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     cmd.Parameters.AddRange(new[]
                         {
                             ctx.CreateParameter("@VersionIds", DbType.AnsiString, int.MaxValue, ids),
-                            ctx.CreateParameter("@LongTextMaxSize", DbType.Int32, DataStore.TextAlternationSizeLimit)
+                            ctx.CreateParameter("@LongTextMaxSize", DbType.Int32, TextAlternationSizeLimit)
 
                         });
                 }, async (reader, cancel) =>
@@ -2162,7 +2162,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override bool IsCacheableText(string text)
         {
-            return text?.Length < DataStore.TextAlternationSizeLimit;
+            return text?.Length < TextAlternationSizeLimit;
         }
 
         public override async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
