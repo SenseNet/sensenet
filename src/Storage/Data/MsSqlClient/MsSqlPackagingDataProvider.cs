@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
+
 // ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
@@ -18,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         #region SQL LoadInstalledComponentsScript
         private static readonly string InstalledComponentsScript = $@"-- MsSqlPackagingDataProvider.LoadInstalledComponents

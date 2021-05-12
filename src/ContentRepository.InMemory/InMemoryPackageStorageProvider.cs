@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public DataCollection<PackageDoc> GetPackages()
         {
-            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<PackageDoc>();
+            return ((InMemoryDataProvider)Providers.Instance.DataProvider).DB.GetCollection<PackageDoc>();
         }
 
         /* ================================================================================================= IPackageStorageProvider */

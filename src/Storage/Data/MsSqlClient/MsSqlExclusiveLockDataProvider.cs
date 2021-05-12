@@ -3,6 +3,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
+
 // ReSharper disable ConvertToUsingDeclaration
 
 // ReSharper disable once CheckNamespace
@@ -36,7 +38,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
 
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider =>
-            _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+            _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         /// <inheritdoc/>
         public async Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,

@@ -2,6 +2,7 @@
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable AccessToDisposedClosure
 
@@ -17,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         public async Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
