@@ -939,6 +939,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
+        internal Exception GetRealException(Exception innerException, string message = null)
+        {
+            return GetException(innerException, message);
+        }
         /// <summary>
         /// If overridden in a derived class transforms or wraps any exception into a DataException if the
         /// type of the exception is not one of the following:
@@ -949,7 +953,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="innerException">Original exception</param>
         /// <param name="message">Optional message if the original exception will be transformed.</param>
         /// <returns>Transformed or wrapped exception.</returns>
-        protected internal virtual Exception GetException(Exception innerException, string message = null)
+        protected virtual Exception GetException(Exception innerException, string message = null)
         {
             if (IsDeadlockException(innerException))
                 return new TransactionDeadlockedException("Transaction was deadlocked.", innerException);

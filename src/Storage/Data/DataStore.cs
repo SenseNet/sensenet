@@ -250,7 +250,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetException(e);
+                throw DataProvider.GetRealException(e);
             }
         }
         private bool MustCache(int nodeTypeId)
@@ -324,7 +324,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetException(e);
+                throw DataProvider.GetRealException(e);
             }
         }
         /// <summary>
@@ -1164,7 +1164,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetException(e);
+                throw DataProvider.GetRealException(e);
             }
         }
         /// <summary>
@@ -1189,7 +1189,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetException(e);
+                throw DataProvider.GetRealException(e);
             }
         }
 
