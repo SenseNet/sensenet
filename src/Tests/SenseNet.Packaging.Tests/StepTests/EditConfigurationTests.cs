@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Testing;
@@ -40,6 +42,8 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestInitialize]
         public void PrepareTest()
         {
+            Providers.Instance.DataProvider = new InMemoryDataProvider();
+
             // preparing logger
             _log = new StringBuilder();
             var loggers = new[] { new PackagingTestLogger(_log) };
