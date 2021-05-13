@@ -1193,27 +1193,27 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        #region Backward compatibility
+        //#region Backward compatibility
 
-        private static readonly int _contentListStartPage = 10000000;
-        internal static readonly int StringPageSize = 80;
-        internal static readonly int IntPageSize = 40;
-        internal static readonly int DateTimePageSize = 25;
-        internal static readonly int CurrencyPageSize = 15;
+        //private static readonly int _contentListStartPage = 10000000;
+        //internal static readonly int StringPageSize = 80;
+        //internal static readonly int IntPageSize = 40;
+        //internal static readonly int DateTimePageSize = 25;
+        //internal static readonly int CurrencyPageSize = 15;
 
-        public static IDictionary<DataType, int> ContentListMappingOffsets { get; } =
-            new ReadOnlyDictionary<DataType, int>(new Dictionary<DataType, int>
-            {
-            {DataType.String, StringPageSize * _contentListStartPage},
-            {DataType.Int, IntPageSize * _contentListStartPage},
-            {DataType.DateTime, DateTimePageSize * _contentListStartPage},
-            {DataType.Currency, CurrencyPageSize * _contentListStartPage},
-            {DataType.Binary, 0},
-            {DataType.Reference, 0},
-            {DataType.Text, 0}
-        });
+        //public static IDictionary<DataType, int> ContentListMappingOffsets { get; } =
+        //    new ReadOnlyDictionary<DataType, int>(new Dictionary<DataType, int>
+        //    {
+        //    {DataType.String, StringPageSize * _contentListStartPage},
+        //    {DataType.Int, IntPageSize * _contentListStartPage},
+        //    {DataType.DateTime, DateTimePageSize * _contentListStartPage},
+        //    {DataType.Currency, CurrencyPageSize * _contentListStartPage},
+        //    {DataType.Binary, 0},
+        //    {DataType.Reference, 0},
+        //    {DataType.Text, 0}
+        //});
 
-        #endregion
+        //#endregion
 
         /* =============================================================================================== Logging */
 
