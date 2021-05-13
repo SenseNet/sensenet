@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// Main data access API of the Content Repository. Defines methods for loading and saving 
     /// <see cref="Node"/>s and other repository elements.
     /// </summary>
-    public class DataStore
+    public class DataStore : IDataStore
     {
         /// <summary>
         /// Default size limit for preloading and caching long text values.
@@ -35,7 +35,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the current DataProvider instance.
         /// </summary>
-        public DataProvider DataProvider => Providers.Instance.DataProvider;
+        //public DataProvider DataProvider => Providers.Instance.DataProvider;
+        public DataProvider DataProvider { get; }
 
         /// <summary>
         /// Gets the allowed length of the Path of a <see cref="Node"/>.
@@ -58,6 +59,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
+        public DataStore(DataProvider dataProvider)
+        {
+            DataProvider = dataProvider;
+        }
 
         [Obsolete("Use DataProvider.GetExtension method.", true)]
         public T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
