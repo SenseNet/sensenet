@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage
             "LastLockUpdate", "LastMinorVersionId", "LastMajorVersionId", "MajorVersion", "MinorVersion",
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value

@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class CentralizedIndexingActivityQueue
     {
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         private static readonly int MaxCount = 10;
         private static readonly int RunningTimeoutInSeconds = Configuration.Indexing.IndexingActivityTimeoutInSeconds;

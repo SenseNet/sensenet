@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class IndexingTests : TestBase
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         #region Text extracion
 

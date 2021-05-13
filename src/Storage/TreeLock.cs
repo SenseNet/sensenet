@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class TreeLock : IDisposable
     {
-        private static DataStore DataStore => Providers.Instance.DataStore; 
+        private static IDataStore DataStore => Providers.Instance.DataStore; 
 
         private readonly SnTrace.Operation _logOp;
         private readonly int[] _lockIds;

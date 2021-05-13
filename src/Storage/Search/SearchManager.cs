@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager
     {
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         /* ========================================================================== Singleton model */
 

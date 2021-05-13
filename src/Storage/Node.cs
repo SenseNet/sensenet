@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Storage
     {
         private NodeData _data;
         internal NodeData Data => _data;
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         private List<INodeOperationValidator> NodeOperationValidators =>
             Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");

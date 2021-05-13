@@ -26,7 +26,7 @@ namespace SenseNet.Tests.Core.Tests
     [TestClass]
     public class InMemorySearchTests : TestBase
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         [TestMethod, TestCategory("IR")]
         public void InMemSearch_Core_Indexing_Create()

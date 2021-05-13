@@ -141,7 +141,7 @@ namespace SenseNet.Configuration
             }
         }
 
-        public virtual DataStore DataStore { get; set; }
+        public virtual IDataStore DataStore { get; set; }
 
         #endregion
 

@@ -333,7 +333,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeHead">A node data representing the node.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal Task DeleteNodeAsync(NodeHead nodeHead, CancellationToken cancellationToken)
+        public Task DeleteNodeAsync(NodeHead nodeHead, CancellationToken cancellationToken)
         {
             return DataProvider.DeleteNodeAsync(nodeHead.GetNodeHeadData(), cancellationToken);
         }

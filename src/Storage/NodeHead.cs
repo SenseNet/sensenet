@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage
     [Serializable]
     public class NodeHead
     {
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         [DebuggerDisplay("{VersionId}, {VersionNumber}")]
         public class NodeVersion

@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public static class RepositoryPath
     {
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         public enum PathResult
         {

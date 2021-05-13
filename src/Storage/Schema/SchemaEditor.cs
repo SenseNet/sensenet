@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 {
     public sealed class SchemaEditor : SchemaRoot
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         public SchemaEditor() { }
 

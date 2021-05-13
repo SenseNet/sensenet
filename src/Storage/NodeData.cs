@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage
 
     public class NodeData
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         private Stopwatch _savingTimer;
 

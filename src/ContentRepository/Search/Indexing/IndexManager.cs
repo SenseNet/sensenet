@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     /// </summary>
     public static class IndexManager // alias LuceneManager
     {
-        private static DataStore DataStore => Providers.Instance.DataStore;
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         #region /* ==================================================================== Managing index */
 

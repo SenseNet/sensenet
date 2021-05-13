@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal class DocumentPopulator : IIndexPopulator
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         private class DocumentPopulatorData
         {

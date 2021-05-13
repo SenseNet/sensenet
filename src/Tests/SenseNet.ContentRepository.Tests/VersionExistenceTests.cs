@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class VersionExistenceTests : TestBase
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         [TestMethod]
         public void Versioning_LostVersion_NodeDataIsNull()
