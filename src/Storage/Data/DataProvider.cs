@@ -949,9 +949,27 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="innerException">Original exception</param>
         /// <param name="message">Optional message if the original exception will be transformed.</param>
         /// <returns>Transformed or wrapped exception.</returns>
-        protected virtual Exception GetException(Exception innerException, string message = null)
+        protected internal virtual Exception GetException(Exception innerException, string message = null)
         {
-            return Providers.Instance.DataStore.GetException(innerException, message);
+            if (IsDeadlockException(innerException))
+                return new TransactionDeadlockedException("Transaction was deadlocked.", innerException);
+
+            switch (innerException)
+            {
+                case ContentNotFoundException _: return innerException;
+                case NodeAlreadyExistsException _: return innerException;
+                case NodeIsOutOfDateException _: return innerException;
+                case ArgumentNullException _: return innerException;
+                case ArgumentOutOfRangeException _: return innerException;
+                case ArgumentException _: return innerException;
+                case DataException _: return innerException;
+                case NotSupportedException _: return innerException;
+                case SnNotSupportedException _: return innerException;
+                case NotImplementedException _: return innerException;
+            }
+            return new DataException(message ??
+                                     "A database exception occured during execution of the operation." +
+                                     " See InnerException for details.", innerException);
         }
 
         /// <summary>

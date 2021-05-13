@@ -148,7 +148,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the new node head
         /// containing the latest version and time identifiers.</returns>
-        internal async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
+        public async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
             if (nodeData == null)
                 throw new ArgumentNullException(nameof(nodeData));
@@ -250,7 +250,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw GetException(e);
+                throw DataProvider.GetException(e);
             }
         }
         private bool MustCache(int nodeTypeId)
@@ -269,7 +269,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a node token
         /// containing the information for constructing the appropriate node object.</returns>
-        internal async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken)
+        public async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken)
         {
             return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false))
                 .FirstOrDefault();
@@ -282,7 +282,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a node token array
         /// containing the information for constructing the appropriate node objects.</returns>
-        internal async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken)
+        public async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken)
         {
             var tokens = new List<NodeToken>();
             var tokensToLoad = new List<NodeToken>();
@@ -324,7 +324,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw GetException(e);
+                throw DataProvider.GetException(e);
             }
         }
         /// <summary>
@@ -343,7 +343,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeData">A node data representing the node.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken)
+        public Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken)
         {
             return DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
         }
@@ -354,7 +354,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="targetNodeId">Id of the container where the node will be moved.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, CancellationToken cancellationToken)
+        public async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, CancellationToken cancellationToken)
         {
             var sourceNodeHeadData = sourceNodeHead.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
@@ -367,7 +367,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="targetNodeId">Id of the container where the node will be moved.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, CancellationToken cancellationToken)
+        public async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, CancellationToken cancellationToken)
         {
             var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
@@ -383,7 +383,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a dictionary
         /// containing the loaded text property values.</returns>
-        internal Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad, CancellationToken cancellationToken)
+        public Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad, CancellationToken cancellationToken)
         {
             return DataProvider.LoadTextPropertyValuesAsync(versionId, propertiesToLoad, cancellationToken);
         }
@@ -395,7 +395,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a binary data
         /// containing the information to load the stream.</returns>
-        internal Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
+        public Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, cancellationToken);
         }
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
         }
 
-        internal NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
+        public NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
         {
             var listTypeId = listType?.Id ?? 0;
             var parentId = parent?.Id ?? 0;
@@ -486,7 +486,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ----------------------------------------------------------------------------------------------- */
 
-        internal Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
+        public Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
             // Try to load cached binary entity
             var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
@@ -528,7 +528,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a node head
         /// for the provided path or null if it does not exist.</returns>
-        internal async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
+        public async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
             if (!CanExistInDatabase(path))
                 return null;
@@ -551,7 +551,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a node head
         /// for the provided id or null if it does not exist.</returns>
-        internal async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
+        public async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
             if (!CanExistInDatabase(nodeId))
                 return null;
@@ -574,7 +574,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a node head
         /// for the provided version id or null if it does not exist.</returns>
-        internal Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
+        public Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
@@ -585,7 +585,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeIds">Ids of the node heads to load.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of Node heads for the provided ids.</returns>
-        internal async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
+        public async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
         {
             var nodeHeads = new List<NodeHead>();
             var headIdsToLoad = new List<int>();
@@ -651,7 +651,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="resolveChildren">Resolve child content or not.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of collected node heads.</returns>
-        internal Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken)
+        public Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, resolveAll, resolveChildren, cancellationToken);
         }
@@ -665,7 +665,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeTypeIds">Array of node type ids. </param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the count of nodes of the requested types.</returns>
-        internal Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
+        public Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return DataProvider.InstanceCountAsync(nodeTypeIds, cancellationToken);
         }
@@ -675,7 +675,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="parentId">Parent node id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps child node identifiers.</returns>
-        internal Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
         {
             return DataProvider.GetChildrenIdentifiersAsync(parentId, cancellationToken);
         }
@@ -686,7 +686,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="orderByPath">True if the result set needs to be ordered by Path.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath, cancellationToken);
         }
@@ -696,7 +696,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeTypeIds">Ids of relevant NodeTypes.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false, cancellationToken);
         }
@@ -709,7 +709,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="orderByPath">True if the result set needs to be ordered by Path.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
@@ -722,7 +722,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="orderByPath">True if the result set needs to be ordered by Path.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
@@ -736,7 +736,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="name">Name of the relevant <see cref="Node"/>s or null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name, cancellationToken);
         }
@@ -750,7 +750,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="name">Name of the relevant <see cref="Node"/>s or null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
         {
             return DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name, cancellationToken);
         }
@@ -780,7 +780,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeTypeIds">Ids of relevant NodeTypes or null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the set of found <see cref="Node"/> identifiers.</returns>
-        internal Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken)
+        public Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds, cancellationToken);
         }
@@ -794,7 +794,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeId">Node identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of node types in a subtree.</returns>
-        internal Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        public Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadChildTypesToAllowAsync(nodeId, cancellationToken);
         }
@@ -805,7 +805,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps
         /// a list of content list types that are found in a subtree.</returns>
-        internal Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
+        public Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.GetContentListTypesInTreeAsync(path, cancellationToken);
         }
@@ -819,7 +819,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the newly created
         /// tree lock Id for the requested path or 0.</returns>
-        internal Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken)
+        public Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.AcquireTreeLockAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
@@ -830,7 +830,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a boolean value
         /// that is true if the path is already locked.</returns>
-        internal Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken)
+        public Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.IsTreeLockedAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
@@ -841,7 +841,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="lockIds">Array of lock identifiers.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
+        public Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
         {
             return DataProvider.ReleaseTreeLockAsync(lockIds, cancellationToken);
         }
@@ -850,7 +850,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a lock id, path dictionary.</returns>
-        internal Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
+        public Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
         {
             return DataProvider.LoadAllTreeLocksAsync(cancellationToken);
         }
@@ -1145,7 +1145,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the schema definition.</returns>
-        internal Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
+        public Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
         {
             return DataProvider.LoadSchemaAsync(cancellationToken);
         }
@@ -1156,7 +1156,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="schemaTimestamp">The current known timestamp of the schema.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the generated schema lock token.</returns>
-        internal Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
+        public Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
         {
             try
             {
@@ -1164,14 +1164,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw GetException(e);
+                throw DataProvider.GetException(e);
             }
         }
         /// <summary>
         /// Creates a schema writer supported by the current data provider.
         /// </summary>
         /// <returns>A schema writer object.</returns>
-        internal SchemaWriter CreateSchemaWriter()
+        public SchemaWriter CreateSchemaWriter()
         {
             return DataProvider.CreateSchemaWriter();
         }
@@ -1181,7 +1181,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="schemaLock">The lock token generated by the start operation before.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the new schema timestamp.</returns>
-        internal Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
+        public Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
         {
             try
             {
@@ -1189,7 +1189,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw GetException(e);
+                throw DataProvider.GetException(e);
             }
         }
 
@@ -1328,11 +1328,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.GetVersionCountAsync(path, cancellationToken);
         }
 
-        internal bool CanExistInDatabase(int id)
+        private bool CanExistInDatabase(int id)
         {
             return id > 0;
         }
-        internal bool CanExistInDatabase(string path)
+        private bool CanExistInDatabase(string path)
         {
             if (String.IsNullOrEmpty(path))
                 return false;
@@ -1347,30 +1347,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return false;
 
             return true;
-        }
-
-        //UNDONE:<?DataStore: Move GetException() to DataProvider
-        internal Exception GetException(Exception e, string message = null)
-        {
-            if (DataProvider.IsDeadlockException(e))
-                return new TransactionDeadlockedException("Transaction was deadlocked.", e);
-
-            switch (e)
-            {
-                case ContentNotFoundException _: return e;
-                case NodeAlreadyExistsException _: return e;
-                case NodeIsOutOfDateException _: return e;
-                case ArgumentNullException _: return e;
-                case ArgumentOutOfRangeException _: return e;
-                case ArgumentException _: return e;
-                case DataException _: return e;
-                case NotSupportedException _: return e;
-                case SnNotSupportedException _: return e;
-                case NotImplementedException _: return e;
-            }
-            return new DataException(message ??
-                "A database exception occured during execution of the operation." +
-                " See InnerException for details.", e);
         }
 
         /* =============================================================================================== */
