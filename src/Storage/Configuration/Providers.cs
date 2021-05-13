@@ -135,17 +135,15 @@ namespace SenseNet.Configuration
         public virtual DataProvider DataProvider
         {
             get { return _dataProvider.Value; }
-            set { _dataProvider = new Lazy<DataProvider>(() => value); }
+            set
+            {
+                _dataProvider = new Lazy<DataProvider>(() => value);
+                DataStore = new DataStore(value);
+            }
         }
         #endregion
         #region DataStore
-        private Lazy<DataStore> _dataStore = new Lazy<DataStore>(() => new DataStore());
-
-        public virtual DataStore DataStore
-        {
-            get { return _dataStore.Value; }
-            set { _dataStore = new Lazy<DataStore>(() => value); }
-        }
+        public virtual DataStore DataStore { get; set; }
         #endregion
 
         #region IBlobStorageMetaDataProvider
