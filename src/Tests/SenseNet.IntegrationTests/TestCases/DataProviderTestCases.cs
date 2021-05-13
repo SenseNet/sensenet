@@ -535,7 +535,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var versionTimestamp1 = root.VersionTimestamp;
 
                 // ASSERT-1: NodeData is in cache after creation
-                var cacheKey1 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+                var cacheKey1 = DataStore.CreateNodeDataVersionIdCacheKey(root.VersionId);
                 var item1 = Cache.Get(cacheKey1);
                 Assert.IsNotNull(item1);
                 var cachedNodeData1 = item1 as NodeData;
@@ -552,7 +552,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT-2: NodeData is refreshed in the cache after update,
                 Assert.AreNotEqual(nodeTimestamp1, nodeTimestamp2);
                 Assert.AreNotEqual(versionTimestamp1, versionTimestamp2);
-                var cacheKey2 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+                var cacheKey2 = DataStore.CreateNodeDataVersionIdCacheKey(root.VersionId);
                 if (cacheKey1 != cacheKey2)
                     Assert.Inconclusive("The test is invalid because the cache keys are not equal.");
                 var item2 = Cache.Get(cacheKey2);
@@ -620,7 +620,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     Description = nearlyLongText1
                 };
                 root.Save();
-                var cacheKey = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+                var cacheKey = DataStore.CreateNodeDataVersionIdCacheKey(root.VersionId);
 
                 // ASSERT-1: text property is in cache
                 var cachedNodeData = (NodeData)Cache.Get(cacheKey);

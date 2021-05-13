@@ -300,7 +300,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     };
                     tokens.Add(token);
 
-                    var cacheKey = GenerateNodeDataVersionIdCacheKey(versionId);
+                    var cacheKey = CreateNodeDataVersionIdCacheKey(versionId);
                     if (Cache.Get(cacheKey) is NodeData nodeData)
                         token.NodeData = nodeData;
                     else
@@ -1353,44 +1353,44 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private readonly string NodeHeadPrefix = "NodeHeadCache.";
         private readonly string NodeDataPrefix = "NodeData.";
-        internal string CreateNodeHeadPathCacheKey(string path)
+        private string CreateNodeHeadPathCacheKey(string path)
         {
             return string.Concat(NodeHeadPrefix, path.ToLowerInvariant());
         }
-        internal string CreateNodeHeadIdCacheKey(int nodeId)
+        private string CreateNodeHeadIdCacheKey(int nodeId)
         {
             return string.Concat(NodeHeadPrefix, nodeId);
         }
-        internal string GenerateNodeDataVersionIdCacheKey(int versionId)
+        public string CreateNodeDataVersionIdCacheKey(int versionId)
         {
             return string.Concat(NodeDataPrefix, versionId);
         }
 
-        internal void CacheNodeHead(NodeHead nodeHead)
+        private void CacheNodeHead(NodeHead nodeHead)
         {
             var idKey = CreateNodeHeadIdCacheKey(nodeHead.Id);
             if (null != Cache.Get(idKey))
                 return;
             CacheNodeHead(nodeHead, idKey, CreateNodeHeadPathCacheKey(nodeHead.Path));
         }
-        internal void CacheNodeHead(NodeHead head, string idKey, string pathKey)
+        private void CacheNodeHead(NodeHead head, string idKey, string pathKey)
         {
             var dependencyForPathKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
             var dependencyForIdKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
             Cache.Insert(idKey, head, dependencyForIdKey);
             Cache.Insert(pathKey, head, dependencyForPathKey);
         }
-        internal void CacheNodeData(NodeData nodeData, string cacheKey = null)
+        public void CacheNodeData(NodeData nodeData, string cacheKey = null)
         {
             if (nodeData == null)
                 throw new ArgumentNullException(nameof(nodeData));
             if (cacheKey == null)
-                cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
+                cacheKey = CreateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
             Cache.Insert(cacheKey, nodeData, dependency);
         }
 
-        internal void RemoveFromCache(NodeData data)
+        private void RemoveFromCache(NodeData data)
         {
             // Remove items from Cache by the OriginalPath, before getting an update
             // of a - occassionally differring - path from the database
@@ -1416,7 +1416,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Version id.</param>
         public void RemoveNodeDataFromCacheByVersionId(int versionId)
         {
-            Cache.Remove(GenerateNodeDataVersionIdCacheKey(versionId));
+            Cache.Remove(CreateNodeDataVersionIdCacheKey(versionId));
         }
     }
 }
