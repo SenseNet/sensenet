@@ -128,22 +128,21 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region DataProvider
-        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() => new MsSqlDataProvider(Options.Create(
-            ConnectionStringOptions.GetLegacyConnectionStrings())));
+        #region DataProvider & DataStore
 
+        private DataProvider _dataProvider;
         public virtual DataProvider DataProvider
         {
-            get { return _dataProvider.Value; }
+            get => _dataProvider;
             set
             {
-                _dataProvider = new Lazy<DataProvider>(() => value);
+                _dataProvider = value;
                 DataStore = new DataStore(value);
             }
         }
-        #endregion
-        #region DataStore
+
         public virtual DataStore DataStore { get; set; }
+
         #endregion
 
         #region IBlobStorageMetaDataProvider
