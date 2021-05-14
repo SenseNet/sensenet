@@ -26,7 +26,7 @@ namespace SenseNet.Services.Tests
     [TestClass]
     public class WopiTests : TestBase
     {
-        private DataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         /* --------------------------------------------------------- GetLock */
 
