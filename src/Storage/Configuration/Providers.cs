@@ -130,18 +130,21 @@ namespace SenseNet.Configuration
 
         #region DataProvider & DataStore
 
-        private DataProvider _dataProvider;
-        public virtual DataProvider DataProvider
-        {
-            get => _dataProvider;
-            set
-            {
-                _dataProvider = value;
-                DataStore = new DataStore(value);
-            }
-        }
+        public virtual DataProvider DataProvider { get; set; }
 
         public virtual IDataStore DataStore { get; set; }
+
+        /// <summary>
+        /// Internal method for initializing the data store instance.
+        /// DO NOT USE THIS METHOD IN YOUR CODE
+        /// </summary>
+        public void InitializeDataStore()
+        {
+            // This method is a temporary solution for initializing the datastore instance
+            // without starting the whole repository.
+
+            DataStore = new DataStore(DataProvider);
+        }
 
         #endregion
 

@@ -18,6 +18,7 @@ namespace SenseNet.ContentRepository.Tests
         public void NodeIdentifier_Create()
         {
             Providers.Instance.DataProvider = new InMemoryDataProvider();
+            Providers.Instance.InitializeDataStore();
 
             var identifier = NodeIdentifier.Get(123);
             Assert.AreEqual(123, identifier.Id, "#1 identifier is incorrect.");
