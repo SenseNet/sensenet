@@ -49,7 +49,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds the default MS SQL data provider to the service collection.
         /// </summary>
-        public static IServiceCollection AddSenseNetDataProvider(this IServiceCollection services)
+        public static IServiceCollection AddSenseNetMsSqlDataProvider(this IServiceCollection services)
         {
             return services.AddSenseNetDataProvider<MsSqlDataProvider>();
         }
@@ -61,7 +61,18 @@ namespace SenseNet.Extensions.DependencyInjection
             where T : DataProvider
         {
             //UNDONE: [DIREF] register and get service using an interface
-            return services.AddSingleton<DataProvider, T>();
+            return services.AddSingleton<DataProvider, T>()
+                .AddSenseNetDataStore<DataStore>();
+        }
+
+        /// <summary>
+        /// Registers a custom data store in the service collection. You only have to call this
+        /// if you need to replace the default data store implementation.
+        /// </summary>
+        /// <typeparam name="T">A custom <see cref="IDataStore"/> implementation.</typeparam>
+        public static IServiceCollection AddSenseNetDataStore<T>(this IServiceCollection services) where T : class, IDataStore
+        {
+            return services.AddSingleton<IDataStore, T>();
         }
     }
 }

@@ -74,7 +74,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
-                .AddSenseNetDataProvider()
+                .AddSenseNetMsSqlDataProvider()
                 .AddSenseNetBlobStorage()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
@@ -112,7 +112,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
             Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
-            Providers.Instance.DataStore = provider.GetRequiredService<DataStore>();
+            Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
 
 #pragma warning disable 618
 

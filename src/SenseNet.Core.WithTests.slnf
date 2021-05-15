@@ -13,6 +13,7 @@
       "Services.Wopi\\SenseNet.Services.Wopi.csproj",
       "Storage\\SenseNet.Storage.csproj",
       "Tests\\SenseNet.ContentRepository.Tests\\SenseNet.ContentRepository.Tests.csproj",
+      "Tests\\SenseNet.IntegrationTests\\SenseNet.IntegrationTests.csproj",
       "Tests\\SenseNet.MiddlewareTests\\SenseNet.MiddlewareTests.csproj",
       "Tests\\SenseNet.ODataTests\\SenseNet.ODataTests.csproj",
       "Tests\\SenseNet.Packaging.Tests\\SenseNet.Packaging.Tests.csproj",
