@@ -39,6 +39,10 @@ namespace SenseNet.Packaging
 
             if (logger != null)
                 _logger = new PackagingILogger(logger);
+
+            // This is required because in some cases during installation
+            // the repository is NOT started but these providers are needed.
+            Providers.Instance.InitializeDataProvider(repositoryBuilder?.Services);
         }
 
         /// <summary>

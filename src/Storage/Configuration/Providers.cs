@@ -24,6 +24,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -133,6 +134,19 @@ namespace SenseNet.Configuration
         public virtual DataProvider DataProvider { get; set; }
 
         public virtual IDataStore DataStore { get; set; }
+
+        /// <summary>
+        /// Internal method for initializing the data provider and data store instances from the service container.
+        /// DO NOT USE THIS METHOD IN YOUR CODE
+        /// </summary>
+        public void InitializeDataProvider(IServiceProvider provider)
+        {
+            if (DataProvider == null)
+                DataProvider = provider?.GetRequiredService<DataProvider>();
+
+            if (DataStore == null)
+                InitializeDataStore();
+        }
 
         /// <summary>
         /// Internal method for initializing the data store instance.

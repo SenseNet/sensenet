@@ -49,12 +49,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             //TODO: remove workaround for legacy connection string configuration
             // and replace it with real configuration load like above.
-            services.Configure<ConnectionStringOptions>(options =>
-            {
-                options.ConnectionString = ConnectionStrings.ConnectionString;
-                options.SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString;
-                options.SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString;
-            });
+            services.ConfigureLegacyConnectionStrings();
 
             return services;
         }
