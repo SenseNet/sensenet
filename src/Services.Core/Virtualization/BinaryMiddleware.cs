@@ -22,33 +22,14 @@ namespace SenseNet.Services.Core.Virtualization
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            var statService = httpContext.RequestServices.GetService<IStatisticalDataCollector>();
-            WebTransferStatInput statData = null;
-            if (statService != null)
-            {
-                var request = httpContext.Request;
-                var url = request.Path+ request.QueryString;
-                statData = new WebTransferStatInput
-                {
-                    Url = url,
-                    RequestTime = DateTime.UtcNow,
-                    RequestLength = url.Length + (httpContext.Request.ContentLength ?? 0L)
-                };
-            }
+            var statistics = new StatTools(httpContext.RequestServices.GetService<IStatisticalDataCollector>());
+            var statData = statistics.RegisterWebRequest(httpContext);
 
             var bh = new BinaryHandler(httpContext);
 
             await bh.ProcessRequestCore().ConfigureAwait(false);
 
-            if (statService != null)
-            {
-                statData.ResponseTime = DateTime.UtcNow;
-                statData.ResponseStatusCode = httpContext.Response.StatusCode;
-                statData.ResponseLength = httpContext.Response.ContentLength ?? 0;
-#pragma warning disable 4014
-                statService.RegisterWebTransfer(statData);
-#pragma warning restore 4014
-            }
+            statistics.RegisterWebResponse(statData, httpContext);
 
             // Call next middleware in the chain if exists
             if (_next != null)
