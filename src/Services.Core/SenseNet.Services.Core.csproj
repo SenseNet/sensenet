@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
   </ItemGroup>
 

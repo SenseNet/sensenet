@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Virtualization
 {

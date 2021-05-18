@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
   </ItemGroup>
