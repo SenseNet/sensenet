@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.OData;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Virtualization;
+using SenseNet.Services.Wopi;
 using SenseNet.Storage.DataModel.Usage;
 using SenseNet.Tests.Core;
 using STT = System.Threading.Tasks;
@@ -18,7 +22,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
-        private class TestStatisticalDataCollector:IStatisticalDataCollector
+        private class TestStatisticalDataCollector : IStatisticalDataCollector
         {
             public List<object> StatData { get; } = new List<object>();
 
@@ -72,8 +76,100 @@ namespace SenseNet.ContentRepository.Tests
                 var data = (WebTransferStatInput) collector.StatData[0];
                 Assert.AreEqual(url, data.Url);
                 Assert.AreEqual(url.Length, data.RequestLength);
-                Assert.AreEqual(node.Binary.GetStream().Length, data.ResponseLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
+                Assert.AreEqual(node.Binary.GetStream().Length, data.ResponseLength);
+                Assert.IsTrue(data.RequestTime <= data.ResponseTime);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_WopiMiddleware()
+        {
+            await Test(async () =>
+            {
+                var serviceProvider = new ServiceCollection()
+                    .AddStatisticalDataCollector<TestStatisticalDataCollector>()
+                    .BuildServiceProvider();
+
+                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                root.Save();
+                var file = new File(root) {Name = "TestFile"};
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 142)));
+                file.Save();
+
+                var token = await AccessTokenVault.GetOrAddTokenAsync(1, TimeSpan.FromDays(1), file.Id,
+                    WopiMiddleware.AccessTokenFeatureName, CancellationToken.None).ConfigureAwait(false);
+                //await AccessTokenVault.DeleteTokenAsync(token.Value, CancellationToken.None).ConfigureAwait(false);
+
+                var httpContext = new DefaultHttpContext { RequestServices = serviceProvider };
+                var path = $"/wopi/files/{file.Id}/contents";
+                var qstr = $"?access_token={token.Value}";
+                var url = path + qstr;
+                var request = httpContext.Request;
+                request.Method = "GET";
+                request.Path = path;
+                request.QueryString = new QueryString(qstr);
+
+                // ACTION
+                var middleware = new WopiMiddleware(null);
+                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                await STT.Task.Delay(1);
+
+                // ASSERT
+                var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
+                Assert.AreEqual(1, collector.StatData.Count);
+                var data = (WebTransferStatInput)collector.StatData[0];
+                Assert.AreEqual(url, data.Url);
+                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(200, data.ResponseStatusCode);
+                Assert.AreEqual(file.Binary.GetStream().Length, data.ResponseLength);
+                Assert.IsTrue(data.RequestTime <= data.ResponseTime);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_OdataMiddleware()
+        {
+            await Test(builder =>
+            {
+                builder.UseResponseLimiter();
+            }, async () =>
+            {
+                var serviceProvider = new ServiceCollection()
+                    .AddStatisticalDataCollector<TestStatisticalDataCollector>()
+                    .BuildServiceProvider();
+
+                //var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                //root.Save();
+                //var file = new File(root) { Name = "TestFile" };
+                //file.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 142)));
+                //file.Save();
+
+                //var token = await AccessTokenVault.GetOrAddTokenAsync(1, TimeSpan.FromDays(1), file.Id,
+                //    WopiMiddleware.AccessTokenFeatureName, CancellationToken.None).ConfigureAwait(false);
+                ////await AccessTokenVault.DeleteTokenAsync(token.Value, CancellationToken.None).ConfigureAwait(false);
+
+                var httpContext = new DefaultHttpContext { RequestServices = serviceProvider };
+                var path = $"/OData.svc/Root/System/Schema/ContentTypes/GenericContent";
+                var qstr = $"?metadata=no&$select=Id,Name,Type";
+                var url = path + qstr;
+                var request = httpContext.Request;
+                request.Method = "GET";
+                request.Path = path;
+                request.Host = new HostString("host");
+                request.QueryString = new QueryString(qstr);
+
+                // ACTION
+                var middleware = new ODataMiddleware(null, null, null);
+                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                await STT.Task.Delay(1);
+
+                // ASSERT
+                var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
+                Assert.AreEqual(1, collector.StatData.Count);
+                var data = (WebTransferStatInput)collector.StatData[0];
+                Assert.AreEqual(url, data.Url);
+                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(200, data.ResponseStatusCode);
+                Assert.AreEqual(-42, data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
