@@ -26,7 +26,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "text/x-typescript";
 
         /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, ODataRequest odataRequest, Edmx edmx)
         {
             var requestedModule = httpContext.Request.Query["module"].ToString().ToLowerInvariant();
             if (string.IsNullOrEmpty(requestedModule))
@@ -62,17 +62,17 @@ namespace SenseNet.OData.Writers
                         + ". Valid names: enums, complextypes, contenttypes, resources, schemas, fieldsettings.");
             }
 
-            await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
+            await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
         }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
+        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<string> names) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
+        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
+        protected override Task WriteActionsPropertyAsync(HttpContext httpContext, ODataRequest odataRequest, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
+        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, ODataRequest odataRequest, object result, int? allCount) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> content, int count) { throw new SnNotSupportedException(); }
+        protected override Task WriteMultipleContentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<ODataEntity> content, int count) { throw new SnNotSupportedException(); }
     }
 }

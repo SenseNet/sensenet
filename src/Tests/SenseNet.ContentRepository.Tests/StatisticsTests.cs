@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
@@ -126,7 +127,7 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_OdataMiddleware()
+        public async STT.Task Stat_OdataMiddleware_ServiceDocument()
         {
             await Test(builder =>
             {
@@ -137,17 +138,53 @@ namespace SenseNet.ContentRepository.Tests
                     .AddStatisticalDataCollector<TestStatisticalDataCollector>()
                     .BuildServiceProvider();
 
-                //var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                //root.Save();
-                //var file = new File(root) { Name = "TestFile" };
-                //file.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 142)));
-                //file.Save();
+                var httpContext = new DefaultHttpContext { RequestServices = serviceProvider };
+                httpContext.Response.Body = new MemoryStream();
+                var path = $"/OData.svc";
+                var url = path;
+                var request = httpContext.Request;
+                request.Method = "GET";
+                request.Path = path;
+                request.Host = new HostString("host");
 
-                //var token = await AccessTokenVault.GetOrAddTokenAsync(1, TimeSpan.FromDays(1), file.Id,
-                //    WopiMiddleware.AccessTokenFeatureName, CancellationToken.None).ConfigureAwait(false);
-                ////await AccessTokenVault.DeleteTokenAsync(token.Value, CancellationToken.None).ConfigureAwait(false);
+                // ACTION
+                var middleware = new ODataMiddleware(null, null, null);
+                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                await STT.Task.Delay(1);
+
+                // ASSERT
+                var responseOutput = httpContext.Response.Body;
+                responseOutput.Seek(0, SeekOrigin.Begin);
+                string output;
+                using (var reader = new StreamReader(responseOutput))
+                    // {"d":{"EntitySets":["Root"]}}
+                    output = await reader.ReadToEndAsync().ConfigureAwait(false);
+                var expectedLength = output.Length;
+
+                var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
+                Assert.AreEqual(1, collector.StatData.Count);
+                var data = (WebTransferStatInput)collector.StatData[0];
+                Assert.AreEqual(url, data.Url);
+                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(200, data.ResponseStatusCode);
+                Assert.AreEqual(expectedLength, data.ResponseLength);
+                Assert.IsTrue(data.RequestTime <= data.ResponseTime);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_OdataMiddleware_Collection()
+        {
+            await Test(builder =>
+            {
+                builder.UseResponseLimiter();
+            }, async () =>
+            {
+                var serviceProvider = new ServiceCollection()
+                    .AddStatisticalDataCollector<TestStatisticalDataCollector>()
+                    .BuildServiceProvider();
 
                 var httpContext = new DefaultHttpContext { RequestServices = serviceProvider };
+                httpContext.Response.Body = new MemoryStream();
                 var path = $"/OData.svc/Root/System/Schema/ContentTypes/GenericContent";
                 var qstr = $"?metadata=no&$select=Id,Name,Type";
                 var url = path + qstr;
@@ -163,13 +200,21 @@ namespace SenseNet.ContentRepository.Tests
                 await STT.Task.Delay(1);
 
                 // ASSERT
+                var responseOutput = httpContext.Response.Body;
+                responseOutput.Seek(0, SeekOrigin.Begin);
+                string output;
+                using (var reader = new StreamReader(responseOutput))
+                    // {"d": {"__count": 9,"results": [{"Id": 1250,"Name": "Application","Type": "ContentType"}, {"Id": .....
+                    output = await reader.ReadToEndAsync().ConfigureAwait(false);
+                var expectedLength = output.Length;
+
                 var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
                 Assert.AreEqual(1, collector.StatData.Count);
                 var data = (WebTransferStatInput)collector.StatData[0];
                 Assert.AreEqual(url, data.Url);
                 Assert.AreEqual(url.Length, data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
-                Assert.AreEqual(-42, data.ResponseLength);
+                Assert.AreEqual(expectedLength, data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }

@@ -20,10 +20,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Configuration;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
@@ -92,6 +94,9 @@ namespace SenseNet.OData
             var req = httpContext.Request;
             using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
             {
+                var statistics = new StatTools(httpContext.RequestServices.GetService<IStatisticalDataCollector>());
+                var statData = statistics.RegisterWebRequest(httpContext);
+
                 // set request size limit if configured
                 if (_requestOptions?.MaxRequestBodySize > 0)
                     httpContext.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 
@@ -103,8 +108,11 @@ namespace SenseNet.OData
                 // Write headers and body of the HttpResponse
                 await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
+                statistics.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
+
                 op.Successful = true;
             }
+
 
             // Call next in the chain if exists
             if (_next != null)
@@ -189,7 +197,7 @@ namespace SenseNet.OData
                                         odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
                                     .ConfigureAwait(false);
                             else
-                                await odataWriter.WriteSingleContentAsync(requestedContent, httpContext)
+                                await odataWriter.WriteSingleContentAsync(requestedContent, httpContext, odataRequest)
                                     .ConfigureAwait(false);
                         }
 
@@ -212,7 +220,7 @@ namespace SenseNet.OData
 
                             ResetContent(content);
                             UpdateContent(content, model, odataRequest);
-                            await odataWriter.WriteSingleContentAsync(content, httpContext)
+                            await odataWriter.WriteSingleContentAsync(content, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
 
@@ -236,7 +244,7 @@ namespace SenseNet.OData
                             }
 
                             UpdateContent(content, model, odataRequest);
-                            await odataWriter.WriteSingleContentAsync(content, httpContext)
+                            await odataWriter.WriteSingleContentAsync(content, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
 
@@ -260,7 +268,7 @@ namespace SenseNet.OData
 
                             model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
                             var newContent = CreateNewContent(model, odataRequest);
-                            await odataWriter.WriteSingleContentAsync(newContent, httpContext)
+                            await odataWriter.WriteSingleContentAsync(newContent, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
 
@@ -291,26 +299,26 @@ namespace SenseNet.OData
             catch (ContentNotFoundException e)
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, e)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, e)
                     .ConfigureAwait(false);
             }
             catch (AccessDeniedException e)
             {
                 var oe = new ODataException(ODataExceptionCode.Forbidden, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException e)
             {
                 var oe = new ODataException(ODataExceptionCode.Unauthorized, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (SenseNetSecurityException e)
@@ -333,7 +341,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (InvalidContentActionException ex)
@@ -343,14 +351,14 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -359,7 +367,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
         }

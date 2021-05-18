@@ -25,12 +25,12 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "text/html";
 
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
+        protected override Task WriteMetadataAsync(HttpContext httpContext, ODataRequest odataRequest, Edmx edmx)
         {
             throw new SnNotSupportedException("Table writer does not support metadata writing.");
         }
         /// <inheritdoc />
-        protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
+        protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<string> names)
         {
             using (var writer = new StringWriter())
             {
@@ -46,11 +46,11 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
         /// <inheritdoc />
-        protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields)
+        protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields)
         {
             using (var writer = new StringWriter())
             {
@@ -95,11 +95,11 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
         /// <inheritdoc />
-        protected override async Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
+        protected override async Task WriteMultipleContentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<ODataEntity> contents, int count)
         {
             //var resp = httpContext.Response;
             var colNames = new List<string> { "Nr." };
@@ -204,11 +204,11 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
         /// <inheritdoc />
-        protected override async Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw)
+        protected override async Task WriteActionsPropertyAsync(HttpContext httpContext, ODataRequest odataRequest, ODataActionItem[] actions, bool raw)
         {
             // raw parameter isn't used
             var data = actions.Select(x => new ODataEntity{
@@ -220,21 +220,21 @@ namespace SenseNet.OData.Writers
                 {"Forbidden", x.Forbidden}
             }).ToList();
 
-            await WriteMultipleContentAsync(httpContext, data, actions.Length)
+            await WriteMultipleContentAsync(httpContext, odataRequest, data, actions.Length)
                 .ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount)
+        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, ODataRequest odataRequest, object result, int? allCount)
         {
             throw new NotSupportedException("ODataTableWriter supports only a Content or an IEnumerable<Content> as an operation result.");
         }
         /// <inheritdoc />
-        protected override Task WriteCountAsync(HttpContext httpContext, int count)
+        protected override Task WriteCountAsync(HttpContext httpContext, ODataRequest odataRequest, int count)
         {
-            return WriteRawAsync(count, httpContext);
+            return WriteRawAsync(count, httpContext, odataRequest);
         }
         /// <inheritdoc />
-        protected override async Task WriteErrorAsync(HttpContext httpContext, Error error)
+        protected override async Task WriteErrorAsync(HttpContext httpContext, ODataRequest odataRequest, Error error)
         {
             using (var writer = new StringWriter())
             {
@@ -251,7 +251,7 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
 

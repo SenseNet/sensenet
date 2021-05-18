@@ -211,6 +211,8 @@ namespace SenseNet.OData
         /// </summary>
         public Exception RequestError { get; private set; }
 
+        public long ResponseSize { get; internal set; }
+
         private ODataRequest()
         {
             InlineCount = InlineCount.None;

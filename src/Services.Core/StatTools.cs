@@ -10,7 +10,7 @@ namespace SenseNet.Services.Core
 {
     public class StatTools
     {
-        private IStatisticalDataCollector _dataCollector;
+        private readonly IStatisticalDataCollector _dataCollector;
 
         public StatTools(IStatisticalDataCollector dataCollector)
         {
@@ -34,18 +34,16 @@ namespace SenseNet.Services.Core
 
         public void RegisterWebResponse(WebTransferStatInput data, HttpContext httpContext)
         {
-            RegisterWebResponse(data, httpContext, 0L);
+            RegisterWebResponse(data, httpContext, httpContext.Response.ContentLength ?? 0L);
         }
-        public void RegisterWebResponse(WebTransferStatInput data, HttpContext httpContext, long currentLength)
+        public void RegisterWebResponse(WebTransferStatInput data, HttpContext httpContext, long responseLength)
         {
             if (_dataCollector == null)
                 return;
 
-            var length = ((long?)httpContext.Items["ResponseLength"] ?? 0L) + (httpContext.Response.ContentLength ?? 0L);
-
             data.ResponseTime = DateTime.UtcNow;
             data.ResponseStatusCode = httpContext.Response.StatusCode;
-            data.ResponseLength = length;
+            data.ResponseLength = responseLength;
 
             _dataCollector.RegisterWebTransfer(data);
         }

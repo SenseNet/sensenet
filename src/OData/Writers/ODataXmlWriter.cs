@@ -22,7 +22,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "application/xml";
 
         /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, ODataRequest odataRequest, Edmx edmx)
         {
             string result;
             using (var writer = new StringWriter())
@@ -30,24 +30,24 @@ namespace SenseNet.OData.Writers
                 edmx.WriteXml(writer);
                 result = writer.GetStringBuilder().ToString();
             }
-            await WriteRawAsync(result, httpContext).ConfigureAwait(false);
+            await WriteRawAsync(result, httpContext, odataRequest).ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
+        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<string> names) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
+        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
+        protected override Task WriteActionsPropertyAsync(HttpContext httpContext, ODataRequest odataRequest, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteErrorAsync(HttpContext context, Error error) { throw new SnNotSupportedException(); }
+        protected override Task WriteErrorAsync(HttpContext context, ODataRequest odataRequest, Error error) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
+        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, ODataRequest odataRequest, object result, int? allCount) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count) { throw new SnNotSupportedException(); }
+        protected override Task WriteMultipleContentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<ODataEntity> contents, int count) { throw new SnNotSupportedException(); }
         /// <inheritdoc />
-        protected override Task WriteCountAsync(HttpContext httpContext, int count)
+        protected override Task WriteCountAsync(HttpContext httpContext, ODataRequest odataRequest, int count)
         {
-            return WriteRawAsync(count, httpContext);
+            return WriteRawAsync(count, httpContext, odataRequest);
         }
     }
 }
