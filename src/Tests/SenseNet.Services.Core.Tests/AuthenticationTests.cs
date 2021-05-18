@@ -6,7 +6,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Operations;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Tests

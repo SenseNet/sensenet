@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -17,7 +18,7 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public DataCollection<PackageDoc> GetPackages()
         {
-            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<PackageDoc>();
+            return ((InMemoryDataProvider)Providers.Instance.DataProvider).DB.GetCollection<PackageDoc>();
         }
 
         /* ================================================================================================= IPackageStorageProvider */

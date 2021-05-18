@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -18,7 +19,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The updated IRepositoryBuilder.</returns>
         public static IRepositoryBuilder UseAccessTokenDataProviderExtension(this IRepositoryBuilder builder, IAccessTokenDataProviderExtension provider)
         {
-            DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), provider);
+            Providers.Instance.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), provider);
             return builder;
         }
     }

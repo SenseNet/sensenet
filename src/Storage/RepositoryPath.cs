@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -10,6 +11,8 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public static class RepositoryPath
     {
+        private static IDataStore DataStore => Providers.Instance.DataStore;
+
         public enum PathResult
         {
             Correct = 0, Empty, TooLong, InvalidPathChar, InvalidNameChar, StartsWithSpace, EndsWithSpace, InvalidFirstChar, EndsWithDot
@@ -64,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        public static int MaxLength => Data.DataStore.PathMaxLength;
+        public static int MaxLength => DataStore.PathMaxLength;
 
         // ===================================================================================================== Methods 
 
@@ -182,7 +185,7 @@ namespace SenseNet.ContentRepository.Storage
                 throw new ArgumentNullException("path");
             if (path.Length == 0)
                 return PathResult.Empty;
-            if (path.Length >(Data.DataStore.PathMaxLength))
+            if (path.Length >(DataStore.PathMaxLength))
                 return PathResult.TooLong;
             if (PathContainsInvalidChar(path))
                 return PathResult.InvalidPathChar;
@@ -262,7 +265,7 @@ namespace SenseNet.ContentRepository.Storage
                     return new InvalidPathException(EmptyNameMessage);
                 case PathResult.TooLong:
                     // Path too long. Max length is {0}.
-                    return new InvalidPathException(string.Format(PathTooLongMessage, Data.DataStore.PathMaxLength));
+                    return new InvalidPathException(string.Format(PathTooLongMessage, DataStore.PathMaxLength));
                 case PathResult.InvalidPathChar:
                     // Content path may only contain alphanumeric characters or '.', '(', ')', '[', ']', '/'!
                     return new InvalidPathException(String.Concat(InvalidPathMessage, " Path: ", path));

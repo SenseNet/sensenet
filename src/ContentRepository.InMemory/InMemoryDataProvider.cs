@@ -376,7 +376,7 @@ namespace SenseNet.ContentRepository.InMemory
                     var longTextProps = DB.LongTextProperties
                         .Where(x => x.VersionId == versionId &&
                                     longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
-                                    x.Length < DataStore.TextAlternationSizeLimit)
+                                    x.Length < TextAlternationSizeLimit)
                         .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
                     foreach (var item in longTextProps)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
@@ -1621,7 +1621,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         public override bool IsCacheableText(string text)
         {
-            return text?.Length < DataStore.TextAlternationSizeLimit;
+            return text?.Length < TextAlternationSizeLimit;
         }
 
         public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken)
@@ -1727,7 +1727,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ContentTypeManager.Reset();
             }
 
-            var provider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            var provider = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             if (provider is InMemoryPackageStorageProvider inMemProvider)
             {
                 foreach (var package in GetInitialPackages())

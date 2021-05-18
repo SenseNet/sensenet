@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -33,6 +34,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public virtual int PathMaxLength { get; } = 450;
         /// <summary>
+        /// Gets the size limit for preloading and caching long text values.
+        /// </summary>
+        public virtual int TextAlternationSizeLimit { get; } = 4000;
+        /// <summary>
         /// Gets the allowed minimum of a <see cref="DateTime"/> value.
         /// </summary>
         public DateTime DateTimeMinValue => DateTime.MinValue;
@@ -61,12 +66,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
 
-        protected internal virtual void SetExtension(Type providerType, IDataProviderExtension provider)
+        public void SetExtension(Type providerType, IDataProviderExtension provider)
         {
             _dataProvidersByType[providerType] = provider;
         }
 
-        protected internal virtual T GetExtension<T>() where T : class, IDataProviderExtension
+        public T GetExtension<T>() where T : class, IDataProviderExtension
         {
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;
@@ -303,7 +308,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 6 - Load all dynamic properties by PropertyTypes collection of the new NodeData instance.
         ///     Every property value need to be set to the NodeData instance with the NodeData.SetDynamicRawData method.
         ///     Do not load binary property values (DataType.Binary).
-        ///     Do not load text properties (DataType.Text) that are longer than the DataStore.TextAlternationSizeLimit value.
+        ///     Do not load text properties (DataType.Text) that are longer than the TextAlternationSizeLimit value.
         /// 7 - Return the collected NodeData set.
         /// </remarks>
         /// <param name="versionIds">VersionIds of nodes to load.</param>
@@ -934,6 +939,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
+        internal Exception GetRealException(Exception innerException, string message = null)
+        {
+            return GetException(innerException, message);
+        }
         /// <summary>
         /// If overridden in a derived class transforms or wraps any exception into a DataException if the
         /// type of the exception is not one of the following:
@@ -946,7 +955,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>Transformed or wrapped exception.</returns>
         protected virtual Exception GetException(Exception innerException, string message = null)
         {
-            return DataStore.GetException(innerException, message);
+            if (IsDeadlockException(innerException))
+                return new TransactionDeadlockedException("Transaction was deadlocked.", innerException);
+
+            switch (innerException)
+            {
+                case ContentNotFoundException _: return innerException;
+                case NodeAlreadyExistsException _: return innerException;
+                case NodeIsOutOfDateException _: return innerException;
+                case ArgumentNullException _: return innerException;
+                case ArgumentOutOfRangeException _: return innerException;
+                case ArgumentException _: return innerException;
+                case DataException _: return innerException;
+                case NotSupportedException _: return innerException;
+                case SnNotSupportedException _: return innerException;
+                case NotImplementedException _: return innerException;
+            }
+            return new DataException(message ??
+                                     "A database exception occured during execution of the operation." +
+                                     " See InnerException for details.", innerException);
         }
 
         /// <summary>

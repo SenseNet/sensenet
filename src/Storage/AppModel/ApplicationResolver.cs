@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -148,7 +149,8 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             if (SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
-            return DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false, CancellationToken.None)
+            return Providers.Instance.DataStore
+                .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false, CancellationToken.None)
                 .GetAwaiter().GetResult().FirstOrDefault();
         }
         private static NodeHead ResolveFirstByPathsFromIndexedEngine(IEnumerable<string> paths)
@@ -166,8 +168,9 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             return SearchManager.IsOuterEngineEnabled
                 ? ResolveAllByPathsFromIndexedEngine(paths, resolveChildren)
-                : DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren, CancellationToken.None)
-                .GetAwaiter().GetResult();
+                : Providers.Instance.DataStore
+                    .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren, CancellationToken.None)
+                    .GetAwaiter().GetResult();
         }
         private static IEnumerable<NodeHead> ResolveAllByPathsFromIndexedEngine(IEnumerable<string> paths, bool resolveChildren)
         {

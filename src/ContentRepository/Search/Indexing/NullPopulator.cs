@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using SenseNet.Configuration;
 using STT= System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -80,14 +81,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         using (await TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                                await Providers.Instance.DataStore
+                                    .SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                                     .ConfigureAwait(false);
                         }
                     }
                     else
                     {
                         await TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
-                        await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        await Providers.Instance.DataStore
+                            .SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                             .ConfigureAwait(false);
                     }
                 }

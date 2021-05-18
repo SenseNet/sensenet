@@ -8,6 +8,7 @@ using System.Diagnostics;
 using SenseNet.ContentRepository;
 using System.Reflection;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -21,7 +22,7 @@ namespace SenseNet.Packaging
     {
         public const string SANDBOXDIRECTORYNAME = "run";
 
-        internal static IPackagingDataProviderExtension Storage => DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+        internal static IPackagingDataProviderExtension Storage => Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase,
             string[] parameters, TextWriter console, RepositoryBuilder builder = null,
@@ -39,8 +40,8 @@ namespace SenseNet.Packaging
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
-            if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
-                DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
+            if (null == Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>())
+                Providers.Instance.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
 
             var packageParameters = parameters ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters

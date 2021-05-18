@@ -1,5 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
+﻿using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Tools;
 
@@ -18,7 +18,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder UseExclusiveLockDataProviderExtension(this IRepositoryBuilder builder, 
             IExclusiveLockDataProviderExtension provider)
         {
-            DataStore.SetDataProviderExtension(typeof(IExclusiveLockDataProviderExtension), provider);
+            Providers.Instance.DataProvider.SetExtension(typeof(IExclusiveLockDataProviderExtension), provider);
             return builder;
         }
         /// <summary>

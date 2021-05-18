@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Tests;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Operations;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Services.Core.Tests
 {

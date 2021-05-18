@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
             lock (_lock)
             {
-                DataStore.Reset();
+                Providers.Instance.DataStore.Reset();
                 LoadPrivate();
             }
         }

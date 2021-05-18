@@ -100,6 +100,7 @@ namespace SenseNet.ContentRepository.Storage
     {
         private NodeData _data;
         internal NodeData Data => _data;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         private List<INodeOperationValidator> NodeOperationValidators =>
             Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");
@@ -1752,7 +1753,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
         public static List<Node> LoadNodes(IEnumerable<int> idArray)
         {
-            return LoadNodes(DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult(),
+            return LoadNodes(Providers.Instance.DataStore
+                    .LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult(),
                 VersionNumber.LastAccessible);
         }
         /// <summary>
@@ -1763,7 +1765,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public static async Task<List<Node>> LoadNodesAsync(IEnumerable<int> idArray, CancellationToken cancellationToken)
         {
-            var nodeHeads = await DataStore.LoadNodeHeadsAsync(idArray, cancellationToken).ConfigureAwait(false);
+            var nodeHeads = await Providers.Instance.DataStore
+                .LoadNodeHeadsAsync(idArray, cancellationToken).ConfigureAwait(false);
             return await LoadNodesAsync(nodeHeads, VersionNumber.LastAccessible, cancellationToken).ConfigureAwait(false);
         }
         private static List<Node> LoadNodes(IEnumerable<NodeHead> heads, VersionNumber version)
@@ -1776,7 +1779,8 @@ namespace SenseNet.ContentRepository.Storage
 
             // loading data
             var result = new List<Node>();
-            var tokenArray = DataStore.LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), CancellationToken.None)
+            var tokenArray = Providers.Instance.DataStore
+                .LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), CancellationToken.None)
                 .GetAwaiter().GetResult();
             for (int i = 0; i < tokenArray.Length; i++)
             {
@@ -1839,7 +1843,8 @@ namespace SenseNet.ContentRepository.Storage
                         if (acceptedLevel == AccessLevel.Header)
                             isHeadOnly = true;
                         var versionId = GetVersionId(head, acceptedLevel, version);
-                        token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
+                        token = Providers.Instance.DataStore
+                            .LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
                     }
                 }
             }
@@ -1855,7 +1860,8 @@ namespace SenseNet.ContentRepository.Storage
             
             // loading data
             var result = new List<Node>();
-            var tokenArray = await DataStore.LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), cancellationToken).ConfigureAwait(false);
+            var tokenArray = await Providers.Instance.DataStore
+                .LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), cancellationToken).ConfigureAwait(false);
 
             for (var i = 0; i < tokenArray.Length; i++)
             {
@@ -1918,7 +1924,8 @@ namespace SenseNet.ContentRepository.Storage
                         if (acceptedLevel == AccessLevel.Header)
                             isHeadOnly = true;
                         var versionId = GetVersionId(head, acceptedLevel, version);
-                        token = await DataStore.LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
+                        token = await Providers.Instance.DataStore
+                            .LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -2131,7 +2138,8 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException("path");
-            return LoadNode(DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult(), version);
+            return LoadNode(Providers.Instance.DataStore
+                .LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
         /// Loads a <see cref="Node"/> by the provided path and version.
@@ -2153,7 +2161,8 @@ namespace SenseNet.ContentRepository.Storage
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            var nodeHead = await DataStore.LoadNodeHeadAsync(path, cancellationToken).ConfigureAwait(false);
+            var nodeHead = await Providers.Instance.DataStore
+                .LoadNodeHeadAsync(path, cancellationToken).ConfigureAwait(false);
             return await LoadNodeAsync(nodeHead, version, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
@@ -2202,7 +2211,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
-            return LoadNode(DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult(), version);
+            return LoadNode(Providers.Instance.DataStore
+                .LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
         /// Loads a <see cref="Node"/> by the provided Id and version number.
@@ -2220,7 +2230,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static async Task<Node> LoadNodeAsync(int nodeId, VersionNumber version, CancellationToken cancellationToken)
         {
-            var nodeHead = await DataStore.LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
+            var nodeHead = await Providers.Instance.DataStore
+                .LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
             return await LoadNodeAsync(nodeHead, version, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
@@ -2285,7 +2296,8 @@ namespace SenseNet.ContentRepository.Storage
                     return (Node)cachedNode;
                 // </L2Cache>
 
-                var token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
+                var token = Providers.Instance.DataStore
+                    .LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2356,7 +2368,8 @@ namespace SenseNet.ContentRepository.Storage
                     return (Node)cachedNode;
                 // </L2Cache>
 
-                var token = await DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).ConfigureAwait(false);
+                var token = await Providers.Instance.DataStore
+                    .LoadNodeAsync(head, versionId, CancellationToken.None).ConfigureAwait(false);
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2602,7 +2615,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return DataStore.GetVersionNumbersAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult()
+            return Providers.Instance.DataStore
+                .GetVersionNumbersAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult()
                 .Select(x => x.VersionNumber)
                 .ToList();
         }
@@ -2614,7 +2628,8 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            return DataStore.GetVersionNumbersAsync(path, CancellationToken.None).GetAwaiter().GetResult()
+            return Providers.Instance.DataStore
+                .GetVersionNumbersAsync(path, CancellationToken.None).GetAwaiter().GetResult()
                 .Select(x => x.VersionNumber)
                 .ToList();
         }
@@ -2660,7 +2675,8 @@ namespace SenseNet.ContentRepository.Storage
 
             SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
-            var token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
+            var token = Providers.Instance.DataStore
+                .LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
 
             Node node = null;
             if (token.NodeData != null)
@@ -2680,7 +2696,8 @@ namespace SenseNet.ContentRepository.Storage
 
             SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
-            var token = await DataStore.LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
+            var token = await Providers.Instance.DataStore
+                .LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
 
             Node node = null;
             if (token.NodeData != null)
@@ -3457,7 +3474,8 @@ namespace SenseNet.ContentRepository.Storage
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
 
-                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).GetAwaiter().GetResult();
+                    var head = Providers.Instance.DataStore
+                        .SaveNodeAsync(data, settings, CancellationToken.None).GetAwaiter().GetResult();
                     lastMajorVersionId = settings.LastMajorVersionIdAfter;
                     lastMinorVersionId = settings.LastMinorVersionIdAfter;
                     node.RefreshVersionInfo(head);
@@ -3472,7 +3490,8 @@ namespace SenseNet.ContentRepository.Storage
                             // from the current users permissions).
                             using (new SystemAccount())
                             {
-                                var result = DataStore.SaveIndexDocumentAsync(node, true, isNewNode, CancellationToken.None)
+                                var result = Providers.Instance.DataStore
+                                    .SaveIndexDocumentAsync(node, true, isNewNode, CancellationToken.None)
                                     .GetAwaiter().GetResult();
                                 indexDocument = result.IndexDocumentData;
                                 hasBinary = result.HasBinary;
@@ -3493,7 +3512,8 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             using (new SystemAccount())
                             {
-                                indexDocument = DataStore.SaveIndexDocumentAsync(node, indexDocument, CancellationToken.None)
+                                indexDocument = Providers.Instance.DataStore
+                                    .SaveIndexDocumentAsync(node, indexDocument, CancellationToken.None)
                                     .GetAwaiter().GetResult();
                                 populator.FinalizeTextExtractingAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
                             }
@@ -3547,7 +3567,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
-            return DataStore.LoadChildTypesToAllowAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
+            return Providers.Instance.DataStore
+                .LoadChildTypesToAllowAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
         }
         //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
@@ -4401,7 +4422,7 @@ namespace SenseNet.ContentRepository.Storage
                 try
                 {
                     using (TreeLock.AcquireAsync(CancellationToken.None, nodeRef.Path).GetAwaiter().GetResult())
-                        DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
+                        Providers.Instance.DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e) // rethrow
                 {
@@ -4886,7 +4907,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static bool Exists(string path)
         {
-            return DataStore.NodeExistsAsync(path, CancellationToken.None).GetAwaiter().GetResult();
+            return Providers.Instance.DataStore.NodeExistsAsync(path, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -5021,7 +5042,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static long GetTreeSize(string path, bool includeChildren = true)
         {
-            return DataStore.GetTreeSizeAsync(path, includeChildren, CancellationToken.None).GetAwaiter().GetResult();
+            return Providers.Instance.DataStore.GetTreeSizeAsync(path, includeChildren, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #endregion

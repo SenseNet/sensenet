@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SenseNet.Configuration
 {
@@ -95,6 +96,23 @@ namespace SenseNet.Configuration
         {
             get => _signalRDatabase ?? ConnectionString;
             set => _signalRDatabase = value;
+        }
+    }
+
+    public static class ConnectionOptionExtensions
+    {
+        /// <summary>
+        /// Configures connection strings using the old configuration values.
+        /// DO NOT USE THIS IN YOUR CODE.
+        /// </summary>
+        public static IServiceCollection ConfigureLegacyConnectionStrings(this IServiceCollection services)
+        {
+            return services.Configure<ConnectionStringOptions>(options =>
+            {
+                options.ConnectionString = ConnectionStrings.ConnectionString;
+                options.SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString;
+                options.SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString;
+            });
         }
     }
 }

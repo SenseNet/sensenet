@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -13,7 +14,7 @@ namespace SenseNet.IntegrationTests.TestCases
     public class SchemaWriterTestCases : TestCaseBase
     {
         // ReSharper disable once InconsistentNaming
-        protected DataProvider DP => DataStore.DataProvider;
+        protected DataProvider DP => Providers.Instance.DataStore.DataProvider;
 
         /* ============================================================================== PropertyType */
 

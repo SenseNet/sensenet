@@ -23,7 +23,7 @@ namespace SenseNet.Tests.Implementations
     public class InMemoryTestingDataProvider : ITestingDataProviderExtension
     {
         private DataProvider _mainProvider;
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider);
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = Providers.Instance.DataStore.DataProvider);
 
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase DB => ((InMemoryDataProvider)MainProvider).DB;
@@ -399,7 +399,7 @@ namespace SenseNet.Tests.Implementations
 
         private DataCollection<SharedLockDoc> GetSharedLocks()
         {
-            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
+            return ((InMemoryDataProvider)Providers.Instance.DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
         }
         public DateTime GetSharedLockCreationDate(int nodeId)
         {

@@ -49,12 +49,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             //TODO: remove workaround for legacy connection string configuration
             // and replace it with real configuration load like above.
-            services.Configure<ConnectionStringOptions>(options =>
-            {
-                options.ConnectionString = ConnectionStrings.ConnectionString;
-                options.SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString;
-                options.SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString;
-            });
+            services.ConfigureLegacyConnectionStrings();
 
             return services;
         }
@@ -74,7 +69,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
-                .AddSenseNetDataProvider()
+                .AddSenseNetMsSqlDataProvider()
                 .AddSenseNetBlobStorage()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
@@ -110,10 +105,9 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();
             Providers.Instance.BlobProviderSelector = provider.GetRequiredService<IBlobProviderSelector>();
 
-            //UNDONE: [DIREF] register and get service using an interface
-            var dataProvider = provider.GetService<DataProvider>();
-            if (dataProvider != null)
-                Providers.Instance.DataProvider = dataProvider;
+            //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
+            Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
+            Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
 
 #pragma warning disable 618
 

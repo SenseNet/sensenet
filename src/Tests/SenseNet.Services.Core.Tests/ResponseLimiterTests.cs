@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Testing;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Services.Core.Tests
 {

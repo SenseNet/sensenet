@@ -68,7 +68,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         private SnDataContext GetDataContext()
         {
-            return ((RelationalDataProviderBase)DataStore.DataProvider).CreateDataContext(CancellationToken.None);
+            return ((RelationalDataProviderBase)Providers.Instance.DataStore.DataProvider).CreateDataContext(CancellationToken.None);
         }
 
         private DbFile GetFileFromReader(IDataReader reader)

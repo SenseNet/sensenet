@@ -1,4 +1,4 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿using SenseNet.Configuration;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools;
 
@@ -9,7 +9,7 @@ namespace SenseNet.Extensions.DependencyInjection
     {
         public static IRepositoryBuilder UseTestingDataProviderExtension(this IRepositoryBuilder repositoryBuilder, ITestingDataProviderExtension provider)
         {
-            DataStore.DataProvider.SetExtension(typeof(ITestingDataProviderExtension), provider);
+            Providers.Instance.DataProvider.SetExtension(typeof(ITestingDataProviderExtension), provider);
             return repositoryBuilder;
         }
     }

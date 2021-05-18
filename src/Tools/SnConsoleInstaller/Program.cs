@@ -6,10 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Security;
 using SenseNet.Services.Core.Install;
 using Serilog;
 using Installer = SenseNet.Packaging.Installer;
@@ -47,7 +45,8 @@ namespace SnConsoleInstaller
                             .ReadFrom.Configuration(hb.Configuration)
                             .CreateLogger());
                     })
-                    .AddSenseNetDataProvider()
+                    .ConfigureLegacyConnectionStrings()
+                    .AddSenseNetMsSqlDataProvider()
                     .AddEFCSecurityDataProvider(options =>
                     {
                         options.ConnectionString = ConnectionStrings.ConnectionString;

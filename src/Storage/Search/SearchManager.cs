@@ -19,6 +19,8 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager
     {
+        private static IDataStore DataStore => Providers.Instance.DataStore;
+
         /* ========================================================================== Singleton model */
 
         private static SearchManager Instance = new SearchManager();

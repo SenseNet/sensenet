@@ -6,7 +6,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Core.Implementations;
 using IO = System.IO;
@@ -46,7 +45,7 @@ namespace SenseNet.Tests.Core.Tests
             Test(() =>
             {
                 var lastNodeId =
-                    DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync()
+                    Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync()
                     .GetAwaiter().GetResult();
 
                 var root = Node.LoadNode(Identifiers.RootPath);
