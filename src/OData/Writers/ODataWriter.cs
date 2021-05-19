@@ -1003,7 +1003,8 @@ namespace SenseNet.OData.Writers
         protected virtual async Task WriteRawAsync(object response, HttpContext httpContext, ODataRequest odataRequest)
         {
             var text = response.ToString();
-            odataRequest.ResponseSize = text.Length;
+            if(odataRequest != null)
+                odataRequest.ResponseSize = text.Length;
             ResponseLimiter.AssertResponseLength(httpContext.Response, text.Length);
             await httpContext.Response.WriteAsync(text, httpContext.RequestAborted)
                 .ConfigureAwait(false);

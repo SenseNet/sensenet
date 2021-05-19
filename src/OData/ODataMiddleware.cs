@@ -94,7 +94,7 @@ namespace SenseNet.OData
             var req = httpContext.Request;
             using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
             {
-                var statistics = new StatTools(httpContext.RequestServices.GetService<IStatisticalDataCollector>());
+                var statistics = new StatTools(httpContext.RequestServices?.GetService<IStatisticalDataCollector>());
                 var statData = statistics.RegisterWebRequest(httpContext);
 
                 // set request size limit if configured

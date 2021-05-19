@@ -45,8 +45,8 @@ namespace SenseNet.WebHooks.Tests
     {
         public IList<WebHookRequest> Requests { get; } = new List<WebHookRequest>();
 
-        public Task SendAsync(string url, string httpMethod = "POST", object postData = null, 
-            IDictionary<string, string> headers = null, CancellationToken cancel = default)
+        public Task SendAsync(string url, string eventName, int contentId, int subscriptionId, string httpMethod = "POST",
+            object postData = null, IDictionary<string, string> headers = null, CancellationToken cancel = default)
         {
             Requests.Add(new WebHookRequest
             {

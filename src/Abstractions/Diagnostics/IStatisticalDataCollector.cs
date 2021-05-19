@@ -21,6 +21,7 @@ namespace SenseNet.Diagnostics
     {
         public int WebHookId { get; set; }
         public int ContentId { get; set; }
+        public string EventName { get; set; }
         public string ErrorMessage { get; set; }
     }
 

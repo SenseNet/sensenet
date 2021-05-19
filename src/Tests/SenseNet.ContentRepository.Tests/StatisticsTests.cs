@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.Services.Core.Authentication;
@@ -17,6 +24,7 @@ using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Storage.DataModel.Usage;
 using SenseNet.Tests.Core;
+using SenseNet.WebHooks;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -35,17 +43,15 @@ namespace SenseNet.ContentRepository.Tests
             }
             public System.Threading.Tasks.Task RegisterWebHook(WebHookStatInput data)
             {
-                throw new NotImplementedException();
-            }
-            public System.Threading.Tasks.Task RegisterDatabaseUsage(DatabaseUsage data)
-            {
-                throw new NotImplementedException();
+                StatData.Add(data);
+                return STT.Task.CompletedTask;
             }
             public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data)
             {
                 throw new NotImplementedException();
             }
         }
+
         [TestMethod]
         public async STT.Task Stat_BinaryMiddleware()
         {
@@ -219,5 +225,188 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async STT.Task Stat_Webhook()
+        {
+            await Test(
+                builder => { builder.UseComponent(new WebHookComponent()); },
+                async () =>
+                {
+                    var provider = BuildServiceProvider();
+                    var ep = provider.GetRequiredService<IEventProcessor>();
+                    //var whc = (HttpWebHookClient)provider.GetRequiredService<IWebHookClient>();
+
+                    var parent1 = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                    var parent2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
+                    var node1 = new Folder(parent1);
+                    var node2 = new Folder(parent2);
+                    node1.Save();
+                    node2.Save();
+
+                    // create mock events (nodes are not saved)
+                    var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
+                    var event2 = new NodeCreatedEvent(new TestNodeEventArgs(node2, NodeEvent.Created));
+                    var event3 = new NodeForcedDeletedEvent(new TestNodeEventArgs(node1, NodeEvent.DeletedPhysically));
+
+                    // ACTION: fire mock events
+                    var now = DateTime.UtcNow;
+                    await ep.ProcessEventAsync(event1, CancellationToken.None);
+                    await ep.ProcessEventAsync(event2, CancellationToken.None);
+                    await ep.ProcessEventAsync(event3, CancellationToken.None);
+
+                    // ASSERT
+                    var collector = (TestStatisticalDataCollector)provider.GetService<IStatisticalDataCollector>();
+                    var data = collector.StatData.Cast<WebHookStatInput>().ToArray();
+                    Assert.AreEqual(2, data.Length);
+
+                    Assert.AreEqual("https://example.com", data[0].Url);
+                    Assert.AreEqual(data[0].Url, data[1].Url);
+
+                    Assert.AreEqual(200, data[0].ResponseStatusCode);
+                    Assert.AreEqual(200, data[1].ResponseStatusCode);
+
+                    Assert.AreEqual(99942, data[0].WebHookId);
+                    Assert.AreEqual(99942, data[1].WebHookId);
+
+                    Assert.AreEqual(node1.Id, data[0].ContentId);
+                    Assert.AreEqual(node1.Id, data[1].ContentId);
+
+                    Assert.IsNull(data[0].ErrorMessage);
+                    Assert.IsNull(data[1].ErrorMessage);
+
+                    Assert.IsTrue(data[0].RequestTime > now.AddSeconds(-10));
+                    Assert.IsTrue(data[0].ResponseTime > data[0].RequestTime);
+
+                    Assert.IsTrue(data[1].RequestTime > now.AddSeconds(-10));
+                    Assert.IsTrue(data[1].ResponseTime > data[1].RequestTime);
+
+                    Assert.AreEqual("Create", data[0].EventName);
+                    Assert.AreEqual("Delete", data[1].EventName);
+                });
+        }
+        private IServiceProvider BuildServiceProvider()
+        {
+            var services = new ServiceCollection();
+
+            // add test services one by one
+            services.AddLogging()
+                .AddSenseNetWebHookClient<HttpWebHookClient>()
+                .AddStatisticalDataCollector<TestStatisticalDataCollector>()
+                .AddSingleton<IEventProcessor, LocalWebHookProcessor>()
+                .AddSingleton<IWebHookSubscriptionStore, TestWebHookSubscriptionStore>((s) =>
+                    new TestWebHookSubscriptionStore(null))
+                .AddSingleton<IHttpClientFactory, TestHttpClientFactory>();
+
+            var provider = services.BuildServiceProvider();
+
+            return provider;
+        }
+
+        #region Additional classes for WebHook test.
+        private class TestEvent1 : ISnEvent
+        {
+            public INodeEventArgs NodeEventArgs { get; set; }
+
+            public TestEvent1(INodeEventArgs e)
+            {
+                NodeEventArgs = e;
+            }
+        }
+
+        private class TestNodeEventArgs : NodeEventArgs
+        {
+            public TestNodeEventArgs(Node node, NodeEvent eventType) : base(node, eventType, null) { }
+        }
+
+        private class TestHttpClientFactory : IHttpClientFactory
+        {
+            public HttpClient CreateClient(string name)
+            {
+                return new HttpClient(new TestHttpClientHandler());
+            }
+        }
+
+        private class TestHttpClientHandler : HttpClientHandler
+        {
+            protected override async STT.Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, 
+                CancellationToken cancellationToken)
+            {
+                await STT.Task.Delay(10, cancellationToken);
+                return new HttpResponseMessage
+                {
+                    Content = new StringContent("Ok"),
+                    StatusCode = HttpStatusCode.OK,
+                };
+            }
+        }
+
+        private class TestWebHookSubscriptionStore : IWebHookSubscriptionStore
+        {
+            public TestWebHookSubscriptionStore(IEnumerable<WebHookSubscription> subscriptions = null)
+            {
+                Subscriptions = subscriptions?.ToList() ?? CreateDefaultSubscriptions();
+            }
+            /// <summary>
+            /// Hardcoded subscription for items in the /Root/Content subtree.
+            /// </summary>
+            public List<WebHookSubscription> Subscriptions { get; }
+
+            private List<WebHookSubscription> CreateDefaultSubscriptions()
+            {
+                var subscriptions = new List<WebHookSubscription>(new[]
+                {
+                    new WebHookSubscription(Repository.Root)
+                    {
+                        FilterQuery = "+InTree:/Root/Content",
+                        FilterData = new WebHookFilterData
+                        {
+                            Path = "/Root/Content",
+                            ContentTypes = new[]
+                            {
+                                new ContentTypeFilterData
+                                {
+                                    Name = "Folder",
+                                    Events = new[]
+                                    {
+                                        WebHookEventType.Create,
+                                        WebHookEventType.Delete
+                                    }
+                                },
+                            }
+                        },
+                        Url = "https://example.com",
+                        Enabled = true
+                    }
+                });
+
+                subscriptions[0].Data.Id = 99942;
+
+                return subscriptions;
+            }
+
+            public IEnumerable<WebHookSubscriptionInfo> GetRelevantSubscriptions(ISnEvent snEvent)
+            {
+                var node = snEvent.NodeEventArgs.SourceNode;
+                if (node == null)
+                    return Array.Empty<WebHookSubscriptionInfo>();
+
+                var pe = new PredicationEngine(Content.Create(node));
+
+                // filter the hardcoded subscription list: return the ones that
+                // match the current content
+                return Subscriptions.SelectMany(sub =>
+                {
+                    var eventTypes = sub.GetRelevantEventTypes(snEvent);
+
+                    // handle multiple relevant event types by adding the subscription multiple times
+                    return eventTypes.Select(et => new WebHookSubscriptionInfo(sub, et));
+                }).Where(si => si != null &&
+                               pe.IsTrue(si.Subscription.FilterQuery) &&
+                               si.Subscription.Enabled &&
+                               si.Subscription.IsValid);
+            }
+        }
+        #endregion
     }
 }
