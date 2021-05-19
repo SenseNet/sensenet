@@ -156,8 +156,9 @@ namespace SenseNet.Tests.Core
 
                 if (useCurrentUser)
                     await callback();
-                using (new SystemAccount())
-                    await callback();
+                else
+                    using (new SystemAccount())
+                        await callback();
             }
         }
 
