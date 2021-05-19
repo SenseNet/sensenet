@@ -154,6 +154,7 @@ namespace SenseNet.Tests.Core
             {
                 PrepareRepository();
 
+                User.Current = User.Administrator;
                 if (useCurrentUser)
                     await callback();
                 else
