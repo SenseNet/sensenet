@@ -28,69 +28,77 @@ namespace SenseNet.ContentRepository.Fields
         public const string DateTimeModeName = "DateTimeMode";
         public const string PrecisionName = "Precision";
         public static readonly DateTimePrecision DefaultPrecision = DateTimePrecision.Minute;
+        
+        private string _minValue;
 
-        public DateTime? MinValue
+        /// <summary>
+        /// Minimum value for the date field defined explicitly or by a dynamic template.
+        /// </summary>
+        public string MinValue
         {
-            get
-            {
-                var minValueText = MinValueText;
-                if (string.IsNullOrEmpty(minValueText))
-                    return null;
-
-                // evaluate templates like @@Today@@
-                minValueText = TemplateManager.Replace(typeof(DateTimeTemplateReplacer), minValueText);
-
-                if (DateTime.TryParse(minValueText, out var minValue))
-                    return ConvertToUtc(minValue);
-
-                return null;
-            }
-        }
-
-        private string _minValueText;
-        internal string MinValueText
-        {
-            get => !string.IsNullOrEmpty(_minValueText)
-                ? _minValueText
-                : ((DateTimeFieldSetting) ParentFieldSetting)?.MinValueText;
+            get => !string.IsNullOrEmpty(_minValue)
+                ? _minValue
+                : ((DateTimeFieldSetting) ParentFieldSetting)?.MinValue;
             set
             {
                 if (!_mutable)
-                    throw new InvalidOperationException("Setting MinValueText is not allowed within readonly instance.");
-                _minValueText = value;
+                    throw new InvalidOperationException("Setting MinValue is not allowed within readonly instance.");
+                _minValue = value;
             }
         }
 
-        public DateTime? MaxValue
+        /// <summary>
+        /// Evaluates the minimum value and converts it to a date value.
+        /// </summary>
+        public DateTime? GetMinValue()
         {
-            get
-            {
-                var maxValueText = MaxValueText;
-                if (string.IsNullOrEmpty(maxValueText))
-                    return null;
-
-                // evaluate templates like @@Today@@
-                maxValueText = TemplateManager.Replace(typeof(DateTimeTemplateReplacer), maxValueText);
-
-                if (DateTime.TryParse(maxValueText, out var maxValue))
-                    return ConvertToUtc(maxValue);
-
+            var minValueText = MinValue;
+            if (string.IsNullOrEmpty(minValueText))
                 return null;
-            }
+
+            // evaluate templates like @@Today@@
+            minValueText = TemplateManager.Replace(typeof(DateTimeTemplateReplacer), minValueText);
+
+            if (DateTime.TryParse(minValueText, out var minValue))
+                return RepositoryTools.ConvertToUtcDateTime(minValue);
+
+            return null;
         }
 
-        private string _maxValueText;
-        internal string MaxValueText
+        private string _maxValue;
+
+        /// <summary>
+        /// Maximum value for the date field defined explicitly or by a dynamic template.
+        /// </summary>
+        public string MaxValue
         {
-            get => !string.IsNullOrEmpty(_maxValueText)
-                ? _maxValueText
-                : ((DateTimeFieldSetting)ParentFieldSetting)?.MaxValueText;
+            get => !string.IsNullOrEmpty(_maxValue)
+                ? _maxValue
+                : ((DateTimeFieldSetting)ParentFieldSetting)?.MaxValue;
             set
             {
                 if (!_mutable)
-                    throw new InvalidOperationException("Setting MaxValueText is not allowed within readonly instance.");
-                _maxValueText = value;
+                    throw new InvalidOperationException("Setting MaxValue is not allowed within readonly instance.");
+                _maxValue = value;
             }
+        }
+
+        /// <summary>
+        /// Evaluates the maximum value and converts it to a date value.
+        /// </summary>
+        public DateTime? GetMaxValue()
+        {
+            var maxValueText = MaxValue;
+            if (string.IsNullOrEmpty(maxValueText))
+                return null;
+
+            // evaluate templates like @@Today@@
+            maxValueText = TemplateManager.Replace(typeof(DateTimeTemplateReplacer), maxValueText);
+
+            if (DateTime.TryParse(maxValueText, out var maxValue))
+                return RepositoryTools.ConvertToUtcDateTime(maxValue);
+
+            return null;
         }
 
         private DateTimeMode? _dateTimeMode;
@@ -142,11 +150,11 @@ namespace SenseNet.ContentRepository.Fields
                 {
                     case MinValueName:
                         if (!string.IsNullOrEmpty(node.InnerXml))
-                            _minValueText = node.InnerXml;
+                            _minValue = node.InnerXml;
                         break;
                     case MaxValueName:
                         if (!string.IsNullOrEmpty(node.InnerXml))
-                            _maxValueText = node.InnerXml;
+                            _maxValue = node.InnerXml;
                         break;
                     case DateTimeModeName:
                         ParseEnumValue(node.InnerXml, ref _dateTimeMode);
@@ -160,16 +168,16 @@ namespace SenseNet.ContentRepository.Fields
         protected override void ParseConfiguration(Dictionary<string, object> info)
         {
             base.ParseConfiguration(info);
-            _minValueText = GetConfigurationStringValue(info, MinValueName, null);
-            _maxValueText = GetConfigurationStringValue(info, MaxValueName, null);
+            _minValue = GetConfigurationStringValue(info, MinValueName, null);
+            _maxValue = GetConfigurationStringValue(info, MaxValueName, null);
             _dateTimeMode = GetConfigurationNullableValue<DateTimeMode>(info, DateTimeModeName, null);
             _precision = GetConfigurationNullableValue<DateTimePrecision>(info, PrecisionName, null);
         }
         protected override Dictionary<string, object> WriteConfiguration()
         {
             var result = base.WriteConfiguration();
-            result.Add(MinValueName, _minValueText);
-            result.Add(MaxValueName, _maxValueText);
+            result.Add(MinValueName, _minValue);
+            result.Add(MaxValueName, _maxValue);
             result.Add(DateTimeModeName, _dateTimeMode);
             result.Add(PrecisionName, _precision);
             return result;
@@ -177,8 +185,8 @@ namespace SenseNet.ContentRepository.Fields
 
         protected override void WriteConfiguration(XmlWriter writer)
         {
-            WriteElement(writer, _minValueText, MinValueName);
-            WriteElement(writer, _maxValueText, MaxValueName);
+            WriteElement(writer, _minValue, MinValueName);
+            WriteElement(writer, _maxValue, MaxValueName);
             if (this._dateTimeMode.HasValue)
                 WriteElement(writer, this._dateTimeMode.Value.ToString(), DateTimeModeName);
             if(this._precision.HasValue)
@@ -193,8 +201,8 @@ namespace SenseNet.ContentRepository.Fields
             if (value != null)
             {
                 var dateTimeValue = (DateTime)value;
-                var min = this.MinValue ?? DateTime.MinValue;
-                var max = this.MaxValue ?? DateTime.MaxValue;
+                var min = this.GetMinValue() ?? DateTime.MinValue;
+                var max = this.GetMaxValue() ?? DateTime.MaxValue;
 
                 if (dateTimeValue < min)
                 {
@@ -220,8 +228,8 @@ namespace SenseNet.ContentRepository.Fields
 
             var etSource = (DateTimeFieldSetting)source;
 
-            MinValueText = etSource.MinValueText;
-            MaxValueText = etSource.MaxValueText;
+            MinValue = etSource.MinValue;
+            MaxValue = etSource.MaxValue;
             DateTimeMode = etSource.DateTimeMode;
             Precision = etSource.Precision;
         }
@@ -353,21 +361,6 @@ namespace SenseNet.ContentRepository.Fields
         protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new DateTimeIndexHandler();
-        }
-
-        private static DateTime ConvertToUtc(DateTime date)
-        {
-            switch (date.Kind)
-            {
-                case DateTimeKind.Local:
-                    return date.ToUniversalTime();
-                case DateTimeKind.Unspecified:
-                    // treat it as UTC
-                    return DateTime.SpecifyKind(date, DateTimeKind.Utc);
-                default:
-                    // this is UTC
-                    return date;
-            }
         }
     }
 }

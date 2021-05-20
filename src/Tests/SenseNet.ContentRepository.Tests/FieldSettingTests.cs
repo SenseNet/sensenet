@@ -1530,6 +1530,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 					</Fields>
 				</ContentType>");
 
+                // This should be UTC, cannot use DateTime.Today here.
                 var dMin = DateTime.UtcNow.Date.AddDays(-1);
                 var dMax = DateTime.UtcNow.Date.AddDays(2);
 
