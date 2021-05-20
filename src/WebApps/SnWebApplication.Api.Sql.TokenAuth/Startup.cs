@@ -55,6 +55,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddStatisticalDataCollector()
                 .AddSenseNetWebHooks();
         }
 

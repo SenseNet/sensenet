@@ -31,4 +31,11 @@ namespace SenseNet.Diagnostics
         Task RegisterWebHook(WebHookStatInput data);
         Task RegisterGeneralData(GeneralStatInput data);
     }
+
+    public class NullStatisticalDataCollector : IStatisticalDataCollector
+    {
+        public Task RegisterWebTransfer(WebTransferStatInput data) { return Task.CompletedTask; }
+        public Task RegisterWebHook(WebHookStatInput data) { return Task.CompletedTask; }
+        public Task RegisterGeneralData(GeneralStatInput data) { return Task.CompletedTask; }
+    }
 }

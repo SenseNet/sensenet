@@ -55,6 +55,7 @@ namespace SnWebApplication.Api.Sql.Admin
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddStatisticalDataCollector()
                 .AddSenseNetWebHooks();
         }
 

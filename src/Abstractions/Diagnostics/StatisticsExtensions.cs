@@ -6,6 +6,10 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class StatisticsExtensions
     {
+        public static IServiceCollection AddStatisticalDataCollector(this IServiceCollection services)
+        {
+            return AddStatisticalDataCollector<NullStatisticalDataCollector>(services);
+        }
         public static IServiceCollection AddStatisticalDataCollector<T>(this IServiceCollection services) where T : class, IStatisticalDataCollector
         {
             return services.AddSingleton<IStatisticalDataCollector, T>();

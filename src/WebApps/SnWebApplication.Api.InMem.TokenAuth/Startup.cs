@@ -40,13 +40,14 @@ namespace SnWebApplication.Api.InMem.TokenAuth
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .BuildInMemoryRepository()
-                    .UseLogger(provider)
-                    .UseAccessProvider(new UserAccessProvider())
-                    .UseInactiveAuditEventWriter();
-            });
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseLogger(provider)
+                        .UseAccessProvider(new UserAccessProvider())
+                        .UseInactiveAuditEventWriter();
+                })
+                .AddStatisticalDataCollector();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
