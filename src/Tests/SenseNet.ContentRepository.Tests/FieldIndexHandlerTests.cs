@@ -116,21 +116,20 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR")]
         public void FieldIndexHandler_RichTextIndexHandler()
         {
-            Assert.Fail();
-            //var fieldValue = "{text: \"Lorem ipsum\", editor: {dolor: 'sit amet'}}";
-            //var fieldValueInIndex = "Lorem ipsum";
-            //var fieldValueObject = (object)fieldValue;
-            //var snField = new IndexableField(fieldValueObject);
+            var fieldValue = new RichTextFieldValue {Text = "Lorem ipsum", Editor = "{dolor: 'sit amet'}"};
+            var fieldValueInIndex = "lorem ipsum";
+            var fieldValueObject = (object)fieldValue;
+            var snField = new IndexableField(fieldValueObject);
 
-            //var fieldIndexHandler = new RichTextIndexHandler();
-            //fieldIndexHandler.OwnerIndexingInfo = new TestPerfieldIndexingInfoString();
+            var fieldIndexHandler = new RichTextIndexHandler();
+            fieldIndexHandler.OwnerIndexingInfo = new TestPerfieldIndexingInfoString();
 
-            //var indexed = fieldIndexHandler.GetIndexFields(snField, out _).ToArray();
-            //var parsed = fieldIndexHandler.Parse(fieldValueInIndex.ToString());
-            //var termValue = fieldIndexHandler.ConvertToTermValue(fieldValueInIndex);
-            //Assert.AreEqual(indexed[0].Type, parsed.Type);
-            //Assert.AreEqual(fieldValueInIndex, indexed[0].StringValue);
-            //Assert.AreEqual(parsed.Type, termValue.Type);
+            var indexed = fieldIndexHandler.GetIndexFields(snField, out _).ToArray();
+            var parsed = fieldIndexHandler.Parse(fieldValueInIndex.ToString());
+            var termValue = fieldIndexHandler.ConvertToTermValue(fieldValueInIndex);
+            Assert.AreEqual(indexed[0].Type, parsed.Type);
+            Assert.AreEqual(fieldValueInIndex, indexed[0].StringValue);
+            Assert.AreEqual(parsed.Type, termValue.Type);
 
             // get back is not supported
         }

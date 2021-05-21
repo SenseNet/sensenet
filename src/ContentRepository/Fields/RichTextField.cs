@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Fields
 
     [ShortName("RichText")]
     [DataSlot(0, RepositoryDataType.Text, typeof(string))]
-    [DefaultFieldSetting(typeof(NullFieldSetting))]
+    [DefaultFieldSetting(typeof(RichTextFieldSetting))]
     [FieldDataType(typeof(RichTextFieldValue))]
     public class RichTextField : Field
     {

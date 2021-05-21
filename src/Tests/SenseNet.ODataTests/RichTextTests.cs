@@ -207,7 +207,11 @@ namespace SenseNet.ODataTests
 <ContentType name='{contentTypeName}' parentType='GenericContent' handler='{typeof(GenericContent).FullName}'
              xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
-        <Field name='{fieldName}' type='RichText'></Field>
+        <Field name='{fieldName}' type='RichText'>
+            <Indexing>
+                <Analyzer>Standard</Analyzer>
+            </Indexing>
+        </Field>
     </Fields>
 </ContentType>");
 
