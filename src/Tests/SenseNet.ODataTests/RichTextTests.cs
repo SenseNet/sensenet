@@ -48,17 +48,13 @@ namespace SenseNet.ODataTests
                     content.ExportFieldData(writer, null);
 
                     var xml = new XmlDocument();
-                    xml.LoadXml("<r>" + sb.ToString() + "</r>");
-                    //var xmlnode = xml.SelectSingleNode("//" + aspectFieldName);
-                    //var data = xmlnode.OuterXml.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "");
-
-                    //Assert.AreEqual(
-                    //    "<" + aspectFieldName + ">"
-                    //    + "<Path>/Root/IMS/BuiltIn/Portal/Admin</Path><Path>/Root</Path><Path>/Root/IMS</Path>"
-                    //    + "</" + aspectFieldName + ">"
-                    //    , data);
-
-                    Assert.Fail();
+                    xml.LoadXml($"<r>{sb}</r>");
+                    var xmlNode = xml.SelectSingleNode("//RichText1");
+                    Assert.IsNotNull(xmlNode);
+                    Assert.AreEqual(RemoveWhitespaces($"<RichText1>" +
+                                                      $"<Text><![CDATA[{textValue}]]></Text>" +
+                                                      $"<Editor><![CDATA[{editorValue}]]></Editor>" +
+                                                      "</RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
                 }
                 finally
                 {
