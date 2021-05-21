@@ -21,7 +21,7 @@ namespace SenseNet.ODataTests
             Test(() =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -61,7 +61,7 @@ namespace SenseNet.ODataTests
             Test(() =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -109,7 +109,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -129,7 +129,7 @@ namespace SenseNet.ODataTests
                 // ASSERT
                 var entity = GetEntity(response);
                 Assert.AreEqual(content.Id, entity.Id);
-                Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
+                Assert.AreEqual(textValue, entity.AllProperties["RichText1"].ToString());
             }).ConfigureAwait(false);
         }
         [TestMethod]
@@ -138,7 +138,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -147,18 +147,20 @@ namespace SenseNet.ODataTests
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
+                content["RichText2"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
                 content.Save();
 
                 // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc/Root/Folder1('Content1')",
-                        "?metadata=no&$select=Id,RichText1&richtexteditor=RichText1")
+                        "?metadata=no&$select=Id,RichText1,RichText2&richtexteditor=RichText1")
                     .ConfigureAwait(false);
 
                 // ASSERT
                 var entity = GetEntity(response);
                 Assert.AreEqual(content.Id, entity.Id);
                 Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
+                Assert.AreEqual(RemoveWhitespaces(textValue), RemoveWhitespaces(entity.AllProperties["RichText2"].ToString()));
             }).ConfigureAwait(false);
         }
         [TestMethod]
@@ -167,7 +169,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -199,7 +201,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 // ALIGN
-                InstallContentType("ContentType1", "RichText1");
+                InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
@@ -231,13 +233,18 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        private void InstallContentType(string contentTypeName, string fieldName)
+        private void InstallContentType()
         {
             ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='{contentTypeName}' parentType='GenericContent' handler='{typeof(GenericContent).FullName}'
+<ContentType name='ContentType1' parentType='GenericContent' handler='{typeof(GenericContent).FullName}'
              xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
-        <Field name='{fieldName}' type='RichText'>
+        <Field name='RichText1' type='RichText'>
+            <Indexing>
+                <Analyzer>Standard</Analyzer>
+            </Indexing>
+        </Field>
+        <Field name='RichText2' type='RichText'>
             <Indexing>
                 <Analyzer>Standard</Analyzer>
             </Indexing>
