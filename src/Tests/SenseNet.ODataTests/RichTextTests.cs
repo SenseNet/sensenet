@@ -7,6 +7,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.Testing;
 using Task = System.Threading.Tasks.Task ;
 
 namespace SenseNet.ODataTests
@@ -25,28 +26,24 @@ namespace SenseNet.ODataTests
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
                 var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
-                var richTextValue = $"{{\"text\": {textValue}\", \"editor\": \"{editorValue}\"}}";
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue {Text = textValue, Editor = editorValue};
                 content.Save();
 
-                // ACTION
                 var sb = new StringBuilder();
                 var writer = new XmlTextWriter(new StringWriter(sb));
 
-                RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                using (new Swindler<RepositoryEnvironment.WorkingModeFlags>(
+                    new RepositoryEnvironment.WorkingModeFlags {Exporting = true},
+                    () => RepositoryEnvironment.WorkingMode,
+                    value => RepositoryEnvironment.WorkingMode = value))
                 {
-                    Exporting = true,
-                    Importing = false,
-                    Populating = false,
-                    SnAdmin = false
-                };
-                try
-                {
+                    // ACTION
                     content = Content.Load(content.Id);
                     content.ExportFieldData(writer, null);
 
+                    // ASSERT
                     var xml = new XmlDocument();
                     xml.LoadXml($"<r>{sb}</r>");
                     var xmlNode = xml.SelectSingleNode("//RichText1");
@@ -55,16 +52,6 @@ namespace SenseNet.ODataTests
                                                       $"<Text><![CDATA[{textValue}]]></Text>" +
                                                       $"<Editor><![CDATA[{editorValue}]]></Editor>" +
                                                       "</RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
-                }
-                finally
-                {
-                    RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
-                    {
-                        Exporting = false,
-                        Importing = false,
-                        Populating = false,
-                        SnAdmin = false
-                    };
                 }
             });
         }
@@ -79,13 +66,10 @@ namespace SenseNet.ODataTests
 
                 var textValue = "Chillwave flexitarian pork belly raw denim.";
                 var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
-                var richTextValue = $"{{\"text\": {textValue}\", \"editor\": \"{editorValue}\"}}";
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
-                //content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
                 content.Save();
 
-                // ACTION
                 var xml = new XmlDocument();
                 xml.LoadXml($@"<ContentMetaData>
   <ContentType>ContentType1</ContentType>
@@ -97,34 +81,24 @@ namespace SenseNet.ODataTests
     </RichText1>
   </Fields>
 </ContentMetaData>");
+
                 var importContext = new ImportContext(
                     xml.SelectNodes("/ContentMetaData/Fields/*"), "", false, true, false);
 
-                RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                using (new Swindler<RepositoryEnvironment.WorkingModeFlags>(
+                    new RepositoryEnvironment.WorkingModeFlags {Importing = true},
+                    () => RepositoryEnvironment.WorkingMode,
+                    value => RepositoryEnvironment.WorkingMode = value))
                 {
-                    Exporting = false,
-                    Importing = true,
-                    Populating = false,
-                    SnAdmin = false
-                };
-                try
-                {
+                    // ACTION
                     content = Content.Load(content.Id);
                     content.ImportFieldData(importContext);
+
+                    // ASSERT
                     var rtf = (RichTextFieldValue)content["RichText1"];
                     Assert.IsNotNull(rtf);
                     Assert.AreEqual(textValue, rtf.Text);
                     Assert.AreEqual(editorValue, rtf.Editor);
-                }
-                finally
-                {
-                    RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
-                    {
-                        Exporting = false,
-                        Importing = false,
-                        Populating = false,
-                        SnAdmin = false
-                    };
                 }
             });
         }
