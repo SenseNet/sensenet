@@ -730,6 +730,13 @@ namespace SenseNet.ContentRepository
 
                         Profile = profile.ContentHandler as UserProfile;
                         Save(SavingMode.KeepVersion);
+
+                        // Give explicit permission for the user on the profile so that
+                        // they can access all content items there, not just the ones
+                        // they created and own.
+                        SnSecurityContext.Create().CreateAclEditor()
+                            .Allow(profile.Id, this.Id, false, PermissionType.Open)
+                            .Apply();
                     }
                     catch (Exception ex)
                     {
