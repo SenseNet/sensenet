@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Xml;
@@ -103,37 +104,14 @@ namespace SenseNet.ODataTests
             });
         }
 
-        [TestMethod]
-        public async Task OD_RichText_Get()
-        {
-            await ODataTestAsync(async () =>
-            {
-                // ALIGN
-                InstallContentType();
-                var testRoot = CreateTestRoot("Folder1");
-
-                var textValue = "Chillwave flexitarian pork belly raw denim.";
-                var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
-                var richTextValue = $"{{\"text\": \"{textValue}\", \"editor\": \"{editorValue}\"}}";
-
-                var content = Content.CreateNew("ContentType1", testRoot, "Content1");
-                content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
-                content.Save();
-
-                // ACTION
-                var response = await ODataGetAsync(
-                        "/OData.svc/Root/Folder1('Content1')",
-                        "?metadata=no&$select=Id,RichText1")
-                    .ConfigureAwait(false);
-
-                // ASSERT
-                var entity = GetEntity(response);
-                Assert.AreEqual(content.Id, entity.Id);
-                Assert.AreEqual(textValue, entity.AllProperties["RichText1"].ToString());
-            }).ConfigureAwait(false);
-        }
-        [TestMethod]
-        public async Task OD_RichText_Get_EditorMode()
+        [DataRow(false, "Simple")]
+        [DataRow(false, "SimpleExpander")]
+        [DataRow(false, "Expander")]
+        [DataRow(true, "Simple")]
+        [DataRow(true, "SimpleExpander")]
+        [DataRow(true, "Expander")]
+        [DataTestMethod]
+        public async Task OD_RichText_Get(bool expand, string projectorName)
         {
             await ODataTestAsync(async () =>
             {
@@ -150,19 +128,33 @@ namespace SenseNet.ODataTests
                 content["RichText2"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
                 content.Save();
 
+                string queryString;
+                switch (projectorName)
+                {
+                    case "Simple": queryString = "?metadata=no&$select=Id,RichText1,RichText2"; break;
+                    case "SimpleExpander": queryString = "?metadata=no&$expand=ModifiedBy"; break;
+                    case "Expander": queryString = "?metadata=no&$expand=ModifiedBy&$select=Id,RichText1,RichText2"; break;
+                    default: throw new NotImplementedException();
+                }
+
+                if (expand)
+                    queryString += "&richtexteditor=RichText1";
+
                 // ACTION
-                var response = await ODataGetAsync(
-                        "/OData.svc/Root/Folder1('Content1')",
-                        "?metadata=no&$select=Id,RichText1,RichText2&richtexteditor=RichText1")
+                var response = await ODataGetAsync("/OData.svc/Root/Folder1('Content1')", queryString)
                     .ConfigureAwait(false);
 
                 // ASSERT
                 var entity = GetEntity(response);
                 Assert.AreEqual(content.Id, entity.Id);
-                Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
-                Assert.AreEqual(RemoveWhitespaces(textValue), RemoveWhitespaces(entity.AllProperties["RichText2"].ToString()));
+                if (expand)
+                    Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
+                else
+                    Assert.AreEqual(textValue, entity.AllProperties["RichText1"].ToString());
+                Assert.AreEqual(textValue, entity.AllProperties["RichText2"].ToString());
             }).ConfigureAwait(false);
         }
+
         [TestMethod]
         public async Task OD_RichText_Create()
         {
