@@ -44,7 +44,18 @@ namespace SenseNet.ContentRepository.Fields
                 this.SetData(null);
                 return;
             }
-            this.SetData(ConvertTo(new object[] { fieldNode.InnerXml }));
+
+            var data = new RichTextFieldValue();
+            foreach (XmlElement childElement in fieldNode.SelectNodes("*"))
+            {
+                switch (childElement.LocalName)
+                {
+                    case "Text": data.Text = childElement.InnerText; break;
+                    case "Editor": data.Editor = childElement.InnerText; break;
+                }
+            }
+
+            this.SetData(data);
         }
 
         protected override object ConvertTo(object[] handlerValues)

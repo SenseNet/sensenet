@@ -68,6 +68,66 @@ namespace SenseNet.ODataTests
                 }
             });
         }
+        [TestMethod]
+        public void Field_RichText_Import()
+        {
+            Test(() =>
+            {
+                // ALIGN
+                InstallContentType("ContentType1", "RichText1");
+                var testRoot = CreateTestRoot("Folder1");
+
+                var textValue = "Chillwave flexitarian pork belly raw denim.";
+                var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
+                var richTextValue = $"{{\"text\": {textValue}\", \"editor\": \"{editorValue}\"}}";
+
+                var content = Content.CreateNew("ContentType1", testRoot, "Content1");
+                //content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
+                content.Save();
+
+                // ACTION
+                var xml = new XmlDocument();
+                xml.LoadXml($@"<ContentMetaData>
+  <ContentType>ContentType1</ContentType>
+  <ContentName>Content1</ContentName>
+  <Fields>
+    <RichText1>
+      <Text><![CDATA[{textValue}]]></Text>
+      <Editor><![CDATA[{editorValue}]]></Editor>
+    </RichText1>
+  </Fields>
+</ContentMetaData>");
+                var importContext = new ImportContext(
+                    xml.SelectNodes("/ContentMetaData/Fields/*"), "", false, true, false);
+
+                RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                {
+                    Exporting = false,
+                    Importing = true,
+                    Populating = false,
+                    SnAdmin = false
+                };
+                try
+                {
+                    content = Content.Load(content.Id);
+                    content.ImportFieldData(importContext);
+                    var rtf = (RichTextFieldValue)content["RichText1"];
+                    Assert.IsNotNull(rtf);
+                    Assert.AreEqual(textValue, rtf.Text);
+                    Assert.AreEqual(editorValue, rtf.Editor);
+                }
+                finally
+                {
+                    RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                    {
+                        Exporting = false,
+                        Importing = false,
+                        Populating = false,
+                        SnAdmin = false
+                    };
+                }
+            });
+        }
 
         [TestMethod]
         public async Task OD_RichText_Get()
