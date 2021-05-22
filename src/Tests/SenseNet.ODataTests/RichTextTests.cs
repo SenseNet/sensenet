@@ -16,8 +16,12 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class RichTextTests:ODataTestBase
     {
-        [TestMethod]
-        public void Field_RichText_Export()
+        [DataRow("text", "{p1: 'xx', p2: 'yy'}")]
+        [DataRow("text", null)]
+        [DataRow(null, "{p1: 'xx', p2: 'yy'}")]
+        [DataRow(null, null)]
+        [DataTestMethod]
+        public void Field_RichText_Export(string textValue, string editorValue)
         {
             Test(() =>
             {
@@ -25,8 +29,8 @@ namespace SenseNet.ODataTests
                 InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
 
-                var textValue = "Chillwave flexitarian pork belly raw denim.";
-                var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
+                //var textValue = "Chillwave flexitarian pork belly raw denim.";
+                //var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue {Text = textValue, Editor = editorValue};
@@ -49,10 +53,24 @@ namespace SenseNet.ODataTests
                     xml.LoadXml($"<r>{sb}</r>");
                     var xmlNode = xml.SelectSingleNode("//RichText1");
                     Assert.IsNotNull(xmlNode);
-                    Assert.AreEqual(RemoveWhitespaces($"<RichText1>" +
-                                                      $"<Text><![CDATA[{textValue}]]></Text>" +
-                                                      $"<Editor><![CDATA[{editorValue}]]></Editor>" +
-                                                      "</RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
+                    if (textValue == null && editorValue == null)
+                        Assert.AreEqual(RemoveWhitespaces(
+                            @$"<RichText1/>"), RemoveWhitespaces(xmlNode.OuterXml));
+                    else if (textValue == null && editorValue != null)
+                        Assert.AreEqual(RemoveWhitespaces(
+                            @$"<RichText1>
+                                <Editor><![CDATA[{editorValue}]]></Editor>
+                            </RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
+                    else if (textValue != null && editorValue == null)
+                        Assert.AreEqual(RemoveWhitespaces(
+                            @$"<RichText1><![CDATA[{textValue}]]></RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
+                    else 
+                        Assert.AreEqual(RemoveWhitespaces(
+                            @$"<RichText1>
+                                <Text><![CDATA[{textValue}]]></Text>
+                                <Editor><![CDATA[{editorValue}]]></Editor>
+                            </RichText1>"), RemoveWhitespaces(xmlNode.OuterXml));
+
                 }
             });
         }

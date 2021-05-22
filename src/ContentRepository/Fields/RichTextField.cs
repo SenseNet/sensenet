@@ -25,12 +25,35 @@ namespace SenseNet.ContentRepository.Fields
         protected override void ExportData(XmlWriter writer, ExportContext context)
         {
             var value = (RichTextFieldValue) GetData(false);
-            writer.WriteStartElement("Text");
-            writer.WriteCData(value.Text);
-            writer.WriteEndElement();
-            writer.WriteStartElement("Editor");
-            writer.WriteCData(value.Editor);
-            writer.WriteEndElement();
+
+            if (value.Text == null && value.Editor == null)
+            {
+                //writer.WriteStartElement("Text");
+                //writer.WriteCData(value.Text);
+                //writer.WriteEndElement();
+                //writer.WriteStartElement("Editor");
+                //writer.WriteCData(value.Editor);
+                //writer.WriteEndElement();
+            }
+            else if (value.Text == null && value.Editor != null)
+            {
+                writer.WriteStartElement("Editor");
+                writer.WriteCData(value.Editor);
+                writer.WriteEndElement();
+            }
+            else if (value.Text != null && value.Editor == null)
+            {
+                writer.WriteCData(value.Text);
+            }
+            else
+            {
+                writer.WriteStartElement("Text");
+                writer.WriteCData(value.Text);
+                writer.WriteEndElement();
+                writer.WriteStartElement("Editor");
+                writer.WriteCData(value.Editor);
+                writer.WriteEndElement();
+            }
         }
         protected override void WriteXmlData(XmlWriter writer)
         {
