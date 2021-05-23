@@ -21,6 +21,7 @@ namespace SenseNet.ODataTests
         [DataRow(null, "{p1: 'xx', p2: 'yy'}")]
         [DataRow(null, null)]
         [DataTestMethod]
+
         public void Field_RichText_Export(string textValue, string editorValue)
         {
             Test(() =>
@@ -227,8 +228,14 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
             }).ConfigureAwait(false);
         }
-        [TestMethod]
-        public async Task OD_RichText_Modify()
+
+        [DataRow("models=[{'RichText1':{'text': 'ttt', 'editor': 'eee'}}]", "ttt", "eee")]
+        [DataRow("models=[{'RichText1':{'editor': 'eee'}}]", null, "eee")]
+        [DataRow("models=[{'RichText1':{'text': 'ttt'}}]", "ttt", null)]
+        [DataRow("models=[{'RichText1':'ttt'}]", "ttt", null)]
+        [DataRow("models=[{'RichText1':null}]", null, null)]
+        [DataTestMethod]
+        public async Task OD_RichText_Modify(string requestBody, string expectedText, string expectedEditor)
         {
             await ODataTestAsync(async () =>
             {
@@ -245,23 +252,38 @@ namespace SenseNet.ODataTests
                 content.Save();
 
                 // ACTION
-                var textValue2 = "Tilde ennui heirloom narwhal.";
-                var editorValue2 = "{property1: 'Tilde ennui', property2: 'heirloom narwhal'}";
-                var richTextValue2 = $"{{\"text\": \"{textValue2}\", \"editor\": \"{editorValue2}\"}}";
                 var response = await ODataPutAsync(
                         "/OData.svc/Root/Folder1/Content1",
-                        "?metadata=no&richtexteditor=RichText1",
-                        $@"models=[{{""RichText1"":{richTextValue2}}}]")
+                        "?metadata=no&$select=Id,RichText1,RichText2&richtexteditor=RichText1",
+                        requestBody)
                     .ConfigureAwait(false);
 
                 // ASSERT
                 var loadedContent = Content.Load("/Root/Folder1/Content1");
                 var rtf = (RichTextFieldValue)loadedContent["RichText1"];
-                Assert.AreEqual(textValue2, rtf.Text);
-                Assert.AreEqual(editorValue2, rtf.Editor);
+                if (expectedText == null && expectedEditor == null)
+                {
+                    Assert.IsNull(rtf);
+                }
+                else
+                {
+                    Assert.IsNotNull(rtf);
+                    Assert.AreEqual(expectedText, rtf.Text);
+                    Assert.AreEqual(expectedEditor, rtf.Editor);
+                }
+
                 var entity = GetEntity(response);
+                string expectedRichTextValue;
+                if (expectedText != null && expectedEditor != null)
+                    expectedRichTextValue = $"{{\"text\": \"{expectedText}\", \"editor\": \"{expectedEditor}\"}}";
+                else if (expectedText == null && expectedEditor != null)
+                    expectedRichTextValue = $"{{\"text\": null, \"editor\": \"{expectedEditor}\"}}";
+                else if (expectedText != null && expectedEditor == null)
+                    expectedRichTextValue = $"{{\"text\": \"{expectedText}\", \"editor\": null}}";
+                else
+                    expectedRichTextValue = "";
                 Assert.AreEqual(content.Id, entity.Id);
-                Assert.AreEqual(RemoveWhitespaces(richTextValue2), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
+                Assert.AreEqual(RemoveWhitespaces(expectedRichTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
             }).ConfigureAwait(false);
         }
 

@@ -115,6 +115,10 @@ namespace SenseNet.ContentRepository.Fields
         protected override object[] ConvertFrom(object value)
         {
             string serialized = null;
+            if (value is string stringValue)
+            {
+                serialized = EncodeTransferData(new RichTextFieldValue {Text = stringValue});
+            }
             if (value is JObject jObject)
             {
                 // check
