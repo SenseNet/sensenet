@@ -74,17 +74,20 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-        [TestMethod]
-        public void Field_RichText_Import()
+        [DataRow(0, "<RichText1><Text><![CDATA[textValue]]></Text><Editor><![CDATA[editorValue]]></Editor></RichText1>")]
+        [DataRow(1, "<RichText1><Editor><![CDATA[editorValue]]></Editor></RichText1>")]
+        [DataRow(2, "<RichText1><Text><![CDATA[textValue]]></Text></RichText1>")]
+        [DataRow(3, "<RichText1>textValue</RichText1>")]
+        [DataRow(4, "<RichText1>  </RichText1>")]
+        [DataRow(5, "<RichText1/>")]
+        [DataTestMethod]
+        public void Field_RichText_Import(int testId, string richTextElement)
         {
             Test(() =>
             {
                 // ALIGN
                 InstallContentType();
                 var testRoot = CreateTestRoot("Folder1");
-
-                var textValue = "Chillwave flexitarian pork belly raw denim.";
-                var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content.Save();
@@ -94,10 +97,7 @@ namespace SenseNet.ODataTests
   <ContentType>ContentType1</ContentType>
   <ContentName>Content1</ContentName>
   <Fields>
-    <RichText1>
-      <Text><![CDATA[{textValue}]]></Text>
-      <Editor><![CDATA[{editorValue}]]></Editor>
-    </RichText1>
+    {richTextElement}
   </Fields>
 </ContentMetaData>");
 
@@ -115,9 +115,31 @@ namespace SenseNet.ODataTests
 
                     // ASSERT
                     var rtf = (RichTextFieldValue)content["RichText1"];
-                    Assert.IsNotNull(rtf);
-                    Assert.AreEqual(textValue, rtf.Text);
-                    Assert.AreEqual(editorValue, rtf.Editor);
+                    switch (testId)
+                    {
+                        case 0:
+                            Assert.IsNotNull(rtf);
+                            Assert.AreEqual("textValue", rtf.Text);
+                            Assert.AreEqual("editorValue", rtf.Editor);
+                            break;
+                        case 1:
+                            Assert.IsNotNull(rtf);
+                            Assert.IsNull(rtf.Text);
+                            Assert.AreEqual("editorValue", rtf.Editor);
+                            break;
+                        case 2:
+                        case 3:
+                            Assert.IsNotNull(rtf);
+                            Assert.AreEqual("textValue", rtf.Text);
+                            Assert.IsNull(rtf.Editor);
+                            break;
+                        case 4:
+                        case 5:
+                            Assert.IsNull(rtf);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
             });
         }

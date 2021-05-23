@@ -69,12 +69,25 @@ namespace SenseNet.ContentRepository.Fields
             }
 
             var data = new RichTextFieldValue();
-            foreach (XmlElement childElement in fieldNode.SelectNodes("*"))
+            var childElements = fieldNode.SelectNodes("*");
+            if (childElements != null)
             {
-                switch (childElement.LocalName)
+                // Backward compatibility: if there is no any child element, the node's text is the Text of the RichText.
+                // Note: whitespace only or empty element interpreted as null.
+                if (childElements.Count == 0)
                 {
-                    case "Text": data.Text = childElement.InnerText; break;
-                    case "Editor": data.Editor = childElement.InnerText; break;
+                    data.Text = fieldNode.InnerText;
+                }
+                else
+                {
+                    foreach (XmlElement childElement in childElements)
+                    {
+                        switch (childElement.LocalName)
+                        {
+                            case "Text": data.Text = childElement.InnerText; break;
+                            case "Editor": data.Editor = childElement.InnerText; break;
+                        }
+                    }
                 }
             }
 
