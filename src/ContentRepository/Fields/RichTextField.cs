@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Fields
             }
             catch (Exception e) // rethrow
             {
-                throw new ApplicationException(string.Concat("Invalid RichText data: ", src, ". Content: ", this.Content.Path, ", Field: ", this.Name), e);
+                data = new RichTextFieldValue {Text = src};
             }
 
             return data;
