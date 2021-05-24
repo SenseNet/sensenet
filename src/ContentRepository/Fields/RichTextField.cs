@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Fields
     }
 
     [ShortName("RichText")]
-    [DataSlot(0, RepositoryDataType.Text, typeof(string))]
+    [DataSlot(0, RepositoryDataType.Text, typeof(RichTextFieldValue), typeof(string))]
     [DefaultFieldSetting(typeof(RichTextFieldSetting))]
     [FieldDataType(typeof(RichTextFieldValue))]
     public class RichTextField : Field
@@ -96,41 +96,71 @@ namespace SenseNet.ContentRepository.Fields
 
         protected override object ConvertTo(object[] handlerValues)
         {
-            var src = (string)handlerValues[0];
-            if (string.IsNullOrEmpty(src))
-                return null;
+            RichTextFieldValue data = null;
 
-            RichTextFieldValue data;
-            try
+            Type propertyType = this.GetHandlerSlot(0);
+            if (propertyType == typeof(string))
             {
-                data = JsonConvert.DeserializeObject<RichTextFieldValue>(src);
+                var src = (string)handlerValues[0];
+                if (string.IsNullOrEmpty(src))
+                    return null;
+                try
+                {
+                    data = JsonConvert.DeserializeObject<RichTextFieldValue>(src);
+                }
+                catch (Exception e) // rethrow
+                {
+                    data = new RichTextFieldValue {Text = src};
+                }
             }
-            catch (Exception e) // rethrow
+            else if (propertyType == typeof(RichTextFieldValue))
             {
-                data = new RichTextFieldValue {Text = src};
+                data = (RichTextFieldValue)handlerValues[0];
             }
 
             return data;
         }
         protected override object[] ConvertFrom(object value)
         {
-            string serialized = null;
-            if (value is string stringValue)
+            // Accepts: string, JObject, RichTextFieldValue
+            object converted = null;
+            Type propertyType = this.GetHandlerSlot(0);
+            if (propertyType == typeof(string))
             {
-                serialized = EncodeTransferData(new RichTextFieldValue {Text = stringValue});
+                if (value is string stringValue)
+                {
+                    converted = EncodeTransferData(new RichTextFieldValue { Text = stringValue });
+                }
+                if (value is JObject jObject)
+                {
+                    // check
+                    var data = JsonConvert.DeserializeObject<RichTextFieldValue>(jObject.ToString());
+                    // convert
+                    converted = jObject.ToString();
+                }
+                else if (value is RichTextFieldValue rtf)
+                {
+                    converted = EncodeTransferData(rtf);
+                }
             }
-            if (value is JObject jObject)
+            else if (propertyType == typeof(RichTextFieldValue))
             {
-                // check
-                var data = JsonConvert.DeserializeObject<RichTextFieldValue>(jObject.ToString());
-                // convert
-                serialized = jObject.ToString();
+                if (value is string stringValue)
+                {
+                    converted = new RichTextFieldValue { Text = stringValue };
+                }
+                if (value is JObject jObject)
+                {
+                    // check
+                    converted = JsonConvert.DeserializeObject<RichTextFieldValue>(jObject.ToString());
+                }
+                else if (value is RichTextFieldValue rtf)
+                {
+                    converted = rtf;
+                }
             }
-            else if (value is RichTextFieldValue rtf)
-            {
-                serialized = EncodeTransferData(rtf);
-            }
-            return new object[] { serialized };
+
+            return new object[] { converted };
         }
         private string EncodeTransferData(RichTextFieldValue data)
         {
@@ -155,6 +185,7 @@ namespace SenseNet.ContentRepository.Fields
 
             return true;
         }
+
 
     }
 }
