@@ -32,10 +32,10 @@ namespace SenseNet.ContentRepository.Tests
             }, () =>
             {
                 CreateProfileTemplate();
-
-                var parentPath = "/Root/IMS/BuiltIn/Temp-" + Guid.NewGuid();
-                var parent = RepositoryTools.CreateStructure(parentPath, "OrganizationalUnit");
-                var user1 = new User(parent.ContentHandler)
+                
+                var parentPath = RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, IdentityManagement.BuiltInDomainName);
+                var parent = Node.LoadNode(parentPath);
+                var user1 = new User(parent)
                 {
                     Name = "sample-sam",
                     LoginName = "samplesam@example.com",
