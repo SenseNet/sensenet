@@ -524,15 +524,6 @@ namespace SenseNet.ODataTests
             return stream;
         }
 
-        protected string RemoveWhitespaces(string input)
-        {
-            return input
-                .Replace("\r", "")
-                .Replace("\n", "")
-                .Replace("\t", "")
-                .Replace(" ", "");
-        }
-
         protected class AllowPermissionBlock : IDisposable
         {
             private int _entityId;

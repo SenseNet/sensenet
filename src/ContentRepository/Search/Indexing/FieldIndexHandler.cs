@@ -940,6 +940,47 @@ namespace SenseNet.Search.Indexing
         }
     }
     /// <summary>
+    /// Inherited IndexFieldHandler for handling rich text value of a <see cref="Field"/>.
+    /// </summary>
+    public class RichTextIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
+    {
+        /// <inheritdoc />
+        public override IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Standard; }
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            var data = snField.GetData() as RichTextFieldValue;
+            textExtract = data?.Text?.ToLowerInvariant() ?? string.Empty;
+            return CreateField(snField.Name, textExtract);
+        }
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            return new IndexValue(text.ToLowerInvariant());
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
+        }
+        /// <inheritdoc cref="SenseNet.ContentRepository.Search.Indexing.IIndexValueConverter&lt;T&gt;.GetBack(string)" />
+        public string GetBack(string indexFieldValue)
+        {
+            throw new NotSupportedException();
+        }
+        /// <inheritdoc cref="SenseNet.ContentRepository.Search.Indexing.IIndexValueConverter.GetBack(string)" />
+        object IIndexValueConverter.GetBack(string indexFieldValue)
+        {
+            return GetBack(indexFieldValue);
+        }
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            var data = ((Field)snField).GetData() as string;
+            return new[] { data?.ToLowerInvariant() ?? string.Empty };
+        }
+    }
+    /// <summary>
     /// Inherited IndexFieldHandler for handling the value of a <see cref="ReferenceField"/>.
     /// The index value is the Id set of the referenced nodes.
     /// </summary>

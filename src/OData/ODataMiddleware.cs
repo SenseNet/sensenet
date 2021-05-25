@@ -710,8 +710,7 @@ namespace SenseNet.OData
 
                         if (prop.Value is JObject)
                         {
-                            //TODO: ODATA: setting field when posted value is JObject.
-                            // field.SetData(jValue.Value);
+                            field.SetData(prop.Value);
                             continue;
                         }
 
