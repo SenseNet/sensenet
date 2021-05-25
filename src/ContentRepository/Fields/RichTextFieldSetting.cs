@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Fields
     {
         protected override void WriteConfiguration(XmlWriter writer)
         {
-            // Do nothing here because there is no any individual configurable element.
+            // Do nothing because there are no configurable properties for this field.
         }
 
         protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()

@@ -133,10 +133,11 @@ namespace SenseNet.ContentRepository.Fields
                 }
                 if (value is JObject jObject)
                 {
+                    var src = jObject.ToString();
                     // check
-                    var data = JsonConvert.DeserializeObject<RichTextFieldValue>(jObject.ToString());
+                    var data = JsonConvert.DeserializeObject<RichTextFieldValue>(src);
                     // convert
-                    converted = jObject.ToString();
+                    converted = src;
                 }
                 else if (value is RichTextFieldValue rtf)
                 {
