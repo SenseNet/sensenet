@@ -1324,7 +1324,10 @@ namespace SenseNet.ContentRepository.Schema
             indexingInfo.FieldDataType = setting.FieldDataType;
 
             if (setting.Aspect == null)
-                ContentTypeManager.SetPerFieldIndexingInfo(setting.Name, setting.Owner.Name, indexingInfo);
+            {
+                if (setting.Owner != null) // testability
+                    ContentTypeManager.SetPerFieldIndexingInfo(setting.Name, setting.Owner.Name, indexingInfo);
+            }
             else
                 setting.Aspect.SetPerFieldIndexingInfo(setting.Name, indexingInfo);
         }
