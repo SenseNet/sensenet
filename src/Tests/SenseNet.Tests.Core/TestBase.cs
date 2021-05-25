@@ -246,6 +246,15 @@ namespace SenseNet.Tests.Core
             await tasks.WhenAll();
         }
 
+        protected string RemoveWhitespaces(string input)
+        {
+            return input
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace("\t", "")
+                .Replace(" ", "");
+        }
+
         protected string ArrayToString(int[] array, bool sort = false)
         {
             var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
