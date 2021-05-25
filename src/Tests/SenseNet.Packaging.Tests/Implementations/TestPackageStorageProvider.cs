@@ -138,6 +138,13 @@ namespace SenseNet.Packaging.Tests.Implementations
             return Task.CompletedTask;
         }
 
+        /* =============================================================================== Methods for Steps */
+
+        public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
+        {
+            throw new NotImplementedException();
+        }
+
         // ================================================================================================= Test tools
 
         public int GetRecordCount()

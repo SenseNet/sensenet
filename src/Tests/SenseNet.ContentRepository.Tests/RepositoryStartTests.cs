@@ -91,6 +91,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
+            {
+                throw new NotImplementedException();
+            }
+
             public System.Threading.Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
