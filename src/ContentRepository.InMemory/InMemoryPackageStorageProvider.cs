@@ -170,5 +170,27 @@ namespace SenseNet.ContentRepository.InMemory
             package.Manifest = GetPackages().FirstOrDefault(p => p.Id == package.Id)?.Manifest;
             return System.Threading.Tasks.Task.CompletedTask;
         }
+
+        /* =============================================================================== Methods for Steps */
+
+        public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
+        {
+            var db = ((InMemoryDataProvider) Providers.Instance.DataProvider).DB;
+            var propTypeId = ActiveSchema.PropertyTypes["AllowedChildTypes"].Id;
+            var rows = db.LongTextProperties
+                .Where(x => x.PropertyTypeId == propTypeId && x.Value.Split(' ').Intersect(names).Any())
+                .ToArray();
+
+            var result = new Dictionary<string, string>();
+            foreach (var row in rows)
+            {
+                var nodeId = db.Versions.FirstOrDefault(x => x.VersionId == row.VersionId)?.NodeId ?? 0;
+                var path = db.Nodes.FirstOrDefault(x => x.NodeId == nodeId)?.Path;
+                if (path != null)
+                    result.Add(path, row.Value);
+            }
+
+            return result;
+        }
     }
 }

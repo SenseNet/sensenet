@@ -80,5 +80,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task LoadManifestAsync(Package package, CancellationToken cancellationToken);
+
+        /* =============================================================================== Methods for Steps */
+
+        Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names);
     }
 }
