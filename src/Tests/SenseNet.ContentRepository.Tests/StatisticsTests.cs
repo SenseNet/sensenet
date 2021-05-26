@@ -9,7 +9,11 @@ using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.BackgroundOperations;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
@@ -32,26 +36,6 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
-        private class TestStatisticalDataCollector : IStatisticalDataCollector
-        {
-            public List<object> StatData { get; } = new List<object>();
-
-            public System.Threading.Tasks.Task RegisterWebTransfer(WebTransferStatInput data)
-            {
-                StatData.Add(data);
-                return STT.Task.CompletedTask;
-            }
-            public System.Threading.Tasks.Task RegisterWebHook(WebHookStatInput data)
-            {
-                StatData.Add(data);
-                return STT.Task.CompletedTask;
-            }
-            public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         [TestMethod]
         public async STT.Task Stat_BinaryMiddleware()
         {
@@ -227,13 +211,13 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_Webhook()
+        public async STT.Task Stat_WebHook()
         {
             await Test(
                 builder => { builder.UseComponent(new WebHookComponent()); },
                 async () =>
                 {
-                    var provider = BuildServiceProvider();
+                    var provider = BuildServiceProvider_WebHook();
                     var ep = provider.GetRequiredService<IEventProcessor>();
                     //var whc = (HttpWebHookClient)provider.GetRequiredService<IWebHookClient>();
 
@@ -285,7 +269,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual("Delete", data[1].EventName);
                 });
         }
-        private IServiceProvider BuildServiceProvider()
+        private IServiceProvider BuildServiceProvider_WebHook()
         {
             var services = new ServiceCollection();
 
@@ -303,10 +287,68 @@ namespace SenseNet.ContentRepository.Tests
             return provider;
         }
 
-        #region Additional classes for WebHook test.
+        [TestMethod]
+        public async STT.Task Stat_DbUsage()
+        {
+            await Test(async () =>
+            {
+                var logger = new TestDbUsageLogger();
+                var collector = new TestStatisticalDataCollector();
+                var dbUsageHandler = new DatabaseUsageHandler(logger);
+                var maintenanceTask = new StatisticalDataCollectorMaintenanceTask(collector, dbUsageHandler);
+
+                // The first load creates a persistent cache and its container (2 system content) but caches the count without cache.
+                var _ = await dbUsageHandler.GetDatabaseUsageAsync(true, CancellationToken.None)
+                    .ConfigureAwait(false);
+                // The second load can see the persistent cache.
+                _ = await dbUsageHandler.GetDatabaseUsageAsync(true, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ACTION
+                await maintenanceTask.ExecuteAsync(CancellationToken.None).ConfigureAwait(false);
+
+                // ASSERT
+                var expected = await dbUsageHandler.GetDatabaseUsageAsync(true, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                Assert.AreEqual(1, collector.StatData.Count);
+                var data = collector.StatData[0] as GeneralStatInput;
+                Assert.IsNotNull(data);
+                Assert.AreEqual("DatabaseUsage", data.DataType);
+                var dbUsage = data.Data as DatabaseUsage;
+                Assert.IsNotNull(dbUsage);
+                Assert.AreEqual(expected.Content.Count, dbUsage.Content.Count);
+                Assert.AreEqual(expected.System.Count, dbUsage.System.Count);
+            }).ConfigureAwait(false);
+
+        }
+
+        #region Additional classes
+
+        private class TestStatisticalDataCollector : IStatisticalDataCollector
+        {
+            public List<object> StatData { get; } = new List<object>();
+
+            public System.Threading.Tasks.Task RegisterWebTransfer(WebTransferStatInput data)
+            {
+                StatData.Add(data);
+                return STT.Task.CompletedTask;
+            }
+            public System.Threading.Tasks.Task RegisterWebHook(WebHookStatInput data)
+            {
+                StatData.Add(data);
+                return STT.Task.CompletedTask;
+            }
+            public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data)
+            {
+                StatData.Add(data);
+                return STT.Task.CompletedTask;
+            }
+        }
+
         private class TestEvent1 : ISnEvent
         {
-            public INodeEventArgs NodeEventArgs { get; set; }
+            public INodeEventArgs NodeEventArgs { get; }
 
             public TestEvent1(INodeEventArgs e)
             {
@@ -407,6 +449,7 @@ namespace SenseNet.ContentRepository.Tests
                                si.Subscription.IsValid);
             }
         }
+
         #endregion
     }
 }

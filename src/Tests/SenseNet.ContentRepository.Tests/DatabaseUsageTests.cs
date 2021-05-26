@@ -11,30 +11,30 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
+    internal class TestDbUsageLogger : ILogger<DatabaseUsageHandler>
+    {
+        public LogLevel LastLevel { get; private set; }
+        public string LastMessage { get; private set; }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            LastLevel = logLevel;
+            LastMessage = state.ToString();
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            throw new NotImplementedException();
+        }
+    }
     [TestClass]
     public class DatabaseUsageTests : TestBase
     {
-        private class TestDbUsageLogger : ILogger<DatabaseUsageHandler>
-        {
-            public LogLevel LastLevel { get; private set; }
-            public string LastMessage { get; private set; }
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-            {
-                LastLevel = logLevel;
-                LastMessage = state.ToString();
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IDisposable BeginScope<TState>(TState state)
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         private class DatabaseUsageCacheTestNodeObserver : NodeObserver
         {

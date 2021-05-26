@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
     <ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj" />
     <ProjectReference Include="..\Common\SenseNet.Common.csproj" />
     <ProjectReference Include="..\Search\SenseNet.Search.csproj" />
