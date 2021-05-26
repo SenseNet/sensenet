@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
@@ -33,6 +34,8 @@ namespace SenseNet.ContentRepository.Storage
 
     public class NodeData
     {
+        private IDataStore DataStore => Providers.Instance.DataStore;
+
         private Stopwatch _savingTimer;
 
         internal Stopwatch SavingTimer

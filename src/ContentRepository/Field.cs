@@ -285,7 +285,7 @@ namespace SenseNet.ContentRepository
                 return;
             _changed = true;
             Value = value;
-            this.Content.Invalidate();
+            this.Content?.Invalidate();
             _isValidated = false;
         }
         protected internal virtual void Reset()
@@ -446,6 +446,7 @@ namespace SenseNet.ContentRepository
 
         // ========================================================================= Conversions
 
+        internal object ConvertFromPropertyToOutput(object[] handlerValues) { return ConvertTo(handlerValues); }
         /// <summary>
         /// Creates a transfer object from <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> properties
         /// </summary>
@@ -455,7 +456,7 @@ namespace SenseNet.ContentRepository
         {
             return handlerValues[0];
         }
-
+        internal object[] ConvertFromInputToProperty(object value) { return ConvertFrom(value); }
         /// <summary>
         /// Creates <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> properties from the transfer object.
         /// </summary>

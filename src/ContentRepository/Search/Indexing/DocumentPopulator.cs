@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -19,6 +20,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal class DocumentPopulator : IIndexPopulator
     {
+        private IDataStore DataStore => Providers.Instance.DataStore;
+
         private class DocumentPopulatorData
         {
             internal Node Node { get; set; }

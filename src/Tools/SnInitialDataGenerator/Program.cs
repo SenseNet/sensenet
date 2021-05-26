@@ -123,7 +123,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
                 Indexing.IsOuterSearchEngineEnabled = true;
 
-                var nodeCount = DataStore.GetNodeCountAsync(CancellationToken.None)
+                var nodeCount = Providers.Instance.DataStore.GetNodeCountAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
                 var count = 0;
                 Console.Write($"{count} / {nodeCount}   \r");
@@ -221,7 +221,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         private static void SaveData(string tempFolderPath)
         {
             InitialData.Save(tempFolderPath, null,
-                () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes
+                () => ((InMemoryDataProvider)Providers.Instance.DataProvider).DB.Nodes
                     .OrderBy(x => x.Id)
                     .Select(x => x.NodeId));
 

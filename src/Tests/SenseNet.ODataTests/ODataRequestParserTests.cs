@@ -283,6 +283,40 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_GET_Parsing_RichTextEditor()
+        {
+            ODataTest(() =>
+            {
+                HttpContext httpContext;
+                ODataRequest odataRequest;
+                List<string> expanded;
+
+                //----------------------------------------------------------------------------- there is no expanded
+                httpContext = CreateHttpContext("/OData.svc/Root", "");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsFalse(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(0, expanded.Count);
+
+                //----------------------------------------------------------------------------- 1 expanded
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=RichText1");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("RichText1", expanded[0]);
+
+                //----------------------------------------------------------------------------- 2 expanded
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=RichText1,RichText2");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(2, expanded.Count);
+                Assert.AreEqual("RichText1", expanded[0]);
+                Assert.AreEqual("RichText2", expanded[1]);
+            });
+        }
         /* ======================================================================== TOOLS */
 
         private ODataExceptionCode GetExceptionCode(ODataRequest odataRequest)

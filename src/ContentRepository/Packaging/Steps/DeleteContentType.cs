@@ -144,6 +144,7 @@ namespace SenseNet.Packaging.Steps
                                             ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
                                             QuerySettings.AdminSettings, p, typeNames).Count).Sum();
 
+            var PDP = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             var result = new ContentTypeDependencies
             {
                 ContentTypeNames = rootTypeNames,
@@ -156,7 +157,7 @@ namespace SenseNet.Packaging.Steps
                 // ContentType/Fields/Field/Configuration/AllowedTypes/Type: "Folder"
                 PermittingFieldSettings = GetContentTypesWhereTheyAreAllowedInReferenceField(typeNames),
                 // ContentMetaData/Fields/AllowedChildTypes: "Folder File"
-                PermittingContentCollection = GetContentPathsWhereTheyAreAllowedChildren(typeNames),
+                PermittingContentCollection = PDP.GetContentPathsWhereTheyAreAllowedChildren(typeNames),
 
                 Applications = relatedFolders.Applications,
                 ContentTemplates = relatedFolders.ContentTemplates,
@@ -179,42 +180,6 @@ namespace SenseNet.Packaging.Steps
                 .Where(r => r.AllowedTypes != null && r.AllowedTypes.Intersect(names).Any())
                 .Distinct()
                 .ToArray();
-        }
-        private Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
-        {
-            var result = new Dictionary<string, string>();
-
-            var whereClausePart = string.Join(Environment.NewLine + "    OR" + Environment.NewLine,
-                names.Select(n =>
-                    $"    (t.Value like '{n}' OR t.Value like '% {n} %' OR t.Value like '{n} %' OR t.Value like '% {n}')"));
-
-            // testability: the first line is recognizable for the tests.
-            var sql = $"-- GetContentPathsWhereTheyAreAllowedChildren: [{string.Join(", ", names)}]" +
-                      Environment.NewLine;
-            sql += @"SELECT n.Path, t.Value FROM LongTextProperties t
-	JOIN PropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
-	JOIN Versions v ON t.VersionId = v.VersionId
-	JOIN Nodes n ON n.NodeId = v.NodeId
-WHERE p.Name = 'AllowedChildTypes' AND (
-" + whereClausePart + @"
-)
-";
-            //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
-            {
-                var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
-                {
-                    cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        result.Add(reader.GetString(0), reader.GetString(1));
-                    }
-                    return Task.FromResult(0);
-                }).GetAwaiter().GetResult();
-            }
-
-            return result;
         }
 
         private RelatedSensitiveFolders GetRelatedFolders(List<string> names)

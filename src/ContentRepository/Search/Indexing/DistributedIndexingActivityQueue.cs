@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -740,7 +741,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
-                    var segment = DataStore.LoadIndexingActivitiesAsync(from, to, count,
+                    var segment = Providers.Instance.DataStore.LoadIndexingActivitiesAsync(from, to, count,
                         _executingUnprocessedActivities, IndexingActivityFactory.Instance, CancellationToken.None).GetAwaiter().GetResult();
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
@@ -808,7 +809,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
-                    return DataStore.LoadIndexingActivitiesAsync(gaps, _executingUnprocessedActivities,
+                    return Providers.Instance.DataStore.LoadIndexingActivitiesAsync(gaps, _executingUnprocessedActivities,
                         IndexingActivityFactory.Instance, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }

@@ -70,7 +70,7 @@ namespace SenseNet.OData
                 if (IsAllowedField(content, fieldName))
                 {
                     if (content.Fields.TryGetValue(fieldName, out var field))
-                        fields.Add(fieldName, ODataWriter.GetJsonObject(field, selfurl));
+                        fields.Add(fieldName, ODataWriter.GetJsonObject(field, selfurl, Request));
                     else if (fieldName == ACTIONSPROPERTY)
                         fields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataMiddleware.ActionsPropertyName)));
                     else if (fieldName == ISFILEPROPERTY)

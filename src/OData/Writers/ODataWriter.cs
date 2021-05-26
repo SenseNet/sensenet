@@ -944,7 +944,7 @@ namespace SenseNet.OData.Writers
         }
 
         //TODO: Bad name: GetJsonObject is a method for odata serializing
-        internal static object GetJsonObject(Field field, string selfUrl)
+        internal static object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
         {
             object data;
             if (field is ReferenceField)
@@ -991,7 +991,18 @@ namespace SenseNet.OData.Writers
 
             if (data is NodeType nodeType)
                 return nodeType.Name;
+            if (data is RichTextFieldValue rtfValue)
+                return GetRichTextOutput(field.Name, rtfValue, oDataRequest);
             return data;
+        }
+
+        private static string GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        {
+            if (!oDataRequest.HasExpandedRichTextField)
+                return rtfValue.Text;
+            return oDataRequest.ExpandedRichTextFields.Contains(fieldName)
+                ? JsonConvert.SerializeObject(rtfValue)
+                : rtfValue.Text;
         }
 
         /// <summary>

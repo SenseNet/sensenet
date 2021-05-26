@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.Tools;
 // ReSharper disable InconsistentNaming
 
@@ -61,12 +62,12 @@ namespace SenseNet.ContentRepository.Storage
                 internal static Exception Exc_LessThanDateTimeMinValue()
                 {
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be less than ",
-						Data.DataStore.DateTimeMinValue.ToString(CultureInfo.CurrentCulture)));
+						Providers.Instance.DataStore.DateTimeMinValue.ToString(CultureInfo.CurrentCulture)));
                 }
 				internal static Exception Exc_BiggerThanDateTimeMaxValue()
 				{
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be bigger than ",
-						Data.DataStore.DateTimeMaxValue.ToString(CultureInfo.CurrentCulture)));
+                        Providers.Instance.DataStore.DateTimeMaxValue.ToString(CultureInfo.CurrentCulture)));
                 }
 
                 internal static string Error_Preview_BinaryAccess_2 = "$Error_Storage:Preview_BinaryAccess_2";

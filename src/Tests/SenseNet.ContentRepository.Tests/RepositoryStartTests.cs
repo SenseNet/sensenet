@@ -91,6 +91,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
+            {
+                throw new NotImplementedException();
+            }
+
             public System.Threading.Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
@@ -193,7 +198,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreSame(dbProvider, DataStore.DataProvider);
+                Assert.AreSame(dbProvider, Providers.Instance.DataStore.DataProvider);
                 Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
                 Assert.AreEqual(accessProvider, AccessProvider.Current);
                 Assert.AreEqual(emvrProvider, Providers.Instance.ElevatedModificationVisibilityRuleProvider);
@@ -549,8 +554,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), DataStore.DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), DataStore.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
 
@@ -587,7 +592,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
     }

@@ -5,11 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage
 {
     public class TreeLock : IDisposable
     {
+        private static IDataStore DataStore => Providers.Instance.DataStore; 
+
         private readonly SnTrace.Operation _logOp;
         private readonly int[] _lockIds;
 

@@ -6,11 +6,14 @@ using SenseNet.Diagnostics;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Schema
 {
     public sealed class SchemaEditor : SchemaRoot
     {
+        private IDataStore DataStore => Providers.Instance.DataStore;
+
         public SchemaEditor() { }
 
         public void Register()

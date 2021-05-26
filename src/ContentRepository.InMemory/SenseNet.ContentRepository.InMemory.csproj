@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.14" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
   </ItemGroup>
 

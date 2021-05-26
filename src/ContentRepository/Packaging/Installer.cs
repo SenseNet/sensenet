@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -38,6 +39,10 @@ namespace SenseNet.Packaging
 
             if (logger != null)
                 _logger = new PackagingILogger(logger);
+
+            // This is required because in some cases during installation
+            // the repository is NOT started but these providers are needed.
+            Providers.Instance.InitializeDataProvider(repositoryBuilder?.Services);
         }
 
         /// <summary>
@@ -59,14 +64,16 @@ namespace SenseNet.Packaging
 
             // Make sure that the database exists and contains the schema
             // necessary for importing initial content items.
-            var dbExists = DataStore.IsDatabaseReadyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var dbExists = Providers.Instance.DataStore
+                .IsDatabaseReadyAsync(CancellationToken.None).GetAwaiter().GetResult();
             
             if (!dbExists)
             {
                 Logger.LogMessage("Installing database...");
                 var timer = Stopwatch.StartNew();
 
-                DataStore.InstallDatabaseAsync(RepositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
+                Providers.Instance.DataStore
+                    .InstallDatabaseAsync(RepositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
 
                 Logger.LogMessage("Database installed.");
 

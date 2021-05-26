@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -44,14 +45,29 @@ namespace SenseNet.Extensions.DependencyInjection
             if (initialData == null) throw new ArgumentNullException(nameof(initialData));
             if (initialIndex == null) throw new ArgumentNullException(nameof(initialIndex));
 
-            var dataProvider = new InMemoryDataProvider();
+            // Precedence: if a service is registered in the collection, use that
+            // instead of creating instances locally.
+            var services = (repositoryBuilder as RepositoryBuilder)?.Services;
 
+            if (services?.GetService<DataProvider>() is InMemoryDataProvider dataProvider)
+            {
+                // If there is an instance in the container, use that. We have to set
+                // these instances manually instead of using the extension method so that
+                // we do not overwrite the store instance.
+                Providers.Instance.DataProvider = dataProvider;
+                Providers.Instance.DataStore = services.GetService<IDataStore>();
+            }
+            else
+            {
+                dataProvider = new InMemoryDataProvider();
+                repositoryBuilder.UseDataProvider(dataProvider);
+            }
+            
             Providers.Instance.ResetBlobProviders();
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
-                .UseDataProvider(dataProvider)
                 .UseInitialData(initialData)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseExclusiveLockDataProviderExtension(new InMemoryExclusiveLockDataProvider())
@@ -68,6 +84,11 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.PropertyCollector = new EventPropertyCollector();
             
             return repositoryBuilder;
+        }
+
+        public static IServiceCollection AddSenseNetInMemoryDataProvider(this IServiceCollection services)
+        {
+            return services.AddSenseNetDataProvider<InMemoryDataProvider>();
         }
 
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)

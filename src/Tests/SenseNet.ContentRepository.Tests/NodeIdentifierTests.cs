@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.InMemory;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -15,6 +17,9 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void NodeIdentifier_Create()
         {
+            Providers.Instance.DataProvider = new InMemoryDataProvider();
+            Providers.Instance.InitializeDataStore();
+
             var identifier = NodeIdentifier.Get(123);
             Assert.AreEqual(123, identifier.Id, "#1 identifier is incorrect.");
             Assert.IsNull(identifier.Path, "#2 identifier is incorrect.");

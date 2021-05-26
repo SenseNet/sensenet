@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
@@ -123,7 +124,7 @@ namespace SenseNet.Packaging.Tests
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            var dataProvider = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

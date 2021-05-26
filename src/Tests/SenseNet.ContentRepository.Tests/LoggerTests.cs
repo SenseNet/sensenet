@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
@@ -111,7 +110,7 @@ namespace SenseNet.ContentRepository.Tests
                 folder.ForceDelete();
 
                 // load audit log entries
-                var entries = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10);
+                var entries = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10);
                 var relatedEntries = entries.Where(e => e.ContentId == folderId).ToArray();
 
                 // assertions

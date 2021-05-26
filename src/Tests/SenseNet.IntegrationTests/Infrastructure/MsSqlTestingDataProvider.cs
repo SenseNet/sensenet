@@ -23,7 +23,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
     {
         // ReSharper disable once InconsistentNaming
         private RelationalDataProviderBase __dataProvider;
-        private RelationalDataProviderBase MainProvider => __dataProvider ?? (__dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider => __dataProvider ?? (__dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         public void InitializeForTests()
         {

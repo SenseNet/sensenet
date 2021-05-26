@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -14,10 +15,6 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class PatchingTestCases : TestCaseBase
     {
-        // NoRepoIntegrationTest(() =>
-        // {
-        // });
-
         public void PatchingSystem_InstalledComponents()
         {
             NoRepoIntegrationTest(() =>
@@ -1800,7 +1797,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            var dataProvider = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

@@ -9,14 +9,6 @@
     }
   },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Type",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "SnWebApplication.Api.Sql.Admin": {
       "commandName": "Project",
       "launchBrowser": true,

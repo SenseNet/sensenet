@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Packaging;
@@ -15,9 +16,10 @@ namespace SenseNet.ContentRepository.Components
             builder.Install("1.0.0", "2020-10-15", "MS SQL data provider extension for the Exclusive lock feature.")
                 .ActionOnBefore(context =>
                 {
-                    if (!(DataStore.DataProvider is RelationalDataProviderBase dataProvider))
+                    var dataStore = Providers.Instance.DataStore;
+                    if (!(dataStore.DataProvider is RelationalDataProviderBase dataProvider))
                         throw new InvalidOperationException("Cannot install MsSqlExclusiveLockComponent because it is " +
-                                                            $"incompatible with Data provider {DataStore.DataProvider.GetType().FullName}.");
+                                                            $"incompatible with Data provider {dataStore.DataProvider.GetType().FullName}.");
 
 
                     try

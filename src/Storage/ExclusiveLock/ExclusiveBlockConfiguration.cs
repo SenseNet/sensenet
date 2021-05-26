@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
@@ -53,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage
         public TimeSpan WaitTimeout { get; set; }
 
         internal IExclusiveLockDataProviderExtension DataProvider { get; } =
-            DataStore.GetDataProviderExtension<IExclusiveLockDataProviderExtension>() ??
+            Providers.Instance.DataProvider.GetExtension<IExclusiveLockDataProviderExtension>() ??
             DefaultExclusiveLockDataProviderExtension.Instance;
 
         internal CancellationToken CancellationToken { get; set; }

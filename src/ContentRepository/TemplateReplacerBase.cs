@@ -82,10 +82,9 @@ namespace SenseNet.ContentRepository
                     return content.Id.ToString();
 
                 // handle date values
-                if (templateObject is DateTime)
+                if (templateObject is DateTime date)
                 {
-                    var date = (DateTime)templateObject;
-                    return date.ToContentQueryString();
+                    return FormatDateTime(date);
                 }
 
                 // any other type (e.g. strings like Path, numbers like Index, etc.)
@@ -226,7 +225,7 @@ namespace SenseNet.ContentRepository
                         break;
                 }
 
-                return date.ToContentQueryString();
+                return FormatDateTime(date);
             }
 
             if (templateObject is int)
@@ -234,6 +233,11 @@ namespace SenseNet.ContentRepository
 
             // unknown type
             return templateObject.ToString();
+        }
+
+        protected virtual string FormatDateTime(DateTime date)
+        {
+            return date.ToContentQueryString();
         }
     }
 }

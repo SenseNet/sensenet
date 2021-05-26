@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 
@@ -15,6 +16,8 @@ namespace SenseNet.ContentRepository.Storage
     [Serializable]
     public class NodeHead
     {
+        private static IDataStore DataStore => Providers.Instance.DataStore;
+
         [DebuggerDisplay("{VersionId}, {VersionNumber}")]
         public class NodeVersion
         {

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
+
 // ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
@@ -18,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         #region SQL LoadInstalledComponentsScript
         private static readonly string InstalledComponentsScript = $@"-- MsSqlPackagingDataProvider.LoadInstalledComponents
@@ -309,7 +311,46 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             }
         }
 
-        /* ---------------------------------------------- */
+        /* =============================================================================== Methods for Steps */
+
+        public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
+        {
+            var result = new Dictionary<string, string>();
+
+            var whereClausePart = string.Join(Environment.NewLine + "    OR" + Environment.NewLine,
+                names.Select(n =>
+                    $"    (t.Value like '{n}' OR t.Value like '% {n} %' OR t.Value like '{n} %' OR t.Value like '% {n}')"));
+
+            // testability: the first line is recognizable for the tests.
+            var sql = $"-- GetContentPathsWhereTheyAreAllowedChildren: [{string.Join(", ", names)}]" +
+                      Environment.NewLine;
+            sql += @"SELECT n.Path, t.Value FROM LongTextProperties t
+	JOIN PropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
+	JOIN Versions v ON t.VersionId = v.VersionId
+	JOIN Nodes n ON n.NodeId = v.NodeId
+WHERE p.Name = 'AllowedChildTypes' AND (
+" + whereClausePart + @"
+)
+";
+            //TODO: [DIREF] get options from DI through constructor
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            {
+                var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                        result.Add(reader.GetString(0), reader.GetString(1));
+                    }
+                    return Task.FromResult(0);
+                }).GetAwaiter().GetResult();
+            }
+
+            return result;
+        }
+
+        /* =============================================================================== TOOLS */
 
         private static string EncodePackageVersion(Version v)
         {

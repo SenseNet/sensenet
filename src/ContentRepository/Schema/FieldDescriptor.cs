@@ -11,28 +11,28 @@ namespace SenseNet.ContentRepository.Schema
 {
     internal class FieldDescriptor
     {
-        public ContentType Owner { get; private set; }
-        internal string FieldName { get; private set; }
-        internal string FieldTypeShortName { get; private set; }
-        internal string FieldTypeName { get; private set; }
-        internal string DisplayName { get; private set; }
-        internal string Description { get; private set; }
-        internal string Icon { get; private set; }
-        internal List<string> Bindings { get; private set; }
-        internal bool IsRerouted { get; private set; }
-        internal string IndexingMode { get; private set; }
-        internal string IndexStoringMode { get; private set; }
-        internal string IndexingTermVector { get; private set; }
-        internal IndexFieldAnalyzer Analyzer { get; private set; }
-        internal string IndexHandlerTypeName { get; private set; }
-        internal string FieldSettingTypeName { get; private set; }
-        public XPathNavigator ConfigurationElement { get; private set; }
-        public XPathNavigator AppInfo { get; private set; }
-        public IXmlNamespaceResolver XmlNamespaceResolver { get; private set; }
-        public RepositoryDataType[] DataTypes { get; private set; }
-        public bool IsContentListField { get; private set; }
+        public ContentType Owner { get; set; }
+        internal string FieldName { get; set; }
+        internal string FieldTypeShortName { get; set; }
+        internal string FieldTypeName { get; set; }
+        internal string DisplayName { get; set; }
+        internal string Description { get; set; }
+        internal string Icon { get; set; }
+        internal List<string> Bindings { get; set; }
+        internal bool IsRerouted { get; set; }
+        internal string IndexingMode { get; set; }
+        internal string IndexStoringMode { get; set; }
+        internal string IndexingTermVector { get; set; }
+        internal IndexFieldAnalyzer Analyzer { get; set; }
+        internal string IndexHandlerTypeName { get; set; }
+        internal string FieldSettingTypeName { get; set; }
+        public XPathNavigator ConfigurationElement { get; set; }
+        public XPathNavigator AppInfo { get; set; }
+        public IXmlNamespaceResolver XmlNamespaceResolver { get; set; }
+        public RepositoryDataType[] DataTypes { get; set; }
+        public bool IsContentListField { get; set; }
 
-        private FieldDescriptor() { }
+        public FieldDescriptor() { }
 
         internal static FieldDescriptor Parse(XPathNavigator fieldElement, IXmlNamespaceResolver nsres, ContentType contentType)
         {

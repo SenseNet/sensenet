@@ -232,7 +232,7 @@ namespace SenseNet.Tests.Core
 
         protected async STT.Task SaveInitialIndexDocumentsAsync(CancellationToken cancellationToken)
         {
-            var idSet = await DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, cancellationToken).ConfigureAwait(false);
+            var idSet = await Providers.Instance.DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, cancellationToken).ConfigureAwait(false);
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
@@ -242,10 +242,19 @@ namespace SenseNet.Tests.Core
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
+                await Providers.Instance.DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
             });
             
             await tasks.WhenAll();
+        }
+
+        protected string RemoveWhitespaces(string input)
+        {
+            return input
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace("\t", "")
+                .Replace(" ", "");
         }
 
         protected string ArrayToString(int[] array, bool sort = false)

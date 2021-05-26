@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.ComponentModel;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Storage
@@ -17,16 +19,17 @@ namespace SenseNet.ContentRepository.Storage
             "LastLockUpdate", "LastMinorVersionId", "LastMajorVersionId", "MajorVersion", "MinorVersion",
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
+        private static IDataStore DataStore => Providers.Instance.DataStore;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
         /// </summary>
-        public static DateTime DateTimeMinValue => Data.DataStore.DateTimeMinValue;
+        public static DateTime DateTimeMinValue => DataStore.DateTimeMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent last DateTime value
         /// </summary>
-        public static DateTime DateTimeMaxValue => Data.DataStore.DateTimeMaxValue;
+        public static DateTime DateTimeMaxValue => DataStore.DateTimeMaxValue;
 
         /// <summary>
         /// Gets the maximum length of the short text datatype
@@ -36,12 +39,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent smallest decimal value
         /// </summary>
-        public static decimal DecimalMinValue => Data.DataStore.DecimalMinValue;
+        public static decimal DecimalMinValue => DataStore.DecimalMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent biggest decimal value
         /// </summary>
-        public static decimal DecimalMaxValue => Data.DataStore.DecimalMaxValue;
+        public static decimal DecimalMaxValue => DataStore.DecimalMaxValue;
 
 
         /// <summary>

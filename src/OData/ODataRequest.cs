@@ -148,6 +148,10 @@ namespace SenseNet.OData
         /// </summary>
         public List<string> Expand { get; private set; }
         /// <summary>
+        /// Gets the string list of the expanded members from the "richtexteditor" parameter of the webrequest.
+        /// </summary>
+        public List<string> ExpandedRichTextFields { get; private set; }
+        /// <summary>
         /// Gets the parsed <see cref="Expression"/> from the "$filter" parameter of the webrequest.
         /// </summary>
         public Expression Filter { get; internal set; }
@@ -171,35 +175,47 @@ namespace SenseNet.OData
         /// <summary>
         /// Gets true if the value of the Top property is greater than 0.
         /// </summary>
-        public bool HasTop { get { return Top > 0; } }
+        public bool HasTop => Top > 0;
+
         /// <summary>
         /// Gets true if the value of the Skip property is greater than 0.
         /// </summary>
-        public bool HasSkip { get { return Skip > 0; } }
+        public bool HasSkip => Skip > 0;
+
         /// <summary>
         /// Gets true if the value of the Sort property contains any element.
         /// </summary>
-        public bool HasSort { get { return Sort.Count() > 0; } }
+        public bool HasSort => Sort.Any();
+
         /// <summary>
         /// Gets true if the value of the InlineCount property is not "None".
         /// </summary>
-        public bool HasInlineCount { get { return InlineCount != InlineCount.None; } }
+        public bool HasInlineCount => InlineCount != InlineCount.None;
+
         /// <summary>
         /// Gets true if the value of the Select property contains any element.
         /// </summary>
-        public bool HasSelect { get { return Select.Count > 0; } }
+        public bool HasSelect => Select.Count > 0;
+
         /// <summary>
         /// Gets true if the value of the Expand property contains any element.
         /// </summary>
-        public bool HasExpand { get { return Expand.Count > 0; } }
+        public bool HasExpand => Expand.Count > 0;
+
+        /// <summary>
+        /// Gets true if the value of the ExpandedRichTextFields property contains any element.
+        /// </summary>
+        public bool HasExpandedRichTextField => ExpandedRichTextFields.Count > 0;
+
         /// <summary>
         /// Gets true if the Filter is not null.
         /// </summary>
-        public bool HasFilter { get { return Filter != null; } }
+        public bool HasFilter => Filter != null;
+
         /// <summary>
         /// Gets true if the ContentQueryText property is not null.
         /// </summary>
-        public bool HasContentQuery { get { return !String.IsNullOrEmpty(this.ContentQueryText); } }
+        public bool HasContentQuery => !String.IsNullOrEmpty(this.ContentQueryText);
 
         /// <summary>
         /// Gets true if the webrequest contains the "multistepsave" parameter with "true" value.
@@ -421,6 +437,11 @@ namespace SenseNet.OData
             // --------------------------------------------------------------- $expand
             var expandStr = req["$expand"];
             this.Expand = ParseExpand(expandStr);
+
+            // --------------------------------------------------------------- richtexteditor
+            // Parse in the same way as $expand
+            var expandedRtfStr = req["richtexteditor"];
+            this.ExpandedRichTextFields = ParseExpand(expandedRtfStr);
 
             // --------------------------------------------------------------- $filter
             var filterStr = req["$filter"];

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -17,7 +18,7 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public DataCollection<SharedLockDoc> GetSharedLocks()
         {
-            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
+            return ((InMemoryDataProvider)Providers.Instance.DataProvider).DB.GetCollection<SharedLockDoc>();
         }
 
 

@@ -62,11 +62,12 @@ namespace SenseNet.ContentRepository
             if (Providers.Instance.SecurityDataProvider == null)
                 Providers.Instance.SecurityDataProvider = builder.Services?.GetService<ISecurityDataProvider>();
 
+            Providers.Instance.InitializeDataProvider(builder.Services);
             Providers.Instance.InitializeBlobProviders();
             
             var initialData = builder.InitialData;
             if (initialData != null)
-                DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
+                Providers.Instance.DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
             RepositoryInstance repositoryInstance = null;

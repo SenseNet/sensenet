@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable CheckNamespace
@@ -16,7 +17,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         private string _accessTokenValueCollationName;
         private async Task<string> GetAccessTokenValueCollationNameAsync(CancellationToken cancellationToken)

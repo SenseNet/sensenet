@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -33,10 +34,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // 3: save indexDocument.
             docData.IndexDocumentChanged();
-            DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
+            Providers.Instance.DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
 
             // 4: distributed cache invalidation because of version timestamp.
-            DataStore.RemoveNodeDataFromCacheByVersionId(versionId);
+            Providers.Instance.DataStore.RemoveNodeDataFromCacheByVersionId(versionId);
 
             // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
