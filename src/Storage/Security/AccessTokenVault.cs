@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 ContentId = contentId,
                 Feature = feature,
                 CreationDate = now,
-                ExpirationDate = now.Add(timeout)
+                ExpirationDate = GetExpirationDate(now, timeout)
             };
 
             await Storage.SaveAccessTokenAsync(token, cancellationToken).ConfigureAwait(false);
@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static async Task<AccessToken> GetOrAddTokenAsync(int userId, TimeSpan timeout, int contentId, string feature,
             CancellationToken cancellationToken)
         {
-            var maxExpiration = DateTime.UtcNow.Add(timeout);
+            var maxExpiration = GetExpirationDate(DateTime.UtcNow, timeout);
             var existingToken = (await Storage.LoadAccessTokensAsync(userId, cancellationToken).ConfigureAwait(false))
                 .OrderBy(at => at.ExpirationDate)
                 .LastOrDefault(at => at.ContentId == contentId &&
@@ -498,5 +498,16 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             return new string(chars);
         }
+
+        /* =========================================================================================== Tools */
+
+        private static DateTime GetExpirationDate(DateTime now, TimeSpan timeout)
+        {
+            var nowTicks = now.Ticks;
+            var correctedTimeoutTicks = Math.Min(timeout.Ticks, DateTime.MaxValue.Ticks - nowTicks);
+            var expirationTicks = Math.Max(DateTime.MinValue.Ticks, nowTicks + correctedTimeoutTicks);
+            return new DateTime(expirationTicks);
+        }
+
     }
 }
