@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -898,6 +901,38 @@ namespace SenseNet.ContentRepository
                         .VisibleNew(FieldVisibility.Hide);
 
                     cb.Apply();
+
+                    #endregion
+                });
+
+            builder.Patch("7.7.21", "7.7.21.1", "2021-05-25", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    var logger = (context.Settings as RepositoryBuilder)?.Services?
+                        .GetService<ILogger<ServicesComponent>>();
+
+                    #region Permission changes
+
+                    logger?.LogInformation("Adding Open permission for users on their own profiles.");
+
+                    var aclEditor = SecurityHandler.SecurityContext.CreateAclEditor();
+
+                    foreach (var profile in Content.All.Where(c => c.TypeIs("UserProfile"))
+                        .AsEnumerable().Select(c => (UserProfile)c.ContentHandler))
+                    {
+                        var user = profile.User;
+                        if (user == null)
+                        {
+                            logger?.LogWarning($"User not found for profile {profile.Path}, skipping permission set.");
+                            continue;
+                        }
+                        
+                        logger?.LogTrace($"Adding permissions for {user.Path} to profile {profile.Path}");
+
+                        aclEditor.Allow(profile.Id, user.Id, false, PermissionType.Open);
+                    }
+
+                    aclEditor.Apply();
 
                     #endregion
                 });
