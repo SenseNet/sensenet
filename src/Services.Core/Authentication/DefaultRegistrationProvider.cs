@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -35,15 +36,19 @@ namespace SenseNet.Services.Core.Authentication
     {
         public string Name => "default";
         private readonly RegistrationOptions _options;
+        private readonly ILogger _logger;
 
-        public DefaultRegistrationProvider(IOptions<RegistrationOptions> options)
+        public DefaultRegistrationProvider(IOptions<RegistrationOptions> options, ILogger<DefaultRegistrationProvider> logger)
         {
             _options = options?.Value ?? new RegistrationOptions();
+            _logger = logger;
         }
 
         public async Task<User> CreateLocalUserAsync(Content content, HttpContext context, string loginName, string password, 
             string email, CancellationToken cancellationToken)
         {
+            _logger.LogTrace($"Creating local user with email {email}.");
+
             // content name: login name, because the email may be empty
             return await CreateUser(loginName, loginName, email, loginName,
                 user =>
@@ -67,11 +72,15 @@ namespace SenseNet.Services.Core.Authentication
             var user = GetUserByEmail(email);
             if (user != null)
             {
+                _logger.LogTrace($"Found existing user {user.Path} with email {email} when creating a {provider} user.");
+
                 // existing user: merge
                 MergeExternalData(user, email, fullName, external, provider, userId);
             }
             else
             {
+                _logger.LogTrace($"Creating {provider} user with email {email}.");
+
                 // content name: email
                 user = await CreateUser(email, email, email, fullName, u =>
                 {
@@ -210,7 +219,21 @@ namespace SenseNet.Services.Core.Authentication
             }
             else
             {
-                var currentExternalJObject = JsonConvert.DeserializeObject<JObject>(currentExternalData ?? string.Empty);
+                _logger.LogTrace($"Merging existing external data ({currentExternalData?.Substring(0,40)})" +
+                                 $"with new data ({externalProviderData?.Substring(0, 40)}).");
+
+                JObject currentExternalJObject;
+
+                try
+                {
+                    currentExternalJObject = JsonConvert.DeserializeObject<JObject>(currentExternalData ?? string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error during deserializing current external data: {currentExternalData}", ex);
+                    throw;
+                }
+
                 if (currentExternalJObject.ContainsKey(provider))
                 {
                     // provider exists in previous external data
@@ -238,8 +261,17 @@ namespace SenseNet.Services.Core.Authentication
                 else
                 {
                     // merge the new provider to the existing list
-                    var newExternalJObject = JsonConvert.DeserializeObject<JObject>(externalProviderData);
-                    currentExternalJObject.Merge(newExternalJObject);
+                    try
+                    {
+                        var newExternalJObject = JsonConvert.DeserializeObject<JObject>(externalProviderData);
+                        currentExternalJObject.Merge(newExternalJObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Error during deserializing or merging " +
+                                         $"external provider data {externalProviderData}", ex);
+                        throw;
+                    }
 
                     SaveNewExternalData(currentExternalJObject.ToString());
                 }
