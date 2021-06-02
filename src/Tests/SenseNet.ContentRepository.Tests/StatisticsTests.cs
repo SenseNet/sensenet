@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Tests
     public class StatisticsTests : TestBase
     {
         [TestMethod]
-        public async STT.Task Stat_Collector_BinaryMiddleware()
+        public async STT.Task Stat_Collecting_BinaryMiddleware()
         {
             await Test(async () =>
             {
@@ -55,6 +55,8 @@ namespace SenseNet.ContentRepository.Tests
                 var url = path + qstr;
                 var request = httpContext.Request;
                 request.Method = "GET";
+                request.Scheme = "https://";
+                request.Host = new HostString("localhost", 8080);
                 request.Path = path;
                 request.QueryString = new QueryString(qstr);
 
@@ -67,15 +69,16 @@ namespace SenseNet.ContentRepository.Tests
                 var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
                 Assert.AreEqual(1, collector.StatData.Count);
                 var data = (WebTransferStatInput) collector.StatData[0];
-                Assert.AreEqual(url, data.Url);
-                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(path, data.Url);
+                Assert.AreEqual("GET", data.HttpMethod);
+                Assert.AreEqual(path.Length, data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
                 Assert.AreEqual(node.Binary.GetStream().Length, data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_Collector_WopiMiddleware()
+        public async STT.Task Stat_Collecting_WopiMiddleware()
         {
             await Test(async () =>
             {
@@ -99,6 +102,8 @@ namespace SenseNet.ContentRepository.Tests
                 var url = path + qstr;
                 var request = httpContext.Request;
                 request.Method = "GET";
+                request.Scheme = "https://";
+                request.Host = new HostString("localhost", 8080);
                 request.Path = path;
                 request.QueryString = new QueryString(qstr);
 
@@ -111,15 +116,16 @@ namespace SenseNet.ContentRepository.Tests
                 var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
                 Assert.AreEqual(1, collector.StatData.Count);
                 var data = (WebTransferStatInput)collector.StatData[0];
-                Assert.AreEqual(url, data.Url);
-                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(path, data.Url);
+                Assert.AreEqual("GET", data.HttpMethod);
+                Assert.AreEqual(path.Length, data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
                 Assert.AreEqual(file.Binary.GetStream().Length, data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_Collector_OdataMiddleware_ServiceDocument()
+        public async STT.Task Stat_Collecting_OdataMiddleware_ServiceDocument()
         {
             await Test(builder =>
             {
@@ -136,6 +142,8 @@ namespace SenseNet.ContentRepository.Tests
                 var url = path;
                 var request = httpContext.Request;
                 request.Method = "GET";
+                request.Scheme = "https://";
+                request.Host = new HostString("localhost", 8080);
                 request.Path = path;
                 request.Host = new HostString("host");
 
@@ -156,7 +164,8 @@ namespace SenseNet.ContentRepository.Tests
                 var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
                 Assert.AreEqual(1, collector.StatData.Count);
                 var data = (WebTransferStatInput)collector.StatData[0];
-                Assert.AreEqual(url, data.Url);
+                Assert.AreEqual(path, data.Url);
+                Assert.AreEqual("GET", data.HttpMethod);
                 Assert.AreEqual(url.Length, data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
                 Assert.AreEqual(expectedLength, data.ResponseLength);
@@ -164,7 +173,7 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_Collector_OdataMiddleware_Collection()
+        public async STT.Task Stat_Collecting_OdataMiddleware_Collection()
         {
             await Test(builder =>
             {
@@ -182,6 +191,8 @@ namespace SenseNet.ContentRepository.Tests
                 var url = path + qstr;
                 var request = httpContext.Request;
                 request.Method = "GET";
+                request.Scheme = "https://";
+                request.Host = new HostString("localhost", 8080);
                 request.Path = path;
                 request.Host = new HostString("host");
                 request.QueryString = new QueryString(qstr);
@@ -203,8 +214,9 @@ namespace SenseNet.ContentRepository.Tests
                 var collector = (TestStatisticalDataCollector)serviceProvider.GetService<IStatisticalDataCollector>();
                 Assert.AreEqual(1, collector.StatData.Count);
                 var data = (WebTransferStatInput)collector.StatData[0];
-                Assert.AreEqual(url, data.Url);
-                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(path, data.Url);
+                Assert.AreEqual("GET", data.HttpMethod);
+                Assert.AreEqual(path.Length, data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
                 Assert.AreEqual(expectedLength, data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
@@ -212,7 +224,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_Collector_WebHook()
+        public async STT.Task Stat_Collecting_WebHook()
         {
             await Test(
                 builder => { builder.UseComponent(new WebHookComponent()); },
@@ -247,6 +259,9 @@ namespace SenseNet.ContentRepository.Tests
 
                     Assert.AreEqual("https://example.com", data[0].Url);
                     Assert.AreEqual(data[0].Url, data[1].Url);
+
+                    Assert.AreEqual("POST", data[0].HttpMethod);
+                    Assert.AreEqual(data[0].HttpMethod, data[1].HttpMethod);
 
                     Assert.AreEqual(200, data[0].ResponseStatusCode);
                     Assert.AreEqual(200, data[1].ResponseStatusCode);
@@ -289,7 +304,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_Collector_DbUsage()
+        public async STT.Task Stat_Collecting_DbUsage()
         {
             await Test(async () =>
             {
@@ -324,7 +339,7 @@ namespace SenseNet.ContentRepository.Tests
 
         }
 
-        #region Additional classes for collector tests
+        #region Additional classes for "collecting" tests
 
         private class TestStatisticalDataCollector : IStatisticalDataCollector
         {
@@ -453,6 +468,130 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
+        /* ========================================================================= StatisticalDataCollector tests */
+
+        [TestMethod]
+        public async STT.Task Stat_Collector_CollectWebTransfer()
+        {
+            var sdp = new TestStatisticalDataProvider();
+            var collector = new StatisticalDataCollector(sdp);
+            var time1 = DateTime.UtcNow.AddDays(-1);
+            var time2 = time1.AddSeconds(1);
+            var input = new WebTransferStatInput
+            {
+                Url = "Url1",
+                HttpMethod = "GET",
+                RequestTime = time1,
+                ResponseTime = time2,
+                RequestLength = 42,
+                ResponseLength = 4242,
+                ResponseStatusCode = 200,
+            };
+
+            // ACTION
+#pragma warning disable 4014
+            collector.RegisterWebTransfer(input);
+#pragma warning restore 4014
+
+            // ASSERT
+            await STT.Task.Delay(1);
+            Assert.AreEqual(1, sdp.Storage.Count);
+            var record = sdp.Storage[0];
+            Assert.AreEqual("WebTransfer", record.DataType);
+            Assert.AreEqual("GET Url1", record.Url);
+            Assert.AreEqual(time1, record.RequestTime);
+            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(42, record.RequestLength);
+            Assert.AreEqual(4242, record.ResponseLength);
+            Assert.AreEqual(200, record.ResponseStatusCode);
+            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.ContentId);
+            Assert.IsNull(record.EventName);
+            Assert.IsNull(record.ErrorMessage);
+        }
+        [TestMethod]
+        public async STT.Task Stat_Collector_CollectWebHook()
+        {
+            var sdp = new TestStatisticalDataProvider();
+            var collector = new StatisticalDataCollector(sdp);
+            var time1 = DateTime.UtcNow.AddDays(-1);
+            var time2 = time1.AddSeconds(1);
+            var input = new WebHookStatInput
+            {
+                Url = "Url1",
+                HttpMethod = "POST",
+                RequestTime = time1,
+                ResponseTime = time2,
+                RequestLength = 42,
+                ResponseLength = 4242,
+                ResponseStatusCode = 200,
+                WebHookId = 1242,
+                ContentId = 1342,
+                EventName = "Event42",
+                ErrorMessage = "ErrorMessage1"
+            };
+
+            // ACTION
+#pragma warning disable 4014
+            collector.RegisterWebHook(input);
+#pragma warning restore 4014
+
+            // ASSERT
+            await STT.Task.Delay(1);
+            Assert.AreEqual(1, sdp.Storage.Count);
+            var record = sdp.Storage[0];
+            Assert.AreEqual("WebHook", record.DataType);
+            Assert.AreEqual("POST Url1", record.Url);
+            Assert.AreEqual(time1, record.RequestTime);
+            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(42, record.RequestLength);
+            Assert.AreEqual(4242, record.ResponseLength);
+            Assert.AreEqual(200, record.ResponseStatusCode);
+            Assert.AreEqual(1242, record.WebHookId);
+            Assert.AreEqual(1342, record.ContentId);
+            Assert.AreEqual("Event42", record.EventName);
+            Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
+        }
+        [TestMethod]
+        public async STT.Task Stat_Collector_CollectDbUsage()
+        {
+            var sdp = new TestStatisticalDataProvider();
+            var collector = new StatisticalDataCollector(sdp);
+            var data = new { Name = "Name1", Value = 42 };
+            var input = new GeneralStatInput { DataType = "DataType1", Data = data };
+
+            // ACTION
+#pragma warning disable 4014
+            collector.RegisterGeneralData(input);
+#pragma warning restore 4014
+
+            // ASSERT
+            await STT.Task.Delay(1);
+            Assert.AreEqual(1, sdp.Storage.Count);
+            var record = sdp.Storage[0];
+            Assert.AreEqual("DataType1", record.DataType);
+            Assert.IsNull( record.RequestTime);
+            Assert.IsNull( record.ResponseTime);
+            Assert.IsNull( record.RequestLength);
+            Assert.IsNull( record.ResponseLength);
+            Assert.IsNull( record.ResponseStatusCode);
+            Assert.IsNull( record.WebHookId);
+            Assert.IsNull( record.ContentId);
+            Assert.IsNull( record.EventName);
+            Assert.IsNull( record.ErrorMessage);
+            Assert.AreEqual("{\"Name\":\"Name1\",\"Value\":42}", RemoveWhitespaces(record.GeneralData));
+        }
+
+        private class TestStatisticalDataProvider : IStatisticalDataProvider
+        {
+            public List<IStatisticalDataRecord> Storage { get; } = new List<IStatisticalDataRecord>();
+            public STT.Task WriteData(IStatisticalDataRecord data)
+            {
+                Storage.Add(data);
+                return STT.Task.CompletedTask;
+            }
+        }
+
         /* ========================================================================= InputStatisticalDataRecord tests */
 
         [TestMethod]
@@ -490,6 +629,7 @@ namespace SenseNet.ContentRepository.Tests
             var input = new WebTransferStatInput
             {
                 Url = "Url1",
+                HttpMethod = "GET",
                 RequestTime = time1,
                 ResponseTime = time2,
                 RequestLength = 42,
@@ -512,7 +652,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
-            Assert.AreEqual("Url1", record.Url);
+            Assert.AreEqual("GET Url1", record.Url);
             Assert.IsNull(record.WebHookId);
             Assert.IsNull(record.ContentId);
             Assert.IsNull(record.EventName);
@@ -526,6 +666,7 @@ namespace SenseNet.ContentRepository.Tests
             var input = new WebHookStatInput
             {
                 Url = "Url1",
+                HttpMethod = "POST",
                 RequestTime = time1,
                 ResponseTime = time2,
                 RequestLength = 42,
@@ -552,7 +693,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
-            Assert.AreEqual("Url1", record.Url);
+            Assert.AreEqual("POST Url1", record.Url);
             Assert.AreEqual(1242, record.WebHookId);
             Assert.AreEqual(1342, record.ContentId);
             Assert.AreEqual("Event42", record.EventName);

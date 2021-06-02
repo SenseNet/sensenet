@@ -11,6 +11,7 @@ namespace SenseNet.Diagnostics
     public class WebTransferStatInput
     {
         public string Url { get; set; }
+        public string HttpMethod { get; set; }
         public DateTime RequestTime { get; set; }
         public DateTime ResponseTime { get; set; }
         public long RequestLength { get; set; }

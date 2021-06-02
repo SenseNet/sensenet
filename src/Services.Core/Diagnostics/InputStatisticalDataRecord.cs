@@ -34,7 +34,16 @@ namespace SenseNet.Services.Core.Diagnostics
         public long? RequestLength => _webHookData?.RequestLength ?? _webTransferData?.RequestLength;
         public long? ResponseLength => _webHookData?.ResponseLength ?? _webTransferData?.ResponseLength;
         public int? ResponseStatusCode => _webHookData?.ResponseStatusCode ?? _webTransferData?.ResponseStatusCode;
-        public string Url => _webHookData?.Url ?? _webTransferData?.Url;
+        public string Url
+        {
+            get
+            {
+                var method = _webHookData?.HttpMethod ?? _webTransferData?.HttpMethod;
+                var url = _webHookData?.Url ?? _webTransferData?.Url;
+                return string.IsNullOrEmpty(method) ? url : $"{method} {url}";
+            }
+        }
+
         public int? WebHookId => _webHookData?.WebHookId;
         public int? ContentId => _webHookData?.ContentId;
         public string EventName => _webHookData?.EventName;

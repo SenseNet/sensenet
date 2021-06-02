@@ -39,15 +39,18 @@ namespace SenseNet.WebHooks
 
             var client = _clientFactory.CreateClient();
 
+            httpMethod = httpMethod.ToUpperInvariant();
             var statData = postData == null
                 ? new WebHookStatInput
                 {
                     Url = url,
+                    HttpMethod = httpMethod,
                     RequestTime = DateTime.UtcNow,
                 }
                 : new WebHookStatInput
                 {
                     Url = url,
+                    HttpMethod = httpMethod,
                     RequestTime = DateTime.UtcNow,
                     ContentId = contentId,
                     WebHookId = subscriptionId,
@@ -62,7 +65,7 @@ namespace SenseNet.WebHooks
                 HttpResponseMessage response;
                 StringContent stringContent;
                 long length;
-                switch (httpMethod.ToUpper())
+                switch (httpMethod)
                 {
                     case "GET":
                         statData.RequestLength = url.Length;

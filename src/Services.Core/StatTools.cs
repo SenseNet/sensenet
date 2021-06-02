@@ -19,10 +19,11 @@ namespace SenseNet.Services.Core
                 return null;
 
             var request = httpContext.Request;
-            var url = request.Path + request.QueryString;
+            string url = request.Path /*+ request.QueryString*/;
             return new WebTransferStatInput
             {
                 Url = url,
+                HttpMethod = request.Method,
                 RequestTime = DateTime.UtcNow,
                 RequestLength = url.Length + (httpContext.Request.ContentLength ?? 0L)
             };
