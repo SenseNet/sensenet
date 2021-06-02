@@ -24,6 +24,7 @@ using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Storage.DataModel.Usage;
@@ -37,7 +38,7 @@ namespace SenseNet.ContentRepository.Tests
     public class StatisticsTests : TestBase
     {
         [TestMethod]
-        public async STT.Task Stat_BinaryMiddleware()
+        public async STT.Task Stat_Collector_BinaryMiddleware()
         {
             await Test(async () =>
             {
@@ -74,7 +75,7 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_WopiMiddleware()
+        public async STT.Task Stat_Collector_WopiMiddleware()
         {
             await Test(async () =>
             {
@@ -118,7 +119,7 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_OdataMiddleware_ServiceDocument()
+        public async STT.Task Stat_Collector_OdataMiddleware_ServiceDocument()
         {
             await Test(builder =>
             {
@@ -163,7 +164,7 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_OdataMiddleware_Collection()
+        public async STT.Task Stat_Collector_OdataMiddleware_Collection()
         {
             await Test(builder =>
             {
@@ -211,7 +212,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_WebHook()
+        public async STT.Task Stat_Collector_WebHook()
         {
             await Test(
                 builder => { builder.UseComponent(new WebHookComponent()); },
@@ -288,7 +289,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_DbUsage()
+        public async STT.Task Stat_Collector_DbUsage()
         {
             await Test(async () =>
             {
@@ -323,7 +324,7 @@ namespace SenseNet.ContentRepository.Tests
 
         }
 
-        #region Additional classes
+        #region Additional classes for collector tests
 
         private class TestStatisticalDataCollector : IStatisticalDataCollector
         {
@@ -451,5 +452,113 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         #endregion
+
+        /* ========================================================================= InputStatisticalDataRecord tests */
+
+        [TestMethod]
+        public void Stat_InputRecord_CreateFromGeneral()
+        {
+            var data = new {Name = "Name1", Value = 42};
+            var input = new GeneralStatInput {DataType = "DataType1", Data = data};
+
+            // ACTION
+            var record = new InputStatisticalDataRecord(input);
+
+            // ASSERT
+            Assert.AreEqual("DataType1", record.DataType);
+            Assert.AreEqual("{\"Name\":\"Name1\",\"Value\":42}", RemoveWhitespaces(record.GeneralData));
+
+            Assert.AreEqual(0, record.Id);
+            Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
+
+            Assert.IsNull(record.RequestTime);
+            Assert.IsNull(record.ResponseTime);
+            Assert.IsNull(record.RequestLength);
+            Assert.IsNull(record.ResponseLength);
+            Assert.IsNull(record.ResponseStatusCode);
+            Assert.IsNull(record.Url);
+            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.ContentId);
+            Assert.IsNull(record.EventName);
+            Assert.IsNull(record.ErrorMessage);
+        }
+        [TestMethod]
+        public void Stat_InputRecord_CreateFromWebTransfer()
+        {
+            var time1 = DateTime.UtcNow.AddDays(-1);
+            var time2 = time1.AddSeconds(1);
+            var input = new WebTransferStatInput
+            {
+                Url = "Url1",
+                RequestTime = time1,
+                ResponseTime = time2,
+                RequestLength = 42,
+                ResponseLength = 4242,
+                ResponseStatusCode = 200
+            };
+
+            // ACTION
+            var record = new InputStatisticalDataRecord(input);
+
+            // ASSERT
+            Assert.AreEqual("WebTransfer", record.DataType);
+            Assert.AreEqual(0, record.GeneralData.Length);
+
+            Assert.AreEqual(0, record.Id);
+            Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
+
+            Assert.AreEqual(time1, record.RequestTime);
+            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(42, record.RequestLength);
+            Assert.AreEqual(4242, record.ResponseLength);
+            Assert.AreEqual(200, record.ResponseStatusCode);
+            Assert.AreEqual("Url1", record.Url);
+            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.ContentId);
+            Assert.IsNull(record.EventName);
+            Assert.IsNull(record.ErrorMessage);
+        }
+        [TestMethod]
+        public void Stat_InputRecord_CreateFromWebHook()
+        {
+            var time1 = DateTime.UtcNow.AddDays(-1);
+            var time2 = time1.AddSeconds(1);
+            var input = new WebHookStatInput
+            {
+                Url = "Url1",
+                RequestTime = time1,
+                ResponseTime = time2,
+                RequestLength = 42,
+                ResponseLength = 4242,
+                ResponseStatusCode = 200,
+                WebHookId = 1242,
+                ContentId = 1342,
+                EventName = "Event42",
+                ErrorMessage = "ErrorMessage1"
+            };
+
+            // ACTION
+            var record = new InputStatisticalDataRecord(input);
+
+            // ASSERT
+            Assert.AreEqual("WebHook", record.DataType);
+            Assert.AreEqual(0, record.GeneralData.Length);
+
+            Assert.AreEqual(0, record.Id);
+            Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
+
+            Assert.AreEqual(time1, record.RequestTime);
+            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(42, record.RequestLength);
+            Assert.AreEqual(4242, record.ResponseLength);
+            Assert.AreEqual(200, record.ResponseStatusCode);
+            Assert.AreEqual("Url1", record.Url);
+            Assert.AreEqual(1242, record.WebHookId);
+            Assert.AreEqual(1342, record.ContentId);
+            Assert.AreEqual("Event42", record.EventName);
+            Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
+        }
     }
 }
+
+
