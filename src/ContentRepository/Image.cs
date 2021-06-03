@@ -329,7 +329,7 @@ namespace SenseNet.ContentRepository
                 var imgStream = imgNode.Binary.GetStream();
                 if (imgStream != null && imgStream.Length > 0)
                 {
-                    using (var img = System.Drawing.Image.FromStream(imgStream))
+                    using (var img = System.Drawing.Image.FromStream(imgStream, false, false))
                     {
                         // if there is no need to modify the image, return false
                         if (originalWidth == img.Width && originalHeight == img.Height)
