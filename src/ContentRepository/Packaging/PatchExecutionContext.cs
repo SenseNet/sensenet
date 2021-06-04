@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
@@ -39,6 +40,11 @@ namespace SenseNet.Packaging
         }
 
         /* ============================================================================== API FOR PATCH WRITERS */
+
+        public T GetService<T>() where T: class
+        {
+            return ((RepositoryBuilder) Settings).Services?.GetService<T>();
+        }
 
         /// <summary>
         /// Logs a message using the system-defined logger.

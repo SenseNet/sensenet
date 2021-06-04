@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("Settings")
                         .Field("Description", "LongText")
@@ -405,7 +405,7 @@ namespace SenseNet.ContentRepository
 
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("CalendarEvent")
                         .Field("StartDate")
@@ -461,7 +461,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("ListItem")
                         .Field("ModifiedBy")
@@ -481,7 +481,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     // We can set the new regex only if the current regex is the old default
                     // (otherwise we do not want to overwrite a custom regex).
@@ -688,7 +688,7 @@ namespace SenseNet.ContentRepository
   &lt;/Fields&gt;
 &lt;/ContentType&gt;";
                     
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("ContentType")
                         .Field("Binary")
@@ -726,7 +726,7 @@ namespace SenseNet.ContentRepository
 
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("Query")
                         .Field("UiFilters", "LongText")
@@ -749,7 +749,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("ContentLink")
                         .Field("Name", "ShortText")
@@ -857,7 +857,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("BinaryFieldSetting").Icon("FieldSetting");
                     cb.Type("ContentLink").Icon("ContentLink");
@@ -892,7 +892,7 @@ namespace SenseNet.ContentRepository
                 {
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("ItemList")
                         .Field("OwnerWhenVisitor")

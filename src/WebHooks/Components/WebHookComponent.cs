@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository;
+﻿using Microsoft.Extensions.Logging;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -65,7 +66,7 @@ namespace SenseNet.WebHooks
 
                     #region CTD changes
 
-                    var cb = new ContentTypeBuilder();
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                     cb.Type("WebHookSubscription")
                         .Icon("Settings")

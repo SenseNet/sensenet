@@ -58,6 +58,19 @@ namespace SenseNet.ContentRepository.Tests
     </Field>
   </Fields>
 </ContentType>";
+        private const string CtdEditor = @"<ContentType name=""EditorTestContent"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+    <Field name=""LongText1"" type=""LongText"">
+        <Description>Preserved desc</Description>
+        <Configuration>
+            <ControlHint>abc</ControlHint>
+        </Configuration>
+    </Field>
+  </Fields>
+</ContentType>";
+
+        private const string CtdEditorName = "EditorTestContent";
         #endregion
 
         [TestMethod]
@@ -67,7 +80,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .DisplayName("Test SimpleTestContent x")
@@ -88,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -110,7 +123,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -131,7 +144,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestText", "ShortText")
@@ -155,7 +168,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
                 Assert.IsNotNull(fs1);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -177,7 +190,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.First(fs => fs.Name == "TestCount");
                 Assert.IsNotNull(fs1);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .RemoveField("TestCount");
@@ -195,7 +208,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -224,7 +237,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -255,7 +268,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
                 Assert.AreEqual("123", fs1.DefaultValue);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -279,7 +292,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -320,7 +333,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 // define properties in reverse order
                 cb.Type("ComplexTestContent")
@@ -335,6 +348,53 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("disp", fs1.DisplayName);
                 Assert.AreEqual("desc", fs1.Description);
                 Assert.AreEqual("default", fs1.DefaultValue);
+            });
+        }
+
+        [TestMethod]
+        public void ContentType_ChangeFieldType_LongText()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdEditor);
+
+                var fs1 = ContentType.GetByName(CtdEditorName).FieldSettings.First(fs => fs.Name == "LongText1");
+                Assert.AreEqual("LongText", fs1.ShortName);
+
+                // create text content and fill the field
+                var parent = new SystemFolder(Repository.Root);
+                parent.Save();
+
+                var testContent = Content.CreateNew(CtdEditorName, parent, Guid.NewGuid().ToString());
+                testContent["LongText1"] = "simple longtext value";
+                testContent.Save();
+
+                var cb = new ContentTypeBuilder(null);
+
+                // change field type and set a couple of additional properties
+                cb.Type(CtdEditorName)
+                    .ChangeFieldType("LongText1", "RichText")
+                    .Field("LongText1")
+                    .DisplayName("My rich text field")
+                    .Compulsory()
+                    .VisibleEdit(FieldVisibility.Hide);
+
+                cb.Apply();
+
+                fs1 = ContentType.GetByName(CtdEditorName).FieldSettings.Single(fs => fs.Name == "LongText1");
+
+                // check new and preserved properties
+                Assert.AreEqual("RichText", fs1.ShortName);
+                Assert.AreEqual("My rich text field", fs1.DisplayName);
+                Assert.AreEqual("Preserved desc", fs1.Description);
+                Assert.AreEqual(true, fs1.Compulsory);
+                Assert.AreEqual(FieldVisibility.Hide, fs1.VisibleEdit);
+                Assert.AreEqual("abc", fs1.ControlHint);
+
+                testContent = Content.Load(testContent.Id);
+
+                Assert.AreEqual("simple longtext value", ((RichTextFieldValue)testContent["LongText1"]).Text, 
+                    "Longtext value was not preserved correctly.");
             });
         }
 
