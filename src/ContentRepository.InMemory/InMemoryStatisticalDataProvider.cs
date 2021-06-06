@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using SenseNet.Diagnostics;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.InMemory
 {
@@ -15,7 +17,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         private List<StatisticalDataRecord> Storage { get; } = new List<StatisticalDataRecord>();
 
-        public System.Threading.Tasks.Task WriteData(IStatisticalDataRecord data)
+        public STT.Task WriteData(IStatisticalDataRecord data)
         {
             Storage.Add(new StatisticalDataRecord
             {
@@ -36,6 +38,62 @@ namespace SenseNet.ContentRepository.InMemory
             });
 
             return System.Threading.Tasks.Task.CompletedTask;
+        }
+
+        //public STT.Task EnumerateDataAsync(DateTime timeMax, Action<IStatisticalDataRecord> aggregator,
+        //    CancellationToken cancel)
+        //{
+        //    var relatedItems = Storage
+        //        .Where(x => x.RequestTime.HasValue ? x.RequestTime.Value < timeMax : x.WrittenTime < timeMax);
+        //    foreach (var item in relatedItems)
+        //    {
+        //        cancel.ThrowIfCancellationRequested();
+        //        aggregator(item);
+        //    }
+        //    return STT.Task.CompletedTask;
+        //}
+
+        public STT.Task CleanupAsync(DateTime timeMax, CancellationToken cancel)
+        {
+            throw new NotImplementedException(); //UNDONE:<?Stat: Implement CleanupAsync
+        }
+
+        public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
+        {
+            throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadUsageListAsync
+        }
+
+        public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
+            DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
+        {
+            throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadAggregatedUsageAsync
+        }
+
+
+        public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
+            TimeResolution resolution, Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
+        {
+            var result = new List<Aggregation>();
+
+            var relatedItems = Storage
+                .Where(x =>
+                {
+                    var requestTime = x.RequestTime ?? x.WrittenTime;
+                    return (requestTime >= startTime && requestTime < endTimeExclusive);
+                });
+
+            foreach (var item in relatedItems)
+            {
+                cancel.ThrowIfCancellationRequested();
+                aggregatorCallback(item);
+            }
+
+            return STT.Task.CompletedTask;
+        }
+
+        public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
+        {
+            throw new NotImplementedException(); //UNDONE:<?Stat: Implement WriteAggregation
         }
     }
 }
