@@ -208,6 +208,11 @@ namespace SenseNet.OData
         public bool HasExpandedRichTextField => ExpandedRichTextFields.Count > 0;
 
         /// <summary>
+        /// Gets true if all RichText fields will be expanded.
+        /// </summary>
+        public bool AllRichTextFieldExpanded { get; private set; }
+
+        /// <summary>
         /// Gets true if the Filter is not null.
         /// </summary>
         public bool HasFilter => Filter != null;
@@ -439,7 +444,12 @@ namespace SenseNet.OData
             // --------------------------------------------------------------- richtexteditor
             // Parse in the same way as $expand
             var expandedRtfStr = req["richtexteditor"];
-            this.ExpandedRichTextFields = ParseExpand(expandedRtfStr);
+            var rteExpand = ParseExpand(expandedRtfStr);
+            this.AllRichTextFieldExpanded = rteExpand.Contains("all", StringComparer.InvariantCultureIgnoreCase) ||
+                                            rteExpand.Contains("*");
+            if(this.AllRichTextFieldExpanded)
+                rteExpand = new List<string> {"*"};
+            this.ExpandedRichTextFields = rteExpand;
 
             // --------------------------------------------------------------- $filter
             var filterStr = req["$filter"];

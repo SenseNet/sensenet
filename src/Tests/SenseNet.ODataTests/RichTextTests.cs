@@ -69,6 +69,57 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [DataRow("all", "Simple")]
+        [DataRow("all", "SimpleExpander")]
+        [DataRow("all", "Expander")]
+        [DataRow("aLL", "Simple")]
+        [DataRow("aLL", "SimpleExpander")]
+        [DataRow("aLL", "Expander")]
+        [DataRow("*", "Simple")]
+        [DataRow("*", "SimpleExpander")]
+        [DataRow("*", "Expander")]
+        [DataTestMethod]
+        public async Task OD_RichText_Get_ExpandAll(string rteExpansion, string projectorName)
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ALIGN
+                InstallContentType();
+                var testRoot = CreateTestRoot("Folder1");
+
+                var textValue = "Chillwave flexitarian pork belly raw denim.";
+                var editorValue = "{property1: 'Asymmetrical trust fund', property2: 'Crucifix intelligentsia godard'}";
+                var richTextValue = $"{{\"text\": \"{textValue}\", \"editor\": \"{editorValue}\"}}";
+
+                var content = Content.CreateNew("ContentType1", testRoot, "Content1");
+                content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
+                content["RichText2"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
+                content.Save();
+
+                string queryString;
+                switch (projectorName)
+                {
+                    case "Simple": queryString = "?metadata=no&$select=Id,RichText1,RichText2"; break;
+                    case "SimpleExpander": queryString = "?metadata=no&$expand=ModifiedBy"; break;
+                    case "Expander": queryString = "?metadata=no&$expand=ModifiedBy&$select=Id,RichText1,RichText2"; break;
+                    default: throw new NotImplementedException();
+                }
+
+                queryString += "&richtexteditor=" + rteExpansion;
+
+                // ACTION
+                var response = await ODataGetAsync("/OData.svc/Root/Folder1('Content1')", queryString)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var entity = GetEntity(response);
+                Assert.AreEqual(content.Id, entity.Id);
+
+                Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText1"].ToString()));
+                Assert.AreEqual(RemoveWhitespaces(richTextValue), RemoveWhitespaces(entity.AllProperties["RichText2"].ToString()));
+            }).ConfigureAwait(false);
+        }
+
         [TestMethod]
         public async Task OD_RichText_Create()
         {
