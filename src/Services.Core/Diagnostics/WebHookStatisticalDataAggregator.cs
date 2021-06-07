@@ -42,6 +42,9 @@ namespace SenseNet.Services.Core.Diagnostics
                 await _statDataProvider.EnumerateDataAsync("WebHook", start, end, resolution, Aggregate, cancel);
             }
 
+            if (_aggregation.CallCount == 0)
+                return;
+
             var aggregation = new Aggregation
             {
                 DataType = DataType,
