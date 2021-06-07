@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +36,11 @@ namespace SenseNet.Services.Core.Diagnostics
             var end = startTime.Next(resolution);
             _aggregation = new WebHookAggregation();
 
-            await _statDataProvider.EnumerateDataAsync("WebHook", start, end, resolution, Aggregate, cancel);
+            if (!await TryProcessAggregationsAsync(start, end, resolution, cancel))
+            {
+                _aggregation = new WebHookAggregation();
+                await _statDataProvider.EnumerateDataAsync("WebHook", start, end, resolution, Aggregate, cancel);
+            }
 
             var sb = new StringBuilder();
             using (var writer = new StringWriter(sb))
@@ -50,6 +55,41 @@ namespace SenseNet.Services.Core.Diagnostics
             };
 
             await _statDataProvider.WriteAggregationAsync(aggregation, cancel);
+        }
+
+        private async Task<bool> TryProcessAggregationsAsync(DateTime startTime, DateTime endTimeExclusive, TimeResolution targetResolution, CancellationToken cancel)
+        {
+            var resolution = targetResolution - 1;
+            if (resolution < 0)
+                return false;
+
+            var aggregations =
+                (await _statDataProvider.LoadAggregatedUsageAsync("WebHook", resolution, startTime, endTimeExclusive, cancel))
+                .ToArray();
+
+            if (aggregations.Length == 0)
+                return false;
+            if (aggregations[aggregations.Length - 1].Date.Next(resolution) < startTime.Next(targetResolution))
+                return false;
+
+            Summarize(aggregations);
+            return true;
+        }
+        private void Summarize(Aggregation[] aggregations)
+        {
+            foreach (var aggregation in aggregations)
+            {
+                WebHookAggregation deserialized;
+                using (var reader = new StringReader(aggregation.Data))
+                    deserialized = JsonSerializer.Create().Deserialize<WebHookAggregation>(new JsonTextReader(reader));
+                _aggregation.CallCount += deserialized.CallCount;
+                _aggregation.RequestLengths += deserialized.RequestLengths;
+                _aggregation.ResponseLengths += deserialized.ResponseLengths;
+                var source = deserialized.StatusCounts;
+                var target = _aggregation.StatusCounts;
+                for (int i = 0; i < source.Length; i++)
+                    target[i] += source[i];
+            }
         }
 
         private void Aggregate(IStatisticalDataRecord record)

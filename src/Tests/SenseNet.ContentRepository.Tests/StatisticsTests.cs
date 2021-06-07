@@ -624,7 +624,12 @@ namespace SenseNet.ContentRepository.Tests
             public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
                 DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
             {
-                throw new NotImplementedException();
+                var result = Aggregations.Where(x =>
+                    x.DataType == dataType &&
+                    x.Resolution == resolution &&
+                    x.Date >= startTime &&
+                    x.Date < endTimeExclusive).ToArray();
+                return STT.Task.FromResult((IEnumerable<Aggregation>)result);
             }
 
             public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
@@ -807,7 +812,7 @@ namespace SenseNet.ContentRepository.Tests
         #region /* ========================================================================= Aggregation tests */
 
         [TestMethod]
-        public async STT.Task Stat_Aggregation_WebHook_RawToOneMinutely()
+        public async STT.Task Stat_Aggregation_WebHook_RawTo1Minutely()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(statDataProvider);
@@ -872,7 +877,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(6, deserialized.StatusCounts[4]);
         }
         [TestMethod]
-        public async STT.Task Stat_Aggregation_WebHook_RawToOneHourly()
+        public async STT.Task Stat_Aggregation_WebHook_RawTo1Hourly()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(statDataProvider);
@@ -937,7 +942,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(36, deserialized.StatusCounts[4]);
         }
         [TestMethod]
-        public async STT.Task Stat_Aggregation_WebHook_RawToOneDaily()
+        public async STT.Task Stat_Aggregation_WebHook_RawTo1Daily()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(statDataProvider);
@@ -999,7 +1004,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(864, deserialized.StatusCounts[4]);
         }
         [TestMethod]
-        public async STT.Task Stat_Aggregation_WebHook_RawToOneMonthly()
+        public async STT.Task Stat_Aggregation_WebHook_RawTo1Monthly()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(statDataProvider);
@@ -1070,6 +1075,79 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, deserialized.StatusCounts[2]);
             Assert.AreEqual(0, deserialized.StatusCounts[3]);
             Assert.AreEqual(expectedErrorCount, deserialized.StatusCounts[4]);
+        }
+
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_WebHook_60MinutelyTo1Hourly()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var collector = new StatisticalDataCollector(statDataProvider);
+            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+
+            var now = DateTime.UtcNow;
+            var record = new StatisticalDataRecord
+            {
+                DataType = "WebHook",
+                WebHookId = 1242,
+                ContentId = 1342,
+                EventName = "Event42",
+                Url = "POST https://example.com/api/hook",
+                RequestLength = 100,
+                ResponseLength = 1000,
+            };
+            var time1 = now.AddHours(-3);
+            var time2 = time1.AddMilliseconds(100);
+            var count = 0;
+
+            var d = now.AddHours(-2);
+            var expectedStart = new DateTime(d.Year, d.Month, d.Day, d.Hour, 0, 0);
+            var expectedEnd = expectedStart.AddHours(1);
+            while (true)
+            {
+                record.RequestTime = time1;
+                record.ResponseTime = time2;
+                var error = (++count % 10) == 0;
+                var warning = (count % 10) == 1;
+                record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
+                record.ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null);
+
+                await statDataProvider.WriteData(record);
+
+                time1 = time1.AddSeconds(1);
+                time2 = time1.AddMilliseconds(100);
+                if (time2 > now)
+                    break;
+            }
+
+            for (var startTime = now.AddHours(-3); startTime < now.AddMinutes(-2); startTime = startTime.AddMinutes(1))
+                await aggregator.AggregateAsync(startTime, TimeResolution.Minute, CancellationToken.None);
+
+            // ensure that the "Hour" aggregation works from minutely aggregations.
+            statDataProvider.Storage.Clear();
+
+            // ACTION
+            await aggregator.AggregateAsync(now.AddHours(-2), TimeResolution.Hour, CancellationToken.None);
+
+            // ASSERT
+            //Assert.AreEqual(61, statDataProvider.Aggregations.Count);
+
+            Aggregation aggregation = statDataProvider.Aggregations[^1];
+            Assert.AreEqual("WebHook", aggregation.DataType);
+            Assert.AreEqual(expectedStart, aggregation.Date);
+            Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
+
+            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
+            using (var reader = new StringReader(aggregation.Data))
+                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+
+            Assert.AreEqual(3600, deserialized.CallCount); // 60 * 60
+            Assert.AreEqual(3600 * 100, deserialized.RequestLengths);
+            Assert.AreEqual(3600 * 1000, deserialized.ResponseLengths);
+            Assert.AreEqual(0, deserialized.StatusCounts[0]);
+            Assert.AreEqual(3600 - 2 * 360, deserialized.StatusCounts[1]);
+            Assert.AreEqual(0, deserialized.StatusCounts[2]);
+            Assert.AreEqual(360, deserialized.StatusCounts[3]);
+            Assert.AreEqual(360, deserialized.StatusCounts[4]);
         }
 
         #endregion
