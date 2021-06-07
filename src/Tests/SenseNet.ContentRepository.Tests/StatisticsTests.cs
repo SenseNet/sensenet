@@ -1158,24 +1158,23 @@ namespace SenseNet.ContentRepository.Tests
             while (now <= testEnd)
             {
                 await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
-                var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
-                if (nowString.EndsWith("00"))
+                if (now.Second == 0)
                 {
                     var aggregationTime = now.AddSeconds(-1);
 
                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
-                    if (nowString.EndsWith("00:00"))
+                    if (now.Minute == 0)
                     {
                         aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour,
                             CancellationToken.None);
-                        if (nowString.EndsWith("00:00:00"))
+                        if (now.Hour == 0)
                         {
                             aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day,
                                 CancellationToken.None);
-                            if (nowString.EndsWith("01 00:00:00"))
+                            if (now.Day == 1)
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month,
@@ -1251,20 +1250,19 @@ namespace SenseNet.ContentRepository.Tests
             {
                 if (now.Second == 0)
                 {
-                    var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
                     var aggregationTime = now.AddSeconds(-1);
 
                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                     await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
-                    if (nowString.EndsWith("00:00"))
+                    if (now.Minute == 0)
                     {
                         aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
-                        if (nowString.EndsWith("00:00:00"))
+                        if (now.Hour == 0)
                         {
                             aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
-                            if (nowString.EndsWith("01 00:00:00"))
+                            if (now.Day == 1)
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
@@ -1318,19 +1316,18 @@ namespace SenseNet.ContentRepository.Tests
                 if (now.Second == 0)
                 {
                     //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
-                    var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
-                    if (nowString.EndsWith("00"))
+                    if (now.Second == 0)
                     {
                         var aggregationTime = now.AddSeconds(-1);
 
-                        if (nowString.EndsWith("00:00"))
+                        if (now.Minute == 0)
                         {
                             await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
-                            if (nowString.EndsWith("00:00:00"))
+                            if (now.Hour == 0)
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
-                                if (nowString.EndsWith("01 00:00:00"))
+                                if (now.Day == 1)
                                 {
                                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
@@ -1407,25 +1404,25 @@ namespace SenseNet.ContentRepository.Tests
             {
                 if (now.Second == 0)
                 {
-                    var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
-                    if(nowString.EndsWith("10:00:00"))
+                    // Generate a webhook call every day at ten.
+                    if (now.Hour == 10 && now.Minute == 0 && now.Second == 0)
                         await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
 
-                    if (nowString.EndsWith("00"))
+                    if (now.Second == 0)
                     {
                         var aggregationTime = now.AddSeconds(-1);
 
                         aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
-                        if (nowString.EndsWith("00:00"))
+                        if (now.Minute == 0)
                         {
                             aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
-                            if (nowString.EndsWith("00:00:00"))
+                            if (now.Hour == 0)
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
-                                if (nowString.EndsWith("01 00:00:00"))
+                                if (now.Day == 1)
                                 {
                                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
