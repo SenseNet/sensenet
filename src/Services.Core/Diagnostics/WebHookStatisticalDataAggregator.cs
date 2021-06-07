@@ -69,8 +69,8 @@ namespace SenseNet.Services.Core.Diagnostics
 
             if (aggregations.Length == 0)
                 return false;
-            if (aggregations[aggregations.Length - 1].Date.Next(resolution) < startTime.Next(targetResolution))
-                return false;
+            //if (aggregations[aggregations.Length - 1].Date.Next(resolution) < startTime.Next(targetResolution))
+            //    return false;
 
             Summarize(aggregations);
             return true;
@@ -100,6 +100,12 @@ namespace SenseNet.Services.Core.Diagnostics
             var leadDigit = (record.ResponseStatusCode ?? 0) / 100 - 1;
             if (leadDigit is >= 0 and < 5)
                 _aggregation.StatusCounts[leadDigit]++;
+        }
+
+        internal static WebHookAggregation Deserialize(string jsonSource)
+        {
+            using (var reader = new StringReader(jsonSource))
+                return JsonSerializer.Create().Deserialize<WebHookAggregation>(new JsonTextReader(reader));
         }
     }
 }

@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository
         private readonly IStatisticalDataCollector _collector;
         private readonly IDatabaseUsageHandler _dbUsageHandler;
 
-        public int WaitingSeconds { get; } = 3660; // 61 minutes
+        public int WaitingSeconds { get; } = 3600; // 60 minutes
 
         public StatisticalDataCollectorMaintenanceTask(IStatisticalDataCollector collector, IDatabaseUsageHandler dbUsageHandler)
         {
