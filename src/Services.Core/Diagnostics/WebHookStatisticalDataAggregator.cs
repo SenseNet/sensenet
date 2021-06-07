@@ -56,7 +56,8 @@ namespace SenseNet.Services.Core.Diagnostics
             await _statDataProvider.WriteAggregationAsync(aggregation, cancel);
         }
 
-        private async Task<bool> TryProcessAggregationsAsync(DateTime startTime, DateTime endTimeExclusive, TimeResolution targetResolution, CancellationToken cancel)
+        private async Task<bool> TryProcessAggregationsAsync(DateTime startTime, DateTime endTimeExclusive,
+            TimeResolution targetResolution, CancellationToken cancel)
         {
             var resolution = targetResolution - 1;
             if (resolution < 0)

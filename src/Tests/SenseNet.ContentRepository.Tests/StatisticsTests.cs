@@ -1249,31 +1249,25 @@ namespace SenseNet.ContentRepository.Tests
 
             while (now <= testEnd)
             {
-                //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
                 if (now.Second == 0)
                 {
                     var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
                     var aggregationTime = now.AddSeconds(-1);
 
                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
-                    //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
                     await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
                     if (nowString.EndsWith("00:00"))
                     {
                         aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
-                        //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
                         if (nowString.EndsWith("00:00:00"))
                         {
                             aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
-                            //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Day, 24 * 60 * 60, statDataProvider);
                             if (nowString.EndsWith("01 00:00:00"))
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
-                                //var days = DateTime.DaysInMonth(aggregationTime.Year, aggregationTime.Month);
-                                //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Month, days * 24 * 60 * 60, statDataProvider);
                             }
                         }
                     }
@@ -1329,25 +1323,17 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         var aggregationTime = now.AddSeconds(-1);
 
-                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
-                        //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
-                        //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
                         if (nowString.EndsWith("00:00"))
                         {
-                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
-                            //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
                             await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
                             if (nowString.EndsWith("00:00:00"))
                             {
                                 aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
-                                //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Day, 24 * 60 * 60, statDataProvider);
                                 if (nowString.EndsWith("01 00:00:00"))
                                 {
                                     aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
                                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
-                                    //var days = DateTime.DaysInMonth(aggregationTime.Year, aggregationTime.Month);
-                                    //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Month, days * 24 * 60 * 60, statDataProvider);
                                 }
                             }
                         }
@@ -1378,7 +1364,6 @@ namespace SenseNet.ContentRepository.Tests
                     .ToArray();
             }
             // Per-minute aggregations are skipped
-            //Assert.AreEqual(60, aggregations[(int)TimeResolution.Minute][1].CallCount);
             Assert.AreEqual(60 * 60, aggregations[(int)TimeResolution.Hour][0].CallCount);
             Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][0].CallCount);
             // 2020 February had 29 days
@@ -1481,5 +1466,3 @@ namespace SenseNet.ContentRepository.Tests
 
     }
 }
-
-
