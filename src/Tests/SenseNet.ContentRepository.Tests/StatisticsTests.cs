@@ -1146,7 +1146,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_Aggregation_WebHook_Run1day()
+        public async STT.Task Stat_Aggregation_WebHook_Run_1day()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             WebHookStatisticalDataAggregator aggregator;
@@ -1237,6 +1237,176 @@ namespace SenseNet.ContentRepository.Tests
             await statDataProvider.WriteDataAsync(record, cancel);
         }
 
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_WebHook_Run_1month()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            WebHookStatisticalDataAggregator aggregator;
+
+            var testStart = new DateTime(2019, 12, 31, 23, 59, 01);
+            var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
+            var now = testStart;
+
+            while (now <= testEnd)
+            {
+                //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
+                if (now.Second == 0)
+                {
+                    var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
+                    var aggregationTime = now.AddSeconds(-1);
+
+                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                    //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
+                    await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
+                    if (nowString.EndsWith("00:00"))
+                    {
+                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                        await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
+                        //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
+                        if (nowString.EndsWith("00:00:00"))
+                        {
+                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
+                            //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Day, 24 * 60 * 60, statDataProvider);
+                            if (nowString.EndsWith("01 00:00:00"))
+                            {
+                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
+                                //var days = DateTime.DaysInMonth(aggregationTime.Year, aggregationTime.Month);
+                                //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Month, days * 24 * 60 * 60, statDataProvider);
+                            }
+                        }
+                    }
+                }
+                now = now.AddSeconds(1);
+            }
+
+            var allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(31 * 24 * 60 + 1, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+            Assert.AreEqual(31 * 24 + 1, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+            Assert.AreEqual(31 + 1, allAggregations.Count(x => x.Resolution == TimeResolution.Day));
+            Assert.AreEqual(1 + 1, allAggregations.Count(x => x.Resolution == TimeResolution.Month));
+
+            var dt = "WebHook";
+
+            var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
+            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            for (int resolutionValue = 0; resolutionValue < resolutionCount; resolutionValue++)
+            {
+                aggregations[resolutionValue] = allAggregations
+                    .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
+                    .Take(2)
+                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .ToArray();
+
+                // The first elements are truncated need to contain only one request per any resolution.
+                Assert.AreEqual(60, aggregations[resolutionValue][0].CallCount);
+            }
+            // The additional items contain an amount of items corresponding to the resolution
+            Assert.AreEqual(60, aggregations[(int)TimeResolution.Minute][1].CallCount);
+            Assert.AreEqual(60 * 60, aggregations[(int)TimeResolution.Hour][1].CallCount);
+            Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][1].CallCount);
+            Assert.AreEqual(31 * 24 * 60 * 60, aggregations[(int)TimeResolution.Month][1].CallCount);
+
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_WebHook_Run_1year()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            WebHookStatisticalDataAggregator aggregator;
+
+            var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
+            var testEnd = new DateTime(2021, 1, 1, 0, 0, 0);
+            var now = testStart;
+
+            while (now <= testEnd)
+            {
+                if (now.Second == 0)
+                {
+                    //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
+                    var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
+                    if (nowString.EndsWith("00"))
+                    {
+                        var aggregationTime = now.AddSeconds(-1);
+
+                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                        //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
+                        //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
+                        if (nowString.EndsWith("00:00"))
+                        {
+                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                            //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
+                            await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
+                            if (nowString.EndsWith("00:00:00"))
+                            {
+                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
+                                //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Day, 24 * 60 * 60, statDataProvider);
+                                if (nowString.EndsWith("01 00:00:00"))
+                                {
+                                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                    await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
+                                    //var days = DateTime.DaysInMonth(aggregationTime.Year, aggregationTime.Month);
+                                    //await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Month, days * 24 * 60 * 60, statDataProvider);
+                                }
+                            }
+                        }
+                    }
+                }
+                now = now.AddSeconds(1);
+            }
+
+            var allAggregations = statDataProvider.Aggregations;
+            // not generated
+            Assert.AreEqual(0, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+            // 2020 was leap year
+            Assert.AreEqual(366 * 24, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+            Assert.AreEqual(366, allAggregations.Count(x => x.Resolution == TimeResolution.Day));
+            Assert.AreEqual(12, allAggregations.Count(x => x.Resolution == TimeResolution.Month));
+
+            var dt = "WebHook";
+
+            var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
+            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            // Start with 1 because the per-minute aggregation was not generated.
+            for (int resolutionValue = 1; resolutionValue < resolutionCount; resolutionValue++)
+            {
+                aggregations[resolutionValue] = allAggregations
+                    .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
+                    .Take(2)
+                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .ToArray();
+            }
+            // Per-minute aggregations are skipped
+            //Assert.AreEqual(60, aggregations[(int)TimeResolution.Minute][1].CallCount);
+            Assert.AreEqual(60 * 60, aggregations[(int)TimeResolution.Hour][0].CallCount);
+            Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][0].CallCount);
+            // 2020 February had 29 days
+            Assert.AreEqual(31 * 24 * 60 * 60, aggregations[(int)TimeResolution.Month][0].CallCount);
+
+        }
+        private async STT.Task GenerateWebHookAggregationAsync(DateTime date, TimeResolution resolution, int callCount,
+            TestStatisticalDataProvider statDataProvider)
+        {
+            var callCountPer10 = callCount / 10;
+
+            var aggregation = new Aggregation
+            {
+                Date = date,
+                DataType = "WebHook",
+                Resolution = resolution,
+                Data = WebHookStatisticalDataAggregator.Serialize(
+                    new WebHookStatisticalDataAggregator.WebHookAggregation
+                    {
+                        CallCount = callCount,
+                        RequestLengths = callCount * 100,
+                        ResponseLengths = callCount * 1000,
+                        StatusCounts = new[] {0, callCount - 2 * callCountPer10, 0, callCountPer10, callCountPer10}
+                    })
+            };
+
+            await statDataProvider.WriteAggregationAsync(aggregation, CancellationToken.None);
+        }
         #endregion
 
     }

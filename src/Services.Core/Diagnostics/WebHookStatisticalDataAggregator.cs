@@ -42,16 +42,12 @@ namespace SenseNet.Services.Core.Diagnostics
                 await _statDataProvider.EnumerateDataAsync("WebHook", start, end, resolution, Aggregate, cancel);
             }
 
-            var sb = new StringBuilder();
-            using (var writer = new StringWriter(sb))
-                JsonSerializer.Create().Serialize(writer, _aggregation);
-
             var aggregation = new Aggregation
             {
                 DataType = DataType,
                 Date = start,
                 Resolution = resolution,
-                Data = sb.ToString()
+                Data = Serialize(_aggregation)
             };
 
             await _statDataProvider.WriteAggregationAsync(aggregation, cancel);
@@ -102,6 +98,13 @@ namespace SenseNet.Services.Core.Diagnostics
                 _aggregation.StatusCounts[leadDigit]++;
         }
 
+        internal static string Serialize(WebHookAggregation aggregation)
+        {
+            var sb = new StringBuilder();
+            using (var writer = new StringWriter(sb))
+                JsonSerializer.Create().Serialize(writer, aggregation);
+            return sb.ToString();
+        }
         internal static WebHookAggregation Deserialize(string jsonSource)
         {
             using (var reader = new StringReader(jsonSource))
