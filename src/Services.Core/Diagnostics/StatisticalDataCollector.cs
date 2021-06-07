@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Diagnostics
@@ -12,17 +13,17 @@ namespace SenseNet.Services.Core.Diagnostics
             _statDataProvider = statDataProvider;
         }
 
-        public Task RegisterWebTransfer(WebTransferStatInput data)
+        public Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel)
         {
-            return _statDataProvider.WriteData(new InputStatisticalDataRecord(data));
+            return _statDataProvider.WriteDataAsync(new InputStatisticalDataRecord(data), cancel);
         }
-        public Task RegisterWebHook(WebHookStatInput data)
+        public Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel)
         {
-            return _statDataProvider.WriteData(new InputStatisticalDataRecord(data));
+            return _statDataProvider.WriteDataAsync(new InputStatisticalDataRecord(data), cancel);
         }
-        public Task RegisterGeneralData(GeneralStatInput data)
+        public Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel)
         {
-            return _statDataProvider.WriteData(new InputStatisticalDataRecord(data));
+            return _statDataProvider.WriteDataAsync(new InputStatisticalDataRecord(data), cancel);
         }
     }
 }

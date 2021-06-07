@@ -96,7 +96,7 @@ namespace SenseNet.WebHooks
                 statData.ResponseStatusCode = (int)response.StatusCode;
                 statData.ResponseTime = DateTime.UtcNow;
 #pragma warning disable 4014
-                _statCollector?.RegisterWebHook(statData);
+                _statCollector?.RegisterWebHook(statData, cancel);
 #pragma warning restore 4014
 
                 var msg = $"WebHook service request completed with {response.StatusCode}. Url: {url} Http method: {httpMethod}";

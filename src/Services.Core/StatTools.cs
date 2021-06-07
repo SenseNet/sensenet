@@ -42,7 +42,7 @@ namespace SenseNet.Services.Core
             data.ResponseStatusCode = httpContext.Response.StatusCode;
             data.ResponseLength = responseLength;
 
-            _dataCollector.RegisterWebTransfer(data);
+            _dataCollector.RegisterWebTransfer(data, httpContext.RequestAborted);
         }
     }
 }

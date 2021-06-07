@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         private List<StatisticalDataRecord> Storage { get; } = new List<StatisticalDataRecord>();
 
-        public STT.Task WriteData(IStatisticalDataRecord data)
+        public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
         {
             Storage.Add(new StatisticalDataRecord
             {

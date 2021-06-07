@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.Diagnostics
@@ -28,15 +29,15 @@ namespace SenseNet.Diagnostics
 
     public interface IStatisticalDataCollector
     {
-        Task RegisterWebTransfer(WebTransferStatInput data);
-        Task RegisterWebHook(WebHookStatInput data);
-        Task RegisterGeneralData(GeneralStatInput data);
+        Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel);
+        Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel);
+        Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel);
     }
 
     public class NullStatisticalDataCollector : IStatisticalDataCollector
     {
-        public Task RegisterWebTransfer(WebTransferStatInput data) { return Task.CompletedTask; }
-        public Task RegisterWebHook(WebHookStatInput data) { return Task.CompletedTask; }
-        public Task RegisterGeneralData(GeneralStatInput data) { return Task.CompletedTask; }
+        public Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
+        public Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
+        public Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
     }
 }

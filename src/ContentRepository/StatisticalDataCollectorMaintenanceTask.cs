@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository
         {
             var data = await _dbUsageHandler.GetDatabaseUsageAsync(false, CancellationToken.None)
                 .ConfigureAwait(false);
-            await _collector.RegisterGeneralData(new GeneralStatInput { DataType = "DatabaseUsage", Data = data });
+            await _collector.RegisterGeneralData(new GeneralStatInput { DataType = "DatabaseUsage", Data = data }, cancellationToken);
         }
     }
 }

@@ -348,17 +348,17 @@ namespace SenseNet.ContentRepository.Tests
         {
             public List<object> StatData { get; } = new List<object>();
 
-            public System.Threading.Tasks.Task RegisterWebTransfer(WebTransferStatInput data)
+            public System.Threading.Tasks.Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel)
             {
                 StatData.Add(data);
                 return STT.Task.CompletedTask;
             }
-            public System.Threading.Tasks.Task RegisterWebHook(WebHookStatInput data)
+            public System.Threading.Tasks.Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel)
             {
                 StatData.Add(data);
                 return STT.Task.CompletedTask;
             }
-            public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data)
+            public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel)
             {
                 StatData.Add(data);
                 return STT.Task.CompletedTask;
@@ -494,7 +494,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
 #pragma warning disable 4014
-            collector.RegisterWebTransfer(input);
+            collector.RegisterWebTransfer(input, CancellationToken.None);
 #pragma warning restore 4014
 
             // ASSERT
@@ -537,7 +537,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
 #pragma warning disable 4014
-            collector.RegisterWebHook(input);
+            collector.RegisterWebHook(input, CancellationToken.None);
 #pragma warning restore 4014
 
             // ASSERT
@@ -566,7 +566,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
 #pragma warning disable 4014
-            collector.RegisterGeneralData(input);
+            collector.RegisterGeneralData(input, CancellationToken.None);
 #pragma warning restore 4014
 
             // ASSERT
@@ -591,7 +591,7 @@ namespace SenseNet.ContentRepository.Tests
             public List<IStatisticalDataRecord> Storage { get; } = new List<IStatisticalDataRecord>();
             public List<Aggregation> Aggregations { get; } = new List<Aggregation>();
 
-            public STT.Task WriteData(IStatisticalDataRecord data)
+            public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
             {
                 Storage.Add(new StatisticalDataRecord
                 {
@@ -844,7 +844,7 @@ namespace SenseNet.ContentRepository.Tests
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
                 record.ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null);
 
-                await statDataProvider.WriteData(record);
+                await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(1);
                 time2 = time1.AddMilliseconds(100);
@@ -908,7 +908,7 @@ namespace SenseNet.ContentRepository.Tests
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
                 record.ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null);
 
-                await statDataProvider.WriteData(record);
+                await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(10);
                 time2 = time1.AddMilliseconds(100);
@@ -969,7 +969,7 @@ namespace SenseNet.ContentRepository.Tests
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
                 record.ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null);
 
-                await statDataProvider.WriteData(record);
+                await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(10);
                 time2 = time1.AddMilliseconds(100);
@@ -1034,7 +1034,7 @@ namespace SenseNet.ContentRepository.Tests
                 record.ResponseStatusCode = error ? 500 : 200;
                 record.ErrorMessage = error ? "ErrorMessage1" : null;
 
-                await statDataProvider.WriteData(record);
+                await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 if (time1 >= expectedStart && time1 < expectedEnd)
                 {
@@ -1106,7 +1106,7 @@ namespace SenseNet.ContentRepository.Tests
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
                 record.ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null);
 
-                await statDataProvider.WriteData(record);
+                await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(1);
                 time2 = time1.AddMilliseconds(100);
@@ -1157,7 +1157,7 @@ namespace SenseNet.ContentRepository.Tests
 
             while (now <= testEnd)
             {
-                await GenerateWebHookRecordAsync(now, statDataProvider);
+                await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
                 var nowString = now.ToString("yyyy-MM-dd HH:mm:ss");
                 if (nowString.EndsWith("00"))
                 {
@@ -1214,8 +1214,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(60 * 60, aggregations[(int)TimeResolution.Hour][1].CallCount);
             Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][1].CallCount);
         }
-
-        private async STT.Task GenerateWebHookRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider)
+        private async STT.Task GenerateWebHookRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
         {
             var count = statDataProvider.Storage.Count;
             var error = (count % 10) == 0;
@@ -1235,7 +1234,7 @@ namespace SenseNet.ContentRepository.Tests
                 ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null)
             };
 
-            await statDataProvider.WriteData(record);
+            await statDataProvider.WriteDataAsync(record, cancel);
         }
 
         #endregion

@@ -24,7 +24,7 @@ namespace SenseNet.Diagnostics
 
     public interface IStatisticalDataProvider
     {
-        Task WriteData(IStatisticalDataRecord data);
+        Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel);
         Task CleanupAsync(DateTime timeMax, CancellationToken cancel);
         Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel);
 
