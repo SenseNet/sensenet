@@ -14,7 +14,7 @@
         <FieldIndex>10</FieldIndex>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <Configuration>
         <OutputMethod>Html</OutputMethod>
       </Configuration>
