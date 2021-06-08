@@ -34,17 +34,14 @@
         <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
-    <Field name="Lead" type="LongText">
+    <Field name="Lead" type="RichText">
       <DisplayName>$Ctd-CalendarEvent,Lead-DisplayName</DisplayName>
       <Description>$Ctd-CalendarEvent,Lead-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <Description>$Ctd-CalendarEvent,Description-Description</Description>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>

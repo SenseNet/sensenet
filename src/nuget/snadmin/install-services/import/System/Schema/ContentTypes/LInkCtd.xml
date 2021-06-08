@@ -26,15 +26,12 @@
         <DefaultValue>https://</DefaultValue>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <DisplayName>$Ctd-Link,Description-DisplayName</DisplayName>
       <Description>$Ctd-Link,Description-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
     <Field name="Version" type="Version">
       <Configuration>

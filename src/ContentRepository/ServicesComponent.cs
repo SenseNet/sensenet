@@ -936,6 +936,38 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.21.1", "7.7.21.2", "2021-06-04", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes: field type changes
+
+                    var ctLogger = context.GetService<ILogger<ContentTypeBuilder>>();
+                    var longTextFieldsToConvert = ContentType.GetContentTypes().SelectMany(ct => ct.FieldSettings).Where(fs =>
+                            fs.ShortName == "LongText" &&
+                            fs is LongTextFieldSetting ltfs &&
+                            (ltfs.TextType == TextType.RichText || ltfs.TextType == TextType.AdvancedRichText ||
+                             ltfs.ControlHint == "sn:RichText"))
+                        .Select(fs => fs.Name)
+                        .Distinct().ToArray();
+
+                    if (longTextFieldsToConvert.Any())
+                    {
+                        ctLogger.LogTrace($"Changing longtext fields to richtext: " +
+                                          $"{string.Join(", ", longTextFieldsToConvert)}");
+
+                        var cb = new ContentTypeBuilder(ctLogger);
+
+                        foreach (var fieldName in longTextFieldsToConvert)
+                        {
+                            cb.ChangeFieldType(fieldName, "RichText");
+                        }
+
+                        cb.Apply();
+                    }
+
+                    #endregion
+                });
         }
     }
 }

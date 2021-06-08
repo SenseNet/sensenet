@@ -24,7 +24,7 @@
         <VisibleBrowse>Hide</VisibleBrowse>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <Configuration>
         <VisibleNew>Hide</VisibleNew>
         <VisibleEdit>Hide</VisibleEdit>

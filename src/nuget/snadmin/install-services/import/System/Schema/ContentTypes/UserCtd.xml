@@ -177,7 +177,7 @@
         </SelectionRoot>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
