@@ -32,6 +32,7 @@ namespace SenseNet.Diagnostics
         Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel);
         Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel);
         Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel);
+        Task RegisterGeneralData(string dataType, TimeResolution resolution, object data, CancellationToken cancel);
     }
 
     public class NullStatisticalDataCollector : IStatisticalDataCollector
@@ -39,5 +40,6 @@ namespace SenseNet.Diagnostics
         public Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
         public Task RegisterWebHook(WebHookStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
         public Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel) { return Task.CompletedTask; }
+        public Task RegisterGeneralData(string dataType, TimeResolution resolution, object data, CancellationToken cancel) { return Task.CompletedTask; }
     }
 }

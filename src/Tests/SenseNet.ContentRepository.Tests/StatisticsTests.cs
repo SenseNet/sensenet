@@ -330,14 +330,14 @@ namespace SenseNet.ContentRepository.Tests
                 var expected = await dbUsageHandler.GetDatabaseUsageAsync(true, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                Assert.AreEqual(1, collector.StatData.Count);
-                var data = collector.StatData[0] as GeneralStatInput;
-                Assert.IsNotNull(data);
-                Assert.AreEqual("DatabaseUsage", data.DataType);
-                var dbUsage = data.Data as DatabaseUsage;
-                Assert.IsNotNull(dbUsage);
-                Assert.AreEqual(expected.Content.Count, dbUsage.Content.Count);
-                Assert.AreEqual(expected.System.Count, dbUsage.System.Count);
+                Assert.AreEqual(0, collector.StatData.Count);
+                Assert.AreEqual(1, collector.Aggregations.Count);
+                var aggregation = collector.Aggregations[0];
+                Assert.AreEqual("DatabaseUsage", aggregation.DataType);
+                Assert.IsTrue(DateTime.UtcNow >= aggregation.Date);
+                Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
+                Assert.IsTrue(RemoveWhitespaces(aggregation.Data).Contains("{\"Content\":{\"Count\""));
+
             }).ConfigureAwait(false);
 
         }
@@ -347,6 +347,7 @@ namespace SenseNet.ContentRepository.Tests
         private class TestStatisticalDataCollector : IStatisticalDataCollector
         {
             public List<object> StatData { get; } = new List<object>();
+            public List<Aggregation> Aggregations { get; } = new List<Aggregation>();
 
             public System.Threading.Tasks.Task RegisterWebTransfer(WebTransferStatInput data, CancellationToken cancel)
             {
@@ -361,6 +362,20 @@ namespace SenseNet.ContentRepository.Tests
             public System.Threading.Tasks.Task RegisterGeneralData(GeneralStatInput data, CancellationToken cancel)
             {
                 StatData.Add(data);
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task RegisterGeneralData(string dataType, TimeResolution resolution, object data, CancellationToken cancel)
+            {
+                var aggregation = new Aggregation
+                {
+                    DataType = dataType,
+                    Date = DateTime.UtcNow.Truncate(resolution),
+                    Resolution = resolution,
+                    Data = StatisticalDataCollector.Serialize(data)
+                };
+
+                Aggregations.Add(aggregation);
                 return STT.Task.CompletedTask;
             }
         }
@@ -557,7 +572,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
         }
         [TestMethod]
-        public async STT.Task Stat_Collector_CollectDbUsage()
+        public async STT.Task Stat_Collector_CollectGeneralData()
         {
             var sdp = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(sdp);
@@ -584,6 +599,31 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull( record.EventName);
             Assert.IsNull( record.ErrorMessage);
             Assert.AreEqual("{\"Name\":\"Name1\",\"Value\":42}", RemoveWhitespaces(record.GeneralData));
+        }
+        [TestMethod]
+        public async STT.Task Stat_Collector_CollectDbUsage()
+        {
+            var sdp = new TestStatisticalDataProvider();
+            var collector = new StatisticalDataCollector(sdp);
+            var data = new { Name = "Name1", Value = 42 };
+            var input = new GeneralStatInput { DataType = "DbUsage", Data = data };
+            var now = DateTime.UtcNow;
+            var resolution = TimeResolution.Day;
+
+            // ACTION
+#pragma warning disable 4014
+            collector.RegisterGeneralData("DbUsage", resolution, data, CancellationToken.None);
+#pragma warning restore 4014
+
+            // ASSERT
+            await STT.Task.Delay(1);
+            Assert.AreEqual(0, sdp.Storage.Count);
+            Assert.AreEqual(1, sdp.Aggregations.Count);
+            var aggregation = sdp.Aggregations[0];
+            Assert.AreEqual("DbUsage", aggregation.DataType);
+            Assert.IsTrue(now >= aggregation.Date);
+            Assert.AreEqual(resolution, aggregation.Resolution);
+            Assert.AreEqual("{\"Name\":\"Name1\",\"Value\":42}", RemoveWhitespaces(aggregation.Data));
         }
 
         private class TestStatisticalDataProvider : IStatisticalDataProvider
