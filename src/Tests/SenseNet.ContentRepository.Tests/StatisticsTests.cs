@@ -855,7 +855,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Minutely()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var now = DateTime.UtcNow;
             var record = new StatisticalDataRecord
@@ -893,6 +898,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             // ACTION
+            aggregator = CreateAggregator();
             await aggregator.AggregateAsync(now.AddMinutes(-2), TimeResolution.Minute, CancellationToken.None);
 
             // ASSERT
@@ -903,9 +909,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Minute, aggregation.Resolution);
 
-            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
-            using (var reader = new StringReader(aggregation.Data))
-                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(60, deserialized.CallCount); // 60 * 6
             Assert.AreEqual(60 * 100, deserialized.RequestLengths);
             Assert.AreEqual(60 * 1000, deserialized.ResponseLengths);
@@ -919,7 +923,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Hourly()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var now = DateTime.UtcNow;
             var record = new StatisticalDataRecord
@@ -957,6 +966,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             // ACTION
+            aggregator = CreateAggregator();
             await aggregator.AggregateAsync(now.AddHours(-2), TimeResolution.Hour, CancellationToken.None);
 
             // ASSERT
@@ -967,9 +977,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
 
-            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
-            using (var reader = new StringReader(aggregation.Data))
-                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(360, deserialized.CallCount); // 60 * 6
             Assert.AreEqual(360 * 100, deserialized.RequestLengths);
             Assert.AreEqual(360 * 1000, deserialized.ResponseLengths);
@@ -983,7 +991,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Daily()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var now = DateTime.UtcNow;
             var record = new StatisticalDataRecord
@@ -1018,6 +1031,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             // ACTION
+            aggregator = CreateAggregator();
             await aggregator.AggregateAsync(now.AddDays(-2), TimeResolution.Day, CancellationToken.None);
 
             // ASSERT
@@ -1028,9 +1042,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Day, aggregation.Resolution);
 
-            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
-            using (var reader = new StringReader(aggregation.Data))
-                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(8640, deserialized.CallCount); // 24 * 60 * 6
             Assert.AreEqual(8640 * 100, deserialized.RequestLengths);
             Assert.AreEqual(8640 * 1000, deserialized.ResponseLengths);
@@ -1044,7 +1056,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Monthly()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var now = DateTime.UtcNow;
             var record = new StatisticalDataRecord
@@ -1090,6 +1107,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             // ACTION
+            aggregator = CreateAggregator();
             await aggregator.AggregateAsync(now.AddMonths(-2), TimeResolution.Day, CancellationToken.None);
 
             // ASSERT
@@ -1100,9 +1118,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Day, aggregation.Resolution);
 
-            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
-            using (var reader = new StringReader(aggregation.Data))
-                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(expectedCount, deserialized.CallCount);
             Assert.AreEqual(expectedCount * 100, deserialized.RequestLengths);
             Assert.AreEqual(expectedCount * 1000, deserialized.ResponseLengths);
@@ -1117,7 +1133,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_60MinutelyTo1Hourly()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            var aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var now = DateTime.UtcNow;
             var record = new StatisticalDataRecord
@@ -1155,12 +1176,16 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             for (var startTime = now.AddHours(-3); startTime < now.AddMinutes(-2); startTime = startTime.AddMinutes(1))
+            {
+                aggregator = CreateAggregator();
                 await aggregator.AggregateAsync(startTime, TimeResolution.Minute, CancellationToken.None);
+            }
 
             // ensure that the "Hour" aggregation works from minutely aggregations.
             statDataProvider.Storage.Clear();
 
             // ACTION
+            aggregator = CreateAggregator();
             await aggregator.AggregateAsync(now.AddHours(-2), TimeResolution.Hour, CancellationToken.None);
 
             // ASSERT
@@ -1171,9 +1196,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
 
-            WebHookStatisticalDataAggregator.WebHookAggregation deserialized;
-            using (var reader = new StringReader(aggregation.Data))
-                deserialized = JsonSerializer.Create().Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(reader));
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
 
             Assert.AreEqual(3600, deserialized.CallCount); // 60 * 60
             Assert.AreEqual(3600 * 100, deserialized.RequestLengths);
@@ -1189,7 +1212,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_Run_1day()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            WebHookStatisticalDataAggregator aggregator;
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var testStart = new DateTime(2019, 12, 31, 23, 59, 59);
             var testEnd = new DateTime(2020, 1, 2, 0, 0, 0);
@@ -1202,21 +1230,21 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var aggregationTime = now.AddSeconds(-1);
 
-                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                    aggregator = CreateAggregator();
                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
                     if (now.Minute == 0)
                     {
-                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                        aggregator = CreateAggregator();
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour,
                             CancellationToken.None);
                         if (now.Hour == 0)
                         {
-                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                            aggregator = CreateAggregator();
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day,
                                 CancellationToken.None);
                             if (now.Day == 1)
                             {
-                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                aggregator = CreateAggregator();
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month,
                                     CancellationToken.None);
                             }
@@ -1242,7 +1270,7 @@ namespace SenseNet.ContentRepository.Tests
                 aggregations[resolutionValue]= allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
                     .ToArray();
 
                 // The first elements are truncated need to contain only one request per any resolution.
@@ -1280,7 +1308,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_Run_1month()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            WebHookStatisticalDataAggregator aggregator;
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var testStart = new DateTime(2019, 12, 31, 23, 59, 01);
             var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
@@ -1292,19 +1325,19 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var aggregationTime = now.AddSeconds(-1);
 
-                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                    aggregator = CreateAggregator();
                     await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Minute, 60, statDataProvider);
                     if (now.Minute == 0)
                     {
-                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                        aggregator = CreateAggregator();
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
                         if (now.Hour == 0)
                         {
-                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                            aggregator = CreateAggregator();
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
                             if (now.Day == 1)
                             {
-                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                aggregator = CreateAggregator();
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
                             }
                         }
@@ -1328,7 +1361,7 @@ namespace SenseNet.ContentRepository.Tests
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
                     .ToArray();
 
                 // The first elements are truncated need to contain only one request per any resolution.
@@ -1345,7 +1378,12 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_Run_1year()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            WebHookStatisticalDataAggregator aggregator;
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator() });
+            }
+            StatisticalDataAggregationController aggregator;
 
             var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
             var testEnd = new DateTime(2021, 1, 1, 0, 0, 0);
@@ -1365,11 +1403,11 @@ namespace SenseNet.ContentRepository.Tests
                             await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
                             if (now.Hour == 0)
                             {
-                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                aggregator = CreateAggregator();
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
                                 if (now.Day == 1)
                                 {
-                                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                    aggregator = CreateAggregator();
                                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
                                 }
                             }
@@ -1397,7 +1435,7 @@ namespace SenseNet.ContentRepository.Tests
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
                     .ToArray();
             }
             // Per-minute aggregations are skipped
@@ -1417,7 +1455,7 @@ namespace SenseNet.ContentRepository.Tests
                 Date = date,
                 DataType = "WebHook",
                 Resolution = resolution,
-                Data = WebHookStatisticalDataAggregator.Serialize(
+                Data = SerializeAggregation(
                     new WebHookStatisticalDataAggregator.WebHookAggregation
                     {
                         CallCount = callCount,
@@ -1434,7 +1472,13 @@ namespace SenseNet.ContentRepository.Tests
         public async STT.Task Stat_Aggregation_WebHook_Run_DoNotWriteEmpty()
         {
             var statDataProvider = new TestStatisticalDataProvider();
-            WebHookStatisticalDataAggregator aggregator;
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] {new WebHookStatisticalDataAggregator()});
+            }
+            StatisticalDataAggregationController aggregator;
+            
 
             var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
             var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
@@ -1452,19 +1496,19 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         var aggregationTime = now.AddSeconds(-1);
 
-                        aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                        aggregator = CreateAggregator();
                         await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
                         if (now.Minute == 0)
                         {
-                            aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                            aggregator = CreateAggregator();
                             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
                             if (now.Hour == 0)
                             {
-                                aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                aggregator = CreateAggregator();
                                 await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
                                 if (now.Day == 1)
                                 {
-                                    aggregator = new WebHookStatisticalDataAggregator(statDataProvider);
+                                    aggregator = CreateAggregator();
                                     await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
                                 }
                             }
@@ -1489,7 +1533,7 @@ namespace SenseNet.ContentRepository.Tests
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => WebHookStatisticalDataAggregator.Deserialize(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
                     .ToArray();
             }
             Assert.AreEqual(1, aggregations[(int)TimeResolution.Minute][0].CallCount);
@@ -1499,6 +1543,18 @@ namespace SenseNet.ContentRepository.Tests
 
         }
 
+        private string SerializeAggregation(object obj)
+        {
+            var sb = new StringBuilder();
+            using (var writer = new StringWriter(sb))
+                JsonSerializer.Create().Serialize(writer, obj);
+            return sb.ToString();
+        }
+        private T DeserializeAggregation<T>(string src)
+        {
+            using (var reader = new StringReader(src))
+                return JsonSerializer.Create().Deserialize<T>(new JsonTextReader(reader));
+        }
         #endregion
 
     }

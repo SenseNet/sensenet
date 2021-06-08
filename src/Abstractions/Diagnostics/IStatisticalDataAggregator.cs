@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace SenseNet.Diagnostics
+﻿namespace SenseNet.Diagnostics
 {
     public enum TimeResolution { Minute = 0, Hour = 1, Day = 2, Month = 3 }
 
@@ -10,6 +6,11 @@ namespace SenseNet.Diagnostics
 
     public interface IStatisticalDataAggregator
     {
-        Task AggregateAsync(DateTime startTime, TimeResolution resolution, CancellationToken cancel);
+        string DataType { get; }
+        bool IsEmpty { get; }
+        object Data { get; }
+
+        void Aggregate(IStatisticalDataRecord data);
+        void Summarize(Aggregation[] aggregations);
     }
 }
