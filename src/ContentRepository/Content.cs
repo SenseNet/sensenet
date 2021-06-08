@@ -260,8 +260,31 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                var desc = this._fields.ContainsKey("Description") ? this["Description"] as string : _contentHandler.GetPropertySafely("Description") as string;
-                return String.IsNullOrEmpty(desc) ? Content.Create(_contentType).Description : desc;
+                string desc = null;
+
+                if (this._fields.ContainsKey("Description"))
+                {
+                    var fieldValue = this["Description"];
+                    switch (fieldValue)
+                    {
+                        case RichTextFieldValue rtFieldValue:
+                            desc = rtFieldValue.Text;
+                            break;
+                        case string stringValue:
+                            desc = stringValue;
+                            break;
+                    }
+                }
+                else
+                {
+                    desc = _contentHandler.GetPropertySafely("Description") as string;
+                }
+
+                // Fallback to the content type's description - if this is not that content type, because
+                // that would lead to an infinite loop.
+                return string.IsNullOrEmpty(desc) && this.Id != _contentType?.Id
+                    ? Content.Create(_contentType).Description 
+                    : desc;
             }
         }
         public string Icon

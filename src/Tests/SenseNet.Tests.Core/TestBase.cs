@@ -373,7 +373,7 @@ namespace SenseNet.Tests.Core
     <Field name='EngineSize' type='ShortText'/>
     <Field name='Power' type='ShortText'/>
     <Field name='Price' type='Number'/>
-    <Field name='Description' type='LongText'/>
+    <Field name='Description' type='RichText'/>
   </Fields>
 </ContentType>
 ";
