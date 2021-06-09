@@ -680,6 +680,8 @@ namespace SenseNet.ContentRepository.Tests
                 var relatedItems = Storage
                     .Where(x =>
                     {
+                        if (x.DataType != dataType)
+                            return false;
                         var requestTime = x.RequestTime ?? x.WrittenTime;
                         return (requestTime >= startTime && requestTime < endTimeExclusive);
                     });
@@ -1281,28 +1283,6 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(60 * 60, aggregations[(int)TimeResolution.Hour][1].CallCount);
             Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][1].CallCount);
         }
-        private async STT.Task GenerateWebHookRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
-        {
-            var count = statDataProvider.Storage.Count;
-            var error = (count % 10) == 0;
-            var warning = (count % 10) == 1;
-            var record = new StatisticalDataRecord
-            {
-                DataType = "WebHook",
-                WebHookId = 1242,
-                ContentId = 1342,
-                EventName = "Event42",
-                Url = "POST https://example.com/api/hook",
-                RequestLength = 100,
-                ResponseLength = 1000,
-                RequestTime = date,
-                ResponseTime = date.AddMilliseconds(100),
-                ResponseStatusCode = error ? 500 : (warning ? 400 : 200),
-                ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null)
-            };
-
-            await statDataProvider.WriteDataAsync(record, cancel);
-        }
 
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_Run_1month()
@@ -1541,6 +1521,217 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(1, aggregations[(int)TimeResolution.Day][0].CallCount);
             Assert.AreEqual(31, aggregations[(int)TimeResolution.Month][0].CallCount);
 
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_Mixed_Run_()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new IStatisticalDataAggregator[]
+                    {
+                        new WebHookStatisticalDataAggregator(),
+                        new WebTransferStatisticalDataAggregator(),
+                        new DatabaseUsageStatisticalDataAggregator()
+                    });
+            }
+            StatisticalDataAggregationController aggregator;
+
+
+            var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
+            var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
+            var now = testStart;
+
+            while (now <= testEnd)
+            {
+                if (now.Second == 0)
+                {
+                    // Generate two api call and a webhook call every day at ten.
+                    if (now.Hour == 10 && now.Minute == 0 && now.Second == 0)
+                    {
+                        await GenerateWebTransferRecordAsync(now, statDataProvider, CancellationToken.None);
+                        await GenerateWebTransferRecordAsync(now.AddSeconds(1), statDataProvider, CancellationToken.None);
+                        await GenerateWebHookRecordAsync(now.AddSeconds(2), statDataProvider, CancellationToken.None);
+                    }
+                    // Generate db usage in every hour.
+                    if (now.Minute == 0 && now.Second == 0)
+                    {
+                        await GenerateDbUsageAggregationAsync(now, TimeResolution.Hour, statDataProvider, CancellationToken.None);
+                    }
+
+                    if (now.Second == 0)
+                    {
+                        var aggregationTime = now.AddSeconds(-1);
+
+                        aggregator = CreateAggregator();
+                        await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
+                        if (now.Minute == 0)
+                        {
+                            aggregator = CreateAggregator();
+                            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
+                            if (now.Hour == 0)
+                            {
+                                aggregator = CreateAggregator();
+                                await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
+                                if (now.Day == 1)
+                                {
+                                    aggregator = CreateAggregator();
+                                    await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
+                                }
+                            }
+                        }
+                    }
+                }
+                now = now.AddSeconds(1);
+            }
+
+            var allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(62, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+            Assert.AreEqual(31 * 24 + 62, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+            Assert.AreEqual(93, allAggregations.Count(x => x.Resolution == TimeResolution.Day));
+            Assert.AreEqual(3, allAggregations.Count(x => x.Resolution == TimeResolution.Month));
+
+            var dt1 = "WebHook";
+            var resolutionCount1 = Enum.GetValues(typeof(TimeResolution)).Length;
+            var aggregations1 = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount1][];
+            for (int resolutionValue = 0; resolutionValue < resolutionCount1; resolutionValue++)
+            {
+                aggregations1[resolutionValue] = allAggregations
+                    .Where(x => x.DataType == dt1 && x.Resolution == (TimeResolution)resolutionValue)
+                    .Take(2)
+                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .ToArray();
+            }
+            Assert.AreEqual(1, aggregations1[(int)TimeResolution.Minute][0].CallCount);
+            Assert.AreEqual(1, aggregations1[(int)TimeResolution.Hour][0].CallCount);
+            Assert.AreEqual(1, aggregations1[(int)TimeResolution.Day][0].CallCount);
+            Assert.AreEqual(31, aggregations1[(int)TimeResolution.Month][0].CallCount);
+
+            var dt2 = "WebTransfer";
+            var resolutionCount2 = Enum.GetValues(typeof(TimeResolution)).Length;
+            var aggregations2 = new WebTransferStatisticalDataAggregator.WebTransferAggregation[resolutionCount2][];
+            for (int resolutionValue = 0; resolutionValue < resolutionCount2; resolutionValue++)
+            {
+                aggregations2[resolutionValue] = allAggregations
+                    .Where(x => x.DataType == dt2 && x.Resolution == (TimeResolution)resolutionValue)
+                    .Take(2)
+                    .Select(x => DeserializeAggregation<WebTransferStatisticalDataAggregator.WebTransferAggregation>(x.Data))
+                    .ToArray();
+            }
+            Assert.AreEqual(2, aggregations2[(int)TimeResolution.Minute][0].CallCount);
+            Assert.AreEqual(2, aggregations2[(int)TimeResolution.Hour][0].CallCount);
+            Assert.AreEqual(2, aggregations2[(int)TimeResolution.Day][0].CallCount);
+            Assert.AreEqual(62, aggregations2[(int)TimeResolution.Month][0].CallCount);
+
+            var dt3 = "DatabaseUsage";
+            var resolutionCount3 = Enum.GetValues(typeof(TimeResolution)).Length;
+            var aggregations3 = new string[resolutionCount3][];
+            for (int resolutionValue = 0; resolutionValue < resolutionCount3; resolutionValue++)
+            {
+                aggregations3[resolutionValue] = allAggregations
+                    .Where(x => x.DataType == dt3 && x.Resolution == (TimeResolution)resolutionValue)
+                    .Take(2)
+                    .Select(x => (x.Data))
+                    .ToArray();
+            }
+
+            var dbUsageAverage = RemoveWhitespaces(SerializeAggregation(new DatabaseUsage
+                {
+                    Content = new Dimensions         {Count = 101, Blob = 1011, Metadata = 1021, Text = 1031, Index = 1041},
+                    OldVersions = new Dimensions     {Count = 111, Blob = 1111, Metadata = 1121, Text = 1131, Index = 1141},
+                    Preview = new Dimensions         {Count = 121, Blob = 1211, Metadata = 1221, Text = 1231, Index = 1241},
+                    System = new Dimensions          {Count = 131, Blob = 1311, Metadata = 1321, Text = 1331, Index = 1341},
+                    OperationLog = new LogDimensions {Count = 141,              Metadata = 1421, Text = 1431},
+                    OrphanedBlobs = 43,
+                }));
+            // Per minute and hourly aggregations are skipped
+            Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Day][0]));
+            Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Month][0]));
+        }
+
+        private async STT.Task GenerateWebHookRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
+        {
+            var count = statDataProvider.Storage.Count;
+            var error = (count % 10) == 0;
+            var warning = (count % 10) == 1;
+            var record = new StatisticalDataRecord
+            {
+                DataType = "WebHook",
+                WebHookId = 1242,
+                ContentId = 1342,
+                EventName = "Event42",
+                Url = "POST https://example.com/api/hook",
+                RequestLength = 100,
+                ResponseLength = 1000,
+                RequestTime = date,
+                ResponseTime = date.AddMilliseconds(100),
+                ResponseStatusCode = error ? 500 : (warning ? 400 : 200),
+                ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null)
+            };
+
+            await statDataProvider.WriteDataAsync(record, cancel);
+        }
+        private async STT.Task GenerateWebTransferRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
+        {
+            var count = statDataProvider.Storage.Count;
+            var error = (count % 10) == 0;
+            var warning = (count % 10) == 1;
+            var record = new StatisticalDataRecord
+            {
+                DataType = "WebTransfer",
+                Url = "GET https://example.com/api",
+                RequestLength = 100,
+                ResponseLength = 1000,
+                RequestTime = date,
+                ResponseTime = date.AddMilliseconds(100),
+                ResponseStatusCode = 200,
+            };
+
+            await statDataProvider.WriteDataAsync(record, cancel);
+        }
+        private async STT.Task GenerateDbUsageAggregationAsync(DateTime date, TimeResolution resolution, TestStatisticalDataProvider statDataProvider,
+            CancellationToken cancel)
+        {
+            DatabaseUsage data;
+            if (date.Hour % 2 == 0)
+            {
+                data = new DatabaseUsage
+                {
+                    Content = new Dimensions         {Count = 100, Blob = 1010, Metadata = 1020, Text = 1030, Index = 1040},
+                    OldVersions = new Dimensions     {Count = 110, Blob = 1110, Metadata = 1120, Text = 1130, Index = 1140},
+                    Preview = new Dimensions         {Count = 120, Blob = 1210, Metadata = 1220, Text = 1230, Index = 1240},
+                    System = new Dimensions          {Count = 130, Blob = 1310, Metadata = 1320, Text = 1330, Index = 1340},
+                    OperationLog = new LogDimensions {Count = 140,              Metadata = 1420, Text = 1430},
+                    OrphanedBlobs = 42,
+                    Executed = date.AddMinutes(-5),
+                    ExecutionTime = TimeSpan.FromSeconds(0.5)
+                };
+            }
+            else
+            {
+                data = new DatabaseUsage
+                {
+                    Content = new Dimensions         {Count = 102, Blob = 1012, Metadata = 1022, Text = 1032, Index = 1042},
+                    OldVersions = new Dimensions     {Count = 112, Blob = 1112, Metadata = 1122, Text = 1132, Index = 1142},
+                    Preview = new Dimensions         {Count = 122, Blob = 1212, Metadata = 1222, Text = 1232, Index = 1242},
+                    System = new Dimensions          {Count = 132, Blob = 1312, Metadata = 1322, Text = 1332, Index = 1342},
+                    OperationLog = new LogDimensions {Count = 142,              Metadata = 1422, Text = 1432},
+                    OrphanedBlobs = 44,
+                    Executed = date.AddMinutes(-5),
+                    ExecutionTime = TimeSpan.FromSeconds(0.5)
+                };
+            }
+
+            var aggregation = new Aggregation
+            {
+                DataType = "DatabaseUsage",
+                Date = date.Truncate(resolution),
+                Resolution = resolution,
+                Data = SerializeAggregation(data)
+            };
+
+            await statDataProvider.WriteAggregationAsync(aggregation, cancel);
         }
 
         private string SerializeAggregation(object obj)
