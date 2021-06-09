@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Data;
 
 namespace SenseNet.Diagnostics
 {
@@ -22,7 +23,7 @@ namespace SenseNet.Diagnostics
         }
     }
 
-    public interface IStatisticalDataProvider
+    public interface IStatisticalDataProvider : IDataProviderExtension
     {
         Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel);
         Task CleanupAsync(DateTime timeMax, CancellationToken cancel);

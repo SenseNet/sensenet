@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Data;
 
 // ReSharper disable CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data

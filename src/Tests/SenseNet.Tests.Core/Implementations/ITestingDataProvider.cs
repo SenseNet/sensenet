@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Data;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Core.Implementations

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
