@@ -22,8 +22,8 @@ namespace SenseNet.WebHooks
         public override void AddPatches(PatchBuilder builder)
         {
             builder
-                .Install("0.0.3", "2021-03-17", "sensenet WebHooks")
-                .DependsOn("SenseNet.Services", "7.7.19")
+                .Install("0.0.4", "2021-06-09", "sensenet WebHooks")
+                .DependsOn("SenseNet.Services", "7.7.22")
                 .Action(context =>
                 {
                     #region String resource
@@ -106,6 +106,14 @@ namespace SenseNet.WebHooks
                     CreateWebHooksContainer();
 
                     #endregion
+                });
+
+            builder.Patch("0.0.3", "0.0.4", "2021-06-09", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.22")
+                .Action(context =>
+                {
+                    // Do nothing, this is just a version update, because the CTD change (richtext type
+                    // change of the Description field) is already handled by the Services component patch.
                 });
         }
 

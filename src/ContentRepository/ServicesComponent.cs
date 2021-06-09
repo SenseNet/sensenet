@@ -905,11 +905,10 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.21", "7.7.21.1", "2021-05-25", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.21", "7.7.22", "2021-06-09", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
-                    var logger = (context.Settings as RepositoryBuilder)?.Services?
-                        .GetService<ILogger<ServicesComponent>>();
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
 
                     #region Permission changes
 
@@ -935,12 +934,8 @@ namespace SenseNet.ContentRepository
                     aclEditor.Apply();
 
                     #endregion
-                });
 
-            builder.Patch("7.7.21.1", "7.7.21.2", "2021-06-04", "Upgrades sensenet content repository.")
-                .Action(context =>
-                {
-                    #region CTD changes: field type changes
+                    #region CTD changes: longtext --> richtext field type changes
 
                     var ctLogger = context.GetService<ILogger<ContentTypeBuilder>>();
                     var longTextFieldsToConvert = ContentType.GetContentTypes().SelectMany(ct => ct.FieldSettings).Where(fs =>
