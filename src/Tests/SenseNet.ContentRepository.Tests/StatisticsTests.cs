@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SenseNet.BackgroundOperations;
@@ -1739,5 +1740,16 @@ namespace SenseNet.ContentRepository.Tests
         }
         #endregion
 
+        [TestMethod]
+        public void Stat_Config()
+        {
+            var services = new ServiceCollection()
+                .AddOptions<StatisticsOptions>()
+                .Services.BuildServiceProvider();
+
+            var statOptions = services.GetService<IOptions<StatisticsOptions>>().Value;
+
+            Assert.AreEqual(180, statOptions.Retention.ApiCalls.Momentary);
+        }
     }
 }
