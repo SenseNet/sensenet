@@ -470,6 +470,17 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
         {
             return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
         }
+
+        public Task DeleteAllStatisticalDataRecordsAsync(IStatisticalDataProvider dataProvider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider)
+        {
+            throw new NotImplementedException();
+        }
+
         #region MsSqlCannotCommitDataProvider classes
         private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
         {

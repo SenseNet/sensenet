@@ -40,19 +40,6 @@ namespace SenseNet.ContentRepository.InMemory
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        //public STT.Task EnumerateDataAsync(DateTime timeMax, Action<IStatisticalDataRecord> aggregator,
-        //    CancellationToken cancel)
-        //{
-        //    var relatedItems = Storage
-        //        .Where(x => x.RequestTime.HasValue ? x.RequestTime.Value < timeMax : x.WrittenTime < timeMax);
-        //    foreach (var item in relatedItems)
-        //    {
-        //        cancel.ThrowIfCancellationRequested();
-        //        aggregator(item);
-        //    }
-        //    return STT.Task.CompletedTask;
-        //}
-
         public STT.Task CleanupAsync(DateTime timeMax, CancellationToken cancel)
         {
             throw new NotImplementedException(); //UNDONE:<?Stat: Implement CleanupAsync
@@ -69,12 +56,9 @@ namespace SenseNet.ContentRepository.InMemory
             throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadAggregatedUsageAsync
         }
 
-
         public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
             TimeResolution resolution, Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
         {
-            var result = new List<Aggregation>();
-
             var relatedItems = Storage
                 .Where(x =>
                 {

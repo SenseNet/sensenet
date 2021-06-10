@@ -44,6 +44,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
+                .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -74,6 +75,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
         public abstract ISearchEngine GetSearchEngine();
-
+        public abstract IStatisticalDataProvider GetStatisticalDataProvider();
     }
 }

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -103,6 +104,11 @@ namespace SenseNet.IntegrationTests.Platforms
                 IndexingEngine = indexingEngine,
                 QueryEngine = new Lucene29LocalQueryEngine()
             };
+        }
+
+        public override IStatisticalDataProvider GetStatisticalDataProvider()
+        {
+            throw new NotImplementedException();
         }
 
         /* ============================================================== */

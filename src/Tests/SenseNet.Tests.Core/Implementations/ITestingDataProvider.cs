@@ -48,5 +48,8 @@ namespace SenseNet.Tests.Core.Implementations
         void SetSharedLockCreationDate(int nodeId, DateTime value);
 
         DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider);
+
+        Task DeleteAllStatisticalDataRecordsAsync(IStatisticalDataProvider dataProvider);
+        Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider);
     }
 }

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
@@ -100,6 +101,10 @@ namespace SenseNet.IntegrationTests.Platforms
         public override ISearchEngine GetSearchEngine()
         {
             return new InMemorySearchEngine(new InMemoryIndex());
+        }
+        public override IStatisticalDataProvider GetStatisticalDataProvider()
+        {
+            return new InMemoryStatisticalDataProvider();
         }
     }
 }
