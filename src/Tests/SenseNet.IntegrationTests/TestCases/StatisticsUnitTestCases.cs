@@ -26,7 +26,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
-                await TDP.DeleteAllStatisticalDataRecordsAsync(DP);
+                await TDP.DeleteAllStatisticalDataAsync(DP);
                 var now = DateTime.UtcNow;
                 var record1 = new StatisticalDataRecord
                 {
@@ -104,11 +104,11 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsNull(loaded2.GeneralData);
             });
         }
-        public async Task Stat_DataProvider_EnumerateData_ByRequestTime()
+        public async Task Stat_DataProvider_EnumerateData()
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
-                await TDP.DeleteAllStatisticalDataRecordsAsync(DP);
+                await TDP.DeleteAllStatisticalDataAsync(DP);
 
                 var now = new DateTime(2020, 01, 01, 0, 0, 0);
                 for (var i = 0; i < 30; i++) // more than 2 month (1 records per day)
@@ -140,6 +140,72 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT
                 Assert.AreEqual("11 13 15 17 19", string.Join(" ", list1));
                 Assert.AreEqual("12 14 16 18 20", string.Join(" ", list2));
+            });
+        }
+        public async Task Stat_DataProvider_WriteAggregation()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                // ACTION
+                var now = new DateTime(2020, 01, 01, 0, 0, 0);
+                for (var i = 0; i < 4; i++)
+                {
+                    await DP.WriteAggregationAsync(new Aggregation
+                            {DataType = $"DataType{i}", Date = now, Resolution = (TimeResolution) i, Data = $"Data{i}"},
+                        CancellationToken.None);
+                }
+                
+                // ASSERT
+                var aggregations = (await TDP.LoadAllStatisticalDataAggregations(DP)).ToArray();
+                Assert.AreEqual(4, aggregations.Length);
+                for (var i = 0; i < 4; i++)
+                {
+                    Assert.AreEqual($"DataType{i}", aggregations[i].DataType);
+                    Assert.AreEqual(now, aggregations[i].Date);
+                    Assert.AreEqual((TimeResolution)i, aggregations[i].Resolution);
+                    Assert.AreEqual($"Data{i}", aggregations[i].Data);
+                }
+            });
+        }
+        public async Task Stat_DataProvider_LoadAggregations()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                var now = new DateTime(2010, 01, 01, 0, 0, 0);
+                for (var j = 0; j < 30; j++)
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        await DP.WriteAggregationAsync(new Aggregation
+                                { DataType = $"DT{j % 3}", Date = now, Resolution = (TimeResolution)i, Data = $"{j * 4 + i}" },
+                            CancellationToken.None);
+                    }
+                    now = now.AddMonths(1);
+                }
+
+                var start = new DateTime(2011, 01, 1, 0, 0, 0);
+                var end = new DateTime(2012, 01, 1, 0, 0, 0);
+
+                for (var j = 0; j < 3; j++)
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        // ACTION
+                        var aggregations = (await DP.LoadAggregatedUsageAsync("DT" + j, (TimeResolution)i, start, end,
+                            CancellationToken.None).ConfigureAwait(false)).ToArray();
+
+                        // ASSERT
+                        var q = (12 + j) * 4 + i;
+                        var expected = $"{q} {q + 12} {q + 24} {q + 36}";
+                        var actual = string.Join(" ", aggregations.Select(x => x.Data));
+                        Assert.AreEqual(expected, actual);
+                    }
+                    now = now.AddMonths(1);
+                }
             });
         }
     }

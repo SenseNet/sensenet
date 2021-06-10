@@ -49,7 +49,8 @@ namespace SenseNet.Tests.Core.Implementations
 
         DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider);
 
-        Task DeleteAllStatisticalDataRecordsAsync(IStatisticalDataProvider dataProvider);
+        Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider);
         Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider);
+        Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider);
     }
 }

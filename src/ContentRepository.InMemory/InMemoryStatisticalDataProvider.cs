@@ -16,6 +16,7 @@ namespace SenseNet.ContentRepository.InMemory
         }
 
         private List<StatisticalDataRecord> Storage { get; } = new List<StatisticalDataRecord>();
+        private List<Aggregation> Aggregations { get; } = new List<Aggregation>();
 
         public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
         {
@@ -55,7 +56,12 @@ namespace SenseNet.ContentRepository.InMemory
         public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
             DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
         {
-            throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadAggregatedUsageAsync
+            var result = Aggregations.Where(x =>
+                x.DataType == dataType &&
+                x.Resolution == resolution &&
+                x.Date >= startTime &&
+                x.Date < endTimeExclusive).ToArray();
+            return STT.Task.FromResult((IEnumerable<Aggregation>)result);
         }
 
         public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
@@ -75,7 +81,19 @@ namespace SenseNet.ContentRepository.InMemory
 
         public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
         {
-            throw new NotImplementedException(); //UNDONE:<?Stat: Implement WriteAggregation
+            Aggregations.Add(CloneAggregation(aggregation));
+            return STT.Task.CompletedTask;
+        }
+
+        private Aggregation CloneAggregation(Aggregation aggregation)
+        {
+            return new Aggregation
+            {
+                DataType = aggregation.DataType,
+                Date = aggregation.Date,
+                Resolution = aggregation.Resolution,
+                Data = aggregation.Data
+            };
         }
     }
 }
