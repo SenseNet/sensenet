@@ -57,11 +57,13 @@ namespace SenseNet.ContentRepository.InMemory
         }
 
         public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
-            TimeResolution resolution, Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
+            Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
         {
             var relatedItems = Storage
                 .Where(x =>
                 {
+                    if (x.DataType != dataType)
+                        return false;
                     var requestTime = x.RequestTime ?? x.WrittenTime;
                     return (requestTime >= startTime && requestTime < endTimeExclusive);
                 });

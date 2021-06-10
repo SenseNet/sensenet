@@ -11,5 +11,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     {
         [TestMethod]
         public async Task UT_InMem_Stat_DataProvider_WriteData() { await TestCase.Stat_DataProvider_WriteData().ConfigureAwait(false); }
+        [TestMethod]
+        public async Task UT_InMem_Stat_DataProvider_EnumerateData_ByRequestTime() { await TestCase.Stat_DataProvider_EnumerateData_ByRequestTime().ConfigureAwait(false); }
     }
 }

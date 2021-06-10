@@ -33,7 +33,7 @@ namespace SenseNet.Diagnostics
             DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel);
 
         Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
-            TimeResolution resolution, Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel);
+            Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel);
 
         Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel);
     }

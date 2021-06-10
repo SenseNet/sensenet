@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,52 +106,42 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsNull(loaded2.GeneralData);
             });
         }
-        public async Task Stat_DataProvider_WriteData_Null()
+        public async Task Stat_DataProvider_EnumerateData_ByRequestTime()
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
                 await TDP.DeleteAllStatisticalDataRecordsAsync(DP);
-                var record = new StatisticalDataRecord
+
+                var now = new DateTime(2020, 01, 01, 0, 0, 0);
+                for (var i = 0; i < 30; i++) // more than 2 month (1 records per day)
                 {
-                    Id = 0,
-                    DataType = "DataType1",
-                    WrittenTime = DateTime.MinValue,
-                    RequestTime = null,
-                    ResponseTime = null,
-                    RequestLength = null,
-                    ResponseLength = null,
-                    ResponseStatusCode = null,
-                    Url = null,
-                    WebHookId = null,
-                    ContentId = null,
-                    EventName = null,
-                    ErrorMessage = null,
-                    GeneralData = null
-                };
+                    await DP.WriteDataAsync(new StatisticalDataRecord
+                    {
+                        DataType = $"DataType{(i % 2) + 1}",
+                        RequestTime = now,
+                        GeneralData = now.Day.ToString()
+                    }, CancellationToken.None);
+
+                    now = now.AddDays(1);
+                }
 
                 // ACTION
-                await DP.WriteDataAsync(record, CancellationToken.None);
+                var list1 = new List<string>();
+                var list2 = new List<string>();
+                var start = new DateTime(2020, 01, 11, 0, 0, 0);
+                var end = new DateTime(2020, 01, 21, 0, 0, 0);
+                await DP.EnumerateDataAsync("DataType1", start, end, record =>
+                {
+                    list1.Add(record.GeneralData);
+                }, CancellationToken.None);
+                await DP.EnumerateDataAsync("DataType2", start, end, record =>
+                {
+                    list2.Add(record.GeneralData);
+                }, CancellationToken.None);
 
                 // ASSERT
-                var loadedRecords = (await TDP.LoadAllStatisticalDataRecords(DP)).ToArray();
-                Assert.AreEqual(1, loadedRecords.Length);
-                var loaded = loadedRecords[0];
-                Assert.AreNotSame(record, loaded);
-                Assert.AreNotEqual(record.Id, loaded.Id);
-                Assert.AreEqual(record.DataType, loaded.DataType);
-                Assert.IsTrue(loaded.WrittenTime > loaded.RequestTime);
-                Assert.IsTrue(loaded.RequestTime.HasValue);
-                Assert.IsTrue(loaded.ResponseTime.HasValue);
-                Assert.AreEqual(loaded.RequestTime.Value, loaded.ResponseTime.Value.AddMilliseconds(-10));
-                Assert.AreEqual(record.RequestLength, loaded.RequestLength);
-                Assert.AreEqual(record.ResponseLength, loaded.ResponseLength);
-                Assert.AreEqual(record.ResponseStatusCode, loaded.ResponseStatusCode);
-                Assert.AreEqual(record.Url, loaded.Url);
-                Assert.AreEqual(record.WebHookId, loaded.WebHookId);
-                Assert.AreEqual(record.ContentId, loaded.ContentId);
-                Assert.AreEqual(record.EventName, loaded.EventName);
-                Assert.AreEqual(record.ErrorMessage, loaded.ErrorMessage);
-                Assert.AreEqual(record.GeneralData, loaded.GeneralData);
+                Assert.AreEqual("11 13 15 17 19", string.Join(" ", list1));
+                Assert.AreEqual("12 14 16 18 20", string.Join(" ", list2));
             });
         }
     }

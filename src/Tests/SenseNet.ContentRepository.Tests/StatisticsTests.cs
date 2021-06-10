@@ -673,7 +673,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
-                TimeResolution resolution, Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
+                Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
             {
                 var result = new List<Aggregation>();
 

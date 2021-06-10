@@ -32,7 +32,7 @@ namespace SenseNet.Services.Core.Diagnostics
             {
                 if (!await TryProcessAggregationsAsync(aggregator, start, end, resolution, cancel))
                 {
-                    await _statDataProvider.EnumerateDataAsync(aggregator.DataType, start, end, resolution, aggregator.Aggregate, cancel);
+                    await _statDataProvider.EnumerateDataAsync(aggregator.DataType, start, end, aggregator.Aggregate, cancel);
                 }
 
                 if (aggregator.IsEmpty)
