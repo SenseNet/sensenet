@@ -4,6 +4,7 @@
     {
         public AggregationRetention ApiCalls { get; set; } = new();
         public AggregationRetention WebHooks { get; set; } = new();
+        public AggregationRetention DatabaseUsage { get; set; } = new();
         public AggregationRetention General { get; set; } = new();
     }
 
