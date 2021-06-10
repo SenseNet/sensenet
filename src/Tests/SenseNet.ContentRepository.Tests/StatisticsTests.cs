@@ -494,14 +494,14 @@ namespace SenseNet.ContentRepository.Tests
         {
             var sdp = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(sdp);
-            var time1 = DateTime.UtcNow.AddDays(-1);
-            var time2 = time1.AddSeconds(1);
+            var time = DateTime.UtcNow.AddDays(-1);
+            var duration = TimeSpan.FromSeconds(1);
             var input = new WebTransferStatInput
             {
                 Url = "Url1",
                 HttpMethod = "GET",
-                RequestTime = time1,
-                ResponseTime = time2,
+                RequestTime = time,
+                ResponseTime = time.Add(duration),
                 RequestLength = 42,
                 ResponseLength = 4242,
                 ResponseStatusCode = 200,
@@ -518,8 +518,8 @@ namespace SenseNet.ContentRepository.Tests
             var record = sdp.Storage[0];
             Assert.AreEqual("WebTransfer", record.DataType);
             Assert.AreEqual("GET Url1", record.Url);
-            Assert.AreEqual(time1, record.RequestTime);
-            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(time, record.CreationTime);
+            Assert.AreEqual(duration, record.Duration);
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
@@ -533,14 +533,14 @@ namespace SenseNet.ContentRepository.Tests
         {
             var sdp = new TestStatisticalDataProvider();
             var collector = new StatisticalDataCollector(sdp);
-            var time1 = DateTime.UtcNow.AddDays(-1);
-            var time2 = time1.AddSeconds(1);
+            var time = DateTime.UtcNow.AddDays(-1);
+            var duration = TimeSpan.FromSeconds(1);
             var input = new WebHookStatInput
             {
                 Url = "Url1",
                 HttpMethod = "POST",
-                RequestTime = time1,
-                ResponseTime = time2,
+                RequestTime = time,
+                ResponseTime = time.Add(duration),
                 RequestLength = 42,
                 ResponseLength = 4242,
                 ResponseStatusCode = 200,
@@ -561,8 +561,8 @@ namespace SenseNet.ContentRepository.Tests
             var record = sdp.Storage[0];
             Assert.AreEqual("WebHook", record.DataType);
             Assert.AreEqual("POST Url1", record.Url);
-            Assert.AreEqual(time1, record.RequestTime);
-            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(time, record.CreationTime);
+            Assert.AreEqual(duration, record.Duration);
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
@@ -589,8 +589,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(1, sdp.Storage.Count);
             var record = sdp.Storage[0];
             Assert.AreEqual("DataType1", record.DataType);
-            Assert.IsNull( record.RequestTime);
-            Assert.IsNull( record.ResponseTime);
+            Assert.IsNotNull( record.CreationTime);
+            Assert.IsNull( record.Duration);
             Assert.IsNull( record.RequestLength);
             Assert.IsNull( record.ResponseLength);
             Assert.IsNull( record.ResponseStatusCode);
@@ -633,13 +633,15 @@ namespace SenseNet.ContentRepository.Tests
 
             public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
             {
+                var now = DateTime.UtcNow;
+
                 Storage.Add(new StatisticalDataRecord
                 {
                     Id = 0,
                     DataType = data.DataType,
-                    WrittenTime = DateTime.UtcNow,
-                    RequestTime = data.RequestTime,
-                    ResponseTime = data.ResponseTime,
+                    WrittenTime = now,
+                    CreationTime = data.CreationTime ?? now,
+                    Duration = data.Duration,
                     RequestLength = data.RequestLength,
                     ResponseLength = data.ResponseLength,
                     ResponseStatusCode = data.ResponseStatusCode,
@@ -677,14 +679,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var result = new List<Aggregation>();
 
-                var relatedItems = Storage
-                    .Where(x =>
-                    {
-                        if (x.DataType != dataType)
-                            return false;
-                        var requestTime = x.RequestTime ?? x.WrittenTime;
-                        return (requestTime >= startTime && requestTime < endTimeExclusive);
-                    });
+                var relatedItems = Storage.Where(
+                    x => x.DataType == dataType && x.CreationTime >= startTime && x.CreationTime < endTimeExclusive);
 
                 foreach (var item in relatedItems)
                 {
@@ -721,8 +717,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, record.Id);
             Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
 
-            Assert.IsNull(record.RequestTime);
-            Assert.IsNull(record.ResponseTime);
+            Assert.IsNull(record.CreationTime);
+            Assert.IsNull(record.Duration);
             Assert.IsNull(record.RequestLength);
             Assert.IsNull(record.ResponseLength);
             Assert.IsNull(record.ResponseStatusCode);
@@ -758,8 +754,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, record.Id);
             Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
 
-            Assert.AreEqual(time1, record.RequestTime);
-            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(time1, record.CreationTime);
+            Assert.AreEqual(time2 - time1, record.Duration);
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
@@ -799,8 +795,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, record.Id);
             Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
 
-            Assert.AreEqual(time1, record.RequestTime);
-            Assert.AreEqual(time2, record.ResponseTime);
+            Assert.AreEqual(time1, record.CreationTime);
+            Assert.AreEqual(time2 - time1, record.Duration);
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
@@ -876,7 +872,7 @@ namespace SenseNet.ContentRepository.Tests
                 ResponseLength = 1000,
             };
             var time1 = now.AddMinutes(-3);
-            var time2 = time1.AddMilliseconds(100);
+            var duration = TimeSpan.FromMilliseconds(100);
             var count = 0;
 
             var d = now.AddMinutes(-2);
@@ -884,8 +880,8 @@ namespace SenseNet.ContentRepository.Tests
             var expectedEnd = expectedStart.AddMinutes(1);
             while (true)
             {
-                record.RequestTime = time1;
-                record.ResponseTime = time2;
+                record.CreationTime = time1;
+                record.Duration = duration;
                 var error = (++count % 10) == 0;
                 var warning = (count % 10) == 1;
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
@@ -894,8 +890,7 @@ namespace SenseNet.ContentRepository.Tests
                 await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(1);
-                time2 = time1.AddMilliseconds(100);
-                if (time2 > now)
+                if (time1.Add(duration) > now)
                     break;
             }
 
@@ -944,7 +939,7 @@ namespace SenseNet.ContentRepository.Tests
                 ResponseLength = 1000,
             };
             var time1 = now.AddHours(-3);
-            var time2 = time1.AddMilliseconds(100);
+            var duration = TimeSpan.FromMilliseconds(100);
             var count = 0;
 
             var d = now.AddHours(-2);
@@ -952,8 +947,8 @@ namespace SenseNet.ContentRepository.Tests
             var expectedEnd = expectedStart.AddDays(1);
             while (true)
             {
-                record.RequestTime = time1;
-                record.ResponseTime = time2;
+                record.CreationTime = time1;
+                record.Duration = duration;
                 var error = (++count % 10) == 0;
                 var warning = (count % 10) == 1;
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
@@ -962,8 +957,7 @@ namespace SenseNet.ContentRepository.Tests
                 await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(10);
-                time2 = time1.AddMilliseconds(100);
-                if (time2 > now)
+                if (time1.Add(duration) > now)
                     break;
             }
 
@@ -1009,7 +1003,7 @@ namespace SenseNet.ContentRepository.Tests
                 RequestLength = 100, ResponseLength = 1000,
             };
             var time1 = now.AddDays(-3);
-            var time2 = time1.AddMilliseconds(100);
+            var duration = TimeSpan.FromMilliseconds(100);
             var count = 0;
 
             var d = now.AddDays(-2);
@@ -1017,8 +1011,8 @@ namespace SenseNet.ContentRepository.Tests
             var expectedEnd = expectedStart.AddDays(1);
             while (true)
             {
-                record.RequestTime = time1;
-                record.ResponseTime = time2;
+                record.CreationTime = time1;
+                record.Duration = duration;
                 var error = (++count % 10) == 0;
                 var warning = (count % 10) == 1;
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
@@ -1027,8 +1021,7 @@ namespace SenseNet.ContentRepository.Tests
                 await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(10);
-                time2 = time1.AddMilliseconds(100);
-                if (time2 > now)
+                if (time1.Add(duration) > now)
                     break;
             }
 
@@ -1077,7 +1070,7 @@ namespace SenseNet.ContentRepository.Tests
                 ResponseLength = 1000,
             };
             var time1 = now.AddMonths(-3);
-            var time2 = time1.AddMilliseconds(100);
+            var duration = TimeSpan.FromMilliseconds(100);
             var count = 0;
 
             var d = now.AddMonths(-2);
@@ -1087,8 +1080,8 @@ namespace SenseNet.ContentRepository.Tests
             var expectedErrorCount = 0;
             while (true)
             {
-                record.RequestTime = time1;
-                record.ResponseTime = time2;
+                record.CreationTime = time1;
+                record.Duration = duration;
                 var error = (++count % 10) == 0;
                 record.ResponseStatusCode = error ? 500 : 200;
                 record.ErrorMessage = error ? "ErrorMessage1" : null;
@@ -1103,8 +1096,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 time1 = time1.AddMinutes(10);
-                time2 = time1.AddMilliseconds(100);
-                if (time2 > now)
+                if (time1.Add(duration) > now)
                     break;
             }
 
@@ -1154,7 +1146,7 @@ namespace SenseNet.ContentRepository.Tests
                 ResponseLength = 1000,
             };
             var time1 = now.AddHours(-3);
-            var time2 = time1.AddMilliseconds(100);
+            var duration = TimeSpan.FromMilliseconds(100);
             var count = 0;
 
             var d = now.AddHours(-2);
@@ -1162,8 +1154,8 @@ namespace SenseNet.ContentRepository.Tests
             var expectedEnd = expectedStart.AddHours(1);
             while (true)
             {
-                record.RequestTime = time1;
-                record.ResponseTime = time2;
+                record.CreationTime = time1;
+                record.Duration = duration;
                 var error = (++count % 10) == 0;
                 var warning = (count % 10) == 1;
                 record.ResponseStatusCode = error ? 500 : (warning ? 400 : 200);
@@ -1172,8 +1164,7 @@ namespace SenseNet.ContentRepository.Tests
                 await statDataProvider.WriteDataAsync(record, CancellationToken.None);
 
                 time1 = time1.AddSeconds(1);
-                time2 = time1.AddMilliseconds(100);
-                if (time2 > now)
+                if (time1.Add(duration) > now)
                     break;
             }
 
@@ -1664,8 +1655,8 @@ namespace SenseNet.ContentRepository.Tests
                 Url = "POST https://example.com/api/hook",
                 RequestLength = 100,
                 ResponseLength = 1000,
-                RequestTime = date,
-                ResponseTime = date.AddMilliseconds(100),
+                CreationTime = date,
+                Duration = TimeSpan.FromMilliseconds(100),
                 ResponseStatusCode = error ? 500 : (warning ? 400 : 200),
                 ErrorMessage = error ? "ErrorMessage1" : (warning ? "WarningMessage" : null)
             };
@@ -1683,8 +1674,8 @@ namespace SenseNet.ContentRepository.Tests
                 Url = "GET https://example.com/api",
                 RequestLength = 100,
                 ResponseLength = 1000,
-                RequestTime = date,
-                ResponseTime = date.AddMilliseconds(100),
+                CreationTime = date,
+                Duration = TimeSpan.FromMilliseconds(100),
                 ResponseStatusCode = 200,
             };
 

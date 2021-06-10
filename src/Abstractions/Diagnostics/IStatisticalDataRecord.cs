@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SenseNet.Diagnostics
 {
@@ -9,8 +7,8 @@ namespace SenseNet.Diagnostics
         int Id { get; }                    // by provider
         string DataType { get; }           // General
         DateTime WrittenTime { get; }      // by provider
-        DateTime? RequestTime { get; }     // from WebTransfer
-        DateTime? ResponseTime { get; }    // from WebTransfer
+        DateTime? CreationTime { get; }    // from WebTransfer
+        TimeSpan? Duration { get; }        // from WebTransfer
         long? RequestLength { get; }       // from WebTransfer
         long? ResponseLength { get; }      // from WebTransfer
         int? ResponseStatusCode { get; }   // from WebTransfer
@@ -27,8 +25,8 @@ namespace SenseNet.Diagnostics
         public int Id { get; set; }
         public string DataType { get; set; }
         public DateTime WrittenTime { get; set; }
-        public DateTime? RequestTime { get; set; }
-        public DateTime? ResponseTime { get; set; }
+        public DateTime? CreationTime { get; set; }
+        public TimeSpan? Duration { get; set; }
         public long? RequestLength { get; set; }
         public long? ResponseLength { get; set; }
         public int? ResponseStatusCode { get; set; }

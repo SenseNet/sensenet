@@ -29,8 +29,8 @@ namespace SenseNet.Services.Core.Diagnostics
         public int Id => 0;
         public string DataType => _generalData?.DataType ?? (_webHookData == null ? "WebTransfer" : "WebHook");
         public DateTime WrittenTime => DateTime.MinValue;
-        public DateTime? RequestTime => _webHookData?.RequestTime ?? _webTransferData?.RequestTime;
-        public DateTime? ResponseTime => _webHookData?.ResponseTime ?? _webTransferData?.ResponseTime;
+        public DateTime? CreationTime => _webHookData?.RequestTime ?? _webTransferData?.RequestTime;
+        public TimeSpan? Duration => GetDuration();
         public long? RequestLength => _webHookData?.RequestLength ?? _webTransferData?.RequestLength;
         public long? ResponseLength => _webHookData?.ResponseLength ?? _webTransferData?.ResponseLength;
         public int? ResponseStatusCode => _webHookData?.ResponseStatusCode ?? _webTransferData?.ResponseStatusCode;
@@ -50,6 +50,14 @@ namespace SenseNet.Services.Core.Diagnostics
         public string ErrorMessage => _webHookData?.ErrorMessage;
 
         public string GeneralData => _serializedGeneralData ??= SerializeGeneralData(_generalData?.Data);
+
+        private TimeSpan? GetDuration()
+        {
+            var requestTime = _webHookData?.RequestTime ?? _webTransferData?.RequestTime;
+            if (requestTime == null)
+                return null;
+            return (_webHookData?.ResponseTime ?? _webTransferData?.ResponseTime) - requestTime;
+        }
 
         private string SerializeGeneralData(object data)
         {

@@ -19,13 +19,15 @@ namespace SenseNet.ContentRepository.InMemory
 
         public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
         {
+            var now = DateTime.UtcNow;
+
             Storage.Add(new StatisticalDataRecord
             {
                 Id = GetNextId(),
                 DataType = data.DataType,
-                WrittenTime = DateTime.UtcNow,
-                RequestTime = data.RequestTime,
-                ResponseTime = data.ResponseTime,
+                WrittenTime = now,
+                CreationTime = data.CreationTime ?? now,
+                Duration = data.Duration,
                 RequestLength = data.RequestLength,
                 ResponseLength = data.ResponseLength,
                 ResponseStatusCode = data.ResponseStatusCode,
@@ -59,14 +61,8 @@ namespace SenseNet.ContentRepository.InMemory
         public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
             Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
         {
-            var relatedItems = Storage
-                .Where(x =>
-                {
-                    if (x.DataType != dataType)
-                        return false;
-                    var requestTime = x.RequestTime ?? x.WrittenTime;
-                    return (requestTime >= startTime && requestTime < endTimeExclusive);
-                });
+            var relatedItems = Storage.Where(
+                x => x.DataType == dataType && x.CreationTime >= startTime && x.CreationTime < endTimeExclusive);
 
             foreach (var item in relatedItems)
             {

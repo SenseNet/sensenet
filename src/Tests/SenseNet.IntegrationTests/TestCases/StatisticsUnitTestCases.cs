@@ -33,8 +33,8 @@ namespace SenseNet.IntegrationTests.TestCases
                     Id = 0,
                     DataType = "DataType1",
                     WrittenTime = DateTime.MinValue,
-                    RequestTime = now.AddMilliseconds(-11),
-                    ResponseTime = now.AddMilliseconds(-1),
+                    CreationTime = now.AddMilliseconds(-11),
+                    Duration = TimeSpan.FromMilliseconds(10),
                     RequestLength = 100,
                     ResponseLength = 1000,
                     ResponseStatusCode = 201,
@@ -50,8 +50,8 @@ namespace SenseNet.IntegrationTests.TestCases
                     Id = 0,
                     DataType = "DataType2",
                     WrittenTime = DateTime.MinValue,
-                    RequestTime = null,
-                    ResponseTime = null,
+                    CreationTime = null,
+                    Duration = null,
                     RequestLength = null,
                     ResponseLength = null,
                     ResponseStatusCode = null,
@@ -74,10 +74,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreNotSame(record1, loaded1);
                 Assert.AreNotEqual(record1.Id, loaded1.Id);
                 Assert.AreEqual(record1.DataType, loaded1.DataType);
-                Assert.IsTrue(loaded1.WrittenTime > loaded1.RequestTime);
-                Assert.IsTrue(loaded1.RequestTime.HasValue);
-                Assert.IsTrue(loaded1.ResponseTime.HasValue);
-                Assert.AreEqual(loaded1.RequestTime.Value, loaded1.ResponseTime.Value.AddMilliseconds(-10));
+                Assert.IsTrue(loaded1.WrittenTime > loaded1.CreationTime);
+                Assert.AreEqual(TimeSpan.FromMilliseconds(10), loaded1.Duration);
                 Assert.AreEqual(record1.RequestLength, loaded1.RequestLength);
                 Assert.AreEqual(record1.ResponseLength, loaded1.ResponseLength);
                 Assert.AreEqual(record1.ResponseStatusCode, loaded1.ResponseStatusCode);
@@ -93,8 +91,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreNotEqual(loaded1.Id, loaded2.Id);
                 Assert.AreNotEqual(record2.Id, loaded2.Id);
                 Assert.AreEqual(record2.DataType, loaded2.DataType);
-                Assert.IsNull(loaded2.RequestTime);
-                Assert.IsNull(loaded2.ResponseTime);
+                Assert.IsNotNull(loaded2.CreationTime);
+                Assert.IsNull(loaded2.Duration);
                 Assert.IsNull(loaded2.RequestLength);
                 Assert.IsNull(loaded2.ResponseLength);
                 Assert.IsNull(loaded2.ResponseStatusCode);
@@ -118,7 +116,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     await DP.WriteDataAsync(new StatisticalDataRecord
                     {
                         DataType = $"DataType{(i % 2) + 1}",
-                        RequestTime = now,
+                        CreationTime = now,
                         GeneralData = now.Day.ToString()
                     }, CancellationToken.None);
 
