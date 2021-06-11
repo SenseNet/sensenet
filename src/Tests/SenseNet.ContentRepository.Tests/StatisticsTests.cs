@@ -1745,7 +1745,7 @@ namespace SenseNet.ContentRepository.Tests
                 return STT.Task.CompletedTask;
             }
 
-            public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
+            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, DateTime endTimeExclusive, int count, CancellationToken cancel)
             {
                 throw new NotImplementedException();
             }

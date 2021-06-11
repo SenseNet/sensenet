@@ -43,9 +43,15 @@ namespace SenseNet.ContentRepository.InMemory
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
+        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, DateTime endTimeExclusive, int count, CancellationToken cancel)
         {
-            throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadUsageListAsync
+            var result = Storage
+                .Where(r => r.DataType == dataType && r.CreationTime < endTimeExclusive)
+                .OrderByDescending(r=>r.CreationTime)
+                .Take(count)
+                .Select(CloneRecord)
+                .ToArray();
+            return STT.Task.FromResult((IEnumerable<IStatisticalDataRecord>)result);
         }
 
         public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
@@ -98,6 +104,26 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        private IStatisticalDataRecord CloneRecord(IStatisticalDataRecord record)
+        {
+            return new StatisticalDataRecord
+            {
+                Id = record.Id,
+                DataType = record.DataType,
+                WrittenTime = record.WrittenTime,
+                CreationTime = record.CreationTime,
+                Duration = record.Duration,
+                RequestLength = record.RequestLength,
+                ResponseLength = record.ResponseLength,
+                ResponseStatusCode = record.ResponseStatusCode,
+                Url = record.Url,
+                WebHookId = record.WebHookId,
+                ContentId = record.ContentId,
+                EventName = record.EventName,
+                ErrorMessage = record.ErrorMessage,
+                GeneralData = record.GeneralData
+            };
+        }
         private Aggregation CloneAggregation(Aggregation aggregation)
         {
             return new Aggregation

@@ -27,8 +27,13 @@ namespace SenseNet.Services.Core.Diagnostics
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static IEnumerable<object> GetWebHookUsageList(Content content, string dataType, DateTime maxTime, int count)
+        public static async Task<IEnumerable<object>> GetWebHookUsageList(Content content, string dataType, HttpContext httpContext,
+            DateTime maxTime, int count)
         {
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+            var records = await dataProvider.LoadUsageListAsync(dataType, maxTime, count, httpContext.RequestAborted)
+                .ConfigureAwait(false);
+
             throw new NotImplementedException();//UNDONE:<?Stat: Implement GetUsageList
         }
 

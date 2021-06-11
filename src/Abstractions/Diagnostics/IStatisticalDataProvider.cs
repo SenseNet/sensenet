@@ -27,7 +27,7 @@ namespace SenseNet.Diagnostics
     {
         Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel);
 
-        Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel);
+        Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, DateTime endTimeExclusive, int count, CancellationToken cancel);
 
         Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
             DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel);
