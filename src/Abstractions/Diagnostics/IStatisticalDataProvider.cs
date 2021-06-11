@@ -36,7 +36,7 @@ namespace SenseNet.Diagnostics
             Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel);
 
         Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel);
-        Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel);
+        Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancel);
         Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime, CancellationToken cancel);
     }
 

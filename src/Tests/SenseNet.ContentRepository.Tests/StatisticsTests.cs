@@ -847,11 +847,12 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(6, deserialized.StatusCounts[4]);
 
             Assert.AreEqual(1, statDataProvider.CleanupRecordsCalls.Count);
-            Assert.AreEqual(aggregation.Date.AddMinutes(-3), statDataProvider.CleanupRecordsCalls[0]);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].DataType);
+            Assert.AreEqual(aggregation.Date.AddMinutes(-3), statDataProvider.CleanupRecordsCalls[0].RetentionTime);
             Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
-            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
-            Assert.AreEqual(TimeResolution.Minute, statDataProvider.CleanupAggregationsCalls[0].resolution);
-            Assert.AreEqual(aggregation.Date.AddHours(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].DataType);
+            Assert.AreEqual(TimeResolution.Minute, statDataProvider.CleanupAggregationsCalls[0].Resolution);
+            Assert.AreEqual(aggregation.Date.AddHours(-3), statDataProvider.CleanupAggregationsCalls[0].RetentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Hourly()
@@ -922,9 +923,9 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
             Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
-            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
-            Assert.AreEqual(TimeResolution.Hour, statDataProvider.CleanupAggregationsCalls[0].resolution);
-            Assert.AreEqual(aggregation.Date.AddDays(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].DataType);
+            Assert.AreEqual(TimeResolution.Hour, statDataProvider.CleanupAggregationsCalls[0].Resolution);
+            Assert.AreEqual(aggregation.Date.AddDays(-3), statDataProvider.CleanupAggregationsCalls[0].RetentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Daily()
@@ -992,9 +993,9 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
             Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
-            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
-            Assert.AreEqual(TimeResolution.Day, statDataProvider.CleanupAggregationsCalls[0].resolution);
-            Assert.AreEqual(aggregation.Date.AddMonths(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].DataType);
+            Assert.AreEqual(TimeResolution.Day, statDataProvider.CleanupAggregationsCalls[0].Resolution);
+            Assert.AreEqual(aggregation.Date.AddMonths(-3), statDataProvider.CleanupAggregationsCalls[0].RetentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Monthly()
@@ -1073,9 +1074,9 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
             Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
-            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
-            Assert.AreEqual(TimeResolution.Month, statDataProvider.CleanupAggregationsCalls[0].resolution);
-            Assert.AreEqual(aggregation.Date.AddYears(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].DataType);
+            Assert.AreEqual(TimeResolution.Month, statDataProvider.CleanupAggregationsCalls[0].Resolution);
+            Assert.AreEqual(aggregation.Date.AddYears(-3), statDataProvider.CleanupAggregationsCalls[0].RetentionTime);
         }
 
         [TestMethod]
@@ -1717,8 +1718,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             public List<IStatisticalDataRecord> Storage { get; } = new();
             public List<Aggregation> Aggregations { get; } = new();
-            public List<DateTime> CleanupRecordsCalls { get; } = new();
-            public List<(string dataType, TimeResolution resolution, DateTime retentionTime)> CleanupAggregationsCalls { get; } = new();
+            public List<(string DataType, DateTime RetentionTime)> CleanupRecordsCalls { get; } = new();
+            public List<(string DataType, TimeResolution Resolution, DateTime RetentionTime)> CleanupAggregationsCalls { get; } = new();
 
             public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
             {
@@ -1782,9 +1783,9 @@ namespace SenseNet.ContentRepository.Tests
                 return STT.Task.CompletedTask;
             }
 
-            public STT.Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel)
+            public STT.Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancel)
             {
-                CleanupRecordsCalls.Add(retentionTime);
+                CleanupRecordsCalls.Add((dataType, retentionTime));
                 return STT.Task.CompletedTask;
             }
 

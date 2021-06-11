@@ -86,7 +86,8 @@ namespace SenseNet.Services.Core.Diagnostics
             if (resolution == TimeResolution.Minute)
             {
                 var recordsRetentionTime = startTime.AddMinutes(-retentionPeriods.Momentary);
-                await _statDataProvider.CleanupRecordsAsync(recordsRetentionTime, cancel).ConfigureAwait(false);
+                await _statDataProvider.CleanupRecordsAsync(aggregator.DataType, recordsRetentionTime, cancel)
+                    .ConfigureAwait(false);
             }
 
             DateTime retentionTime;

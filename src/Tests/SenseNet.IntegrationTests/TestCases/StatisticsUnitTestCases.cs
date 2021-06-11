@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
@@ -208,5 +209,81 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
+        public async Task Stat_DataProvider_CleanupRecords()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                var start = new DateTime(2020, 1, 1, 0, 10, 0);
+
+                var retentionTime = start.AddMinutes(5);
+                for (int i = 0; i < 10; i++)
+                {
+                    await DP.WriteDataAsync(new StatisticalDataRecord
+                    {
+                        DataType = "DT1",
+                        CreationTime = start.AddMinutes(i),
+                        GeneralData = ""
+                    }, CancellationToken.None);
+                    await DP.WriteDataAsync(new StatisticalDataRecord
+                    {
+                        DataType = "DT2",
+                        CreationTime = start.AddMinutes(i),
+                        GeneralData = ""
+                    }, CancellationToken.None);
+                }
+
+                // ACTION
+                await DP.CleanupRecordsAsync("DT1", retentionTime, CancellationToken.None);
+
+                // ASSERT
+                var loadedRecords = (await TDP.LoadAllStatisticalDataRecords(DP)).ToArray();
+                var actual = string.Join(",", loadedRecords
+                    .Select(r => $"{r.DataType}-{r.CreationTime.Value.Minute}").ToArray());
+                Assert.AreEqual("DT2-10,DT2-11,DT2-12,DT2-13,DT2-14," +
+                                "DT1-15,DT2-15,DT1-16,DT2-16,DT1-17,DT2-17,DT1-18,DT2-18,DT1-19,DT2-19", actual);
+            });
+        }
+        public async Task Stat_DataProvider_CleanupAggregations()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                var start = new DateTime(2020, 01, 01, 0, 0, 0);
+                var retentionTime = start.AddMinutes(1);
+                for (int minute = 0; minute < 2; minute++)
+                {
+                    for (int resolution = 0; resolution < 4; resolution++)
+                    {
+                        for (int dataType = 0; dataType < 2; dataType++)
+                        {
+                            await DP.WriteAggregationAsync(new Aggregation
+                                {
+                                    DataType = $"DT{dataType}",
+                                    Date = start.AddMinutes(minute),
+                                    Resolution = (TimeResolution)resolution,
+                                },
+                                CancellationToken.None);
+                        }
+                    }
+                }
+                var aggregationsBefore = (await TDP.LoadAllStatisticalDataAggregations(DP)).ToArray();
+                Assert.AreEqual(16, aggregationsBefore.Length);
+
+                // ACTION
+                await DP.CleanupAggregationsAsync("DT0", TimeResolution.Day, retentionTime, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var aggregationsAfter = (await TDP.LoadAllStatisticalDataAggregations(DP)).ToArray();
+                Assert.AreEqual(15, aggregationsAfter.Length);
+                Assert.IsFalse(aggregationsAfter.Any(x =>
+                    x.DataType == "DT0" && x.Resolution == TimeResolution.Day && x.Date.Minute == 0));
+
+            });
+        }
+
     }
 }

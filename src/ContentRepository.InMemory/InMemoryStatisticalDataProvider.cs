@@ -80,15 +80,22 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public STT.Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel)
+        public STT.Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            var toDelete = Storage.Where(x => x.DataType == dataType && x.CreationTime < retentionTime).ToArray();
+            foreach (var item in toDelete)
+                Storage.Remove(item);
+            return STT.Task.CompletedTask;
         }
 
         public STT.Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
             CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            var toDelete = Aggregations
+                .Where(x => x.DataType == dataType && x.Resolution == resolution && x.Date < retentionTime).ToArray();
+            foreach (var item in toDelete)
+                Aggregations.Remove(item);
+            return STT.Task.CompletedTask;
         }
 
         private Aggregation CloneAggregation(Aggregation aggregation)
