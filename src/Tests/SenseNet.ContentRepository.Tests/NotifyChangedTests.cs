@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -164,21 +165,21 @@ namespace SenseNet.ContentRepository.Tests
                 var node = new SystemFolder(Repository.Root) { Name = contentName, Description = "Desc1" };
                 var fieldName = nameof(node.Description);
                 var content = node.Content;
-                Assert.AreEqual("Desc1", (string)content[fieldName]);
+                Assert.AreEqual("Desc1", ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Description = "Desc2";
-                Assert.AreEqual("Desc2", (string)content[fieldName]);
+                Assert.AreEqual("Desc2", ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Save();
                 Assert.AreEqual("Desc2", node.Description);
-                Assert.AreEqual("Desc2", (string)content[fieldName]);
+                Assert.AreEqual("Desc2", ((RichTextFieldValue)content[fieldName]).Text);
 
                 content[fieldName] = "Desc42";
                 Assert.AreEqual("Desc2", node.Description);
                 Assert.AreEqual("Desc42", (string)content[fieldName]);
 
                 node.Description = "Desc3";
-                Assert.AreEqual("Desc3", (string)content[fieldName]);
+                Assert.AreEqual("Desc3", ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Save();
 
@@ -198,13 +199,13 @@ namespace SenseNet.ContentRepository.Tests
                 var content = node.Content;
                 node.Save();
                 Assert.AreEqual(originalValue, node.Description);
-                Assert.AreEqual(originalValue, (string)content[fieldName]);
+                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Description = "Changed";
-                Assert.AreEqual("Changed", (string)content[fieldName]);
+                Assert.AreEqual("Changed", ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Description = originalValue;
-                Assert.AreEqual(originalValue, (string)content[fieldName]);
+                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
 
                 node.Save();
 
