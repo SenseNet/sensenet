@@ -627,77 +627,6 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("{\"Name\":\"Name1\",\"Value\":42}", RemoveWhitespaces(aggregation.Data));
         }
 
-        private class TestStatisticalDataProvider : IStatisticalDataProvider
-        {
-            public List<IStatisticalDataRecord> Storage { get; } = new List<IStatisticalDataRecord>();
-            public List<Aggregation> Aggregations { get; } = new List<Aggregation>();
-
-            public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
-            {
-                var now = DateTime.UtcNow;
-
-                Storage.Add(new StatisticalDataRecord
-                {
-                    Id = 0,
-                    DataType = data.DataType,
-                    WrittenTime = now,
-                    CreationTime = data.CreationTime ?? now,
-                    Duration = data.Duration,
-                    RequestLength = data.RequestLength,
-                    ResponseLength = data.ResponseLength,
-                    ResponseStatusCode = data.ResponseStatusCode,
-                    Url = data.Url,
-                    WebHookId = data.WebHookId,
-                    ContentId = data.ContentId,
-                    EventName = data.EventName,
-                    ErrorMessage = data.ErrorMessage,
-                    GeneralData = data.GeneralData
-                });
-                return STT.Task.CompletedTask;
-            }
-
-            public STT.Task CleanupAsync(DateTime timeMax, CancellationToken cancel)
-            {
-                throw new NotImplementedException();
-            }
-            public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
-            {
-                throw new NotImplementedException();
-            }
-            public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
-                DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
-            {
-                var result = Aggregations.Where(x =>
-                    x.DataType == dataType &&
-                    x.Resolution == resolution &&
-                    x.Date >= startTime &&
-                    x.Date < endTimeExclusive).ToArray();
-                return STT.Task.FromResult((IEnumerable<Aggregation>)result);
-            }
-
-            public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
-                Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
-            {
-                var result = new List<Aggregation>();
-
-                var relatedItems = Storage.Where(
-                    x => x.DataType == dataType && x.CreationTime >= startTime && x.CreationTime < endTimeExclusive);
-
-                foreach (var item in relatedItems)
-                {
-                    cancel.ThrowIfCancellationRequested();
-                    aggregatorCallback(item);
-                }
-
-                return STT.Task.CompletedTask;
-            }
-
-            public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
-            {
-                Aggregations.Add(aggregation);
-                return STT.Task.CompletedTask;
-            }
-        }
         #endregion
 
         #region /* ========================================================================= InputStatisticalDataRecord tests */
@@ -857,7 +786,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -916,6 +845,13 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, deserialized.StatusCounts[2]);
             Assert.AreEqual(6, deserialized.StatusCounts[3]);
             Assert.AreEqual(6, deserialized.StatusCounts[4]);
+
+            Assert.AreEqual(1, statDataProvider.CleanupRecordsCalls.Count);
+            Assert.AreEqual(aggregation.Date.AddMinutes(-3), statDataProvider.CleanupRecordsCalls[0]);
+            Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
+            Assert.AreEqual(TimeResolution.Minute, statDataProvider.CleanupAggregationsCalls[0].resolution);
+            Assert.AreEqual(aggregation.Date.AddHours(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Hourly()
@@ -924,7 +860,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -983,6 +919,12 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, deserialized.StatusCounts[2]);
             Assert.AreEqual(36, deserialized.StatusCounts[3]);
             Assert.AreEqual(36, deserialized.StatusCounts[4]);
+
+            Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
+            Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
+            Assert.AreEqual(TimeResolution.Hour, statDataProvider.CleanupAggregationsCalls[0].resolution);
+            Assert.AreEqual(aggregation.Date.AddDays(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Daily()
@@ -991,7 +933,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1047,6 +989,12 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, deserialized.StatusCounts[2]);
             Assert.AreEqual(864, deserialized.StatusCounts[3]);
             Assert.AreEqual(864, deserialized.StatusCounts[4]);
+
+            Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
+            Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
+            Assert.AreEqual(TimeResolution.Day, statDataProvider.CleanupAggregationsCalls[0].resolution);
+            Assert.AreEqual(aggregation.Date.AddMonths(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
         }
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_RawTo1Monthly()
@@ -1055,7 +1003,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1075,8 +1023,8 @@ namespace SenseNet.ContentRepository.Tests
             var count = 0;
 
             var d = now.AddMonths(-2);
-            var expectedStart = new DateTime(d.Year, d.Month, d.Day);
-            var expectedEnd = expectedStart.AddDays(1);
+            var expectedStart = new DateTime(d.Year, d.Month, 1);
+            var expectedEnd = expectedStart.AddMonths(1);
             var expectedCount = 0;
             var expectedErrorCount = 0;
             while (true)
@@ -1103,7 +1051,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             aggregator = CreateAggregator();
-            await aggregator.AggregateAsync(now.AddMonths(-2), TimeResolution.Day, CancellationToken.None);
+            await aggregator.AggregateAsync(now.AddMonths(-2), TimeResolution.Month, CancellationToken.None);
 
             // ASSERT
             Assert.AreEqual(1, statDataProvider.Aggregations.Count);
@@ -1111,7 +1059,7 @@ namespace SenseNet.ContentRepository.Tests
             Aggregation aggregation = statDataProvider.Aggregations[0];
             Assert.AreEqual("WebHook", aggregation.DataType);
             Assert.AreEqual(expectedStart, aggregation.Date);
-            Assert.AreEqual(TimeResolution.Day, aggregation.Resolution);
+            Assert.AreEqual(TimeResolution.Month, aggregation.Resolution);
 
             var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(expectedCount, deserialized.CallCount);
@@ -1122,6 +1070,12 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0, deserialized.StatusCounts[2]);
             Assert.AreEqual(0, deserialized.StatusCounts[3]);
             Assert.AreEqual(expectedErrorCount, deserialized.StatusCounts[4]);
+
+            Assert.AreEqual(0, statDataProvider.CleanupRecordsCalls.Count);
+            Assert.AreEqual(1, statDataProvider.CleanupAggregationsCalls.Count);
+            Assert.AreEqual("WebHook", statDataProvider.CleanupAggregationsCalls[0].dataType);
+            Assert.AreEqual(TimeResolution.Month, statDataProvider.CleanupAggregationsCalls[0].resolution);
+            Assert.AreEqual(aggregation.Date.AddYears(-3), statDataProvider.CleanupAggregationsCalls[0].retentionTime);
         }
 
         [TestMethod]
@@ -1131,7 +1085,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1209,7 +1163,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1283,7 +1237,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1353,7 +1307,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator() });
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1447,7 +1401,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] {new WebHookStatisticalDataAggregator()});
+                    new[] {new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
             
@@ -1523,10 +1477,10 @@ namespace SenseNet.ContentRepository.Tests
                 return new StatisticalDataAggregationController(statDataProvider,
                     new IStatisticalDataAggregator[]
                     {
-                        new WebHookStatisticalDataAggregator(),
-                        new WebTransferStatisticalDataAggregator(),
-                        new DatabaseUsageStatisticalDataAggregator()
-                    });
+                        new WebHookStatisticalDataAggregator(GetOptions()),
+                        new WebTransferStatisticalDataAggregator(GetOptions()),
+                        new DatabaseUsageStatisticalDataAggregator(GetOptions())
+                    }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1738,6 +1692,12 @@ namespace SenseNet.ContentRepository.Tests
             using (var reader = new StringReader(src))
                 return JsonSerializer.Create().Deserialize<T>(new JsonTextReader(reader));
         }
+
+        private IOptions<StatisticsOptions> _options;
+        private IOptions<StatisticsOptions> GetOptions()
+        {
+            return _options ??= new OptionsWrapper<StatisticsOptions>(new StatisticsOptions());
+        }
         #endregion
 
         [TestMethod]
@@ -1749,7 +1709,92 @@ namespace SenseNet.ContentRepository.Tests
 
             var statOptions = services.GetService<IOptions<StatisticsOptions>>().Value;
 
-            Assert.AreEqual(180, statOptions.Retention.ApiCalls.Momentary);
+            Assert.AreEqual(3, statOptions.Retention.ApiCalls.Momentary);
         }
+
+        #region private class TestStatisticalDataProvider : IStatisticalDataProvider
+        private class TestStatisticalDataProvider : IStatisticalDataProvider
+        {
+            public List<IStatisticalDataRecord> Storage { get; } = new();
+            public List<Aggregation> Aggregations { get; } = new();
+            public List<DateTime> CleanupRecordsCalls { get; } = new();
+            public List<(string dataType, TimeResolution resolution, DateTime retentionTime)> CleanupAggregationsCalls { get; } = new();
+
+            public STT.Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
+            {
+                var now = DateTime.UtcNow;
+
+                Storage.Add(new StatisticalDataRecord
+                {
+                    Id = 0,
+                    DataType = data.DataType,
+                    WrittenTime = now,
+                    CreationTime = data.CreationTime ?? now,
+                    Duration = data.Duration,
+                    RequestLength = data.RequestLength,
+                    ResponseLength = data.ResponseLength,
+                    ResponseStatusCode = data.ResponseStatusCode,
+                    Url = data.Url,
+                    WebHookId = data.WebHookId,
+                    ContentId = data.ContentId,
+                    EventName = data.EventName,
+                    ErrorMessage = data.ErrorMessage,
+                    GeneralData = data.GeneralData
+                });
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+            public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
+                DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
+            {
+                var result = Aggregations.Where(x =>
+                    x.DataType == dataType &&
+                    x.Resolution == resolution &&
+                    x.Date >= startTime &&
+                    x.Date < endTimeExclusive).ToArray();
+                return STT.Task.FromResult((IEnumerable<Aggregation>)result);
+            }
+
+            public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
+                Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
+            {
+                var result = new List<Aggregation>();
+
+                var relatedItems = Storage.Where(
+                    x => x.DataType == dataType && x.CreationTime >= startTime && x.CreationTime < endTimeExclusive);
+
+                foreach (var item in relatedItems)
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    aggregatorCallback(item);
+                }
+
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
+            {
+                Aggregations.Add(aggregation);
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel)
+            {
+                CleanupRecordsCalls.Add(retentionTime);
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
+                CancellationToken cancel)
+            {
+                CleanupAggregationsCalls.Add((dataType, resolution, retentionTime));
+                return STT.Task.CompletedTask;
+            }
+        }
+        #endregion
     }
 }

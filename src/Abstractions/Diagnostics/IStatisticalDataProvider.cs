@@ -26,7 +26,7 @@ namespace SenseNet.Diagnostics
     public interface IStatisticalDataProvider : IDataProviderExtension
     {
         Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel);
-        Task CleanupAsync(DateTime timeMax, CancellationToken cancel);
+
         Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel);
 
         Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
@@ -36,6 +36,8 @@ namespace SenseNet.Diagnostics
             Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel);
 
         Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel);
+        Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel);
+        Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime, CancellationToken cancel);
     }
 
 }

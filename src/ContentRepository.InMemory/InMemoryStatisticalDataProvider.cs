@@ -43,11 +43,6 @@ namespace SenseNet.ContentRepository.InMemory
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public STT.Task CleanupAsync(DateTime timeMax, CancellationToken cancel)
-        {
-            throw new NotImplementedException(); //UNDONE:<?Stat: Implement CleanupAsync
-        }
-
         public STT.Task LoadUsageListAsync(string dataType, DateTime startTime, TimeResolution resolution, CancellationToken cancel)
         {
             throw new NotImplementedException(); //UNDONE:<?Stat: Implement LoadUsageListAsync
@@ -83,6 +78,17 @@ namespace SenseNet.ContentRepository.InMemory
         {
             Aggregations.Add(CloneAggregation(aggregation));
             return STT.Task.CompletedTask;
+        }
+
+        public STT.Task CleanupRecordsAsync(DateTime retentionTime, CancellationToken cancel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public STT.Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
+            CancellationToken cancel)
+        {
+            throw new NotImplementedException();
         }
 
         private Aggregation CloneAggregation(Aggregation aggregation)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.Diagnostics;
 using SenseNet.Storage.DataModel.Usage;
@@ -16,12 +17,14 @@ namespace SenseNet.Services.Core.Diagnostics
     {
         private readonly IStatisticalDataProvider _statDataProvider;
         private readonly IEnumerable<IStatisticalDataAggregator> _aggregators;
+        private readonly StatisticsOptions _options;
 
         public StatisticalDataAggregationController(IStatisticalDataProvider statDataProvider,
-            IEnumerable<IStatisticalDataAggregator> aggregators)
+            IEnumerable<IStatisticalDataAggregator> aggregators, IOptions<StatisticsOptions> options)
         {
             _statDataProvider = statDataProvider;
             _aggregators = aggregators;
+            _options = options.Value;
         }
 
         public async Task AggregateAsync(DateTime startTime, TimeResolution resolution, CancellationToken cancel)
@@ -35,18 +38,20 @@ namespace SenseNet.Services.Core.Diagnostics
                     await _statDataProvider.EnumerateDataAsync(aggregator.DataType, start, end, aggregator.Aggregate, cancel);
                 }
 
-                if (aggregator.IsEmpty)
-                    return;
-
-                var result = new Aggregation
+                if (!aggregator.IsEmpty)
                 {
-                    DataType = aggregator.DataType,
-                    Date = start,
-                    Resolution = resolution,
-                    Data = Serialize(aggregator.Data)
-                };
+                    var result = new Aggregation
+                    {
+                        DataType = aggregator.DataType,
+                        Date = start,
+                        Resolution = resolution,
+                        Data = Serialize(aggregator.Data)
+                    };
 
-                await _statDataProvider.WriteAggregationAsync(result, cancel);
+                    await _statDataProvider.WriteAggregationAsync(result, cancel).ConfigureAwait(false);
+                }
+
+                await CleanupAsync(aggregator, resolution, start, cancel).ConfigureAwait(false);
             }
         }
         private async Task<bool> TryProcessAggregationsAsync(IStatisticalDataAggregator aggregator,
@@ -74,6 +79,29 @@ namespace SenseNet.Services.Core.Diagnostics
                 JsonSerializer.Create().Serialize(writer, data);
             return sb.ToString();
         }
+
+        internal async Task CleanupAsync(IStatisticalDataAggregator aggregator, TimeResolution resolution, DateTime startTime, CancellationToken cancel)
+        {
+            var retentionPeriods = aggregator.RetentionPeriods;
+            if (resolution == TimeResolution.Minute)
+            {
+                var recordsRetentionTime = startTime.AddMinutes(-retentionPeriods.Momentary);
+                await _statDataProvider.CleanupRecordsAsync(recordsRetentionTime, cancel).ConfigureAwait(false);
+            }
+
+            DateTime retentionTime;
+            switch (resolution)
+            {
+                case TimeResolution.Minute: retentionTime = startTime.AddHours(-retentionPeriods.Minutely); break;
+                case TimeResolution.Hour: retentionTime = startTime.AddDays(-retentionPeriods.Hourly); break;
+                case TimeResolution.Day: retentionTime = startTime.AddMonths(-retentionPeriods.Daily); break;
+                case TimeResolution.Month: retentionTime = startTime.AddYears(-retentionPeriods.Monthly); break;
+                default: throw new ArgumentOutOfRangeException(nameof(resolution), resolution, null);
+            }
+
+            await _statDataProvider.CleanupAggregationsAsync(aggregator.DataType, resolution, retentionTime, cancel)
+                .ConfigureAwait(false);
+        }
     }
 
     public class WebHookStatisticalDataAggregator : IStatisticalDataAggregator
@@ -87,10 +115,17 @@ namespace SenseNet.Services.Core.Diagnostics
         }
 
         private WebHookAggregation _aggregation = new WebHookAggregation();
+        private StatisticsOptions _options;
+
+        public WebHookStatisticalDataAggregator(IOptions<StatisticsOptions> options)
+        {
+            _options = options.Value;
+        }
 
         public string DataType => "WebHook";
         public bool IsEmpty => _aggregation.CallCount == 0;
         public object Data => _aggregation;
+        public AggregationRetentionPeriods RetentionPeriods =>_options.Retention.WebHooks;
 
         public void Aggregate(IStatisticalDataRecord data)
         {
@@ -129,9 +164,17 @@ namespace SenseNet.Services.Core.Diagnostics
         }
 
         private WebTransferAggregation _aggregation = new WebTransferAggregation();
+        private StatisticsOptions _options;
+
+        public WebTransferStatisticalDataAggregator(IOptions<StatisticsOptions> options)
+        {
+            _options = options.Value;
+        }
+
         public string DataType => "WebTransfer";
         public bool IsEmpty => _aggregation.CallCount == 0;
         public object Data => _aggregation;
+        public AggregationRetentionPeriods RetentionPeriods => _options.Retention.ApiCalls;
 
         public void Aggregate(IStatisticalDataRecord data)
         {
@@ -156,9 +199,17 @@ namespace SenseNet.Services.Core.Diagnostics
     public class DatabaseUsageStatisticalDataAggregator : IStatisticalDataAggregator
     {
         private DatabaseUsage _aggregation = new DatabaseUsage();
+        private StatisticsOptions _options;
+
+        public DatabaseUsageStatisticalDataAggregator(IOptions<StatisticsOptions> options)
+        {
+            _options = options.Value;
+        }
+
         public string DataType => "DatabaseUsage";
         public bool IsEmpty => (_aggregation.System?.Count ?? 0) == 0;
         public object Data => _aggregation;
+        public AggregationRetentionPeriods RetentionPeriods => _options.Retention.DatabaseUsage;
 
         public void Aggregate(IStatisticalDataRecord data)
         {
