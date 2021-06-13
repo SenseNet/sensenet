@@ -351,6 +351,19 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
+                    else if (expectedType == typeof(DateTime))
+                    {
+
+                        if (DateTime.TryParse(stringValue, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out var v) ||
+                            DateTime.TryParse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out v))
+                        {
+                            //var date = new DateTime(v.Year, v.Month, v.Day, v.Hour, v.Minute, v.Second, v.Millisecond,
+                            //    DateTimeKind.Utc);
+                            parsed = v.ToUniversalTime();
+                            return true;
+                        }
+                    }
+
                     #endregion
                     #region enum
                     else if (expectedType.IsEnum)

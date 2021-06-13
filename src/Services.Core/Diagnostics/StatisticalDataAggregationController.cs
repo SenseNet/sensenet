@@ -13,7 +13,12 @@ using NotSupportedException = System.NotSupportedException;
 
 namespace SenseNet.Services.Core.Diagnostics
 {
-    internal class StatisticalDataAggregationController
+    public interface IStatisticalDataAggregationController
+    {
+        Task AggregateAsync(DateTime startTime, TimeResolution resolution, CancellationToken cancel);
+    }
+
+    public class StatisticalDataAggregationController : IStatisticalDataAggregationController
     {
         private readonly IStatisticalDataProvider _statDataProvider;
         private readonly IEnumerable<IStatisticalDataAggregator> _aggregators;

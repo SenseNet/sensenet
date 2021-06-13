@@ -8,16 +8,19 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
@@ -31,6 +34,7 @@ using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Storage.DataModel.Usage;
 using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 using SenseNet.WebHooks;
 using STT = System.Threading.Tasks;
 
@@ -1701,6 +1705,8 @@ namespace SenseNet.ContentRepository.Tests
         }
         #endregion
 
+        #region /* ========================================================================= Configuration tests */
+
         [TestMethod]
         public void Stat_Config()
         {
@@ -1712,6 +1718,181 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.AreEqual(3, statOptions.Retention.ApiCalls.Momentary);
         }
+
+        #endregion
+
+        [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsageList()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    var warning = i % 5 == 4;
+                    var error = i % 7 == 6;
+
+                    var message = error ? "Error message" : (warning ? "Warning message" : null);
+                    var statusCode = error ? 500 : (warning ? 400 : 200);
+
+                    var input = new WebHookStatInput
+                    {
+                        Url = $"https://example.com/hook/{(i % 5) + 1}",
+                        HttpMethod = "POST",
+                        RequestTime = time1,
+                        ResponseTime = time2,
+                        RequestLength = 100 + 1,
+                        ResponseLength = 1000 + 10 * i,
+                        ResponseStatusCode = statusCode,
+                        WebHookId = 1242,
+                        ContentId = 10000 + i,
+                        EventName = $"Event{(i % 4) + 1}",
+                        ErrorMessage = message
+                    };
+                    var record = new InputStatisticalDataRecord(input);
+                    await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                }
+                
+                // ACTION-1 first time window.
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "")
+                    .ConfigureAwait(false);
+                var lastTimeStr1 = GetLastCreationTime(response1);
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?maxTime={lastTimeStr1}&count=5")
+                    .ConfigureAwait(false);
+                var lastTimeStr2 = GetLastCreationTime(response2);
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?maxTime={lastTimeStr2}")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+
+                var items1 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual(10, items1.Length);
+                var items2 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual(5, items2.Length);
+                var items3 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual(5, items3.Length);
+
+                AssertSequenceEqual(
+                    Enumerable.Range(10001, 20),
+                    items1.Union(items2.Union(items3)).Select(x => x.ContentId));
+
+            }).ConfigureAwait(false);
+        }
+
+        private string GetLastCreationTime(string response)
+        {
+            var p = response.LastIndexOf("\"CreationTime\":");
+            var p1 = response.IndexOf("Z", p);
+            var value = response.Substring(p + 17, p1 - p - 16);
+            return value;
+        }
+
+        protected STT.Task ODataTestAsync(Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            return ODataTestAsync(null, initialize, callback);
+        }
+        private async STT.Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            Providers.Instance.ResetBlobProviders();
+
+            OnTestInitialize();
+
+            var builder = base.CreateRepositoryBuilderForTestInstance(); //CreateRepositoryBuilder();
+
+            //UNDONE:<?:   do not call discovery and providers setting in the static ctor of ODataMiddleware
+            var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
+            OperationCenter.Operations.Clear();
+            OperationCenter.Discover();
+            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
+
+            initialize?.Invoke(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            using (var repo = Repository.Start(builder))
+            {
+                User.Current = user ?? User.Administrator;
+                if (user == null)
+                {
+                    User.Current = User.Administrator;
+                    using (new SystemAccount())
+                        await callback().ConfigureAwait(false);
+                }
+                else
+                {
+                    User.Current = user;
+                    await callback().ConfigureAwait(false);
+                }
+            }
+        }
+
+
+        internal static STT.Task<string> ODataGetAsync(string resource, string queryString, IServiceProvider services = null, IConfiguration config = null)
+        {
+            return ODataProcessRequestAsync(resource, queryString, null, "GET", services, config);
+        }
+        private static async STT.Task<string> ODataProcessRequestAsync(string resource, string queryString,
+            string requestBodyJson, string httpMethod, IServiceProvider services, IConfiguration config)
+        {
+            var httpContext = CreateHttpContext(resource, queryString, services);
+            var request = httpContext.Request;
+            request.Method = httpMethod;
+            request.Path = resource;
+            request.QueryString = new QueryString(queryString);
+            if (requestBodyJson != null)
+                request.Body = CreateRequestStream(requestBodyJson);
+
+            httpContext.Response.Body = new MemoryStream();
+
+            var odata = new ODataMiddleware(null, config, null);
+            var odataRequest = ODataRequest.Parse(httpContext);
+            await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+
+            var responseOutput = httpContext.Response.Body;
+            responseOutput.Seek(0, SeekOrigin.Begin);
+            string output;
+            using (var reader = new StreamReader(responseOutput))
+                output = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+            return output;
+        }
+        internal static HttpContext CreateHttpContext(string resource, string queryString, IServiceProvider services = null)
+        {
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services;
+            var request = httpContext.Request;
+            request.Method = "GET";
+            request.Path = resource;
+            request.QueryString = new QueryString(queryString);
+            httpContext.Response.Body = new MemoryStream();
+            return httpContext;
+        }
+        private static Stream CreateRequestStream(string request)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(request);
+            writer.Flush();
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+
+
+
 
         #region private class TestStatisticalDataProvider : IStatisticalDataProvider
         private class TestStatisticalDataProvider : IStatisticalDataProvider

@@ -17,6 +17,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security;
 using SenseNet.Security.EFCSecurityStore;
+using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.IntegrationTests.Platforms
@@ -108,7 +109,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override IStatisticalDataProvider GetStatisticalDataProvider()
         {
-            throw new NotImplementedException();
+            return new MsSqlStatisticalDataProvider();
         }
 
         /* ============================================================== */
