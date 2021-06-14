@@ -2,7 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Tools
@@ -231,7 +236,14 @@ namespace SenseNet.Packaging.Tools
     /// </summary>
     public class ContentTypeBuilder
     {
+        private readonly ILogger _logger;
         internal IList<CtdBuilder> ContentTypeBuilders { get; } = new List<CtdBuilder>();
+        internal Dictionary<string, string> ChangedFieldTypes { get; } = new Dictionary<string, string>();
+
+        public ContentTypeBuilder(ILogger<ContentTypeBuilder> logger)
+        {
+            _logger = (ILogger) logger ?? NullLogger.Instance;
+        }
 
         public IContentTypeBuilder Type(string name)
         {
@@ -247,14 +259,34 @@ namespace SenseNet.Packaging.Tools
 
             return ctb;
         }
+
+        public ContentTypeBuilder ChangeFieldType(string fieldName, string targetType)
+        {
+            if (string.IsNullOrEmpty(fieldName))
+                throw new ArgumentNullException(nameof(fieldName));
+            if (string.IsNullOrEmpty(targetType))
+                throw new ArgumentNullException(nameof(targetType));
+
+            ChangedFieldTypes[fieldName] = targetType;
+
+            return this;
+        }
+
         public void Apply()
         {
+            // Execute field type changes first so that subsequent field operations
+            // are performed on the new field.
+            foreach (var changedFieldType in ChangedFieldTypes)
+            {
+                ChangeFieldTypeInternal(changedFieldType.Key, changedFieldType.Value);
+            }
+
             foreach (var ctdBuilder in ContentTypeBuilders)
             {
                 var ct = ContentType.GetByName(ctdBuilder.ContentTypeName);
                 if (ct == null)
                 {
-                    //TODO: log missing ctd!
+                    _logger.LogWarning($"Content type {ctdBuilder.ContentTypeName} does not exist.");
                     continue;
                 }
 
@@ -378,6 +410,133 @@ namespace SenseNet.Packaging.Tools
                 var propertyElement = LoadOrAddChild(parentNode, propertyName);
                 propertyElement.InnerXml = value;
             }
+        }
+
+        private void ChangeFieldTypeInternal(string fieldName, string targetType)
+        {
+            // Load all content types that define this field. OrderByDescending is important because we
+            // have to remove the field starting from the leaves.
+            var contentTypeNames = ContentType.GetContentTypes()
+                .Where(ct => ct.FieldSettings.Any(f => f.Name == fieldName && f.Owner.Id == ct.Id))
+                .OrderByDescending(ct => ct.Path)
+                .Select(ct => ct.Name)
+                .ToArray();
+
+            if (!contentTypeNames.Any())
+                return;
+
+            _logger.LogTrace($"Changing type of {fieldName} to {targetType} on the following " +
+                             $"types: {string.Join(", ", contentTypeNames)}");
+
+            var oldValues = new Dictionary<int, object>();
+            var fieldXmls = new Dictionary<string, string>();
+
+            foreach (var contentTypeName in contentTypeNames)
+            {
+                // load content types freshly to avoid cache issues
+                var contentType = ContentType.GetByName(contentTypeName);
+                var fieldSetting = contentType.GetFieldSettingByName(fieldName);
+                var ctdXml = LoadContentTypeXmlDocument(contentType);
+                var fieldElement = LoadFieldElement(ctdXml, fieldName, null, false);
+                var currentType = fieldElement.GetAttribute("type");
+                if (string.IsNullOrEmpty(currentType))
+                {
+                    _logger.LogWarning($"Field {fieldName} type is missing in {contentTypeName} content type xml.");
+                    continue;
+                }
+                if (currentType == targetType)
+                {
+                    _logger.LogTrace($"The type of field {fieldName} is already {targetType} in {contentTypeName}.");
+                    continue;
+                }
+
+                _logger.LogTrace($"Collecting values of {fieldName} for {contentType.Name} content items...");
+
+                var skipZero = fieldSetting is NumberFieldSetting;
+                var skipEmptyText = fieldSetting is ShortTextFieldSetting;
+
+                // iterate through existing content items and memorize values
+                foreach (var content in Content.All.DisableAutofilters().Where(c => c.TypeIs(contentType.Name)))
+                {
+                    var val = content[fieldName];
+                    if (val == null)
+                        continue;
+
+                    // it does not make sense to re-save a content if the value is 0
+                    // (it is similar to a 'null' value in case of number fields)
+                    if (skipZero)
+                    {
+                        if (double.TryParse(val.ToString(), out var numVal) && numVal.CompareTo(0d) == 0)
+                            continue;
+                    }
+
+                    // skip empty text in case of text fields
+                    if (skipEmptyText && val is string stringValue && string.IsNullOrEmpty(stringValue))
+                        continue;
+
+                    oldValues[content.Id] = val;
+                }
+
+                _logger.LogTrace($"Memorized {oldValues.Count} values.");
+
+                // remove old field
+                fieldElement.ParentNode?.RemoveChild(fieldElement);
+                ContentTypeInstaller.InstallContentType(ctdXml.OuterXml);
+
+                _logger.LogTrace($"Field {fieldName} was removed from content type {contentType.Name}.");
+
+                // set the new type and memorize the old field xml to preserve field properties
+                fieldElement.SetAttribute("type", targetType);
+                fieldXmls[contentType.Name] = fieldElement.InnerXml;
+            }
+
+            // Iterate through the types again in reverse order (root --> leaves) and register 
+            // the field with the new type.
+            foreach (var contentTypeName in contentTypeNames.Reverse())
+            {
+                var contentType = ContentType.GetByName(contentTypeName);
+                var ctdXml = LoadContentTypeXmlDocument(contentType);
+
+                // add new field and re-set previous field properties
+                var fieldElement = LoadFieldElement(ctdXml, fieldName, targetType, false);
+                fieldElement.InnerXml = fieldXmls[contentTypeName];
+
+                // register the new field
+                ContentTypeInstaller.InstallContentType(ctdXml.OuterXml);
+
+                _logger.LogTrace($"Field {fieldName} was added to content type " +
+                                 $"{contentTypeName} with the new type {targetType}.");
+            }
+
+            if (!oldValues.Any()) 
+                return;
+
+            _logger.LogTrace($"Migrating values of field {fieldName}...");
+
+            //TODO: let developers provide an archive field
+            // If an archive field is provided, use that instead of the newly added field.
+            // (e.g. migrating shorttext values is not possible if the new field is a reference field)
+            //var targetFieldName = !string.IsNullOrEmpty(ArchiveFieldName) ? ArchiveFieldName : fieldName;
+
+            var changedCount = 0;
+
+            // iterate cached ids and set old values to the new field
+            foreach (var content in Node.LoadNodes(oldValues.Keys).Select(Content.Create))
+            {
+                try
+                {
+                    // if a migration fails on a single content, we only log it. Patch log should be reviewed by the operator!
+                    content[fieldName] = oldValues[content.Id];
+                    content.SaveSameVersion();
+                    changedCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error during migrating {content.Path}. {ex.Message}");
+                }
+            }
+
+            _logger.LogTrace($"Field {fieldName} was changed on {changedCount} content items.");
         }
 
         private static XmlElement LoadFieldElement(XmlDocument xDoc, string fieldName, string type, bool throwOnError = true)

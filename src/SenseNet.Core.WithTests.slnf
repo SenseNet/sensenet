@@ -22,7 +22,6 @@
       "Tests\\SenseNet.Services.Wopi.Tests\\SenseNet.Services.Wopi.Tests.csproj",
       "Tests\\SenseNet.Tests.Core.Tests\\SenseNet.Tests.Core.Tests.csproj",
       "Tests\\SenseNet.Tests.Core\\SenseNet.Tests.Core.csproj",
-      "Tests\\SenseNet.Tests.Hosting\\SenseNet.Tests.Hosting.csproj",
       "Tests\\SenseNet.WebHooks.Tests\\SenseNet.WebHooks.Tests.csproj",
       "Tests\\SnInitialDataGenerator.Tests\\SnInitialDataGenerator.Tests.csproj",
       "Tools\\SnConsoleInstaller\\SnConsoleInstaller.csproj",

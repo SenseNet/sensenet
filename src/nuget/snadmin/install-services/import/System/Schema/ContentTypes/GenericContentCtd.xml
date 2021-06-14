@@ -236,15 +236,12 @@
         <ControlHint>sn:DisplayName</ControlHint>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <DisplayName>$Ctd-GenericContent,Description-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Description-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
     <Field name="Hidden" type="Boolean">
       <DisplayName>$Ctd-GenericContent,Hidden-DisplayName</DisplayName>

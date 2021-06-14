@@ -180,7 +180,7 @@
 			<DisplayName>$Ctd-ContentType,DisplayName-DisplayName</DisplayName>
 			<Description>$Ctd-ContentType,DisplayName-Description</Description>
 		</Field>
-		<Field name="Description" type="LongText">
+		<Field name="Description" type="RichText">
 			<DisplayName>$Ctd-ContentType,Description-DisplayName</DisplayName>
 			<Description>$Ctd-ContentType,Description-Description</Description>
       <Indexing>

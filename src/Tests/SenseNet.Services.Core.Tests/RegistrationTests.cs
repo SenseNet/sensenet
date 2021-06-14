@@ -54,7 +54,9 @@ namespace SenseNet.Services.Core.Tests
         {
             var services = new ServiceCollection();
 
-            services.AddSenseNetRegistration()
+            services
+                .AddLogging()
+                .AddSenseNetRegistration()
                 .AddProvider<TestRegistrationProvider1>()
                 .AddProvider<TestRegistrationProvider2>();
 

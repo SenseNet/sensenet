@@ -114,7 +114,7 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <DisplayName>$Ctd-WebHookSubscription,Description-DisplayName</DisplayName>
       <Description>$Ctd-WebHookSubscription,Description-Description</Description>
       <Indexing>

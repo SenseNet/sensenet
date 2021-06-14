@@ -1000,7 +1000,7 @@ namespace SenseNet.OData.Writers
         {
             if (!oDataRequest.HasExpandedRichTextField)
                 return rtfValue.Text;
-            return oDataRequest.ExpandedRichTextFields.Contains(fieldName)
+            return oDataRequest.AllRichTextFieldExpanded || oDataRequest.ExpandedRichTextFields.Contains(fieldName)
                 ? JsonConvert.SerializeObject(rtfValue)
                 : rtfValue.Text;
         }

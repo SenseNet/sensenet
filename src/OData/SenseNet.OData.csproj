@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.18.1</Version>
+    <Version>0.0.19</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -19,7 +19,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>

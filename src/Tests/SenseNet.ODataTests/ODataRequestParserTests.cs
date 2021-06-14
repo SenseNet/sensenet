@@ -315,6 +315,46 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(2, expanded.Count);
                 Assert.AreEqual("RichText1", expanded[0]);
                 Assert.AreEqual("RichText2", expanded[1]);
+
+                //----------------------------------------------------------------------------- all expanded: "all"
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=all");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("*", expanded[0]);
+
+                //----------------------------------------------------------------------------- all expanded: case insensitive
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=AlL");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("*", expanded[0]);
+
+                //----------------------------------------------------------------------------- all expanded: "*"
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=*");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("*", expanded[0]);
+
+                //----------------------------------------------------------------------------- all expanded: mix 1
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=RichText1,RichText2,*");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("*", expanded[0]);
+
+                //----------------------------------------------------------------------------- all expanded: mix 2
+                httpContext = CreateHttpContext("/OData.svc/Root", "?richtexteditor=RichText1,ALL,RichText2");
+                odataRequest = ODataRequest.Parse(httpContext);
+                expanded = odataRequest.ExpandedRichTextFields;
+                Assert.IsTrue(odataRequest.HasExpandedRichTextField);
+                Assert.AreEqual(1, expanded.Count);
+                Assert.AreEqual("*", expanded[0]);
             });
         }
         /* ======================================================================== TOOLS */

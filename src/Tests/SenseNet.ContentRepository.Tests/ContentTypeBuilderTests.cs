@@ -4,6 +4,7 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging.Tools;
 using SenseNet.Tests.Core;
 
@@ -58,6 +59,60 @@ namespace SenseNet.ContentRepository.Tests
     </Field>
   </Fields>
 </ContentType>";
+        private const string CtdTextEditor = @"<ContentType name=""TextEditor"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+    <Field name=""LongText1"" type=""LongText"">
+        <Description>Preserved desc</Description>
+        <Configuration>
+            <ControlHint>abc</ControlHint>
+        </Configuration>
+    </Field>
+  </Fields>
+</ContentType>";
+        private const string CtdTextEditorSibling = @"<ContentType name=""TextEditorSibling"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+    <Field name=""LongText1"" type=""LongText"">
+        <Description>Sibling desc</Description>
+        <Configuration>
+            <ControlHint>sibling</ControlHint>
+        </Configuration>
+    </Field>
+  </Fields>
+</ContentType>";
+        private const string CtdTextEditorChild1 = @"<ContentType name=""TextEditorChild1"" parentType=""TextEditor"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+  </Fields>
+</ContentType>";
+        private const string CtdTextEditorChild2 = @"<ContentType name=""TextEditorChild2"" parentType=""TextEditorChild1"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+    <Field name=""LongText1"" type=""LongText"">
+        <Description>TextEditorChild2 desc</Description>
+        <Configuration>
+            <ControlHint>def</ControlHint>
+        </Configuration>
+    </Field>
+  </Fields>
+</ContentType>";
+        private const string CtdTextEditorChild3 = @"<ContentType name=""TextEditorChild3"" parentType=""TextEditorChild2"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+<DisplayName>Editor Test Content</DisplayName>
+  <Fields>
+        <Field name=""LongText1"" type=""LongText"">
+            <Configuration>
+                <ControlHint>ghi</ControlHint>
+            </Configuration>
+        </Field>
+  </Fields>
+</ContentType>";
+
+        private const string CtdTextEditorName = "TextEditor";
+        private const string CtdTextEditorSiblingName = "TextEditorSibling";
+        private const string CtdTextEditorChild1Name = "TextEditorChild1";
+        private const string CtdTextEditorChild2Name = "TextEditorChild2";
+        private const string CtdTextEditorChild3Name = "TextEditorChild3";
         #endregion
 
         [TestMethod]
@@ -67,7 +122,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .DisplayName("Test SimpleTestContent x")
@@ -88,7 +143,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -110,7 +165,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -131,7 +186,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestText", "ShortText")
@@ -155,7 +210,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
                 Assert.IsNotNull(fs1);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .Field("TestCount")
@@ -177,7 +232,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.First(fs => fs.Name == "TestCount");
                 Assert.IsNotNull(fs1);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .RemoveField("TestCount");
@@ -195,7 +250,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -224,7 +279,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -255,7 +310,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fs1 = ContentType.GetByName("ComplexTestContent").FieldSettings.Single(fs => fs.Name == "TestCount");
                 Assert.AreEqual("123", fs1.DefaultValue);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -279,7 +334,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 cb.Type("ComplexTestContent")
                     .Field("TestCount")
@@ -320,7 +375,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdComplex);
 
-                var cb = new ContentTypeBuilder();
+                var cb = new ContentTypeBuilder(null);
 
                 // define properties in reverse order
                 cb.Type("ComplexTestContent")
@@ -335,6 +390,93 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("disp", fs1.DisplayName);
                 Assert.AreEqual("desc", fs1.Description);
                 Assert.AreEqual("default", fs1.DefaultValue);
+            });
+        }
+      
+        [TestMethod]
+        public void ContentType_ChangeFieldType_LongText()
+        {
+            Content CreateTestContent(string contentTypeName, Node parent)
+            {
+                var testContent = Content.CreateNew(contentTypeName, parent, Guid.NewGuid().ToString());
+                testContent["LongText1"] = $"{contentTypeName} longtext value";
+                testContent.Save();
+                return testContent;
+            }
+
+            void AssertProperties(FieldSetting fs, string displayName, string description,
+                bool compulsory, FieldVisibility visibleEdit, string controlHint)
+            {
+                Assert.AreEqual("RichText", fs.ShortName);
+                Assert.AreEqual(displayName, fs.DisplayName);
+                Assert.AreEqual(description, fs.Description);
+                Assert.AreEqual(compulsory, fs.Compulsory);
+                Assert.AreEqual(visibleEdit, fs.VisibleEdit);
+                Assert.AreEqual(controlHint, fs.ControlHint);
+            }
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdTextEditor);
+                ContentTypeInstaller.InstallContentType(CtdTextEditorSibling);
+                ContentTypeInstaller.InstallContentType(CtdTextEditorChild1);
+                ContentTypeInstaller.InstallContentType(CtdTextEditorChild2);
+                ContentTypeInstaller.InstallContentType(CtdTextEditorChild3);
+
+                var fs1 = ContentType.GetByName(CtdTextEditorName).FieldSettings.First(fs => fs.Name == "LongText1");
+                Assert.AreEqual("LongText", fs1.ShortName);
+
+                // create text content and fill the field
+                var parent = new SystemFolder(Repository.Root);
+                parent.Save();
+
+                var testContent1 = CreateTestContent(CtdTextEditorName, parent);
+                var testContent2 = CreateTestContent(CtdTextEditorSiblingName, parent);
+                var testContent3 = CreateTestContent(CtdTextEditorChild1Name, parent);
+                var testContent4 = CreateTestContent(CtdTextEditorChild2Name, parent);
+                var testContent5 = CreateTestContent(CtdTextEditorChild3Name, parent);
+
+                var cb = new ContentTypeBuilder(null);
+
+                // change field type and set a couple of additional properties
+                cb.ChangeFieldType("LongText1", "RichText")
+                    .Type(CtdTextEditorName)
+                    .Field("LongText1")
+                    .DisplayName("My rich text field")
+                    .Compulsory()
+                    .VisibleEdit(FieldVisibility.Hide);
+
+                cb.Apply();
+
+                fs1 = ContentType.GetByName(CtdTextEditorName).FieldSettings.Single(fs => fs.Name == "LongText1");
+                var fs2 = ContentType.GetByName(CtdTextEditorSiblingName).FieldSettings.Single(fs => fs.Name == "LongText1");
+                var fs3 = ContentType.GetByName(CtdTextEditorChild1Name).FieldSettings.Single(fs => fs.Name == "LongText1");
+                var fs4 = ContentType.GetByName(CtdTextEditorChild2Name).FieldSettings.Single(fs => fs.Name == "LongText1");
+                var fs5 = ContentType.GetByName(CtdTextEditorChild3Name).FieldSettings.Single(fs => fs.Name == "LongText1");
+
+                // check new and preserved properties
+                AssertProperties(fs1, "My rich text field", "Preserved desc", 
+                    true, FieldVisibility.Hide, "abc");
+                AssertProperties(fs2, null, "Sibling desc",
+                    false, FieldVisibility.Show, "sibling");
+                AssertProperties(fs3, "My rich text field", "Preserved desc",
+                    true, FieldVisibility.Hide, "abc");
+                AssertProperties(fs4, "My rich text field", "TextEditorChild2 desc",
+                    true, FieldVisibility.Hide, "def");
+                AssertProperties(fs5, "My rich text field", "TextEditorChild2 desc",
+                    true, FieldVisibility.Hide, "ghi");
+
+                testContent1 = Content.Load(testContent1.Id);
+                testContent2 = Content.Load(testContent2.Id);
+                testContent3 = Content.Load(testContent3.Id);
+                testContent4 = Content.Load(testContent4.Id);
+                testContent5 = Content.Load(testContent5.Id);
+
+                Assert.AreEqual($"{CtdTextEditorName} longtext value", ((RichTextFieldValue)testContent1["LongText1"]).Text);
+                Assert.AreEqual($"{CtdTextEditorSiblingName} longtext value", ((RichTextFieldValue)testContent2["LongText1"]).Text);
+                Assert.AreEqual($"{CtdTextEditorChild1Name} longtext value", ((RichTextFieldValue)testContent3["LongText1"]).Text);
+                Assert.AreEqual($"{CtdTextEditorChild2Name} longtext value", ((RichTextFieldValue)testContent4["LongText1"]).Text);
+                Assert.AreEqual($"{CtdTextEditorChild3Name} longtext value", ((RichTextFieldValue)testContent5["LongText1"]).Text);
             });
         }
 

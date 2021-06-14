@@ -20,7 +20,9 @@ namespace SenseNet.Services.Core.Tests
             return Test(async () =>
             {
                 var services = new ServiceCollection();
+
                 services.Configure<RegistrationOptions>(options => { })
+                    .AddLogging()
                     .AddSenseNetRegistration();
 
                 var provider = services.BuildServiceProvider();

@@ -24,7 +24,7 @@
         <FieldIndex>10</FieldIndex>
       </Configuration>
     </Field>
-    <Field name="Description" type="LongText">
+    <Field name="Description" type="RichText">
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
