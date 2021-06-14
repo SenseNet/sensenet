@@ -1377,7 +1377,7 @@ namespace SenseNet.ContentRepository.Tests
 
         }
         private async STT.Task GenerateWebHookAggregationAsync(DateTime date, TimeResolution resolution, int callCount,
-            TestStatisticalDataProvider statDataProvider)
+            IStatisticalDataProvider statDataProvider)
         {
             var callCountPer10 = callCount / 10;
 
@@ -1789,6 +1789,77 @@ namespace SenseNet.ContentRepository.Tests
 
             }).ConfigureAwait(false);
         }
+        [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsagePeriod()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var now = DateTime.UtcNow;
+                var testEnd = DateTime.Now.Truncate(TimeResolution.Month).AddMonths(1); //new DateTime(2021, 1, 1, 0, 0, 0);
+                var testStart = testEnd.AddYears(-1);
+                await GenerateWebHookDataForODataTests(testStart, testEnd, now);
+
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
+                    "").ConfigureAwait(false);
+
+                var startTime2 = now.AddDays(-0.5).ToString("yyyy-MM-dd HH:mm:ss");
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
+                    $"?time={startTime2}").ConfigureAwait(false);
+
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
+                    "?timewindow=day").ConfigureAwait(false);
+
+                var startTime = now.AddDays(-0.5).ToString("yyyy-MM-dd HH:mm:ss");
+                var response4 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
+                    $"?timewindow=day&time={startTime}").ConfigureAwait(false);
+
+                Assert.Fail();
+            }).ConfigureAwait(false);
+        }
+
+        private async STT.Task GenerateWebHookDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
+        {
+            var statDataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+            }
+            StatisticalDataAggregationController aggregator;
+
+            var time = testStart;
+            while (time <= now)
+            {
+                if (time.Second == 0)
+                {
+                    //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
+                    if (time.Second == 0)
+                    {
+                        var aggregationTime = time.AddSeconds(-1);
+
+                        if (time.Minute == 0)
+                        {
+                            await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
+                            if (time.Hour == 0)
+                            {
+                                aggregator = CreateAggregator();
+                                await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
+                                if (time.Day == 1)
+                                {
+                                    aggregator = CreateAggregator();
+                                    await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
+                                }
+                            }
+                        }
+                    }
+                }
+                time = time.AddSeconds(1);
+            }
+        }
+
 
         private string GetLastCreationTime(string response)
         {
