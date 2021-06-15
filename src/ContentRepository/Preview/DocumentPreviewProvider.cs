@@ -23,6 +23,7 @@ using SenseNet.BackgroundOperations;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using Group = SenseNet.ContentRepository.Group;
@@ -1328,30 +1329,14 @@ namespace SenseNet.Preview
 
         protected virtual string GetTaskApplicationId(Content content)
         {
-            var appId = TaskManagementOptions.ApplicationId;
-
-            //fallback to settings
-            if (string.IsNullOrEmpty(appId))
-#pragma warning disable 618
-                appId = SnTaskManager.Settings.AppId;
-#pragma warning restore 618
-
-            return appId;
+            return TaskManagementOptions.GetApplicationIdOrSetting();
         }
         /// <summary>
         /// Legacy providers may customize this to determine where to send task requests.
         /// </summary>
         protected virtual string GetTaskApplicationUrl(Content content)
         {
-            var appUrl = TaskManagementOptions.ApplicationUrl;
-            
-            //fallback to settings
-            if (string.IsNullOrEmpty(appUrl))
-#pragma warning disable 618
-                appUrl = SnTaskManager.Settings.AppUrl;
-#pragma warning restore 618
-
-            return appUrl;
+            return TaskManagementOptions.GetApplicationUrlOrSetting();
         }
 
         // ===================================================================================================== Static access
