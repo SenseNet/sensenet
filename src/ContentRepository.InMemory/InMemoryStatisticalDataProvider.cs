@@ -65,6 +65,18 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult((IEnumerable<Aggregation>)result);
         }
 
+        public STT.Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken httpContextRequestAborted)
+        {
+            var result = new DateTime?[4];
+            for (var resolution = TimeResolution.Minute; resolution <= TimeResolution.Month; resolution++)
+            {
+                result[(int)resolution] = Aggregations
+                    .FirstOrDefault(x => x.DataType == dataType && x.Resolution == resolution)?.Date;
+            }
+
+            return STT.Task.FromResult(result);
+        }
+
         public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
             Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
         {

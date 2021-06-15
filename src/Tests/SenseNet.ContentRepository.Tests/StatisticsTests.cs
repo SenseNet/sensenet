@@ -1819,6 +1819,53 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.Fail();
             }).ConfigureAwait(false);
         }
+        [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsagePeriods()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var now = new DateTime(2021, 6, 15, 3, 18, 28);
+                var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
+                var testStart = testEnd.AddYears(-1);
+                await GenerateWebHookDataForODataTests(testStart, testEnd, now);
+
+                var responseDefault = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                    "").ConfigureAwait(false);
+
+                var responseHour = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                    "?timewindow=hour").ConfigureAwait(false);
+
+                var responseDay = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                    "?timewindow=day").ConfigureAwait(false);
+
+                var responseMonth = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                    "?timewindow=month").ConfigureAwait(false);
+
+                var responseYear = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                    "?timewindow=year").ConfigureAwait(false);
+
+                Assert.AreEqual(responseDefault, responseMonth);
+                Assert.AreEqual(
+                    "{\"Window\":\"Hour\",\"Resolution\":\"Minute\"," +
+                    "\"First\":\"0001-01-01T00:00:00\",\"Last\":\"0001-01-01T00:00:00\",\"Count\":0}",
+                    RemoveWhitespaces(responseHour));
+                Assert.AreEqual(
+                    "{\"Window\":\"Day\",\"Resolution\":\"Hour\"," +
+                    "\"First\":\"2021-06-13T00:00:00Z\",\"Last\":\"2021-06-15T00:00:00Z\",\"Count\":3}",
+                    RemoveWhitespaces(responseDay));
+                Assert.AreEqual(
+                    "{\"Window\":\"Month\",\"Resolution\":\"Day\"," +
+                    "\"First\":\"2021-04-01T00:00:00Z\",\"Last\":\"2021-06-01T00:00:00Z\",\"Count\":3}",
+                    RemoveWhitespaces(responseMonth));
+                Assert.AreEqual(
+                    "{\"Window\":\"Year\",\"Resolution\":\"Month\"," +
+                    "\"First\":\"2021-01-01T00:00:00Z\",\"Last\":\"2021-01-01T00:00:00Z\",\"Count\":1}",
+                    RemoveWhitespaces(responseYear));
+            }).ConfigureAwait(false);
+        }
 
         private async STT.Task GenerateWebHookDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
         {
@@ -1835,7 +1882,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 if (time.Second == 0)
                 {
-                    //await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
                     if (time.Second == 0)
                     {
                         var aggregationTime = time.AddSeconds(-1);
@@ -1843,6 +1889,9 @@ namespace SenseNet.ContentRepository.Tests
                         if (time.Minute == 0)
                         {
                             await GenerateWebHookAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
+                            // Does not aggregate but cleans up.
+                            aggregator = CreateAggregator();
+                            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
                             if (time.Hour == 0)
                             {
                                 aggregator = CreateAggregator();
@@ -2010,6 +2059,11 @@ namespace SenseNet.ContentRepository.Tests
                     x.Date >= startTime &&
                     x.Date < endTimeExclusive).ToArray();
                 return STT.Task.FromResult((IEnumerable<Aggregation>)result);
+            }
+
+            public STT.Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken httpContextRequestAborted)
+            {
+                throw new NotImplementedException();
             }
 
             public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,

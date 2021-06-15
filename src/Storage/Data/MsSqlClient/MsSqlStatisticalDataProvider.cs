@@ -24,6 +24,11 @@ namespace SenseNet.Storage.Data.MsSqlClient
             throw new NotImplementedException();
         }
 
+        public Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken httpContextRequestAborted)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive, Action<IStatisticalDataRecord> aggregatorCallback,
             CancellationToken cancel)
         {

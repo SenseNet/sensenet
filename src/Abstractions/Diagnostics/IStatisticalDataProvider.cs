@@ -32,6 +32,8 @@ namespace SenseNet.Diagnostics
         Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
             DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel);
 
+        Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken httpContextRequestAborted);
+
         Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
             Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel);
 
@@ -39,5 +41,4 @@ namespace SenseNet.Diagnostics
         Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancel);
         Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime, CancellationToken cancel);
     }
-
 }
