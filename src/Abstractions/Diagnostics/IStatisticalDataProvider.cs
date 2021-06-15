@@ -13,7 +13,6 @@ namespace SenseNet.Diagnostics
         public string DataType { get; set; }
         public DateTime Date { get; set; }
         public TimeResolution Resolution { get; set; }
-        //TimeWindow Window { get; set; }
 
         public string Data { get; set; }
 

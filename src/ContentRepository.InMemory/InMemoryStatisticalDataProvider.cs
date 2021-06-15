@@ -94,7 +94,13 @@ namespace SenseNet.ContentRepository.InMemory
 
         public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
         {
-            Aggregations.Add(CloneAggregation(aggregation));
+            var existing = Aggregations.FirstOrDefault(x =>
+                x.DataType == aggregation.DataType && x.Date == aggregation.Date &&
+                x.Resolution == aggregation.Resolution);
+            if (existing == null)
+                Aggregations.Add(aggregation);
+            else
+                existing.Data = aggregation.Data;
             return STT.Task.CompletedTask;
         }
 

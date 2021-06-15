@@ -170,6 +170,37 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
+        public async Task Stat_DataProvider_OverwriteAggregation()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                // ACTION
+                var now = new DateTime(2020, 01, 01, 0, 0, 0);
+                for (var i = 0; i < 4; i++)
+                {
+                    await DP.WriteAggregationAsync(new Aggregation
+                            { DataType = $"DataType{i}", Date = now, Resolution = (TimeResolution)i, Data = $"Data{i}" },
+                        CancellationToken.None);
+                    // Write a modified version
+                    await DP.WriteAggregationAsync(new Aggregation
+                            { DataType = $"DataType{i}", Date = now, Resolution = (TimeResolution)i, Data = $"Data{i}-updated" },
+                        CancellationToken.None);
+                }
+
+                // ASSERT (8 writes but 4 existing records)
+                var aggregations = (await TDP.LoadAllStatisticalDataAggregations(DP)).ToArray();
+                Assert.AreEqual(4, aggregations.Length);
+                for (var i = 0; i < 4; i++)
+                {
+                    Assert.AreEqual($"DataType{i}", aggregations[i].DataType);
+                    Assert.AreEqual(now, aggregations[i].Date);
+                    Assert.AreEqual((TimeResolution)i, aggregations[i].Resolution);
+                    Assert.AreEqual($"Data{i}-updated", aggregations[i].Data);
+                }
+            });
+        }
         public async Task Stat_DataProvider_LoadAggregations()
         {
             await NoRepoIntegrationTestAsync(async () =>

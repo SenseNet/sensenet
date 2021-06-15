@@ -1083,6 +1083,72 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(aggregation.Date.AddYears(-3), statDataProvider.CleanupAggregationsCalls[0].RetentionTime);
         }
 
+
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_DoNotDuplicateButOverwrite_Minute()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var now = DateTime.UtcNow.AddMinutes(-2);
+
+            // ACTION (write twice)
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Minute, 10, statDataProvider).ConfigureAwait(false);
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Minute, 11, statDataProvider).ConfigureAwait(false);
+
+            // ASSERT (written only once but updated)
+            Assert.AreEqual(1, statDataProvider.Aggregations.Count);
+            var aggregation = statDataProvider.Aggregations[0];
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            Assert.AreEqual(11, deserialized.CallCount);
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_DoNotDuplicateButOverwrite_Hour()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var now = DateTime.UtcNow.AddHours(-2);
+
+            // ACTION (write twice)
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Hour, 10, statDataProvider).ConfigureAwait(false);
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Hour, 11, statDataProvider).ConfigureAwait(false);
+
+            // ASSERT (written only once but updated)
+            Assert.AreEqual(1, statDataProvider.Aggregations.Count);
+            var aggregation = statDataProvider.Aggregations[0];
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            Assert.AreEqual(11, deserialized.CallCount);
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_DoNotDuplicateButOverwrite_Day()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var now = DateTime.UtcNow.AddDays(-2);
+
+            // ACTION (write twice)
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Day, 10, statDataProvider).ConfigureAwait(false);
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Day, 11, statDataProvider).ConfigureAwait(false);
+
+            // ASSERT (written only once but updated)
+            Assert.AreEqual(1, statDataProvider.Aggregations.Count);
+            var aggregation = statDataProvider.Aggregations[0];
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            Assert.AreEqual(11, deserialized.CallCount);
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_DoNotDuplicateButOverwrite_Month()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var now = DateTime.UtcNow.AddMonths(-2);
+
+            // ACTION (write twice)
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Month, 10, statDataProvider).ConfigureAwait(false);
+            await GenerateWebHookAggregationAsync(now, TimeResolution.Month, 11, statDataProvider).ConfigureAwait(false);
+
+            // ASSERT (written only once but updated)
+            Assert.AreEqual(1, statDataProvider.Aggregations.Count);
+            var aggregation = statDataProvider.Aggregations[0];
+            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            Assert.AreEqual(11, deserialized.CallCount);
+        }
+
         [TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_60MinutelyTo1Hourly()
         {
@@ -1721,6 +1787,8 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
+        #region /* ========================================================================= OData tests */
+
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageList()
         {
@@ -2011,7 +2079,7 @@ namespace SenseNet.ContentRepository.Tests
             return stream;
         }
 
-
+        #endregion
 
 
         #region private class TestStatisticalDataProvider : IStatisticalDataProvider
@@ -2085,7 +2153,13 @@ namespace SenseNet.ContentRepository.Tests
 
             public STT.Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
             {
-                Aggregations.Add(aggregation);
+                var existing = Aggregations.FirstOrDefault(x =>
+                    x.DataType == aggregation.DataType && x.Date == aggregation.Date &&
+                    x.Resolution == aggregation.Resolution);
+                if (existing == null)
+                    Aggregations.Add(aggregation);
+                else
+                    existing.Data = aggregation.Data;
                 return STT.Task.CompletedTask;
             }
 
