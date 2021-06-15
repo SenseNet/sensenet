@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 
@@ -114,7 +115,7 @@ namespace SenseNet.BackgroundOperations
 
                             if (string.IsNullOrEmpty(Providers.TaskManagerClassName))
                             {
-                                instance = new TaskManagerBase(null);
+                                instance = new TaskManagerBase(null, null);
                             }
                             else
                             {
@@ -127,7 +128,7 @@ namespace SenseNet.BackgroundOperations
                                     SnLog.WriteWarning("Error loading task manager type " + Providers.TaskManagerClassName,
                                         EventId.RepositoryLifecycle);
 
-                                    instance = new TaskManagerBase(null);
+                                    instance = new TaskManagerBase(null, null);
                                 }
                             }
 
@@ -145,16 +146,18 @@ namespace SenseNet.BackgroundOperations
 
     public class TaskManagerBase : ITaskManager
     {
+        private readonly ITaskManagementClient _client;
         private readonly TaskManagementOptions _options;
         
-        public TaskManagerBase(IOptions<TaskManagementOptions> options)
+        public TaskManagerBase(ITaskManagementClient client, IOptions<TaskManagementOptions> options)
         {
+            _client = client;
             _options = options?.Value ?? new TaskManagementOptions();
         }
 
         public virtual async Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData, CancellationToken cancellationToken)
         {
-            var taskManagementUrl = _options.UrlOrSetting;
+            var taskManagementUrl = _options.GetUrlOrSetting();
             if (string.IsNullOrEmpty(taskManagementUrl) || requestData == null)
                 return null;
 
@@ -162,7 +165,7 @@ namespace SenseNet.BackgroundOperations
             {
                 try
                 {
-                    return await RepositoryClient.RegisterTaskAsync(taskManagementUrl, requestData).ConfigureAwait(false);
+                    return await _client.RegisterTaskAsync(requestData).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -198,7 +201,7 @@ namespace SenseNet.BackgroundOperations
 
         public virtual async Task<bool> RegisterApplicationAsync(CancellationToken cancellationToken)
         {
-            var taskManagementUrl = _options.UrlOrSetting;
+            var taskManagementUrl = _options.GetUrlOrSetting();
             if (string.IsNullOrEmpty(taskManagementUrl))
             {
                 SnTrace.TaskManagement.Write("Task management url is empty, application is not registered.");
@@ -207,13 +210,13 @@ namespace SenseNet.BackgroundOperations
 
             var requestData = new RegisterApplicationRequest
             {
-                AppId = _options.ApplicationIdOrSetting,
-                ApplicationUrl = _options.ApplicationUrlOrSetting
+                AppId = _options.GetApplicationIdOrSetting(),
+                ApplicationUrl = _options.GetApplicationUrlOrSetting()
             };
 
             try
             {
-                await RepositoryClient.RegisterApplicationAsync(taskManagementUrl, requestData).ConfigureAwait(false);
+                await _client.RegisterApplicationAsync(requestData).ConfigureAwait(false);
 
                 SnLog.WriteInformation("Task management app registration was successful.", EventId.TaskManagement.General, properties: new Dictionary<string, object>
                 {
