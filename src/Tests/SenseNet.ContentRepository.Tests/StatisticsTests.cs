@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
@@ -1865,26 +1866,109 @@ namespace SenseNet.ContentRepository.Tests
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                var now = DateTime.UtcNow;
-                var testEnd = DateTime.Now.Truncate(TimeResolution.Month).AddMonths(1); //new DateTime(2021, 1, 1, 0, 0, 0);
+                var now = new DateTime(2021, 6, 15, 8, 14, 28);
+                var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
                 await GenerateWebHookDataForODataTests(testStart, testEnd, now);
 
+                // ACTION-1 
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
                     "").ConfigureAwait(false);
 
-                var startTime2 = now.AddDays(-0.5).ToString("yyyy-MM-dd HH:mm:ss");
+                // ASSERT-1
+                var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual("WebHook", result1["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result1["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result1["Resolution"].Value<string>());
+                Assert.AreEqual(14, ((JArray)result1["CallCount"]).Count);
+                Assert.AreEqual(86400L, ((JArray)result1["CallCount"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L, ((JArray)result1["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L, ((JArray)result1["ResponseLengths"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["Status100"]).Count);
+                Assert.AreEqual(0, ((JArray)result1["Status100"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["Status200"]).Count);
+                Assert.AreEqual(69120, ((JArray)result1["Status200"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["Status300"]).Count);
+                Assert.AreEqual(0, ((JArray)result1["Status300"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["Status400"]).Count);
+                Assert.AreEqual(8640, ((JArray)result1["Status400"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["Status500"]).Count);
+                Assert.AreEqual(8640, ((JArray)result1["Status500"]).First().Value<long>());
+
+                // ACTION-2
+                var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
                     $"?time={startTime2}").ConfigureAwait(false);
 
+                // ASSERT-2
+                var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual("WebHook", result2["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result2["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result2["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result2["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result2["Resolution"].Value<string>());
+                Assert.AreEqual(31, ((JArray)result2["CallCount"]).Count);
+                Assert.AreEqual(86400L, ((JArray)result2["CallCount"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L, ((JArray)result2["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L, ((JArray)result2["ResponseLengths"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["Status100"]).Count);
+                Assert.AreEqual(0, ((JArray)result2["Status100"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["Status200"]).Count);
+                Assert.AreEqual(69120, ((JArray)result2["Status200"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["Status300"]).Count);
+                Assert.AreEqual(0, ((JArray)result2["Status300"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["Status400"]).Count);
+                Assert.AreEqual(8640, ((JArray)result2["Status400"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["Status500"]).Count);
+                Assert.AreEqual(8640, ((JArray)result2["Status500"]).First().Value<long>());
+
+                // ACTION-3
                 var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    "?timewindow=day").ConfigureAwait(false);
+                    "?timewindow=year").ConfigureAwait(false);
 
-                var startTime = now.AddDays(-0.5).ToString("yyyy-MM-dd HH:mm:ss");
+                // ASSERT-3
+                var result3 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual("WebHook", result3["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
+                Assert.AreEqual("Year", result3["TimeWindow"].Value<string>());
+                Assert.AreEqual("Month", result3["Resolution"].Value<string>());
+                Assert.AreEqual(5, ((JArray)result3["CallCount"]).Count);
+                Assert.AreEqual(86400L * 31, ((JArray)result3["CallCount"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L * 31, ((JArray)result3["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L * 31, ((JArray)result3["ResponseLengths"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["Status100"]).Count);
+                Assert.AreEqual(0, ((JArray)result3["Status100"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["Status200"]).Count);
+                Assert.AreEqual(69120 * 31, ((JArray)result3["Status200"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["Status300"]).Count);
+                Assert.AreEqual(0, ((JArray)result3["Status300"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["Status400"]).Count);
+                Assert.AreEqual(8640 * 31, ((JArray)result3["Status400"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["Status500"]).Count);
+                Assert.AreEqual(8640 * 31, ((JArray)result3["Status500"]).First().Value<long>());
+
+                // ACTION-4
+                var startTime = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
                 var response4 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    $"?timewindow=day&time={startTime}").ConfigureAwait(false);
+                    $"?timewindow=month&time={startTime}").ConfigureAwait(false);
 
-                Assert.Fail();
+                // ASSERT-4
+                var result4 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response4)));
+                Assert.AreEqual("WebHook", result4["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result4["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result4["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result4["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result4["Resolution"].Value<string>());
+
             }).ConfigureAwait(false);
         }
         [TestMethod]
