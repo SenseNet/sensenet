@@ -17,5 +17,6 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_CleanupRecords() { await TestCase.Stat_DataProvider_CleanupRecords().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_CleanupAggregations() { await TestCase.Stat_DataProvider_CleanupAggregations().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadUsageList() { await TestCase.Stat_DataProvider_LoadUsageList().ConfigureAwait(false); }
+        [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadUsageListByWebHookId() { await TestCase.Stat_DataProvider_LoadUsageListByWebHookId().ConfigureAwait(false); }
     }
 }

@@ -370,5 +370,65 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
+        public async Task Stat_DataProvider_LoadUsageListByWebHookId()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+
+                var startTime = new DateTime(2020, 01, 01, 0, 0, 0);
+                var now = startTime;
+                for (var i = 0; i < 20; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        await DP.WriteDataAsync(new StatisticalDataRecord
+                        {
+                            DataType = $"DT{(i % 2) + 1}",
+                            CreationTime = now,
+                            WebHookId = j + 1000,
+                            GeneralData = now.Minute.ToString()
+                        }, CancellationToken.None);
+
+                    }
+                    now = now.AddMinutes(1 + i); // continuously slowing periods
+                }
+
+
+                for (int dt = 1; dt <= 2; dt++)
+                {
+                    var dataType = $"DT{dt}";
+                    var endTime = DateTime.UtcNow;
+                    IStatisticalDataRecord lastRecord;
+
+                    // ACTION (get all records with paged queries)
+                    var allRecords = new List<IStatisticalDataRecord>();
+                    var pageLengths = new List<int>();
+                    while (true)
+                    {
+                        var page =
+                            (await DP.LoadUsageListAsync(dataType, 1001, endTime, 4, CancellationToken.None)
+                            .ConfigureAwait(false)).ToArray();
+                        lastRecord = page.LastOrDefault();
+                        if (lastRecord == null)
+                            break;
+                        pageLengths.Add(page.Length);
+                        allRecords.AddRange(page);
+                        endTime = lastRecord.CreationTime ?? lastRecord.WrittenTime;
+                    }
+
+                    // ASSERT
+                    Assert.AreEqual(10, allRecords.Count);
+                    Assert.AreEqual("4 4 2", string.Join(" ", pageLengths.Select(x => x.ToString())));
+                    for (var i = 0; i < 10; i++)
+                    {
+                        Assert.AreEqual(1001, allRecords[i].WebHookId);
+                        Assert.AreEqual(dataType, allRecords[i].DataType);
+                        if (i < 9)
+                            Assert.IsTrue(allRecords[i].CreationTime > allRecords[i + 1].CreationTime);
+                    }
+                }
+            });
+        }
     }
 }

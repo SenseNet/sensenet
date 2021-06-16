@@ -56,7 +56,13 @@ namespace SenseNet.ContentRepository.InMemory
 
         public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int webHookId, DateTime endTimeExclusive, int count, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            var result = Storage
+                .Where(r => r.DataType == dataType && r.WebHookId == webHookId && r.CreationTime < endTimeExclusive)
+                .OrderByDescending(r => r.CreationTime)
+                .Take(count)
+                .Select(CloneRecord)
+                .ToArray();
+            return STT.Task.FromResult((IEnumerable<IStatisticalDataRecord>)result);
         }
 
         public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,

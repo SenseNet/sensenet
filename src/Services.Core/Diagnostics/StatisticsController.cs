@@ -13,214 +13,128 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Diagnostics
 {
-    public class WebHookUsageViewModel
-    {
-        private readonly Aggregation[] _timeLine;
-        private DateTime _startTime;
-        private DateTime _endTime;
-        private TimeWindow _timeWindow;
-        private TimeResolution _resolution;
-
-        public WebHookUsageViewModel(IEnumerable<Aggregation> timeLine, DateTime startTime, DateTime endTime,
-            TimeWindow timeWindow, TimeResolution resolution)
-        {
-            _timeLine = timeLine.ToArray();
-            _startTime = startTime;
-            _endTime = endTime;
-            _timeWindow = timeWindow;
-            _resolution = resolution;
-        }
-
-        public object GetViewModel()
-        {
-            WebHookStatisticalDataAggregator.WebHookAggregation Deserialize(string src)
-            {
-                return JsonSerializer.Create()
-                    .Deserialize<WebHookStatisticalDataAggregator.WebHookAggregation>(new JsonTextReader(new StringReader(src)));
-            }
-
-            var items = _timeLine.Select(x => Deserialize(x.Data)).ToArray();
-            var count = items.Length;
-
-            var callCount = new int[count];
-            var requestLengths = new long[count];
-            var responseLengths = new long[count];
-            var status100 = new int[count];
-            var status200 = new int[count];
-            var status300 = new int[count];
-            var status400 = new int[count];
-            var status500 = new int[count];
-
-            for (int i = 0; i < items.Length; i++)
-            {
-                callCount[i] = items[i].CallCount;
-                requestLengths[i] = items[i].RequestLengths;
-                responseLengths[i] = items[i].ResponseLengths;
-                status100[i] = items[i].StatusCounts[0];
-                status200[i] = items[i].StatusCounts[1];
-                status300[i] = items[i].StatusCounts[2];
-                status400[i] = items[i].StatusCounts[3];
-                status500[i] = items[i].StatusCounts[4];
-            }
-
-            return new
-            {
-                DataType = "WebHook",
-                Start = _startTime,
-                End = _endTime,
-                TimeWindow = _timeWindow.ToString(),
-                Resolution = _resolution.ToString(),
-                CallCount = callCount,
-                RequestLengths = requestLengths,
-                ResponseLengths = responseLengths,
-                Status100 = status100,
-                Status200 = status200,
-                Status300 = status300,
-                Status400 = status400,
-                Status500 = status500,
-            };
-        }
-    }
-
-    public class WebHookUsageListItemViewModel
-    {
-        public DateTime CreationTime { get; set; }
-        public TimeSpan Duration { get; set; }
-        public long RequestLength { get; set; }
-        public long ResponseLength { get; set; }
-        public int ResponseStatusCode { get; set; }
-        public string Url { get; set; }
-        public int WebHookId { get; set; }
-        public int ContentId { get; set; }
-        public string EventName { get; set; }
-        public string ErrorMessage { get; set; }
-
-        /// <summary>
-        /// For deserializer
-        /// </summary>
-        public WebHookUsageListItemViewModel() { }
-        public WebHookUsageListItemViewModel(IStatisticalDataRecord record)
-        {
-            CreationTime = record.CreationTime ?? DateTime.MinValue;
-            Duration = record.Duration ?? TimeSpan.Zero;
-            RequestLength = record.RequestLength ?? 0;
-            ResponseLength = record.ResponseLength ?? 0;
-            ResponseStatusCode = record.ResponseStatusCode ?? 0;
-            Url = record.Url;
-            WebHookId = record.WebHookId ?? 0;
-            ContentId = record.ContentId ?? 0;
-            EventName = record.EventName;
-            ErrorMessage = record.ErrorMessage;
-        }
-    }
-
     public static class StatisticsController
     {
-        [ODataFunction]
-        [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
-            int webHookId = 0, DateTime? maxTime = null, int count = 10)
-        {
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+        //[ODataFunction(operationName: "GetWebHookUsageList")]
+        //[ContentTypes(N.CT.PortalRoot)]
+        //[AllowedRoles(N.R.Administrators, N.R.Developers)]
+        //public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetAllWebHookUsageList(Content content, HttpContext httpContext,
+        //    DateTime? maxTime = null, int count = 10)
+        //{
+        //    //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+        //    var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
 
-            var records = await dataProvider
-                .LoadUsageListAsync("WebHook", maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
-                .ConfigureAwait(false);
+        //    var records = await dataProvider
+        //            .LoadUsageListAsync("WebHook", maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
+        //            .ConfigureAwait(false);
 
-            var items = records
-                .Select(x => new WebHookUsageListItemViewModel(x)).ToArray();
+        //    var items = records
+        //        .Select(x => new WebHookUsageListItemViewModel(x)).ToArray();
 
-            return items;
-        }
-
+        //    return items;
+        //}
         //[ODataFunction]
         //[ContentTypes("WebHookSubscription")]
         //[AllowedRoles(N.R.Administrators, N.R.Developers)]
-        //public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList
+        //public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
+        //    DateTime? maxTime = null, int count = 10)
+        //{
+        //    //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+        //    var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
 
-        [ODataFunction]
-        [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async Task<object> GetWebHookUsagePeriods(Content content, HttpContext httpContext,
-            TimeWindow? timeWindow = null)
-        {
-            var window = timeWindow ?? TimeWindow.Month;
-            var resolution = (TimeResolution)(int)window;
+        //    var records = await dataProvider
+        //            .LoadUsageListAsync("WebHook", content.Id, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
+        //            .ConfigureAwait(false);
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+        //    var items = records
+        //        .Select(x => new WebHookUsageListItemViewModel(x)).ToArray();
 
-            var firstTimes = await dataProvider.LoadFirstAggregationTimesByResolutionsAsync("WebHook", httpContext.RequestAborted)
-                .ConfigureAwait(false);
+        //    return items;
+        //}
 
-            var firstTime = firstTimes[(int) resolution];
+        //[ODataFunction]
+        //[ContentTypes(N.CT.PortalRoot)]
+        //[AllowedRoles(N.R.Administrators, N.R.Developers)]
+        //public static async Task<object> GetWebHookUsagePeriods(Content content, HttpContext httpContext,
+        //    TimeWindow? timeWindow = null)
+        //{
+        //    var window = timeWindow ?? TimeWindow.Month;
+        //    var resolution = (TimeResolution)(int)window;
 
-            // Return a default response if the requested window is not represented.
-            if (firstTime == null)
-                return new
-                {
-                    Window = window.ToString(),
-                    Resolution = resolution.ToString(),
-                    First = DateTime.MinValue,
-                    Last = DateTime.MinValue,
-                    Count = 0
-                };
+        //    //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+        //    var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
 
-            // Get last item and count in one round.
-            var start = DateTime.UtcNow.Truncate(resolution).Truncate(window);
-            var last = start;
-            var count = 0;
-            foreach (var item in EnumeratePeriods(window, start, firstTime.Value))
-            {
-                last = item;
-                count++;
-            }
+        //    var firstTimes = await dataProvider.LoadFirstAggregationTimesByResolutionsAsync("WebHook", httpContext.RequestAborted)
+        //        .ConfigureAwait(false);
 
-            var result = new
-            {
-                Window = window.ToString(),
-                Resolution = resolution.ToString(),
-                First = last,
-                Last = start,
-                Count = count
-            };
-            return result;
-        }
-        private static IEnumerable<DateTime> EnumeratePeriods(TimeWindow window, DateTime start, DateTime firstTime)
-        {
-            var guard = start;
-            while (start >= firstTime)
-            {
-                yield return start;
-                start = start.AddTicks(-1).Truncate(window);
+        //    var firstTime = firstTimes[(int) resolution];
 
-                if (guard == start)
-                    throw new InvalidOperationException("Infinite loop in the time-period enumeration.");
-                guard = start;
-            }
-        }
+        //    // Return a default response if the requested window is not represented.
+        //    if (firstTime == null)
+        //        return new
+        //        {
+        //            Window = window.ToString(),
+        //            Resolution = resolution.ToString(),
+        //            First = DateTime.MinValue,
+        //            Last = DateTime.MinValue,
+        //            Count = 0
+        //        };
 
-        [ODataFunction]
-        [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async Task<object> GetWebHookUsagePeriod(Content content, HttpContext httpContext,
-            TimeWindow? timeWindow = null, DateTime? time = null)
-        {
-            var window = timeWindow ?? TimeWindow.Month;
-            var resolution = (TimeResolution)(int)window;
-            var startTime = (time ?? DateTime.UtcNow).Truncate(window);
-            var endTime = startTime.Next(window);
+        //    // Get last item and count in one round.
+        //    var start = DateTime.UtcNow.Truncate(resolution).Truncate(window);
+        //    var last = start;
+        //    var count = 0;
+        //    foreach (var item in EnumeratePeriods(window, start, firstTime.Value))
+        //    {
+        //        last = item;
+        //        count++;
+        //    }
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+        //    var result = new
+        //    {
+        //        Window = window.ToString(),
+        //        Resolution = resolution.ToString(),
+        //        First = last,
+        //        Last = start,
+        //        Count = count
+        //    };
+        //    return result;
+        //}
+        //private static IEnumerable<DateTime> EnumeratePeriods(TimeWindow window, DateTime start, DateTime firstTime)
+        //{
+        //    var guard = start;
+        //    while (start >= firstTime)
+        //    {
+        //        yield return start;
+        //        start = start.AddTicks(-1).Truncate(window);
 
-            var dbResult = await dataProvider.LoadAggregatedUsageAsync("WebHook", resolution,
-                startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
+        //        if (guard == start)
+        //            throw new InvalidOperationException("Infinite loop in the time-period enumeration.");
+        //        guard = start;
+        //    }
+        //}
 
-            return new WebHookUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
-        }
+        //[ODataFunction]
+        //[ContentTypes(N.CT.PortalRoot)]
+        //[AllowedRoles(N.R.Administrators, N.R.Developers)]
+        //public static async Task<object> GetWebHookUsagePeriod(Content content, HttpContext httpContext,
+        //    TimeWindow? timeWindow = null, DateTime? time = null)
+        //{
+        //    var window = timeWindow ?? TimeWindow.Month;
+        //    var resolution = (TimeResolution)(int)window;
+        //    var startTime = (time ?? DateTime.UtcNow).Truncate(window);
+        //    var endTime = startTime.Next(window);
+
+        //    //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+        //    var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+
+        //    var dbResult = await dataProvider.LoadAggregatedUsageAsync("WebHook", resolution,
+        //        startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
+
+        //    return new WebHookUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
+        //}
+
+        /**/
 
         //public static async Task<IEnumerable<ApiUsageListItemViewModel>> GetApiUsageList
         //public static async Task<object> GetApiUsagePeriods

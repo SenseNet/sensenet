@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -791,7 +792,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -841,7 +842,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Minute, aggregation.Resolution);
 
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(60, deserialized.CallCount); // 60 * 6
             Assert.AreEqual(60 * 100, deserialized.RequestLengths);
             Assert.AreEqual(60 * 1000, deserialized.ResponseLengths);
@@ -866,7 +867,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -916,7 +917,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
 
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(360, deserialized.CallCount); // 60 * 6
             Assert.AreEqual(360 * 100, deserialized.RequestLengths);
             Assert.AreEqual(360 * 1000, deserialized.ResponseLengths);
@@ -939,7 +940,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -986,7 +987,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Day, aggregation.Resolution);
 
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(8640, deserialized.CallCount); // 24 * 60 * 6
             Assert.AreEqual(8640 * 100, deserialized.RequestLengths);
             Assert.AreEqual(8640 * 1000, deserialized.ResponseLengths);
@@ -1009,7 +1010,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1067,7 +1068,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Month, aggregation.Resolution);
 
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(expectedCount, deserialized.CallCount);
             Assert.AreEqual(expectedCount * 100, deserialized.RequestLengths);
             Assert.AreEqual(expectedCount * 1000, deserialized.ResponseLengths);
@@ -1098,7 +1099,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT (written only once but updated)
             Assert.AreEqual(1, statDataProvider.Aggregations.Count);
             var aggregation = statDataProvider.Aggregations[0];
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(11, deserialized.CallCount);
         }
         [TestMethod]
@@ -1114,7 +1115,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT (written only once but updated)
             Assert.AreEqual(1, statDataProvider.Aggregations.Count);
             var aggregation = statDataProvider.Aggregations[0];
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(11, deserialized.CallCount);
         }
         [TestMethod]
@@ -1130,7 +1131,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT (written only once but updated)
             Assert.AreEqual(1, statDataProvider.Aggregations.Count);
             var aggregation = statDataProvider.Aggregations[0];
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(11, deserialized.CallCount);
         }
         [TestMethod]
@@ -1146,7 +1147,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT (written only once but updated)
             Assert.AreEqual(1, statDataProvider.Aggregations.Count);
             var aggregation = statDataProvider.Aggregations[0];
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
             Assert.AreEqual(11, deserialized.CallCount);
         }
 
@@ -1157,7 +1158,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1216,7 +1217,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedStart, aggregation.Date);
             Assert.AreEqual(TimeResolution.Hour, aggregation.Resolution);
 
-            var deserialized = DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(aggregation.Data);
+            var deserialized = DeserializeAggregation<WebHookAggregation>(aggregation.Data);
 
             Assert.AreEqual(3600, deserialized.CallCount); // 60 * 60
             Assert.AreEqual(3600 * 100, deserialized.RequestLengths);
@@ -1235,7 +1236,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1284,13 +1285,13 @@ namespace SenseNet.ContentRepository.Tests
             var dt = "WebHook";
 
             var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
-            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            var aggregations = new WebHookAggregation[resolutionCount][];
             for (int resolutionValue = 0; resolutionValue < resolutionCount; resolutionValue++)
             {
                 aggregations[resolutionValue]= allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
                     .ToArray();
 
                 // The first elements are truncated need to contain only one request per any resolution.
@@ -1309,7 +1310,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1353,13 +1354,13 @@ namespace SenseNet.ContentRepository.Tests
             var dt = "WebHook";
 
             var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
-            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            var aggregations = new WebHookAggregation[resolutionCount][];
             for (int resolutionValue = 0; resolutionValue < resolutionCount; resolutionValue++)
             {
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
                     .ToArray();
 
                 // The first elements are truncated need to contain only one request per any resolution.
@@ -1379,7 +1380,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1426,14 +1427,14 @@ namespace SenseNet.ContentRepository.Tests
             var dt = "WebHook";
 
             var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
-            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            var aggregations = new WebHookAggregation[resolutionCount][];
             // Start with 1 because the per-minute aggregation was not generated.
             for (int resolutionValue = 1; resolutionValue < resolutionCount; resolutionValue++)
             {
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
                     .ToArray();
             }
             // Per-minute aggregations are skipped
@@ -1454,7 +1455,7 @@ namespace SenseNet.ContentRepository.Tests
                 DataType = "WebHook",
                 Resolution = resolution,
                 Data = SerializeAggregation(
-                    new WebHookStatisticalDataAggregator.WebHookAggregation
+                    new WebHookAggregation
                     {
                         CallCount = callCount,
                         RequestLengths = callCount * 100,
@@ -1473,7 +1474,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] {new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] {new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
             
@@ -1525,13 +1526,13 @@ namespace SenseNet.ContentRepository.Tests
             var dt = "WebHook";
 
             var resolutionCount = Enum.GetValues(typeof(TimeResolution)).Length;
-            var aggregations = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount][];
+            var aggregations = new WebHookAggregation[resolutionCount][];
             for (int resolutionValue = 0; resolutionValue < resolutionCount; resolutionValue++)
             {
                 aggregations[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
                     .ToArray();
             }
             Assert.AreEqual(1, aggregations[(int)TimeResolution.Minute][0].CallCount);
@@ -1549,7 +1550,7 @@ namespace SenseNet.ContentRepository.Tests
                 return new StatisticalDataAggregationController(statDataProvider,
                     new IStatisticalDataAggregator[]
                     {
-                        new WebHookStatisticalDataAggregator(GetOptions()),
+                        new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
                         new WebTransferStatisticalDataAggregator(GetOptions()),
                         new DatabaseUsageStatisticalDataAggregator(GetOptions())
                     }, GetOptions());
@@ -1612,13 +1613,13 @@ namespace SenseNet.ContentRepository.Tests
 
             var dt1 = "WebHook";
             var resolutionCount1 = Enum.GetValues(typeof(TimeResolution)).Length;
-            var aggregations1 = new WebHookStatisticalDataAggregator.WebHookAggregation[resolutionCount1][];
+            var aggregations1 = new WebHookAggregation[resolutionCount1][];
             for (int resolutionValue = 0; resolutionValue < resolutionCount1; resolutionValue++)
             {
                 aggregations1[resolutionValue] = allAggregations
                     .Where(x => x.DataType == dt1 && x.Resolution == (TimeResolution)resolutionValue)
                     .Take(2)
-                    .Select(x => DeserializeAggregation<WebHookStatisticalDataAggregator.WebHookAggregation>(x.Data))
+                    .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
                     .ToArray();
             }
             Assert.AreEqual(1, aggregations1[(int)TimeResolution.Minute][0].CallCount);
@@ -1770,6 +1771,10 @@ namespace SenseNet.ContentRepository.Tests
         {
             return _options ??= new OptionsWrapper<StatisticsOptions>(new StatisticsOptions());
         }
+        private AggregationRetentionPeriods GetWebHookRetentions()
+        {
+            return GetOptions().Value.Retention.WebHooks;
+        }
         #endregion
 
         #region /* ========================================================================= Configuration tests */
@@ -1859,78 +1864,6 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async STT.Task Stat_OData_GetWebHookUsageListByWebHookId()
-        {
-            await ODataTestAsync(builder =>
-            {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
-            }, async () =>
-            {
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-                for (var i = 20; i > 0; i--)
-                {
-                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
-                    var time2 = time1.AddSeconds(0.9);
-
-                    var warning = i % 5 == 4;
-                    var error = i % 7 == 6;
-
-                    var message = error ? "Error message" : (warning ? "Warning message" : null);
-                    var statusCode = error ? 500 : (warning ? 400 : 200);
-
-                    for (int j = 0; j < 3; j++)
-                    {
-                        var input = new WebHookStatInput
-                        {
-                            Url = $"https://example.com/hook{j + 1}/{(i % 5) + 1}",
-                            HttpMethod = "POST",
-                            RequestTime = time1,
-                            ResponseTime = time2,
-                            RequestLength = 100 + 1,
-                            ResponseLength = 1000 + 10 * i,
-                            ResponseStatusCode = statusCode,
-                            WebHookId = 1242 + j,
-                            ContentId = 10000 + 100 * j + i,
-                            EventName = $"Event{j + 1}-{(i % 4) + 1}",
-                            ErrorMessage = message
-                        };
-                        var record = new InputStatisticalDataRecord(input);
-                        await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
-                    }
-                }
-
-                // ACTION-1 first time window.
-                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
-                        "?webHookId=1243")
-                    .ConfigureAwait(false);
-                var lastTimeStr1 = GetLastCreationTime(response1);
-                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
-                        $"?webHookId=1243&maxTime={lastTimeStr1}&count=5")
-                    .ConfigureAwait(false);
-                var lastTimeStr2 = GetLastCreationTime(response2);
-                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
-                        $"?webHookId=1243&maxTime={lastTimeStr2}")
-                    .ConfigureAwait(false);
-
-                // ASSERT
-                // Filtered by j=1
-                var items1 = JsonSerializer.Create()
-                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
-                Assert.AreEqual(10, items1.Length);
-                var items2 = JsonSerializer.Create()
-                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response2)));
-                Assert.AreEqual(5, items2.Length);
-                var items3 = JsonSerializer.Create()
-                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response3)));
-                Assert.AreEqual(5, items3.Length);
-
-                AssertSequenceEqual(
-                    Enumerable.Range(10101, 20), // 10000 + 100 * j
-                    items1.Union(items2.Union(items3)).Select(x => x.ContentId));
-
-            }).ConfigureAwait(false);
-        }
-        [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageListOnWebHook()
         {
             await ODataTestAsync(builder =>
@@ -1938,7 +1871,19 @@ namespace SenseNet.ContentRepository.Tests
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                var container = Node.LoadNode("/Root/System/WebHooks"); // ItemList
+                //UNDONE:<?Stat: Install WebHookComponent content type to the InMemoryTestData.
+                //UNDONE:<?Stat: Remove local filesystem path
+                using (var reader = new StreamReader(
+                    @"D:\dev\github\sensenet\src\WebHooks\import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml"))
+                    ContentTypeInstaller.InstallContentType(await reader.ReadToEndAsync());
+
+                var container = Node.Load<GenericContent>("/Root/System/WebHooks"); // ItemList
+                if (container == null)
+                {
+                    container = new GenericContent(Node.LoadNode("/Root/System"), "ItemList") {Name = "WebHooks" };
+                    container.AllowChildType("WebHookSubscription");
+                    container.Save();
+                }
                 var webHooks = new WebHookSubscription[3];
                 for (int i = 0; i < webHooks.Length; i++)
                 {
@@ -1969,7 +1914,7 @@ namespace SenseNet.ContentRepository.Tests
                             RequestLength = 100 + 1,
                             ResponseLength = 1000 + 10 * i,
                             ResponseStatusCode = statusCode,
-                            WebHookId = webHooks[i].Id,
+                            WebHookId = webHooks[j].Id,
                             ContentId = 10000 + 100 * j + i,
                             EventName = $"Event{j + 1}-{(i % 4) + 1}",
                             ErrorMessage = message
@@ -1984,11 +1929,11 @@ namespace SenseNet.ContentRepository.Tests
                         "")
                     .ConfigureAwait(false);
                 var lastTimeStr1 = GetLastCreationTime(response1);
-                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                var response2 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
                         $"?maxTime={lastTimeStr1}&count=5")
                     .ConfigureAwait(false);
                 var lastTimeStr2 = GetLastCreationTime(response2);
-                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                var response3 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
                         $"?maxTime={lastTimeStr2}")
                     .ConfigureAwait(false);
 
@@ -2131,27 +2076,44 @@ namespace SenseNet.ContentRepository.Tests
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
+                async STT.Task<string> GetWebHookUsagePeriods(DateTime now, TimeWindow window)
+                {
+                    var content = Content.Create(Repository.Root);
+                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetWebHookUsagePeriods", "");
+                    var result = await SenseNet.WebHooks.ODataOperations.GetWebHookUsagePeriods(content, httpContext, now, window);
+                    var sb = new StringBuilder();
+                    var serializer = new JsonSerializer();
+                    serializer.Serialize(new JsonTextWriter(new StringWriter(sb)), result);
+                    return sb.ToString();
+                }
+
+
                 var now = new DateTime(2021, 6, 15, 3, 18, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
                 await GenerateWebHookDataForODataTests(testStart, testEnd, now);
 
-                var responseDefault = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
-                    "").ConfigureAwait(false);
+                //var responseDefault = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                //    "").ConfigureAwait(false);
 
-                var responseHour = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
-                    "?timewindow=hour").ConfigureAwait(false);
+                //var responseHour = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                //    "?timewindow=hour").ConfigureAwait(false);
 
-                var responseDay = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
-                    "?timewindow=day").ConfigureAwait(false);
+                ////var responseDay = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                ////    "?timewindow=day").ConfigureAwait(false);
 
-                var responseMonth = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
-                    "?timewindow=month").ConfigureAwait(false);
+                //var responseMonth = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                //    "?timewindow=month").ConfigureAwait(false);
 
-                var responseYear = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
-                    "?timewindow=year").ConfigureAwait(false);
+                //var responseYear = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
+                //    "?timewindow=year").ConfigureAwait(false);
 
-                Assert.AreEqual(responseDefault, responseMonth);
+                //Assert.AreEqual(responseDefault, responseMonth);
+
+                var responseHour = await GetWebHookUsagePeriods(now, TimeWindow.Hour);
+                var responseDay = await GetWebHookUsagePeriods(now, TimeWindow.Day);
+                var responseMonth = await GetWebHookUsagePeriods(now, TimeWindow.Month);
+                var responseYear = await GetWebHookUsagePeriods(now, TimeWindow.Year);
                 Assert.AreEqual(
                     "{\"Window\":\"Hour\",\"Resolution\":\"Minute\"," +
                     "\"First\":\"0001-01-01T00:00:00\",\"Last\":\"0001-01-01T00:00:00\",\"Count\":0}",
@@ -2177,7 +2139,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
