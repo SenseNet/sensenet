@@ -37,7 +37,7 @@ namespace SenseNet.Services.Core.Diagnostics
             //    }
             //}
 
-            throw new System.NotImplementedException(); //UNDONE:<?Stat: Implement StatisticalDataAggregationMaintenanceTask.ExecuteAsync
+            throw new System.NotImplementedException(); //UNDONE:<?Stat: TASK: Implement StatisticalDataAggregationMaintenanceTask.ExecuteAsync
         }
     }
 }

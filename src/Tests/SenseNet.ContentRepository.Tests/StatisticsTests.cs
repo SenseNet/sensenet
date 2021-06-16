@@ -45,6 +45,10 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
+        //UNDONE:<?Stat: TASK: save webhook's payload
+        //UNDONE:<?Stat: TASK: provide permission filtered webhook lists
+        //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
+
         #region /* ========================================================================= Collecting tests */
 
         [TestMethod]
