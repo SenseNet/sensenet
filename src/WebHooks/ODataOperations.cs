@@ -166,7 +166,7 @@ namespace SenseNet.WebHooks
             ResponseLength = record.ResponseLength ?? 0;
             ResponseStatusCode = record.ResponseStatusCode ?? 0;
             Url = record.Url;
-            WebHookId = record.WebHookId ?? 0;
+            WebHookId = record.TargetId ?? 0;
             ContentId = record.ContentId ?? 0;
             EventName = record.EventName;
             ErrorMessage = record.ErrorMessage;

@@ -40,7 +40,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     ResponseLength = 1000,
                     ResponseStatusCode = 201,
                     Url = "Url1",
-                    WebHookId = 4242,
+                    TargetId = 4242,
                     ContentId = 4243,
                     EventName = "Event1",
                     ErrorMessage = "ErrorMessage1",
@@ -57,7 +57,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     ResponseLength = null,
                     ResponseStatusCode = null,
                     Url = null,
-                    WebHookId = null,
+                    TargetId = null,
                     ContentId = null,
                     EventName = null,
                     ErrorMessage = null,
@@ -81,7 +81,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(record1.ResponseLength, loaded1.ResponseLength);
                 Assert.AreEqual(record1.ResponseStatusCode, loaded1.ResponseStatusCode);
                 Assert.AreEqual(record1.Url, loaded1.Url);
-                Assert.AreEqual(record1.WebHookId, loaded1.WebHookId);
+                Assert.AreEqual(record1.TargetId, loaded1.TargetId);
                 Assert.AreEqual(record1.ContentId, loaded1.ContentId);
                 Assert.AreEqual(record1.EventName, loaded1.EventName);
                 Assert.AreEqual(record1.ErrorMessage, loaded1.ErrorMessage);
@@ -98,7 +98,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsNull(loaded2.ResponseLength);
                 Assert.IsNull(loaded2.ResponseStatusCode);
                 Assert.IsNull(loaded2.Url);
-                Assert.IsNull(loaded2.WebHookId);
+                Assert.IsNull(loaded2.TargetId);
                 Assert.IsNull(loaded2.ContentId);
                 Assert.IsNull(loaded2.EventName);
                 Assert.IsNull(loaded2.ErrorMessage);
@@ -386,7 +386,7 @@ namespace SenseNet.IntegrationTests.TestCases
                         {
                             DataType = $"DT{(i % 2) + 1}",
                             CreationTime = now,
-                            WebHookId = j + 1000,
+                            TargetId = j + 1000,
                             GeneralData = now.Minute.ToString()
                         }, CancellationToken.None);
 
@@ -422,7 +422,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     Assert.AreEqual("4 4 2", string.Join(" ", pageLengths.Select(x => x.ToString())));
                     for (var i = 0; i < 10; i++)
                     {
-                        Assert.AreEqual(1001, allRecords[i].WebHookId);
+                        Assert.AreEqual(1001, allRecords[i].TargetId);
                         Assert.AreEqual(dataType, allRecords[i].DataType);
                         if (i < 9)
                             Assert.IsTrue(allRecords[i].CreationTime > allRecords[i + 1].CreationTime);

@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ResponseLength = data.ResponseLength,
                 ResponseStatusCode = data.ResponseStatusCode,
                 Url = data.Url,
-                WebHookId = data.WebHookId,
+                TargetId = data.TargetId,
                 ContentId = data.ContentId,
                 EventName = data.EventName,
                 ErrorMessage = data.ErrorMessage,
@@ -54,10 +54,10 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult((IEnumerable<IStatisticalDataRecord>)result);
         }
 
-        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int webHookId, DateTime endTimeExclusive, int count, CancellationToken cancel)
+        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int targetId, DateTime endTimeExclusive, int count, CancellationToken cancel)
         {
             var result = Storage
-                .Where(r => r.DataType == dataType && r.WebHookId == webHookId && r.CreationTime < endTimeExclusive)
+                .Where(r => r.DataType == dataType && r.TargetId == targetId && r.CreationTime < endTimeExclusive)
                 .OrderByDescending(r => r.CreationTime)
                 .Take(count)
                 .Select(CloneRecord)
@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ResponseLength = record.ResponseLength,
                 ResponseStatusCode = record.ResponseStatusCode,
                 Url = record.Url,
-                WebHookId = record.WebHookId,
+                TargetId = record.TargetId,
                 ContentId = record.ContentId,
                 EventName = record.EventName,
                 ErrorMessage = record.ErrorMessage,

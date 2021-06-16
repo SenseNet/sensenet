@@ -44,7 +44,7 @@ namespace SenseNet.Services.Core.Diagnostics
             }
         }
 
-        public int? WebHookId => _webHookData?.WebHookId;
+        public int? TargetId => _webHookData?.WebHookId;
         public int? ContentId => _webHookData?.ContentId;
         public string EventName => _webHookData?.EventName;
         public string ErrorMessage => _webHookData?.ErrorMessage;

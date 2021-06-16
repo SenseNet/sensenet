@@ -534,7 +534,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
-            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.TargetId);
             Assert.IsNull(record.ContentId);
             Assert.IsNull(record.EventName);
             Assert.IsNull(record.ErrorMessage);
@@ -577,7 +577,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(42, record.RequestLength);
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
-            Assert.AreEqual(1242, record.WebHookId);
+            Assert.AreEqual(1242, record.TargetId);
             Assert.AreEqual(1342, record.ContentId);
             Assert.AreEqual("Event42", record.EventName);
             Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
@@ -605,7 +605,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull( record.RequestLength);
             Assert.IsNull( record.ResponseLength);
             Assert.IsNull( record.ResponseStatusCode);
-            Assert.IsNull( record.WebHookId);
+            Assert.IsNull( record.TargetId);
             Assert.IsNull( record.ContentId);
             Assert.IsNull( record.EventName);
             Assert.IsNull( record.ErrorMessage);
@@ -663,7 +663,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull(record.ResponseLength);
             Assert.IsNull(record.ResponseStatusCode);
             Assert.IsNull(record.Url);
-            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.TargetId);
             Assert.IsNull(record.ContentId);
             Assert.IsNull(record.EventName);
             Assert.IsNull(record.ErrorMessage);
@@ -700,7 +700,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
             Assert.AreEqual("GET Url1", record.Url);
-            Assert.IsNull(record.WebHookId);
+            Assert.IsNull(record.TargetId);
             Assert.IsNull(record.ContentId);
             Assert.IsNull(record.EventName);
             Assert.IsNull(record.ErrorMessage);
@@ -741,7 +741,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(4242, record.ResponseLength);
             Assert.AreEqual(200, record.ResponseStatusCode);
             Assert.AreEqual("POST Url1", record.Url);
-            Assert.AreEqual(1242, record.WebHookId);
+            Assert.AreEqual(1242, record.TargetId);
             Assert.AreEqual(1342, record.ContentId);
             Assert.AreEqual("Event42", record.EventName);
             Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
@@ -804,7 +804,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242,
+                TargetId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
@@ -879,7 +879,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242,
+                TargetId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
@@ -952,7 +952,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242, ContentId = 1342, EventName = "Event42",
+                TargetId = 1242, ContentId = 1342, EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
                 RequestLength = 100, ResponseLength = 1000,
             };
@@ -1022,7 +1022,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242,
+                TargetId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
@@ -1170,7 +1170,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242,
+                TargetId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
@@ -1681,7 +1681,7 @@ namespace SenseNet.ContentRepository.Tests
             var record = new StatisticalDataRecord
             {
                 DataType = "WebHook",
-                WebHookId = 1242,
+                TargetId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
                 Url = "POST https://example.com/api/hook",
@@ -2307,7 +2307,7 @@ namespace SenseNet.ContentRepository.Tests
                     ResponseLength = data.ResponseLength,
                     ResponseStatusCode = data.ResponseStatusCode,
                     Url = data.Url,
-                    WebHookId = data.WebHookId,
+                    TargetId = data.TargetId,
                     ContentId = data.ContentId,
                     EventName = data.EventName,
                     ErrorMessage = data.ErrorMessage,
@@ -2321,7 +2321,7 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
-            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int webHookId, DateTime endTimeExclusive, int count, CancellationToken cancel)
+            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int targetId, DateTime endTimeExclusive, int count, CancellationToken cancel)
             {
                 throw new NotImplementedException();
             }

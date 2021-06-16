@@ -13,7 +13,7 @@ namespace SenseNet.Diagnostics
         long? ResponseLength { get; }      // from WebTransfer
         int? ResponseStatusCode { get; }   // from WebTransfer
         string Url { get; }                // from WebTransfer
-        int? WebHookId { get; }            // from WebHook
+        int? TargetId { get; }            // from WebHook
         int? ContentId { get; }            // from WebHook
         string EventName { get; }          // from WebHook
         string ErrorMessage { get; }       // from WebHook
@@ -31,7 +31,7 @@ namespace SenseNet.Diagnostics
         public long? ResponseLength { get; set; }
         public int? ResponseStatusCode { get; set; }
         public string Url { get; set; }
-        public int? WebHookId { get; set; }
+        public int? TargetId { get; set; }
         public int? ContentId { get; set; }
         public string EventName { get; set; }
         public string ErrorMessage { get; set; }
