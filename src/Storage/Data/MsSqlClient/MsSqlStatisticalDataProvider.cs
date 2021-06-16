@@ -18,6 +18,11 @@ namespace SenseNet.Storage.Data.MsSqlClient
             throw new NotImplementedException();
         }
 
+        public Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int webHookId, DateTime endTimeExclusive, int count, CancellationToken cancel)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
             CancellationToken cancel)
         {

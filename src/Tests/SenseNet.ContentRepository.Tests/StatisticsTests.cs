@@ -1859,6 +1859,158 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsageListByWebHookId()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    var warning = i % 5 == 4;
+                    var error = i % 7 == 6;
+
+                    var message = error ? "Error message" : (warning ? "Warning message" : null);
+                    var statusCode = error ? 500 : (warning ? 400 : 200);
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var input = new WebHookStatInput
+                        {
+                            Url = $"https://example.com/hook{j + 1}/{(i % 5) + 1}",
+                            HttpMethod = "POST",
+                            RequestTime = time1,
+                            ResponseTime = time2,
+                            RequestLength = 100 + 1,
+                            ResponseLength = 1000 + 10 * i,
+                            ResponseStatusCode = statusCode,
+                            WebHookId = 1242 + j,
+                            ContentId = 10000 + 100 * j + i,
+                            EventName = $"Event{j + 1}-{(i % 4) + 1}",
+                            ErrorMessage = message
+                        };
+                        var record = new InputStatisticalDataRecord(input);
+                        await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                    }
+                }
+
+                // ACTION-1 first time window.
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        "?webHookId=1243")
+                    .ConfigureAwait(false);
+                var lastTimeStr1 = GetLastCreationTime(response1);
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?webHookId=1243&maxTime={lastTimeStr1}&count=5")
+                    .ConfigureAwait(false);
+                var lastTimeStr2 = GetLastCreationTime(response2);
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?webHookId=1243&maxTime={lastTimeStr2}")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                // Filtered by j=1
+                var items1 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual(10, items1.Length);
+                var items2 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual(5, items2.Length);
+                var items3 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual(5, items3.Length);
+
+                AssertSequenceEqual(
+                    Enumerable.Range(10101, 20), // 10000 + 100 * j
+                    items1.Union(items2.Union(items3)).Select(x => x.ContentId));
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsageListOnWebHook()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var container = Node.LoadNode("/Root/System/WebHooks"); // ItemList
+                var webHooks = new WebHookSubscription[3];
+                for (int i = 0; i < webHooks.Length; i++)
+                {
+                    webHooks[i] = new WebHookSubscription(container) { Name = $"WebHook{i}" };
+                    webHooks[i].Save();
+                }
+
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    var warning = i % 5 == 4;
+                    var error = i % 7 == 6;
+
+                    var message = error ? "Error message" : (warning ? "Warning message" : null);
+                    var statusCode = error ? 500 : (warning ? 400 : 200);
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var input = new WebHookStatInput
+                        {
+                            Url = $"https://example.com/hook{j + 1}/{(i % 5) + 1}",
+                            HttpMethod = "POST",
+                            RequestTime = time1,
+                            ResponseTime = time2,
+                            RequestLength = 100 + 1,
+                            ResponseLength = 1000 + 10 * i,
+                            ResponseStatusCode = statusCode,
+                            WebHookId = webHooks[i].Id,
+                            ContentId = 10000 + 100 * j + i,
+                            EventName = $"Event{j + 1}-{(i % 4) + 1}",
+                            ErrorMessage = message
+                        };
+                        var record = new InputStatisticalDataRecord(input);
+                        await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                    }
+                }
+
+                // ACTION-1 first time window.
+                var response1 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
+                        "")
+                    .ConfigureAwait(false);
+                var lastTimeStr1 = GetLastCreationTime(response1);
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?maxTime={lastTimeStr1}&count=5")
+                    .ConfigureAwait(false);
+                var lastTimeStr2 = GetLastCreationTime(response2);
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        $"?maxTime={lastTimeStr2}")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                // Filtered by j=1
+                var items1 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual(10, items1.Length);
+                var items2 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual(5, items2.Length);
+                var items3 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual(5, items3.Length);
+
+                AssertSequenceEqual(
+                    Enumerable.Range(10101, 20), // 10000 + 100 * j
+                    items1.Union(items2.Union(items3)).Select(x => x.ContentId));
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod()
         {
             await ODataTestAsync(builder =>
@@ -2202,6 +2354,12 @@ namespace SenseNet.ContentRepository.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int webHookId, DateTime endTimeExclusive, int count, CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
             public STT.Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution,
                 DateTime startTime, DateTime endTimeExclusive, CancellationToken cancel)
             {

@@ -120,7 +120,7 @@ namespace SenseNet.Services.Core.Diagnostics
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
-            DateTime? maxTime = null, int count = 10)
+            int webHookId = 0, DateTime? maxTime = null, int count = 10)
         {
             //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
@@ -134,6 +134,11 @@ namespace SenseNet.Services.Core.Diagnostics
 
             return items;
         }
+
+        //[ODataFunction]
+        //[ContentTypes("WebHookSubscription")]
+        //[AllowedRoles(N.R.Administrators, N.R.Developers)]
+        //public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList
 
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
@@ -216,5 +221,9 @@ namespace SenseNet.Services.Core.Diagnostics
 
             return new WebHookUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
         }
+
+        //public static async Task<IEnumerable<ApiUsageListItemViewModel>> GetApiUsageList
+        //public static async Task<object> GetApiUsagePeriods
+        //public static async Task<object> GetApiUsagePeriod
     }
 }
