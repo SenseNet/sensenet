@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace SenseNet.Diagnostics
 {
@@ -20,6 +21,7 @@ namespace SenseNet.Diagnostics
 
         string GeneralData { get; }        // from General
     }
+    [DebuggerDisplay("{DataType} {CreationTime} {Url}")]
     public class StatisticalDataRecord : IStatisticalDataRecord
     {
         public int Id { get; set; }

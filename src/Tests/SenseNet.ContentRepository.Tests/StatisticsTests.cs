@@ -1807,6 +1807,271 @@ namespace SenseNet.ContentRepository.Tests
         #region /* ========================================================================= OData tests */
 
         [TestMethod]
+        public async STT.Task Stat_OData_GetApiUsageList()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    var warning = i % 5 == 4;
+                    var error = i % 7 == 6;
+
+                    var message = error ? "Error message" : (warning ? "Warning message" : null);
+                    var statusCode = error ? 500 : (warning ? 400 : 200);
+
+                    var input = new WebTransferStatInput
+                    {
+                        Url = $"https://example.com/hook/{(char)('A'+i)}",
+                        HttpMethod = "POST",
+                        RequestTime = time1,
+                        ResponseTime = time2,
+                        RequestLength = 100 + 1,
+                        ResponseLength = 1000 + 10 * i,
+                        ResponseStatusCode = statusCode,
+                    };
+                    var record = new InputStatisticalDataRecord(input);
+                    await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                // ACTION-1 first time window.
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList", "")
+                    .ConfigureAwait(false);
+                var lastTimeStr1 = GetLastCreationTime(response1);
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList",
+                        $"?maxTime={lastTimeStr1}&count=5")
+                    .ConfigureAwait(false);
+                var lastTimeStr2 = GetLastCreationTime(response2);
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList",
+                        $"?maxTime={lastTimeStr2}")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+
+                var items1 = JsonSerializer.Create()
+                    .Deserialize<ApiUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual(10, items1.Length);
+                var items2 = JsonSerializer.Create()
+                    .Deserialize<ApiUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual(5, items2.Length);
+                var items3 = JsonSerializer.Create()
+                    .Deserialize<ApiUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual(5, items3.Length);
+
+                AssertSequenceEqual(
+                    Enumerable.Range(1, 20),
+                    items1.Union(items2.Union(items3)).Select(x => x.Url.Last()-'A'));
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_OData_GetApiUsagePeriod()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var now = new DateTime(2021, 6, 15, 8, 14, 28);
+                var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
+                var testStart = testEnd.AddYears(-1);
+                await GenerateApiCallDataForODataTests(testStart, testEnd, now);
+
+                // ACTION-1 
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
+                    "").ConfigureAwait(false);
+
+                // ASSERT-1
+                var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual("WebTransfer", result1["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result1["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result1["Resolution"].Value<string>());
+                Assert.AreEqual(14, ((JArray)result1["CallCount"]).Count);
+                Assert.AreEqual(86400L, ((JArray)result1["CallCount"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L, ((JArray)result1["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(14, ((JArray)result1["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L, ((JArray)result1["ResponseLengths"]).First().Value<long>());
+
+                // ACTION-2
+                var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
+                var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
+                    $"?time={startTime2}").ConfigureAwait(false);
+
+                // ASSERT-2
+                var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
+                Assert.AreEqual("WebTransfer", result2["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result2["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result2["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result2["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result2["Resolution"].Value<string>());
+                Assert.AreEqual(31, ((JArray)result2["CallCount"]).Count);
+                Assert.AreEqual(86400L, ((JArray)result2["CallCount"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L, ((JArray)result2["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(31, ((JArray)result2["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L, ((JArray)result2["ResponseLengths"]).First().Value<long>());
+
+                // ACTION-3
+                var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
+                    "?timewindow=year").ConfigureAwait(false);
+
+                // ASSERT-3
+                var result3 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response3)));
+                Assert.AreEqual("WebTransfer", result3["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
+                Assert.AreEqual("Year", result3["TimeWindow"].Value<string>());
+                Assert.AreEqual("Month", result3["Resolution"].Value<string>());
+                Assert.AreEqual(5, ((JArray)result3["CallCount"]).Count);
+                Assert.AreEqual(86400L * 31, ((JArray)result3["CallCount"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["RequestLengths"]).Count);
+                Assert.AreEqual(8640000L * 31, ((JArray)result3["RequestLengths"]).First().Value<long>());
+                Assert.AreEqual(5, ((JArray)result3["ResponseLengths"]).Count);
+                Assert.AreEqual(86400000L * 31, ((JArray)result3["ResponseLengths"]).First().Value<long>());
+
+                // ACTION-4
+                var startTime = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                var response4 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
+                    $"?timewindow=month&time={startTime}").ConfigureAwait(false);
+
+                // ASSERT-4
+                var result4 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response4)));
+                Assert.AreEqual("WebTransfer", result4["DataType"].Value<string>());
+                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result4["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result4["End"].Value<DateTime>());
+                Assert.AreEqual("Month", result4["TimeWindow"].Value<string>());
+                Assert.AreEqual("Day", result4["Resolution"].Value<string>());
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task Stat_OData_GetApiUsagePeriods()
+        {
+            await ODataTestAsync(builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                async STT.Task<string> GetApiUsagePeriods(DateTime now, TimeWindow window)
+                {
+                    var content = Content.Create(Repository.Root);
+                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetApiUsagePeriods", "");
+                    var result = await StatisticsController.GetApiUsagePeriods(content, httpContext, now, window);
+                    var sb = new StringBuilder();
+                    var serializer = new JsonSerializer();
+                    serializer.Serialize(new JsonTextWriter(new StringWriter(sb)), result);
+                    return sb.ToString();
+                }
+
+
+                var now = new DateTime(2021, 6, 15, 3, 18, 28);
+                var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
+                var testStart = testEnd.AddYears(-1);
+                await GenerateApiCallDataForODataTests(testStart, testEnd, now);
+
+                // ACTIONS
+                // /OData.svc/('Root')/GetApiUsagePeriods?timewindow=hour
+                var responseHour = await GetApiUsagePeriods(now, TimeWindow.Hour);
+                // /OData.svc/('Root')/GetApiUsagePeriods?timewindow=day
+                var responseDay = await GetApiUsagePeriods(now, TimeWindow.Day);
+                // /OData.svc/('Root')/GetApiUsagePeriods?timewindow=month
+                var responseMonth = await GetApiUsagePeriods(now, TimeWindow.Month);
+                // /OData.svc/('Root')/GetApiUsagePeriods?timewindow=year
+                var responseYear = await GetApiUsagePeriods(now, TimeWindow.Year);
+
+                // ASSERTS
+                Assert.AreEqual(
+                    "{\"Window\":\"Hour\",\"Resolution\":\"Minute\"," +
+                    "\"First\":\"0001-01-01T00:00:00\",\"Last\":\"0001-01-01T00:00:00\",\"Count\":0}",
+                    RemoveWhitespaces(responseHour));
+                Assert.AreEqual(
+                    "{\"Window\":\"Day\",\"Resolution\":\"Hour\"," +
+                    "\"First\":\"2021-06-13T00:00:00Z\",\"Last\":\"2021-06-15T00:00:00Z\",\"Count\":3}",
+                    RemoveWhitespaces(responseDay));
+                Assert.AreEqual(
+                    "{\"Window\":\"Month\",\"Resolution\":\"Day\"," +
+                    "\"First\":\"2021-04-01T00:00:00Z\",\"Last\":\"2021-06-01T00:00:00Z\",\"Count\":3}",
+                    RemoveWhitespaces(responseMonth));
+                Assert.AreEqual(
+                    "{\"Window\":\"Year\",\"Resolution\":\"Month\"," +
+                    "\"First\":\"2021-01-01T00:00:00Z\",\"Last\":\"2021-01-01T00:00:00Z\",\"Count\":1}",
+                    RemoveWhitespaces(responseYear));
+            }).ConfigureAwait(false);
+        }
+        private async STT.Task GenerateApiCallDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
+        {
+            var statDataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+            StatisticalDataAggregationController CreateAggregator()
+            {
+                return new StatisticalDataAggregationController(statDataProvider,
+                    new[] { new WebTransferStatisticalDataAggregator(GetOptions()) }, GetOptions());
+            }
+            StatisticalDataAggregationController aggregator;
+
+            var time = testStart;
+            while (time <= now)
+            {
+                if (time.Second == 0)
+                {
+                    if (time.Second == 0)
+                    {
+                        var aggregationTime = time.AddSeconds(-1);
+
+                        if (time.Minute == 0)
+                        {
+                            await GenerateWebTransferAggregationAsync(aggregationTime, TimeResolution.Hour, 60 * 60, statDataProvider);
+                            // Does not aggregate but cleans up.
+                            aggregator = CreateAggregator();
+                            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, CancellationToken.None);
+                            if (time.Hour == 0)
+                            {
+                                aggregator = CreateAggregator();
+                                await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, CancellationToken.None);
+                                if (time.Day == 1)
+                                {
+                                    aggregator = CreateAggregator();
+                                    await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, CancellationToken.None);
+                                }
+                            }
+                        }
+                    }
+                }
+                time = time.AddSeconds(1);
+            }
+        }
+        private async STT.Task GenerateWebTransferAggregationAsync(DateTime date, TimeResolution resolution, int callCount,
+            IStatisticalDataProvider statDataProvider)
+        {
+            var callCountPer10 = callCount / 10;
+
+            var aggregation = new Aggregation
+            {
+                Date = date,
+                DataType = "WebTransfer",
+                Resolution = resolution,
+                Data = SerializeAggregation(
+                    new WebTransferStatisticalDataAggregator.WebTransferAggregation
+                    {
+                        CallCount = callCount,
+                        RequestLengths = callCount * 100,
+                        ResponseLengths = callCount * 1000,
+                    })
+            };
+
+            await statDataProvider.WriteAggregationAsync(aggregation, CancellationToken.None);
+        }
+
+
+        [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageList()
         {
             // This test exploits a side effect: if there is no any WebHookSubscription content, the "relatedTargetIds" filter
@@ -2019,7 +2284,6 @@ namespace SenseNet.ContentRepository.Tests
 
             }).ConfigureAwait(false);
         }
-
         private WebHookSubscription[] CreateWebHooks(int count)
         {
             var container = Node.Load<GenericContent>("/Root/System/WebHooks");
@@ -2210,7 +2474,6 @@ namespace SenseNet.ContentRepository.Tests
                     RemoveWhitespaces(responseYear));
             }).ConfigureAwait(false);
         }
-
         private async STT.Task GenerateWebHookDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
         {
             var statDataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
