@@ -55,6 +55,7 @@ namespace SenseNet.WebHooks
                     ContentId = contentId,
                     WebHookId = subscriptionId,
                     EventName = eventName,
+                    Payload = postData
                 };
             
 

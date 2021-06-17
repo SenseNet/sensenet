@@ -45,9 +45,10 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
-        //UNDONE:<?Stat: TASK: save webhook's payload
         //UNDONE:<?Stat: TASK: provide permission filtered webhook lists
         //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
+        //UNDONE:<?Stat: Write test(s) for webhook usage lists and webhook content security
+        //UNDONE:<?Stat: Write test(s) for payload and target content security
 
         #region /* ========================================================================= Collecting tests */
 
@@ -297,6 +298,9 @@ namespace SenseNet.ContentRepository.Tests
 
                     Assert.AreEqual("Create", data[0].EventName);
                     Assert.AreEqual("Delete", data[1].EventName);
+
+                    Assert.IsNotNull(data[0].Payload);
+                    Assert.IsNotNull(data[1].Payload);
                 });
         }
         private IServiceProvider BuildServiceProvider_WebHook()
@@ -558,7 +562,8 @@ namespace SenseNet.ContentRepository.Tests
                 WebHookId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
-                ErrorMessage = "ErrorMessage1"
+                ErrorMessage = "ErrorMessage1",
+                Payload = new { name1 = "value1", name2 = "value2" }
             };
 
             // ACTION
@@ -581,6 +586,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(1342, record.ContentId);
             Assert.AreEqual("Event42", record.EventName);
             Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
+            Assert.AreEqual("{\"name1\":\"value1\",\"name2\":\"value2\"}", RemoveWhitespaces(record.GeneralData));
         }
         [TestMethod]
         public async STT.Task Stat_Collector_CollectGeneralData()
@@ -722,7 +728,8 @@ namespace SenseNet.ContentRepository.Tests
                 WebHookId = 1242,
                 ContentId = 1342,
                 EventName = "Event42",
-                ErrorMessage = "ErrorMessage1"
+                ErrorMessage = "ErrorMessage1",
+                Payload = new {name1 = "value1", name2 = "value2"}
             };
 
             // ACTION
@@ -730,7 +737,6 @@ namespace SenseNet.ContentRepository.Tests
 
             // ASSERT
             Assert.AreEqual("WebHook", record.DataType);
-            Assert.AreEqual(0, record.GeneralData.Length);
 
             Assert.AreEqual(0, record.Id);
             Assert.AreEqual(DateTime.MinValue, record.WrittenTime);
@@ -745,6 +751,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(1342, record.ContentId);
             Assert.AreEqual("Event42", record.EventName);
             Assert.AreEqual("ErrorMessage1", record.ErrorMessage);
+            Assert.AreEqual("{\"name1\":\"value1\",\"name2\":\"value2\"}", RemoveWhitespaces(record.GeneralData));
         }
         #endregion
 
@@ -1831,7 +1838,8 @@ namespace SenseNet.ContentRepository.Tests
                         WebHookId = 1242,
                         ContentId = 10000 + i,
                         EventName = $"Event{(i % 4) + 1}",
-                        ErrorMessage = message
+                        ErrorMessage = message,
+                        Payload = new { name1 = "value1", name2 = "value2" }
                     };
                     var record = new InputStatisticalDataRecord(input);
                     await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
@@ -1921,7 +1929,8 @@ namespace SenseNet.ContentRepository.Tests
                             WebHookId = webHooks[j].Id,
                             ContentId = 10000 + 100 * j + i,
                             EventName = $"Event{j + 1}-{(i % 4) + 1}",
-                            ErrorMessage = message
+                            ErrorMessage = message,
+                            Payload = new { name1 = "value1", name2 = "value2" }
                         };
                         var record = new InputStatisticalDataRecord(input);
                         await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);

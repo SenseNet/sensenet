@@ -72,7 +72,9 @@ namespace SenseNet.ContentRepository.InMemory
                 x.DataType == dataType &&
                 x.Resolution == resolution &&
                 x.Date >= startTime &&
-                x.Date < endTimeExclusive).ToArray();
+                x.Date < endTimeExclusive)
+                .Select(CloneAggregation)
+                .ToArray();
             return STT.Task.FromResult((IEnumerable<Aggregation>)result);
         }
 
@@ -109,7 +111,7 @@ namespace SenseNet.ContentRepository.InMemory
                 x.DataType == aggregation.DataType && x.Date == aggregation.Date &&
                 x.Resolution == aggregation.Resolution);
             if (existing == null)
-                Aggregations.Add(aggregation);
+                Aggregations.Add(CloneAggregation(aggregation));
             else
                 existing.Data = aggregation.Data;
             return STT.Task.CompletedTask;

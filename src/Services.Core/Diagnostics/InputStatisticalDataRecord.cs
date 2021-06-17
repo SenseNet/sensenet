@@ -49,7 +49,7 @@ namespace SenseNet.Services.Core.Diagnostics
         public string EventName => _webHookData?.EventName;
         public string ErrorMessage => _webHookData?.ErrorMessage;
 
-        public string GeneralData => _serializedGeneralData ??= SerializeGeneralData(_generalData?.Data);
+        public string GeneralData => _serializedGeneralData ??= SerializeGeneralData(_webHookData?.Payload ?? _generalData?.Data);
 
         private TimeSpan? GetDuration()
         {

@@ -25,6 +25,7 @@ namespace SenseNet.Diagnostics
         public int ContentId { get; set; }
         public string EventName { get; set; }
         public string ErrorMessage { get; set; }
+        public object Payload { get; set; }
     }
 
     public interface IStatisticalDataCollector

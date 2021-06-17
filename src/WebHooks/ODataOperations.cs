@@ -153,6 +153,7 @@ namespace SenseNet.WebHooks
         public int ContentId { get; set; }
         public string EventName { get; set; }
         public string ErrorMessage { get; set; }
+        public string Payload { get; set; }
 
         /// <summary>
         /// For deserializer
@@ -170,6 +171,7 @@ namespace SenseNet.WebHooks
             ContentId = record.ContentId ?? 0;
             EventName = record.EventName;
             ErrorMessage = record.ErrorMessage;
+            Payload = record.GeneralData;
         }
     }
 
