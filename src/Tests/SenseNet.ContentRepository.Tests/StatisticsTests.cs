@@ -2312,7 +2312,9 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 else
                 {
-                    var user = Node.Load<User>(userId);
+                    User user = null;
+                    using (new SystemAccount())
+                        user = Node.Load<User>(userId);
                     if (user == null)
                         throw new ApplicationException("User not found: " + userId);
                     User.Current = user;
