@@ -46,10 +46,6 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
-        //UNDONE:<?Stat: TASK: implement MsSqlStatisticalDataProvider
-        //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
-        //UNDONE:<?Stat: Write test(s) for payload and target content security
-
         #region /* ========================================================================= Collecting tests */
 
         [TestMethod]
@@ -2287,7 +2283,7 @@ namespace SenseNet.ContentRepository.Tests
         private WebHookSubscription[] CreateWebHooks(int count)
         {
             var container = Node.Load<GenericContent>("/Root/System/WebHooks");
-            var webHooks = new WebHookSubscription[3];
+            var webHooks = new WebHookSubscription[count];
             for (int i = 0; i < webHooks.Length; i++)
             {
                 webHooks[i] = new WebHookSubscription(container) { Name = $"WebHook{i}" };
@@ -2296,6 +2292,9 @@ namespace SenseNet.ContentRepository.Tests
 
             return webHooks;
         }
+        //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
+        //UNDONE:<?Stat: Write test(s) for payload and target content security
+
 
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod()
