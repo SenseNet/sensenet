@@ -30,6 +30,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
+using SenseNet.Security;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
@@ -45,9 +46,8 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class StatisticsTests : TestBase
     {
-        //UNDONE:<?Stat: TASK: provide permission filtered webhook lists
+        //UNDONE:<?Stat: TASK: implement MsSqlStatisticalDataProvider
         //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
-        //UNDONE:<?Stat: Write test(s) for webhook usage lists and webhook content security
         //UNDONE:<?Stat: Write test(s) for payload and target content security
 
         #region /* ========================================================================= Collecting tests */
@@ -1809,6 +1809,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageList()
         {
+            // This test exploits a side effect: if there is no any WebHookSubscription content, the "relatedTargetIds" filter
+            // is ignored in the DataProvider's LoadUsageListAsync method.
             await ODataTestAsync(builder =>
             {
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
@@ -1876,6 +1878,76 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
         [TestMethod]
+        public async STT.Task Stat_OData_GetPermittedWebHookUsageList()
+        {
+            await ODataTestAsync(1, builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                //UNDONE:<?Stat: Install WebHookComponent content type to the InMemoryTestData.
+                //UNDONE:<?Stat: Remove local filesystem path
+                using (var reader = new StreamReader(
+                    @"D:\dev\github\sensenet\src\WebHooks\import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml"))
+                    ContentTypeInstaller.InstallContentType(await reader.ReadToEndAsync());
+                var webHooks = CreateWebHooks(3);
+                var denied = webHooks[2];
+                using (new SystemAccount())
+                {
+                    SecurityHandler.CreateAclEditor()
+                        .BreakInheritance(denied.Id, new EntryType[0])
+                        .Apply();
+                }
+
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddMinutes(-i - 1);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    int webHookId = 0;
+                    switch (i % 4)
+                    {
+                        case 0: webHookId = webHooks[0].Id; break;
+                        case 1: webHookId = webHooks[1].Id; break;
+                        case 2: webHookId = webHooks[2].Id; break;
+                        case 3: webHookId = 9999; break;
+                    }
+
+                    var input = new WebHookStatInput
+                    {
+                        Url = $"https://example.com/hook/{(i % 5) + 1}",
+                        HttpMethod = "POST",
+                        RequestTime = time1,
+                        ResponseTime = time2,
+                        RequestLength = 100 + 1,
+                        ResponseLength = 1000 + 10 * i,
+                        ResponseStatusCode = 200,
+                        WebHookId = webHookId,
+                        ContentId = 10000 + i,
+                        EventName = $"Event{(i % 4) + 1}",
+                        ErrorMessage = null,
+                        Payload = new { name1 = "value1", name2 = "value2" }
+                    };
+                    var record = new InputStatisticalDataRecord(input);
+                    await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                // ACTION get all permitted items without filter
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "")
+                    .ConfigureAwait(false);
+
+                // ASSERT the denied webhook related items do not exist in result
+                var items1 = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response1)));
+                Assert.AreEqual(10, items1.Length);
+                var existingWebHookIds = items1.Select(x => x.WebHookId).Distinct().OrderBy(x => x).ToArray();
+                Assert.AreEqual(2, existingWebHookIds.Length);
+                Assert.AreEqual(webHooks[0].Id, existingWebHookIds[0]);
+                Assert.AreEqual(webHooks[1].Id, existingWebHookIds[1]);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageListOnWebHook()
         {
             await ODataTestAsync(builder =>
@@ -1889,19 +1961,7 @@ namespace SenseNet.ContentRepository.Tests
                     @"D:\dev\github\sensenet\src\WebHooks\import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml"))
                     ContentTypeInstaller.InstallContentType(await reader.ReadToEndAsync());
 
-                var container = Node.Load<GenericContent>("/Root/System/WebHooks"); // ItemList
-                if (container == null)
-                {
-                    container = new GenericContent(Node.LoadNode("/Root/System"), "ItemList") {Name = "WebHooks" };
-                    container.AllowChildType("WebHookSubscription");
-                    container.Save();
-                }
-                var webHooks = new WebHookSubscription[3];
-                for (int i = 0; i < webHooks.Length; i++)
-                {
-                    webHooks[i] = new WebHookSubscription(container) { Name = $"WebHook{i}" };
-                    webHooks[i].Save();
-                }
+                var webHooks = CreateWebHooks(3);
 
                 var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
@@ -1968,6 +2028,26 @@ namespace SenseNet.ContentRepository.Tests
 
             }).ConfigureAwait(false);
         }
+
+        private WebHookSubscription[] CreateWebHooks(int count)
+        {
+            var container = Node.Load<GenericContent>("/Root/System/WebHooks"); // ItemList
+            if (container == null)
+            {
+                container = new GenericContent(Node.LoadNode("/Root/System"), "ItemList") { Name = "WebHooks" };
+                container.AllowChildType("WebHookSubscription");
+                container.Save();
+            }
+            var webHooks = new WebHookSubscription[3];
+            for (int i = 0; i < webHooks.Length; i++)
+            {
+                webHooks[i] = new WebHookSubscription(container) { Name = $"WebHook{i}" };
+                webHooks[i].Save();
+            }
+
+            return webHooks;
+        }
+
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod()
         {
@@ -2199,9 +2279,9 @@ namespace SenseNet.ContentRepository.Tests
 
         protected STT.Task ODataTestAsync(Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            return ODataTestAsync(null, initialize, callback);
+            return ODataTestAsync(0, initialize, callback);
         }
-        private async STT.Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        private async STT.Task ODataTestAsync(int userId, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             Providers.Instance.ResetBlobProviders();
 
@@ -2224,15 +2304,17 @@ namespace SenseNet.ContentRepository.Tests
 
             using (var repo = Repository.Start(builder))
             {
-                User.Current = user ?? User.Administrator;
-                if (user == null)
+                if (userId == 0)
                 {
                     User.Current = User.Administrator;
-                    using (new SystemAccount())
+                    using(new SystemAccount())
                         await callback().ConfigureAwait(false);
                 }
                 else
                 {
+                    var user = Node.Load<User>(userId);
+                    if (user == null)
+                        throw new ApplicationException("User not found: " + userId);
                     User.Current = user;
                     await callback().ConfigureAwait(false);
                 }
@@ -2325,12 +2407,7 @@ namespace SenseNet.ContentRepository.Tests
                 return STT.Task.CompletedTask;
             }
 
-            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, DateTime endTimeExclusive, int count, CancellationToken cancel)
-            {
-                throw new NotImplementedException();
-            }
-
-            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int targetId, DateTime endTimeExclusive, int count, CancellationToken cancel)
+            public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancel)
             {
                 throw new NotImplementedException();
             }

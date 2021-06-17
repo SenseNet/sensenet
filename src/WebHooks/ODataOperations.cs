@@ -11,6 +11,8 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.WebHooks
 {
@@ -186,8 +188,12 @@ namespace SenseNet.WebHooks
             //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
 
+            var relatedIds =
+                ContentQuery.Query(SafeQueries.TypeIs, QuerySettings.AdminSettings, nameof(WebHookSubscription))
+                    .Identifiers.ToArray();
+
             var records = await dataProvider
-                    .LoadUsageListAsync("WebHook", maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
+                    .LoadUsageListAsync("WebHook", relatedIds, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
                     .ConfigureAwait(false);
 
             var items = records
@@ -205,8 +211,9 @@ namespace SenseNet.WebHooks
             var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
 
             var records = await dataProvider
-                    .LoadUsageListAsync("WebHook", content.Id, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
-                    .ConfigureAwait(false);
+                .LoadUsageListAsync("WebHook", new[] {content.Id}, maxTime ?? DateTime.UtcNow, count,
+                    httpContext.RequestAborted)
+                .ConfigureAwait(false);
 
             var items = records
                 .Select(x => new WebHookUsageListItemViewModel(x)).ToArray();

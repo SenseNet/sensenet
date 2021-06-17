@@ -348,7 +348,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     while (true)
                     {
                         var page =
-                            (await DP.LoadUsageListAsync(dataType, endTime, 4, CancellationToken.None)
+                            (await DP.LoadUsageListAsync(dataType, new int[0], endTime, 4, CancellationToken.None)
                             .ConfigureAwait(false)).ToArray();
                         lastRecord = page.LastOrDefault();
                         if (lastRecord == null)
@@ -407,8 +407,8 @@ namespace SenseNet.IntegrationTests.TestCases
                     while (true)
                     {
                         var page =
-                            (await DP.LoadUsageListAsync(dataType, 1001, endTime, 4, CancellationToken.None)
-                            .ConfigureAwait(false)).ToArray();
+                            (await DP.LoadUsageListAsync(dataType, new[] {1001}, endTime, 4, CancellationToken.None)
+                                .ConfigureAwait(false)).ToArray();
                         lastRecord = page.LastOrDefault();
                         if (lastRecord == null)
                             break;
@@ -430,5 +430,20 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
+
+        /*
+targetIds in test records
+    null
+    1233
+    1234
+    1235
+
+filters
+    []
+    [1234]
+    [1234,1235]
+    [1234,9999]
+
+        */
     }
 }

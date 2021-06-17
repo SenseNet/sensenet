@@ -43,25 +43,29 @@ namespace SenseNet.ContentRepository.InMemory
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, DateTime endTimeExclusive, int count, CancellationToken cancel)
+        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancel)
         {
-            var result = Storage
-                .Where(r => r.DataType == dataType && r.CreationTime < endTimeExclusive)
-                .OrderByDescending(r=>r.CreationTime)
-                .Take(count)
-                .Select(CloneRecord)
-                .ToArray();
-            return STT.Task.FromResult((IEnumerable<IStatisticalDataRecord>)result);
-        }
+            IStatisticalDataRecord[] result;
+            if (relatedTargetIds.Length == 0)
+            {
+                result = Storage
+                    .Where(r => r.DataType == dataType && r.CreationTime < endTimeExclusive)
+                    .OrderByDescending(r => r.CreationTime)
+                    .Take(count)
+                    .Select(CloneRecord)
+                    .ToArray();
+            }
+            else
+            {
+                result = Storage
+                    .Where(r => r.DataType == dataType && r.CreationTime < endTimeExclusive
+                                && r.TargetId.HasValue && relatedTargetIds.Contains(r.TargetId.Value))
+                    .OrderByDescending(r => r.CreationTime)
+                    .Take(count)
+                    .Select(CloneRecord)
+                    .ToArray();
+            }
 
-        public STT.Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int targetId, DateTime endTimeExclusive, int count, CancellationToken cancel)
-        {
-            var result = Storage
-                .Where(r => r.DataType == dataType && r.TargetId == targetId && r.CreationTime < endTimeExclusive)
-                .OrderByDescending(r => r.CreationTime)
-                .Take(count)
-                .Select(CloneRecord)
-                .ToArray();
             return STT.Task.FromResult((IEnumerable<IStatisticalDataRecord>)result);
         }
 
