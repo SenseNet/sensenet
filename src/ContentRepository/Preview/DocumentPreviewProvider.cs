@@ -22,11 +22,9 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.BackgroundOperations;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
-using Group = SenseNet.ContentRepository.Group;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 
 namespace SenseNet.Preview
@@ -111,8 +109,16 @@ namespace SenseNet.Preview
         public static readonly string PREVIEW_THUMBNAIL_REGEX = "(preview|thumbnail)(?<page>\\d+).png";
         public static readonly string THUMBNAIL_REGEX = "thumbnail(?<page>\\d+).png";
 
-        protected static readonly float THUMBNAIL_PREVIEW_WIDTH_RATIO = Common.THUMBNAIL_WIDTH / (float)Common.PREVIEW_WIDTH;
-        protected static readonly float THUMBNAIL_PREVIEW_HEIGHT_RATIO = Common.THUMBNAIL_HEIGHT / (float)Common.PREVIEW_HEIGHT;
+        // these values must be the same as in the preview library
+        internal static readonly int THUMBNAIL_WIDTH = 200;
+        internal static readonly int THUMBNAIL_HEIGHT = 200;
+        internal static readonly int PREVIEW_WIDTH = 1754;
+        internal static readonly int PREVIEW_HEIGHT = 1754;
+        internal static readonly string PREVIEW_IMAGENAME = "preview{0}.png";
+        internal static readonly string THUMBNAIL_IMAGENAME = "thumbnail{0}.png";
+
+        protected static readonly float THUMBNAIL_PREVIEW_WIDTH_RATIO = THUMBNAIL_WIDTH / (float)PREVIEW_WIDTH;
+        protected static readonly float THUMBNAIL_PREVIEW_HEIGHT_RATIO = THUMBNAIL_HEIGHT / (float)PREVIEW_HEIGHT;
 
         protected static readonly int PREVIEW_PDF_WIDTH = 600;
         protected static readonly int PREVIEW_PDF_HEIGHT = 850;
@@ -153,11 +159,11 @@ namespace SenseNet.Preview
         
         protected static string GetPreviewNameFromPageNumber(int page)
         {
-            return string.Format(Common.PREVIEW_IMAGENAME, page);
+            return string.Format(PREVIEW_IMAGENAME, page);
         }
         protected static string GetThumbnailNameFromPageNumber(int page)
         {
-            return string.Format(Common.THUMBNAIL_IMAGENAME, page);
+            return string.Format(THUMBNAIL_IMAGENAME, page);
         }
 
         protected static bool GetDisplayWatermarkQueryParameter()
