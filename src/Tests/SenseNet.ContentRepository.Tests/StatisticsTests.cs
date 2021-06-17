@@ -1882,14 +1882,10 @@ namespace SenseNet.ContentRepository.Tests
         {
             await ODataTestAsync(1, builder =>
             {
+                builder.UseComponent(new WebHookComponent());
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                //UNDONE:<?Stat: Install WebHookComponent content type to the InMemoryTestData.
-                //UNDONE:<?Stat: Remove local filesystem path
-                using (var reader = new StreamReader(
-                    @"D:\dev\github\sensenet\src\WebHooks\import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml"))
-                    ContentTypeInstaller.InstallContentType(await reader.ReadToEndAsync());
                 var webHooks = CreateWebHooks(3);
                 var denied = webHooks[2];
                 using (new SystemAccount())
@@ -1952,15 +1948,10 @@ namespace SenseNet.ContentRepository.Tests
         {
             await ODataTestAsync(builder =>
             {
+                builder.UseComponent(new WebHookComponent());
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                //UNDONE:<?Stat: Install WebHookComponent content type to the InMemoryTestData.
-                //UNDONE:<?Stat: Remove local filesystem path
-                using (var reader = new StreamReader(
-                    @"D:\dev\github\sensenet\src\WebHooks\import\System\Schema\ContentTypes\WebHookSubscriptionCtd.xml"))
-                    ContentTypeInstaller.InstallContentType(await reader.ReadToEndAsync());
-
                 var webHooks = CreateWebHooks(3);
 
                 var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
@@ -2031,13 +2022,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private WebHookSubscription[] CreateWebHooks(int count)
         {
-            var container = Node.Load<GenericContent>("/Root/System/WebHooks"); // ItemList
-            if (container == null)
-            {
-                container = new GenericContent(Node.LoadNode("/Root/System"), "ItemList") { Name = "WebHooks" };
-                container.AllowChildType("WebHookSubscription");
-                container.Save();
-            }
+            var container = Node.Load<GenericContent>("/Root/System/WebHooks");
             var webHooks = new WebHookSubscription[3];
             for (int i = 0; i < webHooks.Length; i++)
             {
