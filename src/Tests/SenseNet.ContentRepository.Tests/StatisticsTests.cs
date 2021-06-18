@@ -2292,9 +2292,82 @@ namespace SenseNet.ContentRepository.Tests
 
             return webHooks;
         }
-        //UNDONE:<?Stat: TASK: provide webhook's payload if the related content is permitted
-        //UNDONE:<?Stat: Write test(s) for payload and target content security
 
+        [TestMethod]
+        public async STT.Task Stat_OData_GetWebHookUsageList_ContentPermission()
+        {
+            // This test exploits a side effect: if there is no any WebHookSubscription content, the "relatedTargetIds" filter
+            // is ignored in the DataProvider's LoadUsageListAsync method.
+            await ODataTestAsync(1, builder =>
+            {
+                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+            }, async () =>
+            {
+                var nodes = new Node[3];
+                for (var i = 0; i < nodes.Length; i++)
+                {
+                    nodes[i] = new SystemFolder(Repository.Root) {Name = "Test" + i};
+                    nodes[i].Save();
+                }
+                var denied = nodes[2];
+                using (new SystemAccount())
+                {
+                    SecurityHandler.CreateAclEditor()
+                        .BreakInheritance(denied.Id, new EntryType[0])
+                        .Apply();
+                }
+
+                var nodeIds = nodes.Select(x => x.Id).Union(new[] {9999}).ToArray();
+
+                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                for (var i = 20; i > 0; i--)
+                {
+                    var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
+                    var time2 = time1.AddSeconds(0.9);
+
+                    var input = new WebHookStatInput
+                    {
+                        Url = $"https://example.com/hook/{(i % 5) + 1}",
+                        HttpMethod = "POST",
+                        RequestTime = time1,
+                        ResponseTime = time2,
+                        RequestLength = 100 + 1,
+                        ResponseLength = 1000 + 10 * i,
+                        ResponseStatusCode = 200,
+                        WebHookId = 1242,
+                        ContentId = nodeIds[i % nodeIds.Length],
+                        EventName = $"Event{(i % 4) + 1}",
+                        ErrorMessage = null,
+                        Payload = new {name = "name1", value = 42}
+                    };
+                    var record = new InputStatisticalDataRecord(input);
+                    await sdp.WriteDataAsync(record, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                // ACTION-1 first time window.
+                var response = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "?count=1000")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var items = JsonSerializer.Create()
+                    .Deserialize<WebHookUsageListItemViewModel[]>(new JsonTextReader(new StringReader(response)));
+                Assert.AreEqual(20, items.Length);
+
+                var contentIds = items.Select(x => x.ContentId).ToArray();
+                Assert.IsTrue(contentIds.Contains(nodes[0].Id));
+                Assert.IsTrue(contentIds.Contains(nodes[1].Id));
+                Assert.IsTrue(contentIds.Contains(nodes[2].Id));
+                Assert.IsTrue(contentIds.Contains(9999));
+                foreach (var item in items)
+                {
+                    if (item.ContentId == denied.Id || item.ContentId == 9999)
+                        Assert.IsNull(item.Payload);
+                    else
+                        Assert.AreEqual("{\"name\":\"name1\",\"value\":42}", RemoveWhitespaces(item.Payload));
+                }
+
+            }).ConfigureAwait(false);
+        }
 
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod()

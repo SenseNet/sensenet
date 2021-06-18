@@ -10,8 +10,10 @@ using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Security;
 using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.WebHooks
@@ -163,6 +165,8 @@ namespace SenseNet.WebHooks
         public WebHookUsageListItemViewModel() { }
         public WebHookUsageListItemViewModel(IStatisticalDataRecord record)
         {
+            var isPermitted = IsPermitted(record.ContentId);
+
             CreationTime = record.CreationTime ?? DateTime.MinValue;
             Duration = record.Duration ?? TimeSpan.Zero;
             RequestLength = record.RequestLength ?? 0;
@@ -173,7 +177,21 @@ namespace SenseNet.WebHooks
             ContentId = record.ContentId ?? 0;
             EventName = record.EventName;
             ErrorMessage = record.ErrorMessage;
-            Payload = record.GeneralData;
+            Payload = isPermitted ? record.GeneralData : null;
+        }
+
+        private bool IsPermitted(int? contentId)
+        {
+            if (contentId == null)
+                return true;
+            try
+            {
+                return SecurityHandler.HasPermission(User.Current, contentId.Value, PermissionType.Open);
+            }
+            catch (EntityNotFoundException)
+            {
+                return false;
+            }
         }
     }
 
