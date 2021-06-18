@@ -370,7 +370,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-        public async Task Stat_DataProvider_LoadUsageListByWebHookId()
+        public async Task Stat_DataProvider_LoadUsageListByTargetId()
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
@@ -380,53 +380,82 @@ namespace SenseNet.IntegrationTests.TestCases
                 var now = startTime;
                 for (var i = 0; i < 20; i++)
                 {
-                    for (int j = 0; j < 3; j++)
+                    for (int j = 0; j < 4; j++)
                     {
                         await DP.WriteDataAsync(new StatisticalDataRecord
                         {
                             DataType = $"DT{(i % 2) + 1}",
                             CreationTime = now,
-                            TargetId = j + 1000,
+                            TargetId = (j > 0) ? j + 1000 : (int?) null,
                             GeneralData = now.Minute.ToString()
                         }, CancellationToken.None);
 
                     }
-                    now = now.AddMinutes(1 + i); // continuously slowing periods
+                    now = now.AddMinutes(1);
                 }
 
+                // ACTION: without target filter
+                var records = (await DP.LoadUsageListAsync(
+                    "DT1", null, DateTime.UtcNow, 40000,
+                    CancellationToken.None).ConfigureAwait(false)).ToArray();
 
-                for (int dt = 1; dt <= 2; dt++)
+                // ASSERT
+                Assert.AreEqual(40, records.Length);
+
+                AssertSequenceEqual(new int?[]{null, 1001, 1002, 1003},
+                    records.Select(x => x.TargetId).Distinct().OrderBy(x => x ?? 0));
+
+                for (var i = 0; i < 40; i++)
                 {
-                    var dataType = $"DT{dt}";
-                    var endTime = DateTime.UtcNow;
-                    IStatisticalDataRecord lastRecord;
+                    Assert.AreEqual("DT1", records[i].DataType);
+                    if (i < 39)
+                        Assert.IsTrue(records[i].CreationTime >= records[i + 1].CreationTime);
+                }
 
-                    // ACTION (get all records with paged queries)
-                    var allRecords = new List<IStatisticalDataRecord>();
-                    var pageLengths = new List<int>();
-                    while (true)
-                    {
-                        var page =
-                            (await DP.LoadUsageListAsync(dataType, new[] {1001}, endTime, 4, CancellationToken.None)
-                                .ConfigureAwait(false)).ToArray();
-                        lastRecord = page.LastOrDefault();
-                        if (lastRecord == null)
-                            break;
-                        pageLengths.Add(page.Length);
-                        allRecords.AddRange(page);
-                        endTime = lastRecord.CreationTime ?? lastRecord.WrittenTime;
-                    }
+                // ACTION: one target
+                records = (await DP.LoadUsageListAsync(
+                    "DT1", new[] { 1001 }, DateTime.UtcNow, 40000,
+                    CancellationToken.None).ConfigureAwait(false)).ToArray();
 
-                    // ASSERT
-                    Assert.AreEqual(10, allRecords.Count);
-                    Assert.AreEqual("4 4 2", string.Join(" ", pageLengths.Select(x => x.ToString())));
-                    for (var i = 0; i < 10; i++)
-                    {
-                        Assert.AreEqual(1001, allRecords[i].TargetId);
-                        Assert.AreEqual(dataType, allRecords[i].DataType);
-                        if (i < 9)
-                            Assert.IsTrue(allRecords[i].CreationTime > allRecords[i + 1].CreationTime);
-                    }
+                // ASSERT
+                Assert.AreEqual(10, records.Length);
+                for (var i = 0; i < 10; i++)
+                {
+                    Assert.AreEqual(1001, records[i].TargetId);
+                    Assert.AreEqual("DT1", records[i].DataType);
+                    if (i < 9)
+                        Assert.IsTrue(records[i].CreationTime > records[i + 1].CreationTime);
+                }
+
+                // ACTION: two target
+                records = (await DP.LoadUsageListAsync(
+                    "DT1", new[] { 1001, 1002 }, DateTime.UtcNow, 40000,
+                    CancellationToken.None).ConfigureAwait(false)).ToArray();
+
+                // ASSERT
+                Assert.AreEqual(20, records.Length);
+                AssertSequenceEqual(new int?[] { 1001, 1002 },
+                    records.Select(x => x.TargetId).Distinct().OrderBy(x => x ?? 0));
+                for (var i = 0; i < 20; i++)
+                {
+                    Assert.AreEqual("DT1", records[i].DataType);
+                    if (i < 19)
+                        Assert.IsTrue(records[i].CreationTime >= records[i + 1].CreationTime);
+                }
+
+                // ACTION: two target but only one exists
+                records = (await DP.LoadUsageListAsync(
+                    "DT1", new[] { 1001, 9999 }, DateTime.UtcNow, 40000,
+                    CancellationToken.None).ConfigureAwait(false)).ToArray();
+
+                // ASSERT
+                Assert.AreEqual(10, records.Length);
+                for (var i = 0; i < 10; i++)
+                {
+                    Assert.AreEqual(1001, records[i].TargetId);
+                    Assert.AreEqual("DT1", records[i].DataType);
+                    if (i < 9)
+                        Assert.IsTrue(records[i].CreationTime > records[i + 1].CreationTime);
                 }
             });
         }
