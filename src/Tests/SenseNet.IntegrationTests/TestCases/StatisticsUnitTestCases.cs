@@ -459,20 +459,5 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
             });
         }
-
-        /*
-targetIds in test records
-    null
-    1233
-    1234
-    1235
-
-filters
-    []
-    [1234]
-    [1234,1235]
-    [1234,9999]
-
-        */
     }
 }

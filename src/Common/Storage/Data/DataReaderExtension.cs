@@ -179,5 +179,41 @@ namespace SenseNet.ContentRepository.Storage.Data
             var value = reader.GetString(columnName);
             return (T)Enum.Parse(typeof(T), value, true);
         }
+
+        /* ============================================================================= */
+
+        public static string GetStringOrNull(this IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+                return null;
+            return reader.GetString(index);
+        }
+        public static int? GetIntOrNull(this IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+                return null;
+            return reader.GetInt32(index);
+        }
+        public static long? GetLongOrNull(this IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+                return null;
+            return reader.GetInt64(index);
+        }
+
+        /* ============================================================================= */
+
+        public static string GetStringOrNull(this IDataReader reader, string fieldName)
+        {
+            return reader.GetStringOrNull(reader.GetOrdinal(fieldName));
+        }
+        public static int? GetIntOrNull(this IDataReader reader, string fieldName)
+        {
+            return reader.GetIntOrNull(reader.GetOrdinal(fieldName));
+        }
+        public static long? GetLongOrNull(this IDataReader reader, string fieldName)
+        {
+            return reader.GetLongOrNull(reader.GetOrdinal(fieldName));
+        }
     }
 }

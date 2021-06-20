@@ -1,17 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Storage.Data.MsSqlClient
 {
     public class MsSqlStatisticalDataProvider : IStatisticalDataProvider
     {
-        public Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
+        protected DataOptions DataOptions { get; }
+        private string ConnectionString { get; }
+
+        public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.WriteDataAsync
-            throw new NotImplementedException();
+            DataOptions = options?.Value ?? new DataOptions();
+            ConnectionString = (connectionOptions?.Value ?? new ConnectionStringOptions()).ConnectionString;
+        }
+
+        private readonly string WriteDataScript = @"-- MsSqlStatisticalDataProvider.WriteData
+INSERT INTO StatisticalData
+    (DataType, CreationTime, WrittenTime, Duration, RequestLength, ResponseLength, ResponseStatusCode, [Url],
+	 TargetId, ContentId, EventName, ErrorMessage, GeneralData)
+    VALUES
+    (@DataType, @CreationTime, @WrittenTime, @Duration, @RequestLength, @ResponseLength, @ResponseStatusCode, @Url,
+	 @TargetId, @ContentId, @EventName, @ErrorMessage, @GeneralData)
+";
+        public async Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
+        {
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteNonQueryAsync(WriteDataScript, cmd =>
+                {
+                    var now = DateTime.UtcNow;
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  data.DataType),
+                        ctx.CreateParameter("@WrittenTime", SqlDbType.DateTime2, now),
+                        ctx.CreateParameter("@CreationTime", SqlDbType.DateTime2, data.CreationTime ?? now),
+                        ctx.CreateParameter("@Duration", SqlDbType.BigInt, (object)data.Duration?.Ticks ?? DBNull.Value),
+                        ctx.CreateParameter("@RequestLength", SqlDbType.BigInt, (object)data.RequestLength ?? DBNull.Value),
+                        ctx.CreateParameter("@ResponseLength", SqlDbType.BigInt, (object)data.ResponseLength ?? DBNull.Value),
+                        ctx.CreateParameter("@ResponseStatusCode", SqlDbType.Int, (object)data.ResponseStatusCode ?? DBNull.Value),
+                        ctx.CreateParameter("@Url", SqlDbType.NVarChar, 1000, (object)data.Url ?? DBNull.Value),
+                        ctx.CreateParameter("@TargetId", SqlDbType.Int, (object)data.TargetId ?? DBNull.Value),
+                        ctx.CreateParameter("@ContentId", SqlDbType.Int, (object)data.ContentId ?? DBNull.Value),
+                        ctx.CreateParameter("@EventName", SqlDbType.NVarChar, 50, (object)data.EventName ?? DBNull.Value),
+                        ctx.CreateParameter("@ErrorMessage", SqlDbType.NVarChar, 500, (object)data.ErrorMessage ?? DBNull.Value),
+                        ctx.CreateParameter("@GeneralData", SqlDbType.NVarChar, (object)data.GeneralData ?? DBNull.Value),
+                    });
+                }).ConfigureAwait(false);
+            }
         }
 
         public Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancel)

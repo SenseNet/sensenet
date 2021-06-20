@@ -109,7 +109,10 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override IStatisticalDataProvider GetStatisticalDataProvider()
         {
-            return new MsSqlStatisticalDataProvider();
+            return new MsSqlStatisticalDataProvider(
+                new OptionsWrapper<DataOptions>(new DataOptions()),
+                new OptionsWrapper<ConnectionStringOptions>(
+                    new ConnectionStringOptions { ConnectionString = ConnectionString }));
         }
 
         /* ============================================================== */
