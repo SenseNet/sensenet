@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 
@@ -21,7 +24,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
             ConnectionString = (connectionOptions?.Value ?? new ConnectionStringOptions()).ConnectionString;
         }
 
-        private readonly string WriteDataScript = @"-- MsSqlStatisticalDataProvider.WriteData
+        private static readonly string WriteDataScript = @"-- MsSqlStatisticalDataProvider.WriteData
 INSERT INTO StatisticalData
     (DataType, CreationTime, WrittenTime, Duration, RequestLength, ResponseLength, ResponseStatusCode, [Url],
 	 TargetId, ContentId, EventName, ErrorMessage, GeneralData)
@@ -29,7 +32,7 @@ INSERT INTO StatisticalData
     (@DataType, @CreationTime, @WrittenTime, @Duration, @RequestLength, @ResponseLength, @ResponseStatusCode, @Url,
 	 @TargetId, @ContentId, @EventName, @ErrorMessage, @GeneralData)
 ";
-        public async Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancel)
+        public async Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancellation)
         {
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
@@ -56,49 +59,114 @@ INSERT INTO StatisticalData
             }
         }
 
-        public Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancel)
+        private static readonly string LoadUsageListScript = @"-- MsSqlStatisticalDataProvider.LoadUsageList
+SELECT TOP(@Take) * FROM StatisticalData
+WHERE DataType = @DataType AND CreationTime < @EndTimeExclusive
+ORDER BY CreationTime DESC
+";
+        private static readonly string LoadUsageListByTargetIdsScript = @"-- MsSqlStatisticalDataProvider.LoadUsageListByTargetIds
+SELECT TOP(@Take) * FROM StatisticalData
+WHERE DataType = @DataType AND CreationTime < @EndTimeExclusive
+    AND TargetId IN ({0})
+ORDER BY CreationTime DESC
+";
+        public async Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.LoadUsageListAsync
-            throw new NotImplementedException();
+            string sql;
+            if (relatedTargetIds == null || relatedTargetIds.Length == 0)
+            {
+                sql = LoadUsageListScript;
+            }
+            else
+            {
+                var ids = string.Join(", ", relatedTargetIds.Select(x => x.ToString()));
+                sql = string.Format(LoadUsageListByTargetIdsScript, ids);
+            }
+
+            var records = new List<IStatisticalDataRecord>();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Take", DbType.Int32, count),
+                        ctx.CreateParameter("@DataType", DbType.String, dataType),
+                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                    });
+
+                }, async (reader, cancel) =>
+                {
+                    while (await reader.ReadAsync(cancel))
+                        records.Add(GetStatisticalDataRecordFromReader(reader));
+                    return true;
+                }).ConfigureAwait(false);
+            }
+
+            return records;
         }
 
         public Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
-            CancellationToken cancel)
+            CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.LoadAggregatedUsageAsync
             throw new NotImplementedException();
         }
 
-        public Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken httpContextRequestAborted)
+        public Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.LoadFirstAggregationTimesByResolutionsAsync
             throw new NotImplementedException();
         }
 
         public Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive, Action<IStatisticalDataRecord> aggregatorCallback,
-            CancellationToken cancel)
+            CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.EnumerateDataAsync
             throw new NotImplementedException();
         }
 
-        public Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancel)
+        public Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.WriteAggregationAsync
             throw new NotImplementedException();
         }
 
-        public Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancel)
+        public Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.CleanupRecordsAsync
             throw new NotImplementedException();
         }
 
         public Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
-            CancellationToken cancel)
+            CancellationToken cancellation)
         {
             //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.CleanupAggregationsAsync
             throw new NotImplementedException();
+        }
+
+        /* ====================================================================================================== */
+
+        private IStatisticalDataRecord GetStatisticalDataRecordFromReader(DbDataReader reader)
+        {
+            var durationIndex = reader.GetOrdinal("Duration");
+            return new StatisticalDataRecord
+            {
+                Id = reader.GetSafeInt32(reader.GetOrdinal("Id")),
+                DataType = reader.GetSafeString(reader.GetOrdinal("DataType")),
+                WrittenTime = reader.GetDateTimeUtc(reader.GetOrdinal("WrittenTime")),
+                CreationTime = reader.GetDateTimeUtc(reader.GetOrdinal("CreationTime")),
+                Duration = reader.IsDBNull(durationIndex) ? (TimeSpan?)null : TimeSpan.FromTicks(reader.GetInt64(durationIndex)),
+                RequestLength = reader.GetLongOrNull("RequestLength"),
+                ResponseLength = reader.GetLongOrNull("ResponseLength"),
+                ResponseStatusCode = reader.GetIntOrNull("ResponseStatusCode"),
+                Url = reader.GetStringOrNull("Url"),
+                TargetId = reader.GetIntOrNull("TargetId"),
+                ContentId = reader.GetIntOrNull("ContentId"),
+                EventName = reader.GetStringOrNull("EventName"),
+                ErrorMessage = reader.GetStringOrNull("ErrorMessage"),
+                GeneralData = reader.GetStringOrNull("GeneralData"),
+            };
         }
     }
 }
