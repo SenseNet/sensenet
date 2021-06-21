@@ -66,8 +66,7 @@ ORDER BY CreationTime DESC
 ";
         private static readonly string LoadUsageListByTargetIdsScript = @"-- MsSqlStatisticalDataProvider.LoadUsageListByTargetIds
 SELECT TOP(@Take) * FROM StatisticalData
-WHERE DataType = @DataType AND CreationTime < @EndTimeExclusive
-    AND TargetId IN ({0})
+WHERE DataType = @DataType AND CreationTime < @EndTimeExclusive AND TargetId IN ({0})
 ORDER BY CreationTime DESC
 ";
         public async Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancellation)
@@ -107,7 +106,7 @@ ORDER BY CreationTime DESC
 
         private static readonly string LoadAggregatedUsageScript = @"-- MsSqlStatisticalDataProvider.LoadAggregatedUsage
 SELECT * FROM StatisticalAggregations
-WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime AND Date < @EndTimeExclusive
+WHERE DataType = @DataType AND Resolution = @Resolution AND [Date] >= @StartTime AND [Date] < @EndTimeExclusive
 ORDER BY Date
 ";
         public async Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
@@ -209,7 +208,7 @@ BEGIN TRY
 	INSERT INTO [StatisticalAggregations] ([DataType], [Date], [Resolution], [Data]) VALUES (@DataType, @Date, @Resolution, @Data)
 END TRY
 BEGIN CATCH
-	UPDATE [StatisticalAggregations] SET [Data] = @Data WHERE DataType = @DataType AND Resolution = @Resolution AND Date = @Date
+	UPDATE [StatisticalAggregations] SET [Data] = @Data WHERE DataType = @DataType AND Resolution = @Resolution AND [Date] = @Date
 END CATCH
 ";
         public async Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
