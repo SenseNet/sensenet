@@ -108,7 +108,7 @@ ORDER BY CreationTime DESC
         private static readonly string LoadAggregatedUsageScript = @"-- MsSqlStatisticalDataProvider.LoadAggregatedUsage
 SELECT * FROM StatisticalAggregations
 WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime AND Date < @EndTimeExclusive
---ORDER BY @Date
+ORDER BY Date
 ";
         public async Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
             CancellationToken cancellation)
@@ -139,10 +139,10 @@ DECLARE @Minute datetime2
 DECLARE @Hour datetime2
 DECLARE @Day datetime2
 DECLARE @Month datetime2
-SELECT TOP 1 @Minute = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Minute'
-SELECT TOP 1 @Hour = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Hour'
-SELECT TOP 1 @Day = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Day'
-SELECT TOP 1 @Month = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Month'
+SELECT TOP 1 @Minute = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Minute' ORDER BY Date
+SELECT TOP 1 @Hour = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Hour' ORDER BY Date
+SELECT TOP 1 @Day = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Day' ORDER BY Date
+SELECT TOP 1 @Month = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Month' ORDER BY Date
 SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
 ";
         public async Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
