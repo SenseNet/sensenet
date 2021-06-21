@@ -135,33 +135,72 @@ WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime A
         }
 
         private static readonly string LoadFirstAggregationTimesByResolutionsScript = @"-- MsSqlStatisticalDataProvider.LoadFirstAggregationTimesByResolutions
-SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Minute'
-UNION ALL
-SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Hour'
-UNION ALL
-SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Day'
-UNION ALL
-SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Month'
+DECLARE @Minute datetime2
+DECLARE @Hour datetime2
+DECLARE @Day datetime2
+DECLARE @Month datetime2
+SELECT TOP 1 @Minute = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Minute'
+SELECT TOP 1 @Hour = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Hour'
+SELECT TOP 1 @Day = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Day'
+SELECT TOP 1 @Month = [Date] FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Month'
+SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
 ";
         public async Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
         {
-            var result = new List<DateTime?>();
+            var result = new DateTime?[4];
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
-                await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, async (reader, cancel) => {
-                    while (await reader.ReadAsync(cancel))
-                        result.Add(reader.GetDateTimeUtcOrNull("Date"));
+                await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", DbType.String, dataType),
+                    });
+                }, async (reader, cancel) => {
+                    if (await reader.ReadAsync(cancel))
+                    {
+                        result[0] = reader.GetDateTimeUtcOrNull("Minute");
+                        result[1] = reader.GetDateTimeUtcOrNull("Hour");
+                        result[2] = reader.GetDateTimeUtcOrNull("Day");
+                        result[3] = reader.GetDateTimeUtcOrNull("Month");
+                    }
                     return true;
                 }).ConfigureAwait(false);
             }
             return result.ToArray();
         }
 
-        public Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive, Action<IStatisticalDataRecord> aggregatorCallback,
+        private static readonly string EnumerateDataScript = @"-- MsSqlStatisticalDataProvider.EnumerateData
+SELECT * FROM StatisticalData
+WHERE DataType = @DataType AND CreationTime >= @StartTime AND CreationTime < @EndTimeExclusive
+ORDER BY CreationTime
+";
+        public async Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
+            Action<IStatisticalDataRecord> aggregatorCallback,
             CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.EnumerateDataAsync
-            throw new NotImplementedException();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(EnumerateDataScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", DbType.String, dataType),
+                        ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
+                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                    });
+                }, async (reader, cancel) =>
+                {
+                    while (await reader.ReadAsync(cancel))
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                        var item = GetStatisticalDataRecordFromReader(reader);
+                        aggregatorCallback(item);
+                    }
+
+                    return true;
+                }).ConfigureAwait(false);
+            }
         }
 
         private static readonly string WriteAggregationScript = @"-- MsSqlStatisticalDataProvider.WriteAggregation
@@ -190,17 +229,42 @@ END CATCH
             }
         }
 
-        public Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
+        private static readonly string CleanupRecordsScript = @"-- MsSqlStatisticalDataProvider.CleanupRecords
+DELETE FROM StatisticalData WHERE DataType = @DataType AND CreationTime < @RetentionTime
+";
+        public async Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.CleanupRecordsAsync
-            throw new NotImplementedException();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteNonQueryAsync(CleanupRecordsScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  dataType),
+                        ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
+                    });
+                }).ConfigureAwait(false);
+            }
         }
 
-        public Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
+        private static readonly string CleanupAggregationsScript = @"-- MsSqlStatisticalDataProvider.CleanupAggregations
+DELETE FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = @Resolution AND [Date] < @RetentionTime
+";
+        public async Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
             CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.CleanupAggregationsAsync
-            throw new NotImplementedException();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteNonQueryAsync(CleanupAggregationsScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", DbType.String,  dataType),
+                        ctx.CreateParameter("@Resolution", DbType.AnsiString,  resolution.ToString()),
+                        ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
+                    });
+                }).ConfigureAwait(false);
+            }
         }
 
         /* ====================================================================================================== */

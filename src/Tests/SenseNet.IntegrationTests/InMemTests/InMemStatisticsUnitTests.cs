@@ -18,5 +18,6 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod] public async Task UT_InMem_Stat_DataProvider_CleanupAggregations() { await TestCase.Stat_DataProvider_CleanupAggregations().ConfigureAwait(false); }
         [TestMethod] public async Task UT_InMem_Stat_DataProvider_LoadUsageList() { await TestCase.Stat_DataProvider_LoadUsageList().ConfigureAwait(false); }
         [TestMethod] public async Task UT_InMem_Stat_DataProvider_LoadUsageListByTargetId() { await TestCase.Stat_DataProvider_LoadUsageListByTargetId().ConfigureAwait(false); }
+        [TestMethod] public async Task UT_InMem_Stat_DataProvider_LoadFirstAggregationTimesByResolutions() { await TestCase.LoadFirstAggregationTimesByResolutions().ConfigureAwait(false); }
     }
 }

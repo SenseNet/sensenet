@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -457,6 +458,84 @@ namespace SenseNet.IntegrationTests.TestCases
                     if (i < 9)
                         Assert.IsTrue(records[i].CreationTime > records[i + 1].CreationTime);
                 }
+            });
+        }
+        public async Task LoadFirstAggregationTimesByResolutions()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                // ALIGN-1
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+                var now = new DateTime(2010, 01, 01, 0, 0, 0);
+                for (var j = 0; j < 3; j++)
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        await DP.WriteAggregationAsync(new Aggregation
+                                { DataType = $"DT{j}", Date = now, Resolution = (TimeResolution)i, Data = $"{j * 4 + i}" },
+                            CancellationToken.None);
+                        now = now.AddDays(1);
+                    }
+                }
+
+                // ACTION-1 (DataType does not exist)
+                var dates = await DP.LoadFirstAggregationTimesByResolutionsAsync("DT9", CancellationToken.None)
+                    .ConfigureAwait(false);
+                // ASSERT-1
+                Assert.AreEqual(4, dates.Length);
+                Assert.IsNull(dates[0]);
+                Assert.IsNull(dates[1]);
+                Assert.IsNull(dates[2]);
+                Assert.IsNull(dates[3]);
+
+                // ACTION-1
+                dates = await DP.LoadFirstAggregationTimesByResolutionsAsync("DT1", CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ASSERT-2
+                Assert.AreEqual(4, dates.Length);
+                Assert.IsNotNull(dates[0]);
+                Assert.AreEqual("2010-01-05", dates[0].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNotNull(dates[1]);
+                Assert.AreEqual("2010-01-06", dates[1].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNotNull(dates[2]);
+                Assert.AreEqual("2010-01-07", dates[2].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNotNull(dates[3]);
+                Assert.AreEqual("2010-01-08", dates[3].Value.ToString("yyyy-MM-dd"));
+
+                //-----------------------------------------------------------------------------------------------
+
+                // ALIGN-2 (one resolution has no data)
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+                now = new DateTime(2010, 01, 01, 0, 0, 0);
+                for (var j = 0; j < 3; j++)
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (i != 1)
+                        {
+                            await DP.WriteAggregationAsync(new Aggregation
+                            {
+                                DataType = $"DT{j}", Date = now, Resolution = (TimeResolution) i, Data = $"{j * 4 + i}"
+                            }, CancellationToken.None);
+                        }
+                        now = now.AddDays(1);
+                    }
+                }
+
+                // ACTION-3
+                dates = await DP.LoadFirstAggregationTimesByResolutionsAsync("DT1", CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ASSERT-3
+                Assert.AreEqual(4, dates.Length);
+                Assert.IsNotNull(dates[0]);
+                Assert.AreEqual("2010-01-05", dates[0].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNull(dates[1]);
+                Assert.IsNotNull(dates[2]);
+                Assert.AreEqual("2010-01-07", dates[2].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNotNull(dates[3]);
+                Assert.AreEqual("2010-01-08", dates[3].Value.ToString("yyyy-MM-dd"));
             });
         }
     }
