@@ -94,7 +94,6 @@ ORDER BY CreationTime DESC
                         ctx.CreateParameter("@DataType", DbType.String, dataType),
                         ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
                     });
-
                 }, async (reader, cancel) =>
                 {
                     while (await reader.ReadAsync(cancel))
@@ -106,11 +105,34 @@ ORDER BY CreationTime DESC
             return records;
         }
 
-        public Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
+        private static readonly string LoadAggregatedUsageScript = @"-- MsSqlStatisticalDataProvider.LoadAggregatedUsage
+SELECT * FROM StatisticalAggregations
+WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime AND Date < @EndTimeExclusive
+--ORDER BY @Date
+";
+
+        public async Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
             CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.LoadAggregatedUsageAsync
-            throw new NotImplementedException();
+            var aggregations = new List<Aggregation>();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(LoadAggregatedUsageScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", DbType.String, dataType),
+                        ctx.CreateParameter("@Resolution", DbType.String, resolution.ToString()),
+                        ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
+                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                    });
+                }, async (reader, cancel) => {
+                    while (await reader.ReadAsync(cancel))
+                        aggregations.Add(GetAggregationFromReader(reader));
+                    return true;
+                }).ConfigureAwait(false);
+            }
+            return aggregations;
         }
 
         public Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
@@ -126,10 +148,24 @@ ORDER BY CreationTime DESC
             throw new NotImplementedException();
         }
 
-        public Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
+        private static readonly string WriteAggregationScript = @"-- MsSqlStatisticalDataProvider.WriteAggregation
+INSERT INTO [StatisticalAggregations] ([DataType], [Date], [Resolution], [Data]) VALUES (@DataType, @Date, @Resolution, @Data)
+";
+        public async Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.WriteAggregationAsync
-            throw new NotImplementedException();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteNonQueryAsync(WriteAggregationScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@DataType", DbType.String, aggregation.DataType),
+                        ctx.CreateParameter("@Resolution", DbType.String, aggregation.Resolution.ToString()),
+                        ctx.CreateParameter("@Date", DbType.DateTime2, aggregation.Date),
+                        ctx.CreateParameter("@Data", DbType.String, aggregation.Data),
+                    });
+                }).ConfigureAwait(false);
+            }
         }
 
         public Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
@@ -166,6 +202,18 @@ ORDER BY CreationTime DESC
                 EventName = reader.GetStringOrNull("EventName"),
                 ErrorMessage = reader.GetStringOrNull("ErrorMessage"),
                 GeneralData = reader.GetStringOrNull("GeneralData"),
+            };
+        }
+
+        private Aggregation GetAggregationFromReader(DbDataReader reader)
+        {
+            return new Aggregation
+            {
+                DataType = reader.GetString(reader.GetOrdinal("DataType")),
+                Date = reader.GetDateTimeUtc(reader.GetOrdinal("Date")),
+                Resolution = (TimeResolution) Enum.Parse(typeof(TimeResolution),
+                    reader.GetString(reader.GetOrdinal("Resolution"))),
+                Data = reader.GetStringOrNull("Data"),
             };
         }
     }

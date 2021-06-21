@@ -473,7 +473,9 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
 
         public async Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider)
         {
-            const string sql = "DELETE FROM StatisticalData";
+            const string sql = @"DELETE FROM StatisticalData
+DELETE FROM StatisticalAggregations
+";
             using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
                 await ctx.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
         }
@@ -513,9 +515,28 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
             return records;
         }
 
-        public Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider)
+        public async Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider)
         {
-            throw new NotImplementedException();
+            const string sql = "SELECT * FROM StatisticalData";
+            var aggregations = new List<Aggregation>();
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                {
+                    while (await reader.ReadAsync(cancel))
+                    {
+                        aggregations.Add(new Aggregation
+                        {
+                            DataType = reader.GetString(reader.GetOrdinal("DataType")),
+                            Date = reader.GetDateTimeUtc(reader.GetOrdinal("Date")),
+                            Resolution = Enum.Parse<TimeResolution>( reader.GetString(reader.GetOrdinal("Resolution"))),
+                            Data = reader.GetStringOrNull("Data"),
+                        });
+                    }
+                    return true;
+                }).ConfigureAwait(false);
+            }
+            return aggregations;
         }
 
         #region MsSqlCannotCommitDataProvider classes
