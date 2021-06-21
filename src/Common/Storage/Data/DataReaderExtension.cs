@@ -200,6 +200,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return null;
             return reader.GetInt64(index);
         }
+        public static DateTime? GetDateTimeOrNull(this IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+                return null;
+            return reader.GetDateTime(index);
+        }
+        public static DateTime? GetDateTimeUtcOrNull(this IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+                return null;
+            return reader.GetDateTimeUtc(index);
+        }
 
         /* ============================================================================= */
 
@@ -214,6 +226,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static long? GetLongOrNull(this IDataReader reader, string fieldName)
         {
             return reader.GetLongOrNull(reader.GetOrdinal(fieldName));
+        }
+        public static DateTime? GetDateTimeOrNull(this IDataReader reader, string fieldName)
+        {
+            return reader.GetDateTimeOrNull(reader.GetOrdinal(fieldName));
+        }
+        public static DateTime? GetDateTimeUtcOrNull(this IDataReader reader, string fieldName)
+        {
+            return reader.GetDateTimeUtcOrNull(reader.GetOrdinal(fieldName));
         }
     }
 }

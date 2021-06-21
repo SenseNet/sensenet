@@ -110,7 +110,6 @@ SELECT * FROM StatisticalAggregations
 WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime AND Date < @EndTimeExclusive
 --ORDER BY @Date
 ";
-
         public async Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
             CancellationToken cancellation)
         {
@@ -135,10 +134,27 @@ WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime A
             return aggregations;
         }
 
-        public Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
+        private static readonly string LoadFirstAggregationTimesByResolutionsScript = @"-- MsSqlStatisticalDataProvider.LoadFirstAggregationTimesByResolutions
+SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Minute'
+UNION ALL
+SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Hour'
+UNION ALL
+SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Day'
+UNION ALL
+SELECT TOP 1 * FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 'Month'
+";
+        public async Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
         {
-            //UNDONE:<?Stat: IMPLEMENT MsSqlStatisticalDataProvider.LoadFirstAggregationTimesByResolutionsAsync
-            throw new NotImplementedException();
+            var result = new List<DateTime?>();
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, async (reader, cancel) => {
+                    while (await reader.ReadAsync(cancel))
+                        result.Add(reader.GetDateTimeUtcOrNull("Date"));
+                    return true;
+                }).ConfigureAwait(false);
+            }
+            return result.ToArray();
         }
 
         public Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive, Action<IStatisticalDataRecord> aggregatorCallback,
@@ -149,7 +165,13 @@ WHERE DataType = @DataType AND Resolution = @Resolution AND Date >= @StartTime A
         }
 
         private static readonly string WriteAggregationScript = @"-- MsSqlStatisticalDataProvider.WriteAggregation
-INSERT INTO [StatisticalAggregations] ([DataType], [Date], [Resolution], [Data]) VALUES (@DataType, @Date, @Resolution, @Data)
+-- Special solution of upsert (the insert is much more likely than update)
+BEGIN TRY
+	INSERT INTO [StatisticalAggregations] ([DataType], [Date], [Resolution], [Data]) VALUES (@DataType, @Date, @Resolution, @Data)
+END TRY
+BEGIN CATCH
+	UPDATE [StatisticalAggregations] SET [Data] = @Data WHERE DataType = @DataType AND Resolution = @Resolution AND Date = @Date
+END CATCH
 ";
         public async Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
         {
@@ -162,7 +184,7 @@ INSERT INTO [StatisticalAggregations] ([DataType], [Date], [Resolution], [Data])
                         ctx.CreateParameter("@DataType", DbType.String, aggregation.DataType),
                         ctx.CreateParameter("@Resolution", DbType.String, aggregation.Resolution.ToString()),
                         ctx.CreateParameter("@Date", DbType.DateTime2, aggregation.Date),
-                        ctx.CreateParameter("@Data", DbType.String, aggregation.Data),
+                        ctx.CreateParameter("@Data", DbType.String, (object)aggregation.Data ?? DBNull.Value),
                     });
                 }).ConfigureAwait(false);
             }

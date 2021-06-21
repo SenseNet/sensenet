@@ -517,7 +517,7 @@ DELETE FROM StatisticalAggregations
 
         public async Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider)
         {
-            const string sql = "SELECT * FROM StatisticalData";
+            const string sql = "SELECT * FROM StatisticalAggregations";
             var aggregations = new List<Aggregation>();
             using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
             {
