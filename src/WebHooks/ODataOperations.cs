@@ -27,26 +27,18 @@ namespace SenseNet.WebHooks
     }
     public class WebHookStatisticalDataAggregator : IStatisticalDataAggregator
     {
-
         private WebHookAggregation _aggregation = new WebHookAggregation();
+        private StatisticsOptions _options;
 
-        //private StatisticsOptions _options;
-        private AggregationRetentionPeriods _retentionPeriods;
-
-        //public WebHookStatisticalDataAggregator(IOptions<StatisticsOptions> options)
-        //{
-        //    _options = options.Value;
-        //}
-        public WebHookStatisticalDataAggregator(AggregationRetentionPeriods retentionPeriods)
+        public WebHookStatisticalDataAggregator(IOptions<StatisticsOptions> options)
         {
-            _retentionPeriods = retentionPeriods;
+            _options = options.Value;
         }
 
         public string DataType => "WebHook";
         public bool IsEmpty => _aggregation.CallCount == 0;
         public object Data => _aggregation;
-        //public AggregationRetentionPeriods RetentionPeriods => _options.Retention.WebHooks;
-        public AggregationRetentionPeriods RetentionPeriods => _retentionPeriods;
+        public AggregationRetentionPeriods RetentionPeriods => _options.Retention.WebHooks;
 
         public void Aggregate(IStatisticalDataRecord data)
         {

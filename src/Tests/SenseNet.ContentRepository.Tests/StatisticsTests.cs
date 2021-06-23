@@ -801,7 +801,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -876,7 +876,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -949,7 +949,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1019,7 +1019,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1167,7 +1167,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1245,7 +1245,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1319,7 +1319,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1389,7 +1389,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1483,7 +1483,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] {new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] {new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
             
@@ -1559,7 +1559,7 @@ namespace SenseNet.ContentRepository.Tests
                 return new StatisticalDataAggregationController(statDataProvider,
                     new IStatisticalDataAggregator[]
                     {
-                        new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
+                        new WebHookStatisticalDataAggregator(GetOptions()),
                         new WebTransferStatisticalDataAggregator(GetOptions()),
                         new DatabaseUsageStatisticalDataAggregator(GetOptions())
                     }, GetOptions());
@@ -1685,7 +1685,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
                 new IStatisticalDataAggregator[]
                 {
-                    new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
+                    new WebHookStatisticalDataAggregator(GetOptions()),
                     new WebTransferStatisticalDataAggregator(GetOptions()),
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
                 }, GetOptions());
@@ -1804,7 +1804,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
                 new IStatisticalDataAggregator[]
                 {
-                    new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
+                    new WebHookStatisticalDataAggregator(GetOptions()),
                     new WebTransferStatisticalDataAggregator(GetOptions()),
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
                 }, GetOptions());
@@ -1937,10 +1937,6 @@ namespace SenseNet.ContentRepository.Tests
         private IOptions<StatisticsOptions> GetOptions()
         {
             return _options ??= new OptionsWrapper<StatisticsOptions>(new StatisticsOptions());
-        }
-        private AggregationRetentionPeriods GetWebHookRetentions()
-        {
-            return GetOptions().Value.Retention.WebHooks;
         }
         #endregion
 
@@ -2712,7 +2708,7 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetWebHookRetentions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
             }
             StatisticalDataAggregationController aggregator;
 

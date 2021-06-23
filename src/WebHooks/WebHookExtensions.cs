@@ -27,8 +27,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton(providers => 
                 providers.GetServices<IEventProcessor>().FirstOrDefault(p => p is IWebHookEventProcessor) as IWebHookEventProcessor);
 
-            //UNDONE:<?STAT-DI
-            //services.AddStatisticalDataAggregator<WebHookStatisticalDataAggregator>();
+            services.AddStatisticalDataAggregator<WebHookStatisticalDataAggregator>();
 
             return services;
         }
