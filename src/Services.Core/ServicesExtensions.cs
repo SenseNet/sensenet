@@ -15,6 +15,7 @@ using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Configuration;
+using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -84,6 +85,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
+                .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
                 //.AddSingleton<IMaintenanceTask, ReindexBinariesTask>()
 
                 .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))
@@ -126,6 +128,10 @@ namespace SenseNet.Extensions.DependencyInjection
             var securityDataProvider = provider.GetService<ISecurityDataProvider>();
             if (securityDataProvider != null)
                 Providers.Instance.SecurityDataProvider = securityDataProvider;
+
+            var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
+            if (statisticalDataProvider != null)
+                Providers.Instance.DataProvider.SetExtension(typeof(IStatisticalDataProvider), statisticalDataProvider);
 
             return provider;
         }

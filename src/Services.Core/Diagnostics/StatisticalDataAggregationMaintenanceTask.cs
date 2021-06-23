@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Diagnostics
 {
-    class StatisticalDataAggregationMaintenanceTask : IMaintenanceTask
+    public class StatisticalDataAggregationMaintenanceTask : IMaintenanceTask
     {
         private readonly IStatisticalDataAggregationController _aggregationController;
 
@@ -17,27 +17,28 @@ namespace SenseNet.Services.Core.Diagnostics
             _aggregationController = aggregationController;
         }
 
-        public int WaitingSeconds => 1;
+        public int WaitingSeconds => 60;
 
         public System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancel)
         {
-            //var now = ???;
-
-            //await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, cancel);
-            //if (now.Minute == 0)
-            //{
-            //    await aggregator.AggregateAsync(aggregationTime, TimeResolution.Hour, cancel);
-            //    if (now.Hour == 0)
-            //    {
-            //        await aggregator.AggregateAsync(aggregationTime, TimeResolution.Day, cancel);
-            //        if (now.Day == 1)
-            //        {
-            //            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Month, cancel);
-            //        }
-            //    }
-            //}
-
-            throw new System.NotImplementedException(); //UNDONE:<?Stat: TASK: Implement StatisticalDataAggregationMaintenanceTask.ExecuteAsync
+            return ExecuteAsync(DateTime.UtcNow, cancel);
+        }
+        private async System.Threading.Tasks.Task ExecuteAsync(DateTime now, CancellationToken cancel)
+        {
+            var aggregationTime = now.AddSeconds(-1);
+            await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Minute, cancel);
+            if (now.Minute == 0)
+            {
+                await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Hour, cancel);
+                if (now.Hour == 0)
+                {
+                    await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Day, cancel);
+                    if (now.Day == 1)
+                    {
+                        await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Month, cancel);
+                    }
+                }
+            }
         }
     }
 }

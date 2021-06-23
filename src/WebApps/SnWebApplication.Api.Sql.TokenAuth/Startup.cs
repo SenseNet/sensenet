@@ -12,6 +12,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security.EFCSecurityStore;
+using SenseNet.Storage.Data.MsSqlClient;
 
 namespace SnWebApplication.Api.Sql.TokenAuth
 {
@@ -48,13 +49,15 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 repositoryBuilder
                     .UseLogger(provider)
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProviderExtension();
+                    .UseMsSqlExclusiveLockDataProviderExtension()
+                    .UseStatisticalDataProvider(new MsSqlStatisticalDataProvider());
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddStatisticalDataCollector()
                 .AddSenseNetWebHooks();
         }

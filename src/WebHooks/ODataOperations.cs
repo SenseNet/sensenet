@@ -74,6 +74,11 @@ namespace SenseNet.WebHooks
                     target[i] += source[i];
             }
         }
+
+        public void Clear()
+        {
+            _aggregation = new WebHookAggregation();
+        }
     }
 
     public class WebHookUsageViewModel

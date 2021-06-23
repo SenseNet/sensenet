@@ -24,5 +24,6 @@ namespace SenseNet.Diagnostics
 
         void Aggregate(IStatisticalDataRecord data);
         void Summarize(Aggregation[] aggregations);
+        void Clear();
     }
 }

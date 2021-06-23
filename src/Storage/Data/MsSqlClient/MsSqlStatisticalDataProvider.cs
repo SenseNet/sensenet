@@ -18,6 +18,11 @@ namespace SenseNet.Storage.Data.MsSqlClient
         protected DataOptions DataOptions { get; }
         private string ConnectionString { get; }
 
+        public MsSqlStatisticalDataProvider()
+        {
+            DataOptions = DataOptions.GetLegacyConfiguration();
+            ConnectionString = ConnectionStrings.ConnectionString;
+        }
         public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
             DataOptions = options?.Value ?? new DataOptions();
@@ -301,5 +306,68 @@ DELETE FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 
                 Data = reader.GetStringOrNull("Data"),
             };
         }
+
+        /* ====================================================================================== INSTALLATION SCRIPTS */
+
+        public static readonly string DropScript = @"/****** Index [IX_StatisticalData_DataType_CreationTime] ******/
+DROP INDEX IF EXISTS [IX_StatisticalData_DataType_CreationTime] ON [dbo].[StatisticalData]
+
+/****** Table [dbo].[StatisticalData] ******/
+DROP TABLE IF EXISTS [dbo].[StatisticalData]
+
+/****** Table [dbo].[StatisticalAggregations] ******/
+DROP TABLE IF EXISTS [dbo].[StatisticalAggregations]
+";
+
+        public static readonly string CreationScript = @"/****** Table [dbo].[StatisticalData] ******/
+SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+SET ANSI_PADDING ON
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[StatisticalData]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[StatisticalData](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[DataType] [nvarchar](50) NOT NULL,
+	[CreationTime] [datetime2](7) NOT NULL,
+	[WrittenTime] [datetime2](7) NOT NULL,
+	[Duration] [bigint] NULL,
+	[RequestLength] [bigint] NULL,
+	[ResponseLength] [bigint] NULL,
+	[ResponseStatusCode] [int] NULL,
+	[Url] [nvarchar](1000) NULL,
+	[TargetId] [int] NULL,
+	[ContentId] [int] NULL,
+	[EventName] [nvarchar](50) NULL,
+	[ErrorMessage] [nvarchar](500) NULL,
+	[GeneralData] [nvarchar](max) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+
+/****** Object:  Index [IX_StatisticalData_DataType_CreationTime]    Script Date: 2021. 06. 22. 2:45:01 ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[StatisticalData]') AND name = N'IX_StatisticalData_DataType_CreationTime')
+CREATE NONCLUSTERED INDEX [IX_StatisticalData_DataType_CreationTime] ON [dbo].[StatisticalData]
+(
+	[DataType] ASC,
+	[CreationTime] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+
+/****** Table [dbo].[StatisticalAggregations] ******/
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[StatisticalAggregations]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[StatisticalAggregations](
+	[DataType] [nvarchar](50) NOT NULL,
+	[Date] [datetime2](7) NOT NULL,
+	[Resolution] [varchar](10) NOT NULL,
+	[Data] [nvarchar](max) NULL,
+ CONSTRAINT [PK_StatisticalAggregations] PRIMARY KEY CLUSTERED 
+(
+	[DataType] ASC,
+	[Date] ASC,
+	[Resolution] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+";
+
     }
 }

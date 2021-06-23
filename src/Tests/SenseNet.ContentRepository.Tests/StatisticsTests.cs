@@ -35,7 +35,9 @@ using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
+using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.DataModel.Usage;
+using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.WebHooks;
@@ -1675,6 +1677,167 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Day][0]));
             Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Month][0]));
         }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_Mixed_Run_MaintenanceTaskAlgorithm()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+
+            StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
+                new IStatisticalDataAggregator[]
+                {
+                    new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
+                    new WebTransferStatisticalDataAggregator(GetOptions()),
+                    new DatabaseUsageStatisticalDataAggregator(GetOptions())
+                }, GetOptions());
+            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
+            var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
+
+            using (new Swindler<List<ISnTracer>>(
+                new List<ISnTracer> { new SnDebugViewTracer() },
+                () => SnTrace.SnTracers,
+                value => { SnTrace.SnTracers.Clear(); SnTrace.SnTracers.AddRange(value); }))
+            {
+                SnTrace.Custom.Enabled = true;
+
+                var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
+                var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
+                var now = testStart;
+
+                while (now <= testEnd)
+                {
+                    if (now.Second == 0)
+                    {
+                        // Generate two api call and a webhook call every day at ten.
+                        if (now.Hour == 10 && now.Minute == 0 && now.Second == 0)
+                        {
+                            await GenerateWebTransferRecordAsync(now, statDataProvider, CancellationToken.None);
+                            await GenerateWebTransferRecordAsync(now.AddSeconds(1), statDataProvider, CancellationToken.None);
+                            await GenerateWebHookRecordAsync(now.AddSeconds(2), statDataProvider, CancellationToken.None);
+                        }
+                        // Generate db usage in every hour.
+                        if (now.Minute == 0 && now.Second == 0)
+                        {
+                            await GenerateDbUsageAggregationAsync(now, TimeResolution.Hour, statDataProvider, CancellationToken.None);
+                        }
+
+                        if (now.Second == 0)
+                        {
+                            await (STT.Task)maintenanceTaskAcc.Invoke("ExecuteAsync", now, CancellationToken.None);
+                        }
+                    }
+                    now = now.AddSeconds(1);
+                }
+
+                var allAggregations = statDataProvider.Aggregations;
+                Assert.AreEqual(62, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+                Assert.AreEqual(31 * 24 + 62, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+                Assert.AreEqual(93, allAggregations.Count(x => x.Resolution == TimeResolution.Day));
+                Assert.AreEqual(3, allAggregations.Count(x => x.Resolution == TimeResolution.Month));
+
+                var dt1 = "WebHook";
+                var resolutionCount1 = Enum.GetValues(typeof(TimeResolution)).Length;
+                var aggregations1 = new WebHookAggregation[resolutionCount1][];
+                for (int resolutionValue = 0; resolutionValue < resolutionCount1; resolutionValue++)
+                {
+                    aggregations1[resolutionValue] = allAggregations
+                        .Where(x => x.DataType == dt1 && x.Resolution == (TimeResolution)resolutionValue)
+                        .Take(2)
+                        .Select(x => DeserializeAggregation<WebHookAggregation>(x.Data))
+                        .ToArray();
+                }
+                Assert.AreEqual(1, aggregations1[(int)TimeResolution.Minute][0].CallCount);
+                Assert.AreEqual(1, aggregations1[(int)TimeResolution.Hour][0].CallCount);
+                Assert.AreEqual(1, aggregations1[(int)TimeResolution.Day][0].CallCount);
+                Assert.AreEqual(31, aggregations1[(int)TimeResolution.Month][0].CallCount);
+
+                var dt2 = "WebTransfer";
+                var resolutionCount2 = Enum.GetValues(typeof(TimeResolution)).Length;
+                var aggregations2 = new WebTransferStatisticalDataAggregator.WebTransferAggregation[resolutionCount2][];
+                for (int resolutionValue = 0; resolutionValue < resolutionCount2; resolutionValue++)
+                {
+                    aggregations2[resolutionValue] = allAggregations
+                        .Where(x => x.DataType == dt2 && x.Resolution == (TimeResolution)resolutionValue)
+                        .Take(2)
+                        .Select(x => DeserializeAggregation<WebTransferStatisticalDataAggregator.WebTransferAggregation>(x.Data))
+                        .ToArray();
+                }
+                Assert.AreEqual(2, aggregations2[(int)TimeResolution.Minute][0].CallCount);
+                Assert.AreEqual(2, aggregations2[(int)TimeResolution.Hour][0].CallCount);
+                Assert.AreEqual(2, aggregations2[(int)TimeResolution.Day][0].CallCount);
+                Assert.AreEqual(62, aggregations2[(int)TimeResolution.Month][0].CallCount);
+
+                var dt3 = "DatabaseUsage";
+                var resolutionCount3 = Enum.GetValues(typeof(TimeResolution)).Length;
+                var aggregations3 = new string[resolutionCount3][];
+                for (int resolutionValue = 0; resolutionValue < resolutionCount3; resolutionValue++)
+                {
+                    aggregations3[resolutionValue] = allAggregations
+                        .Where(x => x.DataType == dt3 && x.Resolution == (TimeResolution)resolutionValue)
+                        .Take(2)
+                        .Select(x => (x.Data))
+                        .ToArray();
+                }
+
+                var dbUsageAverage = RemoveWhitespaces(SerializeAggregation(new DatabaseUsage
+                {
+                    Content = new Dimensions { Count = 101, Blob = 1011, Metadata = 1021, Text = 1031, Index = 1041 },
+                    OldVersions = new Dimensions { Count = 111, Blob = 1111, Metadata = 1121, Text = 1131, Index = 1141 },
+                    Preview = new Dimensions { Count = 121, Blob = 1211, Metadata = 1221, Text = 1231, Index = 1241 },
+                    System = new Dimensions { Count = 131, Blob = 1311, Metadata = 1321, Text = 1331, Index = 1341 },
+                    OperationLog = new LogDimensions { Count = 141, Metadata = 1421, Text = 1431 },
+                    OrphanedBlobs = 43,
+                }));
+                // Per minute and hourly aggregations are skipped
+                Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Day][0]));
+                Assert.AreEqual(dbUsageAverage, RemoveWhitespaces(aggregations3[(int)TimeResolution.Month][0]));
+
+            }
+        }
+        //[TestMethod]
+        public async STT.Task Stat_Aggregation_Mixed_Run_MaintenanceTaskAlgorithm_SQL()
+        {
+            Assert.Fail();
+
+            ConnectionStrings.ConnectionString = "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=SNPC007\\SQL2016";
+            var statDataProvider = new MsSqlStatisticalDataProvider();
+
+            StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
+                new IStatisticalDataAggregator[]
+                {
+                    new WebHookStatisticalDataAggregator(GetWebHookRetentions()),
+                    new WebTransferStatisticalDataAggregator(GetOptions()),
+                    new DatabaseUsageStatisticalDataAggregator(GetOptions())
+                }, GetOptions());
+            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
+            var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
+
+            using (new Swindler<List<ISnTracer>>(
+                new List<ISnTracer> {new SnDebugViewTracer()},
+                () => SnTrace.SnTracers,
+                value => { SnTrace.SnTracers.Clear(); SnTrace.SnTracers.AddRange(value); }))
+            {
+                SnTrace.Custom.Enabled = true;
+                var testStart = new DateTime(2020, 1, 1, 0, 0, 1);
+                var testEnd = new DateTime(2020, 2, 1, 0, 0, 0);
+                var now = testStart;
+
+                while (now <= testEnd)
+                {
+                    if (now.Second == 10)
+                    {
+                        await GenerateWebTransferRecordAsync(now, statDataProvider, CancellationToken.None);
+                    }
+                    // call task in every minute
+                    if (now.Second == 0)
+                    {
+                        await (STT.Task)maintenanceTaskAcc.Invoke("ExecuteAsync", now, CancellationToken.None);
+                    }
+                    now = now.AddSeconds(1);
+                }
+            }
+
+            Assert.Inconclusive();
+        }
 
         private async STT.Task GenerateWebHookRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
         {
@@ -1698,11 +1861,8 @@ namespace SenseNet.ContentRepository.Tests
 
             await statDataProvider.WriteDataAsync(record, cancel);
         }
-        private async STT.Task GenerateWebTransferRecordAsync(DateTime date, TestStatisticalDataProvider statDataProvider, CancellationToken cancel)
+        private async STT.Task GenerateWebTransferRecordAsync(DateTime date, IStatisticalDataProvider statDataProvider, CancellationToken cancel)
         {
-            var count = statDataProvider.Storage.Count;
-            var error = (count % 10) == 0;
-            var warning = (count % 10) == 1;
             var record = new StatisticalDataRecord
             {
                 DataType = "WebTransfer",

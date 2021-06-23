@@ -69,5 +69,9 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services.AddSingleton<IStatisticalDataCollector, T>();
         }
+        public static IServiceCollection AddStatisticalDataAggregator<T>(this IServiceCollection services) where T : class, IStatisticalDataAggregator
+        {
+            return services.AddTransient<IStatisticalDataAggregator, T>();
+        }
     }
 }

@@ -38,6 +38,8 @@ namespace SenseNet.Services.Core.Diagnostics
             var end = startTime.Next(resolution);
             foreach (var aggregator in _aggregators)
             {
+                aggregator.Clear();
+
                 if (!await TryProcessAggregationsAsync(aggregator, start, end, resolution, cancel))
                 {
                     await _statDataProvider.EnumerateDataAsync(aggregator.DataType, start, end, aggregator.Aggregate, cancel);
@@ -201,6 +203,11 @@ namespace SenseNet.Services.Core.Diagnostics
                 _aggregation.ResponseLengths += deserialized.ResponseLengths;
             }
         }
+
+        public void Clear()
+        {
+            _aggregation = new WebTransferAggregation();
+        }
     }
     public class DatabaseUsageStatisticalDataAggregator : IStatisticalDataAggregator
     {
@@ -267,6 +274,11 @@ namespace SenseNet.Services.Core.Diagnostics
             _aggregation.OperationLog.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Text)));
 
             _aggregation.OrphanedBlobs = Convert.ToInt32(Math.Round(usages.Average(x => x.OrphanedBlobs)));
+        }
+
+        public void Clear()
+        {
+            _aggregation = new DatabaseUsage();
         }
     }
 
