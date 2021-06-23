@@ -25,7 +25,7 @@ namespace SenseNet.Services.Core.Diagnostics
         }
         private async System.Threading.Tasks.Task ExecuteAsync(DateTime now, CancellationToken cancel)
         {
-            var aggregationTime = now.AddSeconds(-1);
+            var aggregationTime = now.AddSeconds(-1).Truncate(TimeResolution.Minute).AddSeconds(-1);
             await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Minute, cancel);
             if (now.Minute == 0)
             {
