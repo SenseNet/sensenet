@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
                 await GenerateApiCallDataForODataTests(testStart, testEnd, now);
-                // Delete every second daily aggregations();
+                // Delete every other daily aggregations;
                 var dp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
                 var dpAcc = new ObjectAccessor(dp);
                 var aggregations = (List<Aggregation>)dpAcc.GetProperty("Aggregations");
