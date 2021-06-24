@@ -39,7 +39,6 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseInactiveAuditEventWriter()
                         .UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
                 })
-                .AddStatisticalDataCollector()
                 .AddSenseNetWebHooks()
                 .AddFeature1();
         }

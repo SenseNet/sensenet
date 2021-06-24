@@ -4,11 +4,11 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core
 {
-    public class StatTools
+    public class WebTransferRegistrator
     {
         private readonly IStatisticalDataCollector _dataCollector;
 
-        public StatTools(IStatisticalDataCollector dataCollector)
+        public WebTransferRegistrator(IStatisticalDataCollector dataCollector)
         {
             _dataCollector = dataCollector;
         }

@@ -89,13 +89,12 @@ namespace SenseNet.OData
             _requestOptions = requestOptions?.Value ?? new HttpRequestOptions();
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
             var req = httpContext.Request;
             using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
             {
-                var statistics = new StatTools(httpContext.RequestServices?.GetService<IStatisticalDataCollector>());
-                var statData = statistics.RegisterWebRequest(httpContext);
+                var statData = statistics?.RegisterWebRequest(httpContext);
 
                 // set request size limit if configured
                 if (_requestOptions?.MaxRequestBodySize > 0)
@@ -108,7 +107,7 @@ namespace SenseNet.OData
                 // Write headers and body of the HttpResponse
                 await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
-                statistics.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
+                statistics?.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
 
                 op.Successful = true;
             }

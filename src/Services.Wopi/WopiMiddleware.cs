@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -39,14 +38,13 @@ namespace SenseNet.Services.Wopi
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
-            var statistics = new StatTools(httpContext.RequestServices.GetService<IStatisticalDataCollector>());
-            var statData = statistics.RegisterWebRequest(httpContext);
+            var statData = statistics?.RegisterWebRequest(httpContext);
 
             await ProcessRequestAsync(httpContext, false).ConfigureAwait(false);
 
-            statistics.RegisterWebResponse(statData, httpContext);
+            statistics?.RegisterWebResponse(statData, httpContext);
 
             // Call next in the chain if exists
             if (_next != null)

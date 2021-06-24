@@ -61,8 +61,6 @@ namespace SnWebApplication.Api.Sql.Admin
                 .AddSingleton<IStatisticalDataProvider, MsSqlStatisticalDataProvider>()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
-                .AddStatisticalDataCollector<StatisticalDataCollector>()
-                .AddStatistics()
                 .AddSenseNetWebHooks();
         }
 

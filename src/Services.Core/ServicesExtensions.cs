@@ -79,6 +79,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetIdentityServerClients()
                 .AddSenseNetRegistration();
 
+            services.AddStatistics();
+
             // add maintenance tasks
             services
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()

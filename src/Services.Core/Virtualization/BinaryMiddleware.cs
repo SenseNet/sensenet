@@ -1,11 +1,5 @@
-﻿using System;
-using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Extensions.DependencyInjection;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Virtualization
 {
@@ -21,16 +15,15 @@ namespace SenseNet.Services.Core.Virtualization
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
-            var statistics = new StatTools(httpContext.RequestServices.GetService<IStatisticalDataCollector>());
-            var statData = statistics.RegisterWebRequest(httpContext);
+            var statData = statistics?.RegisterWebRequest(httpContext);
 
             var bh = new BinaryHandler(httpContext);
 
             await bh.ProcessRequestCore().ConfigureAwait(false);
 
-            statistics.RegisterWebResponse(statData, httpContext);
+            statistics?.RegisterWebResponse(statData, httpContext);
 
             // Call next middleware in the chain if exists
             if (_next != null)

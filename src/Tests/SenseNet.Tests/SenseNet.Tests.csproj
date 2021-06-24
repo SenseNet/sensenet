@@ -188,6 +188,10 @@
     <None Include="SenseNet.Tests.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Abstractions\SenseNet.Abstractions.csproj">
+      <Project>{ec55ea80-e068-440b-a357-89d4ca1becb8}</Project>
+      <Name>SenseNet.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj">
       <Project>{c250c071-6acd-42e0-9ffc-63283afb8c6c}</Project>
       <Name>SenseNet.BlobStorage</Name>

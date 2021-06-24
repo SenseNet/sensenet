@@ -48,8 +48,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter()
                         .UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
-                })
-                .AddStatisticalDataCollector();
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

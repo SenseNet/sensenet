@@ -192,6 +192,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Abstractions\SenseNet.Abstractions.csproj">
+      <Project>{ec55ea80-e068-440b-a357-89d4ca1becb8}</Project>
+      <Name>SenseNet.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj">
       <Project>{a7532829-56e2-40dd-9094-0b36b138dd75}</Project>
       <Name>SenseNet.ContentRepository.InMemory</Name>

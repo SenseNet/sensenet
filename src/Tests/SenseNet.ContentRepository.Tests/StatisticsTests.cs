@@ -31,6 +31,7 @@ using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.Security;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
@@ -56,6 +57,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 var serviceProvider = new ServiceCollection()
+                    .AddTransient<WebTransferRegistrator>()
                     .AddStatisticalDataCollector<TestStatisticalDataCollector>()
                     .BuildServiceProvider();
 
@@ -75,7 +77,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var middleware = new BinaryMiddleware(null);
-                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                var wtr = serviceProvider.GetService<WebTransferRegistrator>();
+                await middleware.InvokeAsync(httpContext, wtr).ConfigureAwait(false);
                 await STT.Task.Delay(1);
 
                 // ASSERT
@@ -96,6 +99,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 var serviceProvider = new ServiceCollection()
+                    .AddTransient<WebTransferRegistrator>()
                     .AddStatisticalDataCollector<TestStatisticalDataCollector>()
                     .BuildServiceProvider();
 
@@ -122,7 +126,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var middleware = new WopiMiddleware(null);
-                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                var wtr = serviceProvider.GetService<WebTransferRegistrator>();
+                await middleware.InvokeAsync(httpContext, wtr).ConfigureAwait(false);
                 await STT.Task.Delay(1);
 
                 // ASSERT
@@ -146,6 +151,7 @@ namespace SenseNet.ContentRepository.Tests
             }, async () =>
             {
                 var serviceProvider = new ServiceCollection()
+                    .AddTransient<WebTransferRegistrator>()
                     .AddStatisticalDataCollector<TestStatisticalDataCollector>()
                     .BuildServiceProvider();
 
@@ -162,7 +168,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var middleware = new ODataMiddleware(null, null, null);
-                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                var wtr = serviceProvider.GetService<WebTransferRegistrator>();
+                await middleware.InvokeAsync(httpContext, wtr).ConfigureAwait(false);
                 await STT.Task.Delay(1);
 
                 // ASSERT
@@ -194,6 +201,7 @@ namespace SenseNet.ContentRepository.Tests
             }, async () =>
             {
                 var serviceProvider = new ServiceCollection()
+                    .AddTransient<WebTransferRegistrator>()
                     .AddStatisticalDataCollector<TestStatisticalDataCollector>()
                     .BuildServiceProvider();
 
@@ -212,7 +220,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var middleware = new ODataMiddleware(null, null, null);
-                await middleware.InvokeAsync(httpContext).ConfigureAwait(false);
+                var wtr = serviceProvider.GetService<WebTransferRegistrator>();
+                await middleware.InvokeAsync(httpContext, wtr).ConfigureAwait(false);
                 await STT.Task.Delay(1);
 
                 // ASSERT
