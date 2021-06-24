@@ -112,56 +112,6 @@ namespace SenseNet.Services.Core.Diagnostics
         }
     }
 
-    //public class WebHookStatisticalDataAggregator : IStatisticalDataAggregator
-    //{
-    //    internal class WebHookAggregation
-    //    {
-    //        public int CallCount { get; set; }
-    //        public int[] StatusCounts { get; set; } = new int[5];
-    //        public long RequestLengths { get; set; }
-    //        public long ResponseLengths { get; set; }
-    //    }
-
-    //    private WebHookAggregation _aggregation = new WebHookAggregation();
-    //    private StatisticsOptions _options;
-
-    //    public WebHookStatisticalDataAggregator(IOptions<StatisticsOptions> options)
-    //    {
-    //        _options = options.Value;
-    //    }
-
-    //    public string DataType => "WebHook";
-    //    public bool IsEmpty => _aggregation.CallCount == 0;
-    //    public object Data => _aggregation;
-    //    public AggregationRetentionPeriods RetentionPeriods =>_options.Retention.WebHooks;
-
-    //    public void Aggregate(IStatisticalDataRecord data)
-    //    {
-    //        _aggregation.CallCount++;
-    //        _aggregation.RequestLengths += data.RequestLength ?? 0;
-    //        _aggregation.ResponseLengths += data.ResponseLength ?? 0;
-    //        var leadDigit = (data.ResponseStatusCode ?? 0) / 100 - 1;
-    //        if (leadDigit is >= 0 and < 5)
-    //            _aggregation.StatusCounts[leadDigit]++;
-    //    }
-
-    //    public void Summarize(Aggregation[] aggregations)
-    //    {
-    //        foreach (var aggregation in aggregations)
-    //        {
-    //            WebHookAggregation deserialized;
-    //            using (var reader = new StringReader(aggregation.Data))
-    //                deserialized = JsonSerializer.Create().Deserialize<WebHookAggregation>(new JsonTextReader(reader));
-    //            _aggregation.CallCount += deserialized.CallCount;
-    //            _aggregation.RequestLengths += deserialized.RequestLengths;
-    //            _aggregation.ResponseLengths += deserialized.ResponseLengths;
-    //            var source = deserialized.StatusCounts;
-    //            var target = _aggregation.StatusCounts;
-    //            for (int i = 0; i < source.Length; i++)
-    //                target[i] += source[i];
-    //        }
-    //    }
-    //}
     public class WebTransferStatisticalDataAggregator : IStatisticalDataAggregator
     {
         internal class WebTransferAggregation

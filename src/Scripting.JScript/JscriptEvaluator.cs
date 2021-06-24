@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository
 
 		private static void CreateJsEvaluatorAndType()
 		{
-            using (var op = Diagnostics.SnTrace.Repository.StartOperation("CreateJsEvaluatorAndType"))
+            using (var op = SenseNet.Diagnostics.SnTrace.Repository.StartOperation("CreateJsEvaluatorAndType"))
             {
                 var jsCodeProvider = new Microsoft.JScript.JScriptCodeProvider();
                 var compilerParam = new CompilerParameters();
@@ -69,7 +69,7 @@ namespace SenseNet.ContentRepository
 
                 var assembly = compilerResult.CompiledAssembly;
 
-                Diagnostics.SnTrace.Repository.Write("JsEvaluator assembly compiled: FullName:{0}, CodeBase:{1}, Location:{2}",
+                SenseNet.Diagnostics.SnTrace.Repository.Write("JsEvaluator assembly compiled: FullName:{0}, CodeBase:{1}, Location:{2}",
                     assembly.FullName, assembly.CodeBase, assembly.Location);
 
                 _jsEvaluatorType = assembly.GetType("Evaluator.JsEvaluator");

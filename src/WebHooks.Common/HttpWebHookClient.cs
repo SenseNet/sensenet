@@ -40,23 +40,16 @@ namespace SenseNet.WebHooks
             var client = _clientFactory.CreateClient();
 
             httpMethod = httpMethod.ToUpperInvariant();
-            var statData = postData == null
-                ? new WebHookStatInput
-                {
-                    Url = url,
-                    HttpMethod = httpMethod,
-                    RequestTime = DateTime.UtcNow,
-                }
-                : new WebHookStatInput
-                {
-                    Url = url,
-                    HttpMethod = httpMethod,
-                    RequestTime = DateTime.UtcNow,
-                    ContentId = contentId,
-                    WebHookId = subscriptionId,
-                    EventName = eventName,
-                    Payload = postData
-                };
+            var statData = new WebHookStatInput
+            {
+                Url = url,
+                HttpMethod = httpMethod,
+                RequestTime = DateTime.UtcNow,
+                ContentId = contentId,
+                WebHookId = subscriptionId,
+                EventName = eventName,
+                Payload = postData
+            };
             
 
             try

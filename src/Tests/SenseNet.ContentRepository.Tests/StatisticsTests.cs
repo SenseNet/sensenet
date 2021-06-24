@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;

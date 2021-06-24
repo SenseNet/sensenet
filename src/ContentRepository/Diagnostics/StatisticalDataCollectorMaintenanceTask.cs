@@ -2,7 +2,7 @@
 using SenseNet.BackgroundOperations;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.ContentRepository //UNDONE:<?STAT Rename
+namespace SenseNet.ContentRepository.Diagnostics
 {
     public class StatisticalDataCollectorMaintenanceTask : IMaintenanceTask
     {

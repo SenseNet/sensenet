@@ -1009,7 +1009,7 @@ namespace SenseNet.OData.Writers
         /// Writes an object to the webresponse.
         /// </summary>
         /// <param name="response">The object that will be written.</param>
-        /// <param name="odataRequest">The object that will be written.</param>
+        /// <param name="odataRequest">The OData request.</param>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected virtual async Task WriteRawAsync(object response, HttpContext httpContext, ODataRequest odataRequest)
         {

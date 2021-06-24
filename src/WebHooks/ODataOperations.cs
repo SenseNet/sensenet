@@ -100,8 +100,7 @@ namespace SenseNet.WebHooks
                     .Deserialize<WebHookAggregation>(new JsonTextReader(new StringReader(src)));
             }
 
-            //var items = _timeLine.Select(x => Deserialize(x.Data)).ToArray();
-            var count = GetCount(); // items.Length;
+            var count = GetCount();
 
             var callCount = new int[count];
             var requestLengths = new long[count];
