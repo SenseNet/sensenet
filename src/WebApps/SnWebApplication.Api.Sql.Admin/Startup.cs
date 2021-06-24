@@ -12,10 +12,7 @@ using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
-using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Security.EFCSecurityStore;
-using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Storage.Data.MsSqlClient;
 
 namespace SnWebApplication.Api.Sql.Admin
@@ -51,14 +48,13 @@ namespace SnWebApplication.Api.Sql.Admin
                 repositoryBuilder
                     .UseLogger(provider)
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProviderExtension()
-                    /*.UseStatisticalDataProvider(new MsSqlStatisticalDataProvider())*/;
+                    .UseMsSqlExclusiveLockDataProviderExtension();
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
-                .AddSingleton<IStatisticalDataProvider, MsSqlStatisticalDataProvider>()
+                .AddStatisticalDataProvider<MsSqlStatisticalDataProvider>()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddSenseNetWebHooks();

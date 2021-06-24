@@ -1970,12 +1970,16 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetApiUsageList()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                var sdp = services.GetService<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
                 {
                     var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
@@ -2002,15 +2006,15 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION-1 first time window.
-                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList", "")
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList", "", services)
                     .ConfigureAwait(false);
                 var lastTimeStr1 = GetLastCreationTime(response1);
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList",
-                        $"?maxTime={lastTimeStr1}&count=5")
+                        $"?maxTime={lastTimeStr1}&count=5", services)
                     .ConfigureAwait(false);
                 var lastTimeStr2 = GetLastCreationTime(response2);
                 var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsageList",
-                        $"?maxTime={lastTimeStr2}")
+                        $"?maxTime={lastTimeStr2}", services)
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -2034,19 +2038,24 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetApiUsagePeriod()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var now = new DateTime(2021, 6, 15, 8, 14, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
-                await GenerateApiCallDataForODataTests(testStart, testEnd, now);
+                await GenerateApiCallDataForODataTests(services.GetService<IStatisticalDataProvider>(),
+                    testStart, testEnd, now);
 
                 // ACTION-1 
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    "").ConfigureAwait(false);
+                    "", services).ConfigureAwait(false);
 
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
@@ -2065,7 +2074,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-2
                 var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    $"?time={startTime2}").ConfigureAwait(false);
+                    $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
@@ -2083,7 +2092,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-3
                 var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    "?timewindow=year").ConfigureAwait(false);
+                    "?timewindow=year", services).ConfigureAwait(false);
 
                 // ASSERT-3
                 var result3 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response3)));
@@ -2102,7 +2111,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-4
                 var startTime = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
                 var response4 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    $"?timewindow=month&time={startTime}").ConfigureAwait(false);
+                    $"?timewindow=month&time={startTime}", services).ConfigureAwait(false);
 
                 // ASSERT-4
                 var result4 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response4)));
@@ -2117,6 +2126,11 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetApiUsagePeriods()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
                 builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
@@ -2125,7 +2139,7 @@ namespace SenseNet.ContentRepository.Tests
                 async STT.Task<string> GetApiUsagePeriods(DateTime now, TimeWindow window)
                 {
                     var content = Content.Create(Repository.Root);
-                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetApiUsagePeriods", "");
+                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetApiUsagePeriods", "", services);
                     var result = await StatisticsController.GetApiUsagePeriods(content, httpContext, now, window);
                     var sb = new StringBuilder();
                     var serializer = new JsonSerializer();
@@ -2137,7 +2151,8 @@ namespace SenseNet.ContentRepository.Tests
                 var now = new DateTime(2021, 6, 15, 3, 18, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
-                await GenerateApiCallDataForODataTests(testStart, testEnd, now);
+                var statDp = services.GetService<IStatisticalDataProvider>();
+                await GenerateApiCallDataForODataTests(statDp, testStart, testEnd, now);
 
                 // ACTIONS
                 // /OData.svc/('Root')/GetApiUsagePeriods?timewindow=hour
@@ -2168,9 +2183,9 @@ namespace SenseNet.ContentRepository.Tests
                     RemoveWhitespaces(responseYear));
             }).ConfigureAwait(false);
         }
-        private async STT.Task GenerateApiCallDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
+        private async STT.Task GenerateApiCallDataForODataTests(IStatisticalDataProvider statDataProvider,
+            DateTime testStart, DateTime testEnd, DateTime now)
         {
-            var statDataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
@@ -2235,14 +2250,18 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageList()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             // This test exploits a side effect: if there is no any WebHookSubscription content, the "relatedTargetIds" filter
             // is ignored in the DataProvider's LoadUsageListAsync method.
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                var sdp = services.GetService<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
                 {
                     var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
@@ -2274,15 +2293,15 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 
                 // ACTION-1 first time window.
-                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "")
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "", services)
                     .ConfigureAwait(false);
                 var lastTimeStr1 = GetLastCreationTime(response1);
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
-                        $"?maxTime={lastTimeStr1}&count=5")
+                        $"?maxTime={lastTimeStr1}&count=5", services)
                     .ConfigureAwait(false);
                 var lastTimeStr2 = GetLastCreationTime(response2);
                 var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
-                        $"?maxTime={lastTimeStr2}")
+                        $"?maxTime={lastTimeStr2}", services)
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -2306,10 +2325,14 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetPermittedWebHookUsageList()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(1, builder =>
             {
                 builder.UseComponent(new WebHookComponent());
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var webHooks = CreateWebHooks(3);
@@ -2321,7 +2344,7 @@ namespace SenseNet.ContentRepository.Tests
                         .Apply();
                 }
 
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                var sdp = services.GetService<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
                 {
                     var time1 = DateTime.UtcNow.AddMinutes(-i - 1);
@@ -2356,7 +2379,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION get all permitted items without filter
-                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "")
+                var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "", services)
                     .ConfigureAwait(false);
 
                 // ASSERT the denied webhook related items do not exist in result
@@ -2372,15 +2395,19 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageListOnWebHook()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
                 builder.UseComponent(new WebHookComponent());
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var webHooks = CreateWebHooks(3);
 
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                var sdp = services.GetService<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
                 {
                     var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
@@ -2416,15 +2443,15 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-1 first time window.
                 var response1 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
-                        "")
+                        "", services)
                     .ConfigureAwait(false);
                 var lastTimeStr1 = GetLastCreationTime(response1);
                 var response2 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
-                        $"?maxTime={lastTimeStr1}&count=5")
+                        $"?maxTime={lastTimeStr1}&count=5", services)
                     .ConfigureAwait(false);
                 var lastTimeStr2 = GetLastCreationTime(response2);
                 var response3 = await ODataGetAsync($"/OData.svc/Root/System/WebHooks('WebHook1')/GetWebHookUsageList",
-                        $"?maxTime={lastTimeStr2}")
+                        $"?maxTime={lastTimeStr2}", services)
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -2461,11 +2488,15 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsageList_ContentPermission()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             // This test exploits a side effect: if there is no any WebHookSubscription content, the "relatedTargetIds" filter
             // is ignored in the DataProvider's LoadUsageListAsync method.
             await ODataTestAsync(1, builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var nodes = new Node[3];
@@ -2484,7 +2515,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var nodeIds = nodes.Select(x => x.Id).Union(new[] {9999}).ToArray();
 
-                var sdp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+                var sdp = services.GetService<IStatisticalDataProvider>();
                 for (var i = 20; i > 0; i--)
                 {
                     var time1 = DateTime.UtcNow.AddDays(-i * 0.25);
@@ -2510,8 +2541,8 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION-1 first time window.
-                var response = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList", "?count=1000")
-                    .ConfigureAwait(false);
+                var response = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsageList",
+                        "?count=1000", services).ConfigureAwait(false);
 
                 // ASSERT
                 var items = JsonSerializer.Create()
@@ -2537,19 +2568,24 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var now = new DateTime(2021, 6, 15, 8, 14, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
-                await GenerateWebHookDataForODataTests(testStart, testEnd, now);
+                var statDp = services.GetService<IStatisticalDataProvider>();
+                await GenerateWebHookDataForODataTests(statDp, testStart, testEnd, now);
 
                 // ACTION-1 
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    "").ConfigureAwait(false);
+                    "", services).ConfigureAwait(false);
 
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
@@ -2578,7 +2614,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-2
                 var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    $"?time={startTime2}").ConfigureAwait(false);
+                    $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
@@ -2606,7 +2642,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-3
                 var response3 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    "?timewindow=year").ConfigureAwait(false);
+                    "?timewindow=year", services).ConfigureAwait(false);
 
                 // ASSERT-3
                 var result3 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response3)));
@@ -2635,7 +2671,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-4
                 var startTime = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
                 var response4 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    $"?timewindow=month&time={startTime}").ConfigureAwait(false);
+                    $"?timewindow=month&time={startTime}", services).ConfigureAwait(false);
 
                 // ASSERT-4
                 var result4 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response4)));
@@ -2650,15 +2686,19 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriods()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 async STT.Task<string> GetWebHookUsagePeriods(DateTime now, TimeWindow window)
                 {
                     var content = Content.Create(Repository.Root);
-                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetWebHookUsagePeriods", "");
+                    var httpContext = CreateHttpContext("/OData.svc/('Root')/GetWebHookUsagePeriods", "", services);
                     var result = await SenseNet.WebHooks.ODataOperations.GetWebHookUsagePeriods(content, httpContext, now, window);
                     var sb = new StringBuilder();
                     var serializer = new JsonSerializer();
@@ -2669,8 +2709,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 var now = new DateTime(2021, 6, 15, 3, 18, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
+                var statDp = services.GetService<IStatisticalDataProvider>();
                 var testStart = testEnd.AddYears(-1);
-                await GenerateWebHookDataForODataTests(testStart, testEnd, now);
+                await GenerateWebHookDataForODataTests(statDp, testStart, testEnd, now);
 
                 //var responseDefault = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriods",
                 //    "").ConfigureAwait(false);
@@ -2711,9 +2752,9 @@ namespace SenseNet.ContentRepository.Tests
                     RemoveWhitespaces(responseYear));
             }).ConfigureAwait(false);
         }
-        private async STT.Task GenerateWebHookDataForODataTests(DateTime testStart, DateTime testEnd, DateTime now)
+        private async STT.Task GenerateWebHookDataForODataTests(IStatisticalDataProvider statDataProvider,
+            DateTime testStart, DateTime testEnd, DateTime now)
         {
-            var statDataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,

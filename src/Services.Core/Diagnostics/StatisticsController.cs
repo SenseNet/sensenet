@@ -130,9 +130,7 @@ namespace SenseNet.Services.Core.Diagnostics
         public static async Task<IEnumerable<ApiUsageListItemViewModel>> GetApiUsageList(Content content, HttpContext httpContext,
           DateTime? maxTime = null, int count = 10)
         {
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var records = await dataProvider
                     .LoadUsageListAsync("WebTransfer", null, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)
                     .ConfigureAwait(false);
@@ -157,9 +155,7 @@ namespace SenseNet.Services.Core.Diagnostics
             var window = timeWindow ?? TimeWindow.Month;
             var resolution = (TimeResolution)(int)window;
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var firstTimes = await dataProvider.LoadFirstAggregationTimesByResolutionsAsync("WebTransfer", httpContext.RequestAborted)
                 .ConfigureAwait(false);
 
@@ -221,9 +217,7 @@ namespace SenseNet.Services.Core.Diagnostics
             var startTime = (time ?? DateTime.UtcNow).Truncate(window);
             var endTime = startTime.Next(window);
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var dbResult = await dataProvider.LoadAggregatedUsageAsync("WebTransfer", resolution,
                 startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
 

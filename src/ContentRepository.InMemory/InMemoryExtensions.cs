@@ -81,6 +81,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false);
 
+            var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
+                       ?? new InMemoryStatisticalDataProvider();
+            repositoryBuilder.UseStatisticalDataProvider(statDp);
+
             Providers.Instance.PropertyCollector = new EventPropertyCollector();
             
             return repositoryBuilder;

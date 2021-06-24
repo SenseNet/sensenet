@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
@@ -226,9 +227,7 @@ namespace SenseNet.WebHooks
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetAllWebHookUsageList(Content content, HttpContext httpContext,
           DateTime? maxTime = null, int count = 10)
         {
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var relatedIds =
                 ContentQuery.Query(SafeQueries.TypeIs, QuerySettings.AdminSettings, nameof(WebHookSubscription))
                     .Identifiers.ToArray();
@@ -248,9 +247,7 @@ namespace SenseNet.WebHooks
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
             DateTime? maxTime = null, int count = 10)
         {
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var records = await dataProvider
                 .LoadUsageListAsync("WebHook", new[] {content.Id}, maxTime ?? DateTime.UtcNow, count,
                     httpContext.RequestAborted)
@@ -276,9 +273,7 @@ namespace SenseNet.WebHooks
             var window = timeWindow ?? TimeWindow.Month;
             var resolution = (TimeResolution)(int)window;
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var firstTimes = await dataProvider.LoadFirstAggregationTimesByResolutionsAsync("WebHook", httpContext.RequestAborted)
                 .ConfigureAwait(false);
 
@@ -340,9 +335,7 @@ namespace SenseNet.WebHooks
             var startTime = (time ?? DateTime.UtcNow).Truncate(window);
             var endTime = startTime.Next(window);
 
-            //var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var dbResult = await dataProvider.LoadAggregatedUsageAsync("WebHook", resolution,
                 startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
 

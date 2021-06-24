@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Services.Core;
 using SenseNet.Testing;
 using STT = System.Threading.Tasks;
 
@@ -20,18 +22,22 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetApiUsagePeriod_2()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var now = new DateTime(2021, 6, 15, 8, 14, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
-                await GenerateApiCallDataForODataTests(testStart, testEnd, now);
+                var statDp = services.GetService<IStatisticalDataProvider>();
+                await GenerateApiCallDataForODataTests(statDp, testStart, testEnd, now);
                 // Delete every other daily aggregations;
-                var dp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-                var dpAcc = new ObjectAccessor(dp);
+                var dpAcc = new ObjectAccessor(statDp);
                 var aggregations = (List<Aggregation>)dpAcc.GetProperty("Aggregations");
                 var toDelete = aggregations
                     .Where(x => x.Resolution == TimeResolution.Day && x.Date.Day % 2 == 1)
@@ -42,7 +48,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-1 
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    "").ConfigureAwait(false);
+                    "", services).ConfigureAwait(false);
 
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
@@ -64,7 +70,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-2
                 var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
-                    $"?time={startTime2}").ConfigureAwait(false);
+                    $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
@@ -88,18 +94,22 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Stat_OData_GetWebHookUsagePeriod_2()
         {
+            var services = new ServiceCollection()
+                .AddTransient<WebTransferRegistrator>()
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .BuildServiceProvider();
+
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 var now = new DateTime(2021, 6, 15, 8, 14, 28);
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
-                await GenerateWebHookDataForODataTests(testStart, testEnd, now);
+                var statDp = services.GetService<IStatisticalDataProvider>();
+                await GenerateWebHookDataForODataTests(statDp, testStart, testEnd, now);
                 // Delete every second daily aggregations();
-                var dp = Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
-                var dpAcc = new ObjectAccessor(dp);
+                var dpAcc = new ObjectAccessor(statDp);
                 var aggregations = (List<Aggregation>)dpAcc.GetProperty("Aggregations");
                 var toDelete = aggregations
                     .Where(x => x.Resolution == TimeResolution.Day && x.Date.Day % 2 == 1)
@@ -110,7 +120,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-1 
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    "").ConfigureAwait(false);
+                    "", services).ConfigureAwait(false);
 
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
@@ -148,7 +158,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-2
                 var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
-                    $"?time={startTime2}").ConfigureAwait(false);
+                    $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));

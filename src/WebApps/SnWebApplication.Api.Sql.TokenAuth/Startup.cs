@@ -48,13 +48,13 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 repositoryBuilder
                     .UseLogger(provider)
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProviderExtension()
-                    .UseStatisticalDataProvider(new MsSqlStatisticalDataProvider());
+                    .UseMsSqlExclusiveLockDataProviderExtension();
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
+                .AddStatisticalDataProvider<MsSqlStatisticalDataProvider>()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddSenseNetWebHooks();

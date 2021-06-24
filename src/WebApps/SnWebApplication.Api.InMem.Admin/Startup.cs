@@ -36,9 +36,9 @@ namespace SnWebApplication.Api.InMem.Admin
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
                         .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter()
-                        .UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
+                        .UseInactiveAuditEventWriter();
                 })
+                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
                 .AddSenseNetWebHooks()
                 .AddFeature1();
         }
