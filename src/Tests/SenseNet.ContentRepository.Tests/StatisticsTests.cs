@@ -46,7 +46,7 @@ using STT = System.Threading.Tasks;
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
-    public class StatisticsTests : TestBase
+    public partial class StatisticsTests : TestBase
     {
         #region /* ========================================================================= Collecting tests */
 
@@ -2046,11 +2046,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
-                Assert.AreEqual(14, ((JArray)result1["CallCount"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["CallCount"]).Count);
                 Assert.AreEqual(86400L, ((JArray)result1["CallCount"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["RequestLengths"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["RequestLengths"]).Count);
                 Assert.AreEqual(8640000L, ((JArray)result1["RequestLengths"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["ResponseLengths"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["ResponseLengths"]).Count);
                 Assert.AreEqual(86400000L, ((JArray)result1["ResponseLengths"]).First().Value<long>());
 
                 // ACTION-2
@@ -2083,11 +2083,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
                 Assert.AreEqual("Year", result3["TimeWindow"].Value<string>());
                 Assert.AreEqual("Month", result3["Resolution"].Value<string>());
-                Assert.AreEqual(5, ((JArray)result3["CallCount"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["CallCount"]).Count);
                 Assert.AreEqual(86400L * 31, ((JArray)result3["CallCount"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["RequestLengths"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["RequestLengths"]).Count);
                 Assert.AreEqual(8640000L * 31, ((JArray)result3["RequestLengths"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["ResponseLengths"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["ResponseLengths"]).Count);
                 Assert.AreEqual(86400000L * 31, ((JArray)result3["ResponseLengths"]).First().Value<long>());
 
                 // ACTION-4
@@ -2549,21 +2549,21 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
-                Assert.AreEqual(14, ((JArray)result1["CallCount"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["CallCount"]).Count);
                 Assert.AreEqual(86400L, ((JArray)result1["CallCount"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["RequestLengths"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["RequestLengths"]).Count);
                 Assert.AreEqual(8640000L, ((JArray)result1["RequestLengths"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["ResponseLengths"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["ResponseLengths"]).Count);
                 Assert.AreEqual(86400000L, ((JArray)result1["ResponseLengths"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["Status100"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["Status100"]).Count);
                 Assert.AreEqual(0, ((JArray)result1["Status100"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["Status200"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["Status200"]).Count);
                 Assert.AreEqual(69120, ((JArray)result1["Status200"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["Status300"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["Status300"]).Count);
                 Assert.AreEqual(0, ((JArray)result1["Status300"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["Status400"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["Status400"]).Count);
                 Assert.AreEqual(8640, ((JArray)result1["Status400"]).First().Value<long>());
-                Assert.AreEqual(14, ((JArray)result1["Status500"]).Count);
+                Assert.AreEqual(30, ((JArray)result1["Status500"]).Count);
                 Assert.AreEqual(8640, ((JArray)result1["Status500"]).First().Value<long>());
 
                 // ACTION-2
@@ -2606,21 +2606,21 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
                 Assert.AreEqual("Year", result3["TimeWindow"].Value<string>());
                 Assert.AreEqual("Month", result3["Resolution"].Value<string>());
-                Assert.AreEqual(5, ((JArray)result3["CallCount"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["CallCount"]).Count);
                 Assert.AreEqual(86400L * 31, ((JArray)result3["CallCount"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["RequestLengths"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["RequestLengths"]).Count);
                 Assert.AreEqual(8640000L * 31, ((JArray)result3["RequestLengths"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["ResponseLengths"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["ResponseLengths"]).Count);
                 Assert.AreEqual(86400000L * 31, ((JArray)result3["ResponseLengths"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["Status100"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["Status100"]).Count);
                 Assert.AreEqual(0, ((JArray)result3["Status100"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["Status200"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["Status200"]).Count);
                 Assert.AreEqual(69120 * 31, ((JArray)result3["Status200"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["Status300"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["Status300"]).Count);
                 Assert.AreEqual(0, ((JArray)result3["Status300"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["Status400"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["Status400"]).Count);
                 Assert.AreEqual(8640 * 31, ((JArray)result3["Status400"]).First().Value<long>());
-                Assert.AreEqual(5, ((JArray)result3["Status500"]).Count);
+                Assert.AreEqual(12, ((JArray)result3["Status500"]).Count);
                 Assert.AreEqual(8640 * 31, ((JArray)result3["Status500"]).First().Value<long>());
 
                 // ACTION-4

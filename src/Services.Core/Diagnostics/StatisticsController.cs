@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,18 +42,20 @@ namespace SenseNet.Services.Core.Diagnostics
                     .Deserialize<WebTransferStatisticalDataAggregator.WebTransferAggregation>(new JsonTextReader(new StringReader(src)));
             }
 
-            var items = _timeLine.Select(x => Deserialize(x.Data)).ToArray();
-            var count = items.Length;
+            //var items = _timeLine.Select(x => Deserialize(x.Data)).ToArray();
+            var count = GetCount(); // items.Length;
 
             var callCount = new int[count];
             var requestLengths = new long[count];
             var responseLengths = new long[count];
 
-            for (int i = 0; i < items.Length; i++)
+            foreach(var item in _timeLine)
             {
-                callCount[i] = items[i].CallCount;
-                requestLengths[i] = items[i].RequestLengths;
-                responseLengths[i] = items[i].ResponseLengths;
+                var i = GetIndex(item);
+                var data = Deserialize(item.Data);
+                callCount[i] = data.CallCount;
+                requestLengths[i] = data.RequestLengths;
+                responseLengths[i] = data.ResponseLengths;
             }
 
             return new
@@ -66,6 +69,31 @@ namespace SenseNet.Services.Core.Diagnostics
                 RequestLengths = requestLengths,
                 ResponseLengths = responseLengths,
             };
+        }
+
+        private int GetCount()
+        {
+            var period = _endTime - _startTime;
+            switch (_resolution)
+            {
+                case TimeResolution.Minute: return Convert.ToInt32(period.TotalMinutes);
+                case TimeResolution.Hour: return Convert.ToInt32(period.TotalHours);
+                case TimeResolution.Day: return Convert.ToInt32(period.TotalDays);
+                case TimeResolution.Month: return 12 * (_endTime.Year - _startTime.Year) + (_endTime.Month - _startTime.Month);
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private int GetIndex(Aggregation aggregation)
+        {
+            switch (_resolution)
+            {
+                case TimeResolution.Minute: return aggregation.Date.Minute;
+                case TimeResolution.Hour: return aggregation.Date.Hour;
+                case TimeResolution.Day: return aggregation.Date.Day -1;
+                case TimeResolution.Month: return aggregation.Date.Month - 1;
+                default: throw new ArgumentOutOfRangeException();
+            }
         }
     }
 
