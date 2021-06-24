@@ -14,7 +14,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public abstract class TestCaseBase
     {
         public IPlatform Platform { get; set; }
-        //UNDONE:<?IntT: Call from every base control-method.
         public Action<RepositoryBuilder> TestInitializer { get; set; }
 
         /* ==================================================================== */
@@ -68,6 +67,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             callback();
                         else
@@ -109,6 +109,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             callback();
                         else
@@ -159,6 +160,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             await callback();
                         else
