@@ -88,9 +88,9 @@ namespace SenseNet.ContentRepository.Tests
                 var data = (WebTransferStatInput) collector.StatData[0];
                 Assert.AreEqual(path, data.Url);
                 Assert.AreEqual("GET", data.HttpMethod);
-                Assert.AreEqual(path.Length, data.RequestLength);
+                Assert.AreEqual(GetRequestLength(request), data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
-                Assert.AreEqual(node.Binary.GetStream().Length, data.ResponseLength);
+                Assert.IsTrue(node.Binary.GetStream().Length < data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
@@ -137,9 +137,9 @@ namespace SenseNet.ContentRepository.Tests
                 var data = (WebTransferStatInput)collector.StatData[0];
                 Assert.AreEqual(path, data.Url);
                 Assert.AreEqual("GET", data.HttpMethod);
-                Assert.AreEqual(path.Length, data.RequestLength);
+                Assert.AreEqual(GetRequestLength(request), data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
-                Assert.AreEqual(file.Binary.GetStream().Length, data.ResponseLength);
+                Assert.IsTrue(file.Binary.GetStream().Length < data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
@@ -187,9 +187,9 @@ namespace SenseNet.ContentRepository.Tests
                 var data = (WebTransferStatInput)collector.StatData[0];
                 Assert.AreEqual(path, data.Url);
                 Assert.AreEqual("GET", data.HttpMethod);
-                Assert.AreEqual(url.Length, data.RequestLength);
+                Assert.AreEqual(GetRequestLength(request), data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
-                Assert.AreEqual(expectedLength, data.ResponseLength);
+                Assert.IsTrue(expectedLength < data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
         }
@@ -239,11 +239,38 @@ namespace SenseNet.ContentRepository.Tests
                 var data = (WebTransferStatInput)collector.StatData[0];
                 Assert.AreEqual(path, data.Url);
                 Assert.AreEqual("GET", data.HttpMethod);
-                Assert.AreEqual(path.Length, data.RequestLength);
+                Assert.AreEqual(GetRequestLength(request), data.RequestLength);
                 Assert.AreEqual(200, data.ResponseStatusCode);
-                Assert.AreEqual(expectedLength, data.ResponseLength);
+                Assert.IsTrue(expectedLength < data.ResponseLength);
                 Assert.IsTrue(data.RequestTime <= data.ResponseTime);
             }).ConfigureAwait(false);
+        }
+        private long GetRequestLength(HttpRequest request)
+        {
+            return (request.Path.Value?.Length ?? 0L) +
+                   request.Method.Length +
+                   (request.QueryString.Value?.Length ?? 0L) +
+                   (request.ContentLength ?? 0L) +
+                   GetCookiesLength(request.Cookies) +
+                   GetHeadersLength(request.Headers);
+        }
+        private long GetCookiesLength(IRequestCookieCollection requestCookies)
+        {
+            var sum = 0L;
+            foreach (var cookie in requestCookies)
+                sum += cookie.Key.Length + (cookie.Value?.Length ?? 0);
+            return sum;
+        }
+        private long GetHeadersLength(IHeaderDictionary headers)
+        {
+            var sum = 0L;
+            foreach (var header in headers)
+            {
+                sum += header.Key.Length;
+                foreach (var stringValue in header.Value)
+                    sum += stringValue.Length;
+            }
+            return sum;
         }
 
         [TestMethod]

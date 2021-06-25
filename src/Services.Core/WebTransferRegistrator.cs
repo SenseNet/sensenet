@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Configuration;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Diagnostics;
 
@@ -19,15 +21,44 @@ namespace SenseNet.Services.Core
                 return null;
 
             var request = httpContext.Request;
-            string url = request.Path /*+ request.QueryString*/;
+            string resourcePath = request.Path; // Do not store querystring but calculate it's length
             return new WebTransferStatInput
             {
-                Url = url,
+                Url = resourcePath,
                 HttpMethod = request.Method,
                 RequestTime = DateTime.UtcNow,
-                RequestLength = url.Length + (httpContext.Request.ContentLength ?? 0L)
+                RequestLength = GetRequestLength(request)
             };
         }
+
+        private long GetRequestLength(HttpRequest request)
+        {
+            return (request.Path.Value?.Length ?? 0L) +
+                   request.Method.Length +
+                   (request.QueryString.Value?.Length ?? 0L) +
+                   (request.ContentLength ?? 0L) +
+                   GetCookiesLength(request.Cookies) +
+                   GetHeadersLength(request.Headers);
+        }
+        private long GetCookiesLength(IRequestCookieCollection requestCookies)
+        {
+            var sum = 0L;
+            foreach (var cookie in requestCookies)
+                sum += cookie.Key.Length + (cookie.Value?.Length ?? 0);
+            return sum;
+        }
+        private long GetHeadersLength(IHeaderDictionary headers)
+        {
+            var sum = 0L;
+            foreach (var header in headers)
+            {
+                sum += header.Key.Length;
+                foreach (var stringValue in header.Value)
+                    sum += stringValue.Length;
+            }
+            return sum;
+        }
+
 
         public void RegisterWebResponse(WebTransferStatInput data, HttpContext httpContext)
         {
@@ -40,7 +71,8 @@ namespace SenseNet.Services.Core
 
             data.ResponseTime = DateTime.UtcNow;
             data.ResponseStatusCode = httpContext.Response.StatusCode;
-            data.ResponseLength = responseLength;
+            data.ResponseLength = responseLength +
+                                  GetHeadersLength(httpContext.Response.Headers);
 
             _dataCollector.RegisterWebTransfer(data, httpContext.RequestAborted);
         }
