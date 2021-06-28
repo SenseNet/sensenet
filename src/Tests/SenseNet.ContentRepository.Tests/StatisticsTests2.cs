@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -12,7 +13,9 @@ using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Testing;
+using SenseNet.WebHooks;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -193,6 +196,108 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status500.Take(5));
 
             }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_FaultTolerance_Minutely()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var aggregator = new StatisticalDataAggregationController(statDataProvider,
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+
+            // Initial state: records and aggregations simulate lack of two periods (at 2 min and 3 min).
+            // 0:00      1:00      2:00      3:00      4:00
+            // |         |         |         |         |
+            // r r r r r r r r r r r r r r r r r r r r /
+            // <Minutely>
+            //
+            // The action: generating a hourly aggregation at 00:04:00. This operation's original result is the minutely aggregations
+            // between 3 min and 4 min.
+            // 0:00      1:00      2:00      3:00      4:00
+            // |         |         |         |         |
+            // r r r r r r r r r r r r r r r r r r r r /
+            // <Minutely>                    <Minutely>
+            //
+            // The expectation: the aggregator produces the original result but fills the gap: generates the 1 min and 2 min
+            // aggregations too.
+            // 0:00      1:00      2:00      3:00      4:00
+            // |         |         |         |         |
+            // r r r r r r r r r r r r r r r r r r r r /
+            // <Minutely><Minutely><Minutely><Minutely>
+
+            var start =     new DateTime(2021, 6, 28, 0, 0, 0);
+            var milestone = new DateTime(2021, 6, 28, 0, 1, 0);
+            var end =       new DateTime(2021, 6, 28, 0, 4, 0);
+            for (var now = start; now < end; now = now.AddSeconds(15))
+            {
+                await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
+                if (now == milestone)
+                    await aggregator.AggregateAsync(now, TimeResolution.Minute, CancellationToken.None);
+            }
+            var allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(16, statDataProvider.Storage.Count);
+            Assert.AreEqual(1, allAggregations.Count);
+            Assert.AreEqual(1, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+
+            // ACTION
+            var time = end.AddSeconds(-1);
+            await aggregator.AggregateAsync(time, TimeResolution.Minute, CancellationToken.None);
+
+            // ASSERT
+            allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(4, allAggregations.Count);
+            Assert.AreEqual(4, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+            Assert.AreEqual("0 1 2 3", string.Join(" ", allAggregations.Select(x=>x.Date.Minute.ToString())));
+        }
+        [TestMethod]
+        public async STT.Task Stat_Aggregation_FaultTolerance_Hourly()
+        {
+            var statDataProvider = new TestStatisticalDataProvider();
+            var aggregator = new StatisticalDataAggregationController(statDataProvider,
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+
+            // Initial state: aggregations simulate lack of two periods (at 2h and 3h).
+            // 0:00:00   1:00:00   2:00:00   3:00:00   4:00:00
+            // |         |         |         |         |
+            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
+            // < Hourly >
+            //
+            // The action: generating a hourly aggregation at 4:00:00. This operation's original result is the hourly aggregations
+            // between 3 min and 4 min.
+            // 0:00      1:00      2:00      3:00      4:00
+            // |         |         |         |         |
+            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
+            // < Hourly >                    < Hourly >
+            //
+            // The expectation: the aggregator produces the original result but fills the gap: generates the 1h and 2h
+            // aggregations too.
+            // 0:00      1:00      2:00      3:00      4:00
+            // |         |         |         |         |
+            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
+            // < Hourly >< Hourly >< Hourly >< Hourly >
+
+            var start = new DateTime(2021, 6, 28, 0, 0, 0);
+            var milestone = new DateTime(2021, 6, 28, 1, 0, 0);
+            var end = new DateTime(2021, 6, 28, 4, 0, 0);
+            for (var now = start; now < end; now = now.AddMinutes(15))
+            {
+                await GenerateWebHookAggregationAsync(now, TimeResolution.Minute, 10, statDataProvider);
+                if (now == milestone)
+                    await aggregator.AggregateAsync(now, TimeResolution.Hour, CancellationToken.None);
+            }
+            var allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(17, allAggregations.Count);
+            Assert.AreEqual(16, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
+            Assert.AreEqual(1, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+
+            // ACTION
+            var time = end.AddSeconds(-1);
+            await aggregator.AggregateAsync(time, TimeResolution.Hour, CancellationToken.None);
+
+            // ASSERT
+            allAggregations = statDataProvider.Aggregations;
+            Assert.AreEqual(4, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+            Assert.AreEqual("0 1 2 3", string.Join(" ", allAggregations.Select(x => x.Date.Hour.ToString())));
         }
     }
 }
