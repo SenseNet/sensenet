@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Wopi.Tests")]
