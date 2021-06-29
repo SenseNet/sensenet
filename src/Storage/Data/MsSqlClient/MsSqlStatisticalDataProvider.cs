@@ -174,6 +174,36 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
             return result.ToArray();
         }
 
+        private static readonly string LoadLastAggregationTimesByResolutionsScript = @"-- MsSqlStatisticalDataProvider.LoadFirstAggregationTimesByResolutions
+DECLARE @Minute datetime2
+DECLARE @Hour datetime2
+DECLARE @Day datetime2
+DECLARE @Month datetime2
+SELECT TOP 1 @Minute = [Date] FROM StatisticalAggregations WHERE Resolution = 'Minute' ORDER BY Date DESC
+SELECT TOP 1 @Hour = [Date] FROM StatisticalAggregations WHERE Resolution = 'Hour' ORDER BY Date DESC
+SELECT TOP 1 @Day = [Date] FROM StatisticalAggregations WHERE Resolution = 'Day' ORDER BY Date DESC
+SELECT TOP 1 @Month = [Date] FROM StatisticalAggregations WHERE Resolution = 'Month' ORDER BY Date DESC
+SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
+";
+        public async Task<DateTime?[]> LoadLastAggregationTimesByResolutionsAsync(CancellationToken cancel)
+        {
+            var result = new DateTime?[4];
+            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(LoadLastAggregationTimesByResolutionsScript, async (reader, cancel) => {
+                    if (await reader.ReadAsync(cancel))
+                    {
+                        result[0] = reader.GetDateTimeUtcOrNull("Minute");
+                        result[1] = reader.GetDateTimeUtcOrNull("Hour");
+                        result[2] = reader.GetDateTimeUtcOrNull("Day");
+                        result[3] = reader.GetDateTimeUtcOrNull("Month");
+                    }
+                    return true;
+                }).ConfigureAwait(false);
+            }
+            return result.ToArray();
+        }
+
         private static readonly string EnumerateDataScript = @"-- MsSqlStatisticalDataProvider.EnumerateData
 SELECT * FROM StatisticalData
 WHERE DataType = @DataType AND CreationTime >= @StartTime AND CreationTime < @EndTimeExclusive

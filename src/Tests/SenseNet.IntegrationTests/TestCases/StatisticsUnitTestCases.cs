@@ -488,7 +488,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.IsNull(dates[2]);
                 Assert.IsNull(dates[3]);
 
-                // ACTION-1
+                // ACTION-2
                 dates = await DP.LoadFirstAggregationTimesByResolutionsAsync("DT1", CancellationToken.None)
                     .ConfigureAwait(false);
 
@@ -536,6 +536,47 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual("2010-01-07", dates[2].Value.ToString("yyyy-MM-dd"));
                 Assert.IsNotNull(dates[3]);
                 Assert.AreEqual("2010-01-08", dates[3].Value.ToString("yyyy-MM-dd"));
+            });
+        }
+        public async Task LoadLastAggregationTimesByResolutions()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                // ALIGN (one resolution has no data)
+                await TDP.DeleteAllStatisticalDataAsync(DP);
+                var now = new DateTime(2010, 01, 01, 0, 0, 0);
+                for (var j = 0; j < 3; j++)
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (i != 1)
+                        {
+                            await DP.WriteAggregationAsync(new Aggregation
+                            {
+                                DataType = $"DT{j}",
+                                Date = now,
+                                Resolution = (TimeResolution) i,
+                                Data = $"{j * 4 + i}"
+                            }, CancellationToken.None);
+                        }
+
+                        now = now.AddDays(1);
+                    }
+                }
+
+                // ACTION
+                var dates = await DP.LoadLastAggregationTimesByResolutionsAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(4, dates.Length);
+                Assert.IsNotNull(dates[0]);
+                Assert.AreEqual("2010-01-09", dates[0].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNull(dates[1]);
+                Assert.IsNotNull(dates[2]);
+                Assert.AreEqual("2010-01-11", dates[2].Value.ToString("yyyy-MM-dd"));
+                Assert.IsNotNull(dates[3]);
+                Assert.AreEqual("2010-01-12", dates[3].Value.ToString("yyyy-MM-dd"));
             });
         }
     }

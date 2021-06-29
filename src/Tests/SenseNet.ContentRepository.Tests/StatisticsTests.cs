@@ -2984,6 +2984,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public STT.Task<DateTime?[]> LoadLastAggregationTimesByResolutionsAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
             public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,
                 Action<IStatisticalDataRecord> aggregatorCallback, CancellationToken cancel)
             {
