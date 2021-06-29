@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Tests.Core")]
 [assembly: InternalsVisibleTo("SenseNet.Tests.Core.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ODataTests")]
-[assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")] //UNDONE:<?: Delete if SenseNet.BlobStorage.IntegrationTests is inactivated
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.InMemory")]

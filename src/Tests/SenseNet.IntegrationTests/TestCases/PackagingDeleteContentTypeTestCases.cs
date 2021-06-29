@@ -71,7 +71,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // init
                 if (null != ContentType.GetByName("Car"))
-                    Assert.Inconclusive();//UNDONE: PACKAGING test color: yellow
+                    Assert.Inconclusive();
                 var contentTypeCount = GetContentTypeCount();
                 InstallCarContentType();
                 Assert.IsNotNull(ContentType.GetByName("Car"));
@@ -462,7 +462,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     .CreateChild("Car", "Car", out Node globalCar);
                 Repository.Root
                     .CreateChild("Sites", "Workspace")
-                    .CreateChild("Site1", "Workspace")//UNDONE: PACKAGING test color: RED
+                    .CreateChild("Site1", "Workspace")
                     .CreateChild("WS1", "Workspace")
                     .CreateChild("WS1", "Workspace")
                     .CreateChild("ContentTemplates", "SystemFolder", out Node localTemp)
@@ -554,7 +554,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
                 Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
                 Assert.AreEqual(0, dependencies.Applications.Length);
-                Assert.AreEqual(0, dependencies.ContentTemplates.Length);//UNDONE: PACKAGING test color: RED
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
                 Assert.AreEqual(4, dependencies.ContentViews.Length);
 
                 // test-2
