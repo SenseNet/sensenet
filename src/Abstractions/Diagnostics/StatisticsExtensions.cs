@@ -54,6 +54,18 @@ namespace SenseNet.Diagnostics
                     throw new ArgumentOutOfRangeException(nameof(timeWindow), timeWindow, null);
             }
         }
+        public static DateTime AddPeriods(this DateTime d, int periods, TimeResolution resolution)
+        {
+            switch (resolution)
+            {
+                case TimeResolution.Minute: return d.AddMinutes(periods);
+                case TimeResolution.Hour: return d.AddHours(periods);
+                case TimeResolution.Day: return d.AddDays(periods);
+                case TimeResolution.Month: return d.AddMonths(periods);
+                default: throw new ArgumentOutOfRangeException(nameof(resolution), resolution, null);
+            }
+        }
+
     }
 }
 // ReSharper disable once CheckNamespace

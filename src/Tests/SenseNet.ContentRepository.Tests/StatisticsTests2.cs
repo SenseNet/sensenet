@@ -199,7 +199,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public async STT.Task Stat_Aggregation_FaultTolerance_Minutely()
+        public async STT.Task Stat_Aggregation_FaultTolerance_Records()
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var aggregator = new StatisticalDataAggregationController(statDataProvider,
@@ -232,7 +232,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 await GenerateWebHookRecordAsync(now, statDataProvider, CancellationToken.None);
                 if (now == milestone)
-                    await aggregator.AggregateAsync(now, TimeResolution.Minute, CancellationToken.None);
+                    await aggregator.AggregateAsync(now.AddSeconds(-1), TimeResolution.Minute, CancellationToken.None);
             }
             var allAggregations = statDataProvider.Aggregations;
             Assert.AreEqual(16, statDataProvider.Storage.Count);
@@ -250,54 +250,77 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("0 1 2 3", string.Join(" ", allAggregations.Select(x=>x.Date.Minute.ToString())));
         }
         [TestMethod]
-        public async STT.Task Stat_Aggregation_FaultTolerance_Hourly()
+        public async STT.Task Stat_Aggregation_FaultTolerance_AllAggregations()
         {
             var statDataProvider = new TestStatisticalDataProvider();
+
+            // now                                                   2021-06-29 13:56:12
+            // Minute  ... 2021-06-29 13:52:00  2021-06-29 13:53:00  2021-06-29 13:54:00
+            // Hour    ... 2021-06-29 10:00:00  2021-06-29 11:00:00  2021-06-29 12:00:00
+            // Day     ... 2021-06-26 00:00:00  2021-06-27 00:00:00  2021-06-28 00:00:00
+            // Month   ... 2021-03-01 00:00:00  2021-04-01 00:00:00  2021-05-01 00:00:00
+            var now = new DateTime(2021, 6, 29, 13, 56, 12);
+            for (int i = 0; i < 12; i++)
+            {
+                var date = now.AddSeconds(-i * 15 - 1);
+                await GenerateWebHookRecordAsync(date, statDataProvider, CancellationToken.None);
+            }
+            for (int i = 0; i < 60 * 3; i++)
+            {
+                var date = now.Truncate(TimeResolution.Minute).AddMinutes(-i - 2);
+                await GenerateWebHookAggregationAsync(date, TimeResolution.Minute, 10, statDataProvider);
+            }
+            for (int i = 0; i < 24 * 3; i++)
+            {
+                var date = now.Truncate(TimeResolution.Hour).AddHours(-i - 1);
+                await GenerateWebHookAggregationAsync(date, TimeResolution.Hour, 10, statDataProvider);
+            }
+            for (int i = 0; i < 31 * 3; i++)
+            {
+                var date = now.Truncate(TimeResolution.Day).AddDays(-i - 1);
+                await GenerateWebHookAggregationAsync(date, TimeResolution.Day, 10, statDataProvider);
+            }
+            for (int i = 0; i < 12 * 3; i++)
+            {
+                var date = now.Truncate(TimeResolution.Month).AddMonths(-i - 1);
+                await GenerateWebHookAggregationAsync(date, TimeResolution.Month, 10, statDataProvider);
+            }
+
+            var aggregationCountBefore = statDataProvider.Aggregations.Count;
+
+            // ACTION-1 no repair (every aggregations are present).
             var aggregator = new StatisticalDataAggregationController(statDataProvider,
                 new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+            var aggregationTime = now.Truncate(TimeResolution.Minute).AddSeconds(-1);
+            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
 
-            // Initial state: aggregations simulate lack of two periods (at 2h and 3h).
-            // 0:00:00   1:00:00   2:00:00   3:00:00   4:00:00
-            // |         |         |         |         |
-            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
-            // < Hourly >
-            //
-            // The action: generating a hourly aggregation at 4:00:00. This operation's original result is the hourly aggregations
-            // between 3 min and 4 min.
-            // 0:00      1:00      2:00      3:00      4:00
-            // |         |         |         |         |
-            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
-            // < Hourly >                    < Hourly >
-            //
-            // The expectation: the aggregator produces the original result but fills the gap: generates the 1h and 2h
-            // aggregations too.
-            // 0:00      1:00      2:00      3:00      4:00
-            // |         |         |         |         |
-            // <m>  <m>  <m>  <m>  <m>  <m>  <m>  <m>  /
-            // < Hourly >< Hourly >< Hourly >< Hourly >
+            // ASSERT-1 Current aggregation is created.
+            var aggregationCountAfter = statDataProvider.Aggregations.Count;
+            Assert.AreEqual(aggregationCountBefore + 1, aggregationCountAfter);
 
-            var start = new DateTime(2021, 6, 28, 0, 0, 0);
-            var milestone = new DateTime(2021, 6, 28, 1, 0, 0);
-            var end = new DateTime(2021, 6, 28, 4, 0, 0);
-            for (var now = start; now < end; now = now.AddMinutes(15))
-            {
-                await GenerateWebHookAggregationAsync(now, TimeResolution.Minute, 10, statDataProvider);
-                if (now == milestone)
-                    await aggregator.AggregateAsync(now, TimeResolution.Hour, CancellationToken.None);
-            }
-            var allAggregations = statDataProvider.Aggregations;
-            Assert.AreEqual(17, allAggregations.Count);
-            Assert.AreEqual(16, allAggregations.Count(x => x.Resolution == TimeResolution.Minute));
-            Assert.AreEqual(1, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
+            // ALIGN-2 Delete the current aggregation and two of each older aggregations
+            var toDelete = new List<Aggregation>();
+            toDelete.AddRange(statDataProvider.Aggregations.Where(x => x.Resolution == TimeResolution.Minute)
+                .OrderByDescending(x => x.Date).Take(3).ToArray());
+            toDelete.AddRange(statDataProvider.Aggregations.Where(x => x.Resolution == TimeResolution.Hour)
+                .OrderByDescending(x => x.Date).Take(2).ToArray());
+            toDelete.AddRange(statDataProvider.Aggregations.Where(x => x.Resolution == TimeResolution.Day)
+                .OrderByDescending(x => x.Date).Take(2).ToArray());
+            toDelete.AddRange(statDataProvider.Aggregations.Where(x => x.Resolution == TimeResolution.Month)
+                .OrderByDescending(x => x.Date).Take(2).ToArray());
+            foreach (var item in toDelete)
+                statDataProvider.Aggregations.Remove(item);
+            aggregationCountBefore = statDataProvider.Aggregations.Count;
 
-            // ACTION
-            var time = end.AddSeconds(-1);
-            await aggregator.AggregateAsync(time, TimeResolution.Hour, CancellationToken.None);
+            // ACTION-2 repair 8 and generate 1
+            aggregator = new StatisticalDataAggregationController(statDataProvider,
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+            aggregationTime = now.Truncate(TimeResolution.Minute).AddSeconds(-1);
+            await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
 
-            // ASSERT
-            allAggregations = statDataProvider.Aggregations;
-            Assert.AreEqual(4, allAggregations.Count(x => x.Resolution == TimeResolution.Hour));
-            Assert.AreEqual("0 1 2 3", string.Join(" ", allAggregations.Select(x => x.Date.Hour.ToString())));
+            // ASSERT-2 Current aggregation is created.
+            aggregationCountAfter = statDataProvider.Aggregations.Count;
+            Assert.AreEqual(aggregationCountBefore + 9, aggregationCountAfter);
         }
     }
 }

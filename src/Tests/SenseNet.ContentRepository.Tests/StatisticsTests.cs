@@ -2986,7 +2986,14 @@ namespace SenseNet.ContentRepository.Tests
 
             public STT.Task<DateTime?[]> LoadLastAggregationTimesByResolutionsAsync(CancellationToken cancel)
             {
-                throw new NotImplementedException();
+                var result = new DateTime?[4];
+                for (var resolution = TimeResolution.Minute; resolution <= TimeResolution.Month; resolution++)
+                {
+                    result[(int) resolution] = Aggregations.OrderByDescending(x => x.Date)
+                        .FirstOrDefault(x => x.Resolution == resolution)?.Date;
+                }
+
+                return STT.Task.FromResult(result);
             }
 
             public STT.Task EnumerateDataAsync(string dataType, DateTime startTime, DateTime endTimeExclusive,

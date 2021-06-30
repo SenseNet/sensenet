@@ -23,6 +23,7 @@ namespace SenseNet.Services.Core.Diagnostics
         private readonly IStatisticalDataProvider _statDataProvider;
         private readonly IEnumerable<IStatisticalDataAggregator> _aggregators;
         private readonly StatisticsOptions _options;
+        private DateTime _lastGenerationTime;
 
         public StatisticalDataAggregationController(IStatisticalDataProvider statDataProvider,
             IEnumerable<IStatisticalDataAggregator> aggregators, IOptions<StatisticsOptions> options)
@@ -36,6 +37,12 @@ namespace SenseNet.Services.Core.Diagnostics
         {
             var start = startTime.Truncate(resolution);
             var end = startTime.Next(resolution);
+            if(resolution == TimeResolution.Minute)
+                await RepairAsync(start, cancel);
+            await AggregateAsync(start, end, resolution, true, cancel);
+        }
+        private async Task AggregateAsync(DateTime start, DateTime end, TimeResolution resolution, bool cleanup, CancellationToken cancel)
+        {
             foreach (var aggregator in _aggregators)
             {
                 aggregator.Clear();
@@ -58,9 +65,45 @@ namespace SenseNet.Services.Core.Diagnostics
                     await _statDataProvider.WriteAggregationAsync(result, cancel).ConfigureAwait(false);
                 }
 
-                await CleanupAsync(aggregator, resolution, start, cancel).ConfigureAwait(false);
+                if(cleanup)
+                    await CleanupAsync(aggregator, resolution, start, cancel).ConfigureAwait(false);
+
+            }
+            _lastGenerationTime = start;
+        }
+
+        private async Task RepairAsync(DateTime endTime, CancellationToken cancel)
+        {
+            var length = Enum.GetNames(typeof(TimeResolution)).Length;
+            var lastGenerationTimes = Enumerable.Range(0, length).Select(x => _lastGenerationTime).ToArray();
+            if (lastGenerationTimes[(int)TimeResolution.Minute] == DateTime.MinValue)
+                lastGenerationTimes = await LoadLastGenerationTimes(cancel);
+
+            // Execute for all resolutions
+            for (var resolutionIndex = 0; resolutionIndex < length; resolutionIndex++)
+                await RepairAsync(lastGenerationTimes[resolutionIndex], endTime, (TimeResolution)resolutionIndex, cancel);
+        }
+        private async Task RepairAsync(DateTime lastGenerationTime, DateTime endTime, TimeResolution resolution, CancellationToken cancel)
+        {
+            var time = lastGenerationTime == DateTime.MinValue 
+                ? endTime.AddPeriods(-3, resolution)
+                : lastGenerationTime.Next(resolution);
+
+            var next = time.Next(resolution);
+            while (time < endTime.Truncate(resolution))
+            {
+                await AggregateAsync(time, next, resolution, false, cancel);
+                time = next;
+                next = time.Next(resolution);
             }
         }
+
+        private async Task<DateTime[]> LoadLastGenerationTimes(CancellationToken cancel)
+        {
+            return (await _statDataProvider.LoadLastAggregationTimesByResolutionsAsync(cancel).ConfigureAwait(false))
+                .Select(x => x ?? DateTime.MinValue).ToArray();
+        }
+
         private async Task<bool> TryProcessAggregationsAsync(IStatisticalDataAggregator aggregator,
             DateTime startTime, DateTime endTimeExclusive,
             TimeResolution targetResolution, CancellationToken cancel)
