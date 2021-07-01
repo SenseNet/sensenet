@@ -455,8 +455,8 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        internal NodeTypeManager NodeTypeManager { get; set; }
-        //public ActiveSchema ActiveSchema { get; set; }
+        //UNDONE:<?schema: reconsider the Providers.Instance.ActivesSchema creation.
+        public ActiveSchema ActiveSchema { get; set; } = new ActiveSchema();
 
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();

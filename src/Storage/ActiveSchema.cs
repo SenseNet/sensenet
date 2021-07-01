@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage
     /// <summary>
     /// ActiveSchema is a wrapper for NodeTypeManager. By using the ActiveSchema class you can the the NodeTypes, PropertyTypes and PermissionTypes currently in the system.
     /// </summary>
-	public static class ActiveSchema
+	public class ActiveSchema
     {
         public static readonly List<string> NodeAttributeNames = new List<string>(new string[]{
             "Id", "Parent", "Name", "Path",
