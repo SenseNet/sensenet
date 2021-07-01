@@ -68,7 +68,11 @@ namespace SenseNet.ContentRepository.Storage
         /// <value>The ContentList types.</value>
         public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
 
-
+        /// <summary>
+        /// Gets property types that belongs to a NodeType and a ContentListType combination.
+        /// If the <paramref name="nodeTypeId"/> is less than 1, the result is empty.
+        /// The <paramref name="contentListTypeId"/> can be less than 1 if it is irrelevant.
+        /// </summary>
         public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
         {
             var nodeType = NodeTypes.GetItemById(nodeTypeId);
@@ -84,7 +88,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
 
-
+        /* ============================================================================================ Instance management */
 
         #region Distributed Action child class
         [Serializable]
@@ -123,15 +127,16 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Reloads the storage schema without sending any distributed action.
+        /// </summary>
         public static void Reload()
         {
             RestartPrivate();
-            var c = NodeTypeManager;
         }
 
         /// <summary>
-        /// Resets the NodeTypeManager instance.
-        /// Distributes a NodeTypeManager restart (calls the NodeTypeManager.RestartPrivate()).
+        /// Reloads the storage schema and distributes a NodeTypeManagerRestart action.
         /// </summary>
         internal static void Reset()
         {
@@ -142,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage
 
         /// <summary>
         /// Restarts the NodeTypeManager without sending any distributed action.
-        /// Do not call this method explicitly, the system will call it if neccessary (when the reset is triggered by an another instance).
+        /// Do not call this method explicitly, the system will call it if necessary (when the reset is triggered by an another instance).
         /// </summary>
         private static void RestartPrivate()
         {
