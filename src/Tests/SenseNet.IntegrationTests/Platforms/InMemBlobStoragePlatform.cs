@@ -82,14 +82,12 @@ namespace SenseNet.IntegrationTests.Platforms
             return GetExternalData(file.BlobProvider, file.BlobProviderData, file.Size);
         }
 
-        //UNDONE:<?Blob: Platform independent code
         public void ConfigureMinimumSizeForFileStreamInBytes(int cheat, out int originalValue)
         {
             originalValue = Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
             Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes = cheat;
         }
 
-        //UNDONE:<?Blob: Platform independent code
         public byte[] GetExternalData(string blobProvider, string blobProviderData, long size)
         {
             if (blobProvider == null)
@@ -99,7 +97,6 @@ namespace SenseNet.IntegrationTests.Platforms
             var context = new BlobStorageContext(provider, blobProviderData) { Length = size };
             return GetExternalData(context);
         }
-        //UNDONE:<?Blob: Platform independent code
         public byte[] GetExternalData(BlobStorageContext context)
         {
             try

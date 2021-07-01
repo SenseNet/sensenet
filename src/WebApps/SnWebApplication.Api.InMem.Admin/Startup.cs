@@ -39,8 +39,7 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseInactiveAuditEventWriter();
                 })
                 .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
-                .AddSenseNetWebHooks()
-                .AddFeature1();
+                .AddSenseNetWebHooks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

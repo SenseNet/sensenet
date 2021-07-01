@@ -176,7 +176,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             }
         }
 
-        //UNDONE:<?IntT: Consider the instructions in the following block
+        //TODO:<?IntT: Consider the instructions in the following block
         //public void IntegrationTest(Action callback)
         //{
         //    Cache.Reset();

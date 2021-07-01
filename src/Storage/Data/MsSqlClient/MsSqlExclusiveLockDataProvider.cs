@@ -149,13 +149,12 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
 
         public static readonly string DropScript = @"/****** Index [IX_ExclusiveLock_Name_TimeLimit] ******/
 DROP INDEX IF EXISTS [IX_ExclusiveLock_Name_TimeLimit] ON [dbo].[ExclusiveLocks]
-GO
+
 /****** Index [IX_ExclusiveLock_Name] ******/
 DROP INDEX IF EXISTS [IX_ExclusiveLock_Name] ON [dbo].[ExclusiveLocks]
-GO
+
 /****** Table [dbo].[ExclusiveLocks] ******/
 DROP TABLE IF EXISTS [dbo].[ExclusiveLocks]
-GO
 ";
 
         public static readonly string CreationScript = @"/****** Table [dbo].[ExclusiveLocks] ******/

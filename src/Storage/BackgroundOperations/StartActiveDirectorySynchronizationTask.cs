@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 
 // ReSharper disable once CheckNamespace
@@ -52,8 +53,8 @@ namespace SenseNet.BackgroundOperations
                 Title = "SyncAD2Portal",
                 Priority = TaskPriority.Immediately,
 
-                AppId = _taskManagementOptions.ApplicationIdOrSetting,
-                TaskData = JsonConvert.SerializeObject(new { SiteUrl = _taskManagementOptions.ApplicationUrlOrSetting }),
+                AppId = _taskManagementOptions.GetApplicationIdOrSetting(),
+                TaskData = JsonConvert.SerializeObject(new { SiteUrl = _taskManagementOptions.GetApplicationUrlOrSetting() }),
                 Tag = string.Empty,
                 FinalizeUrl = "/odata.svc/('Root')/Ad2PortalSyncFinalizer"
             };
