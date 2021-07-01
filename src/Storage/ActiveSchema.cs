@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Schema;
-using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -21,7 +23,6 @@ namespace SenseNet.ContentRepository.Storage
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
         private static IDataStore DataStore => Providers.Instance.DataStore;
-        internal static NodeTypeManager NodeTypeManager => NodeTypeManager.Current;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
@@ -67,19 +68,6 @@ namespace SenseNet.ContentRepository.Storage
         /// <value>The ContentList types.</value>
         public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
 
-        /// <summary>
-        /// Resets the NodeTypeManager instance.
-        /// </summary>
-		public static void Reset()
-        {
-            // The NodeTypeManager distributes its restart, no distrib action needed
-            NodeTypeManager.Restart();
-        }
-
-        public static void Reload()
-        {
-            NodeTypeManager.Reload();
-        }
 
         public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
         {
@@ -93,6 +81,92 @@ namespace SenseNet.ContentRepository.Storage
                 allPropertyTypes.AddRange(ContentListTypes.GetItemById(contentListTypeId).PropertyTypes);
 
             return allPropertyTypes;
+        }
+
+
+
+
+        #region Distributed Action child class
+        [Serializable]
+        internal class NodeTypeManagerRestartDistributedAction : SenseNet.Communication.Messaging.DistributedAction
+        {
+            public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
+            {
+                // Local echo of my action: Return without doing anything
+                if (onRemote && isFromMe)
+                    return Task.CompletedTask;
+
+                RestartPrivate();
+
+                return Task.CompletedTask;
+            }
+        }
+        #endregion
+
+        private static NodeTypeManager _nodeTypeManager;
+        private static readonly object _lock = new object();
+        internal static NodeTypeManager NodeTypeManager
+        {
+            get
+            {
+                if (_nodeTypeManager == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_nodeTypeManager == null)
+                        {
+                            LoadPrivate();
+                        }
+                    }
+                }
+                return _nodeTypeManager;
+            }
+        }
+
+        public static void Reload()
+        {
+            RestartPrivate();
+            var c = NodeTypeManager;
+        }
+
+        /// <summary>
+        /// Resets the NodeTypeManager instance.
+        /// Distributes a NodeTypeManager restart (calls the NodeTypeManager.RestartPrivate()).
+        /// </summary>
+        internal static void Reset()
+        {
+            SnLog.WriteInformation("NodeTypeManager.Restart called.", EventId.RepositoryRuntime,
+                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            new NodeTypeManagerRestartDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Restarts the NodeTypeManager without sending any distributed action.
+        /// Do not call this method explicitly, the system will call it if neccessary (when the reset is triggered by an another instance).
+        /// </summary>
+        private static void RestartPrivate()
+        {
+            SnLog.WriteInformation("NodeTypeManager.Restart executed.", EventId.RepositoryRuntime,
+                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            NodeObserver.FireOnReset();
+
+            lock (_lock)
+            {
+                Providers.Instance.DataStore.Reset();
+                LoadPrivate();
+            }
+        }
+
+        private static void LoadPrivate()
+        {
+            // this method must be called inside a lock block!
+            var current = new NodeTypeManager();
+            current.Load();
+
+            _nodeTypeManager = current;
+
+            NodeObserver.FireOnStart();
+            SnLog.WriteInformation("NodeTypeManager created: " + _nodeTypeManager);
         }
 
     }
