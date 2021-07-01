@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,21 +7,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
-using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.Services.Core.Diagnostics
 {
     public class ApiUsageViewModel
     {
         private readonly Aggregation[] _timeLine;
-        private DateTime _startTime;
-        private DateTime _endTime;
-        private TimeWindow _timeWindow;
-        private TimeResolution _resolution;
+        private readonly DateTime _startTime;
+        private readonly DateTime _endTime;
+        private readonly TimeWindow _timeWindow;
+        private readonly TimeResolution _resolution;
 
         public ApiUsageViewModel(IEnumerable<Aggregation> timeLine, DateTime startTime, DateTime endTime,
             TimeWindow timeWindow, TimeResolution resolution)

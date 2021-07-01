@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Configuration;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Services.Core
+namespace SenseNet.Services.Core.Diagnostics
 {
     public class WebTransferRegistrator
     {

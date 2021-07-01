@@ -73,7 +73,7 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class StatisticsExtensions
     {
-        public static IServiceCollection AddStatisticalDataCollector(this IServiceCollection services)
+        public static IServiceCollection AddDefaultStatisticalDataCollector(this IServiceCollection services)
         {
             return AddStatisticalDataCollector<NullStatisticalDataCollector>(services);
         }

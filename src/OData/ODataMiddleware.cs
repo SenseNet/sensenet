@@ -20,13 +20,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Configuration;
+using SenseNet.Services.Core.Diagnostics;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo

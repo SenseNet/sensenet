@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -29,7 +27,7 @@ namespace SenseNet.WebHooks
     public class WebHookStatisticalDataAggregator : IStatisticalDataAggregator
     {
         private WebHookAggregation _aggregation = new WebHookAggregation();
-        private StatisticsOptions _options;
+        private readonly StatisticsOptions _options;
 
         public WebHookStatisticalDataAggregator(IOptions<StatisticsOptions> options)
         {
@@ -77,10 +75,10 @@ namespace SenseNet.WebHooks
     public class WebHookUsageViewModel
     {
         private readonly Aggregation[] _timeLine;
-        private DateTime _startTime;
-        private DateTime _endTime;
-        private TimeWindow _timeWindow;
-        private TimeResolution _resolution;
+        private readonly DateTime _startTime;
+        private readonly DateTime _endTime;
+        private readonly TimeWindow _timeWindow;
+        private readonly TimeResolution _resolution;
 
         public WebHookUsageViewModel(IEnumerable<Aggregation> timeLine, DateTime startTime, DateTime endTime,
             TimeWindow timeWindow, TimeResolution resolution)
@@ -165,7 +163,6 @@ namespace SenseNet.WebHooks
                 default: throw new ArgumentOutOfRangeException();
             }
         }
-
     }
 
     public class WebHookUsageListItemViewModel
@@ -218,7 +215,7 @@ namespace SenseNet.WebHooks
         }
     }
 
-    public static class ODataOperations
+    public static class StatisticsOperations
     {
         [ODataFunction(operationName: "GetWebHookUsageList")]
         [ContentTypes(N.CT.PortalRoot)]

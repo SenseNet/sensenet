@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using SenseNet.Services.Core.Diagnostics;
 
 namespace SenseNet.Services.Core.Virtualization
 {

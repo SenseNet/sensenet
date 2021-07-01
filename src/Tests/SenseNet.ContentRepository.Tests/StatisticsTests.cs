@@ -2727,7 +2727,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var content = Content.Create(Repository.Root);
                     var httpContext = CreateHttpContext("/OData.svc/('Root')/GetWebHookUsagePeriods", "", services);
-                    var result = await SenseNet.WebHooks.ODataOperations.GetWebHookUsagePeriods(content, httpContext, now, window);
+                    var result = await SenseNet.WebHooks.StatisticsOperations.GetWebHookUsagePeriods(content, httpContext, now, window);
                     var sb = new StringBuilder();
                     var serializer = new JsonSerializer();
                     serializer.Serialize(new JsonTextWriter(new StringWriter(sb)), result);
