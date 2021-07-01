@@ -21,6 +21,7 @@ namespace SenseNet.ContentRepository.Storage
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
         private static IDataStore DataStore => Providers.Instance.DataStore;
+        internal static NodeTypeManager NodeTypeManager => NodeTypeManager.Current;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
@@ -52,19 +53,19 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets the property types.
         /// </summary>
         /// <value>The property types.</value>
-		public static TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.Current.PropertyTypes;
+		public static TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.PropertyTypes;
 
         /// <summary>
         /// Gets the node types.
         /// </summary>
         /// <value>The node types.</value>
-		public static TypeCollection<NodeType> NodeTypes => NodeTypeManager.Current.NodeTypes;
+		public static TypeCollection<NodeType> NodeTypes => NodeTypeManager.NodeTypes;
 
         /// <summary>
         /// Gets the ContentList types.
         /// </summary>
         /// <value>The ContentList types.</value>
-        public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.Current.ContentListTypes;
+        public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
 
         /// <summary>
         /// Resets the NodeTypeManager instance.
