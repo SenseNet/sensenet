@@ -114,17 +114,5 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.DisabledNodeObservers instead.")]
         public static List<string> DisabledNodeObservers => RepositoryEnvironment.DisabledNodeObservers;
-
-        public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
-        {
-            System.Diagnostics.Debug.Assert(nodeTypeId > 0);
-
-            var nodePropertyTypes = NodeTypeManager.Current.NodeTypes.GetItemById(nodeTypeId).PropertyTypes;
-            var allPropertyTypes = new TypeCollection<PropertyType>(nodePropertyTypes);
-            if (contentListTypeId > 0)
-                allPropertyTypes.AddRange(NodeTypeManager.Current.ContentListTypes.GetItemById(contentListTypeId).PropertyTypes);
-
-            return allPropertyTypes;
-        }
     }
 }

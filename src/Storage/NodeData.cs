@@ -258,7 +258,7 @@ namespace SenseNet.ContentRepository.Storage
             staticData = new object[StaticDataSlotCount];
             NodeTypeId = nodeType.Id;
 
-            PropertyTypes = NodeTypeManager.GetDynamicSignature(nodeType.Id, contentListType == null ? 0 : contentListType.Id);
+            PropertyTypes = ActiveSchema.GetDynamicSignature(nodeType.Id, contentListType?.Id ?? 0);
             TextPropertyIds = PropertyTypes.Where(p => p.DataType == DataType.Text).Select(p => p.Id).ToArray();
 
             dynamicData = new Dictionary<int, object>();

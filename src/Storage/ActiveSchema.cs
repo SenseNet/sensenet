@@ -80,5 +80,20 @@ namespace SenseNet.ContentRepository.Storage
         {
             NodeTypeManager.Reload();
         }
+
+        public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
+        {
+            var nodeType = NodeTypes.GetItemById(nodeTypeId);
+            if (nodeType == null)
+                return new TypeCollection<PropertyType>(NodeTypeManager);
+
+            var nodePropertyTypes = nodeType.PropertyTypes;
+            var allPropertyTypes = new TypeCollection<PropertyType>(nodePropertyTypes);
+            if (contentListTypeId > 0)
+                allPropertyTypes.AddRange(ContentListTypes.GetItemById(contentListTypeId).PropertyTypes);
+
+            return allPropertyTypes;
+        }
+
     }
 }
