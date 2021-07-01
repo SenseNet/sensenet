@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         {
             SnLog.WriteInformation("NodeTypeManager.Restart executed.", EventId.RepositoryRuntime, 
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-            OnReset();
+            NodeObserver.FireOnReset(Reset);
 
             lock (_lock)
             {
@@ -99,6 +99,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManager);
 	    }
 
+        [Obsolete("Do not use anymore.", true)]
         internal static NodeTypeManager CreateForTests()
         {
             return new NodeTypeManager();
@@ -107,10 +108,6 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         public static event EventHandler<EventArgs> Start;
 		public static event EventHandler<EventArgs> Reset;
-		private static void OnReset()
-		{
-			NodeObserver.FireOnReset(Reset);
-		}
 
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.DisabledNodeObservers instead.")]
         public static List<string> DisabledNodeObservers => RepositoryEnvironment.DisabledNodeObservers;
