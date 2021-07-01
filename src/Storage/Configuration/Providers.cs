@@ -455,7 +455,7 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        internal NodeTypeManager NodeTypeManeger { get; set; }
+        internal NodeTypeManager NodeTypeManager { get; set; }
 
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();

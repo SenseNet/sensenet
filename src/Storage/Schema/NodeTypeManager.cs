@@ -35,17 +35,17 @@ namespace SenseNet.ContentRepository.Storage.Schema
 		{
 			get
 			{
-                if(Providers.Instance.NodeTypeManeger == null)
+                if(Providers.Instance.NodeTypeManager == null)
                 {
                     lock(_lock)
                     {
-                        if (Providers.Instance.NodeTypeManeger == null)
+                        if (Providers.Instance.NodeTypeManager == null)
                         {
                             LoadPrivate();
                         }
                     }
                 }
-                return Providers.Instance.NodeTypeManeger;
+                return Providers.Instance.NodeTypeManager;
 			}
 		}
 
@@ -93,10 +93,10 @@ namespace SenseNet.ContentRepository.Storage.Schema
             var current = new NodeTypeManager();
             current.Load();
 
-            Providers.Instance.NodeTypeManeger = current;
+            Providers.Instance.NodeTypeManager = current;
             
             NodeObserver.FireOnStart(Start);
-	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManeger);
+	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManager);
 	    }
 
         internal static NodeTypeManager CreateForTests()

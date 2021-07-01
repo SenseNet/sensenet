@@ -178,7 +178,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         //{
         //    Cache.Reset();
         //    ContentTypeManager.Reset();
-        //    //Providers.Instance.NodeTypeManeger = null;
+        //    //Providers.Instance.NodeTypeManager = null;
 
         //    var builder = _implementation.CreateRepositoryBuilder();
 
