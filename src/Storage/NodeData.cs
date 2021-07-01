@@ -251,7 +251,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         public NodeData(int nodeTypeId, int contentListTypeId)
-            : this(NodeTypeManager.Current.NodeTypes.GetItemById(nodeTypeId), NodeTypeManager.Current.ContentListTypes.GetItemById(contentListTypeId)) { }
+            : this(ActiveSchema.NodeTypes.GetItemById(nodeTypeId), ActiveSchema.ContentListTypes.GetItemById(contentListTypeId)) { }
         public NodeData(NodeType nodeType, ContentListType contentListType)
         {
             staticDataIsModified = new bool[StaticDataSlotCount];
@@ -933,14 +933,14 @@ namespace SenseNet.ContentRepository.Storage
         internal static Exception Exception_PropertyNotFound(string name, string typeName)
         {
             var tn = string.IsNullOrEmpty(typeName) ? string.Empty : ". Content type name: " + typeName;
-            var propType = NodeTypeManager.Current.PropertyTypes[name];
+            var propType = ActiveSchema.PropertyTypes[name];
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Name: " + name + tn);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", name, tn));
         }
         internal static Exception Exception_PropertyNotFound(int propTypeId)
         {
-            var propType = NodeTypeManager.Current.PropertyTypes.GetItemById(propTypeId);
+            var propType = ActiveSchema.PropertyTypes.GetItemById(propTypeId);
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Id: " + propTypeId);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", propType.Name));

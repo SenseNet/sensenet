@@ -31,7 +31,7 @@ namespace SenseNet.Tests
             // Compare properties
             foreach (var key in expectedSignature)
             {
-                var propertyType = NodeTypeManager.Current.PropertyTypes.GetItemById(key);
+                var propertyType = ActiveSchema.PropertyTypes.GetItemById(key);
                 var expectedValue = expectedProps[key];
                 var actualValue = actualProps[key];
                 switch (propertyType.DataType)

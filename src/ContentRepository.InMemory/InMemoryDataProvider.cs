@@ -1060,7 +1060,7 @@ namespace SenseNet.ContentRepository.InMemory
                 var result = DB.Nodes
                     .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
                                 n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
-                    .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
+                    .Select(n => ActiveSchema.ContentListTypes.GetItemById(n.ContentListTypeId))
                     .ToList();
                 return STT.Task.FromResult(result);
             }

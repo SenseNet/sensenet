@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Storage
 {
+    //UNDONE:<?schema: rename ActiveSchema -> StorageSchema
     /// <summary>
     /// ActiveSchema is a wrapper for NodeTypeManager. By using the ActiveSchema class you can the the NodeTypes, PropertyTypes and PermissionTypes currently in the system.
     /// </summary>
@@ -51,26 +52,19 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets the property types.
         /// </summary>
         /// <value>The property types.</value>
-		public static TypeCollection<PropertyType> PropertyTypes
-        {
-            get { return NodeTypeManager.Current.PropertyTypes; }
-        }
+		public static TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.Current.PropertyTypes;
+
         /// <summary>
         /// Gets the node types.
         /// </summary>
         /// <value>The node types.</value>
-		public static TypeCollection<NodeType> NodeTypes
-        {
-            get { return NodeTypeManager.Current.NodeTypes; }
-        }
+		public static TypeCollection<NodeType> NodeTypes => NodeTypeManager.Current.NodeTypes;
+
         /// <summary>
         /// Gets the ContentList types.
         /// </summary>
         /// <value>The ContentList types.</value>
-        public static TypeCollection<ContentListType> ContentListTypes
-        {
-            get { return NodeTypeManager.Current.ContentListTypes; }
-        }
+        public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.Current.ContentListTypes;
 
         /// <summary>
         /// Resets the NodeTypeManager instance.

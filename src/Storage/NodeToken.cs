@@ -42,11 +42,11 @@ namespace SenseNet.ContentRepository.Storage
 
         public NodeType NodeType
         {
-            get { return NodeTypeManager.Current.NodeTypes.GetItemById(NodeTypeId); }
+            get { return ActiveSchema.NodeTypes.GetItemById(NodeTypeId); }
         }
         public ContentListType ContentListType
         {
-            get { return this.ContentListTypeId == 0 ? (ContentListType)null : NodeTypeManager.Current.ContentListTypes.GetItemById(ContentListTypeId); }
+            get { return this.ContentListTypeId == 0 ? (ContentListType)null : ActiveSchema.ContentListTypes.GetItemById(ContentListTypeId); }
         }
         /// <summary>
         /// Gets the property types.

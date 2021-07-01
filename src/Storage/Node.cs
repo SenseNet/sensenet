@@ -294,7 +294,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual NodeType NodeType
         {
-            get { return NodeTypeManager.Current.NodeTypes.GetItemById(_data.NodeTypeId); }
+            get { return ActiveSchema.NodeTypes.GetItemById(_data.NodeTypeId); }
         }
         /// <summary>
         /// Gets the nearest <see cref="ContentListType"/> on the ancestor chain.
@@ -305,7 +305,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_data.ContentListTypeId == 0)
                     return null;
-                return NodeTypeManager.Current.ContentListTypes.GetItemById(_data.ContentListTypeId);
+                return ActiveSchema.ContentListTypes.GetItemById(_data.ContentListTypeId);
             }
             internal set
             {
@@ -1672,11 +1672,11 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeTypeName == null)
                 nodeTypeName = this.GetType().Name;
 
-            var nodeType = NodeTypeManager.Current.NodeTypes[nodeTypeName];
+            var nodeType = ActiveSchema.NodeTypes[nodeTypeName];
             if (nodeType == null)
             {
                 nodeTypeName = this.GetType().FullName;
-                nodeType = NodeTypeManager.Current.NodeTypes[nodeTypeName];
+                nodeType = ActiveSchema.NodeTypes[nodeTypeName];
 
                 if (nodeType == null)
                     throw new RegistrationException(String.Concat(SR.Exceptions.Schema.Msg_UnknownNodeType, ": ", nodeTypeName));
@@ -2598,7 +2598,7 @@ namespace SenseNet.ContentRepository.Storage
         private static void FillData(Node node, NodeToken token)
         {
             string typeName = node.GetType().FullName;
-            string typeNameInHead = NodeTypeManager.Current.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
+            string typeNameInHead = ActiveSchema.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
             if (typeNameInHead != typeName)
             {
                 var message = String.Concat("Cannot create a ", typeName, " instance because type name is different in the passed head: ", typeNameInHead);

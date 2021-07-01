@@ -1371,7 +1371,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cancel.ThrowIfCancellationRequested();
                             var id = reader.GetInt32(0);
-                            var t = NodeTypeManager.Current.ContentListTypes.GetItemById(id);
+                            var t = ActiveSchema.ContentListTypes.GetItemById(id);
                             result.Add(t);
                         }
                         return result;
