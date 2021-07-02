@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 

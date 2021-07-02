@@ -1,4 +1,4 @@
-﻿namespace SenseNet.ContentRepository.Storage.Data
+﻿namespace SenseNet.Data
 {
     /// <summary>
     /// Marker interface for indicating that the class is an extension of the DataProvider.

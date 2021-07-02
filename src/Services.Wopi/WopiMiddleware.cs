@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
@@ -38,9 +39,13 @@ namespace SenseNet.Services.Wopi
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
+            var statData = statistics?.RegisterWebRequest(httpContext);
+
             await ProcessRequestAsync(httpContext, false).ConfigureAwait(false);
+
+            statistics?.RegisterWebResponse(statData, httpContext);
 
             // Call next in the chain if exists
             if (_next != null)

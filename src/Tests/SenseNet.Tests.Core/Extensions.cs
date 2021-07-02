@@ -24,6 +24,7 @@ namespace SenseNet.Tests.Core
         private static void StartTestPrivate(TestContext testContext)
         {
             Providers.Instance = new Providers();
+            using (new Swindler<bool>(false, () => SnTrace.Event.Enabled, x => SnTrace.Event.Enabled = x))
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =
                     SnTrace.Test.StartOperation($"TESTMETHOD: {testContext.FullyQualifiedTestClassName}.{testContext.TestName}" );
