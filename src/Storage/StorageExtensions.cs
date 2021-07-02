@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Storage.Data.MsSqlClient;
 
 namespace SenseNet.Extensions.DependencyInjection
 {
@@ -73,6 +73,14 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDataStore<T>(this IServiceCollection services) where T : class, IDataStore
         {
             return services.AddSingleton<IDataStore, T>();
+        }
+
+        /// <summary>
+        /// Adds the MS SQL statistical data provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetMsSqlStatisticalDataProvider(this IServiceCollection services)
+        {
+            return services.AddStatisticalDataProvider<MsSqlStatisticalDataProvider>();
         }
     }
 }

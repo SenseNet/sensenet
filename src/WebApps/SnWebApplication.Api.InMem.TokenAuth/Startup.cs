@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
 
@@ -48,7 +47,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
                 })
-                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>();
+                .AddSenseNetInMemoryStatisticalDataProvider();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

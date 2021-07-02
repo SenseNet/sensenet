@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
 
@@ -38,7 +37,7 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseAccessProvider(new UserAccessProvider())
                         .UseInactiveAuditEventWriter();
                 })
-                .AddStatisticalDataProvider<InMemoryStatisticalDataProvider>()
+                .AddSenseNetInMemoryStatisticalDataProvider()
                 .AddSenseNetWebHooks();
         }
 
