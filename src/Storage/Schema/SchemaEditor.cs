@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                             NodeTypeDependency.FireChanged(modifiedPropertySet.Id);
 
                         schemaWriter.Close();
-                        ActiveSchema.Reset();
+                        Providers.Instance.StorageSchema.Reset();
 
                         op.Successful = true;
                     }
@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                     var modifiedPropertySetIds = GetModifiedPropertySetIds(origSchema, newSchema);
 
                     schemaWriter.WriteSchemaAsync(newSchema.ToRepositorySchemaData()).GetAwaiter().GetResult();
-                    ActiveSchema.Reset();
+                    Providers.Instance.StorageSchema.Reset();
                     foreach(var id in modifiedPropertySetIds)
                         NodeTypeDependency.FireChanged(id);
 

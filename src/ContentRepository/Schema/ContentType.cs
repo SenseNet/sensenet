@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using System.Linq;
 using System.Text;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -50,6 +51,8 @@ namespace  SenseNet.ContentRepository.Schema
         private bool? _allowIncrementalNaming;
         private bool? _previewEnabled;
         private bool? _indexingEnabled;
+
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         // ====================================================================== Node interface: Properties
 
@@ -301,7 +304,7 @@ namespace  SenseNet.ContentRepository.Schema
                 }
 
                 return from fs in fsList
-                       where ActiveSchema.NodeTypes[fs.GetType().Name] != null
+                       where StorageSchema.NodeTypes[fs.GetType().Name] != null
                        select new FieldSettingContent(fs.GetEditable(), this) as Node;
             }
         }
@@ -827,7 +830,7 @@ namespace  SenseNet.ContentRepository.Schema
         private static bool IsDeletable(ContentType contentType)
         {
             // Returns false if there is a Node which is inherited from passed ContentType or its descendant.
-            NodeType nodeType = ActiveSchema.NodeTypes[contentType.Name];
+            NodeType nodeType = Providers.Instance.StorageSchema.NodeTypes[contentType.Name];
             if (nodeType == null)
                 return true;
             return NodeQuery.InstanceCount(nodeType, false) == 0;
@@ -913,7 +916,7 @@ namespace  SenseNet.ContentRepository.Schema
                     names.Add(name.ToLower(), name);
                 }
             }
-            foreach (PropertyType propType in ActiveSchema.PropertyTypes)
+            foreach (PropertyType propType in Providers.Instance.StorageSchema.PropertyTypes)
             {
                 string newName;
                 if (names.TryGetValue(propType.Name.ToLower(), out newName))

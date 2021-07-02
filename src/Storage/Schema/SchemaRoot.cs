@@ -101,6 +101,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         }
         public void Load(XmlDocument schemaXml)
         {
+            Clear();
             Load(BuildDataSetFromXml(schemaXml));
         }
 

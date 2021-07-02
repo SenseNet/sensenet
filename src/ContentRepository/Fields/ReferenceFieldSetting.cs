@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.XPath;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
@@ -407,10 +408,11 @@ namespace SenseNet.ContentRepository.Fields
 
         private List<string> CollectExactTypeNames(List<string> rootTypeNames)
         {
+            var schema = Providers.Instance.StorageSchema;
             var allowedTypeNames = new List<string>();
             foreach (string typeName in rootTypeNames)
             {
-                if (ActiveSchema.NodeTypes[typeName] == null)
+                if (schema.NodeTypes[typeName] == null)
                     throw new ApplicationException(String.Concat("Unknown NodeType in ReferenceField: ", typeName));
                 if (!allowedTypeNames.Contains(typeName))
                     allowedTypeNames.Add(typeName);
@@ -418,7 +420,7 @@ namespace SenseNet.ContentRepository.Fields
             var index = 0;
             while (index < allowedTypeNames.Count)
             {
-                foreach (var childType in ActiveSchema.NodeTypes[allowedTypeNames[index]].Children)
+                foreach (var childType in schema.NodeTypes[allowedTypeNames[index]].Children)
                     allowedTypeNames.Add(childType.Name);
                 index++;
             }

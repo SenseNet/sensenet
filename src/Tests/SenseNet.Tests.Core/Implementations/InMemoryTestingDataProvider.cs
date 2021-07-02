@@ -356,7 +356,7 @@ namespace SenseNet.Tests.Core.Implementations
         public Task<object> GetPropertyValueAsync(int versionId, string name)
         {
             var blobStorage = Providers.Instance.BlobStorage;
-            var pt = ActiveSchema.PropertyTypes[name];
+            var pt = Providers.Instance.StorageSchema.PropertyTypes[name];
             object result = null;
             lock (DB)
             {
@@ -392,7 +392,7 @@ namespace SenseNet.Tests.Core.Implementations
 
         public Task UpdateDynamicPropertyAsync(int versionId, string name, object value)
         {
-            var pt = ActiveSchema.PropertyTypes[name];
+            var pt = Providers.Instance.StorageSchema.PropertyTypes[name];
             lock (DB)
             {
                 var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);

@@ -419,7 +419,7 @@ namespace SenseNet.Preview
 
         protected static IEnumerable<Node> QueryPreviewImages(string path)
         {
-            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            var previewType = GetPreviewImageType();
             if (previewType == null)
                 return new Node[0];
 
@@ -553,6 +553,11 @@ namespace SenseNet.Preview
             return lines.AsEnumerable();
         }
 
+        private static NodeType GetPreviewImageType()
+        {
+            return Providers.Instance.StorageSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+        }
+
         // ===================================================================================================== Server-side interface
 
         public abstract bool IsContentSupported(Node content);
@@ -565,7 +570,7 @@ namespace SenseNet.Preview
             if (imageHead == null)
                 return false;
 
-            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            var previewType = GetPreviewImageType();
             if (previewType == null)
                 return false;
 
@@ -579,7 +584,7 @@ namespace SenseNet.Preview
             if (image == null)
                 return false;
 
-            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            var previewType = GetPreviewImageType();
             if (previewType == null)
                 return false;
 
@@ -1250,7 +1255,7 @@ namespace SenseNet.Preview
                 return false;
 
             // collect all preview and thumbnail images
-            var previewType = NodeType.GetByName(PREVIEWIMAGE_CONTENTTYPE);
+            var previewType = GetPreviewImageType();
             if (previewType == null)
                 return false;
 

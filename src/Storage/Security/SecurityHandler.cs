@@ -1572,7 +1572,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     if (_enabledTypes == null)
                         return true;
 
-                    var nodeType = ActiveSchema.NodeTypes.GetItemById(head.NodeTypeId);
+                    var nodeType = Providers.Instance.StorageSchema.NodeTypes.GetItemById(head.NodeTypeId);
                     if (nodeType == null)
                         return false;
 
@@ -1832,9 +1832,10 @@ namespace SenseNet.ContentRepository.Storage.Security
                             // ReSharper disable once CoVariantArrayConversion
                             PermissionType.BuiltInPermissionTypes);
 
-                        var memberPropertyType = ActiveSchema.PropertyTypes["Members"];
-                        var userNodeType = ActiveSchema.NodeTypes["User"];
-                        var groupNodeType = ActiveSchema.NodeTypes["Group"];
+                        var schema = Providers.Instance.StorageSchema;
+                        var memberPropertyType = schema.PropertyTypes["Members"];
+                        var userNodeType = schema.NodeTypes["User"];
+                        var groupNodeType = schema.NodeTypes["Group"];
                         if (data?.DynamicProperties != null)
                         {
                             foreach (var versionData in data.DynamicProperties)

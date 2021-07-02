@@ -176,7 +176,7 @@ namespace SenseNet.ContentRepository.InMemory
         public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
         {
             var db = ((InMemoryDataProvider) Providers.Instance.DataProvider).DB;
-            var propTypeId = ActiveSchema.PropertyTypes["AllowedChildTypes"].Id;
+            var propTypeId = Providers.Instance.StorageSchema.PropertyTypes["AllowedChildTypes"].Id;
             var rows = db.LongTextProperties
                 .Where(x => x.PropertyTypeId == propTypeId && x.Value.Split(' ').Intersect(names).Any())
                 .ToArray();

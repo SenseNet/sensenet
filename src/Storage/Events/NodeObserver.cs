@@ -108,9 +108,8 @@ namespace SenseNet.ContentRepository.Storage.Events
 
         // ================================================================================================ Triggers
 
-        internal static void FireOnStart(EventHandler<EventArgs> Start)
+        internal static void FireOnStart()
         {
-            InvokeEventHandlers<EventArgs>(Start, null, EventArgs.Empty);
             var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
@@ -125,9 +124,8 @@ namespace SenseNet.ContentRepository.Storage.Events
             }
         }
 
-        internal static void FireOnReset(EventHandler<EventArgs> Reset)
+        internal static void FireOnReset()
         {
-            InvokeEventHandlers<EventArgs>(Reset, null, EventArgs.Empty);
             var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;

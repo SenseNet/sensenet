@@ -34,7 +34,7 @@ namespace SenseNet.IntegrationTests.Platforms
             //SELECT f.* FROM BinaryProperties b JOIN Files f on f.FileId = b.FileId
             //WHERE b.VersionId = {versionId} and b.PropertyTypeId = {propTypeId}";
 
-            var propTypeId = ActiveSchema.PropertyTypes[propertyName].Id;
+            var propTypeId = Providers.Instance.StorageSchema.PropertyTypes[propertyName].Id;
             var sql = $@"SELECT f.* FROM BinaryProperties b JOIN Files f on f.FileId = b.FileId WHERE b.VersionId = {versionId} and b.PropertyTypeId = {propTypeId}";
             var dbFiles = new List<DbFile>();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Testing;
@@ -23,16 +24,17 @@ namespace SenseNet.Tests.Core
             var actualProps = (Dictionary<int, object>)(new ObjectAccessor(actual).GetField("dynamicData"));
 
             // Compare signatures
+            var schema = Providers.Instance.StorageSchema;
             var expectedSignature = expectedProps.Keys.OrderBy(y => y).ToArray();
             var actualSignature = actualProps.Keys.OrderBy(y => y).ToArray();
-            var expectedNames = expectedProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
-            var actualNames = actualProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var expectedNames = expectedProps.Keys.Select(x => schema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var actualNames = actualProps.Keys.Select(x => schema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
             Assert_AreEqual(expectedNames, actualNames, "DynamicPropertySignature");
 
             // Compare properties
             foreach (var key in expectedSignature)
             {
-                var propertyType = NodeTypeManager.Current.PropertyTypes.GetItemById(key);
+                var propertyType = schema.PropertyTypes.GetItemById(key);
                 var expectedValue = expectedProps[key];
                 var actualValue = actualProps[key];
                 switch (propertyType.DataType)

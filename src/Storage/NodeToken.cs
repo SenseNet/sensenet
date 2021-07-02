@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -40,14 +41,13 @@ namespace SenseNet.ContentRepository.Storage
         internal NodeHead NodeHead { get; set; }
         internal NodeData NodeData { get; set; }
 
-        public NodeType NodeType
-        {
-            get { return NodeTypeManager.Current.NodeTypes.GetItemById(NodeTypeId); }
-        }
-        public ContentListType ContentListType
-        {
-            get { return this.ContentListTypeId == 0 ? (ContentListType)null : NodeTypeManager.Current.ContentListTypes.GetItemById(ContentListTypeId); }
-        }
+        public NodeType NodeType => Providers.Instance.StorageSchema.NodeTypes.GetItemById(NodeTypeId);
+
+        public ContentListType ContentListType =>
+            this.ContentListTypeId == 0 
+                ? (ContentListType)null
+                : Providers.Instance.StorageSchema.ContentListTypes.GetItemById(ContentListTypeId);
+
         /// <summary>
         /// Gets the property types.
         /// </summary>
@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     ContentListType listType = null;
                     if ((listType = this.ContentListType) == null)
-                        _contentListPropertyTypes = new TypeCollection<PropertyType>(NodeTypeManager.Current);
+                        _contentListPropertyTypes = new TypeCollection<PropertyType>(Providers.Instance.StorageSchema.SchemaInstance);
                     else
                         _contentListPropertyTypes = this.ContentListType.PropertyTypes;
                 }

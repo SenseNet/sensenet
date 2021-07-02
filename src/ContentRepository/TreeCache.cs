@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using SenseNet.Configuration;
 using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -165,7 +166,7 @@ namespace SenseNet.ContentRepository
         {
             public static List<TNode> LoadItemsByContentType(string contentTypeName)
             {
-                var nodeType = ActiveSchema.NodeTypes[contentTypeName];
+                var nodeType = Providers.Instance.StorageSchema.NodeTypes[contentTypeName];
                 if (nodeType == null)
                     return new List<TNode>();
 

@@ -1,6 +1,7 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
@@ -40,7 +41,8 @@ namespace SenseNet.Services
                     kind = SnIdentityKind.OrganizationalUnit;
                     break;
                 default:
-                    throw new ApplicationException(String.Concat("Cannot create SnIdentity from NodeType ", ActiveSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
+                    throw new ApplicationException(string.Concat("Cannot create SnIdentity from NodeType ", 
+                        Providers.Instance.StorageSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
             }
 
             return new SnIdentity

@@ -65,6 +65,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
+
         private static readonly string ContentListDefinitionXmlNamespaceOld = "http://schemas.sensenet" + ".hu/SenseNet/ContentRepository/Lis" + "terTypeDefinition";
         public static readonly string ContentListDefinitionXmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition";
         private static string ContentListDefinitionSchemaManifestResourceName = "SenseNet.ContentRepository.Schema.ContentListDefinition.xsd";
@@ -131,7 +133,7 @@ namespace SenseNet.ContentRepository
             get
             {
                 return from fs in this.FieldSettings
-                       where ActiveSchema.NodeTypes[fs.GetType().Name] != null
+                       where StorageSchema.NodeTypes[fs.GetType().Name] != null
                        select new FieldSettingContent(fs.GetEditable(), this) as Node;
             }
         }
@@ -153,7 +155,7 @@ namespace SenseNet.ContentRepository
                         // field types doesn't necessary have a ctd
                         if ((fs.VisibleBrowse != FieldVisibility.Hide ||
                              fs.VisibleEdit != FieldVisibility.Hide ||
-                             fs.VisibleNew != FieldVisibility.Hide) && ActiveSchema.NodeTypes[fs.GetType().Name] != null)
+                             fs.VisibleNew != FieldVisibility.Hide) && StorageSchema.NodeTypes[fs.GetType().Name] != null)
                             fsContents.Add(new FieldSettingContent(fs.GetEditable(), this));
                     }
                     catch (RegistrationException ex)
@@ -278,7 +280,7 @@ namespace SenseNet.ContentRepository
                         throw;
                 }
                 var timer = Stopwatch.StartNew();
-                ActiveSchema.Reload();
+                StorageSchema.Reload();
                 ContentTypeManager.Reload();
                 timer.Stop();
                 var d = timer.Elapsed;
@@ -337,7 +339,7 @@ namespace SenseNet.ContentRepository
             if (hasChanges)
                 editor.Register();
             this.ContentListBindings = newBindings;
-            return ActiveSchema.ContentListTypes[listType.Name];
+            return StorageSchema.ContentListTypes[listType.Name];
         }
         private FieldSetting CreateNewFieldType(FieldDescriptor fieldInfo, Dictionary<string, List<string>> newBindings, ContentListType listType, SlotTable slotTable, SchemaEditor editor)
         {

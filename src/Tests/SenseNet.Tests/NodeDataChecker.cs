@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -10,6 +11,7 @@ namespace SenseNet.Tests
 {
     public class NodeDataChecker
     {
+        public static StorageSchema StorageSchema => Providers.Instance.StorageSchema;
         public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual, params string[] excludedProperties)
         {
             // prepare collections
@@ -24,14 +26,14 @@ namespace SenseNet.Tests
             // Compare signatures
             var expectedSignature = expectedProps.Keys.OrderBy(y => y).ToArray();
             var actualSignature = actualProps.Keys.OrderBy(y => y).ToArray();
-            var expectedNames = expectedProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
-            var actualNames = actualProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var expectedNames = expectedProps.Keys.Select(x => StorageSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var actualNames = actualProps.Keys.Select(x => StorageSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
             Assert_AreEqual(expectedNames, actualNames, "DynamicPropertySignature");
 
             // Compare properties
             foreach (var key in expectedSignature)
             {
-                var propertyType = NodeTypeManager.Current.PropertyTypes.GetItemById(key);
+                var propertyType = StorageSchema.PropertyTypes.GetItemById(key);
                 var expectedValue = expectedProps[key];
                 var actualValue = actualProps[key];
                 switch (propertyType.DataType)

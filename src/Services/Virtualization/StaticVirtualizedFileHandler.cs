@@ -107,8 +107,11 @@ namespace SenseNet.Portal.Virtualization
                 if (servedFromFileSystem)
                 {
                     // let the client code log file downloads
-                    if (nodeDescription != null && ActiveSchema.NodeTypes[nodeDescription.NodeTypeId].IsInstaceOfOrDerivedFrom("File"))
+                    if (nodeDescription != null &&
+                        Providers.Instance.StorageSchema.NodeTypes[nodeDescription.NodeTypeId].IsInstaceOfOrDerivedFrom("File"))
+                    {
                         ContentRepository.File.Downloaded(nodeDescription.Id);
+                    }
                 }
             }
             

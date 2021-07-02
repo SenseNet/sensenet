@@ -5,6 +5,7 @@ using  SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
 using System.Globalization;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
@@ -29,7 +30,10 @@ namespace SenseNet.ContentRepository.Fields
         private decimal _slotMinValue;
         private decimal _slotMaxValue;
 
-		public decimal? MinValue
+        private decimal DecimalMinValue => Providers.Instance.StorageSchema.DecimalMinValue;
+        private decimal DecimalMaxValue => Providers.Instance.StorageSchema.DecimalMaxValue;
+
+        public decimal? MinValue
 		{
 			get
 			{
@@ -262,18 +266,18 @@ namespace SenseNet.ContentRepository.Fields
             }
             else if (propertyType == typeof(Single))
             {
-                _slotMinValue = ActiveSchema.DecimalMinValue;
-                _slotMaxValue = ActiveSchema.DecimalMaxValue;
+                _slotMinValue = DecimalMinValue;
+                _slotMaxValue = DecimalMaxValue;
             }
             else if (propertyType == typeof(Double))
             {
-                _slotMinValue = ActiveSchema.DecimalMinValue;
-                _slotMaxValue = ActiveSchema.DecimalMaxValue;
+                _slotMinValue = DecimalMinValue;
+                _slotMaxValue = DecimalMaxValue;
             }
             else if (propertyType == typeof(Decimal))
             {
-                _slotMinValue = ActiveSchema.DecimalMinValue;
-                _slotMaxValue = ActiveSchema.DecimalMaxValue;
+                _slotMinValue = DecimalMinValue;
+                _slotMaxValue = DecimalMaxValue;
             }
             else if (propertyType == typeof(UInt32))
             {
@@ -340,8 +344,8 @@ namespace SenseNet.ContentRepository.Fields
                     Description = GetDescString(MinValueName),
                     ShortName = "Number",
                     FieldClassName = typeof(NumberField).FullName,
-                    MinValue = ActiveSchema.DecimalMinValue,
-                    MaxValue = ActiveSchema.DecimalMaxValue,
+                    MinValue = DecimalMinValue,
+                    MaxValue = DecimalMaxValue,
                     Digits = 2
                 }
             });
@@ -358,8 +362,8 @@ namespace SenseNet.ContentRepository.Fields
                     Description = GetDescString(MaxValueName),
                     ShortName = "Number",
                     FieldClassName = typeof(NumberField).FullName,
-                    MinValue = ActiveSchema.DecimalMinValue,
-                    MaxValue = ActiveSchema.DecimalMaxValue,
+                    MinValue = DecimalMinValue,
+                    MaxValue = DecimalMaxValue,
                     Digits = 2
                 }
             });

@@ -30,6 +30,7 @@ namespace SenseNet.Tests.Implementations
 
         //TODO: [DIBLOB] get these services through the constructor later
         private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        private static StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         public void InitializeForTests()
         {
@@ -306,7 +307,7 @@ namespace SenseNet.Tests.Implementations
 
         public Task<object> GetPropertyValueAsync(int versionId, string name)
         {
-            var pt = ActiveSchema.PropertyTypes[name];
+            var pt = StorageSchema.PropertyTypes[name];
             object result = null;
             lock (DB)
             {
@@ -339,7 +340,7 @@ namespace SenseNet.Tests.Implementations
 
         public Task UpdateDynamicPropertyAsync(int versionId, string name, object value)
         {
-            var pt = ActiveSchema.PropertyTypes[name];
+            var pt = StorageSchema.PropertyTypes[name];
             lock (DB)
             {
                 var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);

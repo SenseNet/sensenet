@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Schema
             if (Instance._contentTypeNamesByType == null)
             {
                 var contentTypeNamesByType = new Dictionary<Type, NodeType>();
-                foreach (var nt in ActiveSchema.NodeTypes)
+                foreach (var nt in Providers.Instance.StorageSchema.NodeTypes)
                 {
                     var type = TypeResolver.GetType(nt.ClassName, false);
                     if (type == null)
@@ -154,7 +154,9 @@ namespace SenseNet.ContentRepository.Schema
                 // temporary save: read enumerator only once
                 var contentTypes = new List<ContentType>();
 
-                var result = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["ContentType"], false, String.Concat(Repository.ContentTypesFolderPath, SnCS.RepositoryPath.PathSeparator), true);
+                var result = NodeQuery.QueryNodesByTypeAndPath(
+                    Providers.Instance.StorageSchema.NodeTypes["ContentType"], false, 
+                    string.Concat(Repository.ContentTypesFolderPath, SnCS.RepositoryPath.PathSeparator), true);
 
                 foreach (ContentType contentType in result.Nodes)
                 {
@@ -198,7 +200,6 @@ namespace SenseNet.ContentRepository.Schema
                 SnLog.WriteInformation("ContentTypeManager.Reset executed.", EventId.RepositoryRuntime,
                    properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
-                // Do not call ActiveSchema.Reset();
                 Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
                 _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();

@@ -30,6 +30,8 @@ namespace SenseNet.ContentRepository.InMemory
 
         //TODO: [DIBLOB] get these services through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        //TODO: get this service through the constructor later
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         public InMemoryDataProvider()
         {
@@ -377,7 +379,7 @@ namespace SenseNet.ContentRepository.InMemory
                         .Where(x => x.VersionId == versionId &&
                                     longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
                                     x.Length < TextAlternationSizeLimit)
-                        .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
+                        .ToDictionary(x => StorageSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
                     foreach (var item in longTextProps)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
 
@@ -389,7 +391,7 @@ namespace SenseNet.ContentRepository.InMemory
                     var refProps = DB.ReferenceProperties
                         .Where(x => x.VersionId == versionId &&
                                     referencePropertyTypeIds.Contains(x.PropertyTypeId))
-                        .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
+                        .ToDictionary(x => StorageSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
                     foreach (var item in refProps)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Reference));
 
@@ -503,7 +505,7 @@ namespace SenseNet.ContentRepository.InMemory
                     var targetIsTrashBag = NodeType.GetById(targetNode.NodeTypeId)
                         .IsInstaceOfOrDerivedFrom(NodeType.GetByName("TrashBag"));
 
-                    var systemFolderIds = ActiveSchema.NodeTypes
+                    var systemFolderIds = StorageSchema.NodeTypes
                         .Where(x => x.NodeTypePath.Contains("SystemFolder"))
                         .Select(x => x.Id)
                         .ToArray();
@@ -997,7 +999,7 @@ namespace SenseNet.ContentRepository.InMemory
                     throw new ArgumentNullException(nameof(referenceName));
                 if (referenceName.Length == 0)
                     throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
-                var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+                var referenceProperty = StorageSchema.PropertyTypes[referenceName];
                 if (referenceProperty == null)
                     throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
 
@@ -1034,7 +1036,7 @@ namespace SenseNet.ContentRepository.InMemory
             lock (DB)
             {
                 var permeableList = new[] { "Folder", "Page" }
-                    .Select(x => ActiveSchema.NodeTypes[x])
+                    .Select(x => StorageSchema.NodeTypes[x])
                     .Where(x => x != null)
                     .Select(x => x.Id)
                     .ToList();
@@ -1047,7 +1049,7 @@ namespace SenseNet.ContentRepository.InMemory
                     typeIdList.Add(nodeDoc.NodeTypeId);
                     CollectChildTypesToAllow(nodeDoc, permeableList, typeIdList, cancellationToken);
                 }
-                var result = typeIdList.Distinct().Select(x => ActiveSchema.NodeTypes.GetItemById(x)).ToArray();
+                var result = typeIdList.Distinct().Select(x => StorageSchema.NodeTypes.GetItemById(x)).ToArray();
                 return STT.Task.FromResult((IEnumerable<NodeType>)result);
             }
         }
@@ -1060,7 +1062,7 @@ namespace SenseNet.ContentRepository.InMemory
                 var result = DB.Nodes
                     .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
                                 n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
-                    .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
+                    .Select(n => StorageSchema.ContentListTypes.GetItemById(n.ContentListTypeId))
                     .ToList();
                 return STT.Task.FromResult(result);
             }
@@ -1803,7 +1805,7 @@ namespace SenseNet.ContentRepository.InMemory
                     {
                         LongTextPropertyId = DB.LongTextProperties.GetNextId(),
                         VersionId = dData.VersionId,
-                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id,
+                        PropertyTypeId = StorageSchema.PropertyTypes[propertyType.Name].Id,
                         Length = value.Length,
                         Value = value
                     });
@@ -1821,7 +1823,7 @@ namespace SenseNet.ContentRepository.InMemory
                     {
                         ReferencePropertyId = DB.ReferenceProperties.GetNextId(),
                         VersionId = dData.VersionId,
-                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id,
+                        PropertyTypeId = StorageSchema.PropertyTypes[propertyType.Name].Id,
                         Value = value
                     });
                 }
@@ -1839,7 +1841,7 @@ namespace SenseNet.ContentRepository.InMemory
                         BinaryPropertyId = binProp.Id,
                         FileId = binProp.FileId,
                         VersionId = dData.VersionId,
-                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
+                        PropertyTypeId = StorageSchema.PropertyTypes[propertyType.Name].Id
                     });
 
                     var blobProviderName = binProp.BlobProviderName;

@@ -95,8 +95,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var contentListCount = ActiveSchema.ContentListTypes.Count;
-                var propertyCount = ActiveSchema.PropertyTypes.Count;
+                var contentListCount = Providers.Instance.StorageSchema.ContentListTypes.Count;
+                var propertyCount = Providers.Instance.StorageSchema.PropertyTypes.Count;
 
                 var aspect = EnsureAspect(Guid.NewGuid().ToString());
                 aspect.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
@@ -107,8 +107,8 @@ namespace SenseNet.ContentRepository.Tests
 </AspectDefinition>";
                 aspect.Save();
 
-                Assert.IsTrue(ActiveSchema.ContentListTypes.Count == contentListCount, "ContentListType is created.");
-                Assert.IsTrue(ActiveSchema.PropertyTypes.Count == propertyCount, "PropertyTypes are created.");
+                Assert.IsTrue(Providers.Instance.StorageSchema.ContentListTypes.Count == contentListCount, "ContentListType is created.");
+                Assert.IsTrue(Providers.Instance.StorageSchema.PropertyTypes.Count == propertyCount, "PropertyTypes are created.");
             });
         }
         [TestMethod]

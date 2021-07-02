@@ -2,6 +2,7 @@
 using SenseNet.ContentRepository.Storage.Schema;
 using System;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Parser
@@ -94,7 +95,7 @@ namespace SenseNet.Search.Parser
     {
         internal static NodeType GetNodeType(string termValue)
         {
-            var nodeType = SenseNet.ContentRepository.Storage.ActiveSchema.NodeTypes.Where(n => n.Name.ToLower() == termValue).FirstOrDefault();
+            var nodeType = Providers.Instance.StorageSchema.NodeTypes.Where(n => n.Name.ToLower() == termValue).FirstOrDefault();
             if (nodeType == null)
                 throw new ApplicationException("Type is not found: " + termValue);
             return nodeType;

@@ -192,7 +192,7 @@ namespace SenseNet.Services.WebDav
                 {
                     WebDavProvider.Current.AssertCreateContent(parentNode.Path, fileName, contentType);
 
-                    var nodeType = ActiveSchema.NodeTypes[contentType];
+                    var nodeType = Providers.Instance.StorageSchema.NodeTypes[contentType];
                     var specialFile = nodeType.CreateInstance(parentNode) as IFile;
 
                     if (specialFile == null)
@@ -279,7 +279,7 @@ namespace SenseNet.Services.WebDav
                     {
                         WebDavProvider.Current.AssertCreateContent(parentPath, fileName, ctName);
 
-                        var nodeType = ActiveSchema.NodeTypes[ctName];
+                        var nodeType = Providers.Instance.StorageSchema.NodeTypes[ctName];
                         node = nodeType.CreateInstance(parentNode);
                         node.Name = fileName;
                     }

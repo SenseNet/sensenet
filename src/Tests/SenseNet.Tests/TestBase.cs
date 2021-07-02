@@ -85,7 +85,7 @@ namespace SenseNet.Tests
         {
             Cache.Reset();
             ContentTypeManager.Reset();
-            Providers.Instance.NodeTypeManeger = null;
+            Providers.Instance.StorageSchema = null;
             Providers.Instance.ResetBlobProviders();
 
             OnTestInitialize();

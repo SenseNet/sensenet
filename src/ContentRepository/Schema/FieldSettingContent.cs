@@ -323,7 +323,7 @@ namespace SenseNet.ContentRepository.Schema
 
             var nt = fieldSetting.GetType();
 
-            while (ActiveSchema.NodeTypes[nt.Name] == null)
+            while (Providers.Instance.StorageSchema.NodeTypes[nt.Name] == null)
             {
                 nt = nt.BaseType;
             }

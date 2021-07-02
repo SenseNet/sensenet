@@ -2382,7 +2382,7 @@ namespace SenseNet.ContentRepository
                 // NUMBER
                 if (result != null && content.Fields[_fieldName] is NumberField)
                 {
-                    if ((decimal)result == ActiveSchema.DecimalMinValue)
+                    if ((decimal)result == Providers.Instance.StorageSchema.DecimalMinValue)
                         return null;
                 }
 

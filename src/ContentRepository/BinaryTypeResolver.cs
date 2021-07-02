@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -21,7 +22,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException("binaryData");
 
             // TODO: Resolve correct File subtype by the SenseNet.ContentRepository.Storage.MimeTable
-            _nodeType = ActiveSchema.NodeTypes[typeof(File).Name];
+            _nodeType = Providers.Instance.StorageSchema.NodeTypes[typeof(File).Name];
             if(_nodeType == null)
             {
                 // Unknown type
