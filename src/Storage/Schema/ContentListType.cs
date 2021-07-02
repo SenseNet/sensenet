@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
 		public static ContentListType GetByName(string contentListTypeName)
 		{
-            return Providers.Instance.ActiveSchema.ContentListTypes[contentListTypeName];
+            return Providers.Instance.StorageSchema.ContentListTypes[contentListTypeName];
 		}
 	}
 }

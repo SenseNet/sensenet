@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Fields
 			if (handlerValues[1] != null)
 				result.When = (DateTime)handlerValues[1];
 			else
-				result.When = Providers.Instance.ActiveSchema.DateTimeMinValue;
+				result.When = Providers.Instance.StorageSchema.DateTimeMinValue;
 
 			return result;
 		}

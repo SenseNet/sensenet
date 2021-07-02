@@ -664,7 +664,7 @@ namespace SenseNet.ContentRepository
             }
             else
             {
-                var settingsType = Providers.Instance.ActiveSchema.NodeTypes["Settings"];
+                var settingsType = Providers.Instance.StorageSchema.NodeTypes["Settings"];
 
                 // query content without outer search engine
                 var nqResult = NodeQuery.QueryNodesByTypeAndPathAndName(settingsType, false, rootpath, false, name);

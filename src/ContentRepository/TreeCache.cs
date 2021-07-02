@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository
         {
             public static List<TNode> LoadItemsByContentType(string contentTypeName)
             {
-                var nodeType = Providers.Instance.ActiveSchema.NodeTypes[contentTypeName];
+                var nodeType = Providers.Instance.StorageSchema.NodeTypes[contentTypeName];
                 if (nodeType == null)
                     return new List<TNode>();
 

@@ -26,7 +26,7 @@ namespace SenseNet.IntegrationTests.TestCases
     /// </remarks>
     public class DataProviderUnitTestCases : TestCaseBase
     {
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
         private void DataProviderUnitTest(IEnumerable<int> nodes, IEnumerable<int> versions, Action<IEnumerable<int>, IEnumerable<int>> cleanup, Action callback)
         {
             try
@@ -147,8 +147,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Load", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -183,8 +183,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Load", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -226,8 +226,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Update", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -267,8 +267,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Update3to0", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -307,8 +307,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Update0to3", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -348,8 +348,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_NewVersionAndUpdate", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -401,8 +401,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_Update3to0", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 
@@ -440,8 +440,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var schema = CreateSchema("UT_RefProp_NewVersionAndUpdate", out var nodeType, out var propType);
                 using (new Swindler<string>(schema.ToXml(),
-                    () => ActiveSchema.NodeTypeManager.ToXml(),
-                    value => ActiveSchema.NodeTypeManager.Load(value)))
+                    () => StorageSchema.NodeTypeManager.ToXml(),
+                    value => StorageSchema.NodeTypeManager.Load(value)))
                 {
                     var dp = Providers.Instance.DataProvider;
 

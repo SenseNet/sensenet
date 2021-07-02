@@ -24,7 +24,7 @@ namespace SenseNet.Tests.Core
             var actualProps = (Dictionary<int, object>)(new ObjectAccessor(actual).GetField("dynamicData"));
 
             // Compare signatures
-            var schema = Providers.Instance.ActiveSchema;
+            var schema = Providers.Instance.StorageSchema;
             var expectedSignature = expectedProps.Keys.OrderBy(y => y).ToArray();
             var actualSignature = actualProps.Keys.OrderBy(y => y).ToArray();
             var expectedNames = expectedProps.Keys.Select(x => schema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();

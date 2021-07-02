@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Schema.Metadata
 
         public bool IsInstaceOfOrDerivedFrom(string contentTypeName)
         {
-            return Providers.Instance.ActiveSchema.NodeTypes[Name].IsInstaceOfOrDerivedFrom(contentTypeName);
+            return Providers.Instance.StorageSchema.NodeTypes[Name].IsInstaceOfOrDerivedFrom(contentTypeName);
         }
     }
     public class Property : IMetaNode

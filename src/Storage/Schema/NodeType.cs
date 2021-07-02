@@ -201,12 +201,12 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         public static NodeType GetByName(string nodeTypeName)
         {
-            return Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName];
+            return Providers.Instance.StorageSchema.NodeTypes[nodeTypeName];
         }
 
         public static NodeType GetById(int nodeTypeId)
         {
-            return Providers.Instance.ActiveSchema.NodeTypes.GetItemById(nodeTypeId);
+            return Providers.Instance.StorageSchema.NodeTypes.GetItemById(nodeTypeId);
         }
 
         // -------------------------------------------------------------------------------- Node Factory
@@ -218,7 +218,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             if (nodeTypeName.Length == 0)
                 throw new ArgumentOutOfRangeException("nodeTypeName", "Argument cannot be empty");
 
-            NodeType nodeType = Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName];
+            NodeType nodeType = Providers.Instance.StorageSchema.NodeTypes[nodeTypeName];
             if (nodeType == null)
                 throw new ApplicationException(String.Concat("NodeType not found: ", nodeTypeName));
 

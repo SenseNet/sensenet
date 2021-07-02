@@ -32,7 +32,7 @@ namespace SenseNet.IntegrationTests.TestCases
     public class DataProviderTestCases : TestCaseBase
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
         
         // ReSharper disable once InconsistentNaming
         protected DataProvider DP => DataStore.DataProvider;
@@ -573,7 +573,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var nearlyLongText = new string('a', DataStore.TextAlternationSizeLimit - 10);
                 var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
-                var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
+                var descriptionPropertyType = StorageSchema.PropertyTypes["Description"];
 
                 // ACTION-1a: Creation with text that shorter than the magic limit
                 var root = new SystemFolder(Repository.Root)
@@ -612,7 +612,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var nearlyLongText1 = new string('a', DataStore.TextAlternationSizeLimit - 10);
                 var nearlyLongText2 = new string('b', DataStore.TextAlternationSizeLimit - 10);
                 var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
-                var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
+                var descriptionPropertyType = StorageSchema.PropertyTypes["Description"];
 
                 // ACTION-1: Creation with text that shorter than the magic limit
                 var root = new SystemFolder(Repository.Root)
@@ -700,8 +700,8 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 // ALIGN-1
-                ActiveSchema.Reset();
-                var contentLlistTypeCountBefore = ActiveSchema.ContentListTypes.Count;
+                StorageSchema.Reset();
+                var contentLlistTypeCountBefore = StorageSchema.ContentListTypes.Count;
                 var root = CreateTestRoot();
 
                 // ACTION-1
@@ -710,7 +710,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ASSERT-1
                 Assert.IsNotNull(result1);
                 Assert.AreEqual(0, result1.Count);
-                Assert.AreEqual(contentLlistTypeCountBefore, ActiveSchema.ContentListTypes.Count);
+                Assert.AreEqual(contentLlistTypeCountBefore, StorageSchema.ContentListTypes.Count);
 
                 // ALIGN-2
                 // Creation
@@ -721,10 +721,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 var result2 = await DP.GetContentListTypesInTreeAsync(root.Path, CancellationToken.None);
 
                 // ASSERT
-                Assert.AreEqual(contentLlistTypeCountBefore + 1, ActiveSchema.ContentListTypes.Count);
+                Assert.AreEqual(contentLlistTypeCountBefore + 1, StorageSchema.ContentListTypes.Count);
                 Assert.IsNotNull(result2);
                 Assert.AreEqual(1, result2.Count);
-                Assert.AreEqual(ActiveSchema.ContentListTypes.Last().Id, result2[0].Id);
+                Assert.AreEqual(StorageSchema.ContentListTypes.Last().Id, result2[0].Id);
             });
         }
 
@@ -1030,8 +1030,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
                 var expectedAggregated = expectedFolderCount + expectedSystemFolderCount;
 
-                var folderTypeTypeId = ActiveSchema.NodeTypes["Folder"].Id;
-                var systemFolderTypeTypeId = ActiveSchema.NodeTypes["SystemFolder"].Id;
+                var folderTypeTypeId = StorageSchema.NodeTypes["Folder"].Id;
+                var systemFolderTypeTypeId = StorageSchema.NodeTypes["SystemFolder"].Id;
 
                 // ACTION-1
                 var actualFolderCount1 = await DP.InstanceCountAsync(new[] { folderTypeTypeId }, CancellationToken.None);
@@ -1100,8 +1100,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var rcsa = new SystemFolder(rcs) { Name = "A" }; rcsa.Save();
                 var rcsb = new SystemFolder(rcs) { Name = "B" }; rcsb.Save();
 
-                var typeF = ActiveSchema.NodeTypes["Folder"].Id;
-                var typeS = ActiveSchema.NodeTypes["SystemFolder"].Id;
+                var typeF = StorageSchema.NodeTypes["Folder"].Id;
+                var typeS = StorageSchema.NodeTypes["SystemFolder"].Id;
 
                 // ACTION-1 (type: 1, path: 1, name: -)
                 var nodeTypeIds = new[] { typeF };
@@ -1219,8 +1219,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var rcsb = new GenericContent(rcs, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
                 rcsb.Save();
 
-                var type1 = ActiveSchema.NodeTypes[contentType1].Id;
-                var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+                var type1 = StorageSchema.NodeTypes[contentType1].Id;
+                var type2 = StorageSchema.NodeTypes[contentType2].Id;
                 var property1 = new List<QueryPropertyData>
                     {new QueryPropertyData {PropertyName = "Int", QueryOperator = Operator.Equal, Value = 42}};
                 var property2 = new List<QueryPropertyData>
@@ -1334,8 +1334,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var n4 = new GenericContent(root, contentType2) {Name = "N4", ["Ref"] = r2};
                 n4.Save();
 
-                var type1 = ActiveSchema.NodeTypes[contentType1].Id;
-                var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+                var type1 = StorageSchema.NodeTypes[contentType1].Id;
+                var type2 = StorageSchema.NodeTypes[contentType2].Id;
 
                 // ACTION-1 (type: T1, ref: R1)
                 var result =
@@ -1456,8 +1456,8 @@ namespace SenseNet.IntegrationTests.TestCases
 
             await IntegrationTestAsync(async () =>
             {
-                var fileNodeType = ActiveSchema.NodeTypes["File"];
-                var systemFolderType = ActiveSchema.NodeTypes["SystemFolder"];
+                var fileNodeType = StorageSchema.NodeTypes["File"];
+                var systemFolderType = StorageSchema.NodeTypes["SystemFolder"];
 
                 // ARRANGE
                 CreateStructure();

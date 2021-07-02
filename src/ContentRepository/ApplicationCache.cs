@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository
         {
             if (locked)
                 return empty;
-            if (Providers.Instance.ActiveSchema.NodeTypes["ApplicationCacheFile"] == null)
+            if (Providers.Instance.StorageSchema.NodeTypes["ApplicationCacheFile"] == null)
                 return empty;
 
             var file = LoadCacheFile(appTypeName);
@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository
         }
         private List<string> SearchData(string appTypeName)
         {
-            var result = NodeQuery.QueryNodesByTypeAndPathAndName(Providers.Instance.ActiveSchema.NodeTypes["Folder"],
+            var result = NodeQuery.QueryNodesByTypeAndPathAndName(Providers.Instance.StorageSchema.NodeTypes["Folder"],
                 false, null, false, appTypeName);
 
             var data = new List<string>();

@@ -52,7 +52,7 @@ namespace  SenseNet.ContentRepository.Schema
         private bool? _previewEnabled;
         private bool? _indexingEnabled;
 
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         // ====================================================================== Node interface: Properties
 
@@ -304,7 +304,7 @@ namespace  SenseNet.ContentRepository.Schema
                 }
 
                 return from fs in fsList
-                       where ActiveSchema.NodeTypes[fs.GetType().Name] != null
+                       where StorageSchema.NodeTypes[fs.GetType().Name] != null
                        select new FieldSettingContent(fs.GetEditable(), this) as Node;
             }
         }
@@ -830,7 +830,7 @@ namespace  SenseNet.ContentRepository.Schema
         private static bool IsDeletable(ContentType contentType)
         {
             // Returns false if there is a Node which is inherited from passed ContentType or its descendant.
-            NodeType nodeType = Providers.Instance.ActiveSchema.NodeTypes[contentType.Name];
+            NodeType nodeType = Providers.Instance.StorageSchema.NodeTypes[contentType.Name];
             if (nodeType == null)
                 return true;
             return NodeQuery.InstanceCount(nodeType, false) == 0;
@@ -916,7 +916,7 @@ namespace  SenseNet.ContentRepository.Schema
                     names.Add(name.ToLower(), name);
                 }
             }
-            foreach (PropertyType propType in Providers.Instance.ActiveSchema.PropertyTypes)
+            foreach (PropertyType propType in Providers.Instance.StorageSchema.PropertyTypes)
             {
                 string newName;
                 if (names.TryGetValue(propType.Name.ToLower(), out newName))

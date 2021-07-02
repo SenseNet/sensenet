@@ -408,7 +408,7 @@ namespace SenseNet.ContentRepository.Fields
 
         private List<string> CollectExactTypeNames(List<string> rootTypeNames)
         {
-            var schema = Providers.Instance.ActiveSchema;
+            var schema = Providers.Instance.StorageSchema;
             var allowedTypeNames = new List<string>();
             foreach (string typeName in rootTypeNames)
             {

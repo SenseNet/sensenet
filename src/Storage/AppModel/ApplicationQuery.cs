@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         public IEnumerable<NodeHead> ResolveApplication(string appName, NodeHead contextNode)
         {
-            return ResolveApplications(appName, contextNode.Path, Providers.Instance.ActiveSchema.NodeTypes.GetItemById(contextNode.NodeTypeId));
+            return ResolveApplications(appName, contextNode.Path, Providers.Instance.StorageSchema.NodeTypes.GetItemById(contextNode.NodeTypeId));
         }
         public IEnumerable<NodeHead> ResolveApplications(string appName, Node contextNode)
         {
@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         }
         public IEnumerable<NodeHead> ResolveApplications(string appName, string contextNodePath, string nodeTypeName)
         {
-            return ResolveApplications(appName, contextNodePath, Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName]);
+            return ResolveApplications(appName, contextNodePath, Providers.Instance.StorageSchema.NodeTypes[nodeTypeName]);
         }
         public IEnumerable<NodeHead> ResolveApplications(string appName, string contextNodePath, NodeType nodeType)
         {
@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         public IEnumerable<string> GetAvailablePaths(string appName, NodeHead contextNode)
         {
-            return GetAvailablePaths(appName, contextNode.Path, Providers.Instance.ActiveSchema.NodeTypes.GetItemById(contextNode.NodeTypeId));
+            return GetAvailablePaths(appName, contextNode.Path, Providers.Instance.StorageSchema.NodeTypes.GetItemById(contextNode.NodeTypeId));
         }
         public IEnumerable<string> GetAvailablePaths(string appName, Node contextNode)
         {
@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         }
         public IEnumerable<string> GetAvailablePaths(string appName, string contextNodePath, string nodeTypeName)
         {
-            return GetAvailablePaths(appName, contextNodePath, Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName]);
+            return GetAvailablePaths(appName, contextNodePath, Providers.Instance.StorageSchema.NodeTypes[nodeTypeName]);
         }
         public IEnumerable<string> GetAvailablePaths(string appName, string contextNodePath, NodeType nodeType)
         {

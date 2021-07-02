@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository
                 {
                     var dueDate = this.GetProperty<DateTime>("DueDate");
 
-                    return dueDate.Year < Providers.Instance.ActiveSchema.DateTimeMinValue.Year ? 0 : Math.Abs((dueDate - DateTime.Today).Days);
+                    return dueDate.Year < Providers.Instance.StorageSchema.DateTimeMinValue.Year ? 0 : Math.Abs((dueDate - DateTime.Today).Days);
                 }
                 catch (Exception ex)
                 {

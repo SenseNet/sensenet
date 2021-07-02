@@ -274,7 +274,7 @@ WHERE Path = '{path}'";
 
         public async Task<object> GetPropertyValueAsync(int versionId, string name)
         {
-            var propertyType = Providers.Instance.ActiveSchema.PropertyTypes[name];
+            var propertyType = Providers.Instance.StorageSchema.PropertyTypes[name];
             if (propertyType == null)
                 throw new ArgumentException("Unknown property");
 
@@ -357,7 +357,7 @@ WHERE Path = '{path}'";
 
         public async Task UpdateDynamicPropertyAsync(int versionId, string name, object value)
         {
-            var pt = Providers.Instance.ActiveSchema.PropertyTypes[name];
+            var pt = Providers.Instance.StorageSchema.PropertyTypes[name];
             switch (pt.DataType)
             {
                 case DataType.Text:

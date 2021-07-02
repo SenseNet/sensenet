@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Fields
     [DefaultFieldControl("SenseNet.Portal.UI.Controls.DatePicker")]
     public class DateTimeField : Field
     {
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
         private static CultureInfo _defaultUICulture;
         public static CultureInfo DefaultUICulture
         {
@@ -44,11 +44,11 @@ namespace SenseNet.ContentRepository.Fields
         {
             if (String.IsNullOrEmpty(fieldNode.InnerXml))
             {
-                this.SetData(ActiveSchema.DateTimeMinValue);
+                this.SetData(StorageSchema.DateTimeMinValue);
                 return;
             }
             DateTime value = Convert.ToDateTime(fieldNode.InnerXml);
-            this.SetData(value < ActiveSchema.DateTimeMinValue ? ActiveSchema.DateTimeMinValue : value);
+            this.SetData(value < StorageSchema.DateTimeMinValue ? StorageSchema.DateTimeMinValue : value);
         }
 
         public override void SetData(object value)

@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
@@ -504,7 +504,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 {
                                     var binId = reader.GetInt32("BinaryPropertyId");
                                     var propId = reader.GetInt32("PropertyTypeId");
-                                    var propertyType = ActiveSchema.PropertyTypes.GetItemById(propId);
+                                    var propertyType = StorageSchema.PropertyTypes.GetItemById(propId);
                                     if (propertyType != null)
                                         if (dynamicData.BinaryProperties.TryGetValue(propertyType, out var binaryData))
                                             binaryData.Id = binId;
@@ -829,7 +829,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var p = src.IndexOf(':');
             var propertyName = src.Substring(0, p);
             var stringValue = src.Substring(p + 1);
-            var propertyType = ActiveSchema.PropertyTypes[propertyName];
+            var propertyType = StorageSchema.PropertyTypes[propertyName];
             if (propertyType == null)
                 return (null, null);
             object value;
@@ -1285,7 +1285,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new ArgumentNullException(nameof(referenceName));
             if (referenceName.Length == 0)
                 throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
-            var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+            var referenceProperty = StorageSchema.PropertyTypes[referenceName];
             if (referenceProperty == null)
                 throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
             var referencePropertyId = referenceProperty.Id;
@@ -1347,7 +1347,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cancel.ThrowIfCancellationRequested();
                             var name = (string) reader[0];
-                            var nt = ActiveSchema.NodeTypes[name];
+                            var nt = StorageSchema.NodeTypes[name];
                             if (nt != null)
                                 result.Add(nt);
                         }
@@ -1372,7 +1372,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cancel.ThrowIfCancellationRequested();
                             var id = reader.GetInt32(0);
-                            var t = ActiveSchema.ContentListTypes.GetItemById(id);
+                            var t = StorageSchema.ContentListTypes.GetItemById(id);
                             result.Add(t);
                         }
                         return result;

@@ -293,7 +293,7 @@ namespace SenseNet.ContentRepository
             {
                 // Find aspect via node query.
                 // DO NOT replace this call with either Linq or Content Query for the reasons detailed above!
-                var result = NodeQuery.QueryNodesByTypeAndName(Providers.Instance.ActiveSchema.NodeTypes[typeof(Aspect).Name], false, name);
+                var result = NodeQuery.QueryNodesByTypeAndName(Providers.Instance.StorageSchema.NodeTypes[typeof(Aspect).Name], false, name);
                 aspect = result.Nodes.FirstOrDefault() as Aspect;
 
                 // If not found, return null

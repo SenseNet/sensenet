@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Storage
     public class NodeData
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         private Stopwatch _savingTimer;
 
@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             lock (_readPropertySync)
             {
-                var changedPropertyTypes = dynamicData.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x)).ToArray();
+                var changedPropertyTypes = dynamicData.Keys.Select(x => StorageSchema.PropertyTypes.GetItemById(x)).ToArray();
                 var binaryTypes =
                     (allBinaries ? (IEnumerable<PropertyType>) PropertyTypes : changedPropertyTypes)
                     .Where(pt => pt.DataType == DataType.Binary).ToArray();
@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             lock (_readPropertySync)
                 return new ReadOnlyDictionary<string, object>(
-                    dynamicData.ToDictionary(x => ActiveSchema.PropertyTypes[x.Key].Name, x => x.Value));
+                    dynamicData.ToDictionary(x => StorageSchema.PropertyTypes[x.Key].Name, x => x.Value));
         }
         public IDictionary<int, object> GetDynamicDataIdKey()
         {
@@ -217,7 +217,7 @@ namespace SenseNet.ContentRepository.Storage
                 var sharedDynamicData = this._sharedData.dynamicData;
                 foreach (var propId in dynamicData.Keys)
                 {
-                    var propType = ActiveSchema.PropertyTypes.GetItemById(propId);
+                    var propType = StorageSchema.PropertyTypes.GetItemById(propId);
                     var origData = sharedDynamicData[propId];
                     var privData = dynamicData[propId];
                     if (RelevantChange(origData, privData, propType.DataType))
@@ -252,15 +252,15 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         public NodeData(int nodeTypeId, int contentListTypeId)
-            : this(Providers.Instance.ActiveSchema.NodeTypes.GetItemById(nodeTypeId),
-                Providers.Instance.ActiveSchema.ContentListTypes.GetItemById(contentListTypeId)) { }
+            : this(Providers.Instance.StorageSchema.NodeTypes.GetItemById(nodeTypeId),
+                Providers.Instance.StorageSchema.ContentListTypes.GetItemById(contentListTypeId)) { }
         public NodeData(NodeType nodeType, ContentListType contentListType)
         {
             staticDataIsModified = new bool[StaticDataSlotCount];
             staticData = new object[StaticDataSlotCount];
             NodeTypeId = nodeType.Id;
 
-            PropertyTypes = ActiveSchema.GetDynamicSignature(nodeType.Id, contentListType?.Id ?? 0);
+            PropertyTypes = StorageSchema.GetDynamicSignature(nodeType.Id, contentListType?.Id ?? 0);
             TextPropertyIds = PropertyTypes.Where(p => p.DataType == DataType.Text).Select(p => p.Id).ToArray();
 
             dynamicData = new Dictionary<int, object>();
@@ -671,7 +671,7 @@ namespace SenseNet.ContentRepository.Storage
             if (Enum.TryParse<StaticDataSlot>(propertyName, out slot))
                 return staticDataIsModified[(int)slot];
 
-            var propType = ActiveSchema.PropertyTypes[propertyName];
+            var propType = StorageSchema.PropertyTypes[propertyName];
             if (propType == null)
                 throw Exception_PropertyNotFound(propertyName);
 
@@ -868,7 +868,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 foreach (var propTypeId in dynamicData.Keys.ToArray())
                 {
-                    var propType = ActiveSchema.PropertyTypes.GetItemById(propTypeId);
+                    var propType = StorageSchema.PropertyTypes.GetItemById(propTypeId);
                     if (propType != null)
                     {
                         if (propType.DataType == DataType.Binary)
@@ -935,14 +935,14 @@ namespace SenseNet.ContentRepository.Storage
         internal static Exception Exception_PropertyNotFound(string name, string typeName)
         {
             var tn = string.IsNullOrEmpty(typeName) ? string.Empty : ". Content type name: " + typeName;
-            var propType = Providers.Instance.ActiveSchema.PropertyTypes[name];
+            var propType = Providers.Instance.StorageSchema.PropertyTypes[name];
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Name: " + name + tn);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", name, tn));
         }
         internal static Exception Exception_PropertyNotFound(int propTypeId)
         {
-            var propType = Providers.Instance.ActiveSchema.PropertyTypes.GetItemById(propTypeId);
+            var propType = Providers.Instance.StorageSchema.PropertyTypes.GetItemById(propTypeId);
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Id: " + propTypeId);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", propType.Name));
@@ -977,7 +977,7 @@ namespace SenseNet.ContentRepository.Storage
             var sharedDynamicData = this._sharedData.dynamicData;
             foreach (var propId in dynamicData.Keys)
             {
-                var propType = ActiveSchema.PropertyTypes.GetItemById(propId);
+                var propType = StorageSchema.PropertyTypes.GetItemById(propId);
                 var origData = sharedDynamicData[propId];
                 var privData = dynamicData[propId];
                 if (RelevantChange(origData, privData, propType.DataType))
@@ -1056,7 +1056,7 @@ namespace SenseNet.ContentRepository.Storage
 
             foreach (var key in dynamicData.Keys)
             {
-                var propType = ActiveSchema.PropertyTypes.GetItemById(key);
+                var propType = StorageSchema.PropertyTypes.GetItemById(key);
                 if (propType != null)
                     values.Add(propType.Name.Replace("#", "_"), FormatDynamicData(dynamicData[key] ?? string.Empty, propType.DataType));
             }
@@ -1178,7 +1178,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         private string FormatNodeType(int id)
         {
-            var nt = ActiveSchema.NodeTypes.GetItemById(id);
+            var nt = StorageSchema.NodeTypes.GetItemById(id);
             if (nt == null)
                 return string.Empty;
             return nt.Name;

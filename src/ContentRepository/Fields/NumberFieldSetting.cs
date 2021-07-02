@@ -30,8 +30,8 @@ namespace SenseNet.ContentRepository.Fields
         private decimal _slotMinValue;
         private decimal _slotMaxValue;
 
-        private decimal DecimalMinValue => Providers.Instance.ActiveSchema.DecimalMinValue;
-        private decimal DecimalMaxValue => Providers.Instance.ActiveSchema.DecimalMaxValue;
+        private decimal DecimalMinValue => Providers.Instance.StorageSchema.DecimalMinValue;
+        private decimal DecimalMaxValue => Providers.Instance.StorageSchema.DecimalMaxValue;
 
         public decimal? MinValue
 		{

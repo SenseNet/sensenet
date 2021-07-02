@@ -15,7 +15,7 @@ namespace SenseNet.IntegrationTests.TestCases
     {
         // ReSharper disable once InconsistentNaming
         protected DataProvider DP => Providers.Instance.DataStore.DataProvider;
-        protected ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        protected StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         /* ============================================================================== PropertyType */
 
@@ -35,10 +35,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                ActiveSchema.Reload();
+                StorageSchema.Reload();
 
-                Assert.AreEqual(propertyTypeCountBefore + 1, ActiveSchema.PropertyTypes.Count);
-                var propType = ActiveSchema.PropertyTypes[propertyTypeName];
+                Assert.AreEqual(propertyTypeCountBefore + 1, StorageSchema.PropertyTypes.Count);
+                var propType = StorageSchema.PropertyTypes[propertyTypeName];
                 Assert.AreEqual(propertyTypeName, propType.Name);
                 Assert.AreEqual(lastPropertyTypeId + 1, propType.Id);
                 Assert.AreEqual(DataType.String, propType.DataType);
@@ -62,8 +62,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(propertyTypeCountBefore + 1, ActiveSchema.PropertyTypes.Count);
-                var propType = ActiveSchema.PropertyTypes[propertyTypeName];
+                Assert.AreEqual(propertyTypeCountBefore + 1, StorageSchema.PropertyTypes.Count);
+                var propType = StorageSchema.PropertyTypes[propertyTypeName];
                 Assert.AreEqual(lastPropertyTypeId + 1, propType.Id);
                 Assert.AreEqual(propertyTypeName, propType.Name);
                 Assert.AreEqual(DataType.String, propType.DataType);
@@ -83,8 +83,8 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 ed.CreatePropertyType(propertyTypeName, DataType.String, mapping);
                 ed.Register();
-                Assert.AreEqual(propertyTypeCountBefore + 1, ActiveSchema.PropertyTypes.Count);
-                Assert.IsNotNull(ActiveSchema.PropertyTypes[propertyTypeName]);
+                Assert.AreEqual(propertyTypeCountBefore + 1, StorageSchema.PropertyTypes.Count);
+                Assert.IsNotNull(StorageSchema.PropertyTypes[propertyTypeName]);
 
                 // ACTION
                 ed = new SchemaEditor();
@@ -93,8 +93,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(propertyTypeCountBefore, ActiveSchema.PropertyTypes.Count);
-                Assert.IsNull(ActiveSchema.PropertyTypes[propertyTypeName]);
+                Assert.AreEqual(propertyTypeCountBefore, StorageSchema.PropertyTypes.Count);
+                Assert.IsNull(StorageSchema.PropertyTypes[propertyTypeName]);
             });
         }
 
@@ -130,8 +130,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var ed = new SchemaEditor();
                 ed.Load();
-                var nodeTypeCountBefore = ActiveSchema.NodeTypes.Count;
-                var lastNodeTypeId = ActiveSchema.NodeTypes.Max(x => x.Id);
+                var nodeTypeCountBefore = StorageSchema.NodeTypes.Count;
+                var lastNodeTypeId = StorageSchema.NodeTypes.Max(x => x.Id);
                 var nodeTypeName = "NT1-" + Guid.NewGuid();
                 var className = "NT1Class";
 
@@ -140,8 +140,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(nodeTypeCountBefore + 1, ActiveSchema.NodeTypes.Count);
-                var nodeType = ActiveSchema.NodeTypes[nodeTypeName];
+                Assert.AreEqual(nodeTypeCountBefore + 1, StorageSchema.NodeTypes.Count);
+                var nodeType = StorageSchema.NodeTypes[nodeTypeName];
                 Assert.AreEqual(lastNodeTypeId + 1, nodeType.Id);
                 Assert.AreEqual(nodeTypeName, nodeType.Name);
                 Assert.AreEqual(null, nodeType.Parent);
@@ -154,8 +154,8 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var ed = new SchemaEditor();
                 ed.Load();
-                var nodeTypeCountBefore = ActiveSchema.NodeTypes.Count;
-                var lastNodeTypeId = ActiveSchema.NodeTypes.Max(x => x.Id);
+                var nodeTypeCountBefore = StorageSchema.NodeTypes.Count;
+                var lastNodeTypeId = StorageSchema.NodeTypes.Max(x => x.Id);
                 var nodeTypeName1 = "NT1-" + Guid.NewGuid();
                 var nodeTypeName2 = "NT2-" + Guid.NewGuid();
                 var className1 = "NT0Class";
@@ -167,13 +167,13 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(nodeTypeCountBefore + 2, ActiveSchema.NodeTypes.Count);
-                var nodeType1 = ActiveSchema.NodeTypes[nodeTypeName1];
+                Assert.AreEqual(nodeTypeCountBefore + 2, StorageSchema.NodeTypes.Count);
+                var nodeType1 = StorageSchema.NodeTypes[nodeTypeName1];
                 Assert.AreEqual(lastNodeTypeId + 1, nodeType1.Id);
                 Assert.AreEqual(nodeTypeName1, nodeType1.Name);
                 Assert.AreEqual(null, nodeType1.Parent);
                 Assert.AreEqual(className1, nodeType1.ClassName);
-                var nodeType2 = ActiveSchema.NodeTypes[nodeTypeName2];
+                var nodeType2 = StorageSchema.NodeTypes[nodeTypeName2];
                 Assert.AreEqual(lastNodeTypeId + 2, nodeType2.Id);
                 Assert.AreEqual(nodeTypeName2, nodeType2.Name);
                 Assert.AreEqual(nodeType1, nodeType2.Parent);
@@ -189,8 +189,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var nodeTypeName = "NT1-" + Guid.NewGuid();
                 ed.CreateNodeType(null, nodeTypeName, "NT1Class");
                 ed.Register();
-                var nodeTypeCountBefore = ActiveSchema.NodeTypes.Count;
-                var nodeTypeId = ActiveSchema.NodeTypes[nodeTypeName].Id;
+                var nodeTypeCountBefore = StorageSchema.NodeTypes.Count;
+                var nodeTypeId = StorageSchema.NodeTypes[nodeTypeName].Id;
 
                 // ACTION
                 ed = new SchemaEditor();
@@ -200,8 +200,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(nodeTypeCountBefore, ActiveSchema.NodeTypes.Count);
-                var nodeType = ActiveSchema.NodeTypes[nodeTypeName];
+                Assert.AreEqual(nodeTypeCountBefore, StorageSchema.NodeTypes.Count);
+                var nodeType = StorageSchema.NodeTypes[nodeTypeName];
                 Assert.AreEqual(nodeTypeId, nodeType.Id);
                 Assert.AreEqual(nodeTypeName, nodeType.Name);
                 Assert.AreEqual("NT1Class_modified", nodeType.ClassName);
@@ -216,8 +216,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var nodeTypeName = "NT1-" + Guid.NewGuid();
                 ed.CreateNodeType(null, nodeTypeName, "NT1Class");
                 ed.Register();
-                var nodeTypeCountBefore = ActiveSchema.NodeTypes.Count;
-                var nodeTypeId = ActiveSchema.NodeTypes[nodeTypeName].Id;
+                var nodeTypeCountBefore = StorageSchema.NodeTypes.Count;
+                var nodeTypeId = StorageSchema.NodeTypes[nodeTypeName].Id;
 
                 // ACTION
                 ed = new SchemaEditor();
@@ -227,9 +227,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(nodeTypeCountBefore - 1, ActiveSchema.NodeTypes.Count);
-                Assert.IsNull(ActiveSchema.NodeTypes[nodeTypeName]);
-                Assert.IsNull(ActiveSchema.NodeTypes.GetItemById(nodeTypeId));
+                Assert.AreEqual(nodeTypeCountBefore - 1, StorageSchema.NodeTypes.Count);
+                Assert.IsNull(StorageSchema.NodeTypes[nodeTypeName]);
+                Assert.IsNull(StorageSchema.NodeTypes.GetItemById(nodeTypeId));
             });
         }
 
@@ -250,8 +250,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(contentListTypeCountBefore + 1, ActiveSchema.ContentListTypes.Count);
-                var listType = ActiveSchema.ContentListTypes[contentListTypeName];
+                Assert.AreEqual(contentListTypeCountBefore + 1, StorageSchema.ContentListTypes.Count);
+                var listType = StorageSchema.ContentListTypes[contentListTypeName];
                 Assert.IsTrue(lastContentListTypeId < listType.Id);
                 Assert.AreEqual(contentListTypeName, listType.Name);
             });
@@ -272,7 +272,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.CreateContentListType(contentListTypeName3);
                 ed.CreateContentListType(contentListTypeName4);
                 ed.Register();
-                Assert.AreEqual(contentListTypeCountBefore + 4, ActiveSchema.ContentListTypes.Count);
+                Assert.AreEqual(contentListTypeCountBefore + 4, StorageSchema.ContentListTypes.Count);
 
                 // ACTION
                 ed = new SchemaEditor();
@@ -283,8 +283,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(contentListTypeCountBefore + 1, ActiveSchema.ContentListTypes.Count);
-                var listType = ActiveSchema.ContentListTypes[contentListTypeName3];
+                Assert.AreEqual(contentListTypeCountBefore + 1, StorageSchema.ContentListTypes.Count);
+                var listType = StorageSchema.ContentListTypes[contentListTypeName3];
                 Assert.AreEqual(contentListTypeName3, listType.Name);
             });
         }
@@ -314,7 +314,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                nt = ActiveSchema.NodeTypes[nodeTypeName];
+                nt = StorageSchema.NodeTypes[nodeTypeName];
                 AssertSequenceEqual(
                     new[] { ptName1, ptName2 },
                     nt.PropertyTypes.Select(x => x.Name));
@@ -337,7 +337,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 nt1.AddPropertyType(pt1);
                 ed.Register();
                 // ASSERT-BEFORE
-                Assert.AreEqual(1, ActiveSchema.NodeTypes[nodeTypeName2].PropertyTypes.Count);
+                Assert.AreEqual(1, StorageSchema.NodeTypes[nodeTypeName2].PropertyTypes.Count);
                 var schema = DP.LoadSchemaAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var ntData2 = schema.NodeTypes.First(x => x.Name == nodeTypeName2);
                 Assert.AreEqual(0, ntData2.Properties.Count);
@@ -351,7 +351,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT-AFTER
-                Assert.AreEqual(1, ActiveSchema.NodeTypes[nodeTypeName2].PropertyTypes.Count);
+                Assert.AreEqual(1, StorageSchema.NodeTypes[nodeTypeName2].PropertyTypes.Count);
                 schema = DP.LoadSchemaAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ntData2 = schema.NodeTypes.First(x => x.Name == nodeTypeName2);
                 Assert.AreEqual(1, ntData2.Properties.Count);
@@ -475,7 +475,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 nt0.AddPropertyType(pt1);
                 nt1.AddPropertyType(pt2);
                 ed.Register();
-                Assert.AreEqual(3, ActiveSchema.NodeTypes[nt1.Name].PropertyTypes.Count);
+                Assert.AreEqual(3, StorageSchema.NodeTypes[nt1.Name].PropertyTypes.Count);
 
                 // ACTION
                 ed = new SchemaEditor();
@@ -485,7 +485,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ed.Register();
 
                 // ASSERT
-                Assert.AreEqual(2, ActiveSchema.NodeTypes[nt1.Name].PropertyTypes.Count);
+                Assert.AreEqual(2, StorageSchema.NodeTypes[nt1.Name].PropertyTypes.Count);
             });
         }
 

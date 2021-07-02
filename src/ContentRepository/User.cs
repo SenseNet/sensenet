@@ -429,7 +429,7 @@ namespace SenseNet.ContentRepository
             }
 
             var domainPath = string.Concat(RepositoryStructure.ImsFolderPath, RepositoryPath.PathSeparator, domain);
-            var type = Providers.Instance.ActiveSchema.NodeTypes[typeof(User).Name];
+            var type = Providers.Instance.StorageSchema.NodeTypes[typeof(User).Name];
 
             User user;
             bool forceCql;
@@ -1052,8 +1052,8 @@ namespace SenseNet.ContentRepository
             {
                 identifiers = new List<int>();
 
-                var userType = Providers.Instance.ActiveSchema.NodeTypes["User"];
-                var groupType = Providers.Instance.ActiveSchema.NodeTypes["Group"];
+                var userType = Providers.Instance.StorageSchema.NodeTypes["User"];
+                var groupType = Providers.Instance.StorageSchema.NodeTypes["Group"];
 
                 // For backward compatibility reasons we have to execute up to 4 different 
                 // SQL queries to make sure that the user is unique under a domain.

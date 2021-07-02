@@ -95,7 +95,7 @@ namespace SenseNet.Search.Parser
     {
         internal static NodeType GetNodeType(string termValue)
         {
-            var nodeType = Providers.Instance.ActiveSchema.NodeTypes.Where(n => n.Name.ToLower() == termValue).FirstOrDefault();
+            var nodeType = Providers.Instance.StorageSchema.NodeTypes.Where(n => n.Name.ToLower() == termValue).FirstOrDefault();
             if (nodeType == null)
                 throw new ApplicationException("Type is not found: " + termValue);
             return nodeType;

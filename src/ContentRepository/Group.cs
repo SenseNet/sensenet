@@ -614,7 +614,7 @@ namespace SenseNet.ContentRepository
             var removedIdentities = oldMembers.Except(newMembers);
 
             // I chose collecting arrays over LINQ here because this way we enumerate and load nodeheads only once
-            var schema = Providers.Instance.ActiveSchema;
+            var schema = Providers.Instance.StorageSchema;
             var ntUser = schema.NodeTypes["User"];
             var ntGroup = schema.NodeTypes["Group"];
             var usersToAdd = new List<int>();

@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException("binaryData");
 
             // TODO: Resolve correct File subtype by the SenseNet.ContentRepository.Storage.MimeTable
-            _nodeType = Providers.Instance.ActiveSchema.NodeTypes[typeof(File).Name];
+            _nodeType = Providers.Instance.StorageSchema.NodeTypes[typeof(File).Name];
             if(_nodeType == null)
             {
                 // Unknown type

@@ -594,7 +594,7 @@ namespace SenseNet.Portal.Virtualization
             using (new SystemAccount())
             {
                 var smartUrls = new Dictionary<string, string>();
-                var pageType = Providers.Instance.ActiveSchema.NodeTypes["Page"];
+                var pageType = Providers.Instance.StorageSchema.NodeTypes["Page"];
 
                 // in case only the Services layer is installed, there is no Page type there
                 if (pageType == null)
@@ -690,7 +690,7 @@ namespace SenseNet.Portal.Virtualization
 
                 using (new SystemAccount())
                 {
-                    result = NodeQuery.QueryNodesByType(Providers.Instance.ActiveSchema.NodeTypes[typeof(Site).Name], false);
+                    result = NodeQuery.QueryNodesByType(Providers.Instance.StorageSchema.NodeTypes[typeof(Site).Name], false);
                 }
 
                 _urlPaths = new NameValueCollection(result.Count);

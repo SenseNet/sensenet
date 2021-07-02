@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository.Storage
         private NodeData _data;
         internal NodeData Data => _data;
         private IDataStore DataStore => Providers.Instance.DataStore;
-        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+        private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
 
         private List<INodeOperationValidator> NodeOperationValidators =>
             Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");
@@ -295,7 +295,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual NodeType NodeType
         {
-            get { return ActiveSchema.NodeTypes.GetItemById(_data.NodeTypeId); }
+            get { return StorageSchema.NodeTypes.GetItemById(_data.NodeTypeId); }
         }
         /// <summary>
         /// Gets the nearest <see cref="ContentListType"/> on the ancestor chain.
@@ -306,7 +306,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_data.ContentListTypeId == 0)
                     return null;
-                return ActiveSchema.ContentListTypes.GetItemById(_data.ContentListTypeId);
+                return StorageSchema.ContentListTypes.GetItemById(_data.ContentListTypeId);
             }
             internal set
             {
@@ -1673,11 +1673,11 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeTypeName == null)
                 nodeTypeName = this.GetType().Name;
 
-            var nodeType = ActiveSchema.NodeTypes[nodeTypeName];
+            var nodeType = StorageSchema.NodeTypes[nodeTypeName];
             if (nodeType == null)
             {
                 nodeTypeName = this.GetType().FullName;
-                nodeType = ActiveSchema.NodeTypes[nodeTypeName];
+                nodeType = StorageSchema.NodeTypes[nodeTypeName];
 
                 if (nodeType == null)
                     throw new RegistrationException(String.Concat(SR.Exceptions.Schema.Msg_UnknownNodeType, ": ", nodeTypeName));
@@ -2599,7 +2599,7 @@ namespace SenseNet.ContentRepository.Storage
         private static void FillData(Node node, NodeToken token)
         {
             string typeName = node.GetType().FullName;
-            string typeNameInHead = Providers.Instance.ActiveSchema.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
+            string typeNameInHead = Providers.Instance.StorageSchema.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
             if (typeNameInHead != typeName)
             {
                 var message = String.Concat("Cannot create a ", typeName, " instance because type name is different in the passed head: ", typeNameInHead);

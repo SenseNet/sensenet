@@ -456,7 +456,7 @@ namespace SenseNet.Configuration
         #endregion
 
         //UNDONE:<?schema: reconsider the Providers.Instance.ActivesSchema creation.
-        public ActiveSchema ActiveSchema { get; set; } = new ActiveSchema();
+        public StorageSchema StorageSchema { get; set; } = new StorageSchema();
 
         public ICompatibilitySupport CompatibilitySupport { get; set; } =
             new EmptyCompatibilitySupport();

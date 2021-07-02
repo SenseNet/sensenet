@@ -555,7 +555,7 @@ namespace SenseNet.Preview
 
         private static NodeType GetPreviewImageType()
         {
-            return Providers.Instance.ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            return Providers.Instance.StorageSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
         }
 
         // ===================================================================================================== Server-side interface

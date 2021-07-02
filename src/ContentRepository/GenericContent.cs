@@ -1842,7 +1842,7 @@ namespace SenseNet.ContentRepository
                 var nodes = SearchManager.ContentQueryIsAllowed
                     ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
-                        Providers.Instance.ActiveSchema.NodeTypes["Workflow"], false).Nodes;
+                        Providers.Instance.StorageSchema.NodeTypes["Workflow"], false).Nodes;
 
                 foreach (var workflow in nodes.Cast<GenericContent>())
                 {

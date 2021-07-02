@@ -53,7 +53,7 @@ namespace SenseNet.ApplicationModel
                         // remove current word and insert words of type path
                         if (word != "This")
                         {
-                            var ntype = Providers.Instance.ActiveSchema.NodeTypes[word];
+                            var ntype = Providers.Instance.StorageSchema.NodeTypes[word];
                             if (ntype == null)
                                 return null;
                             var typeNames = ntype.NodeTypePath.Split('/');
@@ -121,7 +121,7 @@ namespace SenseNet.ApplicationModel
                 }
                 typeIndex = result.Count;
 
-                var ntype = Providers.Instance.ActiveSchema.NodeTypes.GetItemById(head.NodeTypeId);
+                var ntype = Providers.Instance.StorageSchema.NodeTypes.GetItemById(head.NodeTypeId);
                 var typeNames = ntype.NodeTypePath.Split('/');
                 foreach (var typeName in typeNames)
                 {

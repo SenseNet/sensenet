@@ -591,7 +591,7 @@ namespace SenseNet.Packaging.Steps
                 // component involved.
                 var orgUnits = new List<OrganizationalUnit> { OrganizationalUnit.Portal }; // built-in orgunit for system groups and users
                 orgUnits.AddRange(NodeQuery.QueryNodesByTypeAndPath(
-                    Providers.Instance.ActiveSchema.NodeTypes["OrganizationalUnit"], false, OrganizationalUnit.Portal.Path, true)
+                    Providers.Instance.StorageSchema.NodeTypes["OrganizationalUnit"], false, OrganizationalUnit.Portal.Path, true)
                     .Nodes.Cast<OrganizationalUnit>());
 
                 foreach (var orgUnit in orgUnits)
