@@ -470,6 +470,75 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
         {
             return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
         }
+
+        public async Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider)
+        {
+            const string sql = @"DELETE FROM StatisticalData
+DELETE FROM StatisticalAggregations
+";
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                await ctx.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider)
+        {
+            const string sql = "SELECT * FROM StatisticalData";
+            var records = new List<IStatisticalDataRecord>();
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(sql, (reader, cancel) =>
+                {
+                    while (reader.Read())
+                    {
+                        var durationIndex = reader.GetOrdinal("Duration");
+                        records.Add(new StatisticalDataRecord
+                        {
+                            Id = reader.GetSafeInt32(reader.GetOrdinal("Id")),
+                            DataType = reader.GetSafeString(reader.GetOrdinal("DataType")),
+                            WrittenTime = reader.GetDateTimeUtc(reader.GetOrdinal("WrittenTime")),
+                            CreationTime = reader.GetDateTimeUtc(reader.GetOrdinal("CreationTime")),
+                            Duration = reader.IsDBNull(durationIndex) ? (TimeSpan?)null : TimeSpan.FromTicks(reader.GetInt64(durationIndex)),
+                            RequestLength = reader.GetLongOrNull("RequestLength"),
+                            ResponseLength = reader.GetLongOrNull("ResponseLength"),
+                            ResponseStatusCode = reader.GetIntOrNull("ResponseStatusCode"),
+                            Url = reader.GetStringOrNull("Url"),
+                            TargetId = reader.GetIntOrNull("TargetId"),
+                            ContentId = reader.GetIntOrNull("ContentId"),
+                            EventName = reader.GetStringOrNull("EventName"),
+                            ErrorMessage = reader.GetStringOrNull("ErrorMessage"),
+                            GeneralData = reader.GetStringOrNull("GeneralData"),
+                        });
+                    }
+                    return Task.FromResult(0);
+                }).ConfigureAwait(false);
+            }
+            return records;
+        }
+
+        public async Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider)
+        {
+            const string sql = "SELECT * FROM StatisticalAggregations";
+            var aggregations = new List<Aggregation>();
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                {
+                    while (await reader.ReadAsync(cancel))
+                    {
+                        aggregations.Add(new Aggregation
+                        {
+                            DataType = reader.GetString(reader.GetOrdinal("DataType")),
+                            Date = reader.GetDateTimeUtc(reader.GetOrdinal("Date")),
+                            Resolution = Enum.Parse<TimeResolution>( reader.GetString(reader.GetOrdinal("Resolution"))),
+                            Data = reader.GetStringOrNull("Data"),
+                        });
+                    }
+                    return true;
+                }).ConfigureAwait(false);
+            }
+            return aggregations;
+        }
+
         #region MsSqlCannotCommitDataProvider classes
         private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
         {

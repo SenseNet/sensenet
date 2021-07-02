@@ -66,6 +66,9 @@ namespace SenseNet.WebHooks
             var sendingTasks = subscriptions
                 .Select(si => _webHookClient.SendAsync(
                 si.Subscription.Url,
+                si.EventType.ToString(),
+                node.Id,
+                si.Subscription.Id,
                 si.Subscription.HttpMethod,
                 GetPayload(si.Subscription, si.EventType, node, previousVersion),
                 si.Subscription.HttpHeaders,
@@ -78,8 +81,9 @@ namespace SenseNet.WebHooks
 
         public Task FireWebHookAsync(WebHookSubscription subscription, WebHookEventType eventType, Node node, CancellationToken cancel)
         {
-            return _webHookClient.SendAsync(subscription.Url, subscription.HttpMethod,
-                GetPayload(subscription, eventType, node, null), subscription.HttpHeaders, cancel);
+            return _webHookClient.SendAsync(subscription.Url, eventType.ToString(), node.Id, subscription.Id,
+                subscription.HttpMethod, GetPayload(subscription, eventType, node, null),
+                subscription.HttpHeaders, cancel);
         }
 
         private object GetPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node,

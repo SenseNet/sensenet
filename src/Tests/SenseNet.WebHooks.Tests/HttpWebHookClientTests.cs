@@ -17,7 +17,7 @@ namespace SenseNet.WebHooks.Tests
         {
             var whc = CreateWebHookClient();
 
-            await whc.SendAsync("https://localhost:44362", "get");
+            await whc.SendAsync("https://localhost:44362", "Event1", 42, 142, "get");
         }
         //[TestMethod]
         public async Task Send_Post()
@@ -25,6 +25,9 @@ namespace SenseNet.WebHooks.Tests
             var whc = CreateWebHookClient();
 
             await whc.SendAsync("https://localhost:44362/odata.svc/('Root')/WebHookTest", 
+                "Event1",
+                42,
+                142,
                 "post",
                 new { p1 = "aaa" },
                 new Dictionary<string, string>

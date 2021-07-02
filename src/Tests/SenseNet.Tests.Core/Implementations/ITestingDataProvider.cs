@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Data;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Core.Implementations
@@ -47,5 +48,9 @@ namespace SenseNet.Tests.Core.Implementations
         void SetSharedLockCreationDate(int nodeId, DateTime value);
 
         DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider);
+
+        Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider);
+        Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider);
+        Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider);
     }
 }

@@ -10,12 +10,14 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security;
 using SenseNet.Security.EFCSecurityStore;
+using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.IntegrationTests.Platforms
@@ -103,6 +105,12 @@ namespace SenseNet.IntegrationTests.Platforms
                 IndexingEngine = indexingEngine,
                 QueryEngine = new Lucene29LocalQueryEngine()
             };
+        }
+
+        public override IStatisticalDataProvider GetStatisticalDataProvider()
+        {
+            return new MsSqlStatisticalDataProvider(Options.Create(new DataOptions()),
+                Options.Create(new ConnectionStringOptions {ConnectionString = ConnectionString}));
         }
 
         /* ============================================================== */

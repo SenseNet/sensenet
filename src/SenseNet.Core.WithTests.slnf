@@ -2,6 +2,7 @@
   "solution": {
     "path": "SenseNet.sln",
     "projects": [
+      "Abstractions\\SenseNet.Abstractions.csproj",
       "BlobStorage\\SenseNet.BlobStorage.csproj",
       "Common\\SenseNet.Common.csproj",
       "ContentRepository.InMemory\\SenseNet.ContentRepository.InMemory.csproj",

@@ -67,6 +67,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             callback();
                         else
@@ -108,6 +109,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             callback();
                         else
@@ -158,6 +160,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     using (new SystemAccount())
                     {
+                        TestInitializer?.Invoke(builder);
                         if (callback != null)
                             await callback();
                         else

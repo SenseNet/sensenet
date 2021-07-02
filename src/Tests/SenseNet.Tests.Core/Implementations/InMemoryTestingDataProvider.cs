@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Testing;
 
 namespace SenseNet.Tests.Core.Implementations
 {
@@ -479,6 +480,33 @@ namespace SenseNet.Tests.Core.Implementations
             inMemDp.DB.TransactionFactory = new InMemoryCannotCommitTransactionFactory();
             return inMemDp;
         }
+
+        public Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider)
+        {
+            var dp = (InMemoryStatisticalDataProvider) dataProvider;
+            var dpAcc = new ObjectAccessor(dp);
+            var storage = (List<StatisticalDataRecord>)dpAcc.GetFieldOrProperty("Storage");
+            storage.Clear();
+            var aggregations = (List<Aggregation>)dpAcc.GetFieldOrProperty("Aggregations");
+            aggregations.Clear();
+            return Task.CompletedTask;
+        }
+        public Task<IEnumerable<IStatisticalDataRecord>> LoadAllStatisticalDataRecords(IStatisticalDataProvider dataProvider)
+        {
+            var dp = (InMemoryStatisticalDataProvider)dataProvider;
+            var dpAcc = new ObjectAccessor(dp);
+            var storage = (List<StatisticalDataRecord>)dpAcc.GetFieldOrProperty("Storage");
+            return Task.FromResult((IEnumerable<IStatisticalDataRecord>)storage);
+        }
+
+        public Task<IEnumerable<Aggregation>> LoadAllStatisticalDataAggregations(IStatisticalDataProvider dataProvider)
+        {
+            var dp = (InMemoryStatisticalDataProvider)dataProvider;
+            var dpAcc = new ObjectAccessor(dp);
+            var aggregations = (List<Aggregation>)dpAcc.GetFieldOrProperty("Aggregations");
+            return Task.FromResult((IEnumerable<Aggregation>)aggregations);
+        }
+
         #region CreateCannotCommitDataProvider classes
         private class InMemoryCannotCommitTransactionFactory : ITransactionFactory
         {

@@ -154,10 +154,12 @@ namespace SenseNet.Tests.Core
             {
                 PrepareRepository();
 
+                User.Current = User.Administrator;
                 if (useCurrentUser)
                     await callback();
-                using (new SystemAccount())
-                    await callback();
+                else
+                    using (new SystemAccount())
+                        await callback();
             }
         }
 
