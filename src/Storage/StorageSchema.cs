@@ -10,7 +10,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage
 {
-	public class StorageSchema
+	public sealed class StorageSchema
     {
         public static readonly List<string> NodeAttributeNames = new List<string>(new string[]{
             "Id", "Parent", "Name", "Path",
@@ -50,19 +50,19 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets the property types.
         /// </summary>
         /// <value>The property types.</value>
-		public TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.PropertyTypes;
+		public TypeCollection<PropertyType> PropertyTypes => SchemaInstance.PropertyTypes;
 
         /// <summary>
         /// Gets the node types.
         /// </summary>
         /// <value>The node types.</value>
-		public TypeCollection<NodeType> NodeTypes => NodeTypeManager.NodeTypes;
+		public TypeCollection<NodeType> NodeTypes => SchemaInstance.NodeTypes;
 
         /// <summary>
         /// Gets the ContentList types.
         /// </summary>
         /// <value>The ContentList types.</value>
-        public TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
+        public TypeCollection<ContentListType> ContentListTypes => SchemaInstance.ContentListTypes;
 
         /// <summary>
         /// Gets property types that belongs to a NodeType and a ContentListType combination.
@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             var nodeType = NodeTypes.GetItemById(nodeTypeId);
             if (nodeType == null)
-                return new TypeCollection<PropertyType>(NodeTypeManager);
+                return new TypeCollection<PropertyType>(SchemaInstance);
 
             var nodePropertyTypes = nodeType.PropertyTypes;
             var allPropertyTypes = new TypeCollection<PropertyType>(nodePropertyTypes);
@@ -103,9 +103,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        private NodeTypeManager _nodeTypeManager;
+        private ReadOnlyStorageSchema _nodeTypeManager;
         private readonly object _lock = new object();
-        internal NodeTypeManager NodeTypeManager
+        internal ReadOnlyStorageSchema SchemaInstance
         {
             get
             {
@@ -161,7 +161,7 @@ namespace SenseNet.ContentRepository.Storage
         private void LoadPrivate()
         {
             // this method must be called inside a lock block!
-            var current = new NodeTypeManager();
+            var current = new ReadOnlyStorageSchema();
             current.Load();
 
             _nodeTypeManager = current;

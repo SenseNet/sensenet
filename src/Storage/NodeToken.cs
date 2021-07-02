@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     ContentListType listType = null;
                     if ((listType = this.ContentListType) == null)
-                        _contentListPropertyTypes = new TypeCollection<PropertyType>(Providers.Instance.StorageSchema.NodeTypeManager);
+                        _contentListPropertyTypes = new TypeCollection<PropertyType>(Providers.Instance.StorageSchema.SchemaInstance);
                     else
                         _contentListPropertyTypes = this.ContentListType.PropertyTypes;
                 }
