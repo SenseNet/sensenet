@@ -30,6 +30,7 @@ namespace SenseNet.Tests.Implementations
 
         //TODO: [DIBLOB] get these services through the constructor later
         private static IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        private static ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         public void InitializeForTests()
         {

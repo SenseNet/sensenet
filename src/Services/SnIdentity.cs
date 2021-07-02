@@ -52,7 +52,8 @@ namespace SenseNet.Services
                     }
                     else
                     {
-                        throw new ApplicationException(String.Concat("Cannot create SnIdentity from NodeType ", ActiveSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
+                        throw new ApplicationException(String.Concat("Cannot create SnIdentity from NodeType ",
+                            Providers.Instance.ActiveSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
                     }
                 }
             }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -53,7 +54,7 @@ namespace SenseNet.ContentRepository.Schema.Metadata
 
         public bool IsInstaceOfOrDerivedFrom(string contentTypeName)
         {
-            return SenseNet.ContentRepository.Storage.ActiveSchema.NodeTypes[Name].IsInstaceOfOrDerivedFrom(contentTypeName);
+            return Providers.Instance.ActiveSchema.NodeTypes[Name].IsInstaceOfOrDerivedFrom(contentTypeName);
         }
     }
     public class Property : IMetaNode

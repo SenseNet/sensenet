@@ -33,6 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.

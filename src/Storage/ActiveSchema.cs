@@ -22,58 +22,58 @@ namespace SenseNet.ContentRepository.Storage
             "LastLockUpdate", "LastMinorVersionId", "LastMajorVersionId", "MajorVersion", "MinorVersion",
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
-        private static IDataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
         /// </summary>
-        public static DateTime DateTimeMinValue => DataStore.DateTimeMinValue;
+        public DateTime DateTimeMinValue => DataStore.DateTimeMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent last DateTime value
         /// </summary>
-        public static DateTime DateTimeMaxValue => DataStore.DateTimeMaxValue;
+        public DateTime DateTimeMaxValue => DataStore.DateTimeMaxValue;
 
         /// <summary>
         /// Gets the maximum length of the short text datatype
         /// </summary>
-        public static int ShortTextMaxLength { get { return 400; } }
+        public int ShortTextMaxLength { get { return 400; } }
 
         /// <summary>
         /// Gets the DataProvider dependent smallest decimal value
         /// </summary>
-        public static decimal DecimalMinValue => DataStore.DecimalMinValue;
+        public decimal DecimalMinValue => DataStore.DecimalMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent biggest decimal value
         /// </summary>
-        public static decimal DecimalMaxValue => DataStore.DecimalMaxValue;
+        public decimal DecimalMaxValue => DataStore.DecimalMaxValue;
 
 
         /// <summary>
         /// Gets the property types.
         /// </summary>
         /// <value>The property types.</value>
-		public static TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.PropertyTypes;
+		public TypeCollection<PropertyType> PropertyTypes => NodeTypeManager.PropertyTypes;
 
         /// <summary>
         /// Gets the node types.
         /// </summary>
         /// <value>The node types.</value>
-		public static TypeCollection<NodeType> NodeTypes => NodeTypeManager.NodeTypes;
+		public TypeCollection<NodeType> NodeTypes => NodeTypeManager.NodeTypes;
 
         /// <summary>
         /// Gets the ContentList types.
         /// </summary>
         /// <value>The ContentList types.</value>
-        public static TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
+        public TypeCollection<ContentListType> ContentListTypes => NodeTypeManager.ContentListTypes;
 
         /// <summary>
         /// Gets property types that belongs to a NodeType and a ContentListType combination.
         /// If the <paramref name="nodeTypeId"/> is less than 1, the result is empty.
         /// The <paramref name="contentListTypeId"/> can be less than 1 if it is irrelevant.
         /// </summary>
-        public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
+        public TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
         {
             var nodeType = NodeTypes.GetItemById(nodeTypeId);
             if (nodeType == null)
@@ -100,16 +100,16 @@ namespace SenseNet.ContentRepository.Storage
                 if (onRemote && isFromMe)
                     return Task.CompletedTask;
 
-                RestartPrivate();
+                Providers.Instance.ActiveSchema.RestartPrivate();
 
                 return Task.CompletedTask;
             }
         }
         #endregion
 
-        private static NodeTypeManager _nodeTypeManager;
-        private static readonly object _lock = new object();
-        internal static NodeTypeManager NodeTypeManager
+        private NodeTypeManager _nodeTypeManager;
+        private readonly object _lock = new object();
+        internal NodeTypeManager NodeTypeManager
         {
             get
             {
@@ -130,7 +130,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Reloads the storage schema without sending any distributed action.
         /// </summary>
-        public static void Reload()
+        public void Reload()
         {
             RestartPrivate();
         }
@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Reloads the storage schema and distributes a NodeTypeManagerRestart action.
         /// </summary>
-        internal static void Reset()
+        internal void Reset()
         {
             SnLog.WriteInformation("NodeTypeManager.Restart called.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
@@ -149,7 +149,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Restarts the NodeTypeManager without sending any distributed action.
         /// Do not call this method explicitly, the system will call it if necessary (when the reset is triggered by an another instance).
         /// </summary>
-        private static void RestartPrivate()
+        private void RestartPrivate()
         {
             SnLog.WriteInformation("NodeTypeManager.Restart executed.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
@@ -162,7 +162,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private static void LoadPrivate()
+        private void LoadPrivate()
         {
             // this method must be called inside a lock block!
             var current = new NodeTypeManager();

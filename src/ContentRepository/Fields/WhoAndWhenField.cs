@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Search;
 
 using  SenseNet.ContentRepository.Schema;
 using System.Collections;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -133,7 +134,7 @@ namespace SenseNet.ContentRepository.Fields
 			if (handlerValues[1] != null)
 				result.When = (DateTime)handlerValues[1];
 			else
-				result.When = ActiveSchema.DateTimeMinValue;
+				result.When = Providers.Instance.ActiveSchema.DateTimeMinValue;
 
 			return result;
 		}

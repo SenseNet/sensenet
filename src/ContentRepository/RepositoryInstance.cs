@@ -286,7 +286,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting NodeType system ... ");
-                dummy = ActiveSchema.NodeTypes[0];
+                dummy = Providers.Instance.ActiveSchema.NodeTypes[0];
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting ContentType system ... ");

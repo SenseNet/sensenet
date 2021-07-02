@@ -15,6 +15,7 @@ namespace SenseNet.IntegrationTests.TestCases
     {
         // ReSharper disable once InconsistentNaming
         protected DataProvider DP => Providers.Instance.DataStore.DataProvider;
+        protected ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         /* ============================================================================== PropertyType */
 

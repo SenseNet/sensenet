@@ -26,6 +26,7 @@ namespace SenseNet.IntegrationTests.TestCases
     /// </remarks>
     public class DataProviderUnitTestCases : TestCaseBase
     {
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
         private void DataProviderUnitTest(IEnumerable<int> nodes, IEnumerable<int> versions, Action<IEnumerable<int>, IEnumerable<int>> cleanup, Action callback)
         {
             try

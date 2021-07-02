@@ -131,11 +131,12 @@ namespace SenseNet.ContentRepository.Storage.Security
                 // import scenario
                 if (!SearchManager.ContentQueryIsAllowed)
                 {
+                    var schema = Providers.Instance.ActiveSchema;
                     var resultIds = NodeQuery.QueryNodesByTypeAndPathAndName(new[]
                     {
-                        ActiveSchema.NodeTypes["Group"], 
-                        ActiveSchema.NodeTypes["OrganizationalUnit"],
-                        ActiveSchema.NodeTypes["User"]
+                        schema.NodeTypes["Group"],
+                        schema.NodeTypes["OrganizationalUnit"],
+                        schema.NodeTypes["User"]
                     },
                     false, node.Path, true, null).Identifiers.ToList();
 

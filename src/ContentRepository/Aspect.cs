@@ -11,6 +11,7 @@ using System.IO;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -292,7 +293,7 @@ namespace SenseNet.ContentRepository
             {
                 // Find aspect via node query.
                 // DO NOT replace this call with either Linq or Content Query for the reasons detailed above!
-                var result = NodeQuery.QueryNodesByTypeAndName(ActiveSchema.NodeTypes[typeof(Aspect).Name], false, name);
+                var result = NodeQuery.QueryNodesByTypeAndName(Providers.Instance.ActiveSchema.NodeTypes[typeof(Aspect).Name], false, name);
                 aspect = result.Nodes.FirstOrDefault() as Aspect;
 
                 // If not found, return null

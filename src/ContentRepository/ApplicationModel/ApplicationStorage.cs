@@ -9,6 +9,7 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Communication.Messaging;
 using System.Diagnostics;
+using SenseNet.Configuration;
 using SenseNet.Search;
 using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 using Task = System.Threading.Tasks.Task;
@@ -52,7 +53,7 @@ namespace SenseNet.ApplicationModel
                         // remove current word and insert words of type path
                         if (word != "This")
                         {
-                            var ntype = ActiveSchema.NodeTypes[word];
+                            var ntype = Providers.Instance.ActiveSchema.NodeTypes[word];
                             if (ntype == null)
                                 return null;
                             var typeNames = ntype.NodeTypePath.Split('/');
@@ -120,7 +121,7 @@ namespace SenseNet.ApplicationModel
                 }
                 typeIndex = result.Count;
 
-                var ntype = ActiveSchema.NodeTypes.GetItemById(head.NodeTypeId);
+                var ntype = Providers.Instance.ActiveSchema.NodeTypes.GetItemById(head.NodeTypeId);
                 var typeNames = ntype.NodeTypePath.Split('/');
                 foreach (var typeName in typeNames)
                 {

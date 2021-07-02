@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Tests
                 // set the handler of the Folder type to an unknown value
                 SetContentHandler("Folder", "UnknownParent");
 
-                ActiveSchema.Reset();
+                Providers.Instance.ActiveSchema.Reset();
                 ContentTypeManager.Reset();
                 Cache.Reset();
 
@@ -201,7 +201,7 @@ namespace SenseNet.ContentRepository.Tests
                 SetContentHandler("Folder", "UnknownFieldTable");
 
                 Cache.Reset();
-                ActiveSchema.Reset();
+                Providers.Instance.ActiveSchema.Reset();
                 ContentTypeManager.Reload();
 
                 parent = Node.Load<GenericContent>("/Root");
@@ -215,7 +215,7 @@ namespace SenseNet.ContentRepository.Tests
         private static void ResetAndFailToCreateContent()
         {
             Cache.Reset();
-            ActiveSchema.Reset();
+            Providers.Instance.ActiveSchema.Reset();
             ContentTypeManager.Reload();
 
             var parent = Node.Load<GenericContent>("/Root");
@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository.Tests
             SetContentHandler("Folder", handlerName);
 
             Cache.Reset();
-            ActiveSchema.Reset();
+            Providers.Instance.ActiveSchema.Reset();
             ContentTypeManager.Reload();
 
             action();

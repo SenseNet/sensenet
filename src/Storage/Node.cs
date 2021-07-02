@@ -101,6 +101,7 @@ namespace SenseNet.ContentRepository.Storage
         private NodeData _data;
         internal NodeData Data => _data;
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         private List<INodeOperationValidator> NodeOperationValidators =>
             Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");
@@ -2598,7 +2599,7 @@ namespace SenseNet.ContentRepository.Storage
         private static void FillData(Node node, NodeToken token)
         {
             string typeName = node.GetType().FullName;
-            string typeNameInHead = ActiveSchema.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
+            string typeNameInHead = Providers.Instance.ActiveSchema.NodeTypes.GetItemById(token.NodeData.NodeTypeId).ClassName;
             if (typeNameInHead != typeName)
             {
                 var message = String.Concat("Cannot create a ", typeName, " instance because type name is different in the passed head: ", typeNameInHead);

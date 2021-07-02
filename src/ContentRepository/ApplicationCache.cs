@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
@@ -20,7 +21,7 @@ namespace SenseNet.ContentRepository
         {
             if (locked)
                 return empty;
-            if (ActiveSchema.NodeTypes["ApplicationCacheFile"] == null)
+            if (Providers.Instance.ActiveSchema.NodeTypes["ApplicationCacheFile"] == null)
                 return empty;
 
             var file = LoadCacheFile(appTypeName);
@@ -95,7 +96,8 @@ namespace SenseNet.ContentRepository
         }
         private List<string> SearchData(string appTypeName)
         {
-            var result = NodeQuery.QueryNodesByTypeAndPathAndName(ActiveSchema.NodeTypes["Folder"], false, null, false, appTypeName);
+            var result = NodeQuery.QueryNodesByTypeAndPathAndName(Providers.Instance.ActiveSchema.NodeTypes["Folder"],
+                false, null, false, appTypeName);
 
             var data = new List<string>();
             foreach (var node in result.Nodes)

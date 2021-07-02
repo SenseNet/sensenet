@@ -141,7 +141,7 @@ namespace SenseNet.ContentRepository.i18n
 
         private void Load()
         {
-            var resNodeType = ActiveSchema.NodeTypes[typeof(Resource).Name];
+            var resNodeType = Providers.Instance.ActiveSchema.NodeTypes[typeof(Resource).Name];
             if (resNodeType != null)
             {
                 // search for all Resource content
@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.i18n
                 {
                     IEnumerable<Node> nodes;
 
-                    var r = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Resource"]
+                    var r = NodeQuery.QueryNodesByTypeAndPath(Providers.Instance.ActiveSchema.NodeTypes["Resource"]
                         , false
                         , String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)
                         , true);

@@ -65,6 +65,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
+
         private static readonly string ContentListDefinitionXmlNamespaceOld = "http://schemas.sensenet" + ".hu/SenseNet/ContentRepository/Lis" + "terTypeDefinition";
         public static readonly string ContentListDefinitionXmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition";
         private static string ContentListDefinitionSchemaManifestResourceName = "SenseNet.ContentRepository.Schema.ContentListDefinition.xsd";

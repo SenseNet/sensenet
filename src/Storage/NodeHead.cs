@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public NodeType GetNodeType()
         {
-            return ActiveSchema.NodeTypes.GetItemById(NodeTypeId);
+            return Providers.Instance.ActiveSchema.NodeTypes.GetItemById(NodeTypeId);
         }
 
         public NodeVersion GetLastMajorVersion()

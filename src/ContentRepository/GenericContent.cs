@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using System.Runtime.CompilerServices;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
 
 // ReSharper disable ArrangeThisQualifier
@@ -1841,7 +1842,7 @@ namespace SenseNet.ContentRepository
                 var nodes = SearchManager.ContentQueryIsAllowed
                     ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
-                        ActiveSchema.NodeTypes["Workflow"], false).Nodes;
+                        Providers.Instance.ActiveSchema.NodeTypes["Workflow"], false).Nodes;
 
                 foreach (var workflow in nodes.Cast<GenericContent>())
                 {

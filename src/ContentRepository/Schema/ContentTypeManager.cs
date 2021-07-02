@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Schema
             if (Instance._contentTypeNamesByType == null)
             {
                 var contentTypeNamesByType = new Dictionary<Type, NodeType>();
-                foreach (var nt in ActiveSchema.NodeTypes)
+                foreach (var nt in Providers.Instance.ActiveSchema.NodeTypes)
                 {
                     var type = TypeResolver.GetType(nt.ClassName, false);
                     if (type == null)
@@ -154,7 +154,9 @@ namespace SenseNet.ContentRepository.Schema
                 // temporary save: read enumerator only once
                 var contentTypes = new List<ContentType>();
 
-                var result = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["ContentType"], false, String.Concat(Repository.ContentTypesFolderPath, SnCS.RepositoryPath.PathSeparator), true);
+                var result = NodeQuery.QueryNodesByTypeAndPath(
+                    Providers.Instance.ActiveSchema.NodeTypes["ContentType"], false, 
+                    string.Concat(Repository.ContentTypesFolderPath, SnCS.RepositoryPath.PathSeparator), true);
 
                 foreach (ContentType contentType in result.Nodes)
                 {

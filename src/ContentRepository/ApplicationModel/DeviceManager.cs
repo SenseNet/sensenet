@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 using Task = System.Threading.Tasks.Task;
@@ -74,7 +75,7 @@ namespace SenseNet.ApplicationModel
                         if (__instance == null)
                         {
                             // install time there is no Device type yet
-                            if (ActiveSchema.NodeTypes["Device"] == null)
+                            if (Providers.Instance.ActiveSchema.NodeTypes["Device"] == null)
                                 return null;
 
                             // Elevation: initializing and caching devices
@@ -104,7 +105,9 @@ namespace SenseNet.ApplicationModel
             else
             {
                 // query devices and sort them by Index
-                devices = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Device"], false, "/Root/System/Devices", false).Nodes.Cast<Device>().ToList();
+                devices = NodeQuery.QueryNodesByTypeAndPath(
+                    Providers.Instance.ActiveSchema.NodeTypes["Device"], false, "/Root/System/Devices", false)
+                    .Nodes.Cast<Device>().ToList();
             }
 
             devices.Sort(new NodeComparer<Node>());

@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
+using SenseNet.Configuration;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Schema
@@ -200,12 +201,12 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         public static NodeType GetByName(string nodeTypeName)
         {
-            return ActiveSchema.NodeTypes[nodeTypeName];
+            return Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName];
         }
 
         public static NodeType GetById(int nodeTypeId)
         {
-            return ActiveSchema.NodeTypes.GetItemById(nodeTypeId);
+            return Providers.Instance.ActiveSchema.NodeTypes.GetItemById(nodeTypeId);
         }
 
         // -------------------------------------------------------------------------------- Node Factory
@@ -217,7 +218,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             if (nodeTypeName.Length == 0)
                 throw new ArgumentOutOfRangeException("nodeTypeName", "Argument cannot be empty");
 
-            NodeType nodeType = ActiveSchema.NodeTypes[nodeTypeName];
+            NodeType nodeType = Providers.Instance.ActiveSchema.NodeTypes[nodeTypeName];
             if (nodeType == null)
                 throw new ApplicationException(String.Concat("NodeType not found: ", nodeTypeName));
 

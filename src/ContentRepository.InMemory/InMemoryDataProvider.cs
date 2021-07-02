@@ -30,6 +30,8 @@ namespace SenseNet.ContentRepository.InMemory
 
         //TODO: [DIBLOB] get these services through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+        //TODO: get this service through the constructor later
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         public InMemoryDataProvider()
         {

@@ -35,6 +35,7 @@ namespace SenseNet.ContentRepository.Storage
     public class NodeData
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
 
         private Stopwatch _savingTimer;
 
@@ -251,7 +252,8 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         public NodeData(int nodeTypeId, int contentListTypeId)
-            : this(ActiveSchema.NodeTypes.GetItemById(nodeTypeId), ActiveSchema.ContentListTypes.GetItemById(contentListTypeId)) { }
+            : this(Providers.Instance.ActiveSchema.NodeTypes.GetItemById(nodeTypeId),
+                Providers.Instance.ActiveSchema.ContentListTypes.GetItemById(contentListTypeId)) { }
         public NodeData(NodeType nodeType, ContentListType contentListType)
         {
             staticDataIsModified = new bool[StaticDataSlotCount];
@@ -933,14 +935,14 @@ namespace SenseNet.ContentRepository.Storage
         internal static Exception Exception_PropertyNotFound(string name, string typeName)
         {
             var tn = string.IsNullOrEmpty(typeName) ? string.Empty : ". Content type name: " + typeName;
-            var propType = ActiveSchema.PropertyTypes[name];
+            var propType = Providers.Instance.ActiveSchema.PropertyTypes[name];
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Name: " + name + tn);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", name, tn));
         }
         internal static Exception Exception_PropertyNotFound(int propTypeId)
         {
-            var propType = ActiveSchema.PropertyTypes.GetItemById(propTypeId);
+            var propType = Providers.Instance.ActiveSchema.PropertyTypes.GetItemById(propTypeId);
             if (propType == null)
                 return new ApplicationException("PropertyType not found. Id: " + propTypeId);
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", propType.Name));

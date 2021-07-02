@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -10,6 +11,7 @@ namespace SenseNet.Tests
 {
     public class NodeDataChecker
     {
+        public static ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
         public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual, params string[] excludedProperties)
         {
             // prepare collections

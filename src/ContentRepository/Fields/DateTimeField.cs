@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 
 using  SenseNet.ContentRepository.Schema;
 using System.Xml;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -15,6 +16,7 @@ namespace SenseNet.ContentRepository.Fields
     [DefaultFieldControl("SenseNet.Portal.UI.Controls.DatePicker")]
     public class DateTimeField : Field
     {
+        private ActiveSchema ActiveSchema => Providers.Instance.ActiveSchema;
         private static CultureInfo _defaultUICulture;
         public static CultureInfo DefaultUICulture
         {
