@@ -45,7 +45,7 @@ namespace SenseNet.WebHooks
             _aggregation.RequestLengths += data.RequestLength ?? 0;
             _aggregation.ResponseLengths += data.ResponseLength ?? 0;
             var leadDigit = (data.ResponseStatusCode ?? 0) / 100 - 1;
-            if (leadDigit is >= 0 and < 5)
+            if (leadDigit >= 0 && leadDigit < 5)
                 _aggregation.StatusCounts[leadDigit]++;
         }
 
