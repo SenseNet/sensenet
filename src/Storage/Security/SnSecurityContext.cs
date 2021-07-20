@@ -75,15 +75,6 @@ namespace SenseNet.ContentRepository.Storage.Security
             return new SnSecurityContext(AccessProvider.Current.GetCurrentUser());
         }
 
-        /// <summary>
-        /// Empties the security database and memory.
-        /// WARNING! Do not use this method in your code except in installing or developing scenarios.
-        /// </summary>
-        public new void DeleteAllAndRestart()
-        {
-            base.DeleteAllAndRestart();
-        }
-        
         /*********************** ACL API **********************/
 
         /// <summary>

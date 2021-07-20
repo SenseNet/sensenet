@@ -1678,8 +1678,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                 VisitorUserId = Identifiers.VisitorUserId,
                 EveryoneGroupId = Identifiers.EveryoneGroupId,
                 OwnerGroupId = Identifiers.OwnersGroupId,
-                SecuritActivityTimeoutInSeconds = Configuration.Security.SecuritActivityTimeoutInSeconds,
-                SecuritActivityLifetimeInMinutes = Configuration.Security.SecuritActivityLifetimeInMinutes,
+                SecurityActivityTimeoutInSeconds = Configuration.Security.SecuritActivityTimeoutInSeconds,
+                SecurityActivityLifetimeInMinutes = Configuration.Security.SecuritActivityLifetimeInMinutes,
                 CommunicationMonitorRunningPeriodInSeconds = Configuration.Security.SecurityMonitorRunningPeriodInSeconds
             });
             _securityContextFactory = isWebContext ? (ISecurityContextFactory)new DynamicSecurityContextFactory() : new StaticSecurityContextFactory();
@@ -1691,12 +1691,6 @@ namespace SenseNet.ContentRepository.Storage.Security
                     { "DataProvider", securityDataProvider.GetType().FullName },
                     { "MessageProvider", messageProvider.GetType().FullName }
                 });
-        }
-
-        internal static void DeleteEverythingAndRestart()
-        {
-            using (new SystemAccount())
-                SecurityContext.DeleteAllAndRestart();
         }
 
         /// <summary>
@@ -1888,7 +1882,8 @@ namespace SenseNet.ContentRepository.Storage.Security
 	        private static void CreateEntities()
 	        {
 	            var securityContext = SecurityContext;
-	            DeleteEverythingAndRestart();
+
+	            securityContext.SecuritySystem.DataProvider.InstallDatabase();
 
 	            var entityTreeNodes = Providers.Instance.DataStore
                     .LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
