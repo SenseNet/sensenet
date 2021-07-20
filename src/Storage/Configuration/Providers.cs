@@ -260,6 +260,7 @@ namespace SenseNet.Configuration
         #endregion
 
         public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
+        public virtual IMessageProvider SecurityMessageProvider { get; set; }
         
         #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
         private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 
@@ -275,22 +276,6 @@ namespace SenseNet.Configuration
         {
             get => _previewProvider.Value;
             set { _previewProvider = new Lazy<IPreviewProvider>(() => value); }
-        }
-        #endregion
-
-        #region private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>
-        private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>(() =>
-        {
-            var msgProvider = CreateProviderInstance<IMessageProvider>(SecurityMessageProviderClassName,
-                "SecurityMessageProvider");
-            msgProvider.Initialize();
-
-            return msgProvider;
-        });
-        public virtual IMessageProvider SecurityMessageProvider
-        {
-            get { return _securityMessageProvider.Value; }
-            set { _securityMessageProvider = new Lazy<IMessageProvider>(() => value); }
         }
         #endregion
 

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
+using SenseNet.Storage.Security;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Security
@@ -263,7 +264,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             var user = AccessProvider.Current.GetCurrentUser();
             if (user.Id == -1)
                 return true;
-            var ctx = SnSecurityContext.Create();
+            var ctx = SecurityHandler.SecurityContext;
             return Retrier.Retry(3, 200, typeof(EntityNotFoundException), () => HasPermissionPrivate(ctx, nodeId, permissionTypes));
         }
         private static bool HasPermissionPrivate(SnSecurityContext ctx, int contentId, params PermissionType[] permissionTypes)
@@ -1657,6 +1658,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #region /*========================================================== Context, System start */
 
+        private static SecuritySystem _securitySystem;
         private static ISecurityContextFactory _securityContextFactory;
 
         /// <summary>
@@ -1668,23 +1670,29 @@ namespace SenseNet.ContentRepository.Storage.Security
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
             var messageProvider = Providers.Instance.SecurityMessageProvider;
-            var startingThesystem = DateTime.UtcNow;
 
-            SnSecurityContext.StartTheSystem(new SecurityConfiguration
+            var missingEntityHandler = new SnMissingEntityHandler();
+
+            var securityConfig = new SecurityConfiguration
             {
-                SecurityDataProvider = securityDataProvider,
-                MessageProvider = messageProvider,
                 SystemUserId = Identifiers.SystemUserId,
                 VisitorUserId = Identifiers.VisitorUserId,
                 EveryoneGroupId = Identifiers.EveryoneGroupId,
                 OwnerGroupId = Identifiers.OwnersGroupId,
                 SecurityActivityTimeoutInSeconds = Configuration.Security.SecuritActivityTimeoutInSeconds,
                 SecurityActivityLifetimeInMinutes = Configuration.Security.SecuritActivityLifetimeInMinutes,
-                CommunicationMonitorRunningPeriodInSeconds = Configuration.Security.SecurityMonitorRunningPeriodInSeconds
-            });
-            _securityContextFactory = isWebContext ? (ISecurityContextFactory)new DynamicSecurityContextFactory() : new StaticSecurityContextFactory();
+                CommunicationMonitorRunningPeriodInSeconds =
+                    Configuration.Security.SecurityMonitorRunningPeriodInSeconds
+            };
 
-            messageProvider.Start(startingThesystem);
+            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, securityConfig);
+            securitySystem.Start();
+
+            _securityContextFactory = isWebContext 
+                ? (ISecurityContextFactory)new DynamicSecurityContextFactory(securitySystem) 
+                : new StaticSecurityContextFactory(securitySystem);
+
+            _securitySystem = securitySystem;
 
             SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
                 properties: new Dictionary<string, object> { 
@@ -2190,7 +2198,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
 	    public static void ShutDownSecurity()
 	    {
-	        SenseNet.Security.SecurityContext.Shutdown();
+            _securitySystem.Shutdown();
 	    }
 	}
 }

@@ -22,58 +22,16 @@ namespace SenseNet.ContentRepository.Storage.Security
     public class SnSecurityContext : SecurityContext
     {
         /// <summary>
-        /// Gets the associated user instance.
-        /// </summary>
-        public new ISecurityUser CurrentUser { get { return base.CurrentUser; } }
-        /// <summary>
         /// Gets the configured ISecurityDataProvider instance
         /// </summary>
-        public new ISecurityDataProvider DataProvider { get { return base.DataProvider; } }
+        [Obsolete("##", false)]
+        public ISecurityDataProvider DataProvider => base.SecuritySystem.DataProvider;
 
         /// <summary>
         /// Creates a new instance of the SecurityContext from the provided user object
         /// and pointers to the ISecurityDataProvider, IMessageProvider and SecurityCache global objects.
         /// </summary>
-        public SnSecurityContext(IUser user) : base(user) { }
-
-        /// <summary>
-        /// Collects security-related information about a content and returns true if the content with 
-        /// the specified id exists in the content repository and also fills the parent and owner ids.
-        /// </summary>
-        protected override bool GetMissingEntity(int contentId, out int parentId, out int ownerId)
-        {
-            var nodeHead = NodeHead.Get(contentId);
-            if (nodeHead == null)
-            {
-                parentId = 0;
-                ownerId = 0;
-                return false;
-            }
-            parentId = nodeHead.ParentId;
-            ownerId = nodeHead.OwnerId;
-            return true;
-        }
-
-        /// <summary>
-        /// Starts the security subsystem using the passed configuration.
-        /// The method prepares and memorizes the main components for 
-        /// creating SecurityContext instances in a fastest possible way.
-        /// The main components are global objects: 
-        /// ISecurityDataProvider instance, IMessageProvider instance and SecurityCache instance.
-        /// </summary>
-        public static new void StartTheSystem(SecurityConfiguration configuration)
-        {
-            SecurityContext.StartTheSystem(configuration);
-            _generalContext = new SnSecurityContext(new SystemUser(null));
-        }
-
-        /// <summary>
-        /// Creates a new context for the logged in user.
-        /// </summary>
-        public static SnSecurityContext Create()
-        {
-            return new SnSecurityContext(AccessProvider.Current.GetCurrentUser());
-        }
+        public SnSecurityContext(IUser user, SecuritySystem securitySystem) : base(user, securitySystem) { }
 
         /*********************** ACL API **********************/
 

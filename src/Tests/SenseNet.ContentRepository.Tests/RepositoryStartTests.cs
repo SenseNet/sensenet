@@ -19,6 +19,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Security.Data;
+using SenseNet.Security.Messaging;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
@@ -189,6 +190,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
@@ -234,6 +236,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
@@ -264,6 +267,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
@@ -294,6 +298,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
@@ -324,6 +329,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
@@ -360,6 +366,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
@@ -463,6 +470,7 @@ namespace SenseNet.ContentRepository.Tests
                     .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                     .AddBlobProvider(new InMemoryBlobProvider())
                     .UseSecurityDataProvider(securityDbProvider)
+                    .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                     .UseSearchEngine(searchEngine)
                     .UseAccessProvider(accessProvider)
                     .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
@@ -506,6 +514,7 @@ namespace SenseNet.ContentRepository.Tests
                     .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                     .AddBlobProvider(new InMemoryBlobProvider())
                     .UseSecurityDataProvider(securityDbProvider)
+                    .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                     .UseSearchEngine(searchEngine)
                     .UseAccessProvider(accessProvider)
                     .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
@@ -545,6 +554,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
@@ -583,6 +593,7 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
