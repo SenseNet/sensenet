@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Tests
             {
             }, async () =>
             {
-                var now = new DateTime(2021, 6, 15, 8, 14, 28);
+                var now = DateTime.UtcNow;
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
                 var statDp = services.GetService<IStatisticalDataProvider>();
@@ -56,40 +56,46 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
                 Assert.AreEqual("WebTransfer", result1["DataType"].Value<string>());
-                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result1["Start"].Value<DateTime>());
-                Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
+                var start1 = testEnd.AddMonths(-1);
+                var end1 = testEnd;
+                var days1 = end1.AddDays(-1).Day;
+                Assert.AreEqual(start1, result1["Start"].Value<DateTime>());
+                Assert.AreEqual(end1, result1["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
                 var callCounts = ((JArray) result1["CallCount"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, callCounts.Length);
+                Assert.AreEqual(days1, callCounts.Length);
                 AssertSequenceEqual(new[]{ 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
                 var requestLengths = ((JArray)result1["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, requestLengths.Length);
+                Assert.AreEqual(days1, requestLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
                 var responseLengths = ((JArray)result1["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, responseLengths.Length);
+                Assert.AreEqual(days1, responseLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
 
                 // ACTION-2
-                var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
+                var startTime2 = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
                     $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
                 Assert.AreEqual("WebTransfer", result2["DataType"].Value<string>());
-                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result2["Start"].Value<DateTime>());
-                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result2["End"].Value<DateTime>());
+                var start2 = testEnd.AddMonths(-2);
+                var end2 = testEnd.AddMonths(-1);
+                var days2 = end2.AddDays(-1).Day;
+                Assert.AreEqual(start2, result2["Start"].Value<DateTime>());
+                Assert.AreEqual(end2, result2["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result2["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result2["Resolution"].Value<string>());
                 callCounts = ((JArray) result2["CallCount"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(31, callCounts.Length);
+                Assert.AreEqual(days2, callCounts.Length);
                 AssertSequenceEqual(new[]{ 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
                 requestLengths = ((JArray)result2["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(31, requestLengths.Length);
+                Assert.AreEqual(days2, requestLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
                 responseLengths = ((JArray)result2["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(31, responseLengths.Length);
+                Assert.AreEqual(days2, responseLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
 
             }).ConfigureAwait(false);
@@ -106,7 +112,7 @@ namespace SenseNet.ContentRepository.Tests
             {
             }, async () =>
             {
-                var now = new DateTime(2021, 6, 15, 8, 14, 28);
+                var now = DateTime.UtcNow;
                 var testEnd = now.Truncate(TimeResolution.Month).AddMonths(1);
                 var testStart = testEnd.AddYears(-1);
                 var statDp = services.GetService<IStatisticalDataProvider>();
@@ -128,71 +134,77 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT-1
                 var result1 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response1)));
                 Assert.AreEqual("WebHook", result1["DataType"].Value<string>());
-                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result1["Start"].Value<DateTime>());
-                Assert.AreEqual(new DateTime(2021, 7, 1, 0, 0, 0, DateTimeKind.Utc), result1["End"].Value<DateTime>());
+                var start1 = testEnd.AddMonths(-1);
+                var end1 = testEnd;
+                var days1 = end1.AddDays(-1).Day;
+                Assert.AreEqual(start1, result1["Start"].Value<DateTime>());
+                Assert.AreEqual(end1, result1["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result1["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
                 var callCounts = ((JArray)result1["CallCount"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, callCounts.Length);
+                Assert.AreEqual(days1, callCounts.Length);
                 AssertSequenceEqual(new[] { 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
                 var requestLengths = ((JArray)result1["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, requestLengths.Length);
+                Assert.AreEqual(days1, requestLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
                 var responseLengths = ((JArray)result1["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, responseLengths.Length);
+                Assert.AreEqual(days1, responseLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
                 var status100 = ((JArray)result1["Status100"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status100.Length);
+                Assert.AreEqual(days1, status100.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status100.Take(5));
                 var status200 = ((JArray)result1["Status200"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status200.Length);
+                Assert.AreEqual(days1, status200.Length);
                 AssertSequenceEqual(new[] { 0L, 69120, 0, 69120, 0 }, status200.Take(5));
                 var status300 = ((JArray)result1["Status300"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status300.Length);
+                Assert.AreEqual(days1, status300.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status300.Take(5));
                 var status400 = ((JArray)result1["Status400"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status400.Length);
+                Assert.AreEqual(days1, status400.Length);
                 AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status400.Take(5));
                 var status500 = ((JArray)result1["Status500"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status500.Length);
+                Assert.AreEqual(days1, status500.Length);
                 AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status500.Take(5));
 
 
                 // ACTION-2
-                var startTime2 = now.AddDays(-16).ToString("yyyy-MM-dd HH:mm:ss");
+                var startTime2 = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
                 var response2 = await ODataGetAsync($"/OData.svc/('Root')/GetWebHookUsagePeriod",
                     $"?time={startTime2}", services).ConfigureAwait(false);
 
                 // ASSERT-2
                 var result2 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response2)));
+                var start2 = testEnd.AddMonths(-2);
+                var end2 = testEnd.AddMonths(-1);
+                var days2 = end1.AddDays(-1).Day;
                 Assert.AreEqual("WebHook", result2["DataType"].Value<string>());
-                Assert.AreEqual(new DateTime(2021, 5, 1, 0, 0, 0, DateTimeKind.Utc), result2["Start"].Value<DateTime>());
-                Assert.AreEqual(new DateTime(2021, 6, 1, 0, 0, 0, DateTimeKind.Utc), result2["End"].Value<DateTime>());
+                Assert.AreEqual(start2, result2["Start"].Value<DateTime>());
+                Assert.AreEqual(end2, result2["End"].Value<DateTime>());
                 Assert.AreEqual("Month", result2["TimeWindow"].Value<string>());
                 Assert.AreEqual("Day", result2["Resolution"].Value<string>());
                 callCounts = ((JArray)result1["CallCount"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, callCounts.Length);
+                Assert.AreEqual(days2, callCounts.Length);
                 AssertSequenceEqual(new[] { 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
                 requestLengths = ((JArray)result1["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, requestLengths.Length);
+                Assert.AreEqual(days2, requestLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
                 responseLengths = ((JArray)result1["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, responseLengths.Length);
+                Assert.AreEqual(days2, responseLengths.Length);
                 AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
                 status100 = ((JArray)result1["Status100"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status100.Length);
+                Assert.AreEqual(days2, status100.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status100.Take(5));
                 status200 = ((JArray)result1["Status200"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status200.Length);
+                Assert.AreEqual(days2, status200.Length);
                 AssertSequenceEqual(new[] { 0L, 69120, 0, 69120, 0 }, status200.Take(5));
                 status300 = ((JArray)result1["Status300"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status300.Length);
+                Assert.AreEqual(days2, status300.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status300.Take(5));
                 status400 = ((JArray)result1["Status400"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status400.Length);
+                Assert.AreEqual(days2, status400.Length);
                 AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status400.Take(5));
                 status500 = ((JArray)result1["Status500"]).Select(x => x.Value<long>()).ToArray();
-                Assert.AreEqual(30, status500.Length);
+                Assert.AreEqual(days2, status500.Length);
                 AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status500.Take(5));
 
             }).ConfigureAwait(false);
