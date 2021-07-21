@@ -10,7 +10,6 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
-using SenseNet.Storage.Security;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Security
@@ -1070,7 +1069,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (IsEntityInherited(contentId))
                 return;
             SecurityContext.CreateAclEditor()
-                .UnbreakInheritance(contentId,
+                .UnBreakInheritance(contentId,
                     normalize ? new[] { EntryType.Normal } : new EntryType[0])
                 .Apply();
         }

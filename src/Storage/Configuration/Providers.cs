@@ -49,10 +49,6 @@ namespace SenseNet.Configuration
             typeof(Sha256PasswordHashProviderWithoutSalt).FullName);
         public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
-        public static string SecurityDataProviderClassName { get; internal set; } = GetProvider("SecurityDataProvider",
-            "SenseNet.Security.EF6SecurityStore.EF6SecurityDataProvider");
-        public static string SecurityMessageProviderClassName { get; internal set; } = GetProvider("SecurityMessageProvider", 
-            typeof(DefaultMessageProvider).FullName);
         public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
             "SenseNet.Preview.DefaultDocumentPreviewProvider");
         public static string ClusterChannelProviderClassName { get; internal set; } = GetProvider("ClusterChannelProvider",

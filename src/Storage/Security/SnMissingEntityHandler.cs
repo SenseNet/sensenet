@@ -1,7 +1,7 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.Security;
 
-namespace SenseNet.Storage.Security
+namespace SenseNet.ContentRepository.Storage.Security
 {
     public class SnMissingEntityHandler : IMissingEntityHandler
     {

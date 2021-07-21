@@ -424,7 +424,7 @@ namespace SenseNet.ContentRepository.Sharing
                 return;
 
             var mask = GetEffectiveBitmask(sharingData.Level);
-            SecurityHandler.SecurityContext.CreateAclEditor(EntryType.Sharing)
+            SecurityHandler.SecurityContext.CreateSnAclEditor(EntryType.Sharing)
                 .Set(_owner.Id, sharingData.Identity, false, mask, 0ul)
                 .Apply();
         }
@@ -434,7 +434,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// </summary>
         internal void UpdatePermissions()
         {
-            var aclEditor = SecurityHandler.SecurityContext.CreateAclEditor(EntryType.Sharing);
+            var aclEditor = SecurityHandler.SecurityContext.CreateSnAclEditor(EntryType.Sharing);
             var currentEntries = GetExplicitSharingEntries();
 
             // first remove all existing entries
@@ -465,7 +465,7 @@ namespace SenseNet.ContentRepository.Sharing
 
             var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
 
-            SecurityHandler.SecurityContext.CreateAclEditor(EntryType.Sharing)
+            SecurityHandler.SecurityContext.CreateSnAclEditor(EntryType.Sharing)
                 .Reset(nodeId, identityId, false, ulong.MaxValue, 0ul)
                 .Set(nodeId, identityId, false, mask, 0ul)
                 .Apply();
