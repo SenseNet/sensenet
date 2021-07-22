@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 
@@ -15,6 +16,17 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder UseExternalBlobProvider(this IRepositoryBuilder builder, IBlobProvider provider)
         {
             return builder;
+        }
+
+        /// <summary>
+        /// Adds the blob metadata provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetBlobStorageMetaDataProvider<T>(this IServiceCollection services) 
+            where T : class, IBlobStorageMetaDataProvider
+        {
+            services.AddSingleton<IBlobStorageMetaDataProvider, T>();
+
+            return services;
         }
     }
 }

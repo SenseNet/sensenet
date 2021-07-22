@@ -20,7 +20,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>();
             
             // default implementation is MS SQL
-            services.AddSingleton<IBlobStorageMetaDataProvider, MsSqlBlobMetaDataProvider>();
+            services.AddSenseNetBlobStorageMetaDataProvider<MsSqlBlobMetaDataProvider>();
 
             return services;
         }

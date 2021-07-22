@@ -103,6 +103,17 @@ namespace SenseNet.Extensions.DependencyInjection
             return services.AddStatisticalDataProvider<InMemoryStatisticalDataProvider>();
         }
 
+        /// <summary>
+        /// Adds the in-memory implementation of the most important sensenet providers to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetInMemoryProviders(this IServiceCollection services)
+        {
+            return services
+                .AddSenseNetInMemoryDataProvider()
+                .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
+                .AddSenseNetInMemoryStatisticalDataProvider();
+        }
+
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
         {
             return new MemoryDataProvider(new DatabaseStorage
