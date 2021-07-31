@@ -218,7 +218,7 @@ namespace SenseNet.OData
                         {
                             outfields.Add(propertyName,
                                 IsAllowedField(content, field.Name)
-                                    ? ODataWriter.GetJsonObject(field, selfurl, Request)
+                                    ? GetJsonObject(field, selfurl, Request)
                                     : null);
                         }
                     }
@@ -236,7 +236,7 @@ namespace SenseNet.OData
                     outfields.Add(propertyName,
                         expansion != null
                             ? Project(contentField, expansion.Children, Property.JokerList, httpContext)
-                            : ODataWriter.GetJsonObject(contentField, selfurl, Request));
+                            : GetJsonObject(contentField, selfurl, Request));
                 }
             }
 
