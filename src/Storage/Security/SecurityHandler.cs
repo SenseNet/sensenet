@@ -4,11 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
+using SenseNet.Security.Configuration;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
@@ -1664,27 +1667,37 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static void StartSecurity(bool isWebContext)
+        public static void StartSecurity(bool isWebContext, IServiceProvider services)
         {
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
             var messageProvider = Providers.Instance.SecurityMessageProvider;
 
-            var missingEntityHandler = new SnMissingEntityHandler();
+            var missingEntityHandler = services?.GetService<IMissingEntityHandler>() ??
+                new SnMissingEntityHandler();
 
-            var securityConfig = new SecurityConfiguration
-            {
-                SystemUserId = Identifiers.SystemUserId,
-                VisitorUserId = Identifiers.VisitorUserId,
-                EveryoneGroupId = Identifiers.EveryoneGroupId,
-                OwnerGroupId = Identifiers.OwnersGroupId,
-                SecurityActivityTimeoutInSeconds = Configuration.Security.SecuritActivityTimeoutInSeconds,
-                SecurityActivityLifetimeInMinutes = Configuration.Security.SecuritActivityLifetimeInMinutes,
-                CommunicationMonitorRunningPeriodInSeconds =
-                    Configuration.Security.SecurityMonitorRunningPeriodInSeconds
-            };
+            var securityConfig = services?.GetService<IOptions<SecurityConfiguration>>()?.Value ??
+                                 new SecurityConfiguration
+                                 {
+                                     SystemUserId = Identifiers.SystemUserId,
+                                     VisitorUserId = Identifiers.VisitorUserId,
+                                     EveryoneGroupId = Identifiers.EveryoneGroupId,
+                                     OwnerGroupId = Identifiers.OwnersGroupId
+                                 };
 
-            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, securityConfig);
+            var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ??
+                                   new MessagingOptions
+                                   {
+                                       SecurityActivityLifetimeInMinutes =
+                                           Configuration.Security.SecuritActivityLifetimeInMinutes,
+                                       SecurityActivityTimeoutInSeconds =
+                                           Configuration.Security.SecuritActivityTimeoutInSeconds,
+                                       CommunicationMonitorRunningPeriodInSeconds = Configuration.Security
+                                           .SecurityMonitorRunningPeriodInSeconds
+                                   };
+
+            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, 
+                securityConfig, messagingOptions);
             securitySystem.Start();
 
             _securityContextFactory = isWebContext 
