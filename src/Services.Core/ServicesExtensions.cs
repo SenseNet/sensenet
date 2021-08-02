@@ -81,6 +81,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
+                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
