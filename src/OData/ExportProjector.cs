@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.OData.Writers;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.OData
 {
-    // No metadata. $export and $select are irrelevant
+    // No metadata. $expand and $select are irrelevant
     internal class ExportProjector : Projector
     {
         internal override void Initialize(Content container)
@@ -39,6 +39,11 @@ namespace SenseNet.OData
                         fields.Add(fieldName, null);
                 }
             }
+
+            var permissions = ExportPermissions(content);
+            if(permissions != null)
+                fields.Add("__permissions", permissions);
+
             return fields;
         }
 
@@ -46,11 +51,13 @@ namespace SenseNet.OData
         {
             switch (fieldName)
             {
-                case "EffectiveAllowedChildTypes":
                 case "TypeIs":
                 case "InTree":
                 case "InFolder":
                 case "SavingState":
+                case "EffectiveAllowedChildTypes":
+                case "AllFieldSettingContents":
+                case "AvailableContentTypeFields":
                 case ACTIONSPROPERTY:
                 case ICONPROPERTY:
                 case ODataMiddleware.ChildrenPropertyName:
@@ -59,7 +66,6 @@ namespace SenseNet.OData
                     return base.IsAllowedField(content, fieldName);
             }
         }
-
 
         protected override object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
         {
@@ -96,6 +102,50 @@ namespace SenseNet.OData
                 return nodes.Where(n => n != null).Select(n => n.Path).ToArray();
 
             throw new NotSupportedException();
+        }
+
+        private object ExportPermissions(Content content)
+        {
+            var canSeePermissions = content.Security.HasPermission(PermissionType.SeePermissions);
+            if (!canSeePermissions)
+                return null;
+
+            var entries = content.Security.GetExplicitEntries()
+                .Select(GetEntry)
+                .Where(x => x != null)
+                .ToArray();
+
+            var isInherited = content.Security.IsInherited;
+            if (entries.Length == 0 && isInherited)
+                return null;
+
+            return new
+            {
+                IsInherited = isInherited,
+                Entries = entries
+            };
+        }
+        private object GetEntry(AceInfo entry)
+        {
+            var identityPath = NodeHead.Get(entry.IdentityId)?.Path;
+            if (identityPath == null)
+                return null;
+
+            var perms = new Dictionary<string, object>();
+            foreach (var permissionType in PermissionType.PermissionTypes)
+            {
+                var allow = (entry.AllowBits & permissionType.Mask) != 0;
+                var deny = (entry.DenyBits & permissionType.Mask) != 0;
+                if (allow || deny)
+                    perms.Add(permissionType.Name, deny ? "deny" : "allow");
+            }
+
+            return new
+            {
+                Identity = identityPath,
+                LocalOnly = entry.LocalOnly,
+                Permissions = perms
+            };
         }
     }
 }
