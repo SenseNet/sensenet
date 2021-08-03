@@ -19,7 +19,8 @@ namespace SenseNet.OData
         }
         internal override ODataEntity Project(Content content, HttpContext httpContext)
         {
-            var fields = new ODataEntity();
+            var entity = new ODataEntity();
+            var fields = new Dictionary<string, object>();
             var selfurl = GetSelfUrl(content);
 
             var fieldNames = content.Fields.Keys;
@@ -40,11 +41,14 @@ namespace SenseNet.OData
                 }
             }
 
+            entity.Add("ContentName", content.Name);
+            entity.Add("ContentType", content.ContentType.Name);
+            entity.Add("Fields", fields);
             var permissions = ExportPermissions(content);
-            if(permissions != null)
-                fields.Add("__permissions", permissions);
+            if (permissions != null)
+                entity.Add("Permissions", permissions);
 
-            return fields;
+            return entity;
         }
 
         protected override bool IsAllowedField(Content content, string fieldName)
