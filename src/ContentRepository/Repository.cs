@@ -3,7 +3,6 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
@@ -64,6 +63,8 @@ namespace SenseNet.ContentRepository
 
             Providers.Instance.InitializeDataProvider(builder.Services);
             Providers.Instance.InitializeBlobProviders();
+
+            EnsureDatabase(builder);
             
             var initialData = builder.InitialData;
             if (initialData != null)
@@ -124,6 +125,26 @@ namespace SenseNet.ContentRepository
         public static void Shutdown()
         {
             RepositoryInstance.Shutdown();
+        }
+
+        private static void EnsureDatabase(RepositoryBuilder builder)
+        {
+            if (builder.Services == null)
+                return;
+
+            var ds = builder.Services.GetService<IDataStore>();
+            var dbExists = ds.IsDatabaseReadyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            if (dbExists) 
+                return;
+
+            var logger = builder.Services.GetService<ILogger<RepositoryInstance>>();
+            var installerFactory = builder.Services.GetService<IInstallerFactory>();
+            if (installerFactory == null)
+                return;
+
+            // this will install the database and the initial package
+            new Installer(builder, null, logger)
+                .InstallSenseNet(installerFactory.GetPackageAssembly(), installerFactory.GetPackageName());
         }
 
         // ========================================================================= Constants

@@ -28,8 +28,8 @@ namespace SenseNet.Configuration
 
             public void SetImporting(bool value)
             {
-                if (!SnAdmin)
-                    throw new InvalidOperationException("The property 'Importing' is read only.");
+                // The importing flag is changeable regardless of the legacy SnAdmin flag,
+                // to support on-the-fly importing during app start.
                 Importing = value;
             }
             public void SetExporting(bool value)

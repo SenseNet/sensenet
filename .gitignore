@@ -261,3 +261,4 @@ paket-files/
 **/App_Data/LuceneIndex
 **/App_Data/LocalIndex
 **/App_Data/Logs
+/src/WebApps/**/install-services-core
