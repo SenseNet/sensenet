@@ -1,4 +1,4 @@
-﻿$srcPath = [System.IO.Path]::GetFullPath(($PSScriptRoot + '\..\..\src'))
+﻿$srcPath = [System.IO.Path]::GetFullPath(($PSScriptRoot + '\..\..'))
 $installSourceSnAdminPath = "$srcPath\nuget\snadmin"
 $installPackagePath = "$srcPath\Services.Core.Install\install-services-core.zip"
 $source = "$installSourceSnAdminPath\install-services\import"
@@ -9,6 +9,7 @@ $destination = "$installSourceSnAdminPath\install-services-core\import"
 New-Item $installSourceSnAdminPath\install-services-core\import -ItemType directory -Force
 
 # Copy import structure from its original place excluding applications.
+Write-Host "Copying common source items..."
 
 $exclude = @("(apps).Content", "WebRoot.Content", "ErrorMessages.Content")
 $excludeMatch = @("(apps)", "WebRoot", "ErrorMessages")
@@ -26,8 +27,11 @@ Get-ChildItem -Path $source -Recurse -Exclude $exclude |
  # Copy import items from the netcore-only folder. We cannot store files in source 
  # control directly in the install-services-core folder, because it would confuse
  # git what to commit and what to ignore.
+ Write-Host "Copying netcore source items..."
 
  Copy-Item $installSourceSnAdminPath\install-services\importNetCore\** $destination -Container -Recurse -Force
 
 # Create the install package.
+Write-Host "Compressing package..."
+
 Compress-Archive -Path "$installSourceSnAdminPath\install-services-core\*" -Force -CompressionLevel Optimal -DestinationPath $installPackagePath
