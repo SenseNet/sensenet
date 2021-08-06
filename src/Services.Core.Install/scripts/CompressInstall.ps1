@@ -9,7 +9,7 @@ $destination = "$installSourceSnAdminPath\install-services-core\import"
 New-Item $installSourceSnAdminPath\install-services-core\import -ItemType directory -Force
 
 # Copy import structure from its original place excluding applications.
-Write-Host "Copying common source items..."
+Write-Host "Copying common source items from $source"
 
 $exclude = @("(apps).Content", "WebRoot.Content", "ErrorMessages.Content")
 $excludeMatch = @("(apps)", "WebRoot", "ErrorMessages")
@@ -18,8 +18,10 @@ Get-ChildItem -Path $source -Recurse -Exclude $exclude |
  where { $excludeMatch -eq $null -or $_.FullName.Replace($source, "") -notmatch $excludeMatchRegEx} |
  Copy-Item -Destination {
   if ($_.PSIsContainer) {
+   Write-Host $_.Parent.FullName
    Join-Path $destination $_.Parent.FullName.Substring($source.length)
   } else {
+   Write-Host $_.FullName
    Join-Path $destination $_.FullName.Substring($source.length)
   }
  } -Force -Exclude $exclude
