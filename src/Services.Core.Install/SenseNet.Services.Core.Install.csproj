@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="powershell.exe $(SolutionDir)..\tools\scripts\CompressInstall.ps1" />
+    <Exec Command="pwsh $(SolutionDir)../tools/scripts/CompressInstall.ps1" />
   </Target>
 
 </Project>
