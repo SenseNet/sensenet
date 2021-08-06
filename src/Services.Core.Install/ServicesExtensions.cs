@@ -9,9 +9,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds the sensenet installer to the service collection.
         /// </summary>
-        public static IServiceCollection AddSenseNetInstaller(this IServiceCollection services)
+        public static IServiceCollection AddSenseNetInstallPackage(this IServiceCollection services)
         {
-            return services.AddSenseNetInstaller(typeof(Installer).Assembly, Installer.InstallPackageName);
+            return services.AddSenseNetInstallPackage(typeof(Installer).Assembly, Installer.InstallPackageName);
         }
     }
 }

@@ -138,13 +138,13 @@ namespace SenseNet.ContentRepository
                 return;
 
             var logger = builder.Services.GetService<ILogger<RepositoryInstance>>();
-            var installerFactory = builder.Services.GetService<IInstallerFactory>();
-            if (installerFactory == null)
+            var packageDescriptor = builder.Services.GetService<IInstallPackageDescriptor>();
+            if (packageDescriptor == null)
                 return;
 
             // this will install the database and the initial package
             new Installer(builder, null, logger)
-                .InstallSenseNet(installerFactory.GetPackageAssembly(), installerFactory.GetPackageName());
+                .InstallSenseNet(packageDescriptor.GetPackageAssembly(), packageDescriptor.GetPackageName());
         }
 
         // ========================================================================= Constants

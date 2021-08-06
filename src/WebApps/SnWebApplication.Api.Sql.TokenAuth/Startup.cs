@@ -43,7 +43,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
 
             // [sensenet]: add sensenet services
             services
-                .AddSenseNetInstaller()
+                .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
             {
                 repositoryBuilder

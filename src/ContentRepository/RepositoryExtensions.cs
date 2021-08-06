@@ -68,10 +68,10 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds the installer information of the core sensenet package to the service collection.
         /// </summary>
-        public static IServiceCollection AddSenseNetInstaller(this IServiceCollection services, 
+        public static IServiceCollection AddSenseNetInstallPackage(this IServiceCollection services, 
             Assembly assembly, string installPackageName)
         {
-            services.AddSingleton<IInstallerFactory>(provider => new InstallerFactory(assembly, installPackageName));
+            services.AddSingleton<IInstallPackageDescriptor>(provider => new InstallPackageDescriptor(assembly, installPackageName));
 
             return services;
         }
