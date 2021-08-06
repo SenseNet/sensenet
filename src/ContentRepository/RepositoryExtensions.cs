@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 using SenseNet.Preview;
 
 // ReSharper disable once CheckNamespace
@@ -59,6 +61,17 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddRepositoryComponents(this IServiceCollection services)
         {
             services.AddComponent(provider => new ServicesComponent());
+
+            return services;
+        }
+        
+        /// <summary>
+        /// Adds the installer information of the core sensenet package to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetInstallPackage(this IServiceCollection services, 
+            Assembly assembly, string installPackageName)
+        {
+            services.AddSingleton<IInstallPackageDescriptor>(provider => new InstallPackageDescriptor(assembly, installPackageName));
 
             return services;
         }
