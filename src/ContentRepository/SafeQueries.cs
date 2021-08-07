@@ -80,5 +80,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>Returns with the following query: "+TypeIs:Workflow +RelatedContent:@0 .AUTOFILTERS:OFF"</summary>
         public static string WorkflowsByRelatedContent { get { return "+TypeIs:Workflow +RelatedContent:@0 .AUTOFILTERS:OFF"; } }
+        
+        /// <summary>Returns a query for all content types.</summary>
+        public static string ContentTypes => $"+InTree:{Repository.ContentTypesFolderPath} .AUTOFILTERS:OFF";
     }
 }
