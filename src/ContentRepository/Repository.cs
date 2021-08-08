@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -6,10 +8,12 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
+using SenseNet.Search;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
@@ -88,13 +92,22 @@ namespace SenseNet.ContentRepository
                     SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
                 var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
-                if (indexingEngine.Running && initialData?.IndexDocuments != null)
+                if (indexingEngine.Running)
                 {
-                    indexingEngine.ClearIndexAsync(CancellationToken.None)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                    indexingEngine.WriteIndexAsync(null, null,
-                        initialData.IndexDocuments, CancellationToken.None)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    if (initialData?.IndexDocuments != null)
+                    {
+                        // Build the index from an in-memory structure. This is a developer use case.
+                        indexingEngine.ClearIndexAsync(CancellationToken.None)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                        indexingEngine.WriteIndexAsync(null, null,
+                                initialData.IndexDocuments, CancellationToken.None)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        // make sure the index exists and contains documents
+                        EnsureIndex(builder);
+                    }
                 }
 
                 patchManager.ExecutePatchesOnAfterStart();
@@ -145,6 +158,57 @@ namespace SenseNet.ContentRepository
             // this will install the database and the initial package
             new Installer(builder, null, logger)
                 .InstallSenseNet(packageDescriptor.GetPackageAssembly(), packageDescriptor.GetPackageName());
+        }
+
+        private static void EnsureIndex(RepositoryBuilder builder)
+        {
+            var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
+            logger?.LogInformation("Checking the index...");
+
+            // execute a query that should return multiple items if the index is not empty
+            var indexDocExist = SystemAccount.Execute(() => ContentQuery.Query(SafeQueries.ContentTypes, QuerySettings.AdminSettings).Count > 10);
+            if (indexDocExist)
+                return;
+
+            // This scenario auto-generates the whole index from the database. The most common case is
+            // when a new web app domain (usually a container) is started in a load balanced environment.
+
+            var populator = SearchManager.GetIndexPopulator();
+            var indexCount = 0;
+
+            populator.IndexingError += (sender, eventArgs) =>
+            {
+                logger?.LogWarning($"Error during building app start index for {eventArgs.Path}. " +
+                                         $"(id: {eventArgs.NodeId}). {eventArgs.Exception?.Message}");
+            };
+            populator.NodeIndexed += (sender, eventArgs) =>
+            {
+                Interlocked.Increment(ref indexCount);
+            };
+
+            logger?.LogInformation("Rebuilding the index...");
+
+            populator.ClearAndPopulateAllAsync(CancellationToken.None, builder.Console ?? new LoggerConsole(logger)).GetAwaiter().GetResult();
+
+            logger?.LogInformation($"Indexing of {indexCount} nodes finished.");
+        }
+
+        //TODO: move this helper logger class to a more appropriate place
+        private class LoggerConsole : TextWriter
+        {
+            private readonly ILogger _logger;
+
+            public LoggerConsole(ILogger logger)
+            {
+                _logger = logger;
+            }
+
+            public override void Write(string value)
+            {
+                _logger.LogInformation(value);
+            }
+
+            public override Encoding Encoding { get; } = Encoding.Unicode;
         }
 
         // ========================================================================= Constants
