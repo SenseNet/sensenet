@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
@@ -28,12 +27,6 @@ namespace SnWebApplication.Api.Sql.Admin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(logging =>
-            {
-                logging.AddConsole();
-                logging.AddFile("App_Data/Logs/snwebapp-{Date}.txt", LogLevel.Trace);
-            });
-
             services.AddRazorPages();
 
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
@@ -112,6 +113,10 @@ namespace SenseNet.Extensions.DependencyInjection
             //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
             Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
             Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
+
+            var searchEngine = provider.GetService<ISearchEngine>();
+            if (searchEngine != null)
+                Providers.Instance.SearchEngine = searchEngine;
 
 #pragma warning disable 618
 

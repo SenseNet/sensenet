@@ -6,6 +6,9 @@ using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
 using SenseNet.Preview;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -74,6 +77,36 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IInstallPackageDescriptor>(provider => new InstallPackageDescriptor(assembly, installPackageName));
 
             return services;
+        }
+
+        /// <summary>
+        /// Adds the provided search engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetSearchEngine<T>(this IServiceCollection services) where T : class, ISearchEngine
+        {
+            return services.AddSingleton<ISearchEngine, T>();
+        }
+        /// <summary>
+        /// Adds the provided search engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetSearchEngine(this IServiceCollection services, ISearchEngine searchEngine)
+        {
+            return services.AddSingleton(providers => searchEngine);
+        }
+
+        /// <summary>
+        /// Adds the provided indexing engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetIndexingEngine<T>(this IServiceCollection services) where T : class, IIndexingEngine
+        {
+            return services.AddSingleton<IIndexingEngine, T>();
+        }
+        /// <summary>
+        /// Adds the provided query engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetQueryEngine<T>(this IServiceCollection services) where T : class, IQueryEngine
+        {
+            return services.AddSingleton<IQueryEngine, T>();
         }
     }
 }

@@ -45,6 +45,11 @@ namespace SenseNet.Search.Tests
                 return _log.ToString();
             }
 
+            public void ClearLog()
+            {
+                _log.Clear();
+            }
+
             public bool Running { get; private set; }
             public bool IndexIsCentralized { get; }
             public Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
@@ -71,7 +76,7 @@ namespace SenseNet.Search.Tests
             }
             public Task ClearIndexAsync(CancellationToken cancellationToken)
             {
-                throw new NotImplementedException();
+                return Task.CompletedTask;
             }
             public Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken)
             {
@@ -96,7 +101,7 @@ namespace SenseNet.Search.Tests
         {
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
-                throw new NotImplementedException();
+                return QueryResult<int>.Empty;
             }
 
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
@@ -130,6 +135,11 @@ namespace SenseNet.Search.Tests
             {
                 return ((IndexingEngineForActivityQueueSelectorTests)IndexingEngine).GetLog();
             }
+
+            public void ClearIndexingLog()
+            {
+                ((IndexingEngineForActivityQueueSelectorTests)IndexingEngine).ClearLog();
+            }
         }
 
         [TestMethod, TestCategory("IR")]
@@ -152,6 +162,8 @@ namespace SenseNet.Search.Tests
                             new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
                         }))
                 {
+                    searchEngine.ClearIndexingLog();
+
                     var nodeName = "Indexing_Distributed";
                     var node = new SystemFolder(Repository.Root) {Name = nodeName};
                     node.Save();
@@ -180,6 +192,8 @@ namespace SenseNet.Search.Tests
                         new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
                     }))
                 {
+                    searchEngine.ClearIndexingLog();
+                    
                     var nodeName = "Indexing_Centralized";
                     var node = new SystemFolder(Repository.Root) { Name = nodeName };
                     node.Save();
