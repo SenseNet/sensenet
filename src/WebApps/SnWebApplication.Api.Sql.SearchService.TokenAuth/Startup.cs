@@ -1,7 +1,4 @@
-using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Search.Lucene29.Centralized;
+using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Security.Messaging;
 using SenseNet.Security.Messaging.RabbitMQ;
 
@@ -51,15 +50,6 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             {
                 repositoryBuilder
                     .UseLogger(provider)
-                    .UseLucene29CentralizedSearchEngineWithGrpc(Configuration["sensenet:search:service:address"], options =>
-                    {
-                        // trust the server in a development environment
-                        options.HttpClient = new HttpClient(new HttpClientHandler
-                        {
-                            ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
-                        });
-                        options.DisposeHttpClient = true;
-                    })
                     .UseSecurityMessageProvider(provider.GetService<IMessageProvider>())
                     .UseMsSqlExclusiveLockDataProviderExtension();
             })
@@ -67,6 +57,9 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
                 })
+                .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
+                .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
+                .AddLucene29CentralizedSearchEngineWithGrpc()
                 .AddSingleton<IMessageProvider, RabbitMQMessageProvider>()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
