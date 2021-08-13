@@ -20,6 +20,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
+using SenseNet.Security.Messaging;
 using SenseNet.Tests.Implementations;
 using STT = System.Threading.Tasks;
 
@@ -176,7 +177,7 @@ namespace SenseNet.Tests
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                //.UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
