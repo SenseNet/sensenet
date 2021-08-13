@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security;
 using SenseNet.Security.Data;
+using SenseNet.Security.Messaging;
 using SenseNet.Services.Wopi.Tests.Accessors;
 
 namespace SenseNet.Services.Wopi.Tests
@@ -1739,6 +1740,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)

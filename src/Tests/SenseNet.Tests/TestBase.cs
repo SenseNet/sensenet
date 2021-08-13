@@ -176,6 +176,7 @@ namespace SenseNet.Tests
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                //.UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)

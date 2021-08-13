@@ -5,6 +5,8 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Diagnostics;
 
+//TODO: Cleanup documentation and unnecessary overrides.
+/**/
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -22,83 +24,34 @@ namespace SenseNet.ContentRepository.Storage.Security
     public class SnSecurityContext : SecurityContext
     {
         /// <summary>
-        /// Gets the associated user instance.
-        /// </summary>
-        public new ISecurityUser CurrentUser { get { return base.CurrentUser; } }
-        /// <summary>
-        /// Gets the configured ISecurityDataProvider instance
-        /// </summary>
-        public new ISecurityDataProvider DataProvider { get { return base.DataProvider; } }
-
-        /// <summary>
         /// Creates a new instance of the SecurityContext from the provided user object
         /// and pointers to the ISecurityDataProvider, IMessageProvider and SecurityCache global objects.
         /// </summary>
-        public SnSecurityContext(IUser user) : base(user) { }
+        public SnSecurityContext(IUser user, SecuritySystem securitySystem) : base(user, securitySystem) { }
 
-        /// <summary>
-        /// Collects security-related information about a content and returns true if the content with 
-        /// the specified id exists in the content repository and also fills the parent and owner ids.
-        /// </summary>
-        protected override bool GetMissingEntity(int contentId, out int parentId, out int ownerId)
-        {
-            var nodeHead = NodeHead.Get(contentId);
-            if (nodeHead == null)
-            {
-                parentId = 0;
-                ownerId = 0;
-                return false;
-            }
-            parentId = nodeHead.ParentId;
-            ownerId = nodeHead.OwnerId;
-            return true;
-        }
-
-        /// <summary>
-        /// Starts the security subsystem using the passed configuration.
-        /// The method prepares and memorizes the main components for 
-        /// creating SecurityContext instances in a fastest possible way.
-        /// The main components are global objects: 
-        /// ISecurityDataProvider instance, IMessageProvider instance and SecurityCache instance.
-        /// </summary>
-        public static new void StartTheSystem(SecurityConfiguration configuration)
-        {
-            SecurityContext.StartTheSystem(configuration);
-            _generalContext = new SnSecurityContext(new SystemUser(null));
-        }
-
-        /// <summary>
-        /// Creates a new context for the logged in user.
-        /// </summary>
-        public static SnSecurityContext Create()
-        {
-            return new SnSecurityContext(AccessProvider.Current.GetCurrentUser());
-        }
-
-        /// <summary>
-        /// Empties the security database and memory.
-        /// WARNING! Do not use this method in your code except in installing or developing scenarios.
-        /// </summary>
-        public new void DeleteAllAndRestart()
-        {
-            base.DeleteAllAndRestart();
-        }
-        
         /*********************** ACL API **********************/
 
         /// <summary>
-        /// Creates a new instance of the SnAclEditor class for modifying permissions. 
+        /// Creates a new instance of the AclEditor class for modifying permissions. 
         /// </summary>
-        public new SnAclEditor CreateAclEditor(EntryType entryType = EntryType.Normal)
+        public override AclEditor CreateAclEditor(EntryType entryType = EntryType.Normal)
         {
             return SnAclEditor.Create(this, entryType);
         }
+        /// <summary>
+        /// Creates a new instance of the SnAclEditor class for modifying permissions. 
+        /// </summary>
+        public SnAclEditor CreateSnAclEditor(EntryType entryType = EntryType.Normal)
+        {
+            return SnAclEditor.Create(this, entryType);
+        }
+
         /// <summary>
         /// Returns the AccessControlList of the passed content to help building a rich GUI for modifications.
         /// The current user must have SeePermissions permission on the requested content.
         /// The content must exist.
         /// </summary>
-        public new AccessControlList GetAcl(int contentId, EntryType entryType = EntryType.Normal)
+        public override AccessControlList GetAcl(int contentId, EntryType entryType = EntryType.Normal)
         {
             this.AssertPermission(contentId, PermissionType.SeePermissions);
             return base.GetAcl(contentId, entryType);
@@ -116,7 +69,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// the method will return with an empty list.</param>
         /// <param name="entryType">Optional filter parameter.
         /// If it is provided, the output contains only the matched entries.</param>
-        public new List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+        public override List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             return base.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
@@ -132,7 +85,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// the method will return with empty list.</param>
         /// <param name="entryType">Optional filter parameter.
         /// If it is provided, the output contains only the matched entries.</param>
-        public new List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+        public override List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             return base.GetExplicitEntries(contentId, relatedIdentities, entryType);
         }
@@ -147,7 +100,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null.
         /// Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public new void AssertPermission(int contentId, params PermissionTypeBase[] permissions)
+        public override void AssertPermission(int contentId, params PermissionTypeBase[] permissions)
         {
             base.AssertPermission(contentId, permissions);
         }
@@ -159,7 +112,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null.
         /// Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public new void AssertSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
+        public override void AssertSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
         {
             base.AssertSubtreePermission(contentId, permissions);
         }
@@ -168,7 +121,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public new bool HasPermission(int contentId, params PermissionTypeBase[] permissions)
+        public override bool HasPermission(int contentId, params PermissionTypeBase[] permissions)
         {
             return base.HasPermission(contentId, permissions);
         }
@@ -177,7 +130,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public new bool HasSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
+        public override bool HasSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
         {
             return base.HasSubtreePermission(contentId, permissions);
         }
@@ -189,7 +142,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public new PermissionValue GetPermission(int contentId, params PermissionTypeBase[] permissions)
+        public override PermissionValue GetPermission(int contentId, params PermissionTypeBase[] permissions)
         {
             return base.GetPermission(contentId, permissions);
         }
@@ -201,7 +154,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="permissions">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public new PermissionValue GetSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
+        public override PermissionValue GetSubtreePermission(int contentId, params PermissionTypeBase[] permissions)
         {
             return base.GetSubtreePermission(contentId, permissions);
         }
@@ -216,7 +169,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the created content. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
-        public new void CreateSecurityEntity(int contentId, int parentId, int ownerId)
+        public override void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("CreateSecurityEntity id:{0}, parent:{1}, owner:{2}", contentId, parentId, ownerId))
             {
@@ -229,7 +182,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
-        public new void ModifyEntityOwner(int contentId, int ownerId)
+        public override void ModifyEntityOwner(int contentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("ModifyEntityOwner id:{0}, owner:{1}", contentId, ownerId))
             {
@@ -242,7 +195,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// security component after a content was deleted in the repository.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
-        public new void DeleteEntity(int contentId)
+        public override void DeleteEntity(int contentId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteEntity id:{0}", contentId))
             {
@@ -256,7 +209,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="sourceId">Id of the source content. Cannot be 0.</param>
         /// <param name="targetId">Id of the target content that will contain the source. Cannot be 0.</param>
-        public new void MoveEntity(int sourceId, int targetId)
+        public override void MoveEntity(int sourceId, int targetId)
         {
             using (var op = SnTrace.Security.StartOperation("MoveEntity sourceId:{0}, targetId:{1}", sourceId, targetId))
             {
@@ -268,7 +221,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns false if the content inherits the permissions from it's parent.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
-        public new bool IsEntityInherited(int contentId)
+        public override bool IsEntityInherited(int contentId)
         {
             return base.IsEntityInherited(contentId);
         }
@@ -281,7 +234,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// 2 - executes a callback to the repository (<see cref="GetMissingEntity"/>) for the entity info and saves the entity if it is needed.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
-        public new bool IsEntityExist(int contentId)
+        public override bool IsEntityExist(int contentId)
         {
             return base.IsEntityExist(contentId);
         }
@@ -293,7 +246,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
-        public new IEnumerable<int> GetRelatedIdentities(int contentId, PermissionLevel level)
+        public override IEnumerable<int> GetRelatedIdentities(int contentId, PermissionLevel level)
         {
             return base.GetRelatedIdentities(contentId, level);
         }
@@ -306,11 +259,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. Allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="isEnabled">Filter method that can enable or disable any content.</param>
-        public new Dictionary<PermissionTypeBase, int> GetRelatedPermissions(int contentId, PermissionLevel level, bool explicitOnly, int identityId, Func<int, bool> isEnabled)
+        public override Dictionary<PermissionTypeBase, int> GetRelatedPermissions(int contentId, PermissionLevel level, bool explicitOnly, int identityId, Func<int, bool> isEnabled)
         {
             return base.GetRelatedPermissions(contentId, level, explicitOnly, identityId, isEnabled);
         }
-        public new Dictionary<PermissionTypeBase, int> GetExplicitPermissionsInSubtree(int contentId, int[] identities, bool includeRoot)
+        public override Dictionary<PermissionTypeBase, int> GetExplicitPermissionsInSubtree(int contentId, int[] identities, bool includeRoot)
         {
             return base.GetExplicitPermissionsInSubtree(contentId, identities, includeRoot);
         }
@@ -323,7 +276,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public new IEnumerable<int> GetRelatedEntities(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionTypeBase> permissions)
+        public override IEnumerable<int> GetRelatedEntities(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionTypeBase> permissions)
         {
             return base.GetRelatedEntities(contentId, level, explicitOnly, identityId, permissions);
         }
@@ -333,7 +286,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public new IEnumerable<int> GetRelatedIdentities(int contentId, PermissionLevel level, IEnumerable<PermissionTypeBase> permissions)
+        public override IEnumerable<int> GetRelatedIdentities(int contentId, PermissionLevel level, IEnumerable<PermissionTypeBase> permissions)
         {
             return base.GetRelatedIdentities(contentId, level, permissions);
         }
@@ -345,7 +298,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="level">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public new IEnumerable<int> GetRelatedEntitiesOneLevel(int contentId, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
+        public override IEnumerable<int> GetRelatedEntitiesOneLevel(int contentId, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
         {
             return base.GetRelatedEntitiesOneLevel(contentId, level, identityId, permissions);
         }
@@ -356,7 +309,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="permissions">Only those users appear in the output that have permission settings in connection with the given permissions.</param>
-        public new IEnumerable<int> GetAllowedUsers(int contentId, IEnumerable<PermissionTypeBase> permissions)
+        public override IEnumerable<int> GetAllowedUsers(int contentId, IEnumerable<PermissionTypeBase> permissions)
         {
             return base.GetAllowedUsers(contentId, permissions);
         }
@@ -365,7 +318,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the group or user.</param>
         /// <param name="directOnly">Switch of the direct or indirect membership.</param>
-        public new IEnumerable<int> GetParentGroups(int contentId, bool directOnly)
+        public override IEnumerable<int> GetParentGroups(int contentId, bool directOnly)
         {
             return base.GetParentGroups(contentId, directOnly);
         }
@@ -375,7 +328,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Gets the ids of all the groups that contain the current user as a member, even through other groups.
         /// </summary>
-        public new int[] GetFlattenedGroups()
+        public override int[] GetFlattenedGroups()
         {
             return base.GetFlattenedGroups();
         }
@@ -384,7 +337,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// plus Everyone (except in case of a visitor) and the optional dynamic groups provided by the 
         /// membership extender.
         /// </summary>
-        public new List<int> GetGroups()
+        public override List<int> GetGroups()
         {
             return base.GetGroups();
         }
@@ -393,7 +346,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// plus Everyone (except in case of a visitor), plus Owners (if applicable) and the optional 
         /// dynamic groups provided by the membership extender.
         /// </summary>
-        public new List<int> GetGroupsWithOwnership(int entityId)
+        public override List<int> GetGroupsWithOwnership(int entityId)
         {
             return base.GetGroupsWithOwnership(entityId);
         }
@@ -403,7 +356,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// is transitive, meaning it will look for relations in the whole group graph, not 
         /// only direct memberships.
         /// </summary>
-        public new bool IsInGroup(int memberId, int groupId)
+        public override bool IsInGroup(int memberId, int groupId)
         {
             return base.IsInGroup(memberId, groupId);
         }
@@ -418,7 +371,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
-        public new void AddMembersToSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        public override void AddMembersToSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             using (var op = SnTrace.Security.StartOperation("AddMembersToSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
                 groupId, string.Join(",", userMembers ?? new int[0]), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
@@ -436,7 +389,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
-        public new void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        public override void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             var users = userMembers as int[] ?? userMembers.ToArray();
             using (var op = SnTrace.Security.StartOperation("RemoveMembersFromSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
@@ -453,7 +406,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
-        public new void AddGroupsToSecurityGroup(int groupId, IEnumerable<int> groupMembers)
+        public override void AddGroupsToSecurityGroup(int groupId, IEnumerable<int> groupMembers)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupsToSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
             {
@@ -467,7 +420,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        public new void AddGroupToSecurityGroups(int groupId, IEnumerable<int> parentGroups)
+        public override void AddGroupToSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupToSecurityGroups: groupId:{0}, parentGroups:[{1}]", groupId, string.Join(",", string.Join(",", parentGroups ?? new int[0]))))
             {
@@ -482,7 +435,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
-        public new void RemoveGroupsFromSecurityGroup(int groupId, IEnumerable<int> groupMembers)
+        public override void RemoveGroupsFromSecurityGroup(int groupId, IEnumerable<int> groupMembers)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveGroupsFromSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
             {
@@ -497,7 +450,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        public new void RemoveGroupFromSecurityGroups(int groupId, IEnumerable<int> parentGroups)
+        public override void RemoveGroupFromSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveGroupFromSecurityGroups: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", parentGroups ?? new int[0])))
             {
@@ -512,7 +465,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        public new void AddUsersToSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        public override void AddUsersToSecurityGroup(int groupId, IEnumerable<int> userMembers)
         {
             using (var op = SnTrace.Security.StartOperation("AddUsersToSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
             {
@@ -526,7 +479,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">Identifier of the the user member that will be added. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        public new void AddUserToSecurityGroups(int userId, IEnumerable<int> parentGroups)
+        public override void AddUserToSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddUserToSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
             {
@@ -540,7 +493,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">Identifier of the user the will be removed. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        public new void RemoveUserFromSecurityGroups(int userId, IEnumerable<int> parentGroups)
+        public override void RemoveUserFromSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveUserFromSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
             {
@@ -555,7 +508,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        public new void RemoveUsersFromSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        public override void RemoveUsersFromSecurityGroup(int groupId, IEnumerable<int> userMembers)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveUsersFromSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
             {
@@ -567,7 +520,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group and its relations including related security entries.
         /// </summary>
-        public new void DeleteSecurityGroup(int groupId)
+        public override void DeleteSecurityGroup(int groupId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteSecurityGroup: id:{0}", groupId))
             {
@@ -578,7 +531,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the user from the system by removing all memberships and security entries related to this user.
         /// </summary>
-        public new void DeleteUser(int userId)
+        public override void DeleteUser(int userId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteUser: id:{0}", userId))
             {
@@ -589,7 +542,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group or user and its relations including related security entries.
         /// </summary>
-        public new void DeleteIdentity(int id)
+        public override void DeleteIdentity(int id)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteIdentity: id:{0}", id))
             {
@@ -600,7 +553,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries.
         /// </summary>
-        public new void DeleteIdentities(IEnumerable<int> ids)
+        public override void DeleteIdentities(IEnumerable<int> ids)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteIdentities: ids:[{0}]", string.Join(",", ids ?? new int[0])))
             {
@@ -622,19 +575,19 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returns an object that contains information about the execution of the last few SecurityActivities.
         /// </summary>
-        public new SecurityActivityHistory GetRecentActivities()
+        public override SecurityActivityHistory GetRecentActivities()
         {
             //TODO: secu: permission check for GetRecentActivities
             return base.GetRecentActivities();
         }
         /// <summary>WARNING! Do not use this method in your code. Used in consistency checker tool.</summary>
-        public new IEnumerable<long> GetCachedMembershipForConsistencyCheck()
+        public override IEnumerable<long> GetCachedMembershipForConsistencyCheck()
         {
             //TODO: secu: permission check for GetCachedMembershipForConsistencyCheck
             return base.GetCachedMembershipForConsistencyCheck();
         }
         /// <summary>WARNING! Do not use this method in your code. Used in consistency checker tool.</summary>
-        public new void GetFlatteningForConsistencyCheck(out IEnumerable<long> missingInFlattening, out IEnumerable<long> unknownInFlattening)
+        public override void GetFlatteningForConsistencyCheck(out IEnumerable<long> missingInFlattening, out IEnumerable<long> unknownInFlattening)
         {
             //TODO: secu: permission check for GetFlatteningForConsistencyCheck
             base.GetFlatteningForConsistencyCheck(out missingInFlattening, out unknownInFlattening);

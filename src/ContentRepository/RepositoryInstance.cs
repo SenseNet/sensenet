@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository
 
             InitializeDataProviderExtensions();
 
-            SecurityHandler.StartSecurity(_settings.IsWebContext);
+            SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
 
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
 

@@ -35,7 +35,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                AclEditor.Create(new SecurityContext(User.Current))
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(testRoot.Id, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
@@ -91,7 +91,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                AclEditor.Create(new SecurityContext(User.Current))
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Apply();
 
@@ -116,7 +116,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                AclEditor.Create(new SecurityContext(User.Current))
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Apply();
 
@@ -195,7 +195,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
                 Node targetNode = LoadNode(testRoot, "TargetFolder");
-                AclEditor.Create(new SecurityContext(User.Current))
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(sourceNode.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
@@ -228,7 +228,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
                 Node targetNode = LoadNode(testRoot, "TargetFolder");
-                AclEditor.Create(new SecurityContext(User.Current))
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,
                         PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)

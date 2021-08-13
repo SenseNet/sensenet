@@ -1463,7 +1463,7 @@ namespace SenseNet.ContentRepository.Tests
                 PrepareForPermissionTest(out var gc, out var user1);
 
                 // set some security entries on focused document
-                SnSecurityContext.Create().CreateAclEditor()
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(gc.Id, user1.Id, false, PermissionType.Preview)
                     .Allow(gc.Id, Group.Everyone.Id, false, PermissionType.Preview)
                     .Apply();
@@ -1501,7 +1501,7 @@ namespace SenseNet.ContentRepository.Tests
                 PrepareForPermissionTest(out var gc, out var user1);
 
                 // set some security entries on the parent chain
-                SnSecurityContext.Create().CreateAclEditor()
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.Preview)
                     .Allow(gc.ParentId, Group.Everyone.Id, false, PermissionType.Preview)
                     .Apply();
@@ -1549,7 +1549,7 @@ namespace SenseNet.ContentRepository.Tests
                 var userCaller = CreateUser("abc3@example.com");
 
                 // the caller user will have permissions for user1 but NOT for user2
-                SnSecurityContext.Create().CreateAclEditor()
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(user1.Id, userCaller.Id, false, PermissionType.Open)
                     .Apply();
 
@@ -1643,7 +1643,7 @@ namespace SenseNet.ContentRepository.Tests
         private void PrepareForPermissionTest(out GenericContent gc, out User user)
         {
             using (new SystemAccount())
-                SnSecurityContext.Create().CreateAclEditor()
+                SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
                     .Apply();
 

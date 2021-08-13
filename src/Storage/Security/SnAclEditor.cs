@@ -194,7 +194,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="categoriesToCopy">After the break operation, all previous effective permissions will be
         /// copied explicitly that match any of the given entry types.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        public new AclEditor BreakInheritance(int entityId, EntryType[] categoriesToCopy)
+        public new SnAclEditor BreakInheritance(int entityId, EntryType[] categoriesToCopy)
         {
             base.BreakInheritance(entityId, categoriesToCopy);
             return this;
@@ -218,9 +218,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entityId">The requested entity.</param>
         /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the provided categories will be removed.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        public new AclEditor UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize)
+        public new SnAclEditor UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize)
         {
-            base.UnbreakInheritance(entityId, categoriesToNormalize);
+            base.UnBreakInheritance(entityId, categoriesToNormalize);
             return this;
         }
 
@@ -269,7 +269,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 {
                     { "Entities", this._acls.Count },
                     { "Breaks", this._breaks.Count },
-                    { "Unbreaks", this._unbreaks.Count }
+                    { "Unbreaks", this._unBreaks.Count }
                 }))
             {
                 using (var op = SnTrace.Security.StartOperation("AclEditor.Apply (acl count: {0})", _acls.Count))
@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                         }
                     }
                     // unbreaks that are not in changed aces
-                    foreach (var entityId in this._unbreaks)
+                    foreach (var entityId in this._unBreaks)
                     {
                         if (!this._acls.ContainsKey(entityId))
                         {

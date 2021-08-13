@@ -4,11 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
+using SenseNet.Security.Configuration;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
@@ -263,7 +266,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             var user = AccessProvider.Current.GetCurrentUser();
             if (user.Id == -1)
                 return true;
-            var ctx = SnSecurityContext.Create();
+            var ctx = SecurityHandler.SecurityContext;
             return Retrier.Retry(3, 200, typeof(EntityNotFoundException), () => HasPermissionPrivate(ctx, nodeId, permissionTypes));
         }
         private static bool HasPermissionPrivate(SnSecurityContext ctx, int contentId, params PermissionType[] permissionTypes)
@@ -1069,7 +1072,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (IsEntityInherited(contentId))
                 return;
             SecurityContext.CreateAclEditor()
-                .UnbreakInheritance(contentId,
+                .UnBreakInheritance(contentId,
                     normalize ? new[] { EntryType.Normal } : new EntryType[0])
                 .Apply();
         }
@@ -1657,46 +1660,57 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #region /*========================================================== Context, System start */
 
+        private static SecuritySystem _securitySystem;
         private static ISecurityContextFactory _securityContextFactory;
 
         /// <summary>
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static void StartSecurity(bool isWebContext)
+        public static void StartSecurity(bool isWebContext, IServiceProvider services)
         {
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
             var messageProvider = Providers.Instance.SecurityMessageProvider;
-            var startingThesystem = DateTime.UtcNow;
 
-            SnSecurityContext.StartTheSystem(new SecurityConfiguration
-            {
-                SecurityDataProvider = securityDataProvider,
-                MessageProvider = messageProvider,
-                SystemUserId = Identifiers.SystemUserId,
-                VisitorUserId = Identifiers.VisitorUserId,
-                EveryoneGroupId = Identifiers.EveryoneGroupId,
-                OwnerGroupId = Identifiers.OwnersGroupId,
-                SecuritActivityTimeoutInSeconds = Configuration.Security.SecuritActivityTimeoutInSeconds,
-                SecuritActivityLifetimeInMinutes = Configuration.Security.SecuritActivityLifetimeInMinutes,
-                CommunicationMonitorRunningPeriodInSeconds = Configuration.Security.SecurityMonitorRunningPeriodInSeconds
-            });
-            _securityContextFactory = isWebContext ? (ISecurityContextFactory)new DynamicSecurityContextFactory() : new StaticSecurityContextFactory();
+            var missingEntityHandler = services?.GetService<IMissingEntityHandler>() ??
+                new SnMissingEntityHandler();
 
-            messageProvider.Start(startingThesystem);
+            var securityConfig = services?.GetService<IOptions<SecurityConfiguration>>()?.Value ??
+                                 new SecurityConfiguration
+                                 {
+                                     SystemUserId = Identifiers.SystemUserId,
+                                     VisitorUserId = Identifiers.VisitorUserId,
+                                     EveryoneGroupId = Identifiers.EveryoneGroupId,
+                                     OwnerGroupId = Identifiers.OwnersGroupId
+                                 };
+
+            var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ??
+                                   new MessagingOptions
+                                   {
+                                       SecurityActivityLifetimeInMinutes =
+                                           Configuration.Security.SecuritActivityLifetimeInMinutes,
+                                       SecurityActivityTimeoutInSeconds =
+                                           Configuration.Security.SecuritActivityTimeoutInSeconds,
+                                       CommunicationMonitorRunningPeriodInSeconds = Configuration.Security
+                                           .SecurityMonitorRunningPeriodInSeconds
+                                   };
+
+            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, 
+                securityConfig, messagingOptions);
+            securitySystem.Start();
+
+            _securityContextFactory = isWebContext 
+                ? (ISecurityContextFactory)new DynamicSecurityContextFactory(securitySystem) 
+                : new StaticSecurityContextFactory(securitySystem);
+
+            _securitySystem = securitySystem;
 
             SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
                 properties: new Dictionary<string, object> { 
                     { "DataProvider", securityDataProvider.GetType().FullName },
                     { "MessageProvider", messageProvider.GetType().FullName }
                 });
-        }
-
-        internal static void DeleteEverythingAndRestart()
-        {
-            using (new SystemAccount())
-                SecurityContext.DeleteAllAndRestart();
         }
 
         /// <summary>
@@ -1888,7 +1902,8 @@ namespace SenseNet.ContentRepository.Storage.Security
 	        private static void CreateEntities()
 	        {
 	            var securityContext = SecurityContext;
-	            DeleteEverythingAndRestart();
+
+	            securityContext.SecuritySystem.DataProvider.InstallDatabase();
 
 	            var entityTreeNodes = Providers.Instance.DataStore
                     .LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -2195,7 +2210,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
 	    public static void ShutDownSecurity()
 	    {
-	        SenseNet.Security.SecurityContext.Shutdown();
+            _securitySystem.Shutdown();
 	    }
 	}
 }

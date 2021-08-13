@@ -14,6 +14,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
+using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -81,6 +82,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false);
 

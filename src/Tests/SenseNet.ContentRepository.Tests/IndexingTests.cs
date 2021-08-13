@@ -19,6 +19,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Security.Messaging;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
@@ -609,6 +610,7 @@ namespace SenseNet.ContentRepository.Tests
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                         .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                        .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                         .AddBlobProvider(blobProvider);
                 }, () =>
                 {

@@ -226,8 +226,9 @@ namespace SenseNet.Tests.Core.Tests
                 {
                     if (withSecurity)
                     {
-                        var sdbp = new TypeAccessor(typeof(MemoryDataProvider));
-                        var db = (DatabaseStorage)sdbp.GetStaticFieldOrProperty("Storage");
+                        var securityDataProvider = Providers.Instance.SecurityDataProvider;
+                        var sdbp = new ObjectAccessor(securityDataProvider);
+                        var db = (DatabaseStorage)sdbp.GetFieldOrProperty("Storage");
                         db.Aces.Clear();
 
                         SecurityHandler.CreateAclEditor()
