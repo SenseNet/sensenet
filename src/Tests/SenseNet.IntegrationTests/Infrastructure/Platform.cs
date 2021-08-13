@@ -11,6 +11,7 @@ using SenseNet.IntegrationTests.Common;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Security;
+using SenseNet.Security.Messaging;
 using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.IntegrationTests.Infrastructure
@@ -47,6 +48,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()

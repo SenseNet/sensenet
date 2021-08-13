@@ -22,6 +22,8 @@ namespace SenseNet.ContentRepository
             public new bool IsWebContext { get; }
             public new bool ExecutingPatches { get; internal set; }
 
+            public IServiceProvider Services { get; }
+
             /// <summary>
             /// Gets a value that is 'true' if your tool uses the Content search and any modification features (e.g. save, move etc.). 'True' is the default.
             /// </summary>
@@ -64,6 +66,9 @@ namespace SenseNet.ContentRepository
                 IndexPath = settings.IndexPath;
 
                 TraceCategories = settings.TraceCategories;
+
+                if (settings is RepositoryBuilder builder)
+                    Services = builder.Services;
             }
         }
 

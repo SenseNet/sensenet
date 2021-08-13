@@ -20,7 +20,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                SnAclEditor.Create(new SnSecurityContext(User.Current))
+                SnAclEditor.Create(SecurityHandler.SecurityContext)
                     .Allow(2, 1, false, PermissionType.Custom01)
                     .Apply();
 
@@ -53,7 +53,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                SnAclEditor.Create(new SnSecurityContext(User.Current))
+                SnAclEditor.Create(SecurityHandler.SecurityContext)
                     .Allow(2, Identifiers.AdministratorUserId, false, PermissionType.Custom01)
                     .Allow(2, Identifiers.VisitorUserId, false, PermissionType.Custom02)
                     .Apply();
