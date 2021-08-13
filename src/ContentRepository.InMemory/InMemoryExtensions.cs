@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
@@ -66,6 +67,8 @@ namespace SenseNet.Extensions.DependencyInjection
             
             Providers.Instance.ResetBlobProviders();
 
+            var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
+
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
@@ -77,7 +80,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchEngine(new InMemorySearchEngine(initialIndex))
+                .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -103,6 +106,18 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetInMemoryStatisticalDataProvider(this IServiceCollection services)
         {
             return services.AddStatisticalDataProvider<InMemoryStatisticalDataProvider>();
+        }
+
+        /// <summary>
+        /// Adds the in-memory implementation of the most important sensenet providers to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetInMemoryProviders(this IServiceCollection services)
+        {
+            return services
+                .AddSenseNetInMemoryDataProvider()
+                .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
+                .AddSenseNetInMemoryStatisticalDataProvider()
+                .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
         }
 
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)

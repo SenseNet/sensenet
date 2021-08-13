@@ -33,6 +33,9 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         #endregion
         public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
+            if (!(await MainProvider.IsDatabaseReadyAsync(cancellationToken)))
+                return new ComponentInfo[0];
+
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 
@@ -83,6 +86,9 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         #endregion
         public async Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
         {
+            if (!(await MainProvider.IsDatabaseReadyAsync(cancellationToken)))
+                return new ComponentInfo[0];
+
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 

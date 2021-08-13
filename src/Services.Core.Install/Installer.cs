@@ -4,7 +4,7 @@ namespace SenseNet.Services.Core.Install
 {
     public static class Installer
     {
-        private const string InstallPackageName = "install-services-core.zip";
+        internal const string InstallPackageName = "install-services-core.zip";
 
         /// <summary>
         /// Installs the sensenet Services main component.

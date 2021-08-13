@@ -227,15 +227,7 @@ namespace SenseNet.Configuration
 
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
-        #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
-        private Lazy<ISearchEngine> _searchEngine =
-            new Lazy<ISearchEngine>(() => CreateProviderInstance<ISearchEngine>(SearchEngineClassName, "SearchEngine"));
-        public virtual ISearchEngine SearchEngine
-        {
-            get { return _searchEngine.Value; }
-            set { _searchEngine = new Lazy<ISearchEngine>(() => value); }
-        }
-        #endregion
+        public virtual ISearchEngine SearchEngine { get; set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>

@@ -14,6 +14,7 @@ namespace SenseNet.ContentRepository.Components
         public override void AddPatches(PatchBuilder builder)
         {
             builder.Install("1.0.0", "2020-10-15", "MS SQL data provider extension for the Exclusive lock feature.")
+                .DependsOn("SenseNet.Services", "7.7.22")
                 .ActionOnBefore(context =>
                 {
                     var dataStore = Providers.Instance.DataStore;

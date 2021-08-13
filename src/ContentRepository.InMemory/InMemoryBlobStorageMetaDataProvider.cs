@@ -21,9 +21,9 @@ namespace SenseNet.ContentRepository.InMemory
         private IBlobProviderStore BlobProviders => Providers.Instance.BlobProviders;
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
-        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
+        public InMemoryBlobStorageMetaDataProvider(DataProvider dataProvider)
         {
-            DataProvider = dataProvider;
+            DataProvider = (InMemoryDataProvider)dataProvider;
         }
 
         public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,

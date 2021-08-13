@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
 {
@@ -14,7 +16,12 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                        .ConfigureLogging(loggingConfiguration =>
+                            loggingConfiguration.ClearProviders())
+                        .UseSerilog((hostingContext, loggerConfiguration) =>
+                            loggerConfiguration.ReadFrom
+                                .Configuration(hostingContext.Configuration));
                 });
     }
 }

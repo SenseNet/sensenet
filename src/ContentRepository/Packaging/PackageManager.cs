@@ -94,10 +94,10 @@ namespace SenseNet.Packaging
             {
                 if (Repository.Started())
                 {
-                    console.WriteLine("-------------------------------------------------------------");
-                    console.Write("Stopping repository ... ");
+                    console?.WriteLine("-------------------------------------------------------------");
+                    console?.Write("Stopping repository ... ");
                     Repository.Shutdown();
-                    console.WriteLine("Ok.");
+                    console?.WriteLine("Ok.");
                 }
             }
 
@@ -216,6 +216,11 @@ namespace SenseNet.Packaging
 
         internal static void SaveInitialPackage(Manifest manifest)
         {
+            // There is a possibility that during system install the database does not exist yet,
+            // so saving a package is not possible. The package record will be saved after execution anyway.
+            if (manifest.SystemInstall)
+                return;
+
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
             Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
         }
