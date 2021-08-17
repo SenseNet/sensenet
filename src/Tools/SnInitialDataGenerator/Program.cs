@@ -89,7 +89,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             using (Repository.Start(builder))
             {
                 // IMPORT
-                new Installer(CreateRepositoryBuilder()).Import(arguments.ImportPath);
+                new Installer(null).Import(arguments.ImportPath);
 
                 // Copy importlog
                 using (var reader = new StreamReader(Logger.GetLogFileName()))
