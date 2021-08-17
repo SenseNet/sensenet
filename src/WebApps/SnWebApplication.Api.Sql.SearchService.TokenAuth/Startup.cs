@@ -50,7 +50,6 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             {
                 repositoryBuilder
                     .UseLogger(provider)
-                    .UseSecurityMessageProvider(provider.GetService<IMessageProvider>())
                     .UseMsSqlExclusiveLockDataProviderExtension();
             })
                 .AddEFCSecurityDataProvider(options =>
@@ -59,8 +58,9 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 })
                 .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
+                .Configure<RabbitMqOptions>(Configuration.GetSection("sensenet:security:rabbitmq"))
                 .AddLucene29CentralizedSearchEngineWithGrpc()
-                .AddSingleton<IMessageProvider, RabbitMQMessageProvider>()
+                .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
