@@ -1,0 +1,16 @@
+{
+   "groups":[
+      {
+         "Read":["See", "Preview", "PreviewWithoutWatermark", "PreviewWithoutRedaction", "Open"]
+      },
+      {
+         "Write":[ "Save", "AddNew", "Delete"]
+      },
+      {
+         "Versioning":["OpenMinor", "Publish", "ForceCheckin", "Approve", "RecallOldVersion"]
+      },
+      {
+         "Advanced":["SeePermissions", "SetPermissions", "RunApplication"]
+      }
+   ]
+}
