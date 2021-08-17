@@ -7,13 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Security.Messaging.RabbitMQ;
 
-namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
+namespace SnWebApplication.Api.Sql.SearchService.Admin
 {
     public class Startup
     {
@@ -82,6 +83,15 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
             app.UseSenseNetAuthentication();
+
+            // [sensenet]: Authentication: in this test project everybody
+            // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            app.Use(async (context, next) =>
+            {
+                User.Current = User.Administrator;
+                if (next != null)
+                    await next();
+            });
 
             // [sensenet]: MembershipExtender middleware
             app.UseSenseNetMembershipExtenders();
