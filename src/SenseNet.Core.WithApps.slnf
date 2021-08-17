@@ -16,6 +16,7 @@
       "WebApps\\SnWebApplication.Api.InMem.Admin\\SnWebApplication.Api.InMem.Admin.csproj",
       "WebApps\\SnWebApplication.Api.InMem.TokenAuth\\SnWebApplication.Api.InMem.TokenAuth.csproj",
       "WebApps\\SnWebApplication.Api.Sql.Admin\\SnWebApplication.Api.Sql.Admin.csproj",
+      "WebApps\\SnWebApplication.Api.Sql.SearchService.Admin\\SnWebApplication.Api.Sql.SearchService.Admin.csproj",
       "WebApps\\SnWebApplication.Api.Sql.SearchService.TokenAuth\\SnWebApplication.Api.Sql.SearchService.TokenAuth.csproj",
       "WebApps\\SnWebApplication.Api.Sql.TokenAuth\\SnWebApplication.Api.Sql.TokenAuth.csproj",
       "WebHooks.Common\\SenseNet.WebHooks.Common.csproj",
