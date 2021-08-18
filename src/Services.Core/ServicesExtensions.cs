@@ -18,6 +18,7 @@ using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -50,6 +51,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
+            services.Configure<RepositoryTypeOptions>(options => {});
 
             //TODO: remove workaround for legacy connection string configuration
             // and replace it with real configuration load like above.
@@ -226,6 +228,17 @@ namespace SenseNet.Extensions.DependencyInjection
                 new SnResponseLimiter(maxResponseLengthInBytes, maxFileLengthInBytes));
 
             return builder;
+        }
+
+        /// <summary>
+        /// Sets the repository type that is returned by the GetRepositoryType action.
+        /// </summary>
+        public static IServiceCollection ConfigureRepositoryType(this IServiceCollection services, Action<RepositoryTypeOptions> configure)
+        {
+            if (configure != null)
+                services.Configure(configure);
+
+            return services;
         }
     }
 }
