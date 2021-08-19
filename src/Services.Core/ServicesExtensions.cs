@@ -240,5 +240,16 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
+
+        /// <summary>
+        /// Registers a dashboard data provider in the service container.
+        /// </summary>
+        /// <typeparam name="T">An <see cref="IDashboardDataProvider"/> implementation.</typeparam>
+        /// <param name="services">The IServiceCollection instance.</param>
+        public static IServiceCollection AddSenseNetDashboardDataProvider<T>(this IServiceCollection services) 
+            where T: class, IDashboardDataProvider
+        {
+            return services.AddSingleton<IDashboardDataProvider, T>();
+        }
     }
 }
