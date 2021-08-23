@@ -101,11 +101,7 @@ namespace SenseNet.IntegrationTests.Platforms
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             //UNDONE:<?IntT: Force delete "write.lock" when getting the platform the first time.
-            return new Lucene29SearchEngine()
-            {
-                IndexingEngine = indexingEngine,
-                QueryEngine = new Lucene29LocalQueryEngine()
-            };
+            return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
 
         public override IStatisticalDataProvider GetStatisticalDataProvider()
