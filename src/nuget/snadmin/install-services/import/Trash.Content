@@ -27,6 +27,10 @@
       <ManageListsAndWorkspaces>Allow</ManageListsAndWorkspaces>
       <TakeOwnership>Allow</TakeOwnership>
     </Identity>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Open>Allow</Open>
+      <Save>Allow</Save>
+    </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
       <See>Allow</See>
       <Open>Allow</Open>

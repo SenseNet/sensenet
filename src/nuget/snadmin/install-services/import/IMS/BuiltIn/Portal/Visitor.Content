@@ -11,5 +11,8 @@
     <Identity path="/Root/IMS/BuiltIn/Portal/Visitor">
       <See>Allow</See>
     </Identity>
+	<Identity path="/Root/IMS/Public/Administrators">
+      <See>Allow</See>
+    </Identity>
   </Permissions>
 </ContentMetaData>

@@ -8,5 +8,8 @@
   </Fields>
   <Permissions>
     <Clear />
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <Open>Allow</Open>
+    </Identity>
   </Permissions>
 </ContentMetaData>

@@ -30,5 +30,12 @@
       <ManageListsAndWorkspaces>Allow</ManageListsAndWorkspaces>
       <TakeOwnership>Allow</TakeOwnership>
     </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
+      <Save>Allow</Save>
+      <Delete>Allow</Delete>
+    </Identity>
+	<Identity path="/Root/IMS/Public/Administrators">
+      <AddNew>Allow</AddNew>
+    </Identity>
   </Permissions>
 </ContentMetaData>

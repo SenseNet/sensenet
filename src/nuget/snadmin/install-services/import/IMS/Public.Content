@@ -9,5 +9,14 @@
 		<Identity path="/Root/IMS/BuiltIn/Portal/Visitor" propagation="LocalOnly">
 		  <Open>Allow</Open>
 		</Identity>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <AddNew>Allow</AddNew>
+      <Save>Allow</Save>
+      <Delete>Allow</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <Save>Deny</Save>
+      <Delete>Deny</Delete>
+    </Identity>
 	</Permissions>
 </ContentMetaData>

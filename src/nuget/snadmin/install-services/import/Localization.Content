@@ -32,5 +32,9 @@
       <ManageListsAndWorkspaces>Allowed</ManageListsAndWorkspaces>
       <TakeOwnership>Allowed</TakeOwnership>
     </Identity>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <AddNew>Allow</AddNew>
+      <Save>Allow</Save>
+    </Identity>
   </Permissions>  
 </ContentMetaData>
