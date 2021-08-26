@@ -7,12 +7,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.5" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.3" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.1" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.4" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.Graylog" Version="2.2.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\Services.Core.Install\SenseNet.Services.Core.Install.csproj" />
     <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
     <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
     <ProjectReference Include="..\..\WebHooks\SenseNet.WebHooks.csproj" />

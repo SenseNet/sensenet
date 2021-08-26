@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Tools;
+using SenseNet.Portal.Handlers;
 
 namespace SenseNet.ContentRepository
 {
@@ -963,6 +964,123 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.22", "7.7.23", "2021-08-23", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
+
+                    #region Settings content changes
+
+                    #region Values
+                    const string permissionSettings = @"{
+   ""groups"":[
+      {
+         ""Read"":[""See"", ""Preview"", ""PreviewWithoutWatermark"", ""PreviewWithoutRedaction"", ""Open""]
+      },
+      {
+         ""Write"":[ ""Save"", ""AddNew"", ""Delete""]
+      },
+      {
+         ""Versioning"":[""OpenMinor"", ""Publish"", ""ForceCheckin"", ""Approve"", ""RecallOldVersion""]
+      },
+      {
+         ""Advanced"":[""SeePermissions"", ""SetPermissions"", ""RunApplication""]
+      }
+   ]
+}";
+                    const string portalSettings = @"{
+  ""ClientCacheHeaders"": [
+    {
+      ""ContentType"": ""PreviewImage"",
+      ""MaxAge"": 1
+    },
+    {
+      ""Extension"": ""jpeg"",
+      ""MaxAge"": 604800
+    },
+    {
+      ""Extension"": ""gif"",
+      ""MaxAge"": 604800
+    },
+    {
+      ""Extension"": ""jpg"",
+      ""MaxAge"": 604800
+    },
+    {
+      ""Extension"": ""png"",
+      ""MaxAge"": 604800
+    },
+    {
+      ""Extension"": ""swf"",
+      ""MaxAge"": 604800
+    },
+    {
+      ""Extension"": ""css"",
+      ""MaxAge"": 600
+    },
+    {
+      ""Extension"": ""js"",
+      ""MaxAge"": 600
+    }
+  ],
+  ""UploadFileExtensions"": {
+    ""jpg"": ""Image"",
+    ""jpeg"": ""Image"",
+    ""gif"": ""Image"",
+    ""png"": ""Image"",
+    ""bmp"": ""Image"",
+    ""svg"": ""Image"",
+    ""svgz"": ""Image"",
+    ""tif"": ""Image"",
+    ""tiff"": ""Image"",
+    ""xaml"": ""WorkflowDefinition"",
+    ""DefaultContentType"": ""File""
+  },
+  ""BinaryHandlerClientCacheMaxAge"": 600,
+  ""PermittedAppsWithoutOpenPermission"": ""Details"",
+  ""AllowedOriginDomains"": [
+    ""localhost:*"",
+    ""*.sensenet.com"",
+    ""*.sensenet.cloud""
+  ]
+}";
+                    #endregion
+                    
+                    CreateSettings("Permission.settings", permissionSettings, 
+                        "In this section you can manage and customize permission groups, " +
+                        "add custom permissions that can be displayed and used in the permission editor.", logger);
+                    CreateSettings("Portal.settings", portalSettings, 
+                        "Here you can customize client cache headers, CORS values and other portal-related settings.", logger);
+                    
+                    #endregion
+                });
+        }
+
+        private static void CreateSettings(string contentName, string value, string description, ILogger logger)
+        {
+            if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))
+            {
+                logger.LogTrace($"Settings {contentName} already exists.");
+                return;
+            }
+
+            var parent = Node.LoadNode(Repository.SettingsFolderPath);
+            if (parent == null)
+            {
+                logger.LogWarning("Settings folder not found.");
+                return;
+            }
+
+            using var stream = RepositoryTools.GetStreamFromString(value);
+            var settings = Content.CreateNew("Settings", parent, contentName);
+
+            settings["GlobalOnly"] = true;
+            settings["Binary"] = UploadHelper.CreateBinaryData(contentName, stream);
+            settings["Description"] = description;
+            settings.Save();
+
+            logger.LogTrace($"Settings {contentName} was created.");
         }
     }
 }

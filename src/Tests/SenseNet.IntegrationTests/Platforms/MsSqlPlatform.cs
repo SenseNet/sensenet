@@ -17,6 +17,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security;
 using SenseNet.Security.EFCSecurityStore;
+using SenseNet.Security.Messaging;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
 
@@ -85,7 +86,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
-            return new EFCSecurityDataProvider(Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
+            return new EFCSecurityDataProvider(new MessageSenderManager(), Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
             {
                 ConnectionString = ConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
@@ -100,11 +101,7 @@ namespace SenseNet.IntegrationTests.Platforms
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             //UNDONE:<?IntT: Force delete "write.lock" when getting the platform the first time.
-            return new Lucene29SearchEngine()
-            {
-                IndexingEngine = indexingEngine,
-                QueryEngine = new Lucene29LocalQueryEngine()
-            };
+            return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
 
         public override IStatisticalDataProvider GetStatisticalDataProvider()

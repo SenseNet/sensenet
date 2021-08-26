@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 using SenseNet.Preview;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -61,6 +66,47 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddComponent(provider => new ServicesComponent());
 
             return services;
+        }
+        
+        /// <summary>
+        /// Adds the installer information of the core sensenet package to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetInstallPackage(this IServiceCollection services, 
+            Assembly assembly, string installPackageName)
+        {
+            services.AddSingleton<IInstallPackageDescriptor>(provider => new InstallPackageDescriptor(assembly, installPackageName));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the provided search engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetSearchEngine<T>(this IServiceCollection services) where T : class, ISearchEngine
+        {
+            return services.AddSingleton<ISearchEngine, T>();
+        }
+        /// <summary>
+        /// Adds the provided search engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetSearchEngine(this IServiceCollection services, ISearchEngine searchEngine)
+        {
+            return services.AddSingleton(providers => searchEngine);
+        }
+
+        /// <summary>
+        /// Adds the provided indexing engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetIndexingEngine<T>(this IServiceCollection services) where T : class, IIndexingEngine
+        {
+            return services.AddSingleton<IIndexingEngine, T>();
+        }
+        /// <summary>
+        /// Adds the provided query engine to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetQueryEngine<T>(this IServiceCollection services) where T : class, IQueryEngine
+        {
+            return services.AddSingleton<IQueryEngine, T>();
         }
     }
 }

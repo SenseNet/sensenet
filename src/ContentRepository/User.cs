@@ -734,7 +734,7 @@ namespace SenseNet.ContentRepository
                         // Give explicit permission for the user on the profile so that
                         // they can access all content items there, not just the ones
                         // they created and own.
-                        SnSecurityContext.Create().CreateAclEditor()
+                        SecurityHandler.SecurityContext.CreateAclEditor()
                             .Allow(profile.Id, this.Id, false, PermissionType.Open)
                             .Apply();
                     }

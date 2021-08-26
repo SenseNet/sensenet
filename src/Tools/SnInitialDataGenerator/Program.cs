@@ -22,6 +22,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging;
 using SenseNet.Security;
 using SenseNet.Security.Data;
+using SenseNet.Security.Messaging;
 using SenseNet.Tools.CommandLineArguments;
 using File = SenseNet.ContentRepository.File;
 // ReSharper disable CoVariantArrayConversion
@@ -88,7 +89,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             using (Repository.Start(builder))
             {
                 // IMPORT
-                new Installer(CreateRepositoryBuilder()).Import(arguments.ImportPath);
+                new Installer(null).Import(arguments.ImportPath);
 
                 // Copy importlog
                 using (var reader = new StreamReader(Logger.GetLogFileName()))
@@ -172,6 +173,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSearchEngine(new SearchEngineForInitialDataGenerator())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 //.UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>Portal.settings</ContentName>
+  <Fields>
+    <Binary attachment="Portal.settings" />
+    <GlobalOnly>true</GlobalOnly>
+    <Index>140</Index>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

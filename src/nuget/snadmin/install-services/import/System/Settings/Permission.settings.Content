@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>Permission.settings</ContentName>
+  <Fields>
+    <Binary attachment="Permission.settings" />
+    <GlobalOnly>true</GlobalOnly>
+    <Index>150</Index>
+    <Description><![CDATA[In this section you can manage and customize permission groups, add custom permissions that can be displayed and used in the permission editor.]]></Description>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

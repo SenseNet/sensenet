@@ -1111,7 +1111,7 @@ namespace SenseNet.ContentRepository
         }
         private static void CheckSecurityEntityConsistency(IEnumerable<int> contentIds, IDictionary<int, SecurityEntity> secCachedEntities, SecurityConsistencyResult result)
         {
-            var secDbEntities = SecurityHandler.SecurityContext.DataProvider.LoadSecurityEntities().ToList(); // convert to list, because we will modify this collection
+            var secDbEntities = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.LoadSecurityEntities().ToList(); // convert to list, because we will modify this collection
             var foundEntities = new List<StoredSecurityEntity>();
 
             foreach (var contentId in contentIds)
@@ -1159,7 +1159,7 @@ namespace SenseNet.ContentRepository
         private static void CheckMembershipConsistency(IEnumerable<int> groupIds, SecurityConsistencyResult result)
         {
             var secuCache = SecurityHandler.SecurityContext.GetCachedMembershipForConsistencyCheck();
-            var secuDb = SecurityHandler.SecurityContext.DataProvider.GetMembershipForConsistencyCheck();
+            var secuDb = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.GetMembershipForConsistencyCheck();
 
             var repo = new List<long>();
             foreach (var head in groupIds.Select(NodeHead.Get).Where(h => h != null))
@@ -1251,7 +1251,7 @@ namespace SenseNet.ContentRepository
         {
             // Checks whether every ACE in the security db is valid for the repository: EntityId and IdentityId are 
             // exist as SecurityEntity.
-            var storedAces = SecurityHandler.SecurityContext.DataProvider.LoadAllPermissionEntries();
+            var storedAces = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.LoadAllPermissionEntries();
             foreach (var storedAce in storedAces)
             {
                 if (!secCachedEntities.ContainsKey(storedAce.EntityId))

@@ -10,12 +10,15 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
+using SenseNet.Security.Configuration;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -37,7 +40,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             // set the current app configuration as the global configuration for the legacy SnConfig api
             services.SetSenseNetConfiguration(configuration);
-
+            
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
@@ -47,6 +50,8 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
+            services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
+            services.Configure<RepositoryTypeOptions>(options => {});
 
             //TODO: remove workaround for legacy connection string configuration
             // and replace it with real configuration load like above.
@@ -72,6 +77,14 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetILogger()
                 .AddSenseNetMsSqlDataProvider()
                 .AddSenseNetBlobStorage()
+                .AddSenseNetSecurity(config =>
+                {
+                    config.SystemUserId = Identifiers.SystemUserId;
+                    config.VisitorUserId = Identifiers.VisitorUserId;
+                    config.EveryoneGroupId = Identifiers.EveryoneGroupId;
+                    config.OwnerGroupId = Identifiers.OwnersGroupId;
+                })
+                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
@@ -112,6 +125,10 @@ namespace SenseNet.Extensions.DependencyInjection
             //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
             Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
             Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
+
+            var searchEngine = provider.GetService<ISearchEngine>();
+            if (searchEngine != null)
+                Providers.Instance.SearchEngine = searchEngine;
 
 #pragma warning disable 618
 
@@ -211,6 +228,28 @@ namespace SenseNet.Extensions.DependencyInjection
                 new SnResponseLimiter(maxResponseLengthInBytes, maxFileLengthInBytes));
 
             return builder;
+        }
+
+        /// <summary>
+        /// Sets the repository type that is returned by the GetRepositoryType action.
+        /// </summary>
+        public static IServiceCollection ConfigureRepositoryType(this IServiceCollection services, Action<RepositoryTypeOptions> configure)
+        {
+            if (configure != null)
+                services.Configure(configure);
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers a dashboard data provider in the service container.
+        /// </summary>
+        /// <typeparam name="T">An <see cref="IDashboardDataProvider"/> implementation.</typeparam>
+        /// <param name="services">The IServiceCollection instance.</param>
+        public static IServiceCollection AddSenseNetDashboardDataProvider<T>(this IServiceCollection services) 
+            where T: class, IDashboardDataProvider
+        {
+            return services.AddSingleton<IDashboardDataProvider, T>();
         }
     }
 }
