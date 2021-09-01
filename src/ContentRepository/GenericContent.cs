@@ -1339,7 +1339,7 @@ namespace SenseNet.ContentRepository
         private Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(
-                $"Cannot allow ContentType on a {this.NodeType.Name}. Path: {this.Path}");
+                $"Cannot allow a content type on a {this.NodeType.Name}. Path: {this.Path}");
         }
 
         /// <summary>

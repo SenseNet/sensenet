@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 
-namespace SenseNet.OData
+namespace SenseNet.OData.IO
 {
     // No metadata. $expand and $select are irrelevant
     internal class ExportProjector : Projector
@@ -123,13 +123,13 @@ namespace SenseNet.OData
             if (entries.Length == 0 && isInherited)
                 return null;
 
-            return new
+            return new PermissionModel
             {
                 IsInherited = isInherited,
                 Entries = entries
             };
         }
-        private object GetEntry(AceInfo entry)
+        private EntryModel GetEntry(AceInfo entry)
         {
             var identityPath = NodeHead.Get(entry.IdentityId)?.Path;
             if (identityPath == null)
@@ -144,7 +144,7 @@ namespace SenseNet.OData
                     perms.Add(permissionType.Name, deny ? "deny" : "allow");
             }
 
-            return new
+            return new EntryModel
             {
                 Identity = identityPath,
                 LocalOnly = entry.LocalOnly,
