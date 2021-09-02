@@ -536,10 +536,11 @@ namespace SenseNet.OData
             var displayName = GetPropertyValue<string>("DisplayName", model);
             var isMultiStepSave = odataRequest.MultistepSave;
 
-            return CreateNewContent(parentPath, contentTypeName, templateName, contentName, displayName, isMultiStepSave, model, out _);
+            return CreateNewContent(parentPath, contentTypeName, templateName, contentName, displayName, isMultiStepSave, model, false, out _);
         }
         public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
-            string contentName, string displayName, bool isMultiStepSave, JObject model, out List<string> brokenReferenceFieldNames)
+            string contentName, string displayName, bool isMultiStepSave, JObject model,
+            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
@@ -577,7 +578,7 @@ namespace SenseNet.OData
             }
 
 
-            UpdateFields(content, model, out brokenReferenceFieldNames);
+            UpdateFields(content, model, skipBrokenReferences, out brokenReferenceFieldNames);
 
             if (isMultiStepSave)
                 content.Save(SavingMode.StartMultistepSave);
@@ -645,7 +646,7 @@ namespace SenseNet.OData
         }
         private void UpdateContent(Content content, JObject model, ODataRequest odataRequest)
         {
-            UpdateFields(content, model, out _);
+            UpdateFields(content, model, false, out _);
 
             if (odataRequest.MultistepSave)
                 content.Save(SavingMode.StartMultistepSave);
@@ -658,8 +659,9 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
+        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
         /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
-        public static void UpdateFields(Content content, JObject model, out List<string> brokenReferenceFieldNames)
+        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
         {
             brokenReferenceFieldNames = new List<string>();
             var brokenRefs = brokenReferenceFieldNames; // in the lambda expressions need to use a local value
@@ -698,7 +700,7 @@ namespace SenseNet.OData
                                 continue;
                             if (isNew && field is ReferenceField && jValue.Value == null)
                             {
-                                if (field.Name == "CreatedBy" || field.Name == "ModifiedBy")
+                                if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" || field.Name == "Owner")
                                     continue;
                             }
                             if (field is ReferenceField && jValue.Value != null)
@@ -708,7 +710,8 @@ namespace SenseNet.OData
                                     : Node.LoadNode(jValue.Value.ToString());
                                 if (refNode == null)
                                     brokenRefs.Add(field.Name);
-                                field.SetData(refNode);
+                                if(!skipBrokenReferences)
+                                    field.SetData(refNode);
                                 continue;
                             }
                             if (isNew && field.Name == "Name" && jValue.Value != null)

@@ -30,13 +30,13 @@ namespace SenseNet.OData.IO
             var targetContent = Content.Load(path);
             if (targetContent != null)
             {
-                ODataMiddleware.UpdateFields(targetContent, model, out brokenReferences);
+                ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
                 action = "updated";
             }
             else
             {
                 var parentPath = RepositoryPath.GetParentPath(path);
-                targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name, null, false, model, out brokenReferences);
+                targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name, null, false, model, true, out brokenReferences);
                 action = "created";
             }
 
