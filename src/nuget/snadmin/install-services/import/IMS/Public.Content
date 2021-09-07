@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ContentMetaData>
-	<ContentType>Domain</ContentType>
-	<Permissions>
-		<Clear />
-		<Identity path="/Root/IMS/BuiltIn/Portal/Everyone" propagation="LocalOnly">
-		  <Open>Allow</Open>
-		</Identity>
-		<Identity path="/Root/IMS/BuiltIn/Portal/Visitor" propagation="LocalOnly">
-		  <Open>Allow</Open>
-		</Identity>
+  <ContentType>Domain</ContentType>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone" propagation="LocalOnly">
+      <Open>Allow</Open>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Visitor" propagation="LocalOnly">
+      <Open>Allow</Open>
+    </Identity>
     <Identity path="/Root/IMS/Public/Administrators">
       <AddNew>Allow</AddNew>
       <Save>Allow</Save>
@@ -18,5 +18,5 @@
       <Save>Deny</Save>
       <Delete>Deny</Delete>
     </Identity>
-	</Permissions>
+  </Permissions>
 </ContentMetaData>

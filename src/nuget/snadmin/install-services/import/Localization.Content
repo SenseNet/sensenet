@@ -36,5 +36,10 @@
       <AddNew>Allow</AddNew>
       <Save>Allow</Save>
     </Identity>
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <Save>Deny</Save>
+      <Delete>Deny</Delete>
+      <SetPermissions>Deny</SetPermissions>
+    </Identity>
   </Permissions>  
 </ContentMetaData>

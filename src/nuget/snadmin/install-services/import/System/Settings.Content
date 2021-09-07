@@ -34,7 +34,7 @@
       <Save>Allow</Save>
       <Delete>Allow</Delete>
     </Identity>
-	<Identity path="/Root/IMS/Public/Administrators">
+    <Identity path="/Root/IMS/Public/Administrators">
       <AddNew>Allow</AddNew>
     </Identity>
   </Permissions>

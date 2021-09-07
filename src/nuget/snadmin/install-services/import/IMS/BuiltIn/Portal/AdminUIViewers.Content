@@ -5,9 +5,7 @@
   <Fields>
     <Members>
       <Path>/Root/IMS/BuiltIn/Portal/Administrators</Path>
-	  <Path>/Root/IMS/BuiltIn/Portal/Developers</Path>
-      <Path>/Root/IMS/BuiltIn/Portal/Editors</Path>
-      <Path>/Root/IMS/Public/Administrators</Path>      
+      <Path>/Root/IMS/Public/Administrators</Path>
     </Members>
     <DisplayName><![CDATA[AdminUIViewers]]></DisplayName>
   </Fields>
