@@ -1958,7 +1958,10 @@ namespace SenseNet.ContentRepository.Storage.Security
                 // getting identity node
                 var identityNode = Node.LoadNode(path);
                 if (identityNode == null)
-                    throw ImportPermissionExceptionHelper(String.Concat("Identity ", identityElementIndex, " was not found: ", path, "."), metadataPath, null);
+                {
+                    SnLog.WriteWarning($"Identity {identityElementIndex} was not found: {path}.");
+                    continue;
+                }
 
                 // parsing value array
                 foreach (XmlElement permissionElement in identityElement.SelectNodes("*"))
