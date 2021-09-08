@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Group</ContentType>
+  <ContentName>Administrators</ContentName>
+  <Fields>
+    <Description>Members of this group have full access to the non-system parts of the repository.</Description>
+    <Members>
+      <Path>/Root/IMS/BuiltIn/Portal/PublicAdmin</Path>
+    </Members>
+  </Fields>
+</ContentMetaData>

@@ -10,5 +10,9 @@
   </Fields>
   <Permissions>
     <Clear />
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Open>Allow</Open>
+      <Save>Allow</Save>
+    </Identity>
   </Permissions>
 </ContentMetaData>
