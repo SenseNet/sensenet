@@ -10,7 +10,7 @@ using SenseNet.Security;
 
 namespace SenseNet.OData.IO
 {
-    // No metadata. $expand and $select are irrelevant
+    // No metadata, $expand is irrelevant, $select works.
     internal class ExportProjector : Projector
     {
         internal override void Initialize(Content container)
@@ -25,7 +25,8 @@ namespace SenseNet.OData.IO
 
             var fieldNames = content.Fields.Keys;
 
-            foreach (var fieldName in fieldNames)
+            var relevantFieldNames = Request.Select.Count == 0 ? fieldNames : fieldNames.Intersect(Request.Select);
+            foreach (var fieldName in relevantFieldNames)
             {
                 if (ODataMiddleware.DisabledFieldNames.Contains(fieldName))
                     continue;
