@@ -31,6 +31,7 @@ namespace SenseNet.OData.IO
             if (targetContent != null)
             {
                 ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
+                targetContent.Save();
                 action = "updated";
             }
             else
