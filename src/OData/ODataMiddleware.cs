@@ -802,7 +802,9 @@ namespace SenseNet.OData
                                     }
                                 }).Where(ct => ct != null).ToArray();
 
-                                gc.SetAllowedChildTypes(types);
+                                var ctName = content.ContentType.Name;
+                                if (ctName != "Folder" && ctName != "Page")
+                                    gc.SetAllowedChildTypes(types);
                             }
 
                             continue;
