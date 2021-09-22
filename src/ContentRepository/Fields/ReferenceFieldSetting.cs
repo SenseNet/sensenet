@@ -413,7 +413,8 @@ namespace SenseNet.ContentRepository.Fields
             foreach (string typeName in rootTypeNames)
             {
                 if (schema.NodeTypes[typeName] == null)
-                    throw new ApplicationException(String.Concat("Unknown NodeType in ReferenceField: ", typeName));
+                    //throw new ApplicationException(String.Concat("Unknown NodeType in ReferenceField: ", typeName));
+                    continue;
                 if (!allowedTypeNames.Contains(typeName))
                     allowedTypeNames.Add(typeName);
             }
