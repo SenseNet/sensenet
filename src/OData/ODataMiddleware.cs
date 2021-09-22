@@ -724,8 +724,17 @@ namespace SenseNet.OData
                             continue;
                         }
 
-                        if (prop.Value is JObject)
+                        if (prop.Value is JObject jObject)
                         {
+                            if (field is BinaryField)
+                                continue;
+                            if (field is ImageField)
+                            {
+                                // the field supports int, long or string values
+                                var url = jObject["Url"].Value<string>();
+                                if (url.Length == 0)
+                                    continue;
+                            }
                             field.SetData(prop.Value);
                             continue;
                         }
