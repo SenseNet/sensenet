@@ -1307,10 +1307,6 @@ namespace SenseNet.ContentRepository
                             throw GetCannotAllowContentTypeException();
                     }
                     return;
-                case "SystemFolder":
-                    if (throwOnError)
-                        throw GetCannotAllowContentTypeException();
-                    return;
                 default:
                     // execute the action on the content itself
                     setAction();
