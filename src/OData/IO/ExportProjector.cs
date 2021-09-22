@@ -67,9 +67,13 @@ namespace SenseNet.OData.IO
                 case ICONPROPERTY:
                 case ODataMiddleware.ChildrenPropertyName:
                     return false;
-                default:
-                    return base.IsAllowedField(content, fieldName);
+                case "AllowedChildTypes":
+                    var ctName = content.ContentType.Name;
+                    if (ctName == "Folder" || ctName == "Page")
+                        return false;
+                    break;
             }
+            return base.IsAllowedField(content, fieldName);
         }
 
         protected override object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
