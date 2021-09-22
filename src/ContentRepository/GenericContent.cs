@@ -1307,10 +1307,6 @@ namespace SenseNet.ContentRepository
                             throw GetCannotAllowContentTypeException();
                     }
                     return;
-                case "SystemFolder":
-                    if (throwOnError)
-                        throw GetCannotAllowContentTypeException();
-                    return;
                 default:
                     // execute the action on the content itself
                     setAction();
@@ -1339,7 +1335,7 @@ namespace SenseNet.ContentRepository
         private Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(
-                $"Cannot allow ContentType on a {this.NodeType.Name}. Path: {this.Path}");
+                $"Cannot allow any content type on a {this.NodeType.Name}. Path: {this.Path}");
         }
 
         /// <summary>

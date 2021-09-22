@@ -233,6 +233,7 @@ namespace SenseNet.OData
         public Exception RequestError { get; private set; }
 
         public long ResponseSize { get; internal set; }
+        public bool IsExport { get; set; }
 
         private ODataRequest()
         {
@@ -459,6 +460,7 @@ namespace SenseNet.OData
 
             var formatName = req["$format"].ToString();
             this.Format = ParseFormat(formatName);
+            this.IsExport = Format == "export";
 
             // --------------------------------------------------------------- scenario
             this.Scenario = ParseScenario(httpContext);

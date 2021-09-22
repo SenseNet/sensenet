@@ -109,7 +109,7 @@ namespace SenseNet.OData
                 else
                 {
                     outfields.Add(propertyName,
-                        base.IsAllowedField(content, field.Name) ? ODataWriter.GetJsonObject(field, selfurl, Request) : null);
+                        base.IsAllowedField(content, field.Name) ? GetJsonObject(field, selfurl, Request) : null);
                 }
             }
 
