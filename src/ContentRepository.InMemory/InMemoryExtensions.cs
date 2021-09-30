@@ -117,6 +117,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetInMemoryDataProvider()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
                 .AddSenseNetInMemoryStatisticalDataProvider()
+                .AddSenseNetInMemoryClientStoreDataProvider()
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
         }
 

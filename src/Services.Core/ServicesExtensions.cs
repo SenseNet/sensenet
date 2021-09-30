@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -47,6 +48,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
+            services.Configure<ClientStoreOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
@@ -90,6 +92,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
+                .AddSenseNetDefaultClientManager()
                 .AddSenseNetRegistration();
 
             services.AddStatistics();

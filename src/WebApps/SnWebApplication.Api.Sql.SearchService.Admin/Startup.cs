@@ -62,8 +62,10 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 .AddLucene29CentralizedSearchEngineWithGrpc()
                 .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
+                .AddSenseNetMsSqlClientStoreDataProvider()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
+                .AddComponent(provider => new MsSqlClientStoreComponent())
                 .AddSenseNetWebHooks();
         }
 
