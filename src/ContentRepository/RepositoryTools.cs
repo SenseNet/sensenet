@@ -309,20 +309,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns the count of all contents in the requested subtree.
-        /// </summary>
-        /// <param name="content">The root of the requested subtree.</param>
-        /// <returns>Count of contents.</returns>
-        [ODataFunction]
-        [AllowedRoles(N.R.Everyone)]
-        public static int GetContentCountInTree(Content content)
-        {
-            var result = ContentQuery.Query($"InTree:'{content.Path}' .AUTOFILTERS:OFF .COUNTONLY");
-            return result.Count;
-        }
-
-
-        /// <summary>
         /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
         /// <snCategory>Content Types</snCategory>
