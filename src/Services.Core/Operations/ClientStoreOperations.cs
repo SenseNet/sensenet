@@ -93,9 +93,9 @@ namespace SenseNet.Services.Core.Operations
 
             var client = new Client
             {
-                Authority = options.Authority.TrimSchema(),
+                Authority = options.Authority.RemoveUrlSchema(),
                 Name = name,
-                Repository = options.RepositoryUrl.TrimSchema(),
+                Repository = options.RepositoryUrl.RemoveUrlSchema(),
                 Type = clientType,
                 UserName = userName
             };
@@ -117,7 +117,7 @@ namespace SenseNet.Services.Core.Operations
             var options = context.GetOptions();
 
             // check if this clientId belongs to the current repo
-            var client = await clientStore.GetClientAsync(options.RepositoryUrl.TrimSchema(), clientId, context.RequestAborted)
+            var client = await clientStore.GetClientAsync(options.RepositoryUrl.RemoveUrlSchema(), clientId, context.RequestAborted)
                 .ConfigureAwait(false);
 
             // We throw an exception here because this is a security-related feature.
@@ -139,7 +139,7 @@ namespace SenseNet.Services.Core.Operations
         {
             var clientStore = context.GetClientStore();
             var options = context.GetOptions();
-            var client = await clientStore.GetClientAsync(options.RepositoryUrl.TrimSchema(), clientId)
+            var client = await clientStore.GetClientAsync(options.RepositoryUrl.RemoveUrlSchema(), clientId)
                 .ConfigureAwait(false);
 
             if (client == null)
@@ -168,7 +168,7 @@ namespace SenseNet.Services.Core.Operations
             var options = context.GetOptions();
 
             // check if this clientId belongs to the current repo
-            var client = await clientStore.GetClientAsync(options.RepositoryUrl.TrimSchema(), clientId, context.RequestAborted)
+            var client = await clientStore.GetClientAsync(options.RepositoryUrl.RemoveUrlSchema(), clientId, context.RequestAborted)
                 .ConfigureAwait(false);
 
             // We throw an exception here because this is a security-related feature.

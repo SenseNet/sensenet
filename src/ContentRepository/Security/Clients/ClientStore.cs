@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Security.Clients
         public async Tasks.Task<Client[]> GetClientsByRepositoryAsync(string repositoryHost, ClientType type,
             CancellationToken cancellation = default)
         {
-            var clients = await _storage.LoadClientsByRepositoryAsync(repositoryHost?.TrimSchema(), cancellation)
+            var clients = await _storage.LoadClientsByRepositoryAsync(repositoryHost?.RemoveUrlSchema(), cancellation)
                 .ConfigureAwait(false);
 
             // return clients that have any of the requested types
@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Security.Clients
         /// instances.</returns>
         public Tasks.Task<Client[]> GetClientsByAuthorityAsync(string authority, CancellationToken cancellation = default)
         {
-            return _storage.LoadClientsByAuthorityAsync(authority?.TrimSchema(), cancellation);
+            return _storage.LoadClientsByAuthorityAsync(authority?.RemoveUrlSchema(), cancellation);
         }
         /// <summary>
         /// Loads a client of a repository by its client id.
@@ -197,8 +197,8 @@ namespace SenseNet.ContentRepository.Security.Clients
 
                 var client = new Client
                 {
-                    Authority = authority.TrimSchema(),
-                    Repository = host.TrimSchema(),
+                    Authority = authority.RemoveUrlSchema(),
+                    Repository = host.RemoveUrlSchema(),
                     Type = type,
                     UserName = userName
                 };

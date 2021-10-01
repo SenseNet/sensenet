@@ -1315,7 +1315,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Trims the schema and trailing slashes from a url.
         /// </summary>
-        public static string TrimSchema(this string url)
+        public static string RemoveUrlSchema(this string url)
         {
             if (url == null)
                 return null;
@@ -1328,7 +1328,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Appends an 'https://' prefix to a url if it is missing.
         /// </summary>
-        public static string AppendSchema(this string url)
+        public static string AddUrlSchema(this string url)
         {
             if (string.IsNullOrEmpty(url) || url.StartsWith("http"))
                 return url;

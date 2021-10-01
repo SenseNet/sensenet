@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Components
                     var clientStore = context.GetService<ClientStore>();
                     var clientOptions = context.GetService<IOptions<ClientStoreOptions>>().Value;
                     
-                    clientStore.EnsureClientsAsync(clientOptions.Authority, clientOptions.RepositoryUrl.TrimSchema()).GetAwaiter().GetResult();
+                    clientStore.EnsureClientsAsync(clientOptions.Authority, clientOptions.RepositoryUrl.RemoveUrlSchema()).GetAwaiter().GetResult();
                 });
         }
     }
