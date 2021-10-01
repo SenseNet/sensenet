@@ -61,8 +61,10 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddLucene29CentralizedSearchEngineWithGrpc()
                 .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
+                .AddSenseNetMsSqlClientStoreDataProvider()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
+                .AddComponent(provider => new MsSqlClientStoreComponent())
                 .AddSenseNetWebHooks();
         }
 

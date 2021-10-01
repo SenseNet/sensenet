@@ -24,20 +24,6 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.Configure<ClientRequestOptions>(options =>
             {
-                // add default clients
-                if (options.Clients.All(c => c.ClientType != "adminui"))
-                    options.Clients.Add(new SnIdentityServerClient
-                    {
-                        ClientType = "adminui",
-                        ClientId = "adminui"
-                    });
-                if (options.Clients.All(c => c.ClientType != "client"))
-                    options.Clients.Add(new SnIdentityServerClient
-                    {
-                        ClientType = "client",
-                        ClientId = "client"
-                    });
-
                 // developers can extend or modify the list here
                 configure?.Invoke(options);
             });
