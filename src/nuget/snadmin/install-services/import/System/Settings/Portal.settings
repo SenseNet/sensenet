@@ -51,6 +51,7 @@
   "AllowedOriginDomains": [
     "localhost:*",
     "*.sensenet.com",
-    "*.sensenet.cloud"
+    "*.sensenet.cloud",
+    "*"
   ]
 }
