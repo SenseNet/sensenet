@@ -50,7 +50,7 @@ namespace SenseNet.Services.Core.Operations
             var clientType = IsAdmin() ? ClientType.All : ClientType.AllExternal;
             var clientStore = context.GetClientStore();
             var options = context.GetOptions();
-            var clients = (await clientStore.GetClientsByRepositoryAsync(options.RepositoryUrl, clientType)).ToArray();
+            var clients = (await clientStore.GetClientsByRepositoryAsync(options.RepositoryUrl.RemoveUrlSchema(), clientType)).ToArray();
 
             return new
             {
