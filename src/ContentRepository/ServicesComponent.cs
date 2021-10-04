@@ -1055,6 +1055,11 @@ namespace SenseNet.ContentRepository
                     
                     #endregion
                 });
+            builder.Patch("7.7.23", "7.7.24", "2021-10-04", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    // there were only permission and cors changes that can be made manually if necessary
+                });
         }
 
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
