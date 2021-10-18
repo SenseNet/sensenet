@@ -545,6 +545,9 @@ namespace SenseNet.OData
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
             var parent = Node.Load<GenericContent>(parentPath);
+            if (parent == null)
+                throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
+
             if (string.IsNullOrEmpty(contentTypeName))
             {
                 var allowedChildTypeNames = parent.GetAllowedChildTypeNames();
