@@ -92,27 +92,29 @@ namespace SenseNet.ContentRepository
 
             using (new SystemAccount())
             {
-                if (cached == null)
-                    cached = await CreateCacheFileAsync(cancel);
+                cached ??= await CreateCacheFileAsync(cancel);
 
                 if (cached == null)
                     return;
-
-                cached.SetCachedData(CacheKey, databaseUsage);
-                var serialized = resultBuilder.ToString();
-
+                
                 try
                 {
                     Retrier.Retry(3, 10, typeof(NodeIsOutOfDateException), () =>
                     {
-                        cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
-                        using (new SystemAccount())
-                            cached.Save();
+                        // reload to have a fresh instance
+                        if (!cached.IsNew)
+                            cached = Node.Load<File>(cached.Id);
+
+                        cached.SetCachedData(CacheKey, databaseUsage);
+                        cached.Binary.SetStream(RepositoryTools.GetStreamFromString(resultBuilder.ToString()));
+                        cached.Save(SavingMode.KeepVersion);
+
+                        _logger.LogTrace("DatabaseUsage.cache has been saved.");
                     });
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning("An error occured during saving DatabaseUsage.cache: " + e);
+                    _logger.LogWarning(e, "An error occurred during saving DatabaseUsage.cache.");
                     // do nothing
                 }
             }
@@ -125,26 +127,16 @@ namespace SenseNet.ContentRepository
             {
                 var parentPath = RepositoryPath.GetParentPath(DatabaseUsageCachePath);
                 var name = RepositoryPath.GetFileName(DatabaseUsageCachePath);
-                var parent = await EnsureFolderAsync(parentPath, cancel).ConfigureAwait(false);
+                var parent = RepositoryTools.CreateStructure(parentPath, "SystemFolder") ??
+                             await Content.LoadAsync(parentPath, cancel).ConfigureAwait(false);
 
-                file = new File(parent) {Name = name};
+                file = new File(parent.ContentHandler) {Name = name};
             }
             catch (Exception e)
             {
-                _logger.LogWarning("An error occured during saving DatabaseUsage.cache: " + e);
+                _logger.LogWarning("An error occurred during saving DatabaseUsage.cache: " + e);
             }
             return file;
-        }
-        private async Task<Node> EnsureFolderAsync(string path, CancellationToken cancel)
-        {
-            var parentPath = RepositoryPath.GetParentPath(path);
-            var name = RepositoryPath.GetFileName(path);
-            var parent = await Node.LoadNodeAsync(parentPath, cancel).ConfigureAwait(false);
-            if (parent == null)
-                parent = await EnsureFolderAsync(parentPath, cancel).ConfigureAwait(false);
-            var folder = new SystemFolder(parent) { Name = name };
-            folder.Save();
-            return folder;
         }
 
         private static readonly string ExclusiveBlockKey = "SenseNet.Storage.LoadDatabaseUsage";
