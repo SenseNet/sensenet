@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.WebHooks
 {
@@ -35,12 +38,15 @@ namespace SenseNet.WebHooks
         private readonly ILogger<LocalWebHookProcessor> _logger;
         private readonly IWebHookClient _webHookClient;
         private readonly IWebHookSubscriptionStore _subscriptionStore;
+        private readonly ClientStoreOptions _clientStoreOptions;
 
-        public LocalWebHookProcessor(IWebHookSubscriptionStore subscriptionStore, IWebHookClient webHookClient, ILogger<LocalWebHookProcessor> logger)
+        public LocalWebHookProcessor(IWebHookSubscriptionStore subscriptionStore, IWebHookClient webHookClient, 
+            IOptions<ClientStoreOptions> clientStoreOptions, ILogger<LocalWebHookProcessor> logger)
         {
             _subscriptionStore = subscriptionStore;
             _webHookClient = webHookClient;
             _logger = logger;
+            _clientStoreOptions = clientStoreOptions?.Value ?? new ClientStoreOptions();
         }
 
         public async Task ProcessEventAsync(ISnEvent snEvent, CancellationToken cancel)
@@ -110,7 +116,8 @@ namespace SenseNet.WebHooks
                 displayName = node?.DisplayName,
                 eventName = eventType.ToString(),
                 subscriptionId = subscription.Id,
-                sentTime = DateTime.UtcNow
+                sentTime = DateTime.UtcNow,
+                repository = _clientStoreOptions.RepositoryUrl?.RemoveUrlSchema()
             };
         }
     }
