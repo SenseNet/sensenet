@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -215,7 +217,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             var statDataProvider = new TestStatisticalDataProvider();
             var aggregator = new StatisticalDataAggregationController(statDataProvider,
-                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
 
             // Initial state: records and aggregations simulate lack of two periods (at 2 min and 3 min).
             // 0:00      1:00      2:00      3:00      4:00
@@ -302,7 +305,8 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION-1 no repair (every aggregations are present).
             var aggregator = new StatisticalDataAggregationController(statDataProvider,
-                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             var aggregationTime = now.Truncate(TimeResolution.Minute).AddSeconds(-1);
             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
 
@@ -326,7 +330,8 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION-2 repair 8 and generate 1
             aggregator = new StatisticalDataAggregationController(statDataProvider,
-                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             aggregationTime = now.Truncate(TimeResolution.Minute).AddSeconds(-1);
             await aggregator.AggregateAsync(aggregationTime, TimeResolution.Minute, CancellationToken.None);
 

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -838,7 +839,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(), 
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -913,7 +915,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -986,7 +989,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1056,7 +1060,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1204,7 +1209,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1283,7 +1289,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1357,7 +1364,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1427,7 +1435,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1521,7 +1530,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] {new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] {new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
             
@@ -1600,7 +1610,8 @@ namespace SenseNet.ContentRepository.Tests
                         new WebHookStatisticalDataAggregator(GetOptions()),
                         new WebTransferStatisticalDataAggregator(GetOptions()),
                         new DatabaseUsageStatisticalDataAggregator(GetOptions())
-                    }, GetOptions());
+                    }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -1726,7 +1737,8 @@ namespace SenseNet.ContentRepository.Tests
                     new WebHookStatisticalDataAggregator(GetOptions()),
                     new WebTransferStatisticalDataAggregator(GetOptions()),
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
-                }, GetOptions());
+                }, GetOptions(),
+                NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
             var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
 
@@ -1845,7 +1857,8 @@ namespace SenseNet.ContentRepository.Tests
                     new WebHookStatisticalDataAggregator(GetOptions()),
                     new WebTransferStatisticalDataAggregator(GetOptions()),
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
-                }, GetOptions());
+                }, GetOptions(),
+                NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
             var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
 
@@ -2228,7 +2241,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebTransferStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebTransferStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
@@ -2805,7 +2819,8 @@ namespace SenseNet.ContentRepository.Tests
             StatisticalDataAggregationController CreateAggregator()
             {
                 return new StatisticalDataAggregationController(statDataProvider,
-                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions());
+                    new[] { new WebHookStatisticalDataAggregator(GetOptions()) }, GetOptions(),
+                    NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
             }
             StatisticalDataAggregationController aggregator;
 
