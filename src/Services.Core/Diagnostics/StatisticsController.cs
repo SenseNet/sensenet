@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
+using SenseNet.Storage.DataModel.Usage;
 
 namespace SenseNet.Services.Core.Diagnostics
 {
@@ -89,6 +90,101 @@ namespace SenseNet.Services.Core.Diagnostics
                 case TimeResolution.Month: return aggregation.Date.Month - 1;
                 default: throw new ArgumentOutOfRangeException();
             }
+        }
+    }
+    
+    public class DatabaseUsageViewModel : StatisticsViewModelBase<DatabaseUsage>
+    {
+        private readonly DatabaseUsage[]_dbUsages;
+
+        public DatabaseUsageViewModel(IEnumerable<Aggregation> timeLine, DateTime startTime, DateTime endTime, 
+            TimeWindow timeWindow, TimeResolution resolution) : 
+            base(timeLine, startTime, endTime, timeWindow, resolution)
+        {
+            var count = GetCount();
+            _dbUsages = new DatabaseUsage[count];
+        }
+
+        protected override void ProcessDataItem(int index, DatabaseUsage data)
+        {
+            _dbUsages[index] = data;
+        }
+
+        protected override object GetResult()
+        {
+            return new
+            {
+                DataType = "DatabaseUsage",
+                Start = StartTime,
+                End = EndTime,
+                TimeWindow = TimeWindow.ToString(),
+                Resolution = Resolution.ToString(),
+                DatabaseUsage = _dbUsages
+            };
+        }
+    }
+
+    public abstract class StatisticsViewModelBase<T>
+    {
+        protected readonly Aggregation[] TimeLine;
+        protected readonly DateTime StartTime;
+        protected readonly DateTime EndTime;
+        protected readonly TimeWindow TimeWindow;
+        protected readonly TimeResolution Resolution;
+
+        protected StatisticsViewModelBase(IEnumerable<Aggregation> timeLine, DateTime startTime, DateTime endTime,
+            TimeWindow timeWindow, TimeResolution resolution)
+        {
+            TimeLine = timeLine.ToArray();
+            StartTime = startTime;
+            EndTime = endTime;
+            TimeWindow = timeWindow;
+            Resolution = resolution;
+        }
+
+        protected abstract void ProcessDataItem(int index, T data);
+        protected abstract object GetResult();
+
+        public object GetViewModel()
+        {
+            T Deserialize(string src)
+            {
+                return JsonConvert.DeserializeObject<T>(src);
+            }
+            
+            foreach (var item in TimeLine)
+            {
+                var i = GetIndex(item);
+                var data = Deserialize(item.Data);
+
+                ProcessDataItem(i, data);
+            }
+
+            return GetResult();
+        }
+
+        protected int GetCount()
+        {
+            var period = EndTime - StartTime;
+            return Resolution switch
+            {
+                TimeResolution.Minute => Convert.ToInt32(period.TotalMinutes),
+                TimeResolution.Hour => Convert.ToInt32(period.TotalHours),
+                TimeResolution.Day => Convert.ToInt32(period.TotalDays),
+                TimeResolution.Month => 12 * (EndTime.Year - StartTime.Year) + (EndTime.Month - StartTime.Month),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        protected int GetIndex(Aggregation aggregation)
+        {
+            return Resolution switch
+            {
+                TimeResolution.Minute => aggregation.Date.Minute,
+                TimeResolution.Hour => aggregation.Date.Hour,
+                TimeResolution.Day => aggregation.Date.Day - 1,
+                TimeResolution.Month => aggregation.Date.Month - 1,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 
@@ -217,6 +313,24 @@ namespace SenseNet.Services.Core.Diagnostics
                 startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
 
             return new ApiUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
+        }
+
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static async Task<object> GeDatabaseUsagePeriod(Content content, HttpContext httpContext,
+            TimeWindow? timeWindow = null, DateTime? time = null)
+        {
+            var window = timeWindow ?? TimeWindow.Month;
+            var resolution = (TimeResolution)(int)window;
+            var startTime = (time ?? DateTime.UtcNow).Truncate(window);
+            var endTime = startTime.Next(window);
+
+            var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
+            var dbResult = await dataProvider.LoadAggregatedUsageAsync("DatabaseUsage", resolution,
+                startTime, endTime, httpContext.RequestAborted).ConfigureAwait(false);
+
+            return new DatabaseUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
         }
     }
 }

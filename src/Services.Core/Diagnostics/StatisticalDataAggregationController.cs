@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.Diagnostics;
@@ -24,13 +25,15 @@ namespace SenseNet.Services.Core.Diagnostics
         private readonly IEnumerable<IStatisticalDataAggregator> _aggregators;
         private readonly StatisticsOptions _options;
         private DateTime _lastGenerationTime;
+        private readonly ILogger _logger;
 
         public StatisticalDataAggregationController(IStatisticalDataProvider statDataProvider,
-            IEnumerable<IStatisticalDataAggregator> aggregators, IOptions<StatisticsOptions> options)
+            IEnumerable<IStatisticalDataAggregator> aggregators, IOptions<StatisticsOptions> options, ILogger<StatisticalDataAggregationController> logger)
         {
             _statDataProvider = statDataProvider;
             _aggregators = aggregators;
             _options = options.Value;
+            _logger = logger;
         }
 
         public async Task AggregateAsync(DateTime startTime, TimeResolution resolution, CancellationToken cancel)
@@ -43,6 +46,8 @@ namespace SenseNet.Services.Core.Diagnostics
         }
         private async Task AggregateAsync(DateTime start, DateTime end, TimeResolution resolution, bool cleanup, CancellationToken cancel)
         {
+            _logger.LogTrace($"Calling statistical aggregators for start: {start}, end: {end}, resolution: {resolution}");
+
             foreach (var aggregator in _aggregators)
             {
                 aggregator.Clear();
@@ -62,10 +67,12 @@ namespace SenseNet.Services.Core.Diagnostics
                         Data = Serialize(aggregator.Data)
                     };
 
+                    _logger.LogTrace($"Writing aggregation for {aggregator.DataType}, resolution: {resolution}");
+
                     await _statDataProvider.WriteAggregationAsync(result, cancel).ConfigureAwait(false);
                 }
 
-                if(cleanup)
+                if (cleanup)
                     await CleanupAsync(aggregator, resolution, start, cancel).ConfigureAwait(false);
 
             }
@@ -111,13 +118,15 @@ namespace SenseNet.Services.Core.Diagnostics
             var resolution = targetResolution - 1;
             if (resolution < 0)
                 return false;
-
+            
             var aggregations =
                 (await _statDataProvider.LoadAggregatedUsageAsync(aggregator.DataType, resolution, startTime, endTimeExclusive, cancel))
                 .ToArray();
 
             if (aggregations.Length == 0)
                 return false;
+
+            _logger.LogTrace($"Summarizing aggregations for {aggregator.DataType}, resolution: {targetResolution}, count: {aggregations.Length}");
 
             aggregator.Summarize(aggregations);
             return true;
@@ -204,8 +213,8 @@ namespace SenseNet.Services.Core.Diagnostics
     }
     public class DatabaseUsageStatisticalDataAggregator : IStatisticalDataAggregator
     {
-        private DatabaseUsage _aggregation = new DatabaseUsage();
-        private StatisticsOptions _options;
+        private DatabaseUsage _aggregation = new();
+        private readonly StatisticsOptions _options;
 
         public DatabaseUsageStatisticalDataAggregator(IOptions<StatisticsOptions> options)
         {
@@ -227,44 +236,53 @@ namespace SenseNet.Services.Core.Diagnostics
             var usages =
                 aggregations.Select(x =>
                 {
-                    DatabaseUsage deserialized;
-                    using (var reader = new StringReader(x.Data))
-                        deserialized = JsonSerializer.Create().Deserialize<DatabaseUsage>(new JsonTextReader(reader));
+                    using var reader = new StringReader(x.Data);
+                    var deserialized = JsonSerializer.Create().Deserialize<DatabaseUsage>(new JsonTextReader(reader));
                     return deserialized;
                 }).ToArray();
 
-            _aggregation.Content = new Dimensions();
-            _aggregation.Content.Count = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Count)));
-            _aggregation.Content.Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Blob)));
-            _aggregation.Content.Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Metadata)));
-            _aggregation.Content.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Text)));
-            _aggregation.Content.Index = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Index)));
+            _aggregation.Content = new Dimensions
+            {
+                Count = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Count))),
+                Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Blob))),
+                Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Metadata))),
+                Text = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Text))),
+                Index = Convert.ToInt32(Math.Round(usages.Average(x => x.Content.Index)))
+            };
 
-            _aggregation.OldVersions = new Dimensions();
-            _aggregation.OldVersions.Count = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Count)));
-            _aggregation.OldVersions.Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Blob)));
-            _aggregation.OldVersions.Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Metadata)));
-            _aggregation.OldVersions.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Text)));
-            _aggregation.OldVersions.Index = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Index)));
+            _aggregation.OldVersions = new Dimensions
+            {
+                Count = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Count))),
+                Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Blob))),
+                Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Metadata))),
+                Text = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Text))),
+                Index = Convert.ToInt32(Math.Round(usages.Average(x => x.OldVersions.Index)))
+            };
 
-            _aggregation.Preview = new Dimensions();
-            _aggregation.Preview.Count = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Count)));
-            _aggregation.Preview.Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Blob)));
-            _aggregation.Preview.Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Metadata)));
-            _aggregation.Preview.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Text)));
-            _aggregation.Preview.Index = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Index)));
+            _aggregation.Preview = new Dimensions
+            {
+                Count = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Count))),
+                Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Blob))),
+                Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Metadata))),
+                Text = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Text))),
+                Index = Convert.ToInt32(Math.Round(usages.Average(x => x.Preview.Index)))
+            };
 
-            _aggregation.System = new Dimensions();
-            _aggregation.System.Count = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Count)));
-            _aggregation.System.Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Blob)));
-            _aggregation.System.Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Metadata)));
-            _aggregation.System.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Text)));
-            _aggregation.System.Index = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Index)));
+            _aggregation.System = new Dimensions
+            {
+                Count = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Count))),
+                Blob = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Blob))),
+                Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Metadata))),
+                Text = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Text))),
+                Index = Convert.ToInt32(Math.Round(usages.Average(x => x.System.Index)))
+            };
 
-            _aggregation.OperationLog = new LogDimensions();
-            _aggregation.OperationLog.Count = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Count)));
-            _aggregation.OperationLog.Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Metadata)));
-            _aggregation.OperationLog.Text = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Text)));
+            _aggregation.OperationLog = new LogDimensions
+            {
+                Count = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Count))),
+                Metadata = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Metadata))),
+                Text = Convert.ToInt32(Math.Round(usages.Average(x => x.OperationLog.Text)))
+            };
 
             _aggregation.OrphanedBlobs = Convert.ToInt32(Math.Round(usages.Average(x => x.OrphanedBlobs)));
         }
