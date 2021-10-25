@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SenseNet.Diagnostics;
-using SenseNet.Services.Core;
+using SenseNet.ContentRepository;
 using SenseNet.Services.Core.Diagnostics;
 
 // ReSharper disable once CheckNamespace
@@ -16,7 +15,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddTransient<WebTransferRegistrator>()
                 .AddStatisticalDataAggregator<WebTransferStatisticalDataAggregator>()
                 .AddStatisticalDataAggregator<DatabaseUsageStatisticalDataAggregator>()
-                .AddSingleton<IStatisticalDataAggregationController, StatisticalDataAggregationController>();
+                .AddSingleton<IStatisticalDataAggregationController, StatisticalDataAggregationController>()
+                .AddSingleton<IDatabaseUsageHandler, DatabaseUsageHandler>();
         }
     }
 }

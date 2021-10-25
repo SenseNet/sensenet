@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
 using SenseNet.Diagnostics;
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -104,6 +105,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
+                .AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
                 //.AddSingleton<IMaintenanceTask, ReindexBinariesTask>()
 
                 .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))

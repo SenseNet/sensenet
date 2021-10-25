@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Packaging;
@@ -129,10 +128,8 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async Task<DatabaseUsage> GetDatabaseUsage(Content content, HttpContext httpContext, bool force = false)
         {
-            var logger = (ILogger<DatabaseUsageHandler>)httpContext
-                .RequestServices.GetService(typeof(ILogger<DatabaseUsageHandler>));
-            var handler = new DatabaseUsageHandler(logger); //UNDONE:<?usage: GetService
-            return await handler.GetDatabaseUsageAsync(force, httpContext.RequestAborted).ConfigureAwait(false);
+            var dbUsageHandler = httpContext.RequestServices.GetService<IDatabaseUsageHandler>();
+            return await dbUsageHandler.GetDatabaseUsageAsync(force, httpContext.RequestAborted).ConfigureAwait(false);
         }
     }
 }

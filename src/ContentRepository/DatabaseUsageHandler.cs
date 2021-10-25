@@ -8,22 +8,21 @@ using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
 using SenseNet.Storage.DataModel.Usage;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
-    public interface IDatabaseUsageHandler  //UNDONE:<?usage: Register service
+    public interface IDatabaseUsageHandler
     {
         Task<DatabaseUsage> GetDatabaseUsageAsync(bool force, CancellationToken cancel);
     }
     public class DatabaseUsageHandler : IDatabaseUsageHandler
     {
-        private static readonly string CacheKey = "1";
+        private static readonly string CacheKey = "DatabaseUsage";
         public static readonly string DatabaseUsageCachePath = "/Root/System/Cache/DatabaseUsage.cache";
         private static readonly TimeSpan DatabaseUsageCacheTime = TimeSpan.FromMinutes(5);
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             NullValueHandling = NullValueHandling.Ignore,
             Formatting = Formatting.Indented
@@ -77,7 +76,7 @@ namespace SenseNet.ContentRepository
             }
             catch (Exception e)
             {
-                _logger.LogWarning("An error occured during loading DatabaseUsage.cache: " + e);
+                _logger.LogWarning("An error occurred during loading DatabaseUsage.cache: " + e);
                 // do nothing
             }
 
@@ -96,25 +95,37 @@ namespace SenseNet.ContentRepository
 
                 if (cached == null)
                     return;
+
+                var iteration = 0;
                 
                 try
                 {
-                    Retrier.Retry(3, 10, typeof(NodeIsOutOfDateException), () =>
+                    var serialized = resultBuilder.ToString();
+                    var cachedStream = !cached.IsNew ? cached.Binary?.GetStream() : null;
+                    var cachedData = cachedStream != null ? RepositoryTools.GetStreamString(cachedStream) : string.Empty;
+
+                    // save the content only if there was a change
+                    if (string.Equals(serialized, cachedData))
+                        return;
+
+                    Retrier.Retry(5, 500, typeof(NodeIsOutOfDateException), () =>
                     {
+                        iteration++;
+                        
                         // reload to have a fresh instance
-                        if (!cached.IsNew)
+                        if (!cached.IsNew && iteration > 1)
                             cached = Node.Load<File>(cached.Id);
 
                         cached.SetCachedData(CacheKey, databaseUsage);
-                        cached.Binary.SetStream(RepositoryTools.GetStreamFromString(resultBuilder.ToString()));
+                        cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
                         cached.Save(SavingMode.KeepVersion);
 
-                        _logger.LogTrace("DatabaseUsage.cache has been saved.");
+                        _logger.LogTrace($"DatabaseUsage.cache has been saved. Iteration: {iteration}");
                     });
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning(e, "An error occurred during saving DatabaseUsage.cache.");
+                    _logger.LogWarning(e, $"An error occurred during saving DatabaseUsage.cache in iteration {iteration}.");
                     // do nothing
                 }
             }
