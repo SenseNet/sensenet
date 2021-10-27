@@ -47,6 +47,7 @@ namespace SnConsoleInstaller
                     })
                     .ConfigureLegacyConnectionStrings()
                     .AddSenseNetMsSqlDataProvider()
+                    .AddSenseNetSecurity()
                     .AddEFCSecurityDataProvider(options =>
                     {
                         options.ConnectionString = ConnectionStrings.ConnectionString;
