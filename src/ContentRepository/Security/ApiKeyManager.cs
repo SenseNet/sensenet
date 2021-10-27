@@ -16,12 +16,28 @@ namespace SenseNet.ContentRepository.Security
         public DateTime ExpirationDate { get; internal set; }
     }
 
+    internal static class ApiKeyExtensions
+    {
+        public static ApiKey ToApiKey(this AccessToken token)
+        {
+            if (token == null)
+                return null;
+
+            return new ApiKey
+            {
+                Value = token.Value,
+                CreationDate = token.CreationDate,
+                ExpirationDate = token.ExpirationDate
+            };
+        }
+    }
+
     public interface IApiKeyManager
     {
         Task<User> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel);
         Task<ApiKey[]> GetApiKeysByUserAsync(int userId, CancellationToken cancel);
         Task<ApiKey> CreateApiKeyAsync(int userId, DateTime expiration, CancellationToken cancel);
-        System.Threading.Tasks.Task DeleteApiKey(string apiKey, CancellationToken cancel);
+        System.Threading.Tasks.Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel);
     }
     
     //UNDONE: implement api key manager
@@ -48,13 +64,7 @@ namespace SenseNet.ContentRepository.Security
 
             return allTokens
                 .Where(t => t.Feature == FeatureName)
-                .Select(t => new ApiKey
-                {
-                    //UNDONE: create token.ToApiKey() converter method
-                    Value = t.Value,
-                    CreationDate = t.CreationDate,
-                    ExpirationDate = t.ExpirationDate
-                })
+                .Select(t => t.ToApiKey())
                 .ToArray();
         }
 
@@ -66,13 +76,11 @@ namespace SenseNet.ContentRepository.Security
                 : TimeSpan.FromDays(365);
 
             var token = await AccessTokenVault.CreateTokenAsync(userId, exp, 0, FeatureName, cancel).ConfigureAwait(false);
-            //UNDONE: create token.ToApiKey() converter method
-            //return token.ToApiKey();
 
-            throw new NotImplementedException();
+            return token.ToApiKey();
         }
 
-        public System.Threading.Tasks.Task DeleteApiKey(string apiKey, CancellationToken cancel)
+        public System.Threading.Tasks.Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel)
         {
             return AccessTokenVault.DeleteTokenAsync(apiKey, cancel);
         }
