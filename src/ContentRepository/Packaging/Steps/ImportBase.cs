@@ -1,24 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 using SNC = SenseNet.ContentRepository;
 using IO = System.IO;
 using System.Diagnostics;
 using System.Xml;
-using System.Xml.Xsl;
 using SenseNet.ContentRepository;
 using SenseNet.Portal.Handlers;
-using SenseNet.Search;
 using SenseNet.ContentRepository.Schema;
 using System.Reflection;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.ContentRepository.Storage.Data;
 using System.Timers;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 using SenseNet.Storage;
@@ -565,6 +560,8 @@ namespace SenseNet.Packaging.Steps
 
                 // ContentType ids
                 var RootContentId = Identifiers.PortalRootId;
+                var GenericContentTypeId = ContentType.GetByName("GenericContent").Id;
+                var contentTypeId = ContentType.GetByName("ContentType").Id;
                 var FolderContentTypeId = ContentType.GetByName("Folder").Id;
                 var SystemFolderContentTypeId = ContentType.GetByName("SystemFolder").Id;
                 var SurveyItemContentTypeId = ContentType.GetByName("SurveyItem")?.Id ?? 0;
@@ -576,6 +573,12 @@ namespace SenseNet.Packaging.Steps
                 var FileContentTypeId = ContentType.GetByName("File").Id;
                 var ExecutableFileContentTypeId = ContentType.GetByName("ExecutableFile").Id;
                 var ListItemContentTypeId = ContentType.GetByName("ListItem").Id;
+                
+                var fieldSettingContentTypeId = ContentType.GetByName("FieldSettingContent")?.Id ?? 0;
+                var portalRootContentTypeId = ContentType.GetByName("PortalRoot")?.Id ?? 0;
+                var runtimeContentContainerContentTypeId = ContentType.GetByName("RuntimeContentContainer")?.Id ?? 0;
+                var sitesContentTypeId = ContentType.GetByName("Sites")?.Id ?? 0;
+                var sharingGroupContentTypeId = ContentType.GetByName("SharingGroup")?.Id ?? 0;
 
                 // Identity ids
                 var AdministratorNodeId = Identifiers.AdministratorUserId;
@@ -585,6 +588,7 @@ namespace SenseNet.Packaging.Steps
 
                 var DevelopersGroupId = Node.LoadNode("/Root/IMS/BuiltIn/Portal/Developers")?.Id ?? 0;
                 var contentExplorersGroup = Node.LoadNode("/Root/IMS/BuiltIn/Portal/ContentExplorers");
+                var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
 
                 // Set initial memberships: these relations must be set here manually because
                 // these content were created by the install SQL scripts without the security 
@@ -665,6 +669,27 @@ namespace SenseNet.Packaging.Steps
                 if (contentExplorersGroup != null)
                 {
                     aclEd.Allow(RootContentId, contentExplorersGroup.Id, true, PermissionType.Open);
+                }
+
+                // break inheritance on certain system types to hide them
+                if (fieldSettingContentTypeId != 0)
+                    aclEd.BreakInheritance(fieldSettingContentTypeId, new[] { EntryType.Normal });
+                if (portalRootContentTypeId != 0)
+                    aclEd.BreakInheritance(portalRootContentTypeId, new[] { EntryType.Normal });
+                if (runtimeContentContainerContentTypeId != 0)
+                    aclEd.BreakInheritance(runtimeContentContainerContentTypeId, new[] { EntryType.Normal });
+                if (sitesContentTypeId != 0)
+                    aclEd.BreakInheritance(sitesContentTypeId, new[] { EntryType.Normal });
+                if (sharingGroupContentTypeId != 0)
+                    aclEd.BreakInheritance(sharingGroupContentTypeId, new[] { EntryType.Normal });
+
+                // set permissions for public admins
+                if (publicAdminsGroupId != 0)
+                {
+                    aclEd.Allow(GenericContentTypeId, publicAdminsGroupId, false, 
+                        PermissionType.Open, PermissionType.AddNew)
+                        .Allow(contentTypeId, publicAdminsGroupId, false, PermissionType.See)
+                        .Allow(SystemFolderContentTypeId, publicAdminsGroupId, true, PermissionType.Open);
                 }
 
                 // Apply all changes

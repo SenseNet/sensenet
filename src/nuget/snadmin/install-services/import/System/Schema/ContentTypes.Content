@@ -10,6 +10,7 @@
     <Clear />
     <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
       <Open>Allow</Open>
+      <AddNew>Allow</AddNew>
     </Identity>
   </Permissions>
 </ContentMetaData>
