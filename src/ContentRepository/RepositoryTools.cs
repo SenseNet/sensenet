@@ -308,7 +308,6 @@ namespace SenseNet.ContentRepository
             return sb.ToString();
         }
 
-
         /// <summary>
         /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
@@ -1294,6 +1293,33 @@ namespace SenseNet.ContentRepository
                 return;
 
             SnLog.WriteError("Error during AD sync. " + result.Error);
+        }
+    }
+
+    public static class StringExtensions
+    {
+        /// <summary>
+        /// Trims the schema and trailing slashes from a url.
+        /// </summary>
+        public static string RemoveUrlSchema(this string url)
+        {
+            if (url == null)
+                return null;
+
+            var schIndex = url.IndexOf("://", StringComparison.OrdinalIgnoreCase);
+
+            return (schIndex >= 0 ? url.Substring(schIndex + 3) : url).Trim('/', ' ');
+        }
+
+        /// <summary>
+        /// Appends an 'https://' prefix to a url if it is missing.
+        /// </summary>
+        public static string AddUrlSchema(this string url)
+        {
+            if (string.IsNullOrEmpty(url) || url.StartsWith("http"))
+                return url;
+
+            return "https://" + url;
         }
     }
 

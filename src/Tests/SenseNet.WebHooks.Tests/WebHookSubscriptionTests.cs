@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Versioning;
@@ -470,6 +472,7 @@ namespace SenseNet.WebHooks.Tests
                         .AddAsyncEventProcessors(new LocalWebHookProcessor(
                             store,
                             webHookClient,
+                            Options.Create(new ClientStoreOptions()),
                             new NullLogger<LocalWebHookProcessor>()));
                 },
                 async () =>

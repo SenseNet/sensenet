@@ -1,9 +1,15 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Services.Core.Cors;
 using SenseNet.Tests.Core;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Tests
 {
@@ -146,6 +152,21 @@ namespace SenseNet.Services.Core.Tests
         {
             await Test(async () =>
             {
+                // set allowed domains for test
+                var setting = await Node.LoadAsync<Settings>(
+                    RepositoryPath.Combine(Repository.SettingsFolderPath, "Portal.settings"), CancellationToken.None);
+                var currentSettingText = RepositoryTools.GetStreamString(setting.Binary.GetStream());
+                var newSettingText = EditJson(currentSettingText, @"
+{
+""AllowedOriginDomains"": [
+    ""localhost:*"",
+    ""*.sensenet.com""
+  ]
+}
+");
+                setting.Binary.SetStream(RepositoryTools.GetStreamFromString(newSettingText));
+                setting.Save(SavingMode.KeepVersion);
+
                 // default settings support localhost and sensenet.com
                 var p = await AssertOriginPrivate("localhost", true);
                 Assert.IsTrue(p.SupportsCredentials);
@@ -175,6 +196,24 @@ namespace SenseNet.Services.Core.Tests
             var domainMatch = SnCorsPolicyProvider.GetAllowedDomain(originHeader, allowedOrigins);
             
             Assert.AreEqual(expectedDomain, domainMatch);
+        }
+
+        protected static string EditJson(string text, string value)
+        {
+            // no change, return the original text
+            if (string.IsNullOrEmpty(value))
+                return text;
+
+            var jo = JsonConvert.DeserializeObject<JObject>(text ?? string.Empty);
+
+            // merge the provided json into the original
+            var newJson = JsonConvert.DeserializeObject<JObject>(value);
+            jo.Merge(newJson, new JsonMergeSettings
+            {
+                MergeArrayHandling = MergeArrayHandling.Replace
+            });
+
+            return jo.ToString();
         }
     }
 }

@@ -3,9 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
+using SenseNet.OData.IO;
 
 namespace SenseNet.OData
 {
@@ -21,7 +28,9 @@ namespace SenseNet.OData
         internal static Projector Create(ODataRequest request, bool isCollectionItem, Content container = null)
         {
             Projector prj;
-            if (request.HasExpand)
+            if (request.IsExport)
+                prj = new ExportProjector();
+            else if (request.HasExpand)
                 if (request.HasSelect)
                     prj = new ExpanderProjector();
                 else
@@ -113,7 +122,7 @@ namespace SenseNet.OData
             return type.FullName;
         }
 
-        protected bool IsAllowedField(Content content, string fieldName)
+        protected virtual bool IsAllowedField(Content content, string fieldName)
         {
             switch (fieldName)
             {
@@ -136,6 +145,66 @@ namespace SenseNet.OData
         protected ODataActionItem[] GetActions(Content content, HttpContext httpContext)
         {
             return ODataTools.GetActionItems(content, this.Request, httpContext).ToArray();
+        }
+
+        protected virtual object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
+        {
+            object data;
+            if (field is ReferenceField)
+            {
+                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
+            }
+            else if (field is BinaryField binaryField)
+            {
+                try
+                {
+                    // load binary fields only if the content is finalized
+                    var binaryData = field.Content.ContentHandler.SavingState == ContentSavingState.Finalized
+                        ? (BinaryData)binaryField.GetData()
+                        : null;
+
+                    return ODataBinary.Create(BinaryField.GetBinaryUrl(binaryField.Content.Id, binaryField.Name, binaryData?.Timestamp ?? default),
+                        null, binaryData?.ContentType, null);
+                }
+                catch (Exception ex)
+                {
+                    SnTrace.System.WriteError(
+                        $"Error accessing field {field.Name} of {field.Content.Path} with user {User.Current.Username}: " +
+                        ex.Message);
+
+                    return null;
+                }
+            }
+            else if (ODataMiddleware.DeferredFieldNames.Contains(field.Name))
+            {
+                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
+            }
+            try
+            {
+                data = field.GetData();
+            }
+            catch (SenseNetSecurityException)
+            {
+                // The user does not have access to this field (e.g. cannot load
+                // a referenced content). In this case we serve a null value.
+                data = null;
+
+                SnTrace.Repository.Write("PERMISSION warning: user {0} does not have access to field '{1}' of {2}.", User.LoggedInUser.Username, field.Name, field.Content.Path);
+            }
+
+            if (data is NodeType nodeType)
+                return nodeType.Name;
+            if (data is RichTextFieldValue rtfValue)
+                return GetRichTextOutput(field.Name, rtfValue, oDataRequest);
+            return data;
+        }
+        protected string GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        {
+            if (!oDataRequest.HasExpandedRichTextField)
+                return rtfValue.Text;
+            return oDataRequest.AllRichTextFieldExpanded || oDataRequest.ExpandedRichTextFields.Contains(fieldName)
+                ? JsonConvert.SerializeObject(rtfValue)
+                : rtfValue.Text;
         }
     }
 }

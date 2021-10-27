@@ -194,7 +194,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetRealException(e);
+                throw DataProvider.GetRealException(e) ?? new DataException($"Error in datastore when saving {nodeData.Path}.", e);
             }
         }
         private bool MustCache(int nodeTypeId)
@@ -252,7 +252,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetRealException(e);
+                throw DataProvider.GetRealException(e) ?? new DataException("Error in datastore when loading nodes.", e);
             }
         }
         public Task DeleteNodeAsync(NodeHead nodeHead, CancellationToken cancellationToken)
@@ -724,7 +724,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetRealException(e);
+                throw DataProvider.GetRealException(e) ?? new DataException("Error in datastore when updating schema.", e);
             }
         }
         public SchemaWriter CreateSchemaWriter()
@@ -739,7 +739,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw DataProvider.GetRealException(e);
+                throw DataProvider.GetRealException(e) ?? new DataException("Error in datastore when finishing schema update.", e);
             }
         }
 

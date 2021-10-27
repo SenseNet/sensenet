@@ -27,6 +27,7 @@ using SenseNet.Security;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
+using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
@@ -45,7 +46,7 @@ namespace SenseNet.OData
         internal static IActionResolver ActionResolver => Providers.Instance.GetProvider<IActionResolver>() ?? DefaultActionResolver;
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
-        internal static readonly List<string> DisabledFieldNames = new List<string>(new[] { "TypeIs", "InTree", "InFolder", "NodeType", "Rate"/*, "VersioningMode", "ApprovingMode", "RateAvg", "RateCount"*/ });
+        internal static readonly List<string> DisabledFieldNames = new List<string>(new[] { "TypeIs", "InTree", "InFolder", "NodeType", "IsRateable", "RateStr", "RateAvg", "RateCount", "Rate"/*, "VersioningMode", "ApprovingMode"*/ });
         internal static readonly List<string> DeferredFieldNames = new List<string>(new[] { "AllowedChildTypes", "EffectiveAllowedChildTypes" });
         internal static readonly List<string> AllowedMethodNamesWithoutContent = new List<string>(new[] { "PATCH", "PUT", "POST", "DELETE" });
 
@@ -528,36 +529,39 @@ namespace SenseNet.OData
 
         private Content CreateNewContent(JObject model, ODataRequest odataRequest)
         {
+            var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
             var templateName = GetPropertyValue<string>("__ContentTemplate", model);
+            var contentName = GetPropertyValue<string>("Name", model);
+            var displayName = GetPropertyValue<string>("DisplayName", model);
+            var isMultiStepSave = odataRequest.MultistepSave;
 
-            var name = GetPropertyValue<string>("Name", model);
-            if (string.IsNullOrEmpty(name))
-            {
-                var displayName = GetPropertyValue<string>("DisplayName", model);
-                name = ContentNamingProvider.GetNameFromDisplayName(displayName);
-            }
-            else
-            {
-                // do not allow saving a content with unencoded name
-                name = ContentNamingProvider.GetNameFromDisplayName(name);
-            }
+            return CreateNewContent(parentPath, contentTypeName, templateName, contentName, displayName, isMultiStepSave, model, false, out _);
+        }
+        public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
+            string contentName, string displayName, bool isMultiStepSave, JObject model,
+            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
+        {
+            contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
-            var parent = Node.Load<GenericContent>(odataRequest.RepositoryPath);
+            var parent = Node.Load<GenericContent>(parentPath);
+            if (parent == null)
+                throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
+
             if (string.IsNullOrEmpty(contentTypeName))
             {
                 var allowedChildTypeNames = parent.GetAllowedChildTypeNames();
 
                 if (allowedChildTypeNames is AllContentTypeNames)
                 {
-                    contentTypeName = typeof(ContentRepository.File).Name;
+                    contentTypeName = nameof(File);
                 }
                 else
                 {
                     var allowedContentTypeNames = parent.GetAllowedChildTypeNames().ToArray();
                     contentTypeName = allowedContentTypeNames.FirstOrDefault();
                     if (string.IsNullOrEmpty(contentTypeName))
-                        contentTypeName = typeof(ContentRepository.File).Name;
+                        contentTypeName = nameof(File);
                 }
             }
 
@@ -568,24 +572,26 @@ namespace SenseNet.OData
 
             if (template == null)
             {
-                content = Content.CreateNew(contentTypeName, parent, name);
+                content = Content.CreateNew(contentTypeName, parent, contentName);
             }
             else
             {
-                var node = ContentTemplate.CreateFromTemplate(parent, template, name);
+                var node = ContentTemplate.CreateFromTemplate(parent, template, contentName);
                 content = Content.Create(node);
             }
 
 
-            UpdateFields(content, model);
+            UpdateFields(content, model, skipBrokenReferences, out brokenReferenceFieldNames);
 
-            if (odataRequest.MultistepSave)
+            if (isMultiStepSave)
                 content.Save(SavingMode.StartMultistepSave);
             else
                 content.Save();
 
             return content;
         }
+
+
         private static readonly List<string> SafeFieldsInReset = new List<string>(new[] {
             "Name",
             "CreatedBy", "CreatedById", "CreationDate",
@@ -643,7 +649,7 @@ namespace SenseNet.OData
         }
         private void UpdateContent(Content content, JObject model, ODataRequest odataRequest)
         {
-            UpdateFields(content, model);
+            UpdateFields(content, model, false, out _);
 
             if (odataRequest.MultistepSave)
                 content.Save(SavingMode.StartMultistepSave);
@@ -656,8 +662,12 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
-        public static void UpdateFields(Content content, JObject model)
+        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
+        /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
+        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
         {
+            brokenReferenceFieldNames = new List<string>();
+            var brokenRefs = brokenReferenceFieldNames; // in the lambda expressions need to use a local value
             if (content == null)
                 throw new ArgumentNullException(nameof(content));
             if (model == null)
@@ -693,7 +703,7 @@ namespace SenseNet.OData
                                 continue;
                             if (isNew && field is ReferenceField && jValue.Value == null)
                             {
-                                if (field.Name == "CreatedBy" || field.Name == "ModifiedBy")
+                                if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" || field.Name == "Owner")
                                     continue;
                             }
                             if (field is ReferenceField && jValue.Value != null)
@@ -701,8 +711,10 @@ namespace SenseNet.OData
                                 var refNode = jValue.Type == JTokenType.Integer
                                     ? Node.LoadNode(Convert.ToInt32(jValue.Value))
                                     : Node.LoadNode(jValue.Value.ToString());
-
-                                field.SetData(refNode);
+                                if (refNode == null)
+                                    brokenRefs.Add(field.Name);
+                                if(!skipBrokenReferences)
+                                    field.SetData(refNode);
                                 continue;
                             }
                             if (isNew && field.Name == "Name" && jValue.Value != null)
@@ -715,8 +727,17 @@ namespace SenseNet.OData
                             continue;
                         }
 
-                        if (prop.Value is JObject)
+                        if (prop.Value is JObject jObject)
                         {
+                            if (field is BinaryField)
+                                continue;
+                            if (field is ImageField)
+                            {
+                                // the field supports int, long or string values
+                                var url = jObject["Url"].Value<string>();
+                                if (url.Length == 0)
+                                    continue;
+                            }
                             field.SetData(prop.Value);
                             continue;
                         }
@@ -734,9 +755,15 @@ namespace SenseNet.OData
 
                                 var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
                                 var nodes = refValues
-                                    .Select(rv => rv.Type == JTokenType.Integer
-                                        ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
-                                        : Node.LoadNode(rv.ToString()))
+                                    .Select(rv =>
+                                    {
+                                        var value = rv.Type == JTokenType.Integer
+                                            ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
+                                            : Node.LoadNode(rv.ToString());
+                                        if(value == null)
+                                            brokenRefs.Add(field.Name);
+                                        return value;
+                                    })
                                     .Where(x => x != null); // filter unknown or invisible items
 
                                 if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
@@ -778,7 +805,9 @@ namespace SenseNet.OData
                                     }
                                 }).Where(ct => ct != null).ToArray();
 
-                                gc.SetAllowedChildTypes(types);
+                                var ctName = content.ContentType.Name;
+                                if (ctName != "Folder" && ctName != "Page")
+                                    gc.SetAllowedChildTypes(types);
                             }
 
                             continue;

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 
@@ -135,9 +132,7 @@ namespace SenseNet.ContentRepository.Workspaces
         /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
-            if(this.IsNew)
-                SecurityHandler.Assert(this.ParentId, PermissionType.ManageListsAndWorkspaces);
-            else
+            if(!this.IsNew)
                 this.Security.Assert(PermissionType.ManageListsAndWorkspaces);
 
             base.Save(settings);
