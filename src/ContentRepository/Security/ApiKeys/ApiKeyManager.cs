@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -23,6 +24,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
+        private readonly MemoryCache _apiKeyCache = new(new MemoryCacheOptions { SizeLimit = 1024 });
 
         public ApiKeyManager(ILogger<ApiKeyManager> logger)
         {
@@ -31,8 +33,22 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async Task<User> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
         {
-            //UNDONE: load token from cache
-            var token = await AccessTokenVault.GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
+            if (!_apiKeyCache.TryGetValue<AccessToken>(apiKey, out var token))
+            {
+                token = await AccessTokenVault.GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
+                
+                // check if expired
+                if (token != null && token.ExpirationDate < DateTime.UtcNow)
+                    token = null;
+
+                if (token != null)
+                    _apiKeyCache.Set(apiKey, token, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = new DateTimeOffset(DateTime.UtcNow.AddMinutes(2)),
+                        Size = 1
+                    });
+            }
+
             if (token == null || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
 
