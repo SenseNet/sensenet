@@ -609,6 +609,13 @@ namespace SenseNet.Packaging.Steps
                 // Created for several operations
                 var aclEd = SecurityHandler.CreateAclEditor();
 
+                // Allow all permissions on Root to the built-in admin group
+                aclEd.Allow(RootContentId, AdministratorGroupNodeId, false, PermissionType.BuiltInPermissionTypes);
+
+                // Apply changes because later we want to break inheritance on child nodes and that requires that
+                // the permissions we want to copy already exist on parents. This cannot be done in one round.
+                aclEd.Apply();
+
                 // Break the permission inheritance on several content
                 aclEd.BreakInheritance(SystemFolderContentTypeId, new[] { EntryType.Normal })
                     .BreakInheritance(ExecutableFileContentTypeId, new[] { EntryType.Normal })
