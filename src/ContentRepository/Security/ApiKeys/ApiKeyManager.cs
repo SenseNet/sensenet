@@ -33,14 +33,18 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async Task<User> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
         {
+            if (string.IsNullOrEmpty(apiKey))
+                return null;
+
             if (!_apiKeyCache.TryGetValue<AccessToken>(apiKey, out var token))
             {
-                token = await AccessTokenVault.GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
+                token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
                 
                 // check if expired
                 if (token != null && token.ExpirationDate < DateTime.UtcNow)
                     token = null;
 
+                // cache for 2 minutes
                 if (token != null)
                     _apiKeyCache.Set(apiKey, token, new MemoryCacheEntryOptions
                     {
@@ -59,6 +63,9 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async Task<ApiKey[]> GetApiKeysByUserAsync(int userId, CancellationToken cancel)
         {
+            if (userId < 1)
+                return Array.Empty<ApiKey>();
+
             AssertPermissions(userId);
 
             // do not load tokens from cache, this is for editing tokens
@@ -72,6 +79,9 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async Task<ApiKey> CreateApiKeyAsync(int userId, DateTime expiration, CancellationToken cancel)
         {
+            if (userId < 1)
+                throw new InvalidOperationException($"ApiKeyManager: Invalid user id: {userId}");
+
             AssertPermissions(userId);
 
             var now = DateTime.UtcNow;
@@ -86,7 +96,10 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async System.Threading.Tasks.Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel)
         {
-            var token = await AccessTokenVault.GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(apiKey))
+                return;
+
+            var token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
             if (token == null)
                 return;
 

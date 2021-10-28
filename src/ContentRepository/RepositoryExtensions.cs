@@ -3,6 +3,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
 using SenseNet.Preview;
@@ -107,6 +108,21 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetQueryEngine<T>(this IServiceCollection services) where T : class, IQueryEngine
         {
             return services.AddSingleton<IQueryEngine, T>();
+        }
+
+        /// <summary>
+        /// Adds the provided api key manager to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetApiKeyManager<T>(this IServiceCollection services) where T : class, IApiKeyManager
+        {
+            return services.AddSingleton<IApiKeyManager, T>();
+        }
+        /// <summary>
+        /// Adds the default api key manager to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetApiKeys(this IServiceCollection services)
+        {
+            return services.AddSenseNetApiKeyManager<ApiKeyManager>();
         }
     }
 }
