@@ -115,7 +115,15 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
                 // Save database to separated files.
                 Console.Write("Saving data...");
-                SaveData(arguments.OutputPath);
+                try
+                {
+                    SaveData(arguments.OutputPath);
+                }
+                catch (SenseNetSecurityException ex)
+                {
+                    Console.WriteLine($"ERROR during saving data. {ex.Data["FormattedMessage"]}");
+                    throw;
+                }
                 SavePermissions(Providers.Instance.SecurityDataProvider, arguments.OutputPath);
                 Console.WriteLine("ok.");
 

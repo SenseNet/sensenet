@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Tools;
 using SenseNet.Portal.Handlers;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
 {
@@ -1059,6 +1060,51 @@ namespace SenseNet.ContentRepository
                 .Action(context =>
                 {
                     // there were only permission and cors changes that can be made manually if necessary
+                });
+            builder.Patch("7.7.24", "7.7.24.1", "2021-10-28", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region Permission changes
+                    
+                    var genericContentTypeId = ContentType.GetByName("GenericContent").Id;
+                    var contentTypeId = ContentType.GetByName("ContentType").Id;
+                    var contentTypesId = NodeHead.Get(Repository.ContentTypesFolderPath).Id;
+                    var systemFolderContentTypeId = ContentType.GetByName("SystemFolder").Id;
+                    var fieldSettingContentTypeId = ContentType.GetByName("FieldSettingContent")?.Id ?? 0;
+                    var portalRootContentTypeId = ContentType.GetByName("PortalRoot")?.Id ?? 0;
+                    var runtimeContentContainerContentTypeId = ContentType.GetByName("RuntimeContentContainer")?.Id ?? 0;
+                    var sitesContentTypeId = ContentType.GetByName("Sites")?.Id ?? 0;
+                    var sharingGroupContentTypeId = ContentType.GetByName("SharingGroup")?.Id ?? 0;
+
+                    var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
+
+                    var aclEditor = SecurityHandler.CreateAclEditor();
+
+                    // break inheritance on certain system types to hide them
+                    if (fieldSettingContentTypeId != 0)
+                        aclEditor.BreakInheritance(fieldSettingContentTypeId, new[] { EntryType.Normal });
+                    if (portalRootContentTypeId != 0)
+                        aclEditor.BreakInheritance(portalRootContentTypeId, new[] { EntryType.Normal });
+                    if (runtimeContentContainerContentTypeId != 0)
+                        aclEditor.BreakInheritance(runtimeContentContainerContentTypeId, new[] { EntryType.Normal });
+                    if (sitesContentTypeId != 0)
+                        aclEditor.BreakInheritance(sitesContentTypeId, new[] { EntryType.Normal });
+                    if (sharingGroupContentTypeId != 0)
+                        aclEditor.BreakInheritance(sharingGroupContentTypeId, new[] { EntryType.Normal });
+
+                    // set permissions for public admins
+                    if (publicAdminsGroupId != 0)
+                    {
+                        aclEditor.Allow(genericContentTypeId, publicAdminsGroupId, false,
+                                PermissionType.Open, PermissionType.AddNew)
+                            .Allow(contentTypeId, publicAdminsGroupId, false, PermissionType.See)
+                            .Allow(systemFolderContentTypeId, publicAdminsGroupId, true, PermissionType.Open)
+                            .Allow(contentTypesId, publicAdminsGroupId, true, PermissionType.AddNew);
+                    }
+
+                    aclEditor.Apply();
+
+                    #endregion
                 });
         }
 
