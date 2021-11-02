@@ -116,6 +116,30 @@ namespace SenseNet.ContentRepository.InMemory
 
             return System.Threading.Tasks.Task.CompletedTask;
         }
+        public System.Threading.Tasks.Task DeleteAccessTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
+        {
+            var emptyUserId = userId == 0;
+            var emptyContentId = contentId == 0;
+            var emptyFeature = string.IsNullOrEmpty(feature);
+            
+            var accessTokens = GetAccessTokens();
+
+            if (emptyUserId && emptyContentId && emptyFeature)
+            {
+                accessTokens.Clear();
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+
+            var docs = accessTokens.Where(x =>
+                (emptyUserId || x.UserId == userId) &&
+                (emptyContentId || x.ContentId == contentId) &&
+                (emptyFeature || x.Feature == feature)).ToArray();
+
+            foreach (var doc in docs)
+                accessTokens.Remove(doc);
+
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
 
         public System.Threading.Tasks.Task CleanupAccessTokensAsync(CancellationToken cancellationToken)
         {

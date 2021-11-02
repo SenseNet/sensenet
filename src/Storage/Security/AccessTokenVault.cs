@@ -463,6 +463,15 @@ namespace SenseNet.ContentRepository.Storage.Security
             return Storage.DeleteAccessTokensByContentAsync(contentId, cancellationToken);
         }
 
+        public static Task DeleteTokensByFeatureAsync(string feature, CancellationToken cancellationToken)
+        {
+            return Storage.DeleteAccessTokensAsync(0, 0, feature, cancellationToken);
+        }
+        public static Task DeleteTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
+        {
+            return Storage.DeleteAccessTokensAsync(userId, contentId, feature, cancellationToken);
+        }
+
         /// <summary>
         /// Deletes all expired access tokens.
         /// </summary>

@@ -579,6 +579,91 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
+        public async Task AccessToken_Delete_ByFeature()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await AccessTokenVault.DeleteAllAccessTokensAsync(CancellationToken.None);
+                var userId1 = 42;
+                var userId2 = 43;
+                var contentId1 = 142;
+                var contentId2 = 143;
+                var timeout = TimeSpan.FromMinutes(10);
+                var shortTimeout = TimeSpan.FromSeconds(1);
+                const string feature = "feature1";
+
+                var savedTokens = new[]
+                {
+                    await AccessTokenVault.CreateTokenAsync(userId1, timeout, contentId1, feature, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId1, shortTimeout, contentId2, feature, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId2, timeout, contentId1, feature, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId2, shortTimeout, contentId2, feature, CancellationToken.None),
+                };
+
+                // ACTION
+                Thread.Sleep(1100);
+
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[0].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[1].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[2].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[3].Id, CancellationToken.None));
+
+                await AccessTokenVault.DeleteTokensByFeatureAsync(feature, CancellationToken.None);
+
+                // ASSERT
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[0].Id, CancellationToken.None));
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[1].Id, CancellationToken.None));
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[2].Id, CancellationToken.None));
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[3].Id, CancellationToken.None));
+            });
+        }
+
+        public async Task AccessToken_Delete_ByUser_And_Feature()
+        {
+            await NoRepoIntegrationTestAsync(async () =>
+            {
+                await AccessTokenVault.DeleteAllAccessTokensAsync(CancellationToken.None);
+                var userId1 = 42;
+                var userId2 = 43;
+                var contentId1 = 142;
+                var contentId2 = 143;
+                var timeout = TimeSpan.FromMinutes(10);
+                var shortTimeout = TimeSpan.FromSeconds(1);
+                const string feature1 = "feature1";
+                const string feature2 = "feature2";
+
+                var savedTokens = new[]
+                {
+                    await AccessTokenVault.CreateTokenAsync(userId1, timeout, contentId1, feature1, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId1, shortTimeout, contentId2, feature1, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId1, shortTimeout, contentId2, feature2, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId2, timeout, contentId1, feature1, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId2, shortTimeout, contentId2, feature1, CancellationToken.None),
+                    await AccessTokenVault.CreateTokenAsync(userId2, shortTimeout, contentId2, feature2, CancellationToken.None),
+                };
+
+                // ACTION
+                Thread.Sleep(1100);
+
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[0].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[1].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[2].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[3].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[4].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[5].Id, CancellationToken.None));
+
+                await AccessTokenVault.DeleteTokensAsync(userId1, 0, feature1, CancellationToken.None);
+
+                // ASSERT
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[0].Id, CancellationToken.None));
+                Assert.IsNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[1].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[2].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[3].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[4].Id, CancellationToken.None));
+                Assert.IsNotNull(await AccessTokenVault.GetTokenByIdAsync(savedTokens[5].Id, CancellationToken.None));
+            });
+        }
+
         /* ===================================================================================== */
 
         private void AssertTokensAreEqual(AccessToken expected, AccessToken actual)

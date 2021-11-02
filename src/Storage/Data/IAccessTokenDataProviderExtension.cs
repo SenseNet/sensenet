@@ -81,6 +81,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken);
         /// <summary>
+        /// Deletes all tokens related to a user, content or feature. Any of the parameters
+        /// may be provided or omitted.
+        /// </summary>
+        /// <param name="userId">The token owner id.</param>
+        /// <param name="contentId">Content id.</param>
+        /// <param name="feature">Feature identifier.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task DeleteAccessTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken);
+        /// <summary>
         /// Deletes all access tokens that expired a certain time ago.
         /// Expiration time is determined by the extension implementation.
         /// </summary>
