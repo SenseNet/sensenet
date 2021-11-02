@@ -99,6 +99,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             if (string.IsNullOrEmpty(apiKey))
                 return;
 
+            // load the token to check permissions for the user it belongs to
             var token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
             if (token == null)
                 return;
@@ -108,10 +109,23 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             await AccessTokenVault.DeleteTokenAsync(apiKey, cancel).ConfigureAwait(false);
         }
 
-        public System.Threading.Tasks.Task DeleteApiKeysAsync(bool expiredOnly, CancellationToken cancel)
+        public System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel)
         {
-            //UNDONE: implement cleanup task that periodically deletes expired api keys
-            throw new NotImplementedException();
+            if (userId < 1)
+                return System.Threading.Tasks.Task.CompletedTask;
+
+            AssertPermissions(userId);
+            
+            return AccessTokenVault.DeleteTokensAsync(userId, 0, FeatureName, cancel);
+        }
+
+        public System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel)
+        {
+            // user id: -1 or 1
+            if (Math.Abs(User.Current.Id) != 1)
+                throw new SenseNetSecurityException("Only administrators may delete all api keys.");
+
+            return AccessTokenVault.DeleteTokensByFeatureAsync(FeatureName, cancel);
         }
 
         private void AssertPermissions(int userId)

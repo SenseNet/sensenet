@@ -48,12 +48,20 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction]
-        [ContentTypes(N.CT.User, N.CT.PortalRoot)]
+        [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
-        public static async System.Threading.Tasks.Task DeleteApiKeys(Content content, HttpContext context, bool expiredOnly)
+        public static System.Threading.Tasks.Task DeleteApiKeys(Content content, HttpContext context)
         {
             var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
-            await akm.DeleteApiKeysAsync(expiredOnly, context.RequestAborted).ConfigureAwait(false);
+            return akm.DeleteApiKeysAsync(context.RequestAborted);
+        }
+        [ODataAction(OperationName = "DeleteApiKeys")]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static System.Threading.Tasks.Task DeleteApiKeysByUser(Content content, HttpContext context)
+        {
+            var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
+            return akm.DeleteApiKeysByUserAsync(content.Id, context.RequestAborted);
         }
     }
 }

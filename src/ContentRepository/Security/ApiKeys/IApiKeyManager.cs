@@ -26,8 +26,12 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
         /// </summary>
         System.Threading.Tasks.Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel);
         /// <summary>
-        /// Deletes all api keys or only expired ones.
+        /// Deletes api keys of a user.
         /// </summary>
-        System.Threading.Tasks.Task DeleteApiKeysAsync(bool expiredOnly, CancellationToken cancel);
+        System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel);
+        /// <summary>
+        /// Deletes all api keys.
+        /// </summary>
+        System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel);
     }
 }
