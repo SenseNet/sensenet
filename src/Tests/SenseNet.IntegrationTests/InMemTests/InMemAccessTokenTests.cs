@@ -70,5 +70,10 @@ namespace SenseNet.IntegrationTests.InMemTests
         public async Task IntT_InMem_AccessToken_Delete_ByUser() { await TestCase.AccessToken_Delete_ByUser().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_InMem_AccessToken_Delete_ByContent() { await TestCase.AccessToken_Delete_ByContent().ConfigureAwait(false); }
+
+        [TestMethod]
+        public async Task IntT_InMem_AccessToken_Delete_ByFeature() { await TestCase.AccessToken_Delete_ByFeature().ConfigureAwait(false); }
+        [TestMethod]
+        public async Task IntT_InMem_AccessToken_Delete_ByUser_And_Feature() { await TestCase.AccessToken_Delete_ByUser_And_Feature().ConfigureAwait(false); }
     }
 }

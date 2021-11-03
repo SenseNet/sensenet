@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
+        private RelationalDataProviderBase MainProvider => _dataProvider ??= (RelationalDataProviderBase)Providers.Instance.DataProvider;
 
         private string _accessTokenValueCollationName;
         private async Task<string> GetAccessTokenValueCollationNameAsync(CancellationToken cancellationToken)
@@ -199,6 +199,38 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); }).ConfigureAwait(false);
             }
+        }
+
+        public async Task DeleteAccessTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
+        {
+            if (userId == 0 && contentId == 0 && string.IsNullOrEmpty(feature))
+            {
+                await DeleteAllAccessTokensAsync(cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            var expressions = userId != 0 ? "UserId = @UserId" : string.Empty;
+            expressions = AddExpressions(expressions, contentId != 0 ? "ContentId = @ContentId" : string.Empty);
+            expressions = AddExpressions(expressions, !string.IsNullOrEmpty(feature) ? "Feature = @Feature" : string.Empty);
+
+            var sql = "DELETE FROM [dbo].[AccessTokens] WHERE " + expressions;
+
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync(sql,
+                cmd =>
+                {
+                    if (userId != 0)
+                        cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId));
+                    if (contentId != 0)
+                        cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId));
+                    if (!string.IsNullOrEmpty(feature))
+                        cmd.Parameters.Add(ctx.CreateParameter("@Feature", DbType.String, feature));
+                }).ConfigureAwait(false);
+        }
+
+        private static string AddExpressions(string sqlA, string sqlB)
+        {
+            return sqlA + (!string.IsNullOrEmpty(sqlA) && !string.IsNullOrEmpty(sqlB) ? " AND " : string.Empty) + sqlB;
         }
 
         public async Task CleanupAccessTokensAsync(CancellationToken cancellationToken)

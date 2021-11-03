@@ -156,6 +156,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public System.Threading.Tasks.Task DeleteAccessTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
             public System.Threading.Tasks.Task CleanupAccessTokensAsync(CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();

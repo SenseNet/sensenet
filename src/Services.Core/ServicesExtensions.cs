@@ -94,6 +94,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
                 .AddSenseNetDefaultClientManager()
+                .AddSenseNetApiKeys()
                 .AddSenseNetRegistration();
 
             services.AddStatistics();

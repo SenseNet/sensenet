@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SenseNet.Diagnostics;
+using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -22,7 +19,15 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             using (new SystemAccount())
             {
-                return (T)function();
+                return function();
+            }
+        }
+
+        public static async Task<T> ExecuteAsync<T>(Func<Task<T>> function)
+        {
+            using (new SystemAccount())
+            {
+                return await function();
             }
         }
     }

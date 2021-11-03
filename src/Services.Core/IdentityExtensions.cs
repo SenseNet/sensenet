@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Authentication;
@@ -107,14 +108,31 @@ namespace SenseNet.Extensions.DependencyInjection
                         if (!string.IsNullOrEmpty(sub))
                         {
                             // try to recognize sub as a user id or username
-                            user = SystemAccount.Execute(() =>
-                                int.TryParse(sub, out var subId) ? Node.Load<User>(subId) : User.Load(sub));
+                            user = await SystemAccount.ExecuteAsync(async () =>
+                                int.TryParse(sub, out var subId) 
+                                    ? await Node.LoadAsync<User>(subId, context.RequestAborted).ConfigureAwait(false) 
+                                    : User.Load(sub))
+                                .ConfigureAwait(false);
                         }
                     }
 
                     // make sure we do not set the user if it is not enabled
-                    if (user != null && !user.Enabled)
+                    if (user is { Enabled: false })
                         user = null;
+                }
+                
+                if (user == null && context?.Request != null)
+                {
+                    // try api key feature
+                    var apiKey = context.GetApiKey();
+                    if (!string.IsNullOrEmpty(apiKey))
+                    {
+                        var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
+
+                        user = await SystemAccount.ExecuteAsync(async () =>
+                            await akm.GetUserByApiKeyAsync(apiKey, context.RequestAborted).ConfigureAwait(false))
+                            .ConfigureAwait(false);
+                    }
                 }
 
                 User.Current = user ?? User.DefaultUser;
@@ -124,6 +142,27 @@ namespace SenseNet.Extensions.DependencyInjection
             });
 
             return app;
+        }
+
+        private const string ApiKeyName = "apikey";
+
+        private static string GetApiKey(this HttpContext context)
+        {
+            if (context?.Request == null)
+                return null;
+
+            var apiKey = context.Request.Query[ApiKeyName].FirstOrDefault();
+            if (!string.IsNullOrEmpty(apiKey))
+                return apiKey;
+
+            // do not touch the Form property because it may interfere with our parsing algorithm
+            //apiKey = context.Request.Form[ApiKeyName].FirstOrDefault();
+
+            apiKey = context.Request.Headers[ApiKeyName].FirstOrDefault();
+            if (!string.IsNullOrEmpty(apiKey))
+                return apiKey;
+
+            return apiKey;
         }
         
         /// <summary>
