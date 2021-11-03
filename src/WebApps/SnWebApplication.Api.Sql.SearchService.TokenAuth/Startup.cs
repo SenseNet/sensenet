@@ -1,3 +1,4 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -41,6 +42,9 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
 
                     options.Audience = "sensenet";
                 });
+
+            //TODO: temp switch, remove this after upgrading to .net5
+            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
             // [sensenet]: add sensenet services
             services
