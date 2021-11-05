@@ -24,11 +24,15 @@ namespace SenseNet.Services.Core.Diagnostics
         private readonly IStatisticalDataProvider _statDataProvider;
         private readonly IEnumerable<IStatisticalDataAggregator> _aggregators;
         private readonly StatisticsOptions _options;
-        private DateTime _lastGenerationTime;
+        private readonly DateTime[] _lastGenerationTimes = Enumerable.Range(0, Enum.GetNames(typeof(TimeResolution)).Length)
+            .Select(_ => default(DateTime)).ToArray();
+
         private readonly ILogger _logger;
 
         public StatisticalDataAggregationController(IStatisticalDataProvider statDataProvider,
-            IEnumerable<IStatisticalDataAggregator> aggregators, IOptions<StatisticsOptions> options, ILogger<StatisticalDataAggregationController> logger)
+            IEnumerable<IStatisticalDataAggregator> aggregators,
+            IOptions<StatisticsOptions> options,
+            ILogger<StatisticalDataAggregationController> logger)
         {
             _statDataProvider = statDataProvider;
             _aggregators = aggregators;
@@ -46,7 +50,13 @@ namespace SenseNet.Services.Core.Diagnostics
         }
         private async Task AggregateAsync(DateTime start, DateTime end, TimeResolution resolution, bool cleanup, CancellationToken cancel)
         {
-            _logger.LogTrace($"Calling statistical aggregators for start: {start}, end: {end}, resolution: {resolution}");
+            if (start > DateTime.UtcNow)
+            {
+                _logger.LogTrace($"Skipping statistical aggregation for a future date: {start}");
+                return;
+            }
+
+            _logger.LogTrace($"Aggregating statistical data START: {start}, END: {end}, resolution: {resolution}");
 
             foreach (var aggregator in _aggregators)
             {
@@ -54,6 +64,7 @@ namespace SenseNet.Services.Core.Diagnostics
 
                 if (!await TryProcessAggregationsAsync(aggregator, start, end, resolution, cancel))
                 {
+                    //_logger.LogTrace($"Aggregator enumerating data: {aggregator.DataType}");
                     await _statDataProvider.EnumerateDataAsync(aggregator.DataType, start, end, aggregator.Aggregate, cancel);
                 }
 
@@ -67,7 +78,7 @@ namespace SenseNet.Services.Core.Diagnostics
                         Data = Serialize(aggregator.Data)
                     };
 
-                    _logger.LogTrace($"Writing aggregation for {aggregator.DataType}, resolution: {resolution}");
+                    _logger.LogTrace($"Writing statistical aggregation for {aggregator.DataType}, START: {start}, resolution: {resolution}");
 
                     await _statDataProvider.WriteAggregationAsync(result, cancel).ConfigureAwait(false);
                 }
@@ -76,15 +87,21 @@ namespace SenseNet.Services.Core.Diagnostics
                     await CleanupAsync(aggregator, resolution, start, cancel).ConfigureAwait(false);
 
             }
-            _lastGenerationTime = start;
+
+            //_logger.LogTrace($"Aggregation finished, last gen time: {start}");
+
+            _lastGenerationTimes[(int)resolution] = start;
         }
 
         private async Task RepairAsync(DateTime endTime, CancellationToken cancel)
         {
             var length = Enum.GetNames(typeof(TimeResolution)).Length;
-            var lastGenerationTimes = Enumerable.Range(0, length).Select(x => _lastGenerationTime).ToArray();
+            var lastGenerationTimes = (DateTime[])_lastGenerationTimes.Clone();
             if (lastGenerationTimes[(int)TimeResolution.Minute] == DateTime.MinValue)
+            {
                 lastGenerationTimes = await LoadLastGenerationTimes(cancel);
+                _logger.LogTrace($"Statistics aggregation: last generation times loaded: {string.Join(", ", lastGenerationTimes)}");
+            }
 
             // Execute for all resolutions
             for (var resolutionIndex = 0; resolutionIndex < length; resolutionIndex++)
@@ -97,6 +114,9 @@ namespace SenseNet.Services.Core.Diagnostics
                 : lastGenerationTime.Next(resolution);
 
             var next = time.Next(resolution);
+
+            //_logger.LogTrace($"Repairing aggregations. Time: {time}, Next: {next}, resolution {resolution}");
+
             while (time < endTime.Truncate(resolution))
             {
                 await AggregateAsync(time, next, resolution, false, cancel);
@@ -145,6 +165,9 @@ namespace SenseNet.Services.Core.Diagnostics
             if (resolution == TimeResolution.Minute)
             {
                 var recordsRetentionTime = startTime.AddMinutes(-retentionPeriods.Momentary);
+
+                //_logger.LogTrace($"Cleaning up records for {aggregator.DataType}, resolution {resolution}, starttime {startTime}, retention time {recordsRetentionTime}");
+
                 await _statDataProvider.CleanupRecordsAsync(aggregator.DataType, recordsRetentionTime, cancel)
                     .ConfigureAwait(false);
             }
@@ -158,6 +181,8 @@ namespace SenseNet.Services.Core.Diagnostics
                 case TimeResolution.Month: retentionTime = startTime.AddYears(-retentionPeriods.Monthly); break;
                 default: throw new ArgumentOutOfRangeException(nameof(resolution), resolution, null);
             }
+
+            //_logger.LogTrace($"Cleaning up aggregations for {aggregator.DataType}, resolution {resolution}, starttime {startTime}");
 
             await _statDataProvider.CleanupAggregationsAsync(aggregator.DataType, resolution, retentionTime, cancel)
                 .ConfigureAwait(false);
@@ -174,7 +199,7 @@ namespace SenseNet.Services.Core.Diagnostics
         }
 
         private WebTransferAggregation _aggregation = new WebTransferAggregation();
-        private StatisticsOptions _options;
+        private readonly StatisticsOptions _options;
 
         public WebTransferStatisticalDataAggregator(IOptions<StatisticsOptions> options)
         {

@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(logger.LastLevel, LogLevel.Warning);
                 Assert.IsNotNull(logger.LastMessage);
-                Assert.IsTrue(logger.LastMessage.Contains("An error occured during saving DatabaseUsage.cache"));
+                Assert.IsTrue(logger.LastMessage.Contains("An error occurred during saving DatabaseUsage.cache"));
 
             }).ConfigureAwait(false);
         }
@@ -140,7 +140,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(logger.LastLevel, LogLevel.Warning);
                 Assert.IsNotNull(logger.LastMessage);
-                Assert.IsTrue(logger.LastMessage.Contains("An error occured during saving DatabaseUsage.cache"));
+                Assert.IsTrue(logger.LastMessage.Contains("An error occurred during saving DatabaseUsage.cache"));
 
             }).ConfigureAwait(false);
         }

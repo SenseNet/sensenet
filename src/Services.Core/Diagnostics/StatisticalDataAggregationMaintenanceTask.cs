@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.BackgroundOperations;
 using SenseNet.Diagnostics;
 
@@ -15,12 +16,34 @@ namespace SenseNet.Services.Core.Diagnostics
         }
 
         public int WaitingSeconds => 60;
+        private bool _running;
+        private readonly object _runningSync = new();
 
-        public System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancel)
+        public async Task ExecuteAsync(CancellationToken cancel)
         {
-            return ExecuteAsync(DateTime.UtcNow, cancel);
+            // prevent overlapping executions
+            if (_running)
+                return;
+
+            // set the running flag exclusively
+            lock (_runningSync)
+            {
+                if (_running)
+                    return;
+
+                _running = true;
+            }
+
+            try
+            {
+                await ExecuteAsync(DateTime.UtcNow, cancel).ConfigureAwait(false);
+            }
+            finally
+            {
+                _running = false;
+            }
         }
-        private async System.Threading.Tasks.Task ExecuteAsync(DateTime now, CancellationToken cancel)
+        private async Task ExecuteAsync(DateTime now, CancellationToken cancel)
         {
             var aggregationTime = now.Truncate(TimeResolution.Minute).AddSeconds(-1);
             await _aggregationController.AggregateAsync(aggregationTime, TimeResolution.Minute, cancel);

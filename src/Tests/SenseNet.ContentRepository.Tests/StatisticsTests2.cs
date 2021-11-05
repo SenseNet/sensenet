@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -52,6 +53,9 @@ namespace SenseNet.ContentRepository.Tests
 
 
                 // ACTION-1 
+                // request the previous 'full' month to avoid the current date affecting test results
+                //var reqTime = now.AddMonths(-1);
+                //var reqTimeString = HttpUtility.UrlEncode(reqTime.ToString("o"));
                 var response1 = await ODataGetAsync($"/OData.svc/('Root')/GetApiUsagePeriod",
                     "", services).ConfigureAwait(false);
 
