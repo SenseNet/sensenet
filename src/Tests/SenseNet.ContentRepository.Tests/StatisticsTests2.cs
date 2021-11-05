@@ -71,13 +71,13 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
                 var callCounts = ((JArray) result1["CallCount"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, callCounts.Length);
-                AssertSequenceEqual(new[]{ 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 86400), callCounts.Take(5));
                 var requestLengths = ((JArray)result1["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, requestLengths.Length);
-                AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 8640000), requestLengths.Take(5));
                 var responseLengths = ((JArray)result1["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, responseLengths.Length);
-                AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 86400000), responseLengths.Take(5));
 
                 // ACTION-2
                 var startTime2 = now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
@@ -149,28 +149,28 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Day", result1["Resolution"].Value<string>());
                 var callCounts = ((JArray)result1["CallCount"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, callCounts.Length);
-                AssertSequenceEqual(new[] { 0L, 86400, 0, 86400, 0 }, callCounts.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 86400), callCounts.Take(5));
                 var requestLengths = ((JArray)result1["RequestLengths"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, requestLengths.Length);
-                AssertSequenceEqual(new[] { 0L, 8640000, 0, 8640000, 0 }, requestLengths.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 8640000), requestLengths.Take(5));
                 var responseLengths = ((JArray)result1["ResponseLengths"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, responseLengths.Length);
-                AssertSequenceEqual(new[] { 0L, 86400000, 0, 86400000, 0 }, responseLengths.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 86400000), responseLengths.Take(5));
                 var status100 = ((JArray)result1["Status100"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, status100.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status100.Take(5));
                 var status200 = ((JArray)result1["Status200"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, status200.Length);
-                AssertSequenceEqual(new[] { 0L, 69120, 0, 69120, 0 }, status200.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 69120), status200.Take(5));
                 var status300 = ((JArray)result1["Status300"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, status300.Length);
                 AssertSequenceEqual(new[] { 0L, 0, 0, 0, 0 }, status300.Take(5));
                 var status400 = ((JArray)result1["Status400"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, status400.Length);
-                AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status400.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 8640), status400.Take(5));
                 var status500 = ((JArray)result1["Status500"]).Select(x => x.Value<long>()).ToArray();
                 Assert.AreEqual(days1, status500.Length);
-                AssertSequenceEqual(new[] { 0L, 8640, 0, 8640, 0 }, status500.Take(5));
+                AssertSequenceEqual(GetExpectedAggregations(now, 8640), status500.Take(5));
 
 
                 // ACTION-2
@@ -342,6 +342,16 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT-2 Current aggregation is created.
             aggregationCountAfter = statDataProvider.Aggregations.Count;
             Assert.AreEqual(aggregationCountBefore + 9, aggregationCountAfter);
+        }
+
+        private static long[] GetExpectedAggregations(DateTime now, long value)
+        {
+            return now.Day switch
+            {
+                < 3 => new[] { 0L, 0, 0, 0, 0 },
+                < 5 => new[] { 0L, value, 0, 0, 0 },
+                _ => new[] { 0L, value, 0, value, 0 }
+            };
         }
     }
 }
