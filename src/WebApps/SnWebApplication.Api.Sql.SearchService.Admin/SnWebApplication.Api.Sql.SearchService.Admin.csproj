@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.5" />
     <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="0.0.6" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.2" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.3" />
     <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.2.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.2.2" />
