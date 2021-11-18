@@ -25,6 +25,10 @@ using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.Storage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace SenseNet.ContentRepository
 {
@@ -174,6 +178,37 @@ namespace SenseNet.ContentRepository
             public static void RefreshIndexSubtree(Content content)
             {
                 content.RebuildIndex(true, IndexRebuildLevel.IndexOnly);
+            }
+            /// <summary>
+            /// Refreshes all index documents in the index using the already existing 
+            /// index data stored in the database. It also cleans up remaining
+            /// indexing activities from the database.
+            /// As this action creates a completely new index, must be used cautiously
+            /// and only by administrators.
+            /// </summary>
+            /// <snCategory>Indexing</snCategory>
+            /// <param name="content">The content provided by the infrastructure.</param>
+            [ODataAction]
+            [ContentTypes(N.CT.PortalRoot)]
+            [AllowedRoles(N.R.Administrators, N.R.Developers)]
+            public static async System.Threading.Tasks.Task RefreshIndexAndCleanActivities(Content content, HttpContext context)
+            {
+                var logger = context.RequestServices.GetService<ILogger<Content>>();
+                var exclusiveLockOptions = context.RequestServices?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
+
+                var populator = SearchManager.GetIndexPopulator();
+                populator.IndexingError += (sender, e) => 
+                {
+                    SnTrace.Index.WriteError($"Error when indexing {e.Path}: {e.Exception?.Message}");
+                };
+
+                logger.LogInformation($"Populating new index of the whole Content Repository through REST API");
+
+                await ExclusiveBlock.RunAsync("SenseNet.RefreshIndex", Guid.NewGuid().ToString(),
+                    ExclusiveBlockType.WaitForReleased, exclusiveLockOptions, CancellationToken.None, async () =>
+                {
+                    await populator.ClearAndPopulateAllAsync(CancellationToken.None, null).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
 
@@ -473,7 +508,7 @@ namespace SenseNet.ContentRepository
 
                             SnLog.WriteWarning(
                                 $"Field reset executed on content {this.Path} because field {fieldName} was not found on the content.",
-                                EventId.RepositoryRuntime,
+                                SenseNet.Diagnostics.EventId.RepositoryRuntime,
                                 properties: new Dictionary<string, object> 
                                 { 
                                     { "DynamicFieldsBefore", string.Join(", ", dynamicFieldsBeforeReload) },
@@ -2015,7 +2050,7 @@ namespace SenseNet.ContentRepository
             }
             catch (InvalidContentActionException ex)
             {
-                SnLog.WriteWarning(ex.Message, EventId.Indexing, properties: new Dictionary<string, object>
+                SnLog.WriteWarning(ex.Message, SenseNet.Diagnostics.EventId.Indexing, properties: new Dictionary<string, object>
                 {
                     { "Id", this.Id },
                     { "Path", this.Path },
