@@ -844,6 +844,9 @@ namespace SenseNet.ContentRepository.Schema
 
         private void FinalizeIndexingInfo()
         {
+            if (!SearchManager.SearchEngine.IndexingEngine.Running)
+                return;
+
             SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
         }
 

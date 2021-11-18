@@ -80,6 +80,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         internal static void ShutDown()
         {
             SnTrace.IndexQueue.Write("Shutting down CentralizedIndexingActivityQueue.");
+
+            if (_timer == null)
+                return;
+
             _timer.Enabled = false;
             _timer.Dispose();
         }

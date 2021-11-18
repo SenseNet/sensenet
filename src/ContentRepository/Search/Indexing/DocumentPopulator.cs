@@ -40,6 +40,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
+                var stopIndexing = false;
+
+                // We must not assume that the indexing engine works correctly without running.
+                // Local engines may work, but centralized engines do not. This is why we have to
+                // start it if it is not running already. In that case we have to stop it
+                // after the operation.
+                if (!IndexManager.Running)
+                {
+                    await IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
+                    stopIndexing = true;
+                }
                 // recreate
                 consoleWriter?.Write("  Cleanup index ... ");
                 await IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -55,6 +66,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 consoleWriter?.Write("  Deleting indexing activities ... ");
                 await IndexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
+
+                if (stopIndexing)
+                    IndexManager.ShutDown();
+
                 op.Successful = true;
             }
         }

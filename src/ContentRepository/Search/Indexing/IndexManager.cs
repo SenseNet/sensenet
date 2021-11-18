@@ -67,9 +67,53 @@ namespace SenseNet.ContentRepository.Search.Indexing
             CommitManager.Start();
 
             if (IndexingEngine.IndexIsCentralized)
+            {
+                RestoreIndexIfNeeded();
                 CentralizedIndexingActivityQueue.Startup(consoleOut);
+            }
             else
+            {
                 DistributedIndexingActivityQueue.Startup(consoleOut);
+            }
+        }
+
+        /// <summary>
+        /// Restores already executed indexing actity states to Waiting. The goal is to
+        /// mark old activities that cannot be found in the index to be executed again.
+        /// This should happen after a db and index restore, when the index is older than
+        /// the database. This method assumes that the latest activity id is written to the index.
+        /// </summary>
+        private static void RestoreIndexIfNeeded()
+        {
+            //TODO: review this method, because currently we do not write status to the service index. That means
+            // the last activity id will always be 0 in case of a centralized index and this method will never
+            // restore the status of indexing activities. This is a problem in case we restore an older index:
+            // newer activities will never be executed.
+            SnTrace.Index.Write("Reading IndexingActivityStatus from index:");
+
+            try
+            {
+                var status = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
+                            .GetAwaiter().GetResult();
+                SnTrace.Index.Write($"  Status: {status}");
+
+                if (status.LastActivityId > 0)
+                {
+                    SnTrace.Index.Write("  Restore indexing activities: ");
+                    var result = IndexManager.RestoreIndexingActivityStatusAsync(status, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    SnTrace.Index.Write($"  Restore result: {result}.");
+                }
+                else
+                {
+                    SnTrace.Index.Write("  Restore is not necessary.");
+                }
+            }
+            catch (Exception ex)
+            {
+                SnTrace.Index.Write($"WARNING: error when reading indexing activity status " +
+                                 $"from the centralized index or when restoring activity status: {ex.Message}");
+            }
         }
 
         /// <summary>

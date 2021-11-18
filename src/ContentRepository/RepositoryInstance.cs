@@ -167,8 +167,6 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public void StartIndexingEngine()
         {
-            RestoreIndexIfNeeded();
-
             if (IndexingEngineIsRunning)
             {
                 ConsoleWrite("IndexingEngine has already started.");
@@ -177,30 +175,6 @@ namespace SenseNet.ContentRepository
             ConsoleWriteLine("Starting IndexingEngine:");
             IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             ConsoleWriteLine("IndexingEngine has started.");
-        }
-
-        private void RestoreIndexIfNeeded()
-        {
-            if (IndexManager.IndexingEngine.IndexIsCentralized)
-            {
-                ConsoleWriteLine("Reading IndexingActivityStatus from index:");
-
-                var status = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
-                    .GetAwaiter().GetResult();
-                ConsoleWriteLine($"  Status: {status}");
-
-                if (status.LastActivityId > 0)
-                {
-                    ConsoleWriteLine("  Restore indexing activities: ");
-                    var result = IndexManager.RestoreIndexingActivityStatusAsync(status, CancellationToken.None)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                    ConsoleWriteLine($"  {result}.");
-                }
-                else
-                {
-                    ConsoleWriteLine("  Restore is not necessary.");
-                }
-            }
         }
 
         private bool _workflowEngineIsRunning;
