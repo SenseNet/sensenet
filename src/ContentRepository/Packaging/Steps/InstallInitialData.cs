@@ -1,4 +1,6 @@
 ﻿using System.Threading;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
@@ -32,13 +34,16 @@ namespace SenseNet.Packaging.Steps
             var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo);
 
             var initialData = InitialData.Load(new SenseNetServicesInitialData(), null);
+            var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());
+            var connOptions = Options.Create(new ConnectionStringOptions
+            {
+                ConnectionString = connectionString
+            });
+            
+            var installer = new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>());
+            var dataProvider = new MsSqlDataProvider(dataOptions, connOptions, installer);            
 
-            MsSqlDataInstaller.InstallInitialDataAsync(initialData, 
-                new MsSqlDataProvider(Options.Create<ConnectionStringOptions>(new ConnectionStringOptions
-                {
-                    ConnectionString = connectionString
-                })), connectionString,
-                CancellationToken.None).GetAwaiter().GetResult();
+            installer.InstallInitialDataAsync(initialData, dataProvider, CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }
