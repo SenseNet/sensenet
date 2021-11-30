@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -38,6 +38,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         //public DataProvider DataProvider => Providers.Instance.DataProvider;
         public DataProvider DataProvider { get; }
+        private readonly ILogger _logger;
 
         public int PathMaxLength => DataProvider.PathMaxLength;
         public DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;
@@ -45,9 +46,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public decimal DecimalMinValue => DataProvider.DecimalMinValue;
         public decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
-        public DataStore(DataProvider dataProvider)
+        public DataStore(DataProvider dataProvider, ILogger<DataStore> logger)
         {
             DataProvider = dataProvider;
+            _logger = logger;
         }
 
         [Obsolete("Use DataProvider.GetExtension method.", true)]
@@ -70,6 +72,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
+            _logger.LogTrace($"Installing initial data.");
+
             return DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
 
@@ -85,6 +89,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task InstallDatabaseAsync(InitialData initialData, CancellationToken cancellationToken)
         {
+            _logger.LogTrace($"Installing database schema.");
+
             await DataProvider.InstallDatabaseAsync(cancellationToken).ConfigureAwait(false);
             await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null),
                 cancellationToken).ConfigureAwait(false);

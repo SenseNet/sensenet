@@ -51,7 +51,8 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         public static IServiceCollection AddSenseNetMsSqlDataProvider(this IServiceCollection services)
         {
-            return services.AddSenseNetDataProvider<MsSqlDataProvider>();
+            return services.AddSenseNetDataProvider<MsSqlDataProvider>()
+                .AddSenseNetDataInstaller<MsSqlDataInstaller>();
         }
 
         /// <summary>
@@ -81,6 +82,14 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetMsSqlStatisticalDataProvider(this IServiceCollection services)
         {
             return services.AddStatisticalDataProvider<MsSqlStatisticalDataProvider>();
+        }
+
+        /// <summary>
+        /// Adds a data installer to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDataInstaller<T>(this IServiceCollection services) where T : class, IDataInstaller
+        {
+            return services.AddSingleton<IDataInstaller, T>();
         }
     }
 }

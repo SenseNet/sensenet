@@ -19,15 +19,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
-        //TODO: [DIREF] get options from DI through constructor
-        private DataOptions DataOptions { get; } = DataOptions.GetLegacyConfiguration();
+        private DataOptions DataOptions { get; }
         private ConnectionStringOptions ConnectionStrings { get; }
+        private IDataInstaller DataInstaller { get; }
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
-        public MsSqlDataProvider(IOptions<ConnectionStringOptions> connectionOptions)
+        public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
+            IDataInstaller dataInstaller)
         {
-            ConnectionStrings = connectionOptions?.Value ?? ConnectionStringOptions.GetLegacyConnectionStrings();
+            DataInstaller = dataInstaller ?? throw new ArgumentNullException(nameof(dataInstaller));
+            DataOptions = dataOptions.Value;
+            ConnectionStrings = connectionOptions.Value;
         }
 
         public override SnDataContext CreateDataContext(CancellationToken token)
@@ -297,7 +300,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
-            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
+            await DataInstaller.InstallInitialDataAsync(data, this, cancellationToken).ConfigureAwait(false);
         }
         
         public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)

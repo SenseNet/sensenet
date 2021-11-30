@@ -13,18 +13,19 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -141,19 +142,20 @@ namespace SenseNet.Configuration
                 DataProvider = provider?.GetRequiredService<DataProvider>();
 
             if (DataStore == null)
-                InitializeDataStore();
+                InitializeDataStore(provider);
         }
 
         /// <summary>
         /// Internal method for initializing the data store instance.
         /// DO NOT USE THIS METHOD IN YOUR CODE
         /// </summary>
-        public void InitializeDataStore()
+        public void InitializeDataStore(IServiceProvider provider = null)
         {
             // This method is a temporary solution for initializing the datastore instance
             // without starting the whole repository.
 
-            DataStore = new DataStore(DataProvider);
+            var logger = provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>();
+            DataStore = new DataStore(DataProvider, logger);
         }
 
         #endregion
