@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
@@ -45,7 +46,9 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider()
         {
-            return new MsSqlDataProvider(Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
+            var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
+            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions, 
+                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()));
         }
         public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
         {

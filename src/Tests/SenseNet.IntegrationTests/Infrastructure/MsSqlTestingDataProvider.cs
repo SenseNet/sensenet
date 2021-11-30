@@ -5,6 +5,8 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
@@ -543,10 +545,14 @@ DELETE FROM StatisticalAggregations
         private class MsSqlCannotCommitDataProvider : MsSqlDataProvider
         {
             private readonly string _connectionString;
-            public MsSqlCannotCommitDataProvider(string connectionString) : base(Options.Create(new ConnectionStringOptions
+            public MsSqlCannotCommitDataProvider(string connectionString) : base(Options.Create(DataOptions.GetLegacyConfiguration()),
+                Options.Create(new ConnectionStringOptions
             {
                 ConnectionString = connectionString
-            }))
+            }), new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
+            {
+                ConnectionString = connectionString
+            }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()))
             {
                 _connectionString = connectionString;
             }
