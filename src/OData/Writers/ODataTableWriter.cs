@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -325,16 +326,16 @@ namespace SenseNet.OData.Writers
             if (value == null)
                 return "[null]";
 
-            var deferred = value as ODataReference;
-            if (deferred != null)
+            if (value is ODataReference deferred)
                 return String.Format("<a href=\"{0}?$format=table\" title=\"{0}\">deferred<a>", deferred.Reference.Uri);
 
-            var stringValue = value as string;
-            if (stringValue != null)
+            if (value is string stringValue)
                 return stringValue;
 
-            var enumerable = value as System.Collections.IEnumerable;
-            if (enumerable != null)
+            if (value is DateTime dateTime)
+                return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+            if (value is IEnumerable enumerable)
                 return String.Join(", ", enumerable.Cast<object>());
 
             return value.ToString();
