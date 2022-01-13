@@ -137,6 +137,7 @@ namespace SenseNet.OData.Writers
             {
                 WriteStart(writer);
 
+                writer.Write("      <tr>");
                 foreach (var colName in colNames)
                     if (colName != "__metadata")
                         writer.Write("<td>" + colName + "</td>");
