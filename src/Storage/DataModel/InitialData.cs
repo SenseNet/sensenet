@@ -195,7 +195,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         private static string ValueToString(KeyValuePair<PropertyType, List<int>> item)
         {
             // Reference property transformation (id array)
-            return "[" + string.Join(",", ((IEnumerable<int>)item.Value).Select(x => x.ToString())) + "]";
+            return "[" + string.Join(",", item.Value.Select(x => x.ToString())) + "]";
         }
         private static string ValueToString(KeyValuePair<PropertyType, object> item)
         {
@@ -479,7 +479,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
         public byte[] GetBlobBytes(string repositoryPath, string propertyTypeName = null)
         {
-            string fileContent = null;
+            string fileContent;
             if (repositoryPath.StartsWith("/Root/System/Schema/ContentTypes/", StringComparison.OrdinalIgnoreCase))
             {
                 var ctdName = RepositoryPath.GetFileName(repositoryPath);
@@ -487,21 +487,19 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             }
             else
             {
-                var key = $"{propertyTypeName}:{repositoryPath}";
+                var key = $"{propertyTypeName ?? "Binary"}:{repositoryPath}";
                 Blobs.TryGetValue(key, out fileContent);
             }
             if (fileContent == null)
-                return new byte[0];
+                return Array.Empty<byte>();
 
-            if (fileContent.StartsWith("[bytes]:\r\n"))
+            if(GetAndRemoveHeader(ref fileContent) == "[bytes]")
             {
                 // bytes
-                return ParseHexDump(fileContent.Substring(10));
+                return ParseHexDump(fileContent);
             }
 
             // text
-            if (fileContent.StartsWith("[text]:\r\n"))
-                fileContent = fileContent.Substring(9);
             var byteCount = Encoding.UTF8.GetByteCount(fileContent);
             var bom = Encoding.UTF8.GetPreamble();
             var bytes = new byte[bom.Length + byteCount];
@@ -510,6 +508,50 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             Encoding.UTF8.GetBytes(fileContent, 0, fileContent.Length, bytes, bom.Length);
 
             return bytes;
+        }
+
+        private string GetAndRemoveHeader(ref string fileContent)
+        {
+            RemoveBom(ref  fileContent);
+
+            string header = null;
+            var length = 0;
+            if (fileContent.StartsWith("[bytes]:\r\n"))
+                length = 10;
+            else if (fileContent.StartsWith("[bytes]:\r"))
+                length = 9;
+            else if (fileContent.StartsWith("[bytes]:\n"))
+                length = 9;
+            if (length > 0)
+            {
+                header = "[bytes]";
+            }
+            else
+            {
+                length = 0;
+                if (fileContent.StartsWith("[text]:\r\n"))
+                    length = 9;
+                else if (fileContent.StartsWith("[text]:\r"))
+                    length = 8;
+                else if (fileContent.StartsWith("[text]:\n"))
+                    length = 8;
+                if (length > 0)
+                    header = "[text]";
+            }
+
+            fileContent = fileContent.Remove(0, length);
+            return header;
+        }
+
+        private readonly char[] _bomChars = Encoding.UTF8.GetPreamble().Select(x => (char) x).ToArray();
+        private void RemoveBom(ref string fileContent)
+        {
+            if (fileContent.Length < _bomChars.Length)
+                return;
+            for(var i=0;i<_bomChars.Length;i++)
+                if (fileContent[i] != _bomChars[i])
+                    return;
+            fileContent = fileContent.Substring(_bomChars.Length);
         }
 
         public static string GetHexDump(Stream stream)
@@ -558,7 +600,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
             return sb.ToString();
         }
-
         public static byte[] ParseHexDump(string src)
         {
             var lines = src.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);

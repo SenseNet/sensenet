@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -244,5 +246,170 @@ namespace SenseNet.Tests.Core.Tests
             }
         }
 
+        /* ==================================================================================== */
+
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_Null()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData {Blobs = new Dictionary<string, string>()};
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            Assert.AreEqual(0, bytes.Length);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_HexDump_WithoutHeader()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var buffer = new byte[] { 0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+            var stream = new MemoryStream(buffer);
+            var dump = InitialData.GetHexDump(stream);
+            data.Blobs.Add($"{propertyName}:{path}", dump);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            // Without header the hex-dump need to be parsed as text instead of bytes
+            Assert.IsNotNull(bytes);
+            var expected = InitialData.GetHexDump(buffer);
+            var actual = RepositoryTools.GetStreamString(new MemoryStream(bytes));
+            Assert.AreEqual(expected, actual);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_HexDump_WithHeader()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var buffer = new byte[] { 0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+            var stream = new MemoryStream(buffer);
+            var dump = "[bytes]:\r\n" + InitialData.GetHexDump(stream);
+            data.Blobs.Add($"{propertyName}:{path}", dump);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            AssertSequenceEqual(buffer, bytes);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_HexDump_WithHeaderAndBom()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var buffer = new byte[] { 0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+            var stream = new MemoryStream(buffer);
+            var dump = GetBomAsString() + "[bytes]:\r\n" + InitialData.GetHexDump(stream);
+            data.Blobs.Add($"{propertyName}:{path}", dump);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            AssertSequenceEqual(buffer, bytes);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_HexDump_WithHeaderAndNewline()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var buffer = new byte[] { 0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+            var stream = new MemoryStream(buffer);
+            var dump = "[bytes]:\n" + InitialData.GetHexDump(stream);
+            data.Blobs.Add($"{propertyName}:{path}", dump);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            AssertSequenceEqual(buffer, bytes);
+        }
+
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_Text_WithoutHeader()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var text = "text content";
+            data.Blobs.Add($"{propertyName}:{path}", text);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            var expected = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            AssertSequenceEqual(expected, bytes);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_Text_WithHeader()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var text = "text content";
+            data.Blobs.Add($"{propertyName}:{path}", "[text]:\r\n" + text);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            var expected = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            AssertSequenceEqual(expected, bytes);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_Text_WithHeaderAndBom()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var text = "text content";
+            data.Blobs.Add($"{propertyName}:{path}", GetBomAsString() + "[text]:\r\n" + text);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            var expected = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            AssertSequenceEqual(expected, bytes);
+        }
+        [TestMethod]
+        public void InitialData_Core_GetBlobBytes_Text_WithHeaderAndNewline()
+        {
+            var path = "/Root/Anything";
+            var propertyName = "Binary";
+            var data = new InitialData { Blobs = new Dictionary<string, string>() };
+            var text = "text content";
+            data.Blobs.Add($"{propertyName}:{path}", "[text]:\n"+text);
+
+            // ACTION
+            var bytes = data.GetBlobBytes(path, propertyName);
+
+            // ASSERT
+            Assert.IsNotNull(bytes);
+            var expected = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            AssertSequenceEqual(expected, bytes);
+        }
+
+        private string GetBomAsString()
+        {
+            return new string(Encoding.UTF8.GetPreamble().Select(x=>(char)x).ToArray());
+        }
     }
 }
