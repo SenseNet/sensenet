@@ -1061,7 +1061,7 @@ namespace SenseNet.ContentRepository
                 {
                     // there were only permission and cors changes that can be made manually if necessary
                 });
-            builder.Patch("7.7.24", "7.7.24.1", "2021-10-28", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.24", "7.7.25", "2022-01-18", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region Permission changes
