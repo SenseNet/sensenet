@@ -38,40 +38,40 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // caller: IndexPopulator.Populator, Import.Importer, Tests
         public async STT.Task ClearAndPopulateAllAsync(CancellationToken cancellationToken, TextWriter consoleWriter = null)
         {
-            using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
+            using var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll");
+            using var sa = new SystemAccount();
+
+            var stopIndexing = false;
+
+            // We must not assume that the indexing engine works correctly without running.
+            // Local engines may work, but centralized engines do not. This is why we have to
+            // start it if it is not running already. In that case we have to stop it
+            // after the operation.
+            if (!IndexManager.Running)
             {
-                var stopIndexing = false;
-
-                // We must not assume that the indexing engine works correctly without running.
-                // Local engines may work, but centralized engines do not. This is why we have to
-                // start it if it is not running already. In that case we have to stop it
-                // after the operation.
-                if (!IndexManager.Running)
-                {
-                    await IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
-                    stopIndexing = true;
-                }
-                // recreate
-                consoleWriter?.Write("  Cleanup index ... ");
-                await IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
-                consoleWriter?.WriteLine("ok");
-
-                await IndexManager.AddDocumentsAsync(LoadIndexDocumentsByPath("/Root"), cancellationToken).ConfigureAwait(false);
-
-                // delete progress characters
-                consoleWriter?.Write("                                             \n");
-                consoleWriter?.Write("  Commiting ... ");
-                await IndexManager.CommitAsync(cancellationToken).ConfigureAwait(false); // explicit commit
-                consoleWriter?.WriteLine("ok");
-
-                consoleWriter?.Write("  Deleting indexing activities ... ");
-                await IndexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
-
-                if (stopIndexing)
-                    IndexManager.ShutDown();
-
-                op.Successful = true;
+                await IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
+                stopIndexing = true;
             }
+            // recreate
+            consoleWriter?.Write("  Cleanup index ... ");
+            await IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
+            consoleWriter?.WriteLine("ok");
+
+            await IndexManager.AddDocumentsAsync(LoadIndexDocumentsByPath("/Root"), cancellationToken).ConfigureAwait(false);
+
+            // delete progress characters
+            consoleWriter?.Write("                                             \n");
+            consoleWriter?.Write("  Commiting ... ");
+            await IndexManager.CommitAsync(cancellationToken).ConfigureAwait(false); // explicit commit
+            consoleWriter?.WriteLine("ok");
+
+            consoleWriter?.Write("  Deleting indexing activities ... ");
+            await IndexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
+
+            if (stopIndexing)
+                IndexManager.ShutDown();
+
+            op.Successful = true;
         }
 
         // caller: IndexPopulator.Populator
