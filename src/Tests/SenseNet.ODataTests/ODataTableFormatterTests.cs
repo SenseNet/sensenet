@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -69,6 +73,63 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task OD_GET_Entity_Table_DateTimes()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root('IMS')", "?metadata=no&$select=CreationDate&$format=table")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var src = response.Result.Substring(response.Result.IndexOf("<html>", StringComparison.OrdinalIgnoreCase));
+                var xml = new XmlDocument();
+                xml.LoadXml(src);
+
+                var values = new List<string>();
+                // ReSharper disable once PossibleNullReferenceException
+                foreach (XmlElement element in xml.SelectNodes("//tr/td[2]"))
+                    values.Add(element.InnerText);
+
+                var dateTime = DateTime.Parse(values[1]);
+                var expected = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+                Assert.AreEqual(expected, values[1]);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_GET_ChildrenCollection_Table_DateTimes()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal", "?metadata=no&$select=CreationDate&$format=table")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var src = response.Result.Substring(response.Result.IndexOf("<html>", StringComparison.OrdinalIgnoreCase));
+                var xml = new XmlDocument();
+                xml.LoadXml(src);
+
+                var values = new List<string>();
+                // ReSharper disable once PossibleNullReferenceException
+                foreach (XmlElement element in xml.SelectNodes("//tr/td[2]"))
+                    values.Add(element.InnerText);
+
+                var dateTime = DateTime.Parse(values[1]);
+                var expected = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+                Assert.AreEqual(expected, values[1]);
+
+            }).ConfigureAwait(false);
+        }
+
+
         [TestMethod]
         public async Task OD_OP_InvokeAction_Errors()
         {
