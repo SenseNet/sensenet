@@ -224,6 +224,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                           IsDbOwner2("Customer1", "Database1"));
         }
 
+        //TODO: (edge case) public void MsSqlDbInstaller_CleanInstall_SqlCreatorForIntegratedCustomer
+
         [TestMethod]
         public void MsSqlDbInstaller_PartialInstall_ExistingCustomer()
         {
