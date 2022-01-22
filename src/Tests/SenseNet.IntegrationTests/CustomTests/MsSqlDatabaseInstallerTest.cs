@@ -131,7 +131,9 @@ namespace SenseNet.IntegrationTests.CustomTests
                           IsDbOwner2("Creator1", "Database1"));
             Assert.IsTrue(IsDbOwner("Customer1", "Database1") ||
                           IsDbOwner2("Customer1", "Database1"));
-            var status = GetInstallationStatus(parameters); //UNDONE: partially processed
+            var status = GetInstallationStatus(parameters);
+            AssertInstallationStatus(true, "Creator1", false, true, true, true,
+                status);
         }
 
         [TestMethod]
@@ -162,6 +164,9 @@ namespace SenseNet.IntegrationTests.CustomTests
                           IsDbOwner2("Creator1", "Database1"));
             Assert.IsFalse(IsDbOwner("Customer1", "Database1") ||
                            IsDbOwner2("Customer1", "Database1"));
+            var status = GetInstallationStatus(parameters);
+            AssertInstallationStatus(true, "Creator1", true, false, true, true,
+                status);
         }
 
         [TestMethod]
@@ -192,6 +197,10 @@ namespace SenseNet.IntegrationTests.CustomTests
                            IsDbOwner2("Creator1", "Database1"));
             Assert.IsFalse(IsDbOwner("Customer1", "Database1") ||
                            IsDbOwner2("Customer1", "Database1"));
+            var status = GetInstallationStatus(parameters);
+            var integratedUser = $"{Environment.UserDomainName}\\{Environment.UserName}";
+            AssertInstallationStatus(true, integratedUser, true, false, null, null,
+                status);
         }
 
         [TestMethod]
@@ -222,9 +231,11 @@ namespace SenseNet.IntegrationTests.CustomTests
                            IsDbOwner2("Creator1", "Database1"));
             Assert.IsTrue(IsDbOwner("Customer1", "Database1") ||
                           IsDbOwner2("Customer1", "Database1"));
+            var status = GetInstallationStatus(parameters);
+            var integratedUser = $"{Environment.UserDomainName}\\{Environment.UserName}";
+            AssertInstallationStatus(true, integratedUser, false, true, null, true,
+                status);
         }
-
-        //TODO: (edge case) public void MsSqlDbInstaller_CleanInstall_SqlCreatorForIntegratedCustomer
 
         [TestMethod]
         public void MsSqlDbInstaller_PartialInstall_ExistingCustomer()
@@ -697,10 +708,12 @@ WHERE members.name = '{userName}' AND roles.name = 'db_owner'";
 
         private MsSqlDbInstallationStatus GetInstallationStatus(MsSqlDatabaseInstallationParameters parameters)
         {
+            var dbCreatorUserName = parameters.DbCreatorUserName == null ? "null" : $"'{parameters.DbCreatorUserName}'";
+            var dbOwnerUserName = parameters.DbOwnerUserName == null ? "null" : $"'{parameters.DbOwnerUserName}'";
             var sql = @$"declare @database nvarchar(450) set @database = '{parameters.ExpectedDatabaseName}'
-declare @creatorLogin nvarchar(450) set @creatorLogin = '{parameters.DbCreatorUserName}' -- should be null if the creator is an integrated user
-declare @customerLogin nvarchar(450) set @customerLogin = '{parameters.DbOwnerUserName}' -- should be null if the customer is an integrated user
-declare @integratedUser nvarchar(450) set @integratedUser = '{Environment.UserDomainName}\\{Environment.UserName}' -- should given if the @customerLogin is null
+declare @creatorLogin nvarchar(450) set @creatorLogin = {dbCreatorUserName} -- should be null if the creator is an integrated user
+declare @customerLogin nvarchar(450) set @customerLogin = {dbOwnerUserName} -- should be null if the customer is an integrated user
+declare @integratedUser nvarchar(450) set @integratedUser = '{Environment.UserDomainName}\{Environment.UserName}' -- should given if the @customerLogin is null
 
 DECLARE @databaseExists bit SET @databaseExists = 0
 DECLARE @dbOwnerOk bit SET @dbOwnerOk = 0
@@ -747,7 +760,7 @@ SELECT @databaseExists databaseExists
 	, CAST(1 - @customerLoginDisabled AS bit) customerLoginEnabled
 ";
             var result = new MsSqlDbInstallationStatus();
-            ExecuteSqlQuery(sql, SystemConnectionString, reader =>
+            ExecuteSqlQuery(sql, GetConnectionStringFor(parameters.ExpectedDatabaseName), reader =>
             {
                 result.IsDatabaseExist = reader.GetSafeBooleanFromBoolean("databaseExists");
                 result.DbOwner = reader.GetSafeString("dbOwner");
@@ -760,6 +773,34 @@ SELECT @databaseExists databaseExists
                 return false;
             });
             return result;
+        }
+        private void AssertInstallationStatus(bool dbExist, string dbOwner, bool dbOwnerOk, bool dbOwnerRoleOk,
+            bool? creatorEnabled, bool? customerEnabled, MsSqlDbInstallationStatus status)
+        {
+            Assert.AreEqual(dbExist, status.IsDatabaseExist, $"IsDatabaseExist is {status.IsDatabaseExist}, expected: {dbExist}.");
+            Assert.AreEqual(dbOwner, status.DbOwner, $"DbOwner is {status.DbOwner}, expected: {dbOwner}.");
+            Assert.AreEqual(dbOwnerOk, status.DbOwnerOk, $"DbOwnerOk is {status.DbOwnerOk}, expected: {dbOwnerOk}.");
+            Assert.AreEqual(dbOwnerRoleOk, status.DbOwnerRoleOk, $"DbOwnerRoleOk is {status.DbOwnerRoleOk}, expected: {dbOwnerRoleOk}.");
+            if (creatorEnabled == null)
+            {
+                Assert.AreEqual(false, status.CreatorLoginExists, $"CreatorLoginExists is {status.CreatorLoginExists}, expected: {false}.");
+                Assert.AreEqual(false, status.CreatorLoginEnabled, $"CreatorLoginEnabled is {status.CreatorLoginEnabled}, expected: {false}.");
+            }
+            else
+            {
+                Assert.AreEqual(true, status.CreatorLoginExists, $"CreatorLoginExists is {status.CreatorLoginExists}, expected: {true}.");
+                Assert.AreEqual(creatorEnabled.Value, status.CreatorLoginEnabled, $"CreatorLoginEnabled is {status.CreatorLoginEnabled}, expected: {creatorEnabled.Value}.");
+            }
+            if (customerEnabled == null)
+            {
+                Assert.AreEqual(false, status.CustomerLoginExists, $"CustomerLoginExists is {status.CustomerLoginExists}, expected: {false}.");
+                Assert.AreEqual(false, status.CustomerLoginEnabled, $"CustomerLoginEnabled is {status.CustomerLoginEnabled}, expected: {false}.");
+            }
+            else
+            {
+                Assert.AreEqual(true, status.CustomerLoginExists, $"CustomerLoginExists is {status.CustomerLoginExists}, expected: {true}.");
+                Assert.AreEqual(customerEnabled.Value, status.CustomerLoginEnabled, $"CustomerLoginEnabled is {status.CustomerLoginEnabled}, expected: {customerEnabled.Value}.");
+            }
         }
 
         private static void ExecuteCommand(string connectionString, string sql)
