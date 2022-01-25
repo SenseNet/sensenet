@@ -9,14 +9,14 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class TreeLock : IDisposable
     {
-        private static IDataStore DataStore => Providers.Instance.DataStore;
-
         private readonly SnTrace.Operation _logOp;
+        private readonly IDataStore _dataStore;
         private readonly int[] _lockIds;
 
-        internal TreeLock(SnTrace.Operation logOp, params int[] lockIds)
+        internal TreeLock(SnTrace.Operation logOp, IDataStore dataStore, params int[] lockIds)
         {
             this._logOp = logOp;
+            _dataStore = dataStore;
             _lockIds = lockIds;
         }
 
@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             //TODO: find a better design instead of calling an asynchronous method
             // synchronously inside a Dispose method.
-            DataStore.ReleaseTreeLockAsync(_lockIds, CancellationToken.None).GetAwaiter().GetResult();
+            _dataStore.ReleaseTreeLockAsync(_lockIds, CancellationToken.None).GetAwaiter().GetResult();
             if (_logOp != null)
             {
                 _logOp.Successful = true;

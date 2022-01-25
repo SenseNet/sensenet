@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage
             }
 
             var logOp = SnTrace.ContentOperation.StartOperation("TreeLock: {0} for {1}", lockIds, paths);
-            return new TreeLock(logOp, lockIds);
+            return new TreeLock(logOp, _dataStore, lockIds);
         }
         public async Task AssertFreeAsync(CancellationToken cancellationToken, params string[] paths)
         {
