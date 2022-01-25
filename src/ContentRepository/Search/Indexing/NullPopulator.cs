@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     if (recursive)
                     {
-                        using (await TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
+                        using (await Providers.Instance.TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
                                 await Providers.Instance.DataStore
@@ -88,7 +88,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
                     else
                     {
-                        await TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
+                        await Providers.Instance.TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
                         await Providers.Instance.DataStore
                             .SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                             .ConfigureAwait(false);

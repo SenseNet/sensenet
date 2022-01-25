@@ -260,7 +260,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private async STT.Task RebuildIndex_NoRecursiveAsync(Node node, bool databaseAndIndex, CancellationToken cancellationToken)
         {
-            await TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
+            await Providers.Instance.TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
 
             var head = NodeHead.Get(node.Id);
             if (databaseAndIndex)
@@ -284,7 +284,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private async STT.Task RebuildIndex_RecursiveAsync(Node node, bool databaseAndIndex, CancellationToken cancellationToken)
         {
-            using (await TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
+            using (await Providers.Instance.TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
             {
                 await DeleteTreeAsync(node.Path, node.Id, cancellationToken).ConfigureAwait(false);
 

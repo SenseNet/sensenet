@@ -3100,9 +3100,9 @@ namespace SenseNet.ContentRepository.Storage
                     // save
                     TreeLock treeLock = null;
                     if (renamed)
-                        treeLock = TreeLock.AcquireAsync(CancellationToken.None,this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
+                        treeLock = Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None,this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
                     else
-                        TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
+                        Providers.Instance.TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
 
                     try
                     {
@@ -3642,7 +3642,7 @@ namespace SenseNet.ContentRepository.Storage
             {                { "Id", Id }, {"Path", Path }, {"Target", targetPath }            }))
             {
                 IDictionary<string, object> customData;
-                using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
+                using (Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
                     ContentProtector.AssertIsDeletable(this.Path);
 
@@ -4243,7 +4243,7 @@ namespace SenseNet.ContentRepository.Storage
                         try
                         {
                             // prevent concurrency problems
-                            using (TreeLock.AcquireAsync(CancellationToken.None, this.Path).GetAwaiter().GetResult())
+                            using (Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.Path).GetAwaiter().GetResult())
                             {
                                 // main work
                                 DataStore.DeleteNodeAsync(Data, CancellationToken.None).GetAwaiter().GetResult();
@@ -4422,7 +4422,7 @@ namespace SenseNet.ContentRepository.Storage
 
                 try
                 {
-                    using (TreeLock.AcquireAsync(CancellationToken.None, nodeRef.Path).GetAwaiter().GetResult())
+                    using (Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, nodeRef.Path).GetAwaiter().GetResult())
                         Providers.Instance.DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e) // rethrow
