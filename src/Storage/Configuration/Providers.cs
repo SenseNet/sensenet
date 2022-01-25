@@ -146,16 +146,18 @@ namespace SenseNet.Configuration
         }
 
         /// <summary>
-        /// Internal method for initializing the data store instance.
+        /// Internal method for initializing the data store instance and any other service instance that depends on it.
         /// DO NOT USE THIS METHOD IN YOUR CODE
         /// </summary>
         public void InitializeDataStore(IServiceProvider provider = null)
         {
-            // This method is a temporary solution for initializing the datastore instance
-            // without starting the whole repository.
+            // This method is a temporary solution for initializing the datastore instance and other dependent service
+            // instance without starting the whole repository.
 
-            var logger = provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>();
-            DataStore = new DataStore(DataProvider, logger);
+            DataStore = new DataStore(DataProvider, 
+                provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>());
+            TreeLock = new TreeLockController(DataStore,
+                provider?.GetService<ILogger<TreeLock>>() ?? NullLoggerFactory.Instance.CreateLogger<TreeLock>());
         }
 
         #endregion
@@ -444,6 +446,8 @@ namespace SenseNet.Configuration
 
         public IEventProcessor AuditLogEventProcessor { get; set; }
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
+
+        public ITreeLockController TreeLock { get; set; } // Initialized by InitializeDataStore method in this instance.
 
         //===================================================================================== General provider API
 
