@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tests.Core;
 
@@ -9,14 +10,16 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class TreeLockTests : TestBase
     {
+        private ITreeLockController TreeLock => Providers.Instance.TreeLock;
+
         [TestMethod]
-        public void TreeLock_AcquireAndScope()
+        public async STT.Task TreeLock_AcquireAndScope()
         {
-            Test(() =>
+            await Test(async () =>
             {
-                using (TreeLock.Acquire("/Root/A/B/C"))
+                using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C"))
                 {
-                    var locks = TreeLock.GetAllLocks();
+                    var locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                     Assert.AreEqual(1, locks.Count);
                     Assert.IsTrue(locks.ContainsValue("/Root/A/B/C"));
 
@@ -58,18 +61,18 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void TreeLock_Release()
+        public async STT.Task TreeLock_Release()
         {
-            Test(() =>
+            await Test(async () =>
             {
-                var locks = TreeLock.GetAllLocks();
+                var locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                 Assert.AreEqual(0, locks.Count);
 
-                using (TreeLock.Acquire("/Root/A/B/C1"))
+                using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C1"))
                 {
-                    using (TreeLock.Acquire("/Root/A/B/C2"))
+                    using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C2"))
                     {
-                        locks = TreeLock.GetAllLocks();
+                        locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                         Assert.AreEqual(2, locks.Count);
                         Assert.IsTrue(locks.ContainsValue("/Root/A/B/C1"));
                         Assert.IsTrue(locks.ContainsValue("/Root/A/B/C2"));
@@ -82,7 +85,7 @@ namespace SenseNet.ContentRepository.Tests
                         Assert.IsTrue(IsLocked("/Root/A"));
                         Assert.IsTrue(IsLocked("/Root"));
                     }
-                    locks = TreeLock.GetAllLocks();
+                    locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                     Assert.AreEqual(1, locks.Count);
                     Assert.IsTrue(locks.ContainsValue("/Root/A/B/C1"));
 
@@ -95,7 +98,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsFalse(IsLocked("/Root/A/B/C2/D"));
                     Assert.IsFalse(IsLocked("/Root/A/B/C2"));
                 }
-                locks = TreeLock.GetAllLocks();
+                locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                 Assert.AreEqual(0, locks.Count);
 
                 Assert.IsFalse(IsLocked("/Root/A/B/C1/D"));
@@ -161,16 +164,16 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void TreeLock_CannotAcquire()
+        public async STT.Task TreeLock_CannotAcquire()
         {
-            Test(() =>
+            await Test(async () =>
             {
-                var locks = TreeLock.GetAllLocks();
+                var locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                 Assert.AreEqual(0, locks.Count);
 
-                using (TreeLock.Acquire("/Root/A/B/C"))
+                using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C"))
                 {
-                    locks = TreeLock.GetAllLocks();
+                    locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                     Assert.AreEqual(1, locks.Count);
                     Assert.IsTrue(locks.ContainsValue("/Root/A/B/C"));
 
@@ -178,14 +181,14 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         try
                         {
-                            TreeLock.Acquire("/Root/A/B/C/D");
+                            await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C/D");
                             Assert.Fail($"LockedTreeException was not thrown. Path: {path}");
                         }
                         catch (LockedTreeException)
                         {
                         }
 
-                        locks = TreeLock.GetAllLocks();
+                        locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
                         Assert.AreEqual(1, locks.Count);
                         Assert.IsTrue(locks.ContainsValue("/Root/A/B/C"));
                     }
@@ -227,11 +230,11 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        private static bool IsLocked(string path)
+        private bool IsLocked(string path)
         {
             try
             {
-                TreeLock.AssertFree(path);
+                TreeLock.AssertFreeAsync(CancellationToken.None, path).ConfigureAwait(false).GetAwaiter().GetResult();
                 return false;
             }
             catch (LockedTreeException)
@@ -239,7 +242,7 @@ namespace SenseNet.ContentRepository.Tests
                 return true;
             }
         }
-        private static async STT.Task<bool> IsLockedAsync(string path, CancellationToken cancellationToken)
+        private async STT.Task<bool> IsLockedAsync(string path, CancellationToken cancellationToken)
         {
             try
             {
@@ -253,28 +256,28 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void TreeLock_TSQL_Underscore()
+        public async STT.Task TreeLock_TSQL_Underscore()
         {
             // This test makes sure that it does not cause a problem if a path
             // contains an underscore. Previously this did not work correctly
             // because the SQL LIKE operator treated it as a special character.
 
-            Test(() =>
+            await Test(async () =>
             {
-                using (TreeLock.Acquire("/Root/A/BxB/C"))
+                using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/BxB/C"))
                 {
-                    TreeLock.AssertFree("/Root/A/B_B");
+                    await TreeLock.AssertFreeAsync(CancellationToken.None, "/Root/A/B_B");
 
-                    using (TreeLock.Acquire("/Root/A/B_B"))
+                    using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B_B"))
                     {
-                        TreeLock.AssertFree("/Root/A/B_");
-                        TreeLock.AssertFree("/Root/A/ByB");
+                        await TreeLock.AssertFreeAsync(CancellationToken.None, "/Root/A/B_");
+                        await TreeLock.AssertFreeAsync(CancellationToken.None, "/Root/A/ByB");
                     }
 
                     var thrown = false;
                     try
                     {
-                        TreeLock.AssertFree("/Root/A/BxB");
+                        await TreeLock.AssertFreeAsync(CancellationToken.None, "/Root/A/BxB");
                     }
                     catch (LockedTreeException)
                     {
