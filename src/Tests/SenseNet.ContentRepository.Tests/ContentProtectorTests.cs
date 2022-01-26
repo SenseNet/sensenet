@@ -222,7 +222,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = Node.Load<User>("/Root/IMS/Public/TestOrg/user2");
                 var testOrg = Node.Load<OrganizationalUnit>("/Root/IMS/Public/TestOrg");
 
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(testOrg.Id, user1.Id, false, PermissionType.Save, PermissionType.Delete)
                     .Allow(testOrg.Id, user2.Id, false, PermissionType.Save, PermissionType.Delete)
                     .Apply();

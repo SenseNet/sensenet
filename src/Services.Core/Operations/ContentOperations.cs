@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.OData;
 using SenseNet.ContentRepository.Schema;
@@ -641,7 +642,7 @@ namespace SenseNet.Services.Core.Operations
         [Scenario( N.S.WorkspaceActions, N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static Content SetPermissions(Content content, string inheritance)
         {
-            var editor = SecurityHandler.CreateAclEditor();
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
             switch (inheritance.ToLower())
             {
@@ -711,7 +712,7 @@ namespace SenseNet.Services.Core.Operations
         public static Content SetPermissions(Content content, SetPermissionsRequest r)
         {
             var request = r;
-            var editor = SecurityHandler.CreateAclEditor();
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
             SetPermissions(content, request, editor);
             editor.Apply();
             return content;

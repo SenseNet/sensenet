@@ -20,7 +20,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                SnAclEditor.Create(SecurityHandler.SecurityContext)
+                SnAclEditor.Create(Providers.Instance.SecurityHandler.SecurityContext)
                     .Allow(2, 1, false, PermissionType.Custom01)
                     .Apply();
 
@@ -53,7 +53,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                SnAclEditor.Create(SecurityHandler.SecurityContext)
+                SnAclEditor.Create(Providers.Instance.SecurityHandler.SecurityContext)
                     .Allow(2, Identifiers.AdministratorUserId, false, PermissionType.Custom01)
                     .Allow(2, Identifiers.VisitorUserId, false, PermissionType.Custom02)
                     .Apply();
@@ -88,12 +88,12 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(Repository.Root.Id, Group.Administrators.Id, false, PermissionType.Open)
                     .Allow(Repository.Root.Id, Group.Administrators.Id, false, PermissionType.Save)
                     .Apply();
 
-                var hasPermission = SecurityHandler.HasPermission(
+                var hasPermission = Providers.Instance.SecurityHandler.HasPermission(
                     User.Administrator, Group.Administrators, PermissionType.Open, PermissionType.Save);
                 Assert.IsTrue(hasPermission);
 

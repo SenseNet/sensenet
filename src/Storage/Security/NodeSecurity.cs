@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
         public void Assert(params PermissionType[] permissionTypes)
         {
-            SecurityHandler.Assert(_node, permissionTypes);
+            _securityHandler.Assert(_node, permissionTypes);
         }
         /// <summary>
         /// If one or more passed permissions are not allowed (undefined or denied) on the current content for the current user, SenseNetSecurityException will be thrown with the specified message.
@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
         public void Assert(string message, params PermissionType[] permissionTypes)
         {
-            SecurityHandler.Assert(_node, message, permissionTypes);
+            _securityHandler.Assert(_node, message, permissionTypes);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
         public void AssertSubtree(params PermissionType[] permissionTypes)
         {
-            SecurityHandler.AssertSubtree(_node, permissionTypes);
+            _securityHandler.AssertSubtree(_node, permissionTypes);
         }
         /// <summary>
         /// If one or more passed permissions are not allowed (undefined or denied) on every content in the whole subtree of the current content for the current user, SenseNetSecurityException will be thrown.
@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
         public void AssertSubtree(string message, params PermissionType[] permissionTypes)
         {
-            SecurityHandler.AssertSubtree(_node, message, permissionTypes);
+            _securityHandler.AssertSubtree(_node, message, permissionTypes);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public bool HasPermission(params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.HasPermission(_node, permissionTypes);
+            return _securityHandler.HasPermission(_node, permissionTypes);
         }
         /// <summary>
         /// Returns true if all passed permissions are allowed on the passed content for the passed user.
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public bool HasPermission(IUser user, params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.HasPermission(user, _node, permissionTypes);
+            return _securityHandler.HasPermission(user, _node, permissionTypes);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public bool HasSubTreePermission(params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.HasSubTreePermission(_node, permissionTypes);
+            return _securityHandler.HasSubTreePermission(_node, permissionTypes);
         }
         /// <summary>
         /// Returns true if all passed permissions are allowed for the passed user on every content in the whole subtree of the current content.
@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public bool HasSubTreePermission(IUser user, params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.HasSubTreePermission(user, _node, permissionTypes);
+            return _securityHandler.HasSubTreePermission(user, _node, permissionTypes);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public PermissionValue GetPermission(params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.GetPermission(_node, permissionTypes);
+            return _securityHandler.GetPermission(_node, permissionTypes);
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            return SecurityHandler.GetPermission(user, node.Id, permissionTypes);
+            return _securityHandler.GetPermission(user, node.Id, permissionTypes);
         }
         /// <summary>
         /// Returns an aggregated permission value by all passed permissions for the passed user on the passed content.
@@ -148,7 +148,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (nodeHead == null)
                 throw new ArgumentNullException(nameof(nodeHead));
-            return SecurityHandler.GetPermission(user, nodeHead.Id, permissionTypes);
+            return _securityHandler.GetPermission(user, nodeHead.Id, permissionTypes);
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
         public PermissionValue GetSubtreePermission(params PermissionType[] permissionTypes)
         {
-            return SecurityHandler.GetSubtreePermission(_node, permissionTypes);
+            return _securityHandler.GetSubtreePermission(_node, permissionTypes);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            return SecurityHandler.GetSubtreePermission(user, node.Id, permissionTypes);
+            return _securityHandler.GetSubtreePermission(user, node.Id, permissionTypes);
         }
         /// <summary>
         /// Returns an aggregated permission value by all passed permissions for the passed user on every content in the whole subtree of the passed content.
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (nodeHead == null)
                 throw new ArgumentNullException(nameof(nodeHead));
-            return SecurityHandler.GetSubtreePermission(user, nodeHead.Id, permissionTypes);
+            return _securityHandler.GetSubtreePermission(user, nodeHead.Id, permissionTypes);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entryType">Security entry type. Default: all entries.</param>
         public List<AceInfo> GetExplicitEntries(EntryType? entryType = null)
         {
-            return SecurityHandler.GetExplicitEntries(_node.Id, null, entryType);
+            return _securityHandler.GetExplicitEntries(_node.Id, null, entryType);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entryType">Security entry type. Default: all entries.</param>
         public List<AceInfo> GetEffectiveEntries(EntryType? entryType = null)
         {
-            return SecurityHandler.GetEffectiveEntries(_node.Id, null, entryType);
+            return _securityHandler.GetEffectiveEntries(_node.Id, null, entryType);
         }
 
         /*========================================================== ACL */
@@ -232,7 +232,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public AccessControlList GetAcl()
         {
-            return SecurityHandler.GetAcl(_node.Id);
+            return _securityHandler.GetAcl(_node.Id);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (aclEditor == null)
             {
-                SecurityHandler.CreateAclEditor()
+                _securityHandler.CreateAclEditor()
                     .RemoveExplicitEntries(_node.Id)
                     .Apply();
                 return;
@@ -260,10 +260,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returns false if the current content inherits the permissions from it's parent.
         /// </summary>
-        public bool IsInherited
-        {
-            get { return SecurityHandler.SecurityContext.IsEntityInherited(_node.Id); }
-        }
+        public bool IsInherited => _securityHandler.SecurityContext.IsEntityInherited(_node.Id);
 
         /// <summary>
         /// Clear the permission inheritance on the current content.
@@ -271,7 +268,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         public void BreakInheritance(bool convertToExplicit = true)
         {
-            SecurityHandler.BreakInheritance(this._node, convertToExplicit);
+            _securityHandler.BreakInheritance(this._node, convertToExplicit);
         }
         /// <summary>
         /// Restores the permission inheritance on the current content.
@@ -280,7 +277,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// (the ones that are the same as the inherited ones) will be removed.</param>
         public void RemoveBreakInheritance(bool normalize = false)
         {
-            SecurityHandler.UnbreakInheritance(this._node, normalize);
+            _securityHandler.UnbreakInheritance(this._node, normalize);
         }
 
         /*========================================================== Install, Import, Export */
@@ -295,7 +292,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             Assert(PermissionType.SetPermissions);
 
             var permissionTypes = PermissionType.PermissionTypes;
-            var aclEditor = SecurityHandler.CreateAclEditor();
+            var aclEditor = _securityHandler.CreateAclEditor();
 
             // parsing and executing 'Break' and 'Clear'
             var breakNode = permissionsNode.SelectSingleNode("Break");

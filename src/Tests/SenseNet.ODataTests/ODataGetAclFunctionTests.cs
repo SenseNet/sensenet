@@ -31,7 +31,7 @@ namespace SenseNet.ODataTests
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
@@ -112,7 +112,7 @@ namespace SenseNet.ODataTests
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
@@ -173,7 +173,7 @@ namespace SenseNet.ODataTests
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
@@ -248,7 +248,7 @@ namespace SenseNet.ODataTests
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
@@ -258,7 +258,7 @@ namespace SenseNet.ODataTests
                         .RemoveExplicitEntries(contentNode.Id)
                         .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
-                Assert.IsTrue(SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
+                Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 
 
                 // ACTION
@@ -324,7 +324,7 @@ namespace SenseNet.ODataTests
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
@@ -336,7 +336,7 @@ namespace SenseNet.ODataTests
                     aclEditor
                         .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
-                Assert.IsTrue(SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
+                Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 
 
                 // ACTION

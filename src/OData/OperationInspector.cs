@@ -38,7 +38,7 @@ namespace SenseNet.OData
                 return true;
 
             if (actualRoles == null)
-                actualRoles = NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
+                actualRoles = NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
             return actualRoles.Intersect(expectedRoles).Any();
         }
 

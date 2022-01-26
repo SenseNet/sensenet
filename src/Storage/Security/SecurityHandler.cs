@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Xml;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
-using SenseNet.Security.Messaging;
-using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
 {
     public enum CopyPermissionMode { NoBreak, BreakWithoutClear, BreakAndClear }
@@ -32,7 +29,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(Node node, params PermissionType[] permissionTypes)
+        public void Assert(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -44,7 +41,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(Node node, string message, params PermissionType[] permissionTypes)
+        public void Assert(Node node, string message, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -55,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public void Assert(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -67,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(NodeHead nodeHead, string message, params PermissionType[] permissionTypes)
+        public void Assert(NodeHead nodeHead, string message, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -78,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">The identifier of the content.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(int contentId, params PermissionType[] permissionTypes)
+        public void Assert(int contentId, params PermissionType[] permissionTypes)
         {
             Assert(contentId, null, null, permissionTypes);
         }
@@ -88,11 +85,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The identifier of the content.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void Assert(int contentId, string message, params PermissionType[] permissionTypes)
+        public void Assert(int contentId, string message, params PermissionType[] permissionTypes)
         {
             Assert(contentId, null, message, permissionTypes);
         }
-        private static void Assert(int nodeId, string path, string message, params PermissionType[] permissionTypes)
+        private void Assert(int nodeId, string path, string message, params PermissionType[] permissionTypes)
         {
             IUser user = AccessProvider.Current.GetCurrentUser();
             if (user.Id == -1)
@@ -107,7 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(Node node, params PermissionType[] permissionTypes)
+        public void AssertSubtree(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -119,7 +116,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(Node node, string message, params PermissionType[] permissionTypes)
+        public void AssertSubtree(Node node, string message, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -130,7 +127,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public void AssertSubtree(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -142,7 +139,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(NodeHead nodeHead, string message, params PermissionType[] permissionTypes)
+        public void AssertSubtree(NodeHead nodeHead, string message, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -153,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">The identifier of the content.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(int contentId, params PermissionType[] permissionTypes)
+        public void AssertSubtree(int contentId, params PermissionType[] permissionTypes)
         {
             AssertSubtree(contentId, null, null, permissionTypes);
         }
@@ -163,11 +160,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The identifier of the content.</param>
         /// <param name="message">Text that appears in the SenseNetSecurityException's message.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing" so SenseNetSecurityException will be thrown.</param>
-        public static void AssertSubtree(int contentId, string message, params PermissionType[] permissionTypes)
+        public void AssertSubtree(int contentId, string message, params PermissionType[] permissionTypes)
         {
             AssertSubtree(contentId, null, message, permissionTypes);
         }
-        private static void AssertSubtree(int nodeId, string path, string message, params PermissionType[] permissionTypes)
+        private void AssertSubtree(int nodeId, string path, string message, params PermissionType[] permissionTypes)
         {
             IUser user = AccessProvider.Current.GetCurrentUser();
             if (user.Id == -1)
@@ -182,7 +179,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(Node node, params PermissionType[] permissionTypes)
+        public bool HasPermission(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -193,7 +190,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public bool HasPermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -205,7 +202,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(int nodeId, params PermissionType[] permissionTypes)
+        public bool HasPermission(int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -214,10 +211,10 @@ namespace SenseNet.ContentRepository.Storage.Security
             var user = AccessProvider.Current.GetCurrentUser();
             if (user.Id == -1)
                 return true;
-            var ctx = SecurityHandler.SecurityContext;
+            var ctx = SecurityContext;
             return Retrier.Retry(3, 200, typeof(EntityNotFoundException), () => HasPermissionPrivate(ctx, nodeId, permissionTypes));
         }
-        private static bool HasPermissionPrivate(SnSecurityContext ctx, int contentId, params PermissionType[] permissionTypes)
+        private bool HasPermissionPrivate(SnSecurityContext ctx, int contentId, params PermissionType[] permissionTypes)
         {
             try
             {
@@ -239,7 +236,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(IUser user, Node node, params PermissionType[] permissionTypes)
+        public bool HasPermission(IUser user, Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -251,7 +248,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(IUser user, NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public bool HasPermission(IUser user, NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -263,7 +260,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasPermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
+        public bool HasPermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
         {
             if (user == null)
                 return false;
@@ -291,7 +288,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasSubTreePermission(Node node, params PermissionType[] permissionTypes)
+        public bool HasSubTreePermission(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -302,7 +299,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasSubTreePermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public bool HasSubTreePermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -313,7 +310,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        private static bool HasSubTreePermission(int nodeId, params PermissionType[] permissionTypes)
+        private bool HasSubTreePermission(int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -332,7 +329,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasSubTreePermission(IUser user, Node node, params PermissionType[] permissionTypes)
+        public bool HasSubTreePermission(IUser user, Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -344,7 +341,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static bool HasSubTreePermission(IUser user, NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public bool HasSubTreePermission(IUser user, NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -356,7 +353,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        private static bool HasSubTreePermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
+        private bool HasSubTreePermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
         {
             var ctx = SecurityContext;
             var isCurrentUser = user.Id == AccessProvider.Current.GetCurrentUser().Id;
@@ -384,7 +381,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static PermissionValue GetPermission(Node node, params PermissionType[] permissionTypes)
+        public PermissionValue GetPermission(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -398,7 +395,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static PermissionValue GetPermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public PermissionValue GetPermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -412,7 +409,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        private static PermissionValue GetPermission(int nodeId, params PermissionType[] permissionTypes)
+        private PermissionValue GetPermission(int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -431,7 +428,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        internal static PermissionValue GetPermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
+        internal PermissionValue GetPermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -457,7 +454,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="node">The node. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static PermissionValue GetSubtreePermission(Node node, params PermissionType[] permissionTypes)
+        public PermissionValue GetSubtreePermission(Node node, params PermissionType[] permissionTypes)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
@@ -471,7 +468,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The node head. Cannot be null.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        public static PermissionValue GetSubtreePermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
+        public PermissionValue GetSubtreePermission(NodeHead nodeHead, params PermissionType[] permissionTypes)
         {
             if (nodeHead == null)
                 throw new ArgumentNullException("nodeHead");
@@ -485,7 +482,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        internal static PermissionValue GetSubtreePermission(int nodeId, params PermissionType[] permissionTypes)
+        internal PermissionValue GetSubtreePermission(int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -508,7 +505,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user. Cannot be null.</param>
         /// <param name="nodeId">Id of the node. Cannot be 0.</param>
         /// <param name="permissionTypes">Set of related permissions. Cannot be null. Empty set means "allowed nothing".</param>
-        internal static PermissionValue GetSubtreePermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
+        internal PermissionValue GetSubtreePermission(IUser user, int nodeId, params PermissionType[] permissionTypes)
         {
             if (permissionTypes == null)
                 throw new ArgumentNullException("permissionTypes");
@@ -533,7 +530,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeHead">The content.</param>
         /// <returns></returns>
-        public static PermittedLevel GetPermittedLevel(NodeHead nodeHead)
+        public PermittedLevel GetPermittedLevel(NodeHead nodeHead)
         {
             // shortcut for system user
             if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
@@ -544,7 +541,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Helper method that determines the permitted access level of the content (None, HeadOnly, PublicOnly, All) for the current user.
         /// </summary>
         /// <param name="node">The content.</param>
-        public static PermittedLevel GetPermittedLevel(Node node)
+        public PermittedLevel GetPermittedLevel(Node node)
         {
             // shortcut for system user
             if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
@@ -555,7 +552,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Helper method that determines the permitted access level of the content (None, HeadOnly, PublicOnly, All) for the current user.
         /// </summary>
         /// <param name="nodeId">The id of the content.</param>
-        public static PermittedLevel GetPermittedLevel(int nodeId)
+        public PermittedLevel GetPermittedLevel(int nodeId)
         {
             // shortcut for system user
             if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
@@ -567,14 +564,14 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="nodeId">The id of the content.</param>
         /// <param name="user">The user.</param>
-        public static PermittedLevel GetPermittedLevel(int nodeId, IUser user)
+        public PermittedLevel GetPermittedLevel(int nodeId, IUser user)
         {
             // shortcut for system user
             if (user.Id == Identifiers.SystemUserId)
                 return PermittedLevel.All;
             return GetPermittedLevel(nodeId, GetIdentitiesByMembership(user, nodeId));
         }
-        internal static PermittedLevel GetPermittedLevel(int nodeId, IEnumerable<int> identities)
+        internal PermittedLevel GetPermittedLevel(int nodeId, IEnumerable<int> identities)
         {
             if (identities.First() == Identifiers.SystemUserId)
                 return PermittedLevel.All;
@@ -605,7 +602,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
         /// <param name="entryType">Security entry type. Default: all entries.</param>
-        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+        public List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
             return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities, entryType);
@@ -616,7 +613,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 	    /// <param name="contentId">Id of the content.</param>
 	    /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
 	    /// <param name="entryType">Security entry type. Default: all entries.</param>
-	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+	    public List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
 	    {
 	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, entryType);
 	    }
@@ -627,7 +624,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
         /// <param name="entryType">Security entry type. Default: all entries.</param>
-        public static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+        public List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
             return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, entryType);
@@ -638,7 +635,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
         /// <param name="entryType">Security entry type. Default: all entries.</param>
-        public static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
+        public List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
@@ -652,7 +649,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Required permission: SeePermissions
         /// The result contains only Normal entries.
         /// </summary>
-        public static AccessControlList GetAcl(int nodeId)
+        public AccessControlList GetAcl(int nodeId)
         {
             var ctx = SecurityContext;
             ctx.AssertPermission(nodeId, PermissionType.SeePermissions);
@@ -663,7 +660,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns a new AclEditor instance.
         /// </summary>
         /// <param name="context">If passed, the method uses that and does not create a new context instance.</param>
-        public static SnAclEditor CreateAclEditor(SnSecurityContext context = null)
+        public SnAclEditor CreateAclEditor(SnSecurityContext context = null)
         {
             return new SnAclEditor(context);
         }
@@ -679,7 +676,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="throwIfNodeNotFound">If true and the requested content does not exist,
         /// a ContentNotFoundException will be thrown.</param>
-        public static void CreateSecurityEntity(int contentId, bool throwIfNodeNotFound = false)
+        public void CreateSecurityEntity(int contentId, bool throwIfNodeNotFound = false)
         {
             var nodeHead = NodeHead.Get(contentId);
             if (nodeHead == null)
@@ -697,7 +694,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the created entity. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
-        public static void CreateSecurityEntity(int contentId, int parentId, int ownerId)
+        public void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             CreateSecurityEntity(contentId, parentId, ownerId, SecurityContext);
         }
@@ -709,12 +706,12 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
         /// <param name="context">Uses the passed context and does not create a new one.</param>
-        public static void CreateSecurityEntity(int contentId, int parentId, int ownerId, SnSecurityContext context)
+        public void CreateSecurityEntity(int contentId, int parentId, int ownerId, SnSecurityContext context)
         {
             if (CheckSecurityEntityCreationParameters(contentId, parentId, ownerId, context))
                 context.CreateSecurityEntity(contentId, parentId, ownerId);
         }
-        private static bool CheckSecurityEntityCreationParameters(int contentId, int parentId, int ownerId, SecurityContext context)
+        private bool CheckSecurityEntityCreationParameters(int contentId, int parentId, int ownerId, SecurityContext context)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -739,7 +736,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
-        public static void ModifyEntityOwner(int contentId, int ownerId)
+        public void ModifyEntityOwner(int contentId, int ownerId)
         {
             SecurityContext.ModifyEntityOwner(contentId, ownerId);
         }
@@ -749,7 +746,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="sourceId">Id of the source entity. Cannot be 0.</param>
         /// <param name="targetId">Id of the target entity that will contain the source. Cannot be 0.</param>
-        public static void MoveEntity(int sourceId, int targetId)
+        public void MoveEntity(int sourceId, int targetId)
         {
             SecurityContext.MoveEntity(sourceId, targetId);
         }
@@ -758,7 +755,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// after the content was deleted from the repository.
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
-        public static void DeleteEntity(int contentId)
+        public void DeleteEntity(int contentId)
         {
             SecurityContext.DeleteEntity(contentId);
         }
@@ -767,7 +764,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Tries to re-create the entity in the security component. This is a compensation method,
         /// call it only from where compensation is needed (e.g. there is a chance for a timing issue).
         /// </summary>
-        internal static void ReCreateSecurityEntity(int contentId)
+        internal void ReCreateSecurityEntity(int contentId)
         {
             SnLog.WriteWarning("Re-creating entity in security component: " + contentId, EventId.Security);
 
@@ -791,7 +788,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns false if the content inherits the permissions from it's parent.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
-        public static bool IsEntityInherited(int contentId)
+        public bool IsEntityInherited(int contentId)
         {
             return SecurityContext.IsEntityInherited(contentId);
         }
@@ -801,7 +798,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
-        public static void BreakInheritance(Node content, bool convertToExplicit = true)
+        public void BreakInheritance(Node content, bool convertToExplicit = true)
         {
             var contentId = content.Id;
             if (!IsEntityInherited(contentId))
@@ -815,7 +812,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
-        public static void UnbreakInheritance(Node content, bool normalize = false)
+        public void UnbreakInheritance(Node content, bool normalize = false)
         {
             var contentId = content.Id;
             if (IsEntityInherited(contentId))
@@ -837,7 +834,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="identityId">Id of the potential member that can be a user or a group.</param>
         /// <param name="groupId">Id of the container group.</param>
-        public static bool IsInGroup(int identityId, int groupId)
+        public bool IsInGroup(int identityId, int groupId)
         {
             return SecurityContext.IsInGroup(identityId, groupId);
         }
@@ -852,7 +849,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
-        public static void AddMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        public void AddMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.AddMembersToSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
         }
@@ -863,7 +860,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
-        public static void AddUsersToGroup(int groupId, IEnumerable<int> userMembers)
+        public void AddUsersToGroup(int groupId, IEnumerable<int> userMembers)
         {
             SecurityContext.AddUsersToSecurityGroup(groupId, userMembers);
         }
@@ -873,7 +870,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
-        public static void AddGroupsToGroup(int groupId, IEnumerable<int> groupMembers)
+        public void AddGroupsToGroup(int groupId, IEnumerable<int> groupMembers)
         {
             SecurityContext.AddGroupsToSecurityGroup(groupId, groupMembers);
         }
@@ -887,7 +884,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
-        public static void RemoveMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        public void RemoveMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.RemoveMembersFromSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
         }
@@ -898,7 +895,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupIds">Collection of group member identifiers. Can be null or empty.</param>
-        public static void RemoveGroupsFromGroup(int groupId, IEnumerable<int> groupIds)
+        public void RemoveGroupsFromGroup(int groupId, IEnumerable<int> groupIds)
         {
             SecurityContext.RemoveGroupsFromSecurityGroup(groupId, groupIds);
         }
@@ -906,28 +903,28 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group and its relations including related security entries from the security component.
         /// </summary>
-        public static void DeleteGroup(int groupId)
+        public void DeleteGroup(int groupId)
         {
             SecurityContext.DeleteSecurityGroup(groupId);
         }
         /// <summary>
         /// Deletes the user from the security component by removing all memberships and security entries related to this user.
         /// </summary>
-        public static void DeleteUser(int userId)
+        public void DeleteUser(int userId)
         {
             SecurityContext.DeleteUser(userId);
         }
         /// <summary>
         /// Deletes the specified group or user and its relations including related security entries from the security component.
         /// </summary>
-        public static void DeleteIdentity(int id)
+        public void DeleteIdentity(int id)
         {
             SecurityContext.DeleteIdentity(id);
         }
         /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries from the security component.
         /// </summary>
-        public static void DeleteIdentities(IEnumerable<int> ids)
+        public void DeleteIdentities(IEnumerable<int> ids)
         {
             SecurityContext.DeleteIdentities(ids);
         }
@@ -941,7 +938,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Everyone group id is added if the current user is not the Visitor.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership()
+        public List<int> GetIdentitiesByMembership()
         {
             return GetIdentitiesByMembershipPrivate();
         }
@@ -951,7 +948,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the current user is owner of the passed content. Real owner is resolved from the security database.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(int contentId)
+        public List<int> GetIdentitiesByMembership(int contentId)
         {
             return GetIdentitiesByMembershipPrivate(contentId);
         }
@@ -961,7 +958,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the current user and owner of the passed content are equal.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(NodeHead head)
+        public List<int> GetIdentitiesByMembership(NodeHead head)
         {
             return GetIdentitiesByMembershipPrivate(head.Id, head.OwnerId);
         }
@@ -971,7 +968,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the current user and owner of the passed content are equal.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(Node content)
+        public List<int> GetIdentitiesByMembership(Node content)
         {
             return GetIdentitiesByMembershipPrivate(content.Id, content.OwnerId);
         }
@@ -983,7 +980,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Everyone group id is added if the passed user is not the Visitor.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(IUser user)
+        public List<int> GetIdentitiesByMembership(IUser user)
         {
             return GetIdentitiesByMembershipPrivate(user: user);
         }
@@ -993,7 +990,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the passed user is owner of the passed content. Real owner is resolved from the security database.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(IUser user, int contentId)
+        public List<int> GetIdentitiesByMembership(IUser user, int contentId)
         {
             return GetIdentitiesByMembershipPrivate(contentId, user: user);
         }
@@ -1003,7 +1000,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the passed user and owner of the passed content are equal.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(IUser user, NodeHead head)
+        public List<int> GetIdentitiesByMembership(IUser user, NodeHead head)
         {
             return GetIdentitiesByMembershipPrivate(head.Id, head.OwnerId, user);
         }
@@ -1013,13 +1010,13 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Owners group id is added if the passed user and owner of the passed content are equal.
         /// Extended identities are added if there are any (see SnSecurityContext.GetDynamicGroups).
         /// </summary>
-        public static List<int> GetIdentitiesByMembership(IUser user, Node content)
+        public List<int> GetIdentitiesByMembership(IUser user, Node content)
         {
             return GetIdentitiesByMembershipPrivate(content.Id, content.OwnerId, user);
         }
 
         // main function
-        private static List<int> GetIdentitiesByMembershipPrivate(int contentId = 0, int ownerId = 0, IUser user = null)
+        private List<int> GetIdentitiesByMembershipPrivate(int contentId = 0, int ownerId = 0, IUser user = null)
         {
             var actualUser = user ?? AccessProvider.Current.GetCurrentUser();
             if (actualUser.Id == Identifiers.SystemUserId)
@@ -1050,7 +1047,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Gets the ids of all the groups that contain the current or provided user as a member, even through other groups.
         /// </summary>
-        public static IEnumerable<int> GetFlattenedGroups(IUser differentUser = null)
+        public IEnumerable<int> GetFlattenedGroups(IUser differentUser = null)
         {
             return (differentUser == null ? SecurityContext : CreateSecurityContextFor(differentUser)).GetFlattenedGroups();
         }
@@ -1059,7 +1056,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// plus Everyone (except in case of a visitor) and the optional dynamic groups provided by the 
         /// membership extender.
         /// </summary>
-        public static List<int> GetGroups(IUser differentUser = null)
+        public List<int> GetGroups(IUser differentUser = null)
         {
             return (differentUser == null ? SecurityContext : CreateSecurityContextFor(differentUser)).GetGroups();
         }
@@ -1068,7 +1065,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// plus Everyone (except in case of a visitor), plus Owners (if applicable) and the optional 
         /// dynamic groups provided by the membership extender.
         /// </summary>
-        public static List<int> GetGroupsWithOwnership(int contentId, IUser differentUser = null)
+        public List<int> GetGroupsWithOwnership(int contentId, IUser differentUser = null)
         {
             return (differentUser == null ? SecurityContext : CreateSecurityContextFor(differentUser)).GetGroupsWithOwnership(contentId);
         }
@@ -1100,7 +1097,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// <param name="identityKind">Filtering by identity kind.</param>
             public static IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind)
             {
-                var identityIds = SecurityContext.GetRelatedIdentities(contentId, level);
+                var identityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedIdentities(contentId, level);
                 return Filter(identityIds, identityKind);
             }
 
@@ -1133,7 +1130,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             public static IDictionary<PermissionType, int> GetRelatedPermissions(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<string> includedTypes)
             {
                 var filter = new ContentTypeFilterForGettingRelatedPermissions(includedTypes);
-                var counters = SecurityContext.GetRelatedPermissions(contentId, level, explicitOnly, identityId, filter.IsEnabled);
+                var counters = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedPermissions(contentId, level, explicitOnly, identityId, filter.IsEnabled);
                 var result = new Dictionary<PermissionType, int>(PermissionType.PermissionCount);
                 foreach (var item in counters)
                     result.Add(PermissionType.GetByIndex(item.Key.Index), item.Value);
@@ -1141,7 +1138,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
             public static IDictionary<PermissionType, int> GetExplicitPermissionsInSubtree(int contentId, int[] identities, bool includeRoot)
             {
-                var counters = SecurityContext.GetExplicitPermissionsInSubtree(contentId, identities, includeRoot);
+                var counters = Providers.Instance.SecurityHandler.SecurityContext.GetExplicitPermissionsInSubtree(contentId, identities, includeRoot);
                 var result = new Dictionary<PermissionType, int>(PermissionType.PermissionCount);
                 foreach (var item in counters)
                     result.Add(PermissionType.GetByIndex(item.Key.Index), item.Value);
@@ -1175,7 +1172,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
             public static IEnumerable<Node> GetRelatedNodes(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionType> permissions)
             {
-                var contentIds = SecurityContext.GetRelatedEntities(contentId, level, explicitOnly, identityId, permissions);
+                var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedEntities(contentId, level, explicitOnly, identityId, permissions);
                 return new NodeList<Node>(contentIds);
             }
 
@@ -1202,7 +1199,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// <param name="permissions">Filtering by permission type.</param>
             public static IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionTypeBase> permissions)
             {
-                var identityIds = SecurityContext.GetRelatedIdentities(contentId, level, permissions);
+                var identityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedIdentities(contentId, level, permissions);
                 return Filter(identityIds, identityKind);
             }
 
@@ -1235,7 +1232,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 if (folder == null)
                     return new Node[0];
 
-                var entityIds = SecurityContext.GetRelatedEntitiesOneLevel(contentId, level, identityId, permissions);
+                var entityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedEntitiesOneLevel(contentId, level, identityId, permissions);
                 return new NodeList<Node>(entityIds);
             }
 
@@ -1261,7 +1258,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// <param name="permissions">Only those users appear in the output that have permission settings in connection with the given permissions.</param>
             public static IEnumerable<Node> GetAllowedUsers(int contentId, IEnumerable<PermissionType> permissions)
             {
-                var contentIds = SecurityContext.GetAllowedUsers(contentId, permissions);
+                var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetAllowedUsers(contentId, permissions);
                 return new NodeList<Node>(contentIds);
             }
 
@@ -1284,7 +1281,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// <param name="directOnly">Switch of the direct or indirect membership.</param>
             public static IEnumerable<Node> GetParentGroups(int contentId, bool directOnly)
             {
-                var contentIds = SecurityContext.GetParentGroups(contentId, directOnly);
+                var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetParentGroups(contentId, directOnly);
                 return new NodeList<Node>(contentIds);
             }
 
@@ -1409,14 +1406,14 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #region /*========================================================== Context, System start */
 
-        private static SecuritySystem _securitySystem;
-        private static ISecurityContextFactory _securityContextFactory;
+        private SecuritySystem _securitySystem;
+        private ISecurityContextFactory _securityContextFactory;
 
         /// <summary>
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static void StartSecurity(bool isWebContext, IServiceProvider services)
+        public void StartSecurity(bool isWebContext, IServiceProvider services)
         {
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
@@ -1465,18 +1462,12 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// The security context related to the logged-in user. Always returns a new instance.
         /// </summary>
-        public static SnSecurityContext SecurityContext
-        {
-            get { return _securityContextFactory.Create(AccessProvider.Current.GetCurrentUser()); }
-        }
+        public SnSecurityContext SecurityContext => _securityContextFactory.Create(AccessProvider.Current.GetCurrentUser());
 
         /// <summary>
         /// Returns with a security context containing the provided user who can be different from the logged-in user.
         /// </summary>
-        public static SnSecurityContext CreateSecurityContextFor(IUser user)
-        {
-            return _securityContextFactory.Create(user);
-        }
+        public SnSecurityContext CreateSecurityContextFor(IUser user) => _securityContextFactory.Create(user);
 
         #endregion
 
@@ -1590,7 +1581,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     {
                         CreateEntities();
 
-                        var ed = CreateAclEditor();
+                        var ed = Providers.Instance.SecurityHandler.CreateAclEditor();
                         ed.Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
                             // ReSharper disable once CoVariantArrayConversion
                             PermissionType.BuiltInPermissionTypes);
@@ -1635,7 +1626,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                                         groupMembers.Add(head.Id);
                                 }
 
-                                AddMembers(nodeId, userMembers, groupMembers);
+                                Providers.Instance.SecurityHandler.AddMembers(nodeId, userMembers, groupMembers);
                             }
                         }
 
@@ -1650,7 +1641,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
 	        private static void CreateEntities()
 	        {
-	            var securityContext = SecurityContext;
+	            var securityContext = Providers.Instance.SecurityHandler.SecurityContext;
 
 	            securityContext.SecuritySystem.DataProvider.InstallDatabase();
 
@@ -1672,7 +1663,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="permissionTypes">Any number of permission types. Null or empty are also allowed.</param>
         /// <returns>The bitmask.</returns>
-        public static ulong GetPermissionMask(IEnumerable<PermissionType> permissionTypes)
+        public ulong GetPermissionMask(IEnumerable<PermissionType> permissionTypes)
         {
             var mask = 0uL;
             if (permissionTypes == null)
@@ -1682,7 +1673,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return mask;
         }
 
-        private static PermissionBitMask AggregateAces(IEnumerable<AceInfo> aces)
+        private PermissionBitMask AggregateAces(IEnumerable<AceInfo> aces)
         {
             var result = new PermissionBitMask();
             foreach (var ace in aces)
@@ -1693,7 +1684,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return result;
         }
 
-        private static Exception GetAccessDeniedException(int nodeId, string path, string message, PermissionType[] permissionTypes, IUser user, bool isSubtree)
+        private Exception GetAccessDeniedException(int nodeId, string path, string message, PermissionType[] permissionTypes, IUser user, bool isSubtree)
         {
             PermissionType deniedPermission = null;
             foreach (var permType in permissionTypes)
@@ -1719,7 +1710,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="sourceId">Id of the source content.</param>
         /// <param name="targetId">Id of the target content.</param>
         /// <param name="mode">Whether a break or a permission clean is needed.</param>
-        public static void CopyPermissionsFrom(int sourceId, int targetId, CopyPermissionMode mode)
+        public void CopyPermissionsFrom(int sourceId, int targetId, CopyPermissionMode mode)
         {
             bool @break, @clear;
             switch (mode)
@@ -1742,7 +1733,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Gets all security entities from the security component's in-memory cache for consistency check.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static IDictionary<int, SecurityEntity> GetCachedEntities()
+        public IDictionary<int, SecurityEntity> GetCachedEntities()
         {
             using (new SystemAccount())
                 return SecurityContext.GetCachedEntitiesForConsistencyCheck();
@@ -1750,7 +1741,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #endregion
 
-	    public static void ShutDownSecurity()
+	    public void ShutDownSecurity()
 	    {
             _securitySystem.Shutdown();
 	    }

@@ -2392,7 +2392,7 @@ namespace SenseNet.ContentRepository.Tests
                 var denied = webHooks[2];
                 using (new SystemAccount())
                 {
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(denied.Id, new EntryType[0])
                         .Apply();
                 }
@@ -2561,7 +2561,7 @@ namespace SenseNet.ContentRepository.Tests
                 var denied = nodes[2];
                 using (new SystemAccount())
                 {
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(denied.Id, new EntryType[0])
                         .Apply();
                 }

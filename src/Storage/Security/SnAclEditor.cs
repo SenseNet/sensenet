@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
 
         internal SnAclEditor(SnSecurityContext context, EntryType entryType = EntryType.Normal)
-            : base(context ?? SecurityHandler.SecurityContext, entryType) { }
+            : base(context ?? Providers.Instance.SecurityHandler.SecurityContext, entryType) { }
 
         private new static SenseNet.Security.AclEditor Create(SenseNet.Security.SecurityContext context, EntryType entryType = EntryType.Normal)
         {

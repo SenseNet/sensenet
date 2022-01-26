@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -234,7 +235,7 @@ namespace SenseNet.ODataTests
                 var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
                 node.Save();
 
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .BreakInheritance(root.Id, new[] { EntryType.Normal })
                     .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
                     .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)

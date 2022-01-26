@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Security
@@ -313,7 +314,8 @@ namespace SenseNet.ContentRepository.Security
                 throw new ArgumentException("Identity must be an existing user.");
 
             // collect all groups for the user
-            var groups = Node.LoadNodes(SecurityHandler.GetGroupsWithOwnership(content.Id, user)).Select(n => Content.Create(n)).ToArray();
+            var groups = Node.LoadNodes(Providers.Instance.SecurityHandler
+                .GetGroupsWithOwnership(content.Id, user)).Select(n => Content.Create(n)).ToArray();
             var identityInfo = new IdentityInfo
             {
                 Path = user.Path,

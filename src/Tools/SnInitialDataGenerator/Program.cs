@@ -102,7 +102,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 // Add Admin* permissions on the /Root
                 Console.WriteLine("Set Root permissions.");
                 using (new SystemAccount())
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId,
                             false, PermissionType.BuiltInPermissionTypes)
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId,

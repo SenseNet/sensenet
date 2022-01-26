@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -130,7 +131,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         private void AssertPermissions(int userId)
         {
-            if (!SecurityHandler.HasPermission(userId, PermissionType.Save))
+            if (!Providers.Instance.SecurityHandler.HasPermission(userId, PermissionType.Save))
             {
                 _logger.LogWarning($"ApiKeyManager: {User.Current.Name} tried to manage api keys of user {userId} without Save permissions.");
                 throw new SenseNetSecurityException(userId, $"Current user ({User.Current.Name}) does not have enough permissions " +

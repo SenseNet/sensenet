@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -52,7 +53,7 @@ namespace SenseNet.OData.IO
                 return;
 
             var controller = content.ContentHandler.Security;
-            var aclEditor = SecurityHandler.CreateAclEditor();
+            var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
             if (controller.IsInherited != permissions.IsInherited)
             {
                 if (permissions.IsInherited)

@@ -23,7 +23,7 @@ namespace SenseNet.Services
             using (new SystemAccount())
                 node = Node.LoadNode(nodeId);
 
-            if (node == null || !SecurityHandler.HasPermission(node, PermissionType.See))
+            if (node == null || !Providers.Instance.SecurityHandler.HasPermission(node, PermissionType.See))
                 node = User.Somebody;
 
             string name = node.Name;

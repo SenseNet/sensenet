@@ -143,7 +143,7 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(this);
                 if (parent != null)
-                    SecurityHandler.AddGroupsToGroup(parent.Id, new[] { this.Id });
+                    Providers.Instance.SecurityHandler.AddGroupsToGroup(parent.Id, new[] { this.Id });
             }
         }
 
@@ -195,7 +195,7 @@ namespace SenseNet.ContentRepository
         /// <param name="securityGroupId">Id of the container group.</param>
         public bool IsInGroup(int securityGroupId)
         {
-            return SecurityHandler.IsInGroup(this.Id, securityGroupId);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, securityGroupId);
         }
     }
 }

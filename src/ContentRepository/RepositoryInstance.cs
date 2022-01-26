@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository
 
             InitializeDataProviderExtensions();
 
-            SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
+            Providers.Instance.SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
 
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
 
@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository
                 DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 SnTrace.Repository.Write("Shutting down Security.");
-                SecurityHandler.ShutDownSecurity();
+                Providers.Instance.SecurityHandler.ShutDownSecurity();
 
                 SnTrace.Repository.Write("Shutting down IndexingEngine.");
                 IndexManager.ShutDown();

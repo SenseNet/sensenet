@@ -662,7 +662,7 @@ namespace SenseNet.ContentRepository
                     var pc = Content.CreateNew(Profiles, profilesTarget, Profiles);
                     pc.Save();
 
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor.BreakInheritance(pc.Id, new[] {EntryType.Normal})
                         // ReSharper disable once CoVariantArrayConversion
                         .Allow(pc.Id, Identifiers.AdministratorsGroupId, false, PermissionType.PermissionTypes)
@@ -734,7 +734,7 @@ namespace SenseNet.ContentRepository
                         // Give explicit permission for the user on the profile so that
                         // they can access all content items there, not just the ones
                         // they created and own.
-                        SecurityHandler.SecurityContext.CreateAclEditor()
+                        Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                             .Allow(profile.Id, this.Id, false, PermissionType.Open)
                             .Apply();
                     }
@@ -780,17 +780,17 @@ namespace SenseNet.ContentRepository
         /// <inheritdoc />
         public bool IsInGroup(IGroup group)
         {
-            return SecurityHandler.IsInGroup(this.Id, group.Id);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, group.Id);
         }
         /// <inheritdoc />
         public bool IsInOrganizationalUnit(IOrganizationalUnit orgUnit)
         {
-            return SecurityHandler.IsInGroup(this.Id, orgUnit.Id);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, orgUnit.Id);
         }
         /// <inheritdoc />
         public bool IsInContainer(ISecurityContainer container)
         {
-            return SecurityHandler.IsInGroup(this.Id, container.Id);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, container.Id);
         }
 
         private const string LASTLOGGEDOUT = "LastLoggedOut";
@@ -813,7 +813,7 @@ namespace SenseNet.ContentRepository
         /// <inheritdoc />
         public bool IsInGroup(int securityGroupId)
         {
-            return SecurityHandler.IsInGroup(this.Id, securityGroupId);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, securityGroupId);
         }
 
         /// <inheritdoc />
@@ -881,7 +881,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public List<int> GetGroups()
         {
-            return SecurityHandler.GetGroups(this);
+            return Providers.Instance.SecurityHandler.GetGroups(this);
         }
 
         // =================================================================================== IIdentity Members
@@ -1233,7 +1233,7 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
-                    SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
+                    Providers.Instance.SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
             }
         }
 
@@ -1268,7 +1268,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
-                var sc = SecurityHandler.SecurityContext;
+                var sc = Providers.Instance.SecurityHandler.SecurityContext;
 
                 // Load all direct parent groups. We do not have to go up on the parent
                 // chain because protected groups must have enabled direct members.
