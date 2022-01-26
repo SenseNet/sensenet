@@ -403,7 +403,7 @@ namespace SenseNet.Packaging.Steps
                 if (resetSecurity)
                 {
                     Log(ImportLogLevel.Info, "Installing default security structure");
-                    SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure();
+                    SecurityInstaller.InstallDefaultSecurityStructure();
                 }
 
                 // Elevation: there can be folders where even admins

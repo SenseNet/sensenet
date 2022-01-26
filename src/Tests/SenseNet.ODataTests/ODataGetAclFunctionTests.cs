@@ -39,7 +39,7 @@ namespace SenseNet.ODataTests
                     aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
 
                 // ACTION
@@ -120,7 +120,7 @@ namespace SenseNet.ODataTests
                     aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
 
                 // ACTION
@@ -181,7 +181,7 @@ namespace SenseNet.ODataTests
                     aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
 
                 // ACTION
@@ -256,7 +256,7 @@ namespace SenseNet.ODataTests
                     aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 
@@ -334,7 +334,7 @@ namespace SenseNet.ODataTests
                         .RemoveExplicitEntries(contentNode.Id)
                         .Apply();
                     aclEditor
-                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
                 }
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 

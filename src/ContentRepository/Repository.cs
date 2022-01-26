@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository
 
                 var permissions = initialData?.Permissions;
                 if (permissions != null && permissions.Count > 0)
-                    SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+                    SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
                 var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
                 if (indexingEngine.Running)

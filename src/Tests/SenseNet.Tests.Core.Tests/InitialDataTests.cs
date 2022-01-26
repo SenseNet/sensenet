@@ -117,7 +117,7 @@ namespace SenseNet.Tests.Core.Tests
             };
             InitialDataTest(() =>
             {
-                var actions = SecurityHandler.ParseInitialPermissions(
+                var actions = SecurityInstaller.ParseInitialPermissions(
                     Providers.Instance.SecurityHandler.SecurityContext, src).ToArray();
 
                 Assert.AreEqual(3, actions.Length);
@@ -190,7 +190,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsTrue(securityHandler.IsEntityInherited(1000));
 
                 // ACTION
-                SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+                SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
                 // ASSERT
                 // Administrators group has an entry on the Root.

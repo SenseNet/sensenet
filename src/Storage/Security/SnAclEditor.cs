@@ -224,7 +224,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return this;
         }
 
-        internal void Apply(IEnumerable<SecurityHandler.PermissionAction> actions)
+        internal void Apply(IEnumerable<PermissionAction> actions)
         {
             var noCopy = new EntryType[0];
             foreach (var action in actions)
