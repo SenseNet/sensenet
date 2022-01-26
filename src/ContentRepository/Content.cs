@@ -248,7 +248,7 @@ namespace SenseNet.ContentRepository
         {
             get { return _contentHandler; }
         }
-        public SenseNet.ContentRepository.Storage.Security.SecurityHandler Security
+        public SenseNet.ContentRepository.Storage.Security.NodeSecurity Security
         {
             get { return _contentHandler.Security; }
         }

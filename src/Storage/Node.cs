@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public string NodeOperation { get; set; } 
 
-        private SecurityHandler _security;
+        private NodeSecurity _security;
         private LockHandler _lockHandler;
         /// <summary>
         /// Gets true if the current user has only See permission for this <see cref="Node"/>.
@@ -514,12 +514,12 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets the security handler for this <see cref="Node"/>. This is the entry point of all permission-related operations.
         /// </summary>
         /// <value>The security handler.</value>
-        public SecurityHandler Security
+        public NodeSecurity Security
         {
             get
             {
                 if (_security == null)
-                    _security = new SecurityHandler(this);
+                    _security = new NodeSecurity(this, Providers.Instance.SecurityHandler);
                 return _security;
             }
         }
