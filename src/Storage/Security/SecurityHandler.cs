@@ -1334,12 +1334,12 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #region /*========================================================== Permission dependencies */
 
-        private static int[][] _permissionDependencyTable;
-        private static readonly object _dependencyTableLock = new object();
+        private int[][] _permissionDependencyTable;
+        private readonly object _dependencyTableLock = new object();
         /// <summary>
         /// Provides technical data for the user interface (for backward compatibility purposes). Do not use this method in your code.
         /// </summary>
-        public static int[][] PermissionDependencyTable
+        public int[][] PermissionDependencyTable
         {
             get
             {
@@ -1362,7 +1362,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 return _permissionDependencyTable;
             }
         }
-        private static int[] GetPermissionDependencyArray(PermissionType permissionType)
+        private int[] GetPermissionDependencyArray(PermissionType permissionType)
         {
             var permArray = new int[PermissionType.PermissionCount];
 
@@ -1384,13 +1384,13 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns a set that contains all other permission types that will be allowed 
         /// if you allow the passed permission (permission dependencies).
         /// </summary>
-        public static IEnumerable<PermissionTypeBase> GetAllowedPermissions(PermissionType permission)
+        public IEnumerable<PermissionTypeBase> GetAllowedPermissions(PermissionType permission)
         {
             var permissionList = new List<PermissionTypeBase>();
             GetAllowedPermissionsRecursive(permission, permissionList);
             return permissionList;
         }
-        private static void GetAllowedPermissionsRecursive(PermissionTypeBase permission, List<PermissionTypeBase> permissionList)
+        private void GetAllowedPermissionsRecursive(PermissionTypeBase permission, List<PermissionTypeBase> permissionList)
         {
             if (permission == null || permission.Allows == null)
                 return;

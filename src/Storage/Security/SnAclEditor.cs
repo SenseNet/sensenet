@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             var allowedBefore = (allowBits & thisbit) != 0uL;
             var deniedBefore = (denyBits & thisbit) != 0uL;
 
-            var dependencyTable = SecurityHandler.PermissionDependencyTable;
+            var dependencyTable = Providers.Instance.SecurityHandler.PermissionDependencyTable;
             switch (permissionValue)
             {
                 case SenseNet.Security.PermissionValue.Allowed:
