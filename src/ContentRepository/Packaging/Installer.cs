@@ -83,7 +83,8 @@ namespace SenseNet.Packaging
                     {
                         Logger.LogMessage("Installing default security structure...");
                         
-                        SecurityInstaller.InstallDefaultSecurityStructure(RepositoryBuilder.InitialData);
+                        new SecurityInstaller(Providers.Instance.SecurityHandler, Providers.Instance.StorageSchema,
+                            Providers.Instance.DataStore).InstallDefaultSecurityStructure(RepositoryBuilder.InitialData);
                     }
                 }
 

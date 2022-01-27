@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -11,14 +12,25 @@ using SenseNet.Security;
 namespace SenseNet.ContentRepository.Storage.Security
 {
     /// <summary>Contains methods for install scenarios.</summary>
-    public static class SecurityInstaller
+    public class SecurityInstaller
     {
+        private SecurityHandler _securityHandler;
+        private StorageSchema _storageSchema;
+        private IDataStore _dataStore;
+
+        public SecurityInstaller(SecurityHandler securityHandler, StorageSchema storageSchema, IDataStore dataStore)
+        {
+            _securityHandler = securityHandler;
+            _storageSchema = storageSchema;
+            _dataStore = dataStore;
+        }
+
         /// <summary>
         /// Clears the security storage copies ids of the full content tree structure from the repository 
         /// to the security component. Security component must be available.
         /// WARNING! Use only in install scenarios.
         /// </summary>
-        public static void InstallDefaultSecurityStructure(InitialData data = null)
+        public void InstallDefaultSecurityStructure(InitialData data = null)
         {
             using (var op = SnTrace.System.StartOperation("Installing default security structure."))
             {
@@ -26,12 +38,12 @@ namespace SenseNet.ContentRepository.Storage.Security
                 {
                     CreateEntities();
 
-                    var ed = Providers.Instance.SecurityHandler.CreateAclEditor();
+                    var ed = _securityHandler.CreateAclEditor();
                     ed.Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
                         // ReSharper disable once CoVariantArrayConversion
                         PermissionType.BuiltInPermissionTypes);
 
-                    var schema = Providers.Instance.StorageSchema;
+                    var schema = _storageSchema;
                     var memberPropertyType = schema.PropertyTypes["Members"];
                     var userNodeType = schema.NodeTypes["User"];
                     var groupNodeType = schema.NodeTypes["Group"];
@@ -71,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                                     groupMembers.Add(head.Id);
                             }
 
-                            Providers.Instance.SecurityHandler.AddMembers(nodeId, userMembers, groupMembers);
+                            _securityHandler.AddMembers(nodeId, userMembers, groupMembers);
                         }
                     }
 
@@ -84,14 +96,14 @@ namespace SenseNet.ContentRepository.Storage.Security
                 op.Successful = true;
             }
         }
-        private static void CreateEntities()
+        private void CreateEntities()
         {
-            var securityContext = Providers.Instance.SecurityHandler.SecurityContext;
+            var securityContext = _securityHandler.SecurityContext;
 
             securityContext.SecuritySystem.DataProvider.InstallDatabase();
 
-            var entityTreeNodes = Providers.Instance.DataStore
-                .LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var entityTreeNodes = _dataStore.LoadEntityTreeAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             foreach (var entityTreeNode in entityTreeNodes)
                 securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
         }

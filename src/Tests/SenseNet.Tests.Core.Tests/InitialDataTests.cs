@@ -190,7 +190,8 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsTrue(securityHandler.IsEntityInherited(1000));
 
                 // ACTION
-                SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+                new SecurityInstaller(Providers.Instance.SecurityHandler, Providers.Instance.StorageSchema,
+                    Providers.Instance.DataStore).InstallDefaultSecurityStructure(initialData);
 
                 // ASSERT
                 // Administrators group has an entry on the Root.
