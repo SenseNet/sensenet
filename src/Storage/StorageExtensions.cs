@@ -52,7 +52,12 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetMsSqlDataProvider(this IServiceCollection services)
         {
             return services.AddSenseNetDataProvider<MsSqlDataProvider>()
-                .AddSenseNetDataInstaller<MsSqlDataInstaller>();
+                .AddSenseNetDataInstaller<MsSqlDataInstaller>()
+                .AddSingleton<MsSqlDatabaseInstaller>()
+                .Configure<MsSqlDatabaseInstallationParameters>(_ =>
+                {
+                    // this method is for making sure that the option object is registered
+                });
         }
 
         /// <summary>

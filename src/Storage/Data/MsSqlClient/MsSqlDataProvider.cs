@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Diagnostics;
+using SenseNet.Storage.Data.MsSqlClient;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -20,17 +21,25 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
         private DataOptions DataOptions { get; }
+        private readonly MsSqlDatabaseInstallationParameters _dbInstallerOptions;
+        private readonly MsSqlDatabaseInstaller _databaseInstaller;
         private ConnectionStringOptions ConnectionStrings { get; }
         private IDataInstaller DataInstaller { get; }
+        private readonly ILogger _logger;
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
-            IDataInstaller dataInstaller)
+            IOptions<MsSqlDatabaseInstallationParameters> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
+            IDataInstaller dataInstaller,
+            ILogger<MsSqlDataProvider> logger)
         {
             DataInstaller = dataInstaller ?? throw new ArgumentNullException(nameof(dataInstaller));
             DataOptions = dataOptions.Value;
+            _dbInstallerOptions = dbInstallerOptions.Value;
+            _databaseInstaller = databaseInstaller;
             ConnectionStrings = connectionOptions.Value;
+            _logger = logger;
         }
 
         public override SnDataContext CreateDataContext(CancellationToken token)
@@ -305,12 +314,45 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         
         public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
-            SnTrace.System.Write("Executing security schema script.");
+            if (!string.IsNullOrEmpty(_dbInstallerOptions.ExpectedDatabaseName))
+            {
+                _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.ExpectedDatabaseName}.");
+
+                await _databaseInstaller.InstallAsync().ConfigureAwait(false);
+
+                // warmup: we have to wait a short period before the new db becomes usable
+                await Tools.Retrier.RetryAsync(15, 2000, async () =>
+                {
+                    _logger.LogTrace("Trying to connect to the new database...");
+
+                    using var ctx = CreateDataContext(cancellationToken);
+                    await ctx.ExecuteNonQueryAsync("SELECT TOP (1) [Name] FROM sys.tables").ConfigureAwait(false);
+                }, (i, ex) =>
+                {
+                    if (ex == null)
+                    {
+                        _logger.LogTrace("Successfully connected to the newly created database.");
+                        return true;
+                    }
+
+                    // last iteration
+                    if (i == 1)
+                        _logger.LogError($"Could not connect to the database {_dbInstallerOptions.ExpectedDatabaseName} after several retries.");
+
+                    return false;
+                });
+            }
+            else
+            {
+                _logger.LogTrace("Install database name is not configured, moving on to schema installation.");
+            }
+
+            _logger.LogTrace("Executing security schema script.");
             await ExecuteEmbeddedNonQueryScriptAsync(
                     "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
                 .ConfigureAwait(false);
 
-            SnTrace.System.Write("Executing database schema script.");
+            _logger.LogTrace("Executing database schema script.");
             await ExecuteEmbeddedNonQueryScriptAsync(
                     "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
                 .ConfigureAwait(false);

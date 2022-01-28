@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Storage.Data.MsSqlClient;
@@ -13,11 +16,18 @@ namespace SenseNet.IntegrationTests.CustomTests
     {
         private static readonly string LocalServer = "(local)\\SQL2016";
 
+        private static MsSqlDatabaseInstaller CreateInstaller(MsSqlDatabaseInstallationParameters parameters = null)
+        {
+            return new MsSqlDatabaseInstaller(Options.Create(parameters ?? new MsSqlDatabaseInstallationParameters()),
+                NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>());
+        }
+
         [TestMethod]
         public void MsSqlDbInstaller_EmptyArgsIsInvalid()
         {
             var parameters = new MsSqlDatabaseInstallationParameters();
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller(parameters);
+                
             Exception exception = null;
 
             // ACTION
@@ -46,7 +56,7 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = null
             };
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller(parameters);
             Exception exception = null;
 
             // ACTION
@@ -73,7 +83,7 @@ namespace SenseNet.IntegrationTests.CustomTests
                 Server = LocalServer,
                 ExpectedDatabaseName = "DB1"
             };
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller(parameters);
 
             // ACTION
             var connectionString = installer.GetConnectionString(parameters);
@@ -97,7 +107,7 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbCreatorUserName = user,
                 DbCreatorPassword = password
             };
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller(parameters);
 
             // ACTION
             var connectionString = installer.GetConnectionString(parameters);
@@ -113,7 +123,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -123,7 +132,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = "Customer1",
                 DbOwnerPassword = "CustomerPassword1"
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            var installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists("Database1"));
@@ -143,7 +153,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -153,7 +162,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = "Creator1",
                 DbOwnerPassword = "CreatorPassword1"
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            var installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists("Database1"));
@@ -176,7 +186,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -186,7 +195,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = null,
                 DbOwnerPassword = null
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            var installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists("Database1"));
@@ -210,7 +220,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -220,7 +229,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = "Customer1",
                 DbOwnerPassword = "CustomerPassword1"
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            var installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists("Database1"));
@@ -248,7 +258,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsLoginExists(userName));
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -258,7 +267,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = userName,
                 DbOwnerPassword = password
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            var installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists(database));
@@ -283,7 +293,6 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsLoginExists(userName));
 
             // ACTION
-            var installer = new MsSqlDatabaseInstaller();
             var parameters = new MsSqlDatabaseInstallationParameters
             {
                 Server = LocalServer,
@@ -293,10 +302,11 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = userName,
                 DbOwnerPassword = password
             };
+            var installer = CreateInstaller(parameters);
             Exception exception = null;
             try
             {
-                installer.InstallAsync(parameters).GetAwaiter().GetResult();
+                installer.InstallAsync().GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
@@ -321,7 +331,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsLoginExists(userName));
 
             // ACTION 2nd creation is enabled: inner exception 15025 is caught.
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateLoginAsync(userName, password, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
 
@@ -336,7 +346,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             var userName = "Customer1";
             var password = "CustomerPassword1";
             CleanupServer(database, userName);
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateDatabaseAsync(database, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
             Assert.IsTrue(IsDatabaseExists(database));
@@ -351,7 +361,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = userName,
                 DbOwnerPassword = password
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists(database));
@@ -367,7 +378,7 @@ namespace SenseNet.IntegrationTests.CustomTests
         {
             var database = "Database1";
             CleanupServer(database);
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateDatabaseAsync(database, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
             Assert.IsTrue(IsDatabaseExists(database));
@@ -388,7 +399,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             var password = "CustomerPassword1";
             CleanupServer(database, userName);
             EnsureLogin(userName, password);
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateDatabaseAsync(database, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
             installer.CreateUserAsync(userName, GetConnectionStringFor(database)).ConfigureAwait(false).GetAwaiter()
@@ -406,7 +417,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = userName,
                 DbOwnerPassword = password
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists(database));
@@ -426,7 +438,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             var connectionString = GetConnectionStringFor(database);
             CleanupServer(database, userName);
             EnsureLogin(userName, password);
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateDatabaseAsync(database, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
             installer.CreateUserAsync(userName, connectionString).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -449,7 +461,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             CleanupServer(database, userName);
             EnsureLogin(userName, password);
             var connectionString = GetConnectionStringFor(database);
-            var installer = new MsSqlDatabaseInstaller();
+            var installer = CreateInstaller();
             installer.CreateDatabaseAsync(database, SystemConnectionString).ConfigureAwait(false).GetAwaiter()
                 .GetResult();
             installer.CreateUserAsync(userName, connectionString).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -468,7 +480,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 DbOwnerUserName = userName,
                 DbOwnerPassword = password
             };
-            installer.InstallAsync(parameters).GetAwaiter().GetResult();
+            installer = CreateInstaller(parameters);
+            installer.InstallAsync().GetAwaiter().GetResult();
 
             // ASSERT
             Assert.IsTrue(IsDatabaseExists(database));
@@ -501,7 +514,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             Exception exception = null;
             try
             {
-                var installer = new MsSqlDatabaseInstaller();
+                var installer = CreateInstaller();
                 installer.CreateLoginAsync(userName, password, builder.ConnectionString).ConfigureAwait(false)
                     .GetAwaiter().GetResult();
             }
@@ -543,7 +556,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             Exception exception = null;
             try
             {
-                var installer = new MsSqlDatabaseInstaller();
+                var installer = CreateInstaller();
                 installer.CreateDatabaseAsync(database, builder.ConnectionString).ConfigureAwait(false).GetAwaiter()
                     .GetResult();
             }

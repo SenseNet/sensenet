@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.IntegrationTests.Infrastructure
@@ -549,10 +550,14 @@ DELETE FROM StatisticalAggregations
                 Options.Create(new ConnectionStringOptions
             {
                 ConnectionString = connectionString
-            }), new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
+            }), Options.Create(new MsSqlDatabaseInstallationParameters()), 
+                new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationParameters()),
+                    NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
+                new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
             {
                 ConnectionString = connectionString
-            }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()))
+            }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
+                NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>())
             {
                 _connectionString = connectionString;
             }

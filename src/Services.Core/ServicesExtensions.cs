@@ -22,6 +22,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
+using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
@@ -55,6 +56,9 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<RepositoryTypeOptions>(options => {});
+
+            // default MS SQL configuration
+            services.Configure<MsSqlDatabaseInstallationParameters>(configuration.GetSection("sensenet:install:mssql"));
 
             //TODO: remove workaround for legacy connection string configuration
             // and replace it with real configuration load like above.

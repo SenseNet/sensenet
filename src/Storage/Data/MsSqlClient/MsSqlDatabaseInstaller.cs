@@ -3,6 +3,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace SenseNet.Storage.Data.MsSqlClient
 {
@@ -39,34 +41,42 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
     public class MsSqlDatabaseInstaller
     {
+        private readonly ILogger<MsSqlDatabaseInstaller> _logger;
+        private readonly MsSqlDatabaseInstallationParameters _options;
+
+        public MsSqlDatabaseInstaller(IOptions<MsSqlDatabaseInstallationParameters> options, ILogger<MsSqlDatabaseInstaller> logger)
+        {
+            _options = options.Value;
+            _logger = logger;
+        }
         // WARNING: Server authentication mode need to be "SQL Server and Windows Authentication mode".
         //     (see on the Security tab of the Database server properties in the SSMS)
 
-        public async Task InstallAsync(MsSqlDatabaseInstallationParameters parameters)
+        public async Task InstallAsync()
         {
-            ValidateParameters(parameters);
-            var targetConnectionString = GetConnectionString(parameters);
+            ValidateParameters(_options);
+            var targetConnectionString = GetConnectionString(_options);
             var masterConnectionString =
                 new SqlConnectionStringBuilder(targetConnectionString) { InitialCatalog = "master" }.ConnectionString;
-            var isIntegratedCustomer = string.IsNullOrEmpty(parameters.DbOwnerUserName);
+            var isIntegratedCustomer = string.IsNullOrEmpty(_options.DbOwnerUserName);
 
             if (!isIntegratedCustomer)
-                await EnsureCustomerLoginAsync(parameters.DbOwnerUserName, parameters.DbOwnerPassword, masterConnectionString)
+                await EnsureCustomerLoginAsync(_options.DbOwnerUserName, _options.DbOwnerPassword, masterConnectionString)
                     .ConfigureAwait(false);
 
-            await EnsureDatabaseAsync(parameters.ExpectedDatabaseName, masterConnectionString).ConfigureAwait(false);
+            await EnsureDatabaseAsync(_options.ExpectedDatabaseName, masterConnectionString).ConfigureAwait(false);
 
             if (isIntegratedCustomer)
                 return;
 
-            var targetDbOwner = await GetDbOwner(parameters.ExpectedDatabaseName, masterConnectionString);
+            var targetDbOwner = await GetDbOwner(_options.ExpectedDatabaseName, masterConnectionString);
 
-            if (targetDbOwner.Equals(parameters.DbOwnerUserName, StringComparison.OrdinalIgnoreCase))
+            if (targetDbOwner.Equals(_options.DbOwnerUserName, StringComparison.OrdinalIgnoreCase))
                 return;
 
-            await EnsureDatabaseUserAsync(parameters.DbOwnerUserName, targetConnectionString)
+            await EnsureDatabaseUserAsync(_options.DbOwnerUserName, targetConnectionString)
                 .ConfigureAwait(false);
-            await EnsureDbOwnerRoleAsync(parameters.DbOwnerUserName, targetConnectionString)
+            await EnsureDbOwnerRoleAsync(_options.DbOwnerUserName, targetConnectionString)
                 .ConfigureAwait(false);
         }
         public void ValidateParameters(MsSqlDatabaseInstallationParameters parameters)
@@ -98,6 +108,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         private async Task EnsureCustomerLoginAsync(string userName, string password, string connectionString)
         {
+            _logger.LogTrace($"Ensure customer login: {userName}");
+
             var (isExist, isEnabled) = await QueryLoginAsync(userName, connectionString).ConfigureAwait(false);
             if (isExist)
             {
@@ -140,6 +152,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         private async Task EnsureDatabaseAsync(string databaseName, string connectionString)
         {
+            _logger.LogTrace($"Querying database: {databaseName}");
             var isExist = await QueryDatabaseAsync(databaseName, connectionString).ConfigureAwait(false);
             if (!isExist)
                 await CreateDatabaseAsync(databaseName, connectionString).ConfigureAwait(false);
@@ -185,6 +198,8 @@ ALTER DATABASE [{databaseName}] SET  MULTI_USER
 ALTER DATABASE [{databaseName}] SET PAGE_VERIFY CHECKSUM
 ALTER DATABASE [{databaseName}] SET DB_CHAINING OFF";
 
+            _logger.LogTrace($"Creating database: {databaseName}");
+
             try
             {
                 await ExecuteSqlCommandAsync(sql, connectionString);
@@ -200,6 +215,8 @@ ALTER DATABASE [{databaseName}] SET DB_CHAINING OFF";
 
         private async Task EnsureDatabaseUserAsync(string userName, string connectionString)
         {
+            _logger.LogTrace($"Ensure database user: {userName}");
+
             var isExist = await QueryUserAsync(userName, connectionString).ConfigureAwait(false);
             if (!isExist)
                 await CreateUserAsync(userName, connectionString).ConfigureAwait(false);
@@ -245,6 +262,8 @@ ALTER DATABASE [{databaseName}] SET DB_CHAINING OFF";
 
         private async Task EnsureDbOwnerRoleAsync(string userName, string connectionString)
         {
+            _logger.LogTrace($"Ensure db owner role: {userName}");
+
             var isInRole = await QueryDbOwnerRoleAsync(userName, connectionString).ConfigureAwait(false);
             if (!isInRole)
                 await AddDbOwnerRoleAsync(userName, connectionString).ConfigureAwait(false);
