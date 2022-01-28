@@ -47,7 +47,7 @@ namespace SenseNet.IntegrationTests.Platforms
         public override DataProvider GetDataProvider()
         {
             var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
-            var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationParameters());
+            var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
                 dbInstallerOptions,

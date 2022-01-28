@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
         private DataOptions DataOptions { get; }
-        private readonly MsSqlDatabaseInstallationParameters _dbInstallerOptions;
+        private readonly MsSqlDatabaseInstallationOptions _dbInstallerOptions;
         private readonly MsSqlDatabaseInstaller _databaseInstaller;
         private ConnectionStringOptions ConnectionStrings { get; }
         private IDataInstaller DataInstaller { get; }
@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
-            IOptions<MsSqlDatabaseInstallationParameters> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
+            IOptions<MsSqlDatabaseInstallationOptions> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
             IDataInstaller dataInstaller,
             ILogger<MsSqlDataProvider> logger)
         {
@@ -314,9 +314,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         
         public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrEmpty(_dbInstallerOptions.ExpectedDatabaseName))
+            if (!string.IsNullOrEmpty(_dbInstallerOptions.DatabaseName))
             {
-                _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.ExpectedDatabaseName}.");
+                _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.DatabaseName}.");
 
                 await _databaseInstaller.InstallAsync().ConfigureAwait(false);
 
@@ -337,7 +337,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                     // last iteration
                     if (i == 1)
-                        _logger.LogError($"Could not connect to the database {_dbInstallerOptions.ExpectedDatabaseName} after several retries.");
+                        _logger.LogError($"Could not connect to the database {_dbInstallerOptions.DatabaseName} after several retries.");
 
                     return false;
                 });

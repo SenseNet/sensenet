@@ -44,9 +44,9 @@ namespace SenseNet.Packaging.Steps
             var installer = new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>());
             var logger = GetService<ILogger<MsSqlDataProvider>>();
             var loggerForDbInstaller = GetService<ILogger<MsSqlDatabaseInstaller>>();
-            var dbInstallerLogger = GetService<IOptions<MsSqlDatabaseInstallationParameters>>();
+            var dbInstallerOptions = GetService<IOptions<MsSqlDatabaseInstallationOptions>>();
             var dataProvider = new MsSqlDataProvider(dataOptions, connOptions,
-                dbInstallerLogger, new MsSqlDatabaseInstaller(dbInstallerLogger, loggerForDbInstaller),
+                dbInstallerOptions, new MsSqlDatabaseInstaller(dbInstallerOptions, loggerForDbInstaller),
                 installer, logger);            
 
             installer.InstallInitialDataAsync(initialData, dataProvider, CancellationToken.None).GetAwaiter().GetResult();

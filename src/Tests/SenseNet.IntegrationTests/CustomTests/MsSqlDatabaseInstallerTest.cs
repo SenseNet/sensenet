@@ -16,16 +16,16 @@ namespace SenseNet.IntegrationTests.CustomTests
     {
         private static readonly string LocalServer = "(local)\\SQL2016";
 
-        private static MsSqlDatabaseInstaller CreateInstaller(MsSqlDatabaseInstallationParameters parameters = null)
+        private static MsSqlDatabaseInstaller CreateInstaller(MsSqlDatabaseInstallationOptions options = null)
         {
-            return new MsSqlDatabaseInstaller(Options.Create(parameters ?? new MsSqlDatabaseInstallationParameters()),
+            return new MsSqlDatabaseInstaller(Options.Create(options ?? new MsSqlDatabaseInstallationOptions()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>());
         }
 
         [TestMethod]
         public void MsSqlDbInstaller_EmptyArgsIsInvalid()
         {
-            var parameters = new MsSqlDatabaseInstallationParameters();
+            var parameters = new MsSqlDatabaseInstallationOptions();
             var installer = CreateInstaller(parameters);
                 
             Exception exception = null;
@@ -49,10 +49,10 @@ namespace SenseNet.IntegrationTests.CustomTests
         [TestMethod]
         public void MsSqlDbInstaller_CreatorUserWithoutPasswordIsInvalid()
         {
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = "server",
-                ExpectedDatabaseName = "DB1",
+                DatabaseName = "DB1",
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = null
             };
@@ -78,10 +78,10 @@ namespace SenseNet.IntegrationTests.CustomTests
         [TestMethod]
         public void MsSqlDbInstaller_ConnectionString_LocalServerInstance()
         {
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = "DB1"
+                DatabaseName = "DB1"
             };
             var installer = CreateInstaller(parameters);
 
@@ -100,10 +100,10 @@ namespace SenseNet.IntegrationTests.CustomTests
         [DataTestMethod]
         public void MsSqlDbInstaller_ConnectionStrings(string server, string user, string password, string result)
         {
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = server,
-                ExpectedDatabaseName = "DB1",
+                DatabaseName = "DB1",
                 DbCreatorUserName = user,
                 DbCreatorPassword = password
             };
@@ -123,10 +123,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = "Database1",
+                DatabaseName = "Database1",
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = "CreatorPassword1",
                 DbOwnerUserName = "Customer1",
@@ -153,10 +153,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = "Database1",
+                DatabaseName = "Database1",
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = "CreatorPassword1",
                 DbOwnerUserName = "Creator1",
@@ -186,10 +186,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = "Database1",
+                DatabaseName = "Database1",
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = null,
@@ -220,10 +220,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             EnsureCreator("Creator1", "CreatorPassword1");
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = "Database1",
+                DatabaseName = "Database1",
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = "Customer1",
@@ -258,10 +258,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsLoginExists(userName));
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = database,
+                DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = userName,
@@ -293,10 +293,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsLoginExists(userName));
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = database,
+                DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = userName,
@@ -352,10 +352,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsDatabaseExists(database));
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = database,
+                DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = userName,
@@ -408,10 +408,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsDatabaseExists(database));
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = database,
+                DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = userName,
@@ -471,10 +471,10 @@ namespace SenseNet.IntegrationTests.CustomTests
             Assert.IsTrue(IsDbOwner(userName, database));
 
             // ACTION
-            var parameters = new MsSqlDatabaseInstallationParameters
+            var parameters = new MsSqlDatabaseInstallationOptions
             {
                 Server = LocalServer,
-                ExpectedDatabaseName = database,
+                DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
                 DbOwnerUserName = userName,
@@ -719,11 +719,11 @@ WHERE members.name = '{userName}' AND roles.name = 'db_owner'";
             ExecuteCommand(SystemConnectionString, $"ALTER LOGIN {userName} DISABLE");
         }
 
-        private MsSqlDbInstallationStatus GetInstallationStatus(MsSqlDatabaseInstallationParameters parameters)
+        private MsSqlDbInstallationStatus GetInstallationStatus(MsSqlDatabaseInstallationOptions options)
         {
-            var dbCreatorUserName = parameters.DbCreatorUserName == null ? "null" : $"'{parameters.DbCreatorUserName}'";
-            var dbOwnerUserName = parameters.DbOwnerUserName == null ? "null" : $"'{parameters.DbOwnerUserName}'";
-            var sql = @$"declare @database nvarchar(450) set @database = '{parameters.ExpectedDatabaseName}'
+            var dbCreatorUserName = options.DbCreatorUserName == null ? "null" : $"'{options.DbCreatorUserName}'";
+            var dbOwnerUserName = options.DbOwnerUserName == null ? "null" : $"'{options.DbOwnerUserName}'";
+            var sql = @$"declare @database nvarchar(450) set @database = '{options.DatabaseName}'
 declare @creatorLogin nvarchar(450) set @creatorLogin = {dbCreatorUserName} -- should be null if the creator is an integrated user
 declare @customerLogin nvarchar(450) set @customerLogin = {dbOwnerUserName} -- should be null if the customer is an integrated user
 declare @integratedUser nvarchar(450) set @integratedUser = '{Environment.UserDomainName}\{Environment.UserName}' -- should given if the @customerLogin is null
@@ -773,7 +773,7 @@ SELECT @databaseExists databaseExists
 	, CAST(1 - @customerLoginDisabled AS bit) customerLoginEnabled
 ";
             var result = new MsSqlDbInstallationStatus();
-            ExecuteSqlQuery(sql, GetConnectionStringFor(parameters.ExpectedDatabaseName), reader =>
+            ExecuteSqlQuery(sql, GetConnectionStringFor(options.DatabaseName), reader =>
             {
                 result.IsDatabaseExist = reader.GetSafeBooleanFromBoolean("databaseExists");
                 result.DbOwner = reader.GetSafeString("dbOwner");

@@ -54,7 +54,7 @@ namespace SenseNet.Extensions.DependencyInjection
             return services.AddSenseNetDataProvider<MsSqlDataProvider>()
                 .AddSenseNetDataInstaller<MsSqlDataInstaller>()
                 .AddSingleton<MsSqlDatabaseInstaller>()
-                .Configure<MsSqlDatabaseInstallationParameters>(_ =>
+                .Configure<MsSqlDatabaseInstallationOptions>(_ =>
                 {
                     // this method is for making sure that the option object is registered
                 });

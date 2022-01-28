@@ -17,10 +17,10 @@ namespace SenseNet.Storage.Data.MsSqlClient
         protected DbCreationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
-    public class MsSqlDatabaseInstallationParameters
+    public class MsSqlDatabaseInstallationOptions
     {
         public string Server { get; set; }
-        public string ExpectedDatabaseName { get; set; }
+        public string DatabaseName { get; set; }
         public string DbCreatorUserName { get; set; }
         public string DbCreatorPassword { get; set; }
         public string DbOwnerUserName { get; set; }
@@ -42,9 +42,9 @@ namespace SenseNet.Storage.Data.MsSqlClient
     public class MsSqlDatabaseInstaller
     {
         private readonly ILogger<MsSqlDatabaseInstaller> _logger;
-        private readonly MsSqlDatabaseInstallationParameters _options;
+        private readonly MsSqlDatabaseInstallationOptions _options;
 
-        public MsSqlDatabaseInstaller(IOptions<MsSqlDatabaseInstallationParameters> options, ILogger<MsSqlDatabaseInstaller> logger)
+        public MsSqlDatabaseInstaller(IOptions<MsSqlDatabaseInstallationOptions> options, ILogger<MsSqlDatabaseInstaller> logger)
         {
             _options = options.Value;
             _logger = logger;
@@ -64,12 +64,12 @@ namespace SenseNet.Storage.Data.MsSqlClient
                 await EnsureCustomerLoginAsync(_options.DbOwnerUserName, _options.DbOwnerPassword, masterConnectionString)
                     .ConfigureAwait(false);
 
-            await EnsureDatabaseAsync(_options.ExpectedDatabaseName, masterConnectionString).ConfigureAwait(false);
+            await EnsureDatabaseAsync(_options.DatabaseName, masterConnectionString).ConfigureAwait(false);
 
             if (isIntegratedCustomer)
                 return;
 
-            var targetDbOwner = await GetDbOwner(_options.ExpectedDatabaseName, masterConnectionString);
+            var targetDbOwner = await GetDbOwner(_options.DatabaseName, masterConnectionString);
 
             if (targetDbOwner.Equals(_options.DbOwnerUserName, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -79,27 +79,27 @@ namespace SenseNet.Storage.Data.MsSqlClient
             await EnsureDbOwnerRoleAsync(_options.DbOwnerUserName, targetConnectionString)
                 .ConfigureAwait(false);
         }
-        public void ValidateParameters(MsSqlDatabaseInstallationParameters parameters)
+        public void ValidateParameters(MsSqlDatabaseInstallationOptions options)
         {
-            if (string.IsNullOrEmpty(parameters.ExpectedDatabaseName))
+            if (string.IsNullOrEmpty(options.DatabaseName))
                 throw new ArgumentException("ExpectedDatabaseName cannot be null or empty.");
         }
-        public string GetConnectionString(MsSqlDatabaseInstallationParameters parameters)
+        public string GetConnectionString(MsSqlDatabaseInstallationOptions options)
         {
             var builder = new SqlConnectionStringBuilder
             {
-                DataSource = string.IsNullOrEmpty(parameters.Server) ? "(local)" : parameters.Server,
-                InitialCatalog = parameters.ExpectedDatabaseName
+                DataSource = string.IsNullOrEmpty(options.Server) ? "(local)" : options.Server,
+                InitialCatalog = options.DatabaseName
             };
 
-            if (string.IsNullOrEmpty(parameters.DbCreatorUserName))
+            if (string.IsNullOrEmpty(options.DbCreatorUserName))
             {
                 builder.IntegratedSecurity = true;
             }
             else
             {
-                builder.UserID = parameters.DbCreatorUserName;
-                builder.Password = parameters.DbCreatorPassword;
+                builder.UserID = options.DbCreatorUserName;
+                builder.Password = options.DbCreatorPassword;
             }
 
             return builder.ConnectionString;

@@ -550,8 +550,8 @@ DELETE FROM StatisticalAggregations
                 Options.Create(new ConnectionStringOptions
             {
                 ConnectionString = connectionString
-            }), Options.Create(new MsSqlDatabaseInstallationParameters()), 
-                new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationParameters()),
+            }), Options.Create(new MsSqlDatabaseInstallationOptions()), 
+                new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationOptions()),
                     NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
                 new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
             {
