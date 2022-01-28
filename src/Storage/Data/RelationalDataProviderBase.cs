@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -2267,11 +2268,22 @@ SELECT CASE WHEN EXISTS (
 THEN CAST(1 AS BIT)
 ELSE CAST(0 AS BIT) END";
 
-            using (var ctx = CreateDataContext(cancellationToken))
+            using var ctx = CreateDataContext(cancellationToken);
+
+            try
             {
                 // make sure that database tables exist
                 var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
                 return Convert.ToBoolean(result);
+            }
+            catch (SqlException ex)
+            {
+                // Cannot open database requested by the login. The login failed.
+                // This is possibly a sign that the db does not exist yet.
+                if (ex.Number is 4060 or 233)
+                    return false;
+
+                throw;
             }
         }
 
