@@ -13,12 +13,27 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    internal static class DistributedIndexingActivityQueue
+    internal class DistributedIndexingActivityQueue
     {
         internal static int IndexingActivityLoadingBufferSize = 200;
         internal static int IndexingOverloadWaitingTime = 100;
 
-        internal static void HealthCheck()
+        private readonly Serializer _serializer;
+        private readonly TerminationHistory _terminationHistory;
+        private readonly DependencyManager _dependencyManager;
+        private readonly IndexingActivityHistoryController _activityHistory;
+
+        public DistributedIndexingActivityQueue()
+        {
+            _terminationHistory = new TerminationHistory();
+            _activityHistory = new IndexingActivityHistoryController(this);
+            _dependencyManager = new DependencyManager(_terminationHistory, _activityHistory);
+            _serializer = new Serializer(this, _dependencyManager, _terminationHistory, _activityHistory);
+            var executor = new Executor(_dependencyManager, _activityHistory);
+            _dependencyManager.SetDependencies(_serializer, executor);
+        }
+
+        internal void HealthCheck()
         {
             if (IsWorking())
             {
@@ -28,7 +43,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             SnTrace.Index.Write("IAQ: Health check triggered.");
 
-            var state = TerminationHistory.GetCurrentState();
+            var state = _terminationHistory.GetCurrentState();
             var gapsLength = state.Gaps.Length;
             if (gapsLength > 0)
             {
@@ -45,12 +60,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 if (notLoadedIds.Count > 0)
                 {
-                    TerminationHistory.RemoveGaps(notLoadedIds);
+                    _terminationHistory.RemoveGaps(notLoadedIds);
                     SnTrace.IndexQueue.Write("IAQ: Health checker ignores the following activity ids after processing the gaps: {0}", notLoadedIds);
                 }
             }
 
-            var lastId = TerminationHistory.GetLastTerminatedId();
+            var lastId = _terminationHistory.GetLastTerminatedId();
             var lastDbId = IndexManager.GetLastStoredIndexingActivityId();
 
             if (lastId < lastDbId)
@@ -66,7 +81,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        private static void WaitIfOverloaded(bool startProcessing = false)
+        private void WaitIfOverloaded(bool startProcessing = false)
         {
             // We prevent memory overflow by limiting the number of activities that we
             // keep in memory. This method waits for the queue to be able to process
@@ -77,7 +92,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 // In case of startup, we have to start processing activities that are
                 // already in the queue so that new ones can be added later.
                 if (startProcessing)
-                    DependencyManager.ActivityEnqueued();
+                    _dependencyManager.ActivityEnqueued();
 
                 if (logCount++%10 == 1)
                     SnTrace.Index.Write("IAQ OVERLOAD waiting {0} milliseconds.", IndexingOverloadWaitingTime*10);
@@ -86,22 +101,22 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        public static bool IsWorking()
+        public bool IsWorking()
         {
-            return !(Serializer.IsEmpty && DependencyManager.IsEmpty);
+            return !(_serializer.IsEmpty && _dependencyManager.IsEmpty);
         }
 
-        public static bool IsOverloaded()
+        public bool IsOverloaded()
         {
             // The indexing queue is overloaded if either the arrival queue
             // or the waiting set contains too many elements. In the future
             // this algorithm may be changed to a different one based on
             // activity size instead of count.
-            return DependencyManager.WaitingSetLength >= Configuration.Indexing.IndexingActivityQueueMaxLength ||
-                Serializer.QueueLength >= Configuration.Indexing.IndexingActivityQueueMaxLength;
+            return _dependencyManager.WaitingSetLength >= Configuration.Indexing.IndexingActivityQueueMaxLength ||
+                   _serializer.QueueLength >= Configuration.Indexing.IndexingActivityQueueMaxLength;
         }
 
-        public static void Startup(System.IO.TextWriter consoleOut)
+        public void Startup(System.IO.TextWriter consoleOut)
         {
             // initialize from index
             var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -120,52 +135,77 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             IndexHealthMonitor.Start(consoleOut);
         }
-        private static void Startup(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
+        private void Startup(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
         {
-            Serializer.Reset();
-            DependencyManager.Reset();
-            TerminationHistory.Reset(lastExecutedId, gaps);
-            Serializer.Start(lastDatabaseId, lastExecutedId, gaps, consoleOut);
-            IndexingActivityHistory.Reset();
+            _serializer.Reset();
+            _dependencyManager.Reset();
+            _terminationHistory.Reset(lastExecutedId, gaps);
+            _serializer.Start(lastDatabaseId, lastExecutedId, gaps, consoleOut);
+            _activityHistory.Reset();
         }
 
-        public static void ShutDown()
+        public void ShutDown()
         {
             SnTrace.IndexQueue.Write("Shutting down IndexingActivityQueue.");
-            Serializer.ShutDown();
+            _serializer.ShutDown();
             IndexHealthMonitor.ShutDown();
         }
 
-        public static IndexingActivityStatus GetCurrentCompletionState()
+        public IndexingActivityStatus GetCurrentCompletionState()
         {
-            return TerminationHistory.GetCurrentState();
+            return _terminationHistory.GetCurrentState();
         }
-        public static IndexingActivityQueueState GetCurrentState()
+        public IndexingActivityQueueState GetCurrentState()
         {
             return new IndexingActivityQueueState
             {
-                Serializer = Serializer.GetCurrentState(),
-                DependencyManager = DependencyManager.GetCurrentState(),
-                Termination = TerminationHistory.GetCurrentState()
+                Serializer = _serializer.GetCurrentState(),
+                DependencyManager = _dependencyManager.GetCurrentState(),
+                Termination = _terminationHistory.GetCurrentState()
             };
         }
-
-        public static void ExecuteActivity(IndexingActivityBase activity)
+        public IndexingActivityHistory GetIndexingActivityHistory()
         {
-            Serializer.EnqueueActivity(activity);
+            return _activityHistory.GetHistory();
+        }
+        public IndexingActivityHistory ResetIndexingActivityHistory()
+        {
+            return _activityHistory.Reset();
+        }
+
+
+        public void ExecuteActivity(IndexingActivityBase activity)
+        {
+            _serializer.EnqueueActivity(activity);
         }
 
         /// <summary>Only for tests</summary>
-        internal static void _setCurrentExecutionState(IndexingActivityStatus state)
+        internal void _setCurrentExecutionState(IndexingActivityStatus state)
         {
-            Serializer.Reset(state.LastActivityId);
-            DependencyManager.Reset();
-            TerminationHistory.Reset(state.LastActivityId, state.Gaps);
+            _serializer.Reset(state.LastActivityId);
+            _dependencyManager.Reset();
+            _terminationHistory.Reset(state.LastActivityId, state.Gaps);
         }
 
-        private static class Serializer
+        internal class Serializer
         {
-            internal static void Reset(int lastQueued = 0)
+            private readonly DependencyManager _dependencyManager;
+            private readonly TerminationHistory _terminationHistory;
+            private readonly DistributedIndexingActivityQueue _activityQueue;
+            private readonly IndexingActivityHistoryController _activityHistory;
+
+            internal Serializer(DistributedIndexingActivityQueue activityQueue,
+                DependencyManager dependencyManager,
+                TerminationHistory terminationHistory,
+                IndexingActivityHistoryController activityHistory)
+            {
+                _activityQueue = activityQueue;
+                _dependencyManager = dependencyManager;
+                _terminationHistory = terminationHistory;
+                _activityHistory = activityHistory;
+            }
+
+            internal void Reset(int lastQueued = 0)
             {
                 lock (ArrivalQueueLock)
                 {
@@ -184,7 +224,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             /// MUST BE SYNCHRON
             /// GAPS MUST BE ORDERED
             /// </summary>
-            internal static void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
+            internal void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
             {
                 consoleOut?.WriteLine("Executing unprocessed activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
@@ -198,7 +238,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     });
 
                 IndexingActivityBase.NotIndexableContentCollection.Clear();
-                DependencyManager.Start();
+                _dependencyManager.Start();
 
                 var count = 0;
                 if (gaps.Any())
@@ -208,11 +248,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         var loadedActivity = (IndexingActivityBase) indexingActivity;
                         // wait and start processing loaded activities in the meantime
-                        WaitIfOverloaded(true);
+                        _activityQueue.WaitIfOverloaded(true);
 
                         SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
 
-                        IndexingActivityHistory.Arrive(loadedActivity);
+                        _activityHistory.Arrive(loadedActivity);
                         ArrivalQueue.Enqueue(loadedActivity);
                         _lastQueued = loadedActivity.Id;
                         count++;
@@ -225,11 +265,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         var loadedActivity = (IndexingActivityBase) indexingActivity;
                         // wait and start processing loaded activities in the meantime
-                        WaitIfOverloaded(true);
+                        _activityQueue.WaitIfOverloaded(true);
 
                         SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
 
-                        IndexingActivityHistory.Arrive(loadedActivity);
+                        _activityHistory.Arrive(loadedActivity);
                         ArrivalQueue.Enqueue(loadedActivity);
                         _lastQueued = loadedActivity.Id;
                         count++;
@@ -239,11 +279,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (_lastQueued < lastExecutedId)
                     _lastQueued = lastExecutedId;
 
-                // ensure that the arrival activity queue is not empty at this pont.
-                DependencyManager.ActivityEnqueued();
+                // ensure that the arrival activity queue is not empty at this point.
+                _dependencyManager.ActivityEnqueued();
 
                 if (lastDatabaseId != 0 || lastExecutedId != 0 || gaps.Any())
-                    while (IsWorking())
+                    while (_activityQueue.IsWorking())
                         Thread.Sleep(200);
 
                 if (IndexingActivityBase.NotIndexableContentCollection.Any())
@@ -272,7 +312,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 // in the db) we have to remove these ids manually from the in-memory gap.
                 if (gaps.Any())
                 {
-                    TerminationHistory.RemoveGaps(gaps);
+                    _terminationHistory.RemoveGaps(gaps);
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
@@ -283,26 +323,26 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             // ReSharper disable once MemberHidesStaticFromOuterClass
-            internal static void ShutDown()
+            internal void ShutDown()
             {
                 Reset(int.MaxValue);
-                DependencyManager.ShutDown();
+                _dependencyManager.ShutDown();
             }
 
-            internal static bool IsEmpty => ArrivalQueue.Count == 0;
+            internal bool IsEmpty => ArrivalQueue.Count == 0;
 
-            internal static int QueueLength => ArrivalQueue.Count;
+            internal int QueueLength => ArrivalQueue.Count;
 
-            private static readonly object ArrivalQueueLock = new object();
-            private static int _lastQueued;
-            private static readonly Queue<IndexingActivityBase> ArrivalQueue = new Queue<IndexingActivityBase>();
+            private readonly object ArrivalQueueLock = new object();
+            private int _lastQueued;
+            private readonly Queue<IndexingActivityBase> ArrivalQueue = new Queue<IndexingActivityBase>();
 
-            public static void EnqueueActivity(IndexingActivityBase activity)
+            public void EnqueueActivity(IndexingActivityBase activity)
             {
 
                 SnTrace.IndexQueue.Write("IAQ: A{0} arrived{1}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
 
-                IndexingActivityHistory.Arrive(activity);
+                _activityHistory.Arrive(activity);
 
                 lock (ArrivalQueueLock)
                 {
@@ -317,7 +357,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                             return;
                         }
-                        DependencyManager.AttachOrFinish(activity);
+                        _dependencyManager.AttachOrFinish(activity);
                         return;
                     }
 
@@ -344,13 +384,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         foreach (var indexingActivity in loadedActivities)
                         {
                             var loadedActivity = (IndexingActivityBase) indexingActivity;
-                            IndexingActivityHistory.Arrive(loadedActivity);
+                            _activityHistory.Arrive(loadedActivity);
                             ArrivalQueue.Enqueue(loadedActivity);
                             _lastQueued = loadedActivity.Id;
 
                             SnTrace.IndexQueue.Write("IAQ: A{0} enqueued from db.", loadedActivity.Id);
 
-                            DependencyManager.ActivityEnqueued();
+                            _dependencyManager.ActivityEnqueued();
                         }
                     }
                     ArrivalQueue.Enqueue(activity);
@@ -358,10 +398,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     SnTrace.IndexQueue.Write("IAQ: A{0} enqueued.", activity.Id);
 
-                    DependencyManager.ActivityEnqueued();
+                    _dependencyManager.ActivityEnqueued();
                 }
             }
-            public static IndexingActivityBase DequeueActivity()
+            public IndexingActivityBase DequeueActivity()
             {
                 lock (ArrivalQueueLock)
                 {
@@ -375,7 +415,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            private static IEnumerable<IIndexingActivity> LoadActivities(int from, int to)
+            private IEnumerable<IIndexingActivity> LoadActivities(int from, int to)
             {
                 SnTrace.IndexQueue.Write("IAQ: Loading activities {0} - {1}", from, to);
 
@@ -383,7 +423,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             // ReSharper disable once MemberHidesStaticFromOuterClass
-            internal static IndexingActivitySerializerState GetCurrentState()
+            internal IndexingActivitySerializerState GetCurrentState()
             {
                 lock (ArrivalQueueLock)
                     return new IndexingActivitySerializerState
@@ -394,9 +434,26 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        private static class DependencyManager
+        internal class DependencyManager
         {
-            internal static void Reset()
+            private readonly TerminationHistory _terminationHistory;
+            private readonly IndexingActivityHistoryController _activityHistory;
+            private Serializer _serializer;
+            private Executor _executor;
+
+            internal DependencyManager(TerminationHistory terminationHistory, IndexingActivityHistoryController activityHistory)
+            {
+                _terminationHistory = terminationHistory;
+                _activityHistory = activityHistory;
+            }
+            internal void SetDependencies(Serializer serializer, Executor executor)
+            {
+                _serializer = serializer;
+                _executor = executor;
+            }
+
+
+            internal void Reset()
             {
                 // Before call ensure that the arrival queue is empty.
                 lock (WaitingSetLock)
@@ -409,25 +466,25 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     WaitingSet.Clear();
                 }
             }
-            internal static void Start()
+            internal void Start()
             {
                 lock (WaitingSetLock)
                     WaitingSet.Clear();
             }
             // ReSharper disable once MemberHidesStaticFromOuterClass
-            internal static void ShutDown()
+            internal void ShutDown()
             {
                 Reset();
             }
-            internal static bool IsEmpty => WaitingSet.Count == 0;
+            internal bool IsEmpty => WaitingSet.Count == 0;
 
-            internal static int WaitingSetLength => WaitingSet.Count;
+            internal int WaitingSetLength => WaitingSet.Count;
 
-            private static readonly object WaitingSetLock = new object();
-            private static readonly List<IndexingActivityBase> WaitingSet = new List<IndexingActivityBase>();
+            private readonly object WaitingSetLock = new object();
+            private readonly List<IndexingActivityBase> WaitingSet = new List<IndexingActivityBase>();
 
-            private static bool _run;
-            public static void ActivityEnqueued()
+            private bool _run;
+            public void ActivityEnqueued()
             {
                 if (_run)
                     return;
@@ -436,11 +493,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 System.Threading.Tasks.Task.Run(() => ProcessActivities());
             }
 
-            private static void ProcessActivities()
+            private void ProcessActivities()
             {
                 while (true)
                 {
-                    var newerActivity = Serializer.DequeueActivity();
+                    var newerActivity = _serializer.DequeueActivity();
                     if (newerActivity == null)
                     {
                         _run = false;
@@ -449,7 +506,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     MakeDependencies(newerActivity);
                 }
             }
-            private static void MakeDependencies(IndexingActivityBase newerActivity)
+            private void MakeDependencies(IndexingActivityBase newerActivity)
             {
                 lock (WaitingSetLock)
                 {
@@ -461,17 +518,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                             SnTrace.IndexQueue.Write("IAQ: A{0} depends from A{1}", newerActivity.Id, olderActivity.Id);
 
-                            IndexingActivityHistory.Wait(newerActivity);
+                            _activityHistory.Wait(newerActivity);
                         }
                     }
 
                     WaitingSet.Add(newerActivity);
 
                     if (newerActivity.WaitingFor.Count == 0)
-                        System.Threading.Tasks.Task.Run(() => Executor.Execute(newerActivity));
+                        System.Threading.Tasks.Task.Run(() => _executor.Execute(newerActivity));
                 }
             }
-            private static bool MustWait(IndexingActivityBase newerActivity, IndexingActivityBase olderActivity)
+            private bool MustWait(IndexingActivityBase newerActivity, IndexingActivityBase olderActivity)
             {
                 Debug.Assert(olderActivity.Id != newerActivity.Id);
 
@@ -491,7 +548,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return newerActivity is TreeIndexingActivity && olderActivity.IsInTree(newerActivity);
             }
 
-            internal static void Finish(IndexingActivityBase activity)
+            internal void Finish(IndexingActivityBase activity)
             {
                 lock (WaitingSetLock)
                 {
@@ -502,22 +559,22 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     activity.Finish();
 
                     // register activity termination in the log.
-                    IndexingActivityHistory.Finish(activity.Id);
+                    _activityHistory.Finish(activity.Id);
 
                     // register activity termination if the activity was not skipped.
                     if(activity.Executed)
-                        TerminationHistory.FinishActivity(activity);
+                        _terminationHistory.FinishActivity(activity);
 
                     // execute all activities that are completely freed.
                     foreach (var dependentItem in activity.WaitingForMe.ToArray())
                     {
                         dependentItem.FinishWaiting(activity);
                         if (dependentItem.WaitingFor.Count == 0)
-                            System.Threading.Tasks.Task.Run(() => Executor.Execute(dependentItem));
+                            System.Threading.Tasks.Task.Run(() => _executor.Execute(dependentItem));
                     }
                 }
             }
-            internal static void AttachOrFinish(IndexingActivityBase activity)
+            internal void AttachOrFinish(IndexingActivityBase activity)
             {
                 lock (WaitingSetLock)
                 {
@@ -532,27 +589,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
                 }
                 activity.Finish(); // release blocked thread
-                IndexingActivityHistory.Finish(activity.Id);
+                _activityHistory.Finish(activity.Id);
 
                 SnTrace.IndexQueue.Write("IAQ: A{0} ignored: finished but not executed.", activity.Id);
 
             }
 
             // ReSharper disable once MemberHidesStaticFromOuterClass
-            public static IndexingActivityDependencyState GetCurrentState()
+            public IndexingActivityDependencyState GetCurrentState()
             {
                 lock (WaitingSetLock)
                     return new IndexingActivityDependencyState { WaitingSet = WaitingSet.Select(x => x.Id).ToArray() };
             }    
         }
 
-        private static class TerminationHistory
+        internal class TerminationHistory
         {
-            private static readonly object GapsLock = new object();
-            private static int _lastId;
-            private static readonly List<int> Gaps = new List<int>();
+            private readonly object GapsLock = new object();
+            private int _lastId;
+            private readonly List<int> Gaps = new List<int>();
 
-            internal static void Reset(int lastId, IEnumerable<int> gaps)
+            internal void Reset(int lastId, IEnumerable<int> gaps)
             {
                 lock (GapsLock)
                 {
@@ -562,7 +619,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            internal static void FinishActivity(IndexingActivityBase activity)
+            internal void FinishActivity(IndexingActivityBase activity)
             {
                 var id = activity.Id;
                 lock (GapsLock)
@@ -582,32 +639,41 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            internal static void RemoveGaps(IEnumerable<int> gaps)
+            internal void RemoveGaps(IEnumerable<int> gaps)
             {
                 lock (GapsLock)
                 {
                     Gaps.RemoveAll(gaps.Contains);
                 }
             }
-            public static int GetLastTerminatedId()
+            public int GetLastTerminatedId()
             {
                 return _lastId;
             }
             // ReSharper disable once MemberHidesStaticFromOuterClass
-            public static IndexingActivityStatus GetCurrentState()
+            public IndexingActivityStatus GetCurrentState()
             {
                 lock (GapsLock)
                     return new IndexingActivityStatus { LastActivityId = _lastId, Gaps = Gaps.ToArray() };
             }
         }
 
-        private static class Executor
+        internal class Executor
         {
-            public static void Execute(IndexingActivityBase activity)
+            private readonly DependencyManager _dependencyManager;
+            private readonly IndexingActivityHistoryController _activityHistory;
+
+            public Executor(DependencyManager dependencyManager, IndexingActivityHistoryController activityHistory)
+            {
+                _dependencyManager = dependencyManager;
+                _activityHistory = activityHistory;
+            }
+
+            public void Execute(IndexingActivityBase activity)
             {
                 using (var op = SnTrace.Index.StartOperation("IAQ: A{0} EXECUTION.", activity.Id))
                 {
-                    IndexingActivityHistory.Start(activity.Id);
+                    _activityHistory.Start(activity.Id);
                     try
                     {
                         using (new Storage.Security.SystemAccount())
@@ -617,11 +683,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         SnLog.WriteException(e, $"Indexing activity execution error. Activity: #{activity.Id} ({activity.ActivityType})");
                         SnTrace.Index.WriteError("IAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
-                        IndexingActivityHistory.Error(activity.Id, e);
+                        _activityHistory.Error(activity.Id, e);
                     }
                     finally
                     {
-                        DependencyManager.Finish(activity);
+                        _dependencyManager.Finish(activity);
                         IndexManager.ActivityFinished(activity.Id);
                     }
                     op.Successful = true;
@@ -629,7 +695,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        private class IndexingActivityLoader : IEnumerable<IIndexingActivity>
+        internal class IndexingActivityLoader : IEnumerable<IIndexingActivity>
         {
             private readonly bool _gapLoader;
 
@@ -925,15 +991,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public TimeSpan FullTime => FinishedAt - ArrivedAt;
     }
+
     /// <summary>
     /// Defines a data class that provides information about the short history of the indexing activity execution in the population of the local index.
     /// </summary>
     public class IndexingActivityHistory
     {
+        private int _unfinished;
+
         /// <summary>
         /// Gets or sets the state of the indexing activity organizer.
         /// </summary>
-        public IndexingActivityQueueState State { get; private set; }
+        public IndexingActivityQueueState State { get; internal set; }
         /// <summary>
         /// Gets a message that occurs when there are one or more unfinished history item.
         /// This is happens tipically in case of the webserver's heavy load.
@@ -946,9 +1015,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Gets the last relevant items in the history.
         /// </summary>
-        public IndexingActivityHistoryItem[] Recent { get; private set; }
+        public IndexingActivityHistoryItem[] Recent { get; internal set; }
 
-        private IndexingActivityHistory() { }
+        internal IndexingActivityHistory(int unfinished)
+        {
+            _unfinished = unfinished;
+        }
 
         internal string GetJson()
         {
@@ -971,27 +1043,36 @@ namespace SenseNet.ContentRepository.Search.Indexing
             })
             .Serialize(writer, this);
         }
+    }
+    internal class IndexingActivityHistoryController
+    {
+        private readonly DistributedIndexingActivityQueue _activityQueue;
+
+        public IndexingActivityHistoryController(DistributedIndexingActivityQueue activityQueue)
+        {
+            _activityQueue = activityQueue;
+        }
 
         /// <summary>
         /// Generates a history from the recent items.
         /// </summary>
         /// <returns></returns>
-        public static IndexingActivityHistory GetHistory()
+        public IndexingActivityHistory GetHistory()
         {
             IndexingActivityHistory result;
-            var list = new List<IndexingActivityHistoryItem>(History.Length);
+            var list = new List<IndexingActivityHistoryItem>(_history.Length);
             lock (Lock)
             {
-                for (int i = _position; i < History.Length; i++)
-                    if (History[i] != null)
-                        list.Add(History[i]);
+                for (int i = _position; i < _history.Length; i++)
+                    if (_history[i] != null)
+                        list.Add(_history[i]);
                 for (int i = 0; i < _position; i++)
-                    if (History[i] != null)
-                        list.Add(History[i]);
+                    if (_history[i] != null)
+                        list.Add(_history[i]);
 
-                result = new IndexingActivityHistory()
+                result = new IndexingActivityHistory(_unfinished)
                 {
-                    State = DistributedIndexingActivityQueue.GetCurrentState(),
+                    State = _activityQueue.GetCurrentState(),
                     Recent = list.ToArray()
                 };
             }
@@ -1000,43 +1081,43 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Resets the history and returns with the starting state.
         /// </summary>
-        public static IndexingActivityHistory Reset()
+        public IndexingActivityHistory Reset()
         {
             IndexingActivityHistory result;
             lock (Lock)
             {
-                for (int i = 0; i < History.Length; i++)
-                    History[i] = null;
+                for (int i = 0; i < _history.Length; i++)
+                    _history[i] = null;
 
                 _position = 0;
                 _unfinished = 0;
 
-                result = new IndexingActivityHistory()
+                result = new IndexingActivityHistory(0)
                 {
-                    State = DistributedIndexingActivityQueue.GetCurrentState(),
+                    State = _activityQueue.GetCurrentState(),
                     Recent = new IndexingActivityHistoryItem[0]
                 };
             }
             return result;
         }
 
-        private static readonly object Lock = new object();
+        private readonly object Lock = new object();
         private const int HistoryLength = 1023;
-        private static readonly IndexingActivityHistoryItem[] History = new IndexingActivityHistoryItem[HistoryLength];
-        private static int _position;
-        private static int _unfinished;
+        private readonly IndexingActivityHistoryItem[] _history = new IndexingActivityHistoryItem[HistoryLength];
+        private int _position;
+        private int _unfinished;
 
-        internal static void Arrive(IndexingActivityBase activity)
+        internal void Arrive(IndexingActivityBase activity)
         {
             lock (Lock)
             {
                 // avoiding duplication
-                foreach (var item in History)
+                foreach (var item in _history)
                     if (item != null && item.Id == activity.Id)
                         return;
 
-                var retired = History[_position];
-                History[_position] = new IndexingActivityHistoryItem
+                var retired = _history[_position];
+                _history[_position] = new IndexingActivityHistoryItem
                 {
                     Id = activity.Id,
                     TypeName = activity.ActivityType.ToString(),
@@ -1057,11 +1138,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _position = 0;
             }
         }
-        internal static void Wait(IndexingActivityBase activity)
+        internal void Wait(IndexingActivityBase activity)
         {
             lock (Lock)
             {
-                foreach (var item in History)
+                foreach (var item in _history)
                 {
                     if (item != null && item.Id == activity.Id)
                     {
@@ -1071,11 +1152,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
         }
-        internal static void Start(int activityId)
+        internal void Start(int activityId)
         {
             lock (Lock)
             {
-                foreach (var item in History)
+                foreach (var item in _history)
                 {
                     if (item != null && item.Id == activityId)
                     {
@@ -1086,11 +1167,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 SnTrace.IndexQueue.Write("IAQ: A{0} DOES NOT FOUND IN HISTORY. Cannot start.", activityId);
             }
         }
-        internal static void Finish(int activityId)
+        internal void Finish(int activityId)
         {
             lock (Lock)
             {
-                foreach (var item in History)
+                foreach (var item in _history)
                 {
                     if (item != null && item.Id == activityId)
                     {
@@ -1101,11 +1182,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             SnTrace.IndexQueue.Write("IAQ: A{0} DOES NOT FOUND IN HISTORY. Cannot stop.", activityId);
         }
-        internal static void Error(int activityId, Exception e)
+        internal void Error(int activityId, Exception e)
         {
             lock (Lock)
             {
-                foreach (var item in History)
+                foreach (var item in _history)
                 {
                     if (item != null && item.Id == activityId)
                     {

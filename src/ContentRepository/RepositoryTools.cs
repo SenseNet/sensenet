@@ -29,6 +29,8 @@ namespace SenseNet.ContentRepository
 {
     public static class RepositoryTools
     {
+        private static DistributedIndexingActivityQueue DistributedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
+
         //TODO: [async] move this method to the Tools package
         // Remove the original CombineCancellationToken method from the Common project as well.
         internal static CancellationToken AddTimeout(this CancellationToken cancellationToken, TimeSpan timeout)
@@ -938,7 +940,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
-            return IndexingActivityHistory.GetHistory();
+            return DistributedIndexingActivityQueue.GetIndexingActivityHistory();
         }
 
         /// <summary>
@@ -978,7 +980,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
-            return IndexingActivityHistory.Reset();
+            return DistributedIndexingActivityQueue.ResetIndexingActivityHistory();
         }
 
         /// <summary>

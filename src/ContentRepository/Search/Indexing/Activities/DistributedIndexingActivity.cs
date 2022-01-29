@@ -16,6 +16,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
+        private DistributedIndexingActivityQueue DistributedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
+
         /// <summary>
         /// Executes the activity's main action.
         /// </summary>
