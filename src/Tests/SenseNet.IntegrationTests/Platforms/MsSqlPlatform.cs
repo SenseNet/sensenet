@@ -47,8 +47,13 @@ namespace SenseNet.IntegrationTests.Platforms
         public override DataProvider GetDataProvider()
         {
             var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
-            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions, 
-                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()));
+            var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
+
+            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
+                dbInstallerOptions,
+                new MsSqlDatabaseInstaller(dbInstallerOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
+                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
+                NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
         public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
         {

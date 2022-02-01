@@ -6,7 +6,9 @@ using System.Reflection;
 using System.IO;
 using System.Configuration;
 using System.Xml;
+using SenseNet.ContentRepository;
 using SenseNet.Tools;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -14,8 +16,17 @@ namespace SenseNet.Packaging.Steps
     public abstract class Step
     {
         public enum PathRelativeTo { Package, TargetDirectory }
+        private ExecutionContext _executionContext;
         
         internal static Dictionary<string, Type> StepTypes { get; }
+
+        protected T GetService<T>() where T: class
+        {
+            if (_executionContext?.RepositoryStartSettings is RepositoryBuilder builder)
+                return builder.Services?.GetService<T>();
+
+            return default;
+        }
 
         static Step()
         {
@@ -69,6 +80,8 @@ namespace SenseNet.Packaging.Steps
 
             var step = (Step)Activator.CreateInstance(stepType);
             step.StepId = stepId;
+            step._executionContext = executionContext;
+
             foreach (var item in parameters)
             {
                 if(item.Key.StartsWith("namespace-", StringComparison.OrdinalIgnoreCase))

@@ -138,11 +138,12 @@ namespace SenseNet.Configuration
         /// </summary>
         public void InitializeDataProvider(IServiceProvider provider)
         {
-            if (DataProvider == null)
-                DataProvider = provider?.GetRequiredService<DataProvider>();
+            DataProvider ??= provider?.GetRequiredService<DataProvider>();
 
             if (DataStore == null)
                 InitializeDataStore(provider);
+
+            InitializeTreeLock(provider);
         }
 
         /// <summary>
@@ -156,7 +157,13 @@ namespace SenseNet.Configuration
 
             DataStore = new DataStore(DataProvider, 
                 provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>());
-            TreeLock = new TreeLockController(DataStore,
+            
+            InitializeTreeLock(provider);
+        }
+
+        private void InitializeTreeLock(IServiceProvider provider = null)
+        {
+            TreeLock ??= new TreeLockController(DataStore,
                 provider?.GetService<ILogger<TreeLock>>() ?? NullLoggerFactory.Instance.CreateLogger<TreeLock>());
         }
 

@@ -68,7 +68,6 @@ namespace SenseNet.Packaging
             
             if (!dbExists)
             {
-                Logger.LogMessage("Installing database...");
                 var timer = Stopwatch.StartNew();
 
                 Providers.Instance.DataStore

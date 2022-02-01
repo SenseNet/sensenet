@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Storage.Data.MsSqlClient;
 
 // ReSharper disable CheckNamespace
 
@@ -41,7 +42,12 @@ namespace SenseNet.Packaging.Steps
             });
             
             var installer = new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>());
-            var dataProvider = new MsSqlDataProvider(dataOptions, connOptions, installer);            
+            var logger = GetService<ILogger<MsSqlDataProvider>>();
+            var loggerForDbInstaller = GetService<ILogger<MsSqlDatabaseInstaller>>();
+            var dbInstallerOptions = GetService<IOptions<MsSqlDatabaseInstallationOptions>>();
+            var dataProvider = new MsSqlDataProvider(dataOptions, connOptions,
+                dbInstallerOptions, new MsSqlDatabaseInstaller(dbInstallerOptions, loggerForDbInstaller),
+                installer, logger);            
 
             installer.InstallInitialDataAsync(initialData, dataProvider, CancellationToken.None).GetAwaiter().GetResult();
         }
