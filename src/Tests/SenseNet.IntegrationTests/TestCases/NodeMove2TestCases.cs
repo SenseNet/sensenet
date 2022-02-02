@@ -35,7 +35,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(testRoot.Id, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
@@ -43,7 +43,9 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 IUser originalUser = AccessProvider.Current.GetCurrentUser();
                 IUser visitor = Node.LoadNode(Identifiers.VisitorUserId) as IUser;
-                SecurityHandler.CreateAclEditor().Allow(testRoot.Id, visitor.Id, false, PermissionType.Save, PermissionType.Delete).Apply();
+                Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(testRoot.Id, visitor.Id, false, PermissionType.Save, PermissionType.Delete)
+                    .Apply();
 
                 EnsureNode(testRoot, "Source/N1");
                 EnsureNode(testRoot, "Source/N2");
@@ -91,7 +93,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Apply();
 
@@ -116,7 +118,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Apply();
 
@@ -168,7 +170,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
                 Node targetNode = LoadNode(testRoot, "TargetFolder");
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(sourceNode.Id, visitor.Id, false, PermissionType.OpenMinor, PermissionType.Delete)
                     .Allow(targetNode.Id, visitor.Id, false, PermissionType.AddNew)
                     .Apply();
@@ -195,7 +197,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
                 Node targetNode = LoadNode(testRoot, "TargetFolder");
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(sourceNode.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
@@ -228,7 +230,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
                 Node targetNode = LoadNode(testRoot, "TargetFolder");
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,
                         PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)

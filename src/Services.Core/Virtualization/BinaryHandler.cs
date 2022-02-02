@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
@@ -222,7 +223,7 @@ namespace SenseNet.Services.Core.Virtualization
 
             // cache header (public or private) depends on whether the content is available for anyone
             var accessibleForVisitor = SystemAccount.Execute(() =>
-                SecurityHandler.HasPermission(User.Visitor, RequestedNodeHead.Id, PermissionType.Open));
+                Providers.Instance.SecurityHandler.HasPermission(User.Visitor, RequestedNodeHead.Id, PermissionType.Open));
             
             // set MaxAge by type or extension or a global value as a fallback
             headerTools.SetCacheControlHeaders(cacheSetting.Value,
@@ -246,7 +247,7 @@ namespace SenseNet.Services.Core.Virtualization
 
             using (new SystemAccount())
             {
-                var hasOpen = SecurityHandler.HasPermission(User.LoggedInUser, RequestedNodeHead.Id, 
+                var hasOpen = Providers.Instance.SecurityHandler.HasPermission(User.LoggedInUser, RequestedNodeHead.Id, 
                     PermissionType.Open);
                 if (hasOpen)
                     return true;

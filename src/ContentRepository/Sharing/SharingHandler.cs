@@ -417,6 +417,8 @@ namespace SenseNet.ContentRepository.Sharing
         }
         
         /* ================================================================================== Permissions */
+        
+        private SecurityHandler SecurityHandler => Providers.Instance.SecurityHandler;
 
         private void SetPermissions(SharingData sharingData)
         {
@@ -465,7 +467,7 @@ namespace SenseNet.ContentRepository.Sharing
 
             var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
 
-            SecurityHandler.SecurityContext.CreateSnAclEditor(EntryType.Sharing)
+            Providers.Instance.SecurityHandler.SecurityContext.CreateSnAclEditor(EntryType.Sharing)
                 .Reset(nodeId, identityId, false, ulong.MaxValue, 0ul)
                 .Set(nodeId, identityId, false, mask, 0ul)
                 .Apply();

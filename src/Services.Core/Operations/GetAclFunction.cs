@@ -135,7 +135,7 @@ namespace SenseNet.Services.Core.Operations
                 return null;
 
             var id = NodeHead.Get(path).Id;
-            return SecurityHandler.HasPermission(User.Current, id, PermissionType.See)
+            return Providers.Instance.SecurityHandler.HasPermission(User.Current, id, PermissionType.See)
                 ? path: "Somewhere";
         }
     }

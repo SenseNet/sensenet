@@ -507,7 +507,7 @@ namespace SenseNet.ContentRepository.Tests
                 // deny permissions for the Settings CTD
                 var settingsCtd = Node.LoadNode("/Root/System/Schema/ContentTypes/GenericContent/File/Settings");
 
-                SecurityHandler.SecurityContext.CreateAclEditor()
+                Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Deny(settingsCtd.Id, user.Id, false, PermissionType.See)
                     .Apply();
 

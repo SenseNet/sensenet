@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.Security;
+using SCSS = SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security
 {
@@ -18,48 +16,48 @@ namespace SenseNet.ContentRepository.Security
         public static IEnumerable<Content> GetRelatedIdentities(Content content, PermissionLevel level, IdentityKind identityKind)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind).Select(n => Content.Create(n));
+            return SCSS.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind).Select(Content.Create);
         }
         public static IDictionary<PermissionType, int> GetRelatedPermissions(Content content, PermissionLevel level, bool explicitOnly, ISecurityMember member, IEnumerable<string> includedTypes)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetRelatedPermissions(content.Id, level, explicitOnly, member.Id, includedTypes);
+            return SCSS.PermissionQuery.GetRelatedPermissions(content.Id, level, explicitOnly, member.Id, includedTypes);
         }
         public static IDictionary<PermissionType, int> GetExplicitPermissionsInSubtree(Content content, int[] identities, bool includeRoot)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetExplicitPermissionsInSubtree(content.Id, identities, includeRoot);
+            return SCSS.PermissionQuery.GetExplicitPermissionsInSubtree(content.Id, identities, includeRoot);
         }
         public static IEnumerable<Content> GetRelatedItems(Content content, PermissionLevel level, bool explicitOnly, ISecurityMember member, IEnumerable<PermissionType> permissions)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetRelatedNodes(content.Id, level, explicitOnly, member.Id, permissions).Select(n => Content.Create(n));
+            return SCSS.PermissionQuery.GetRelatedNodes(content.Id, level, explicitOnly, member.Id, permissions).Select(Content.Create);
         }
 
         public static IEnumerable<Content> GetRelatedIdentities(Content content, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionType> permissions)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind, permissions).Select(n => Content.Create(n));
+            return SCSS.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind, permissions).Select(Content.Create);
         }
         public static IEnumerable<Content> GetRelatedItemsOneLevel(Content content, PermissionLevel level, ISecurityMember member, IEnumerable<PermissionType> permissions)
         {
             content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery.GetRelatedNodesOneLevel(content.Id, level, member.Id, permissions).Select(n => Content.Create(n));
+            return SCSS.PermissionQuery.GetRelatedNodesOneLevel(content.Id, level, member.Id, permissions).Select(Content.Create);
 
         }
 
         public static IEnumerable<Content> GetAllowedUsers(Content content, IEnumerable<PermissionType> permissions)
         {
             content.ContentHandler.Security.Assert(PermissionType.SeePermissions);
-            return SecurityHandler.PermissionQuery
+            return SCSS.PermissionQuery
                 .GetAllowedUsers(content.Id, permissions)
                 .Where(n => n is User)
-                .Select(n => Content.Create(n));
+                .Select(Content.Create);
         }
 
         public static IEnumerable<Content> GetParentGroups(Content content, bool directOnly)
         {
-            return SecurityHandler.PermissionQuery.GetParentGroups(content.Id, directOnly).Select(n => Content.Create(n));
+            return SCSS.PermissionQuery.GetParentGroups(content.Id, directOnly).Select(Content.Create);
         }
     }
     public static class PermissionQueryForRest
@@ -313,7 +311,8 @@ namespace SenseNet.ContentRepository.Security
                 throw new ArgumentException("Identity must be an existing user.");
 
             // collect all groups for the user
-            var groups = Node.LoadNodes(SecurityHandler.GetGroupsWithOwnership(content.Id, user)).Select(n => Content.Create(n)).ToArray();
+            var groups = Node.LoadNodes(Providers.Instance.SecurityHandler
+                .GetGroupsWithOwnership(content.Id, user)).Select(n => Content.Create(n)).ToArray();
             var identityInfo = new IdentityInfo
             {
                 Path = user.Path,

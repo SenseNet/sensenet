@@ -260,6 +260,8 @@ namespace SenseNet.Configuration
 
         public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
         public virtual IMessageProvider SecurityMessageProvider { get; set; }
+
+        public SecurityHandler SecurityHandler { get; set; } = new SecurityHandler();
         
         #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
         private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 

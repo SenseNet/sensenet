@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Sharing
@@ -60,7 +61,7 @@ namespace SenseNet.ContentRepository.Sharing
             if (identity == 0)
                 return identity;
 
-            return SecurityHandler.HasPermission(identity, PermissionType.Open)
+            return Providers.Instance.SecurityHandler.HasPermission(identity, PermissionType.Open)
                 ? identity
                 : Configuration.Identifiers.SomebodyUserId;
         }

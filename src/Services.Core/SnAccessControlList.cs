@@ -124,7 +124,7 @@ namespace SenseNet.Services
 
         public static SnAccessControlList GetAcl(int nodeId)
         {
-            var ctx = SecurityHandler.SecurityContext;
+            var ctx = Providers.Instance.SecurityHandler.SecurityContext;
             ctx.AssertPermission(nodeId, PermissionType.SeePermissions);
             var acl = ctx.GetAcl(nodeId);
             return SnAccessControlList.CreateFromAccessControlList(acl);
@@ -135,7 +135,8 @@ namespace SenseNet.Services
             node.Security.Assert(PermissionType.SetPermissions);
 
             // no need to fire permission changed events here, because Acl apply does that below
-            ApplyAclModifications(SecurityHandler.CreateAclEditor(), node.Security.GetAcl(), acl.ConvertToAccessControlList());
+            ApplyAclModifications(Providers.Instance.SecurityHandler.CreateAclEditor(),
+                node.Security.GetAcl(), acl.ConvertToAccessControlList());
         }
         internal static void ApplyAclModifications(SnAclEditor ed, AccessControlList origAcl, AccessControlList acl)
         {

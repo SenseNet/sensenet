@@ -5,6 +5,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Diagnostics;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -305,7 +306,7 @@ namespace SenseNet.ContentRepository.Storage
 
             int count = 0;
             foreach (var head in new NodeHeadResolver(RawData))
-                if (SecurityHandler.HasPermission(head, PermissionType.See))
+                if (Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                     count++;
             return count;
         }

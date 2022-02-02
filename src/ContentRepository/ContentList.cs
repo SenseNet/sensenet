@@ -469,7 +469,7 @@ namespace SenseNet.ContentRepository
         public override void Save(NodeSaveSettings settings)
         {
             if (this.IsNew)
-                SecurityHandler.Assert(this.ParentId, PermissionType.ManageListsAndWorkspaces);
+                Providers.Instance.SecurityHandler.Assert(this.ParentId, PermissionType.ManageListsAndWorkspaces);
             else
                 this.Security.Assert(PermissionType.ManageListsAndWorkspaces);
 

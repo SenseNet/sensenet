@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -93,7 +94,7 @@ namespace SenseNet.Packaging.Steps
             {
                 var path = (string) context.ResolveVariable(Path);
                 var content = Content.Load(path);
-                var aclEditor = SecurityHandler.CreateAclEditor();
+                var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                 if (content == null)
                 {
                     Logger.LogWarningMessage("Content not found: " + path);
@@ -146,6 +147,7 @@ namespace SenseNet.Packaging.Steps
             context.AssertRepositoryStarted();
 
             CheckParameters();
+            var security = Providers.Instance.SecurityHandler;
 
             using (new SystemAccount())
             {
@@ -164,11 +166,11 @@ namespace SenseNet.Packaging.Steps
                     return;
                 }
 
-                var aclEditor = SecurityHandler.CreateAclEditor();
+                var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                 var permissionBitMmask = new PermissionBitMask
                 {
-                    AllowBits = SecurityHandler.GetPermissionMask(GetPermissionTypes(Allow)),
-                    DenyBits = SecurityHandler.GetPermissionMask(GetPermissionTypes(Deny))
+                    AllowBits = security.GetPermissionMask(GetPermissionTypes(Allow)),
+                    DenyBits = security.GetPermissionMask(GetPermissionTypes(Deny))
                 };
 
                 ChangePermissions(content.Id, identity.Id, aclEditor, permissionBitMmask);
@@ -225,7 +227,7 @@ namespace SenseNet.Packaging.Steps
         {
             if (!string.IsNullOrEmpty(Clear))
             {
-                var clearBits = SecurityHandler.GetPermissionMask(GetPermissionTypes(Clear));
+                var clearBits = Providers.Instance.SecurityHandler.GetPermissionMask(GetPermissionTypes(Clear));
                 aclEditor.Reset(contentId, identityId, LocalOnly,
                     new PermissionBitMask { AllowBits = clearBits, DenyBits = clearBits });
             }

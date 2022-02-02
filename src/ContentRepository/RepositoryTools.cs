@@ -412,7 +412,7 @@ namespace SenseNet.ContentRepository
                 .Where(x =>
                 {
                     var head = NodeHead.Get(x);
-                    return head != null && SecurityHandler.HasPermission(
+                    return head != null && Providers.Instance.SecurityHandler.HasPermission(
                                User.Current, head.Id, PermissionType.See);
                 })
                 .ToArray();
@@ -518,8 +518,8 @@ namespace SenseNet.ContentRepository
             var visitorId = User.Visitor.Id;
             var everyoneId = Group.Everyone.Id;
             var except = exceptList.Select(p => p.ToLower()).ToList();
-            var ctx = SecurityHandler.SecurityContext;
-            var aclEd = SecurityHandler.CreateAclEditor(ctx);
+            var ctx = Providers.Instance.SecurityHandler.SecurityContext;
+            var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor(ctx);
             foreach (var path in MissingExplicitEntriesOfVisitorComparedToEveryone(root))
             {
                 if (!except.Contains(path.ToLower()))
@@ -739,7 +739,7 @@ namespace SenseNet.ContentRepository
                     throw new ArgumentException("The parameter cannot be recognized as a path or an Id: " + userOrGroup);
             }
 
-            if (SecurityHandler.HasPermission(content.Id, PermissionType.TakeOwnership))
+            if (Providers.Instance.SecurityHandler.HasPermission(content.Id, PermissionType.TakeOwnership))
             {
                 if (target == null)
                 {
@@ -882,7 +882,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static SenseNet.Security.Messaging.SecurityActivityHistory GetRecentSecurityActivities(Content content)
         {
-            return SecurityHandler.SecurityContext.GetRecentActivities();
+            return Providers.Instance.SecurityHandler.SecurityContext.GetRecentActivities();
         }
 
         /// <summary>
@@ -1085,7 +1085,7 @@ namespace SenseNet.ContentRepository
             var result = new SecurityConsistencyResult();
             result.StartTimer();
 
-            var secCachedEntities = SecurityHandler.GetCachedEntities();
+            var secCachedEntities = Providers.Instance.SecurityHandler.GetCachedEntities();
 
             CheckSecurityEntityConsistency(contentIds, secCachedEntities, result);
             CheckMembershipConsistency(groupIds, result);
@@ -1097,7 +1097,8 @@ namespace SenseNet.ContentRepository
         }
         private static void CheckSecurityEntityConsistency(IEnumerable<int> contentIds, IDictionary<int, SecurityEntity> secCachedEntities, SecurityConsistencyResult result)
         {
-            var secDbEntities = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.LoadSecurityEntities().ToList(); // convert to list, because we will modify this collection
+            var secDbEntities = Providers.Instance.SecurityHandler
+                .SecurityContext.SecuritySystem.DataProvider.LoadSecurityEntities().ToList(); // convert to list, because we will modify this collection
             var foundEntities = new List<StoredSecurityEntity>();
 
             foreach (var contentId in contentIds)
@@ -1144,8 +1145,10 @@ namespace SenseNet.ContentRepository
         }
         private static void CheckMembershipConsistency(IEnumerable<int> groupIds, SecurityConsistencyResult result)
         {
-            var secuCache = SecurityHandler.SecurityContext.GetCachedMembershipForConsistencyCheck();
-            var secuDb = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.GetMembershipForConsistencyCheck();
+            var secuCache = Providers.Instance.SecurityHandler
+                .SecurityContext.GetCachedMembershipForConsistencyCheck();
+            var secuDb = Providers.Instance.SecurityHandler
+                .SecurityContext.SecuritySystem.DataProvider.GetMembershipForConsistencyCheck();
 
             var repo = new List<long>();
             foreach (var head in groupIds.Select(NodeHead.Get).Where(h => h != null))
@@ -1184,7 +1187,8 @@ namespace SenseNet.ContentRepository
             // ---------------------------------------------------------
 
             IEnumerable<long> missingInFlattening, unknownInFlattening;
-            SecurityHandler.SecurityContext.GetFlatteningForConsistencyCheck(out missingInFlattening, out unknownInFlattening);
+            Providers.Instance.SecurityHandler.SecurityContext
+                .GetFlatteningForConsistencyCheck(out missingInFlattening, out unknownInFlattening);
 
             foreach (var relation in missingInFlattening)
                 result.AddMissingRelationFromFlattenedUsers(unchecked((int)(relation >> 32)), unchecked((int)(relation & 0xFFFFFFFF)));
@@ -1237,7 +1241,8 @@ namespace SenseNet.ContentRepository
         {
             // Checks whether every ACE in the security db is valid for the repository: EntityId and IdentityId are 
             // exist as SecurityEntity.
-            var storedAces = SecurityHandler.SecurityContext.SecuritySystem.DataProvider.LoadAllPermissionEntries();
+            var storedAces = Providers.Instance.SecurityHandler.SecurityContext
+                .SecuritySystem.DataProvider.LoadAllPermissionEntries();
             foreach (var storedAce in storedAces)
             {
                 if (!secCachedEntities.ContainsKey(storedAce.EntityId))

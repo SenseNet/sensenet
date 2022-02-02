@@ -1106,7 +1106,7 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         //============ Orig user creates a file
                         testFile = CreateTestFile();
-                        SecurityHandler.CreateAclEditor()
+                        Providers.Instance.SecurityHandler.CreateAclEditor()
                             .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
                             .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
                             .Apply();
@@ -1176,7 +1176,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 //============ Orig user creates a file
                 testFile = CreateTestFile();
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
                     .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
                     .Apply();
@@ -1220,7 +1220,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.AddNew,
                                                                                    PermissionType.RecallOldVersion)
                     .Apply();

@@ -286,8 +286,8 @@ namespace SenseNet.ApplicationModel
                 return true;
 
             var perms = GetRequiredPermissions(app);
-            return perms.All(permType => SecurityHandler.HasPermission(contextHead, permType) &&
-                (!app.DeepPermissionCheck || SecurityHandler.HasSubTreePermission(contextHead, permType)));
+            return perms.All(permType => Providers.Instance.SecurityHandler.HasPermission(contextHead, permType) &&
+                                         (!app.DeepPermissionCheck || Providers.Instance.SecurityHandler.HasSubTreePermission(contextHead, permType)));
         }
 
         public static IEnumerable<PermissionType> GetRequiredPermissions(Application app)

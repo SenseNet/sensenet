@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private IEventDistributor EventDistributor => Providers.Instance.EventDistributor;
 
         internal SnAclEditor(SnSecurityContext context, EntryType entryType = EntryType.Normal)
-            : base(context ?? SecurityHandler.SecurityContext, entryType) { }
+            : base(context ?? Providers.Instance.SecurityHandler.SecurityContext, entryType) { }
 
         private new static SenseNet.Security.AclEditor Create(SenseNet.Security.SecurityContext context, EntryType entryType = EntryType.Normal)
         {
@@ -224,7 +224,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return this;
         }
 
-        internal void Apply(IEnumerable<SecurityHandler.PermissionAction> actions)
+        internal void Apply(IEnumerable<PermissionAction> actions)
         {
             var noCopy = new EntryType[0];
             foreach (var action in actions)
@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             var allowedBefore = (allowBits & thisbit) != 0uL;
             var deniedBefore = (denyBits & thisbit) != 0uL;
 
-            var dependencyTable = SecurityHandler.PermissionDependencyTable;
+            var dependencyTable = Providers.Instance.SecurityHandler.PermissionDependencyTable;
             switch (permissionValue)
             {
                 case SenseNet.Security.PermissionValue.Allowed:

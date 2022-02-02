@@ -1678,7 +1678,7 @@ namespace SenseNet.ODataTests
                     using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
                         false, PermissionType.See))
                     {
-                        Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, NodeHead.Get("/Root/IMS"), PermissionType.See));
+                        Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(User.Visitor, NodeHead.Get("/Root/IMS"), PermissionType.See));
                         // TEST-5: Visitor is allowed by both policy and the content.
                         RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Visitor, 200);
                     }
@@ -2791,7 +2791,7 @@ namespace SenseNet.ODataTests
                         return folder;
                     }).ToArray();
 
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .Allow(nodes[1].Id, user.Id, false, PermissionType.See)
                         .Allow(nodes[2].Id, user.Id, false, PermissionType.Open)
                         .Allow(nodes[3].Id, user.Id, false, PermissionType.Save)

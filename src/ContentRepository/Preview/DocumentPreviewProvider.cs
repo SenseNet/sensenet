@@ -616,21 +616,22 @@ namespace SenseNet.Preview
             // Here we assume that permissions are not broken on previews! This means the current user
             // has the same permissions (e.g. OpenMinor) on the preview image as on the document (if this 
             // is a false assumption, than we need to load the document itself and check OpenMinor on it).
-            return SecurityHandler.HasPermission(previewHead, PermissionType.OpenMinor);
+            return Providers.Instance.SecurityHandler.HasPermission(previewHead, PermissionType.OpenMinor);
         }
 
         public virtual RestrictionType GetRestrictionType(NodeHead nodeHead)
         {
+            var securityHandler = Providers.Instance.SecurityHandler;
             // if the lowest preview permission is not granted, the user has no access to the preview image
-            if (nodeHead == null || !SecurityHandler.HasPermission(nodeHead, PermissionType.Preview))
+            if (nodeHead == null || !securityHandler.HasPermission(nodeHead, PermissionType.Preview))
                 return RestrictionType.NoAccess;
 
             // has Open permission: means no restriction
-            if (SecurityHandler.HasPermission(nodeHead, PermissionType.Open))
+            if (securityHandler.HasPermission(nodeHead, PermissionType.Open))
                 return RestrictionType.NoRestriction;
 
-            var seeWithoutRedaction = SecurityHandler.HasPermission(nodeHead, PermissionType.PreviewWithoutRedaction);
-            var seeWithoutWatermark = SecurityHandler.HasPermission(nodeHead, PermissionType.PreviewWithoutWatermark);
+            var seeWithoutRedaction = securityHandler.HasPermission(nodeHead, PermissionType.PreviewWithoutRedaction);
+            var seeWithoutWatermark = securityHandler.HasPermission(nodeHead, PermissionType.PreviewWithoutWatermark);
 
             // both restrictions should be applied
             if (!seeWithoutRedaction && !seeWithoutWatermark)

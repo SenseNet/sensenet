@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -206,7 +207,7 @@ namespace SenseNet.WebHooks
                 return true;
             try
             {
-                return SecurityHandler.HasPermission(User.Current, contentId.Value, PermissionType.Open);
+                return Providers.Instance.SecurityHandler.HasPermission(User.Current, contentId.Value, PermissionType.Open);
             }
             catch (EntityNotFoundException)
             {

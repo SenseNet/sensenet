@@ -562,14 +562,6 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
 
-        /***************** General context for built in system user ***************/
-
-        private static SnSecurityContext _generalContext;
-        internal static SnSecurityContext General
-        {
-            get { return _generalContext; }
-        }
-
         /***************** Debug info ***************/
 
         /// <summary>

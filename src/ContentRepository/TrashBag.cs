@@ -225,7 +225,7 @@ namespace SenseNet.ContentRepository
                 // Add Delete permission for the owner to let them remove it later and also
                 // AddNew permission to let the move operation below actually move
                 // the content into the TrashBag.
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(bag.Id, node.OwnerId, false, PermissionType.Delete, PermissionType.AddNew)
                     .Allow(bag.Id, currentUserId, true, PermissionType.Delete, PermissionType.AddNew)
                     .Apply();
@@ -266,19 +266,21 @@ namespace SenseNet.ContentRepository
                 return;
 
             // copy permissions from the source content, without reseting the permission system
-            SecurityHandler.CopyPermissionsFrom(source.Id, target.Id, CopyPermissionMode.BreakAndClear);
+            Providers.Instance.SecurityHandler.CopyPermissionsFrom(source.Id, target.Id, CopyPermissionMode.BreakAndClear);
 
             // If there were any permission settings for the Creators group on the source content, we 
             // need to place an explicite entry with the same permissions onto the target for the creator 
             // user, as the creator of the trashbag (the user who deletes the content) may be different 
             // than the creator of the original document.
-            var aces = SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Normal);
+            var aces = Providers.Instance.SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Normal);
             foreach (var ace in aces)
-                SecurityHandler.CreateAclEditor().Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
+                Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
 
-            aces = SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Sharing);
+            aces = Providers.Instance.SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Sharing);
             foreach (var ace in aces)
-                SnAclEditor.Create(SecurityHandler.SecurityContext, EntryType.Sharing).Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
+                SnAclEditor.Create(Providers.Instance.SecurityHandler.SecurityContext, EntryType.Sharing)
+                    .Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
         }
 
 

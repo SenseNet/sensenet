@@ -537,13 +537,13 @@ namespace SenseNet.ODataTests
                 _localOnly = localOnly;
                 _permissions = permissions;
 
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(entityId, identityId, localOnly, permissions)
                     .Apply();
             }
             public void Dispose()
             {
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .ClearPermission(_entityId, _identityId, _localOnly, _permissions)
                     .Apply();
             }

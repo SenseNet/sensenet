@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -13,7 +14,7 @@ namespace SenseNet.OData
     {
         public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario, object state)
         {
-            var actualRoles =  NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
+            var actualRoles =  NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
             var inspector = OperationInspector.Instance;
             var stored = storedActions.ToArray();
 

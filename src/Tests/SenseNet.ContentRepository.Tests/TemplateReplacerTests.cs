@@ -246,7 +246,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             using (new SystemAccount())
             {
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     // ReSharper disable once CoVariantArrayConversion
                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
                    .Apply();

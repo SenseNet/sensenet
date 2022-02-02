@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -94,7 +95,7 @@ namespace SenseNet.Search.Querying
 
             if (_allVersions)
             {
-                var canAccesOldVersions = SecurityHandler.HasPermission(nodeId, PermissionType.RecallOldVersion);
+                var canAccesOldVersions = Providers.Instance.SecurityHandler.HasPermission(nodeId, PermissionType.RecallOldVersion);
                 switch (docLevel)
                 {
                     case DocumentOpenLevel.See:
@@ -141,7 +142,7 @@ namespace SenseNet.Search.Querying
             List<int> identities;
             try
             {
-                identities = SecurityHandler.GetIdentitiesByMembership(_user, nodeId);
+                identities = Providers.Instance.SecurityHandler.GetIdentitiesByMembership(_user, nodeId);
             }
             catch (EntityNotFoundException)
             {
@@ -152,7 +153,7 @@ namespace SenseNet.Search.Querying
             try
             {
                 using (new SystemAccount())
-                    entries = SecurityHandler.GetEffectiveEntries(nodeId);
+                    entries = Providers.Instance.SecurityHandler.GetEffectiveEntries(nodeId);
             }
             catch (Exception ex) // LOGGED
             {
