@@ -70,7 +70,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.AddDocument, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(1, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -137,7 +137,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.UpdateDocument, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(2, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -209,7 +209,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.RemoveTree, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(3, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -285,7 +285,7 @@ namespace SenseNet.Tests.Core.Tests
 
                 //return new Tuple<Node[], IndexingActivityHistory, InMemoryIndex>(nodes,
                 //    IndexingActivityHistory.GetHistory(), GetTestIndex());
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 var index = GetTestIndex();
 
 
@@ -413,7 +413,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsTrue(indexDoc.IndexDocument.GetStringValue(IndexFieldName.AllText).Contains(additionalText));
 
                 // check executed activities
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(2, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -470,7 +470,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(activities);
                 Assert.AreEqual(0, activities.Length);
 
-                var historyItems = IndexingActivityHistory.GetHistory().Recent;
+                var historyItems = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory().Recent;
                 Assert.AreEqual(0, historyItems.Length);
 
                 var nodeCountInIndex = index.GetTermCount(IndexFieldName.NodeId);

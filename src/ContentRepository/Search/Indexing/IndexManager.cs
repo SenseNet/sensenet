@@ -23,8 +23,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private static IDataStore DataStore => Providers.Instance.DataStore;
 
-        private static DistributedIndexingActivityQueue DistributedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
-        private static CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
+        internal static DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; } =
+            new DistributedIndexingActivityQueue();
+        private static CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; } =
+            new CentralizedIndexingActivityQueue();
 
         #region /* ==================================================================== Managing index */
 

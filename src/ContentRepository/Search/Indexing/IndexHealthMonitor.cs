@@ -6,7 +6,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
     internal static class IndexHealthMonitor
     {
         private static System.Timers.Timer _timer;
-        private static DistributedIndexingActivityQueue DistributedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
 
         internal static void Start(System.IO.TextWriter consoleOut)
         {
@@ -46,7 +45,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 _timer.Enabled = false;
                 try
                 {
-                    DistributedIndexingActivityQueue.HealthCheck();
+                    IndexManager.DistributedIndexingActivityQueue.HealthCheck();
                 }
                 catch (Exception ex) // logged
                 {

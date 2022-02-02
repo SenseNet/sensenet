@@ -16,8 +16,6 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
-        private DistributedIndexingActivityQueue DistributedIndexingActivityQueue => null; //UNDONE:<?xx access to a shared instance
-
         /// <summary>
         /// Executes the activity's main action.
         /// </summary>
@@ -37,7 +35,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 {
                     // We can drop activities here because the queue will load these from the database
                     // anyway when it processed all the previous activities.
-                    if (DistributedIndexingActivityQueue.IsOverloaded())
+                    if (IndexManager.DistributedIndexingActivityQueue.IsOverloaded())
                     {
                         SnTrace.Index.Write("IAQ OVERLOAD drop activity FromReceiver A:" + indexingActivity.Id);
                         return;
@@ -45,7 +43,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
                     indexingActivity.FromReceiver = true;
 
-                    DistributedIndexingActivityQueue.ExecuteActivity(indexingActivity);
+                    IndexManager.DistributedIndexingActivityQueue.ExecuteActivity(indexingActivity);
                 }
                 else
                 {
@@ -122,7 +120,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 catch (OperationCanceledException)
                 {
                     var message = indexingActivity != null
-                        ? $"IndexingActivity is timed out. Id: {indexingActivity.Id}, Type: {indexingActivity.ActivityType}. Max task id and exceptions: {DistributedIndexingActivityQueue.GetCurrentCompletionState()}"
+                        ? $"IndexingActivity is timed out. Id: {indexingActivity.Id}, Type: {indexingActivity.ActivityType}. " +
+                          $"Max task id and exceptions: {IndexManager.DistributedIndexingActivityQueue.GetCurrentCompletionState()}"
                         : "Activity is not finishing on a timely manner";
 
                     throw new ApplicationException(message);
