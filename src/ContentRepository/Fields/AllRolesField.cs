@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -20,7 +21,7 @@ namespace SenseNet.ContentRepository.Fields
         public override object GetData()
         {
             // this method will load only containers that the current user has permissions for
-            return Node.LoadNodes(SecurityHandler.SecurityContext
+            return Node.LoadNodes(Providers.Instance.SecurityHandler.SecurityContext
                 .GetParentGroups(this.Content.Id, false)).ToArray();
         }
     }

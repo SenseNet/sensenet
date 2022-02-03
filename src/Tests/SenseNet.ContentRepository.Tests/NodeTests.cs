@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
@@ -115,7 +116,7 @@ namespace SenseNet.ContentRepository.Tests
                 };
                 group.Save();
 
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(u3.Id, u1.Id, false, PermissionType.See)
                     .Allow(u4.Id, u1.Id, false, PermissionType.See)
                     .Allow(group.Id, u1.Id, false, PermissionType.Save)
@@ -163,7 +164,7 @@ namespace SenseNet.ContentRepository.Tests
                 var link = new ContentLink(root) { Name = "Link1", Link = target0 };
                 link.Save();
 
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(target1.Id, u1.Id, false, PermissionType.See)
                     .Allow(link.Id, u1.Id, false, PermissionType.Save)
                     .Apply();

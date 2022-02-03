@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -109,7 +110,7 @@ namespace SenseNet.Services.Core
 
         internal static Dictionary<string, object>[] GetOverviewAce(Content content, User user)
         {
-            var relatedIdentities = SecurityHandler.GetGroupsWithOwnership(content.Id, user).ToList();
+            var relatedIdentities = Providers.Instance.SecurityHandler.GetGroupsWithOwnership(content.Id, user).ToList();
             relatedIdentities.Add(user.Id);
 
             var acl = SnAccessControlList.GetAcl(content.Id);

@@ -138,11 +138,12 @@ namespace SenseNet.Configuration
         /// </summary>
         public void InitializeDataProvider(IServiceProvider provider)
         {
-            if (DataProvider == null)
-                DataProvider = provider?.GetRequiredService<DataProvider>();
+            DataProvider ??= provider?.GetRequiredService<DataProvider>();
 
             if (DataStore == null)
                 InitializeDataStore(provider);
+
+            InitializeTreeLock(provider);
         }
 
         /// <summary>
@@ -156,7 +157,13 @@ namespace SenseNet.Configuration
 
             DataStore = new DataStore(DataProvider, 
                 provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>());
-            TreeLock = new TreeLockController(DataStore,
+            
+            InitializeTreeLock(provider);
+        }
+
+        private void InitializeTreeLock(IServiceProvider provider = null)
+        {
+            TreeLock ??= new TreeLockController(DataStore,
                 provider?.GetService<ILogger<TreeLock>>() ?? NullLoggerFactory.Instance.CreateLogger<TreeLock>());
         }
 
@@ -253,6 +260,8 @@ namespace SenseNet.Configuration
 
         public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
         public virtual IMessageProvider SecurityMessageProvider { get; set; }
+
+        public SecurityHandler SecurityHandler { get; set; } = new SecurityHandler();
         
         #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
         private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 

@@ -229,7 +229,7 @@ namespace SenseNet.ODataTests
             {
                 var systemFolderCtdId = ContentType.GetByName("SystemFolder").Id;
                 var user = CreateUser("xy@email.com");
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(2, user.Id, false, PermissionType.PermissionTypes)
                     .Allow(systemFolderCtdId, user.Id, false, PermissionType.See)
                     .Apply();

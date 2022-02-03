@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task InstallDatabaseAsync(InitialData initialData, CancellationToken cancellationToken)
         {
-            _logger.LogTrace($"Installing database schema.");
+            _logger.LogTrace($"Installing database.");
 
             await DataProvider.InstallDatabaseAsync(cancellationToken).ConfigureAwait(false);
             await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null),

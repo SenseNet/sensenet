@@ -403,7 +403,8 @@ namespace SenseNet.Packaging.Steps
                 if (resetSecurity)
                 {
                     Log(ImportLogLevel.Info, "Installing default security structure");
-                    SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure();
+                    new SecurityInstaller(Providers.Instance.SecurityHandler, Providers.Instance.StorageSchema,
+                        Providers.Instance.DataStore).InstallDefaultSecurityStructure();
                 }
 
                 // Elevation: there can be folders where even admins
@@ -603,11 +604,11 @@ namespace SenseNet.Packaging.Steps
                     var users = orgUnit.Children.Where(c => c is User).Select(u => u.Id).ToArray();
                     var groups = orgUnit.Children.Where(c => c is Group || c is OrganizationalUnit).Select(g => g.Id).ToArray();
 
-                    SecurityHandler.AddMembers(orgUnit.Id, users, groups);
+                    Providers.Instance.SecurityHandler.AddMembers(orgUnit.Id, users, groups);
                 }
 
                 // Created for several operations
-                var aclEd = SecurityHandler.CreateAclEditor();
+                var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
 
                 // Allow all permissions on Root to the built-in admin group
                 aclEd.Allow(RootContentId, AdministratorGroupNodeId, false, PermissionType.BuiltInPermissionTypes);

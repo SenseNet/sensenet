@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -280,7 +281,7 @@ namespace SenseNet.Services.Wopi
                 var identities = new List<int> { user.Id };
 
                 // get all groups of the user, including Owners if necessary
-                identities.AddRange(SecurityHandler.GetGroupsWithOwnership(file.Id, user));
+                identities.AddRange(Providers.Instance.SecurityHandler.GetGroupsWithOwnership(file.Id, user));
 
                 var allowBits = 0UL;
                 var denyBits = 0UL;

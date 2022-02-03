@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // give Visitor only Open permission, not Delete
                     // (workaround: add permissions for Visitor to the user content and to the Trash to make this test work)
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .Allow(file.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
                         .Allow(TrashBin.Instance.Id, Identifiers.VisitorUserId, false, PermissionType.Open)
                         .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.Open)
@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // give Visitor Delete permission to the file, but not AddNew
                     // (workaround: add permissions for Visitor to the user content and to the Trash to make this test work)
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .Allow(file.Id, Identifiers.VisitorUserId, false, 
                             PermissionType.OpenMinor, PermissionType.Delete)
                         .Allow(TrashBin.Instance.Id, Identifiers.VisitorUserId, false, PermissionType.Open)

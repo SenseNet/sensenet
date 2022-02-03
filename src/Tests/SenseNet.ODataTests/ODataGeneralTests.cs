@@ -7,6 +7,7 @@ using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -1520,7 +1521,7 @@ namespace SenseNet.ODataTests
                 var contentType1 = ContentType.GetByName("TestFolder1");
                 var contentType2 = ContentType.GetByName("TestFolder2");
                 var contentType3 = ContentType.GetByName("TestFolder3");
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     //.BreakInheritance(contentType1.Id, new EntryType[0])
                     .Allow(contentType1.Id, user.Id, false, PermissionType.Open)
                     .Allow(contentType2.Id, user.Id, false, PermissionType.See)
@@ -1715,7 +1716,7 @@ namespace SenseNet.ODataTests
                 var contentType0 = ContentType.GetByName("SystemFolder");
                 var contentType1 = ContentType.GetByName("TestFolder1");
                 var contentType2 = ContentType.GetByName("TestFolder2");
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     //.BreakInheritance(contentType1.Id, new EntryType[0])
                     .Allow(contentType1.Id, requesterUser.Id, false, PermissionType.Open)
                     .Allow(contentType2.Id, requesterUser.Id, false, PermissionType.See)

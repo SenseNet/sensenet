@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository
 
                         // set app permissions
                         var developersGroupId = NodeHead.Get("/Root/IMS/BuiltIn/Portal/Developers")?.Id ?? 0;
-                        var aclEditor = SecurityHandler.SecurityContext.CreateAclEditor();
+                        var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
                         aclEditor
                             .Allow(app2.Id, Identifiers.AdministratorsGroupId,
                                 false, PermissionType.RunApplication);
@@ -450,7 +450,7 @@ namespace SenseNet.ContentRepository
 
                     #region Permission changes
 
-                    SecurityHandler.SecurityContext.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                         .Allow(NodeHead.Get("/Root/Localization").Id, Identifiers.OwnersGroupId, false, 
                             PermissionType.Save, PermissionType.Delete)
                         .Apply();
@@ -916,7 +916,7 @@ namespace SenseNet.ContentRepository
 
                     logger?.LogInformation("Adding Open permission for users on their own profiles.");
 
-                    var aclEditor = SecurityHandler.SecurityContext.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
 
                     foreach (var profile in Content.All.Where(c => c.TypeIs("UserProfile"))
                         .AsEnumerable().Select(c => (UserProfile)c.ContentHandler))
@@ -1078,7 +1078,7 @@ namespace SenseNet.ContentRepository
 
                     var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
 
-                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
                     // break inheritance on certain system types to hide them
                     if (fieldSettingContentTypeId != 0)

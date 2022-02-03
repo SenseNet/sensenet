@@ -330,7 +330,7 @@ namespace SenseNet.OData
                 if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
                 {
                     var head = NodeHead.Get(odataRequest.RepositoryPath);
-                    if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
+                    if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
                         ContentNotFound(httpContext);
                         return;

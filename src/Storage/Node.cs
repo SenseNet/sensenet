@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public string NodeOperation { get; set; } 
 
-        private SecurityHandler _security;
+        private NodeSecurity _security;
         private LockHandler _lockHandler;
         /// <summary>
         /// Gets true if the current user has only See permission for this <see cref="Node"/>.
@@ -222,7 +222,7 @@ namespace SenseNet.ContentRepository.Storage
 
             // use loop here instead of LoadNodes to check permissions
             return new NodeList<Node>((from nodeHead in nodeHeads
-                                       where nodeHead != null && SecurityHandler.HasPermission(user, nodeHead, PermissionType.See)
+                                       where nodeHead != null && Providers.Instance.SecurityHandler.HasPermission(user, nodeHead, PermissionType.See)
                                        select nodeHead.Id));
         }
         /// <summary>
@@ -514,12 +514,12 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets the security handler for this <see cref="Node"/>. This is the entry point of all permission-related operations.
         /// </summary>
         /// <value>The security handler.</value>
-        public SecurityHandler Security
+        public NodeSecurity Security
         {
             get
             {
                 if (_security == null)
-                    _security = new SecurityHandler(this);
+                    _security = new NodeSecurity(this, Providers.Instance.SecurityHandler);
                 return _security;
             }
         }
@@ -1420,7 +1420,7 @@ namespace SenseNet.ContentRepository.Storage
                     {
                         try
                         {
-                            return SecurityHandler.HasPermission(user, nodeId, PermissionType.See);
+                            return Providers.Instance.SecurityHandler.HasPermission(user, nodeId, PermissionType.See);
                         }
                         catch (EntityNotFoundException)
                         {
@@ -2485,7 +2485,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             var userId = AccessProvider.Current.GetCurrentUser().Id;
             var isOwner = head.CreatorId == userId;
-            switch (SecurityHandler.GetPermittedLevel(head))
+            switch (Providers.Instance.SecurityHandler.GetPermittedLevel(head))
             {
                 case PermittedLevel.None:
                     throw new SenseNetSecurityException(head.Path, PermissionType.See, AccessProvider.Current.GetCurrentUser(), "Access denied.");
@@ -2674,7 +2674,7 @@ namespace SenseNet.ContentRepository.Storage
             if (head == null)
                 return null;
 
-            SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
+            Providers.Instance.SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
             var token = Providers.Instance.DataStore
                 .LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
@@ -2695,7 +2695,7 @@ namespace SenseNet.ContentRepository.Storage
             if (head == null)
                 return null;
 
-            SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
+            Providers.Instance.SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
             var token = await Providers.Instance.DataStore
                 .LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
@@ -2831,7 +2831,7 @@ namespace SenseNet.ContentRepository.Storage
                     throw new InvalidOperationException("Cannot save deleted node.");
 
                 // Check permissions: got to have AddNew permission on the parent
-                SecurityHandler.Assert(this.ParentId, PermissionType.AddNew);
+                Providers.Instance.SecurityHandler.Assert(this.ParentId, PermissionType.AddNew);
 
                 RepositoryPath.CheckValidName(this.Name);
 
@@ -3410,11 +3410,11 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (isNewNode)
                 {
-                    SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
+                    Providers.Instance.SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
                 }
                 else if (isOwnerChanged)
                 {
-                    SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
+                    Providers.Instance.SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
                 }
             }
             catch (EntityNotFoundException e)
@@ -3686,7 +3686,7 @@ namespace SenseNet.ContentRepository.Storage
                         throw new ApplicationException("Cannot move", e);
                     }
 
-                    SecurityHandler.MoveEntity(this.Id, target.Id);
+                    Providers.Instance.SecurityHandler.MoveEntity(this.Id, target.Id);
 
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
@@ -4062,11 +4062,11 @@ namespace SenseNet.ContentRepository.Storage
             AccessProvider.ChangeToSystemAccount();
             try
             {
-                var entriesToCopy = SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id, null, EntryType.Normal);
+                var entriesToCopy = Providers.Instance.SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id, null, EntryType.Normal);
                 if (entriesToCopy.Count == 0)
                     return;
 
-                var aclEd = SecurityHandler.CreateAclEditor();
+                var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
                 foreach (var entry in entriesToCopy)
                     aclEd.Set(targetNode.Id, entry.IdentityId, entry.LocalOnly, entry.AllowBits, entry.DenyBits);
                 aclEd.Apply();
@@ -4280,7 +4280,7 @@ namespace SenseNet.ContentRepository.Storage
                     var hadContentList = RemoveContentListTypesInTree(contentListTypesInTree) > 0;
 
                     if (this.Id > 0)
-                        SecurityHandler.DeleteEntity(this.Id);
+                        Providers.Instance.SecurityHandler.DeleteEntity(this.Id);
 
                     SearchManager.GetIndexPopulator().DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
@@ -4453,7 +4453,7 @@ namespace SenseNet.ContentRepository.Storage
                 }
 
                 if (nodeRef.Id > 0)
-                    SecurityHandler.DeleteEntity(nodeRef.Id);
+                    Providers.Instance.SecurityHandler.DeleteEntity(nodeRef.Id);
             }
 
             var ids = new List<Int32>();
@@ -4937,7 +4937,7 @@ namespace SenseNet.ContentRepository.Storage
                 var head = NodeHead.Get(node.ParentPath);
                 if (head == null)
                     return null;
-                if (!SecurityHandler.HasPermission(head, PermissionType.See))
+                if (!Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                     return null;
                 node = node.Parent;
             }
@@ -4960,7 +4960,7 @@ namespace SenseNet.ContentRepository.Storage
                 var head = NodeHead.Get(node.ParentPath);
                 if (head == null)
                     return null;
-                if (!SecurityHandler.HasPermission(head, PermissionType.See))
+                if (!Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                     return null;
                 node = node.Parent;
             }
@@ -5092,7 +5092,7 @@ namespace SenseNet.ContentRepository.Storage
             var head = NodeHead.Get(nodeId);
             if (head == null)
                 return null;
-            if (!SecurityHandler.HasPermission(head, PermissionType.See))
+            if (!Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                 return LoadSomebody();
 
             try

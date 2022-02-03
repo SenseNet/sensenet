@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    SecurityHandler.CreateAclEditor()
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(node.Id, new [] {EntryType.Normal})
                         .Apply();
                 });

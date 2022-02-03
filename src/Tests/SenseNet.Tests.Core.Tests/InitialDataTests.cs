@@ -117,7 +117,8 @@ namespace SenseNet.Tests.Core.Tests
             };
             InitialDataTest(() =>
             {
-                var actions = SecurityHandler.ParseInitialPermissions(SecurityHandler.SecurityContext, src).ToArray();
+                var actions = SecurityInstaller.ParseInitialPermissions(
+                    Providers.Instance.SecurityHandler.SecurityContext, src).ToArray();
 
                 Assert.AreEqual(3, actions.Length);
 
@@ -168,8 +169,10 @@ namespace SenseNet.Tests.Core.Tests
 
             InitialSecurityDataTest(() =>
             {
+                var securityHandler = Providers.Instance.SecurityHandler;
+
                 var mask = PermissionType.GetPermissionMask(PermissionType.BuiltInPermissionTypes);
-                SecurityHandler.CreateAclEditor()
+                Providers.Instance.SecurityHandler.CreateAclEditor()
                     .RemoveExplicitEntries(2)
                     .RemoveExplicitEntries(6)
                     .RemoveExplicitEntries(1000)
@@ -178,26 +181,27 @@ namespace SenseNet.Tests.Core.Tests
 
                 // PRECHECKS
                 // Administrators group has 1 entry on the Root.
-                Assert.AreEqual(1, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
+                Assert.AreEqual(1, Providers.Instance.SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has no any permission.
-                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
+                Assert.IsFalse(securityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
+                Assert.IsFalse(securityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // There is no break.
-                Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsTrue(SecurityHandler.IsEntityInherited(1000));
+                Assert.IsTrue(securityHandler.IsEntityInherited(6));
+                Assert.IsTrue(securityHandler.IsEntityInherited(1000));
 
                 // ACTION
-                SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+                new SecurityInstaller(Providers.Instance.SecurityHandler, Providers.Instance.StorageSchema,
+                    Providers.Instance.DataStore).InstallDefaultSecurityStructure(initialData);
 
                 // ASSERT
                 // Administrators group has an entry on the Root.
-                Assert.AreEqual(1 , SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
+                Assert.AreEqual(1 , Providers.Instance.SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has See permission on both contents.
-                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
+                Assert.IsTrue(securityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
+                Assert.IsTrue(securityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // The second content is not inherited.
-                Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsFalse(SecurityHandler.IsEntityInherited(1000));
+                Assert.IsTrue(securityHandler.IsEntityInherited(6));
+                Assert.IsFalse(securityHandler.IsEntityInherited(1000));
             });
         }
 
@@ -233,7 +237,7 @@ namespace SenseNet.Tests.Core.Tests
                         var db = (DatabaseStorage)sdbp.GetFieldOrProperty("Storage");
                         db.Aces.Clear();
 
-                        SecurityHandler.CreateAclEditor()
+                        Providers.Instance.SecurityHandler.CreateAclEditor()
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
                                 PermissionType.BuiltInPermissionTypes)
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,

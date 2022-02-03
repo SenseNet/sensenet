@@ -260,7 +260,7 @@ namespace SenseNet.ContentRepository
         /// <param name="securityGroupId">Id of the container group.</param>
         public bool IsInGroup(int securityGroupId)
         {
-            return SecurityHandler.IsInGroup(this.Id, securityGroupId);
+            return Providers.Instance.SecurityHandler.IsInGroup(this.Id, securityGroupId);
         }
 
         /// <summary>
@@ -531,14 +531,14 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
-                    SecurityHandler.AddGroupsToGroup(parent.Id, new[] { e.SourceNode.Id });
+                    Providers.Instance.SecurityHandler.AddGroupsToGroup(parent.Id, new[] { e.SourceNode.Id });
             }
 
             var usersToAdd = GetMemberUsers().Select(u => u.Id).ToArray();
             var groupsToAdd = GetMemberGroups().Select(g => g.Id).ToArray();
 
             if (usersToAdd.Length > 0 || groupsToAdd.Length > 0)
-                SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
+                Providers.Instance.SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
         }
 
         protected override void OnModifying(object sender, CancellableNodeEventArgs e)
@@ -641,9 +641,9 @@ namespace SenseNet.ContentRepository
             }
 
             if (usersToRemove.Count > 0 || groupsToRemove.Count > 0)
-                SecurityHandler.RemoveMembers(this.Id, usersToRemove, groupsToRemove);
+                Providers.Instance.SecurityHandler.RemoveMembers(this.Id, usersToRemove, groupsToRemove);
             if (usersToAdd.Count > 0 || groupsToAdd.Count > 0)
-                SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
+                Providers.Instance.SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
         }
 
         // =================================================================================== IADSyncable Members
