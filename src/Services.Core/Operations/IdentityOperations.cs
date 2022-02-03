@@ -137,5 +137,45 @@ namespace SenseNet.Services.Core.Operations
 
             return Content.Create(user);
         }
+
+        [ODataAction(Icon = "security", DisplayName = "$Action,PasswordChange")]
+        [ContentTypes(N.CT.User)]
+        [RequiredPermissions(N.P.Open)]
+        [Scenario(N.S.ContextMenu)]
+        public static void ChangePassword(Content content, string password)
+        {
+            //TODO: enforce password policy when available
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentNullException(nameof(password));
+            
+            var user = (User)content.ContentHandler;
+            if (!PasswordIsEditableByCurrentUser(user))
+                throw new SenseNetSecurityException($"You do not have enough permissions to change the password of {user.Username}.");
+
+            if (!user.Enabled)
+                throw new InvalidOperationException("You cannot change the password of an inactive user.");
+
+            // this is executed in elevated mode so that users may change their own password
+            using (new SystemAccount())
+            {
+                try
+                {
+                    content["Password"] = password;
+                    content.SaveSameVersion();
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex, $"Error during password change. User: {content.Path} ({content.Id}).");
+
+                    throw new InvalidOperationException($"Password change failed. {ex.Message}");
+                }
+            }
+        }
+
+        private static bool PasswordIsEditableByCurrentUser(User user)
+        {
+            return User.Current.Id == user.Id ||
+                   SenseNet.Configuration.Providers.Instance.SecurityHandler.HasPermission(user, PermissionType.Save);
+        }
     }
 }
