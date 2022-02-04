@@ -1,5 +1,6 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
@@ -50,10 +52,15 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
+                {
+                    var mp = new SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider(
+                        new BinaryMessageFormatter(), ClusterMemberInfo.Current);
+                    mp.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+
                 repositoryBuilder
                     .UseLogger(provider)
-                    .UseMsSqlExclusiveLockDataProviderExtension();
+                    .UseMsSqlExclusiveLockDataProviderExtension()
+                    .UseClusterChannelProvider(mp);
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
