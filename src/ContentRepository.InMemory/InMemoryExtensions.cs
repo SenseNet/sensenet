@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -68,6 +69,7 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.ResetBlobProviders();
 
             var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
+            var searchEngineSupport = services?.GetService<ISearchEngineSupport>() ?? new SearchEngineSupport();
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
@@ -81,6 +83,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(searchEngine)
+                .UseSearchEngineSupport(searchEngineSupport)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

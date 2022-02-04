@@ -7,7 +7,7 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository
 {
-    internal class SearchEngineSupport : ISearchEngineSupport
+    public class SearchEngineSupport : ISearchEngineSupport
     {
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {

@@ -3,6 +3,8 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
@@ -76,6 +78,15 @@ namespace SenseNet.Extensions.DependencyInjection
             Assembly assembly, string installPackageName)
         {
             services.AddSingleton<IInstallPackageDescriptor>(provider => new InstallPackageDescriptor(assembly, installPackageName));
+
+            return services;
+        }
+
+        public static IServiceCollection AddSenseNetSearchComponents(this IServiceCollection services)
+        {
+            //services.AddSingleton<IIndexManager, IndexManager>();
+            //services.AddSingleton<ISearchManager, SearchManager>();
+            services.AddSingleton<ISearchEngineSupport, SearchEngineSupport>();
 
             return services;
         }

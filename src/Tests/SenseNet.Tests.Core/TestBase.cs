@@ -180,6 +180,7 @@ namespace SenseNet.Tests.Core
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSearchEngineSupport(new SearchEngineSupport())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())

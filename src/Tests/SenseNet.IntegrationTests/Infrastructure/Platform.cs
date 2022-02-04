@@ -47,6 +47,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchEngine(GetSearchEngine())
+                .UseSearchEngineSupport(new SearchEngineSupport())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

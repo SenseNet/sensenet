@@ -124,7 +124,8 @@ namespace SenseNet.ContentRepository
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
 
-            SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
+            SearchManager.SetSearchEngineSupport(Providers.Instance.SearchEngineSupport ?? throw new Exception(
+                "REPOSITORY BUILD Error: Providers.Instance.SearchEngineSupport is null."));
 
             InitializeLogger();
 

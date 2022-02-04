@@ -146,11 +146,13 @@ namespace SenseNet.Search.Tests
         public void Indexing_ActivitySelector_Distributed()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
+            var searchEngineSupport = new SearchEngineSupport();
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
+                builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -176,11 +178,13 @@ namespace SenseNet.Search.Tests
         public void Indexing_ActivitySelector_Centralized()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
+            var searchEngineSupport = new SearchEngineSupport();
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
+                builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -210,6 +214,7 @@ namespace SenseNet.Search.Tests
             Assert.Inconclusive();
 
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
+            var searchEngineSupport = new SearchEngineSupport();
             var nodeId = 0;
             var versionId = 0;
             var path = string.Empty;
@@ -218,6 +223,7 @@ namespace SenseNet.Search.Tests
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
+                builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -254,6 +260,7 @@ namespace SenseNet.Search.Tests
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
+                builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
             }, () =>

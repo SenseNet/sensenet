@@ -871,7 +871,11 @@ namespace SenseNet.Tests.Core.Tests
             var log = new List<string>();
             QueryResult result = null;
 
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
+            {
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+                builder.UseSearchEngineSupport(new SearchEngineSupport());
+            }, () =>
             {
                 var qtext = "Id:{{Name:'MyDocument.doc' .SELECT:OwnerId}}";
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
@@ -912,7 +916,11 @@ namespace SenseNet.Tests.Core.Tests
             var log = new List<string>();
             QueryResult result = null;
 
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
+            {
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+                builder.UseSearchEngineSupport(new SearchEngineSupport());
+            }, () =>
             {
                 using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
                 {
@@ -958,7 +966,11 @@ namespace SenseNet.Tests.Core.Tests
 
             var log = new List<string>();
             string resolved = null;
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
+            {
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+                builder.UseSearchEngineSupport(new SearchEngineSupport());
+            }, () =>
             {
                 using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
                     resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);

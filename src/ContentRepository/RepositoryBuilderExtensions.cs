@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -210,6 +211,14 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return repositoryBuilder;
         }
+
+        public static IRepositoryBuilder UseSearchEngineSupport(this IRepositoryBuilder repositoryBuilder, ISearchEngineSupport searchEngineSupport)
+        {
+            Configuration.Providers.Instance.SearchEngineSupport = searchEngineSupport;
+            WriteLog("SearchEngineSupport", searchEngineSupport);
+            return repositoryBuilder;
+        }
+
 
         /// <summary>
         /// Sets trace categories that should be enabled when the repository starts. This will
