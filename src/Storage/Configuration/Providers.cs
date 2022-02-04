@@ -242,7 +242,7 @@ namespace SenseNet.Configuration
         public virtual ISearchEngine SearchEngine { get; set; }
         public ISearchEngineSupport SearchEngineSupport { get; set; }
         //public IIndexManager IndexManager { get; set; }
-        //public ISearchManager SearchManager { get; set; }
+        public ISearchManager SearchManager { get; set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>

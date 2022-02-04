@@ -14,6 +14,7 @@ using System.Security.Policy;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -749,6 +750,7 @@ namespace SenseNet.Services.Wopi.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             return new RepositoryBuilder()
                 .UseDataProvider(dataProvider)
@@ -761,7 +763,8 @@ namespace SenseNet.Services.Wopi.Tests
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())

@@ -168,6 +168,7 @@ namespace SenseNet.Tests.Core
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             return new RepositoryBuilder()
                 .UseDataProvider(dataProvider)
@@ -180,7 +181,8 @@ namespace SenseNet.Tests.Core
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())

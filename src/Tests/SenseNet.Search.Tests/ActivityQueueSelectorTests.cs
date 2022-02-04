@@ -153,6 +153,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
+                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -185,6 +186,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
+                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -224,6 +226,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
+                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -261,6 +264,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
+                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
             }, () =>

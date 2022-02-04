@@ -14,6 +14,17 @@ using SenseNet.Search.Querying;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Search
 {
+    //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager
+    public class SearchManager_INSTANCE : ISearchManager
+    {
+        private ISearchEngineSupport _searchEngineSupport;
+
+        public SearchManager_INSTANCE(ISearchEngineSupport searchEngineSupport)
+        {
+            _searchEngineSupport = searchEngineSupport;
+        }
+    }
+
     /// <summary>
     /// Provides indexing and querying related management elements for all service layers. 
     /// </summary>

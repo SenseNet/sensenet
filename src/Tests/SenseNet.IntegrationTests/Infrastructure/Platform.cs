@@ -3,6 +3,7 @@ using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -32,8 +33,10 @@ namespace SenseNet.IntegrationTests.Infrastructure
             OnBeforeGettingRepositoryBuilder(builder);
 
             var dataProvider = GetDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
+
             builder
-                .UseLogger(new DebugWriteLoggerAdapter())
+                      .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
@@ -47,7 +50,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchEngine(GetSearchEngine())
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

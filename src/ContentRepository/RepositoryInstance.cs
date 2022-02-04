@@ -508,8 +508,6 @@ namespace SenseNet.ContentRepository
                 return IndexManager.Running;
             }
         }
-        [Obsolete("Use SearchManager.ContentQueryIsAllowed instead.")]
-        public static bool ContentQueryIsAllowed => SearchManager.ContentQueryIsAllowed;
 
         // ======================================== IDisposable
         private bool _disposed;

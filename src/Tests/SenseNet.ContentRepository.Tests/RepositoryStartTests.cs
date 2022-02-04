@@ -199,6 +199,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)
@@ -231,6 +232,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NodeObservers_DisableAll()
         {
             var dbProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -242,7 +244,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
@@ -263,6 +266,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NodeObservers_EnableOne()
         {
             var dbProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -274,7 +278,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
@@ -298,6 +303,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NodeObservers_EnableMore()
         {
             var dbProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -309,7 +315,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
@@ -330,6 +337,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NodeObservers_DisableOne()
         {
             var dbProvider = new InMemoryDataProvider();
+            var searchEngineSupport = new SearchEngineSupport();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -341,7 +349,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers(typeof(TestNodeObserver1))
@@ -381,6 +390,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)
@@ -487,6 +497,7 @@ namespace SenseNet.ContentRepository.Tests
                     .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                     .UseSearchEngine(searchEngine)
                     .UseSearchEngineSupport(searchEngineSupport)
+                    .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                     .UseAccessProvider(accessProvider)
                     .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                     .StartIndexingEngine(false)
@@ -533,6 +544,7 @@ namespace SenseNet.ContentRepository.Tests
                     .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                     .UseSearchEngine(searchEngine)
                     .UseSearchEngineSupport(searchEngineSupport)
+                    .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                     .UseAccessProvider(accessProvider)
                     .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                     .StartIndexingEngine(false)
@@ -575,6 +587,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)
@@ -616,6 +629,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine)
                 .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)

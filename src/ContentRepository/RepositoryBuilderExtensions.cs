@@ -218,7 +218,12 @@ namespace SenseNet.Extensions.DependencyInjection
             WriteLog("SearchEngineSupport", searchEngineSupport);
             return repositoryBuilder;
         }
-
+        public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
+        {
+            Configuration.Providers.Instance.SearchManager = searchManager;
+            WriteLog("SearchManager", searchManager);
+            return repositoryBuilder;
+        }
 
         /// <summary>
         /// Sets trace categories that should be enabled when the repository starts. This will

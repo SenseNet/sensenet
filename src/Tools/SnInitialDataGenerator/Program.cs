@@ -166,6 +166,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
             Providers.Instance.ResetBlobProviders();
+            var searchEngineSupport = new SearchEngineSupport();
 
             var builder = new RepositoryBuilder()
                 .UseTracer(new SnFileSystemTracer())
@@ -180,7 +181,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSearchEngine(new SearchEngineForInitialDataGenerator())
-                .UseSearchEngineSupport(new SearchEngineSupport())
+                .UseSearchEngineSupport(searchEngineSupport)
+                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 //.UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
