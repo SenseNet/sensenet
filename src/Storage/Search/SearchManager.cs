@@ -44,6 +44,58 @@ namespace SenseNet.ContentRepository.Search
                 __isOuterSearchEngineEnabled = value; 
             }
         }
+
+        public FilterStatus EnableAutofiltersDefaultValue => SnQuery.EnableAutofiltersDefaultValue;
+        public FilterStatus EnableLifespanFilterDefaultValue => SnQuery.EnableLifespanFilterDefaultValue;
+
+        public  bool IsAutofilterEnabled(FilterStatus value)
+        {
+            switch (value)
+            {
+                case FilterStatus.Default:
+                    return EnableAutofiltersDefaultValue == FilterStatus.Enabled;
+                case FilterStatus.Enabled:
+                    return true;
+                case FilterStatus.Disabled:
+                    return false;
+                default:
+                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
+            }
+        }
+        public bool IsLifespanFilterEnabled(FilterStatus value)
+        {
+            switch (value)
+            {
+                case FilterStatus.Default:
+                    return EnableLifespanFilterDefaultValue == FilterStatus.Enabled;
+                case FilterStatus.Enabled:
+                    return true;
+                case FilterStatus.Disabled:
+                    return false;
+                default:
+                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
+            }
+        }
+
+
+
+        public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
+        {
+            return _searchEngineSupport.ExecuteContentQuery(text, settings, parameters);
+        }
+        public IIndexPopulator GetIndexPopulator()
+        {
+            return _searchEngineSupport.GetIndexPopulator();
+        }
+        public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        {
+            return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
+        }
+        public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
+        {
+            return _searchEngineSupport.CompleteIndexDocument(indexDocumentData);
+        }
+
     }
 
     /// <summary>
@@ -83,16 +135,17 @@ namespace SenseNet.ContentRepository.Search
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
-        private static ISearchEngineSupport _searchEngineSupport;
-        /// <summary>
-        /// Stores the given reference of the <see cref="ISearchEngineSupport"/> implementation instance
-        /// that allows access to methods implemented in the higher service level.
-        /// </summary>
-        /// <param name="searchEngineSupport"></param>
-        public static void SetSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
-        {
-            _searchEngineSupport = searchEngineSupport;
-        }
+//private static ISearchEngineSupport _searchEngineSupport;
+///// <summary>
+///// Stores the given reference of the <see cref="ISearchEngineSupport"/> implementation instance
+///// that allows access to methods implemented in the higher service level.
+///// </summary>
+///// <param name="searchEngineSupport"></param>
+//public static void SetSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
+//{
+//    _searchEngineSupport = searchEngineSupport;
+//}
+
         /// <summary>
         /// Returns with the <see cref="QueryResult"/> of the given CQL query.
         /// </summary>
@@ -101,26 +154,26 @@ namespace SenseNet.ContentRepository.Search
         /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
         public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
-            return _searchEngineSupport.ExecuteContentQuery(text, settings, parameters);
+            return Providers.Instance.SearchManager.ExecuteContentQuery(text, settings, parameters);
         }
         /// <summary>
         /// Returns an <see cref="IIndexPopulator"/> implementation instance.
         /// </summary>
         public static IIndexPopulator GetIndexPopulator()
         {
-            return _searchEngineSupport.GetIndexPopulator();
+            return Providers.Instance.SearchManager.GetIndexPopulator();
         }
         /// <summary>
         /// Gets indexing metadata descriptor instance by fieldName
         /// </summary>
         public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
+            return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
         }
 
         public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
-            return _searchEngineSupport.CompleteIndexDocument(indexDocumentData);
+            return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
         }
 
         /// <summary>
@@ -176,51 +229,31 @@ public static void SetIndexDirectoryPath(string path)
             return DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
-        /// <summary>
-        /// Constant value of the default auto filter status. The value is FilterStatus.Enabled.
-        /// </summary>
-        public static FilterStatus EnableAutofiltersDefaultValue => SnQuery.EnableAutofiltersDefaultValue;
-        /// <summary>
-        /// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
-        /// </summary>
-        public static FilterStatus EnableLifespanFilterDefaultValue => SnQuery.EnableLifespanFilterDefaultValue;
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Constant value of the default auto filter status. The value is FilterStatus.Enabled.
+/// </summary>
+public static FilterStatus EnableAutofiltersDefaultValue => SnQuery.EnableAutofiltersDefaultValue;
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
+/// </summary>
+public static FilterStatus EnableLifespanFilterDefaultValue => SnQuery.EnableLifespanFilterDefaultValue;
 
-        /// <summary>
-        /// Returns with true id the value is "Enabled".
-        /// Takes into account the EnableAutofiltersDefaultValue actual value.
-        /// </summary>
-        public static bool IsAutofilterEnabled(FilterStatus value)
-        {
-            switch (value)
-            {
-                case FilterStatus.Default:
-                    return EnableAutofiltersDefaultValue == FilterStatus.Enabled;
-                case FilterStatus.Enabled:
-                    return true;
-                case FilterStatus.Disabled:
-                    return false;
-                default:
-                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
-            }
-        }
-        /// <summary>
-        /// Returns with true id the value is "Enabled".
-        /// Takes into account the EnableLifespanFilterDefaultValue actual value.
-        /// </summary>
-        public static bool IsLifespanFilterEnabled(FilterStatus value)
-        {
-            switch (value)
-            {
-                case FilterStatus.Default:
-                    return EnableLifespanFilterDefaultValue == FilterStatus.Enabled;
-                case FilterStatus.Enabled:
-                    return true;
-                case FilterStatus.Disabled:
-                    return false;
-                default:
-                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
-            }
-        }
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with true id the value is "Enabled".
+/// Takes into account the EnableAutofiltersDefaultValue actual value.
+/// </summary>
+public static bool IsAutofilterEnabled(FilterStatus value) =>
+    Providers.Instance.SearchManager.IsAutofilterEnabled(value);
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with true id the value is "Enabled".
+/// Takes into account the EnableLifespanFilterDefaultValue actual value.
+/// </summary>
+public static bool IsLifespanFilterEnabled(FilterStatus value) =>
+    Providers.Instance.SearchManager.IsLifespanFilterEnabled(value);
 
     }
 }

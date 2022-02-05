@@ -157,22 +157,13 @@ namespace SenseNet.Search.Tests
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
-                using (new Swindler<SearchEngineSupport>(new SearchEngineSupport(),
-                        () => (SearchEngineSupport) new TypeAccessor(typeof(SearchManager)).GetStaticField(
-                            "_searchEngineSupport"),
-                        value =>
-                        {
-                            new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
-                        }))
-                {
-                    searchEngine.ClearIndexingLog();
+                searchEngine.ClearIndexingLog();
 
-                    var nodeName = "Indexing_Distributed";
-                    var node = new SystemFolder(Repository.Root) {Name = nodeName};
-                    node.Save();
-                    Assert.AreEqual("DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n",
-                        searchEngine.GetIndexingLog());
-                }
+                var nodeName = "Indexing_Distributed";
+                var node = new SystemFolder(Repository.Root) {Name = nodeName};
+                node.Save();
+                Assert.AreEqual("DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n",
+                    searchEngine.GetIndexingLog());
             });
         }
         [TestMethod, TestCategory("IR")]
@@ -190,21 +181,12 @@ namespace SenseNet.Search.Tests
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
-                using (new Swindler<SearchEngineSupport>(new SearchEngineSupport(),
-                    () => (SearchEngineSupport)new TypeAccessor(typeof(SearchManager)).GetStaticField(
-                        "_searchEngineSupport"),
-                    value =>
-                    {
-                        new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
-                    }))
-                {
-                    searchEngine.ClearIndexingLog();
-                    
-                    var nodeName = "Indexing_Centralized";
-                    var node = new SystemFolder(Repository.Root) { Name = nodeName };
-                    node.Save();
-                    Assert.AreEqual("CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
-                }
+                searchEngine.ClearIndexingLog();
+                
+                var nodeName = "Indexing_Centralized";
+                var node = new SystemFolder(Repository.Root) { Name = nodeName };
+                node.Save();
+                Assert.AreEqual("CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
             });
         }
 

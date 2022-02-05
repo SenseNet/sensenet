@@ -920,19 +920,16 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                var searchEngineSupport = new SearchEngineSupport();
+                var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
-                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
-                {
-                    var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
-                    var cqueryAcc = new ObjectAccessor(cquery);
-                    cqueryAcc.SetFieldOrProperty("IsSafe", true);
-                    result = cquery.Execute();
-                }
+                var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
+                var cqueryAcc = new ObjectAccessor(cquery);
+                cqueryAcc.SetFieldOrProperty("IsSafe", true);
+                result = cquery.Execute();
             });
 
             Assert.AreEqual(42, result.Identifiers.First());
@@ -972,14 +969,13 @@ namespace SenseNet.Tests.Core.Tests
             string resolved = null;
             Test(builder =>
             {
-                var searchEngineSupport = new SearchEngineSupport();
+                var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
-                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
-                    resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
+                resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
             });
 
             Assert.AreEqual(expected, resolved);

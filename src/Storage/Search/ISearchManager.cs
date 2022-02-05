@@ -21,13 +21,27 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public bool IsOuterEngineEnabled { get; set; }
 
-        /*
         /// <summary>
-        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
-        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
-        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
+        /// Constant value of the default auto filter status. The value is FilterStatus.Enabled.
         /// </summary>
-        public ISearchEngine SearchEngine { get; }
+        public FilterStatus EnableAutofiltersDefaultValue { get; }
+        /// <summary>
+        /// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
+        /// </summary>
+        public FilterStatus EnableLifespanFilterDefaultValue { get; }
+
+        /// <summary>
+        /// Returns with true id the value is "Enabled".
+        /// Takes into account the EnableAutofiltersDefaultValue actual value.
+        /// </summary>
+        public bool IsAutofilterEnabled(FilterStatus value);
+
+        /// <summary>
+        /// Returns with true id the value is "Enabled".
+        /// Takes into account the EnableLifespanFilterDefaultValue actual value.
+        /// </summary>
+        public bool IsLifespanFilterEnabled(FilterStatus value);
+
 
         /// <summary>
         /// Returns with the <see cref="QueryResult"/> of the given CQL query.
@@ -49,6 +63,13 @@ namespace SenseNet.ContentRepository.Search
 
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData);
 
+        /*
+        /// <summary>
+        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
+        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
+        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
+        /// </summary>
+        public ISearchEngine SearchEngine { get; }
 
         /// <summary>
         /// Gets a value that is true if the content query can run in the configured outer query engine.
@@ -69,27 +90,6 @@ namespace SenseNet.ContentRepository.Search
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
         /// </summary>
         public IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes);
-
-        /// <summary>
-        /// Constant value of the default auto filter status. The value is FilterStatus.Enabled.
-        /// </summary>
-        public FilterStatus EnableAutofiltersDefaultValue { get; }
-        /// <summary>
-        /// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
-        /// </summary>
-        public FilterStatus EnableLifespanFilterDefaultValue { get; }
-
-        /// <summary>
-        /// Returns with true id the value is "Enabled".
-        /// Takes into account the EnableAutofiltersDefaultValue actual value.
-        /// </summary>
-        public bool IsAutofilterEnabled(FilterStatus value);
-
-        /// <summary>
-        /// Returns with true id the value is "Enabled".
-        /// Takes into account the EnableLifespanFilterDefaultValue actual value.
-        /// </summary>
-        public bool IsLifespanFilterEnabled(FilterStatus value);
         */
     }
 }
