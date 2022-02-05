@@ -31,6 +31,19 @@ namespace SenseNet.ContentRepository.Search
             get => __indexDirectoryPath ??= Configuration.Indexing.IndexDirectoryFullPath;
             set => __indexDirectoryPath = value;
         }
+
+        // ReSharper disable once InconsistentNaming
+        private bool? __isOuterSearchEngineEnabled;
+        public bool IsOuterEngineEnabled
+        {
+            get => __isOuterSearchEngineEnabled ?? Configuration.Indexing.IsOuterSearchEngineEnabled;
+            set
+            {
+                if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
+                    throw new InvalidOperationException("Indexing is not allowed in the configuration");
+                __isOuterSearchEngineEnabled = value; 
+            }
+        }
     }
 
     /// <summary>
@@ -49,23 +62,6 @@ namespace SenseNet.ContentRepository.Search
         /* ========================================================================== Private instance interface */
 
 
-        // ReSharper disable once InconsistentNaming
-        private bool? __isOuterSearchEngineEnabled;
-        private bool IsOuterSearchEngineEnabled
-        {
-            get
-            {
-                if(__isOuterSearchEngineEnabled == null)
-                    return Configuration.Indexing.IsOuterSearchEngineEnabled;
-                return __isOuterSearchEngineEnabled.Value;
-            }
-            set
-            {
-                if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
-                    throw new InvalidOperationException("Indexing is not allowed in the configuration");
-                __isOuterSearchEngineEnabled = value; 
-            }
-        }
 
         /* ========================================================================== Public static interface */
 
@@ -130,14 +126,14 @@ namespace SenseNet.ContentRepository.Search
         /// <summary>
         /// Gets a value that is true if the content query can run in the configured outer query engine.
         /// </summary>
-        public static bool ContentQueryIsAllowed => Instance.IsOuterSearchEngineEnabled &&
+        public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.IsOuterEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance &&
                                                     (SearchEngine?.IndexingEngine?.Running ?? false);
 
         /// <summary>
         /// Gets a value that is true if the outer search engine is enabled.
         /// </summary>
-        public static bool IsOuterEngineEnabled => Instance.IsOuterSearchEngineEnabled;
+        public static bool IsOuterEngineEnabled => Providers.Instance.SearchManager.IsOuterEngineEnabled;
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>
@@ -147,24 +143,6 @@ namespace SenseNet.ContentRepository.Search
 /// </summary>
 public static string IndexDirectoryPath => Providers.Instance.SearchManager.IndexDirectoryPath;
 
-        /// <summary>
-        /// Enables the outer search engine.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when the outer indexing engine is disabled in the configuration.
-        /// The examined value: SenseNet.Configuration.Indexing.IsOuterSearchEngineEnabled.
-        /// </exception>
-        public static void EnableOuterEngine()
-        {
-            Instance.IsOuterSearchEngineEnabled = true;
-        }
-        /// <summary>
-        /// Disables the outer search engine.
-        /// </summary>
-        public static void DisableOuterEngine()
-        {
-            Instance.IsOuterSearchEngineEnabled = false;
-        }
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>

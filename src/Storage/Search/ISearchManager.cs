@@ -16,12 +16,12 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public string IndexDirectoryPath { get; set; }
 
-        /*
         /// <summary>
         /// Gets or sets a value that is true if the outer search engine is enabled.
         /// </summary>
         public bool IsOuterEngineEnabled { get; set; }
 
+        /*
         /// <summary>
         /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
         /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
