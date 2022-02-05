@@ -23,6 +23,14 @@ namespace SenseNet.ContentRepository.Search
         {
             _searchEngineSupport = searchEngineSupport;
         }
+
+        // ReSharper disable once InconsistentNaming
+        private string __indexDirectoryPath;
+        public string IndexDirectoryPath
+        {
+            get => __indexDirectoryPath ??= Configuration.Indexing.IndexDirectoryFullPath;
+            set => __indexDirectoryPath = value;
+        }
     }
 
     /// <summary>
@@ -40,13 +48,6 @@ namespace SenseNet.ContentRepository.Search
 
         /* ========================================================================== Private instance interface */
 
-        // ReSharper disable once InconsistentNaming
-        private string __indexDirectoryPath;
-        private string IndexDirectoryPathPrivate
-        {
-            get => __indexDirectoryPath ?? (__indexDirectoryPath = Configuration.Indexing.IndexDirectoryFullPath);
-            set => __indexDirectoryPath = value;
-        }
 
         // ReSharper disable once InconsistentNaming
         private bool? __isOuterSearchEngineEnabled;
@@ -137,12 +138,14 @@ namespace SenseNet.ContentRepository.Search
         /// Gets a value that is true if the outer search engine is enabled.
         /// </summary>
         public static bool IsOuterEngineEnabled => Instance.IsOuterSearchEngineEnabled;
-        /// <summary>
-        /// Gets the path of the local index in the file system in case of local indexing engines.
-        /// The value can be configured in the Indexing configuration class or set directly
-        /// using the <see cref="SetIndexDirectoryPath"/> method.
-        /// </summary>
-        public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
+
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Gets the path of the local index in the file system in case of local indexing engines.
+/// The value can be configured in the Indexing configuration class or set directly
+/// using the <see cref="SetIndexDirectoryPath"/> method.
+/// </summary>
+public static string IndexDirectoryPath => Providers.Instance.SearchManager.IndexDirectoryPath;
 
         /// <summary>
         /// Enables the outer search engine.
@@ -163,13 +166,14 @@ namespace SenseNet.ContentRepository.Search
             Instance.IsOuterSearchEngineEnabled = false;
         }
 
-        /// <summary>
-        /// Sets the path of the local index in the file system in case of local indexing engines.
-        /// </summary>
-        public static void SetIndexDirectoryPath(string path)
-        {
-            Instance.IndexDirectoryPathPrivate = path;
-        }
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Sets the path of the local index in the file system in case of local indexing engines.
+/// </summary>
+public static void SetIndexDirectoryPath(string path)
+{
+    Providers.Instance.SearchManager.IndexDirectoryPath = path;
+}
 
         /// <summary>
         /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.

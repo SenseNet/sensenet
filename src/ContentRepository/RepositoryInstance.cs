@@ -132,7 +132,7 @@ namespace SenseNet.ContentRepository
             RegisterAppdomainEventHandlers();
 
             if (_settings.IndexPath != null)
-                SearchManager.SetIndexDirectoryPath(_settings.IndexPath);
+                Providers.Instance.SearchManager.IndexDirectoryPath = _settings.IndexPath;
 
             LoadAssemblies(_settings.IsWebContext);
 

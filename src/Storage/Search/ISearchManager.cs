@@ -10,13 +10,13 @@ namespace SenseNet.ContentRepository.Search
 {
     public interface ISearchManager
     {
-        /*
         /// <summary>
         /// Gets or sets the path of the local index in the file system in case of local indexing engines.
         /// The value can be configured in the Indexing configuration class or set directly.
         /// </summary>
         public string IndexDirectoryPath { get; set; }
 
+        /*
         /// <summary>
         /// Gets or sets a value that is true if the outer search engine is enabled.
         /// </summary>
