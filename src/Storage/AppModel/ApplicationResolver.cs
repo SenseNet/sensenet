@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static NodeHead ResolveFirstByPaths(IEnumerable<string> paths)
         {
-            if (SearchManager.IsOuterEngineEnabled)
+            if (Providers.Instance.SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
             return Providers.Instance.DataStore
                 .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false, CancellationToken.None)
@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static IEnumerable<NodeHead> ResolveAllByPaths(IEnumerable<string> paths, bool resolveChildren)
         {
-            return SearchManager.IsOuterEngineEnabled
+            return Providers.Instance.SearchManager.IsOuterEngineEnabled
                 ? ResolveAllByPathsFromIndexedEngine(paths, resolveChildren)
                 : Providers.Instance.DataStore
                     .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren, CancellationToken.None)

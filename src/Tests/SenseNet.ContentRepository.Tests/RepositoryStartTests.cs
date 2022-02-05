@@ -403,7 +403,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 using (Repository.Start(repoBuilder))
                 {
-                    Assert.IsFalse(SearchManager.IsOuterEngineEnabled);
+                    Assert.IsFalse(Providers.Instance.SearchManager.IsOuterEngineEnabled);
                     Assert.AreEqual(typeof(InternalSearchEngine), SearchManager.SearchEngine.GetType());
                     var populator = SearchManager.GetIndexPopulator();
                     Assert.AreEqual(typeof(NullPopulator), populator.GetType());

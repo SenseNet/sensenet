@@ -55,21 +55,6 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public bool ContentQueryIsAllowed { get; }
 
-
-        /// <summary>
-        /// Enables the outer search engine.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when the outer indexing engine is disabled in the configuration.
-        /// The examined value: SenseNet.Configuration.Indexing.IsOuterSearchEngineEnabled.
-        /// </exception>
-        public void EnableOuterEngine();
-
-        /// <summary>
-        /// Disables the outer search engine.
-        /// </summary>
-        public void DisableOuterEngine();
-
         /// <summary>
         /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
         /// </summary>

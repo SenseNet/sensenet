@@ -130,19 +130,19 @@ namespace SenseNet.ContentRepository.Search
                                                     SearchEngine != InternalSearchEngine.Instance &&
                                                     (SearchEngine?.IndexingEngine?.Running ?? false);
 
-        /// <summary>
-        /// Gets a value that is true if the outer search engine is enabled.
-        /// </summary>
-        public static bool IsOuterEngineEnabled => Providers.Instance.SearchManager.IsOuterEngineEnabled;
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Gets a value that is true if the outer search engine is enabled.
+/// </summary>
+public static bool IsOuterEngineEnabled => Providers.Instance.SearchManager.IsOuterEngineEnabled;
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>
 /// Gets the path of the local index in the file system in case of local indexing engines.
 /// The value can be configured in the Indexing configuration class or set directly
-/// using the <see cref="SetIndexDirectoryPath"/> method.
+/// using the SetIndexDirectoryPath method.
 /// </summary>
 public static string IndexDirectoryPath => Providers.Instance.SearchManager.IndexDirectoryPath;
-
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>
@@ -183,7 +183,7 @@ public static void SetIndexDirectoryPath(string path)
         /// <summary>
         /// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
         /// </summary>
-        public static FilterStatus EnableLifespanFilterDefaultValue = SnQuery.EnableLifespanFilterDefaultValue;
+        public static FilterStatus EnableLifespanFilterDefaultValue => SnQuery.EnableLifespanFilterDefaultValue;
 
         /// <summary>
         /// Returns with true id the value is "Enabled".
