@@ -151,9 +151,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -184,9 +184,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -224,9 +224,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
@@ -262,9 +262,9 @@ namespace SenseNet.Search.Tests
                 RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngine(searchEngine);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
             }, () =>

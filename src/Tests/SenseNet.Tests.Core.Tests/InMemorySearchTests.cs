@@ -874,9 +874,9 @@ namespace SenseNet.Tests.Core.Tests
             Test(builder =>
             {
                 var searchEngineSupport = new SearchEngineSupport();
-                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
                 var qtext = "Id:{{Name:'MyDocument.doc' .SELECT:OwnerId}}";
@@ -921,9 +921,9 @@ namespace SenseNet.Tests.Core.Tests
             Test(builder =>
             {
                 var searchEngineSupport = new SearchEngineSupport();
-                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
                 using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
@@ -973,9 +973,9 @@ namespace SenseNet.Tests.Core.Tests
             Test(builder =>
             {
                 var searchEngineSupport = new SearchEngineSupport();
-                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
                 using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
