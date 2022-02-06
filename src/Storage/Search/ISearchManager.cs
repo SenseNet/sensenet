@@ -74,8 +74,6 @@ namespace SenseNet.ContentRepository.Search
 
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData);
 
-        /*
-
         /// <summary>
         /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
         /// </summary>
@@ -90,6 +88,5 @@ namespace SenseNet.ContentRepository.Search
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
         /// </summary>
         public IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes);
-        */
     }
 }

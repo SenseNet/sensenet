@@ -416,7 +416,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
-            var docs = SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes).Select(CreateIndexDocument);
+            var docs = Providers.Instance.SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
+                .Select(CreateIndexDocument);
             await IndexingEngine.WriteIndexAsync(delTerms, null, docs, cancellationToken).ConfigureAwait(false);
             return true;
         }
@@ -447,13 +448,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         internal static IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {
-            return CreateIndexDocument(SearchManager.LoadIndexDocumentByVersionId(versionId));
+            return CreateIndexDocument(Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId));
         }
         internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
             return versionIds.Length == 0
                 ? new IndexDocument[0]
-                : SearchManager.LoadIndexDocumentByVersionId(versionIds)
+                : Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionIds)
                     .Select(CreateIndexDocument)
                     .ToArray();
         }

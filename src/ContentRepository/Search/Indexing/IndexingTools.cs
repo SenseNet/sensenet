@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.
-            var docData = SearchManager.LoadIndexDocumentByVersionId(versionId);
+            var docData = Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
             var indexDoc = docData.IndexDocument;
 
             // 2: original and new text extract concatenation.

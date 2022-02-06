@@ -18,6 +18,7 @@ namespace SenseNet.ContentRepository.Search
     public class SearchManager_INSTANCE : ISearchManager
     {
         private ISearchEngineSupport _searchEngineSupport;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
         public SearchManager_INSTANCE(ISearchEngineSupport searchEngineSupport)
         {
@@ -105,6 +106,19 @@ namespace SenseNet.ContentRepository.Search
             return _searchEngineSupport.CompleteIndexDocument(indexDocumentData);
         }
 
+        public IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
+        {
+            return DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None).GetAwaiter().GetResult()
+                .FirstOrDefault();
+        }
+        public IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
+        {
+            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
+        {
+            return DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes);
+        }
     }
 
     /// <summary>
@@ -112,19 +126,9 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager
     {
-        private static IDataStore DataStore => Providers.Instance.DataStore;
-
-        /* ========================================================================== Singleton model */
-
-        private static SearchManager Instance = new SearchManager();
-
-        private SearchManager() { }
-
-        /* ========================================================================== Private instance interface */
-
-
-
-        /* ========================================================================== Public static interface */
+//private static IDataStore DataStore => Providers.Instance.DataStore;
+//private static SearchManager Instance = new SearchManager();
+//private SearchManager() { }
 
         /// <summary>
         /// Contains all values that mean "true". These are: "1", "true", "y" and "yes"
@@ -134,6 +138,13 @@ namespace SenseNet.ContentRepository.Search
         /// Contains all values that mean "false". These are: "0", "false", "n" and "no"
         /// </summary>
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
+
+        /// <summary>
+        /// Gets a value that is true if the content query can run in the configured outer query engine.
+        /// </summary>
+        public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.IsOuterEngineEnabled &&
+                                                    Providers.Instance.SearchEngine != InternalSearchEngine.Instance &&
+                                                    (Providers.Instance.SearchEngine?.IndexingEngine?.Running ?? false);
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>
@@ -176,13 +187,6 @@ public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumen
     return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
 }
 
-        /// <summary>
-        /// Gets a value that is true if the content query can run in the configured outer query engine.
-        /// </summary>
-        public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.IsOuterEngineEnabled &&
-                                                    Providers.Instance.SearchEngine != InternalSearchEngine.Instance &&
-                                                    (Providers.Instance.SearchEngine?.IndexingEngine?.Running ?? false);
-
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>
 /// Gets a value that is true if the outer search engine is enabled.
@@ -206,28 +210,30 @@ public static void SetIndexDirectoryPath(string path)
     Providers.Instance.SearchManager.IndexDirectoryPath = path;
 }
 
-        /// <summary>
-        /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
-        /// </summary>
-        public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
-        {
-            return DataStore.LoadIndexDocumentsAsync(new[] {versionId}, CancellationToken.None).GetAwaiter().GetResult()
-                .FirstOrDefault();
-        }
-        /// <summary>
-        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
-        /// </summary>
-        public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
-        {
-            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
-        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
-        /// </summary>
-        public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
-        {
-            return DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes);
-        }
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
+/// </summary>
+public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
+{
+    return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
+}
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
+/// </summary>
+public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
+{
+    return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
+}
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
+/// </summary>
+public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
+{
+    return Providers.Instance.SearchManager.LoadIndexDocumentsByPath(path, excludedNodeTypes);
+}
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>

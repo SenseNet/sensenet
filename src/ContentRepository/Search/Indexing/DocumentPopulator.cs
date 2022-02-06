@@ -324,7 +324,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private IEnumerable<IndexDocument> LoadIndexDocumentsByPath(string path)
         {
-            return SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+            return Providers.Instance.SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
                 .Select(d =>
                 {
                     try
