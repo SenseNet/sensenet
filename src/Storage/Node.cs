@@ -243,7 +243,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Returns the count of <see cref="Node"/>s in the subtree.
         /// </summary>
-        public virtual int NodesInTree => SearchManager.ExecuteContentQuery(
+        public virtual int NodesInTree => Providers.Instance.SearchManager.ExecuteContentQuery(
                 "+InTree:@0",
                 QuerySettings.AdminSettings,
                 this.Path)
@@ -2857,7 +2857,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
+                SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -3107,7 +3107,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
+                        SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -3207,7 +3207,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
+                SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -3691,7 +3691,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
 
-                    var populator = SearchManager.GetIndexPopulator();
+                    var populator = Providers.Instance.SearchManager.GetIndexPopulator();
                     populator.DeleteTreeAsync(this.Path, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     // <L2Cache>
@@ -4282,7 +4282,8 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         Providers.Instance.SecurityHandler.DeleteEntity(this.Id);
 
-                    SearchManager.GetIndexPopulator().DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
+                    Providers.Instance.SearchManager.GetIndexPopulator()
+                        .DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -4464,7 +4465,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                SearchManager.GetIndexPopulator().DeleteForestAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
+                Providers.Instance.SearchManager.GetIndexPopulator().DeleteForestAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
@@ -5197,7 +5198,7 @@ namespace SenseNet.ContentRepository.Storage
             var docProvider = Providers.Instance.IndexDocumentProvider;
             var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
             var docData = DataStore.CreateIndexDocumentData(this, doc, null);
-            SearchManager.CompleteIndexDocument(docData);
+            Providers.Instance.SearchManager.CompleteIndexDocument(docData);
             return doc;
         }
     }

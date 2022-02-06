@@ -446,7 +446,8 @@ namespace SenseNet.Tests.Core.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    await SearchManager.GetIndexPopulator().ClearAndPopulateAllAsync(CancellationToken.None, console).ConfigureAwait(false);
+                    await Providers.Instance.SearchManager.GetIndexPopulator()
+                        .ClearAndPopulateAllAsync(CancellationToken.None, console).ConfigureAwait(false);
 
                 // load last indexing activity
                 var activityId = await DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).ConfigureAwait(false);

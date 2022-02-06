@@ -157,7 +157,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             foreach (var path in paths)
             {
-                var r = SearchManager.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
+                var r = Providers.Instance.SearchManager.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
                 if (r.Count > 0)
                     return NodeHead.Get(r.Identifiers.First());
             }
@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             {
                 if (resolveChildren)
                 {
-                    var r = SearchManager.ExecuteContentQuery("InTree:@0.SORT:Path",
+                    var r = Providers.Instance.SearchManager.ExecuteContentQuery("InTree:@0.SORT:Path",
                         QuerySettings.AdminSettings, path);
                     if (r.Count > 0)
                         // skip first because it is the root of subtree

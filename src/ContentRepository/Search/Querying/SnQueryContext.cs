@@ -33,7 +33,7 @@ namespace SenseNet.Search.Querying
         /// <inheritdoc />
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return SearchManager.GetPerFieldIndexingInfo(fieldName);
+            return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
         }
 
         /// <summary>

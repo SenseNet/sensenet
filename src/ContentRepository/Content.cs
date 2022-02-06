@@ -196,7 +196,7 @@ namespace SenseNet.ContentRepository
                 var logger = context.RequestServices.GetService<ILogger<Content>>();
                 var exclusiveLockOptions = context.RequestServices?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
 
-                var populator = SearchManager.GetIndexPopulator();
+                var populator = Providers.Instance.SearchManager.GetIndexPopulator();
                 populator.IndexingError += (sender, e) => 
                 {
                     SnTrace.Index.WriteError($"Error when indexing {e.Path}: {e.Exception?.Message}");
@@ -1561,7 +1561,7 @@ namespace SenseNet.ContentRepository
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
         public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
-            SearchManager.GetIndexPopulator()
+            Providers.Instance.SearchManager.GetIndexPopulator()
                 .RebuildIndexAsync(this.ContentHandler, CancellationToken.None, recursive, rebuildLevel).GetAwaiter()
                 .GetResult();
         }

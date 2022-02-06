@@ -37,7 +37,7 @@ namespace SenseNet.Tests.Core.Tests
                 {
                     try
                     {
-                        await SearchManager.GetIndexPopulator().RebuildIndexDirectlyAsync("/Root",
+                        await Providers.Instance.SearchManager.GetIndexPopulator().RebuildIndexDirectlyAsync("/Root",
                             CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex).ConfigureAwait(false);
                     }
                     catch (Exception e)

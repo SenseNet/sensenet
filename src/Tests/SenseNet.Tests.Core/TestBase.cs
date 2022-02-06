@@ -281,7 +281,7 @@ namespace SenseNet.Tests.Core
         {
             // ReSharper disable once CollectionNeverQueried.Local
             var paths = new List<string>();
-            var populator = SearchManager.GetIndexPopulator();
+            var populator = Providers.Instance.SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
             populator.ClearAndPopulateAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         }

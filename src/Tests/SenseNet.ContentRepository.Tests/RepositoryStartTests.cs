@@ -406,7 +406,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsFalse(Providers.Instance.SearchManager.IsOuterEngineEnabled);
                     Assert.AreEqual(typeof(InternalSearchEngine),
                         Providers.Instance.SearchManager.SearchEngine.GetType());
-                    var populator = SearchManager.GetIndexPopulator();
+                    var populator = Providers.Instance.SearchManager.GetIndexPopulator();
                     Assert.AreEqual(typeof(NullPopulator), populator.GetType());
                 }
             }

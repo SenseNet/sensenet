@@ -138,7 +138,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 Console.Write($"{count} / {nodeCount}   \r");
                 using (new SystemAccount())
                 {
-                    var populator = SearchManager.GetIndexPopulator();
+                    var populator = Providers.Instance.SearchManager.GetIndexPopulator();
                     populator.IndexDocumentRefreshed += (sender, e) =>
                     {
                         Console.Write($"{++count} / {nodeCount}   \r");
