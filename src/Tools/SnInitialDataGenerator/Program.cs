@@ -152,7 +152,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 // Save index
                 Console.Write("Saving index...");
                 var indexFileName = Path.Combine(arguments.OutputPath, "index.txt");
-                if (SearchManager.SearchEngine is SearchEngineForInitialDataGenerator searchEngine)
+                if (Providers.Instance.SearchManager.SearchEngine is SearchEngineForInitialDataGenerator searchEngine)
                 {
                     searchEngine.Index.Save(indexFileName);
                     var indexDocumentsFileName = Path.Combine(arguments.OutputPath, "indexDocuments.txt");

@@ -209,7 +209,7 @@ namespace SenseNet.ContentRepository.Tests
             using (Repository.Start(repoBuilder))
             {
                 Assert.AreSame(dbProvider, Providers.Instance.DataStore.DataProvider);
-                Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
+                Assert.AreEqual(searchEngine, Providers.Instance.SearchManager.SearchEngine);
                 Assert.AreEqual(accessProvider, AccessProvider.Current);
                 Assert.AreEqual(emvrProvider, Providers.Instance.ElevatedModificationVisibilityRuleProvider);
 
@@ -404,7 +404,8 @@ namespace SenseNet.ContentRepository.Tests
                 using (Repository.Start(repoBuilder))
                 {
                     Assert.IsFalse(Providers.Instance.SearchManager.IsOuterEngineEnabled);
-                    Assert.AreEqual(typeof(InternalSearchEngine), SearchManager.SearchEngine.GetType());
+                    Assert.AreEqual(typeof(InternalSearchEngine),
+                        Providers.Instance.SearchManager.SearchEngine.GetType());
                     var populator = SearchManager.GetIndexPopulator();
                     Assert.AreEqual(typeof(NullPopulator), populator.GetType());
                 }

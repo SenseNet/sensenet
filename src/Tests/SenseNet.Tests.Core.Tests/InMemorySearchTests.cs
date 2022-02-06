@@ -1025,7 +1025,7 @@ namespace SenseNet.Tests.Core.Tests
 
             await Test(async () =>
             {
-                var searchEngine = SearchManager.SearchEngine;
+                var searchEngine = Providers.Instance.SearchManager.SearchEngine;
                 var originalStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
                 await searchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(newStatus, CancellationToken.None).ConfigureAwait(false);
 
@@ -1042,7 +1042,7 @@ namespace SenseNet.Tests.Core.Tests
 
         private InMemoryIndex GetTestIndex()
         {
-            return ((InMemorySearchEngine) SearchManager.SearchEngine).Index;
+            return ((InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine).Index;
         }
 
         private class SearchEngineForNestedQueryTests : ISearchEngine

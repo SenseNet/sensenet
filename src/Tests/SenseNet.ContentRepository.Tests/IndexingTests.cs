@@ -567,7 +567,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // Memorize instances.
                 dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
-                searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
+                searchProvider = (InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine;
                 blobProvider = (InMemoryBlobProvider)Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
 
                 // Create 8 activities.
@@ -787,7 +787,7 @@ namespace SenseNet.ContentRepository.Tests
                 var state = new IndexingActivityStatus { LastActivityId = 15, Gaps = new[] { 13, 14 } };
 
                 // ACTION
-                var inMemEngine = (InMemoryIndexingEngine)SearchManager.SearchEngine.IndexingEngine;
+                var inMemEngine = (InMemoryIndexingEngine)Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
                 try
                 {
                     inMemEngine.IndexIsCentralized = true;

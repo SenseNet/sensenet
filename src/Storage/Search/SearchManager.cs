@@ -24,6 +24,15 @@ namespace SenseNet.ContentRepository.Search
             _searchEngineSupport = searchEngineSupport;
         }
 
+        /// <summary>
+        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
+        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
+        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
+        /// </summary>
+        public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
+            ? InternalSearchEngine.Instance
+            : Providers.Instance.SearchEngine;
+
         // ReSharper disable once InconsistentNaming
         private string __indexDirectoryPath;
         public string IndexDirectoryPath
@@ -126,62 +135,53 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
-        /// <summary>
-        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
-        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
-        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
-        /// </summary>
-        public static ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
-            ? InternalSearchEngine.Instance
-            : Providers.Instance.SearchEngine;
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
+/// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
+/// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
+/// </summary>
+public static ISearchEngine SearchEngine => Providers.Instance.SearchManager.SearchEngine;
 
-//private static ISearchEngineSupport _searchEngineSupport;
-///// <summary>
-///// Stores the given reference of the <see cref="ISearchEngineSupport"/> implementation instance
-///// that allows access to methods implemented in the higher service level.
-///// </summary>
-///// <param name="searchEngineSupport"></param>
-//public static void SetSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
-//{
-//    _searchEngineSupport = searchEngineSupport;
-//}
-
-        /// <summary>
-        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
-        /// </summary>
-        /// <param name="text">CQL query text.</param>
-        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
-        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
-        public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
-        {
-            return Providers.Instance.SearchManager.ExecuteContentQuery(text, settings, parameters);
-        }
-        /// <summary>
-        /// Returns an <see cref="IIndexPopulator"/> implementation instance.
-        /// </summary>
-        public static IIndexPopulator GetIndexPopulator()
-        {
-            return Providers.Instance.SearchManager.GetIndexPopulator();
-        }
-        /// <summary>
-        /// Gets indexing metadata descriptor instance by fieldName
-        /// </summary>
-        public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-        {
-            return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
-        }
-
-        public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
-        {
-            return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
-        }
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns with the <see cref="QueryResult"/> of the given CQL query.
+/// </summary>
+/// <param name="text">CQL query text.</param>
+/// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+/// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
+{
+    return Providers.Instance.SearchManager.ExecuteContentQuery(text, settings, parameters);
+}
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Returns an <see cref="IIndexPopulator"/> implementation instance.
+/// </summary>
+public static IIndexPopulator GetIndexPopulator()
+{
+    return Providers.Instance.SearchManager.GetIndexPopulator();
+}
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Gets indexing metadata descriptor instance by fieldName
+/// </summary>
+public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+{
+    return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
+}
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
+{
+    return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
+}
 
         /// <summary>
         /// Gets a value that is true if the content query can run in the configured outer query engine.
         /// </summary>
         public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.IsOuterEngineEnabled &&
-                                                    SearchEngine != InternalSearchEngine.Instance &&
-                                                    (SearchEngine?.IndexingEngine?.Running ?? false);
+                                                    Providers.Instance.SearchEngine != InternalSearchEngine.Instance &&
+                                                    (Providers.Instance.SearchEngine?.IndexingEngine?.Running ?? false);
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>

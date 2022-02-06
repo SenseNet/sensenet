@@ -295,10 +295,12 @@ namespace SenseNet.Tests.Core
         {
             var fname = Path.Combine(directoryName, fileNameWithoutExtension + ".txt");
 
-            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+            if (Providers.Instance.SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
                 searchEngine.Index.Save(fname);
             else
-                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.GetType().FullName}. Only the InMemorySearchEngine is allowed.");
+                throw new NotSupportedException($"Index cannot be saved if the engine is " +
+                                                $"{Providers.Instance.SearchManager.SearchEngine.GetType().FullName}. " +
+                                                $"Only the InMemorySearchEngine is allowed.");
         }
 
         /// <summary>
@@ -309,17 +311,19 @@ namespace SenseNet.Tests.Core
         /// </summary>
         protected IDisposable SaveIndexDocuments(string directoryName)
         {
-            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+            if (Providers.Instance.SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
                 searchEngine.Index.IndexDocumentPath = directoryName;
             else
-                throw new NotSupportedException($"IndexDocuments cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
+                throw new NotSupportedException($"IndexDocuments cannot be saved if the engine is " +
+                                                $"{Providers.Instance.SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. " +
+                                                $"Only the InMemoryIndexingEngine is allowed.");
             return new SaveIndexDocumentsBlock();
         }
         private class SaveIndexDocumentsBlock : IDisposable
         {
             public void Dispose()
             {
-                if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                if (Providers.Instance.SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
                     searchEngine.Index.IndexDocumentPath = null;
             }
         }

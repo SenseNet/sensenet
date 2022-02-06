@@ -352,7 +352,7 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                var analyzersBefore = SearchManager.SearchEngine.GetAnalyzers();
+                var analyzersBefore = Providers.Instance.SearchManager.SearchEngine.GetAnalyzers();
 
                 /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
@@ -365,7 +365,7 @@ namespace SenseNet.ContentRepository.Tests
 ");
                 ContentType.GetByName(contentTypeName); // starts the contenttype system
 
-                var analyzersAfter = SearchManager.SearchEngine.GetAnalyzers();
+                var analyzersAfter = Providers.Instance.SearchManager.SearchEngine.GetAnalyzers();
 
                 Assert.IsFalse(analyzersBefore.ContainsKey(fieldName1));
                 Assert.IsFalse(analyzersBefore.ContainsKey(fieldName2));
@@ -387,7 +387,7 @@ namespace SenseNet.ContentRepository.Tests
             var analyzerValue = "Lucene.Net.Analysis.KeywordAnalyzer";
             Test(() =>
             {
-                var searchEngine = SearchManager.SearchEngine as InMemorySearchEngine;
+                var searchEngine = Providers.Instance.SearchManager.SearchEngine as InMemorySearchEngine;
                 Assert.IsNotNull(searchEngine);
 
                 ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>

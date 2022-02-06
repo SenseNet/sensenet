@@ -11,6 +11,13 @@ namespace SenseNet.ContentRepository.Search
     public interface ISearchManager
     {
         /// <summary>
+        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
+        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
+        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
+        /// </summary>
+        public ISearchEngine SearchEngine { get; }
+
+        /// <summary>
         /// Gets or sets the path of the local index in the file system in case of local indexing engines.
         /// The value can be configured in the Indexing configuration class or set directly.
         /// </summary>
@@ -42,6 +49,10 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public bool IsLifespanFilterEnabled(FilterStatus value);
 
+        ///// <summary>
+        ///// Gets a value that is true if the content query can run in the configured outer query engine.
+        ///// </summary>
+        //public bool ContentQueryIsAllowed { get; }
 
         /// <summary>
         /// Returns with the <see cref="QueryResult"/> of the given CQL query.
@@ -64,17 +75,6 @@ namespace SenseNet.ContentRepository.Search
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData);
 
         /*
-        /// <summary>
-        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
-        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
-        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
-        /// </summary>
-        public ISearchEngine SearchEngine { get; }
-
-        /// <summary>
-        /// Gets a value that is true if the content query can run in the configured outer query engine.
-        /// </summary>
-        public bool ContentQueryIsAllowed { get; }
 
         /// <summary>
         /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.

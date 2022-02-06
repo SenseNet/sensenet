@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Gets the current <see cref="IIndexingEngine"/> implementation.
         /// </summary>
-        public static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
+        public static IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; private set; }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
-            return SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized
+            return Providers.Instance.SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized
                 ? ExecuteCentralizedActivityAsync(activity, cancellationToken)
                 : ExecuteDistributedActivityAsync(activity, cancellationToken);
         }
@@ -280,7 +280,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // Running state of the activity is only used in the centralized indexing scenario. 
             // Additionally, the activity table can be too large in the distributed indexing scenario
             // so it would be blocked for a long time by RestoreIndexingActivityStatusAsync.
-            if (!SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
+            if (!Providers.Instance.SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
                 throw new SnNotSupportedException();
 
             // No action is required if the status is the default
@@ -293,7 +293,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // Reset activity status in the index if an actual operation happened.
             if(result == IndexingActivityStatusRestoreResult.Restored)
-                await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
+                await Providers.Instance.SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
                     IndexingActivityStatus.Startup, cancellationToken).ConfigureAwait(false);
 
             return result;

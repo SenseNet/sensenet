@@ -844,10 +844,10 @@ namespace SenseNet.ContentRepository.Schema
 
         private void FinalizeIndexingInfo()
         {
-            if (!SearchManager.SearchEngine.IndexingEngine.Running)
+            if (!Providers.Instance.SearchManager.SearchEngine.IndexingEngine.Running)
                 return;
 
-            SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
         }
 
         public static long _GetTimestamp()
