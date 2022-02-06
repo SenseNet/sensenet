@@ -1835,7 +1835,7 @@ namespace SenseNet.ContentRepository
                 var newTimeStamp = this.NodeTimestamp;
 
                 // query all workflows in the system that have this content as their related content
-                var nodes = SearchManager.ContentQueryIsAllowed
+                var nodes = Providers.Instance.SearchManager.ContentQueryIsAllowed
                     ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
                         Providers.Instance.StorageSchema.NodeTypes["Workflow"], false).Nodes;
@@ -2093,7 +2093,7 @@ namespace SenseNet.ContentRepository
         [Obsolete("Use declarative concept instead: ChildrenDefinition")]
         public virtual QueryResult GetChildren(string text, QuerySettings settings, bool getAllChildren)
         {
-            if (SearchManager.ContentQueryIsAllowed)
+            if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))

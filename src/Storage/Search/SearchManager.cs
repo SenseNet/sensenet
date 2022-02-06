@@ -15,6 +15,9 @@ using SenseNet.Search.Querying;
 namespace SenseNet.ContentRepository.Search
 {
     //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager
+    /// <summary>
+    /// Provides indexing and querying related management elements for all service layers. 
+    /// </summary>
     public class SearchManager_INSTANCE : ISearchManager
     {
         private ISearchEngineSupport _searchEngineSupport;
@@ -25,11 +28,6 @@ namespace SenseNet.ContentRepository.Search
             _searchEngineSupport = searchEngineSupport;
         }
 
-        /// <summary>
-        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
-        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
-        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
-        /// </summary>
         public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
@@ -87,7 +85,9 @@ namespace SenseNet.ContentRepository.Search
             }
         }
 
-
+        public bool ContentQueryIsAllowed => IsOuterEngineEnabled &&
+                                             SearchEngine != InternalSearchEngine.Instance &&
+                                             (SearchEngine?.IndexingEngine?.Running ?? false);
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
@@ -139,12 +139,11 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
-        /// <summary>
-        /// Gets a value that is true if the content query can run in the configured outer query engine.
-        /// </summary>
-        public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.IsOuterEngineEnabled &&
-                                                    Providers.Instance.SearchEngine != InternalSearchEngine.Instance &&
-                                                    (Providers.Instance.SearchEngine?.IndexingEngine?.Running ?? false);
+//UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+/// <summary>
+/// Gets a value that is true if the content query can run in the configured outer query engine.
+/// </summary>
+public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.ContentQueryIsAllowed;
 
 //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
 /// <summary>

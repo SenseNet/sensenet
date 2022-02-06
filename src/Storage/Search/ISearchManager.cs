@@ -49,10 +49,10 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public bool IsLifespanFilterEnabled(FilterStatus value);
 
-        ///// <summary>
-        ///// Gets a value that is true if the content query can run in the configured outer query engine.
-        ///// </summary>
-        //public bool ContentQueryIsAllowed { get; }
+        /// <summary>
+        /// Gets a value that is true if the content query can run in the configured outer query engine.
+        /// </summary>
+        public bool ContentQueryIsAllowed { get; }
 
         /// <summary>
         /// Returns with the <see cref="QueryResult"/> of the given CQL query.

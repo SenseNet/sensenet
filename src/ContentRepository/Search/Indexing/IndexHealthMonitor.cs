@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing
@@ -39,7 +40,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // for testing purposes we need a parameterless method because ElapsedEventArgs has only internal constructor
         private static void Timer_Elapsed()
         {
-            if (SearchManager.ContentQueryIsAllowed)
+            if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
                 var timerEnabled = _timer.Enabled;
                 _timer.Enabled = false;

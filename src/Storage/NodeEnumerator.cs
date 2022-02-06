@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.Storage
             switch (_hint)
             {
                 case ExecutionHint.None:
-                    return SearchManager.ContentQueryIsAllowed
+                    return Providers.Instance.SearchManager.ContentQueryIsAllowed
                         ? QueryChildrenFromIndex(thisId)
                         : QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
