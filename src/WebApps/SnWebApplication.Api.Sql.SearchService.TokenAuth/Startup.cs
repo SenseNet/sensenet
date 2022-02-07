@@ -1,6 +1,5 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Threading;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
@@ -53,15 +51,10 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
-                    var mp = new SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider(
-                        new BinaryMessageFormatter(), ClusterMemberInfo.Current);
-                    mp.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseMsSqlExclusiveLockDataProviderExtension()
-                    .UseClusterChannelProvider(mp);
-            })
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseMsSqlExclusiveLockDataProviderExtension();
+                })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
@@ -73,6 +66,10 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()
+                .AddRabbitMqMessageProvider(configureRabbitMq: options =>
+                {
+                    Configuration.GetSection("sensenet:rabbitmq").Bind(options);
+                })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddComponent(provider => new MsSqlClientStoreComponent())
