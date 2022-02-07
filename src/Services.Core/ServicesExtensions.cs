@@ -3,7 +3,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
@@ -161,6 +163,14 @@ namespace SenseNet.Extensions.DependencyInjection
             var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
             if (statisticalDataProvider != null)
                 Providers.Instance.DataProvider.SetExtension(typeof(IStatisticalDataProvider), statisticalDataProvider);
+
+            var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
+            if (cmi != null)
+                ClusterMemberInfo.Current = cmi;
+
+            var ccp = provider.GetService<IClusterChannel>();
+            if (ccp != null)
+                Providers.Instance.ClusterChannelProvider = ccp;
 
             return provider;
         }
