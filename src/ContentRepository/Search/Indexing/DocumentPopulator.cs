@@ -343,24 +343,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         // caller: CommitPopulateNode
-        private static STT.Task CreateBrandNewNodeAsync(Node node, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task CreateBrandNewNodeAsync(Node node, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
             return CreateActivityAndExecuteAsync(IndexingActivityType.AddDocument, node.Path, node.Id, node.VersionId, node.VersionTimestamp, versioningInfo, indexDocumentData, cancellationToken);
         }
         // caller: CommitPopulateNode
-        private static STT.Task AddNewVersionAsync(Node newVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task AddNewVersionAsync(Node newVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
             return CreateActivityAndExecuteAsync(IndexingActivityType.AddDocument, newVersion.Path, newVersion.Id, newVersion.VersionId, newVersion.VersionTimestamp, versioningInfo, indexDocumentData, cancellationToken);
         }
         // caller: CommitPopulateNode
-        private static STT.Task UpdateVersionAsync(DocumentPopulatorData state, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task UpdateVersionAsync(DocumentPopulatorData state, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
             return CreateActivityAndExecuteAsync(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, versioningInfo, indexDocumentData, cancellationToken);
         }
 
         /*================================================================================================================================*/
 
-        internal static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        internal IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
@@ -379,7 +379,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             return activity;
         }
-        internal static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
+        internal IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
@@ -393,15 +393,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             return activity;
         }
-        private static STT.Task CreateActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task CreateActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
             return ExecuteActivityAsync(CreateActivity(type, path, nodeId, versionId, versionTimestamp, versioningInfo, indexDocumentData), cancellationToken);
         }
-        private static STT.Task CreateTreeActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task CreateTreeActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
             return ExecuteActivityAsync(CreateTreeActivity(type, path, nodeId, indexDocumentData), cancellationToken);
         }
-        private static async STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+        private async STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
             await IndexManager.RegisterActivityAsync(activity, cancellationToken).ConfigureAwait(false);
             await IndexManager.ExecuteActivityAsync(activity, cancellationToken).ConfigureAwait(false);

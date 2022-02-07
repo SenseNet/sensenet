@@ -499,11 +499,11 @@ namespace SenseNet.IntegrationTests.TestCases
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {
-            return DocumentPopulator.CreateActivity(type, path, nodeId, versionId, versionTimestamp, null, indexDocumentData);
+            return new DocumentPopulator().CreateActivity(type, path, nodeId, versionId, versionTimestamp, null, indexDocumentData);
         }
         private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            return DocumentPopulator.CreateTreeActivity(type, path, nodeId, indexDocumentData);
+            return new DocumentPopulator().CreateTreeActivity(type, path, nodeId, indexDocumentData);
         }
     }
 }
