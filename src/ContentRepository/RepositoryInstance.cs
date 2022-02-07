@@ -253,7 +253,11 @@ namespace SenseNet.ContentRepository
 
                 ConsoleWrite("Starting message channel ... ");
                 channel = DistributedApplication.ClusterChannel;
+                channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+                
                 ConsoleWriteLine("ok.");
+                SnLog.WriteInformation($"Message channel {channel.GetType().FullName} started." +
+                                       $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
 
                 ConsoleWrite("Sending greeting message ... ");
                 new PingMessage(new string[0]).SendAsync(CancellationToken.None).GetAwaiter().GetResult();
