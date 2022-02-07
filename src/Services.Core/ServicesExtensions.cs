@@ -141,9 +141,9 @@ namespace SenseNet.Extensions.DependencyInjection
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
-            //Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
             Providers.Instance.SearchEngineSupport = provider.GetRequiredService<ISearchEngineSupport>();
             Providers.Instance.SearchManager = provider.GetRequiredService<ISearchManager>();
+            Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
 
 #pragma warning disable 618
 

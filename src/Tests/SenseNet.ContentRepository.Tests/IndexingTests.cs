@@ -660,7 +660,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Empty test
                 db.IndexingActivities.Clear();
 
-                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var emptyState = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual("0()", emptyState.ToString());
@@ -692,7 +692,7 @@ namespace SenseNet.ContentRepository.Tests
                     db.IndexingActivities.Insert(item);
 
                 // ACTION
-                IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
+                Providers.Instance.IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
@@ -711,7 +711,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Empty test
                 db.IndexingActivities.Clear();
 
-                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var emptyState = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual("0()", emptyState.ToString());
@@ -742,7 +742,7 @@ namespace SenseNet.ContentRepository.Tests
                     db.IndexingActivities.Insert(item);
 
                 // ACTION
-                var state = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var state = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
@@ -792,7 +792,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     inMemEngine.IndexIsCentralized = true;
 
-                    IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
+                    Providers.Instance.IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                 }
                 finally

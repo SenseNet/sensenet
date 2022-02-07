@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 

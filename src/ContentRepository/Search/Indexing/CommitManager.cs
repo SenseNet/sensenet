@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Timers;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
@@ -35,7 +36,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         public void ActivityFinished()
         {
-            IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
+            ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 
@@ -87,7 +88,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private void Commit()
         {
             //TODO: [async] make the whole mechanism async
-            IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
+            ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
             Interlocked.Exchange(ref _uncommittedActivityCount, 0);
             _lastCommitTime = DateTime.UtcNow;
         }

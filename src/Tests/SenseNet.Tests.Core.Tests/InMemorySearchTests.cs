@@ -27,6 +27,7 @@ namespace SenseNet.Tests.Core.Tests
     public class InMemorySearchTests : TestBase
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE) Providers.Instance.IndexManager;
 
         [TestMethod, TestCategory("IR")]
         public void InMemSearch_Core_Indexing_Create()
@@ -877,6 +878,7 @@ namespace SenseNet.Tests.Core.Tests
                 var searchEngineSupport = new SearchEngineSupport();
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -924,6 +926,7 @@ namespace SenseNet.Tests.Core.Tests
                 var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -973,6 +976,7 @@ namespace SenseNet.Tests.Core.Tests
                 var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
                 builder.UseSearchEngineSupport(searchEngineSupport);
                 builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {

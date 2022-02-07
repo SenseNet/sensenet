@@ -4,6 +4,7 @@ using System.Threading;
 using STT=System.Threading.Tasks;
 using Nito.AsyncEx;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
@@ -16,6 +17,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
+        protected IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
+
         /// <summary>
         /// Executes the activity's main action.
         /// </summary>
@@ -25,7 +28,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public override async STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {
-            if (!IndexManager.Running)
+            if (!Providers.Instance.IndexManager.Running)
                 return;
 
             if (onRemote && !isFromMe)

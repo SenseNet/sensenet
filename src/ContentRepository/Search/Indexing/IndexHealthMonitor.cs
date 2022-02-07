@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 _timer.Enabled = false;
                 try
                 {
-                    IndexManager.DistributedIndexingActivityQueue.HealthCheck();
+                    ((IndexManager_INSTANCE)Providers.Instance.IndexManager).DistributedIndexingActivityQueue.HealthCheck();
                 }
                 catch (Exception ex) // logged
                 {

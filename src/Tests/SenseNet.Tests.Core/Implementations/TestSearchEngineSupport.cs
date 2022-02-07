@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
@@ -34,7 +35,7 @@ namespace SenseNet.Tests.Core.Implementations
 
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
-            return IndexManager.CompleteIndexDocument(indexDocumentData);
+            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CompleteIndexDocument(indexDocumentData);
         }
     }
 }

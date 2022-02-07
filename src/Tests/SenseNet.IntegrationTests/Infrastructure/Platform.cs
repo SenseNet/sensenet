@@ -4,6 +4,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -51,6 +52,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchEngineSupport(searchEngineSupport)
                 .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

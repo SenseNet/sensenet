@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
@@ -182,6 +183,7 @@ namespace SenseNet.Tests.Core
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngineSupport(searchEngineSupport)
                 .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

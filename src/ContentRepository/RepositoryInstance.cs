@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository
                 return;
             }
             ConsoleWriteLine("Starting IndexingEngine:");
-            IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
+            Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             ConsoleWriteLine("IndexingEngine has started.");
         }
 
@@ -459,7 +459,7 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.SecurityHandler.ShutDownSecurity();
 
                 SnTrace.Repository.Write("Shutting down IndexingEngine.");
-                IndexManager.ShutDown();
+                Providers.Instance.IndexManager.ShutDown();
 
                 ContextHandler.Reset();
 
@@ -505,7 +505,7 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                     throw new NotSupportedException("Querying running state of IndexingEngine is not supported when RepositoryInstance is not created.");
-                return IndexManager.Running;
+                return Providers.Instance.IndexManager.Running;
             }
         }
 

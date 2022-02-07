@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
@@ -9,7 +10,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     {
         protected override Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {
-            return IndexManager.UpdateDocumentAsync(Document, Versioning, cancellationToken);
+            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).UpdateDocumentAsync(Document, Versioning, cancellationToken);
         }
     }
 }

@@ -19,6 +19,7 @@ using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Extensions.DependencyInjection;
@@ -1742,6 +1743,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngineSupport(searchEngineSupport)
                 .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             var lastId = _terminationHistory.GetLastTerminatedId();
-            var lastDbId = IndexManager.GetLastStoredIndexingActivityId();
+            var lastDbId = Providers.Instance.IndexManager.GetLastStoredIndexingActivityId();
 
             if (lastId < lastDbId)
             {
@@ -119,11 +119,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public void Startup(System.IO.TextWriter consoleOut)
         {
             // initialize from index
-            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var cud = Providers.Instance.SearchManager.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 
-            var lastDatabaseId = IndexManager.GetLastStoredIndexingActivityId();
+            var lastDatabaseId = Providers.Instance.IndexManager.GetLastStoredIndexingActivityId();
 
             using (var op = SnTrace.Index.StartOperation("IAQ: InitializeFromIndex. LastIndexedActivityId: {0}, LastDatabaseId: {1}, TotalUnprocessed: {2}"
                 , cud.LastActivityId, lastDatabaseId, lastDatabaseId - cud.LastActivityId + gapsLength))
@@ -316,7 +316,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
+                    ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
@@ -688,7 +688,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     finally
                     {
                         _dependencyManager.Finish(activity);
-                        IndexManager.ActivityFinished(activity.Id);
+                        ((IndexManager_INSTANCE)Providers.Instance.IndexManager).ActivityFinished(activity.Id);
                     }
                     op.Successful = true;
                 }

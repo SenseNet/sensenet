@@ -15,6 +15,7 @@ using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -764,6 +765,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchEngineSupport(searchEngineSupport)
                 .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

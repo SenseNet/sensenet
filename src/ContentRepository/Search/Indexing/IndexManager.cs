@@ -16,35 +16,23 @@ using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    /// <summary>
-    /// Provides methods for managing indexes.
-    /// </summary>
-    public static class IndexManager // alias LuceneManager
+    public class IndexManager_INSTANCE : IIndexManager
     {
-        private static IDataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore DataStore => Providers.Instance.DataStore;
 
-        internal static DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; } =
+        internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; } =
             new DistributedIndexingActivityQueue();
-        private static CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; } =
+        private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; } =
             new CentralizedIndexingActivityQueue();
 
-        #region /* ==================================================================== Managing index */
+        /* ==================================================================== Managing index */
 
-        /// <summary>
-        /// Gets the current <see cref="IIndexingEngine"/> implementation.
-        /// </summary>
-        public static IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
-        internal static ICommitManager CommitManager { get; private set; }
+        public IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
+        internal ICommitManager CommitManager { get; private set; }
 
-        /// <summary>
-        /// Gets a value that is true if the current indexing engine is running.
-        /// </summary>
-        public static bool Running => IndexingEngine?.Running ?? false;
+        public bool Running => IndexingEngine?.Running ?? false;
 
-        /// <summary>
-        /// Gets the ids of not indexed <see cref="NodeType"/>s.
-        /// </summary>
-        public static int[] GetNotIndexedNodeTypes()
+        public int[] GetNotIndexedNodeTypes()
         {
             return new AllContentTypes()
                 .Where(c => !c.IndexingEnabled)
@@ -52,19 +40,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 .ToArray();
         }
 
-        /// <summary>
-        /// Initializes the indexing feature: starts the IndexingEngine, CommitManager and indexing activity organizer.
-        /// If "consoleOut" is not null, writes progress and debug messages into it.
-        /// </summary>
-        /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
+        public async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
         {
             await IndexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
 
             CommitManager = IndexingEngine.IndexIsCentralized
-                ? (ICommitManager) new NoDelayCommitManager()
+                ? (ICommitManager)new NoDelayCommitManager()
                 : new NearRealTimeCommitManager();
 
             SnTrace.Index.Write("LM: {0} created.", CommitManager.GetType().Name);
@@ -82,13 +63,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        /// <summary>
-        /// Restores already executed indexing actity states to Waiting. The goal is to
-        /// mark old activities that cannot be found in the index to be executed again.
-        /// This should happen after a db and index restore, when the index is older than
-        /// the database. This method assumes that the latest activity id is written to the index.
-        /// </summary>
-        private static void RestoreIndexIfNeeded()
+        private void RestoreIndexIfNeeded()
         {
             //TODO: review this method, because currently we do not write status to the service index. That means
             // the last activity id will always be 0 in case of a centralized index and this method will never
@@ -98,14 +73,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             try
             {
-                var status = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
+                var status = Providers.Instance.SearchManager.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
                             .GetAwaiter().GetResult();
                 SnTrace.Index.Write($"  Status: {status}");
 
                 if (status.LastActivityId > 0)
                 {
                     SnTrace.Index.Write("  Restore indexing activities: ");
-                    var result = IndexManager.RestoreIndexingActivityStatusAsync(status, CancellationToken.None)
+                    var result = Providers.Instance.IndexManager.RestoreIndexingActivityStatusAsync(status, CancellationToken.None)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                     SnTrace.Index.Write($"  Restore result: {result}.");
                 }
@@ -121,10 +96,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        /// <summary>
-        /// Shuts down the indexing feature: stops CommitManager, indexing activity organizer and IndexingEngine.
-        /// </summary>
-        public static void ShutDown()
+        public void ShutDown()
         {
             CommitManager?.ShutDown();
 
@@ -142,54 +114,38 @@ namespace SenseNet.ContentRepository.Search.Indexing
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
-        /// <summary>
-        /// Deletes the existing index. Called before making a brand new index.
-        /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static STT.Task ClearIndexAsync(CancellationToken cancellationToken)
+        public STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
             return IndexingEngine.ClearIndexAsync(cancellationToken);
         }
 
-        /* ========================================================================================== Activity */
+        /* ------------------------------------------------------------------------------------------ Activity */
 
-        /// <summary>
-        /// Registers an indexing activity in the database.
-        /// </summary>
-        /// <param name="activity">The activity to register.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static STT.Task RegisterActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+        public STT.Task RegisterActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
             return DataStore.RegisterIndexingActivityAsync(activity, cancellationToken);
         }
 
-        /// <summary>
-        /// Executes an indexing activity taking dependencies into account and waits for its completion asynchronously.
-        /// Dependent activities are executed in the order of registration.
-        /// Dependent activity execution starts after the previously blocker activity is completed.
-        /// </summary>
-        /// <param name="activity">The activity to execute.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+        public STT.Task ExecuteActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
             return Providers.Instance.SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized
                 ? ExecuteCentralizedActivityAsync(activity, cancellationToken)
                 : ExecuteDistributedActivityAsync(activity, cancellationToken);
         }
-        private static STT.Task ExecuteCentralizedActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+        private STT.Task ExecuteCentralizedActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
-            SnTrace.Index.Write("ExecuteCentralizedActivity: #{0}", activity.Id);
-            CentralizedIndexingActivityQueue.ExecuteActivity(activity);
+            var activityBase = (IndexingActivityBase)activity; //UNDONE:<?xxx: wrong parameter interface
 
-            return activity.WaitForCompleteAsync(cancellationToken);
+            SnTrace.Index.Write("ExecuteCentralizedActivity: #{0}", activity.Id);
+            CentralizedIndexingActivityQueue.ExecuteActivity(activityBase);
+
+            return activityBase.WaitForCompleteAsync(cancellationToken);
         }
-        private static async STT.Task ExecuteDistributedActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+        private async STT.Task ExecuteDistributedActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
+            var activityBase = (IndexingActivityBase)activity; //UNDONE:<?xxx: wrong parameter interface
             SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
-            await activity.DistributeAsync(cancellationToken).ConfigureAwait(false);
+            await activityBase.DistributeAsync(cancellationToken).ConfigureAwait(false);
 
             // If there are too many activities in the queue, we have to drop at least the inner
             // data of the activity to prevent memory overflow. We still have to wait for the 
@@ -202,80 +158,37 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             // all activities must be executed through the activity queue's API
-            DistributedIndexingActivityQueue.ExecuteActivity(activity);
+            DistributedIndexingActivityQueue.ExecuteActivity(activityBase);
 
-            await activity.WaitForCompleteAsync(cancellationToken).ConfigureAwait(false);
+            await activityBase.WaitForCompleteAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Returns the Id of the last registered indexing activity.
-        /// </summary>
-        public static int GetLastStoredIndexingActivityId()
+        public int GetLastStoredIndexingActivityId()
         {
             return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        /// <summary>
-        /// Deletes all activities from the database.
-        /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        internal static STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
+        internal STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             return DataStore.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the current <see cref="IndexingActivityStatus"/> instance
-        /// containing the last executed indexing activity id and ids of missing indexing activities.
-        /// This method is used in the distributed indexing scenario.
-        /// The indexing activity status comes from the index.
-        /// </summary>
-        /// <returns>The current <see cref="IndexingActivityStatus"/> instance.</returns>
-        public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
+        public IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();
         }
 
-        /// <summary>
-        /// Deletes all restore points from the database.
-        /// This method is used in the centralized indexing scenario.
-        /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        public STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
         {
             return DataStore.DeleteRestorePointsAsync(cancellationToken);
         }
-        /// <summary>
-        /// Gets the current <see cref="IndexingActivityStatus"/> instance
-        /// containing the last executed indexing activity id and ids of missing indexing activities.
-        /// This method is used in the centralized indexing scenario.
-        /// The indexing activity status comes from the database.
-        /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the current
-        /// <see cref="IndexingActivityStatus"/> instance.</returns>
-        public static STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        public STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
             return DataStore.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
         }
 
-        /// <summary>
-        /// Restores the indexing activity status.
-        /// This method is used in the centralized indexing scenario.
-        /// </summary>
-        /// <remarks>
-        /// To ensure index and database integrity, this method marks indexing activities
-        /// that were executed after the backup status was queried as executables. In the
-        /// CentralizedIndexingActivityQueue's startup sequence these activities will be
-        /// executed before new indexing activities that were added later.
-        /// </remarks>
-        /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(
-            IndexingActivityStatus status,  CancellationToken cancellationToken)
+        public async STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(
+            IndexingActivityStatus status, CancellationToken cancellationToken)
         {
             // Running state of the activity is only used in the centralized indexing scenario. 
             // Additionally, the activity table can be too large in the distributed indexing scenario
@@ -292,60 +205,58 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 .ConfigureAwait(false);
 
             // Reset activity status in the index if an actual operation happened.
-            if(result == IndexingActivityStatusRestoreResult.Restored)
+            if (result == IndexingActivityStatusRestoreResult.Restored)
                 await Providers.Instance.SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
                     IndexingActivityStatus.Startup, cancellationToken).ConfigureAwait(false);
 
             return result;
         }
 
-        /*========================================================================================== Commit */
+        /* ------------------------------------------------------------------------------------------ Commit */
 
         // called from activity
-        internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
+        internal void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
             //SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
             //CommitManager.ActivityFinished();
         }
         // called from activity queue
-        internal static void ActivityFinished(int activityId)
+        internal void ActivityFinished(int activityId)
         {
             SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
             CommitManager?.ActivityFinished();
         }
 
-        internal static STT.Task CommitAsync(CancellationToken cancellationToken)
+        internal STT.Task CommitAsync(CancellationToken cancellationToken)
         {
             var state = GetCurrentIndexingActivityStatus();
             SnTrace.Index.Write("LM: WriteActivityStatusToIndex: {0}", state);
             return IndexingEngine.WriteActivityStatusToIndexAsync(state, cancellationToken);
         }
 
-        #endregion
-
-        #region /* ==================================================================== Document operations */
+        /* ==================================================================== Document operations */
 
         /* ClearAndPopulateAll */
-        internal static STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
+        internal STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
         {
             return IndexingEngine.WriteIndexAsync(null, null, documents, cancellationToken);
         }
 
         /* AddDocumentActivity, RebuildActivity */
-        internal static async STT.Task<bool> AddDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
+        internal async STT.Task<bool> AddDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
-            if(document != null)
+            if (document != null)
                 SetDocumentFlags(document, versioning);
 
-            await IndexingEngine.WriteIndexAsync(delTerms, updates, new[] {document}, cancellationToken).ConfigureAwait(false);
+            await IndexingEngine.WriteIndexAsync(delTerms, updates, new[] { document }, cancellationToken).ConfigureAwait(false);
 
             return true;
         }
 
         // UpdateDocumentActivity
-        internal static async STT.Task<bool> UpdateDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
+        internal async STT.Task<bool> UpdateDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning).ToList();
@@ -364,7 +275,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return true;
         }
         // RemoveTreeActivity, RebuildActivity
-        internal static async STT.Task<bool> DeleteDocumentsAsync(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning, CancellationToken cancellationToken)
+        internal async STT.Task<bool> DeleteDocumentsAsync(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning, CancellationToken cancellationToken)
         {
             await IndexingEngine.WriteIndexAsync(deleteTerms, null, null, cancellationToken).ConfigureAwait(false);
 
@@ -375,7 +286,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return true;
         }
 
-        private static IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
+        private IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 
@@ -388,7 +299,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             return result;
         }
-        private static void SetDocumentFlags(IndexDocument doc, VersioningInfo versioning)
+        private void SetDocumentFlags(IndexDocument doc, VersioningInfo versioning)
         {
             var versionId = doc.VersionId;
             var version = VersionNumber.Parse(doc.Version);
@@ -404,53 +315,52 @@ namespace SenseNet.ContentRepository.Search.Indexing
             SetDocumentFlag(doc, IndexFieldName.IsLastPublic, isLastPublic);
             SetDocumentFlag(doc, IndexFieldName.IsLastDraft, isLastDraft);
         }
-        private static void SetDocumentFlag(IndexDocument doc, string fieldName, bool value)
+        private void SetDocumentFlag(IndexDocument doc, string fieldName, bool value)
         {
             doc.Add(new IndexField(fieldName, value, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
         }
 
 
         // AddTreeActivity
-        internal static async  STT.Task<bool> AddTreeAsync(string treeRoot, int activityId, 
+        internal async STT.Task<bool> AddTreeAsync(string treeRoot, int activityId,
             bool executingUnprocessedActivities, CancellationToken cancellationToken)
         {
-            var delTerms = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
+            var delTerms = executingUnprocessedActivities ? new[] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
             var docs = Providers.Instance.SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
                 .Select(CreateIndexDocument);
             await IndexingEngine.WriteIndexAsync(delTerms, null, docs, cancellationToken).ConfigureAwait(false);
             return true;
         }
+        
 
-        #endregion
-
-        #region /* ==================================================================== IndexDocument management */
+        /* ==================================================================== IndexDocument management */
 
         // ReSharper disable once InconsistentNaming
-        private static IPerFieldIndexingInfo __nameFieldIndexingInfo;
-        internal static IPerFieldIndexingInfo NameFieldIndexingInfo =>
+        private IPerFieldIndexingInfo __nameFieldIndexingInfo;
+        internal IPerFieldIndexingInfo NameFieldIndexingInfo =>
             __nameFieldIndexingInfo ??= Providers.Instance.SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
 
         // ReSharper disable once InconsistentNaming
-        private static IPerFieldIndexingInfo __pathFieldIndexingInfo;
-        internal static IPerFieldIndexingInfo PathFieldIndexingInfo =>
+        private IPerFieldIndexingInfo __pathFieldIndexingInfo;
+        internal IPerFieldIndexingInfo PathFieldIndexingInfo =>
             __pathFieldIndexingInfo ??= Providers.Instance.SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
 
         // ReSharper disable once InconsistentNaming
-        private static IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
-        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo =>
+        private IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
+        internal IPerFieldIndexingInfo InTreeFieldIndexingInfo =>
             __inTreeFieldIndexingInfo ??= Providers.Instance.SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
 
         // ReSharper disable once InconsistentNaming
-        private static IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
-        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo => 
+        private IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
+        internal IPerFieldIndexingInfo InFolderFieldIndexingInfo =>
             __inFolderFieldIndexingInfo ??= Providers.Instance.SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
 
-        internal static IndexDocument LoadIndexDocumentByVersionId(int versionId)
+        internal IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {
             return CreateIndexDocument(Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId));
         }
-        internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
+        internal IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
             return versionIds.Length == 0
                 ? new IndexDocument[0]
@@ -458,11 +368,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     .Select(CreateIndexDocument)
                     .ToArray();
         }
-        private static IndexDocument CreateIndexDocument(IndexDocumentData data)
+        private IndexDocument CreateIndexDocument(IndexDocumentData data)
         {
             return data == null ? null : CompleteIndexDocument(data);
         }
-        internal static IndexDocument CompleteIndexDocument(IndexDocumentData docData)
+        internal IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
             var doc = docData?.IndexDocument;
 
@@ -496,7 +406,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             return doc;
         }
-        private static string[] GetParentPaths(string lowerCasePath)
+        private string[] GetParentPaths(string lowerCasePath)
         {
             var separator = "/";
             string[] fragments = lowerCasePath.Split(separator.ToCharArray(), StringSplitOptions.None);
@@ -505,8 +415,128 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 pathSteps[i] = string.Join(separator, fragments, 0, i + 1);
             return pathSteps;
         }
+    }
 
-        #endregion
 
+    /// <summary>
+    /// Provides methods for managing indexes.
+    /// </summary>
+    public static class IndexManager // alias LuceneManager
+    {
+        private static IndexManager_INSTANCE IndexManagerImplementation => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
+
+        [Obsolete("####", true)]
+        internal static DistributedIndexingActivityQueue DistributedIndexingActivityQueue
+            => IndexManagerImplementation.DistributedIndexingActivityQueue;
+
+        /* ==================================================================== Managing index */
+
+        [Obsolete("####", true)]
+        public static IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
+
+        [Obsolete("####", true)]
+        public static bool Running => IndexManagerImplementation.Running;
+
+        [Obsolete("####", true)]
+        public static int[] GetNotIndexedNodeTypes()
+            => IndexManagerImplementation.GetNotIndexedNodeTypes();
+
+        [Obsolete("####", true)]
+        public static STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
+            => IndexManagerImplementation.StartAsync(consoleOut, cancellationToken);
+
+        [Obsolete("####", true)]
+        public static void ShutDown()
+            => IndexManagerImplementation.ShutDown();
+
+        [Obsolete("####", true)]
+        public static STT.Task ClearIndexAsync(CancellationToken cancellationToken)
+            => IndexManagerImplementation.ClearIndexAsync(cancellationToken);
+
+        /* ========================================================================================== Activity */
+
+        [Obsolete("####", true)]
+        public static STT.Task RegisterActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+            => IndexManagerImplementation.RegisterActivityAsync(activity, cancellationToken);
+
+        [Obsolete("####", true)]
+        public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
+            => IndexManagerImplementation.ExecuteActivityAsync(activity, cancellationToken);
+
+        [Obsolete("####", true)]
+        public static int GetLastStoredIndexingActivityId()
+            => IndexManagerImplementation.GetLastStoredIndexingActivityId();
+
+        [Obsolete("####", true)]
+        internal static STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
+            => IndexManagerImplementation.DeleteAllIndexingActivitiesAsync(cancellationToken);
+
+        [Obsolete("####", true)]
+        public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
+            => IndexManagerImplementation.GetCurrentIndexingActivityStatus();
+
+        [Obsolete("####", true)]
+        public static STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+            => IndexManagerImplementation.DeleteRestorePointsAsync(cancellationToken);
+
+        [Obsolete("####", true)]
+        public static STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+            => IndexManagerImplementation.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
+
+        [Obsolete("####", true)]
+        public static STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+            => IndexManagerImplementation.RestoreIndexingActivityStatusAsync(status, cancellationToken);
+
+        /*========================================================================================== Commit */
+
+        [Obsolete("####", true)]
+        internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
+            => IndexManagerImplementation.ActivityFinished(activityId, executingUnprocessedActivities);
+
+        [Obsolete("####", true)]
+        internal static void ActivityFinished(int activityId)
+            => IndexManagerImplementation.ActivityFinished(activityId);
+
+        [Obsolete("####", true)]
+        internal static STT.Task CommitAsync(CancellationToken cancellationToken)
+            => IndexManagerImplementation.CommitAsync(cancellationToken);
+
+        /* ==================================================================== Document operations */
+
+        [Obsolete("####", true)]
+        internal static STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
+            => IndexManagerImplementation.AddDocumentsAsync(documents, cancellationToken);
+
+        [Obsolete("####", true)]
+        internal static STT.Task<bool> AddDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
+            => IndexManagerImplementation.AddDocumentAsync(document, versioning, cancellationToken);
+
+        [Obsolete("####", true)]
+        internal static STT.Task<bool> UpdateDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
+            => IndexManagerImplementation.UpdateDocumentAsync(document, versioning, cancellationToken);
+
+        [Obsolete("####", true)]
+        internal static STT.Task<bool> DeleteDocumentsAsync(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning, CancellationToken cancellationToken)
+            => IndexManagerImplementation.DeleteDocumentsAsync(deleteTerms, versioning, cancellationToken);
+
+        internal static STT.Task<bool> AddTreeAsync(string treeRoot, int activityId, bool executingUnprocessedActivities, CancellationToken cancellationToken)
+            => IndexManagerImplementation.AddTreeAsync(treeRoot, activityId, executingUnprocessedActivities, cancellationToken);
+
+        /* ==================================================================== IndexDocument management */
+
+        [Obsolete("####", true)]
+        internal static IPerFieldIndexingInfo NameFieldIndexingInfo => IndexManagerImplementation.NameFieldIndexingInfo;
+        [Obsolete("####", true)]
+        internal static IPerFieldIndexingInfo PathFieldIndexingInfo => IndexManagerImplementation.PathFieldIndexingInfo;
+        [Obsolete("####", true)]
+        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo => IndexManagerImplementation.InTreeFieldIndexingInfo;
+        [Obsolete("####", true)]
+        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo => IndexManagerImplementation.InFolderFieldIndexingInfo;
+        [Obsolete("####", true)]
+        internal static IndexDocument LoadIndexDocumentByVersionId(int versionId) => IndexManagerImplementation.LoadIndexDocumentByVersionId(versionId);
+        [Obsolete("####", true)]
+        internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds) => IndexManagerImplementation.LoadIndexDocumentsByVersionId(versionIds);
+        [Obsolete("####", true)]
+        internal static IndexDocument CompleteIndexDocument(IndexDocumentData docData) => IndexManagerImplementation.CompleteIndexDocument(docData);
     }
 }

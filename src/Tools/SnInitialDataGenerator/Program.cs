@@ -181,6 +181,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngineSupport(searchEngineSupport)
                 .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseIndexManager(new IndexManager_INSTANCE())
                 //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSearchEngine(new SearchEngineForInitialDataGenerator())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
