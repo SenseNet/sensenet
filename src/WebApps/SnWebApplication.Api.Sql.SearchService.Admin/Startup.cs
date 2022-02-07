@@ -63,6 +63,10 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()
+                .AddRabbitMqMessageProvider(configureRabbitMq: options =>
+                {
+                    Configuration.GetSection("sensenet:rabbitmq").Bind(options);
+                })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddComponent(provider => new MsSqlClientStoreComponent())
