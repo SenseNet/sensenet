@@ -241,7 +241,6 @@ namespace SenseNet.Configuration
 
         public virtual ISearchEngine SearchEngine { get; set; }
         public ISearchEngineSupport SearchEngineSupport { get; set; }
-        //public IIndexManager IndexManager { get; set; }
         public ISearchManager SearchManager { get; set; }
         public IIndexManager IndexManager { get; set; }
 
