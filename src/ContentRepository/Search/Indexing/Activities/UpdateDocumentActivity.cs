@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     {
         protected override Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {
-            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).UpdateDocumentAsync(Document, Versioning, cancellationToken);
+            return IndexManager.UpdateDocumentAsync(Document, Versioning, cancellationToken);
         }
     }
 }

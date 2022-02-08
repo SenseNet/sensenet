@@ -23,13 +23,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private readonly DependencyManager _dependencyManager;
         private readonly IndexingActivityHistoryController _activityHistory;
 
-        public DistributedIndexingActivityQueue()
+        public DistributedIndexingActivityQueue(IndexManager_INSTANCE indexManager)
         {
             _terminationHistory = new TerminationHistory();
             _activityHistory = new IndexingActivityHistoryController(this);
             _dependencyManager = new DependencyManager(_terminationHistory, _activityHistory);
-            _serializer = new Serializer(this, _dependencyManager, _terminationHistory, _activityHistory);
-            var executor = new Executor(_dependencyManager, _activityHistory);
+            _serializer = new Serializer(this, _dependencyManager, _terminationHistory, _activityHistory, indexManager);
+            var executor = new Executor(_dependencyManager, _activityHistory, indexManager);
             _dependencyManager.SetDependencies(_serializer, executor);
         }
 
@@ -193,16 +193,19 @@ namespace SenseNet.ContentRepository.Search.Indexing
             private readonly TerminationHistory _terminationHistory;
             private readonly DistributedIndexingActivityQueue _activityQueue;
             private readonly IndexingActivityHistoryController _activityHistory;
+            private IndexManager_INSTANCE _indexManager;
 
             internal Serializer(DistributedIndexingActivityQueue activityQueue,
                 DependencyManager dependencyManager,
                 TerminationHistory terminationHistory,
-                IndexingActivityHistoryController activityHistory)
+                IndexingActivityHistoryController activityHistory
+                , IndexManager_INSTANCE indexManager)
             {
                 _activityQueue = activityQueue;
                 _dependencyManager = dependencyManager;
                 _terminationHistory = terminationHistory;
                 _activityHistory = activityHistory;
+                _indexManager = indexManager;
             }
 
             internal void Reset(int lastQueued = 0)
@@ -316,7 +319,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
+                    _indexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
@@ -662,11 +665,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             private readonly DependencyManager _dependencyManager;
             private readonly IndexingActivityHistoryController _activityHistory;
+            private IndexManager_INSTANCE _indexManager;
 
-            public Executor(DependencyManager dependencyManager, IndexingActivityHistoryController activityHistory)
+            public Executor(DependencyManager dependencyManager, IndexingActivityHistoryController activityHistory,
+                IndexManager_INSTANCE indexManager)
             {
                 _dependencyManager = dependencyManager;
                 _activityHistory = activityHistory;
+                _indexManager = indexManager;
             }
 
             public void Execute(IndexingActivityBase activity)
@@ -688,7 +694,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     finally
                     {
                         _dependencyManager.Finish(activity);
-                        ((IndexManager_INSTANCE)Providers.Instance.IndexManager).ActivityFinished(activity.Id);
+                        _indexManager.ActivityFinished(activity.Id);
                     }
                     op.Successful = true;
                 }

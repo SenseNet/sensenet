@@ -16,14 +16,22 @@ using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public class IndexManager_INSTANCE : IIndexManager
+    /// <summary>
+    /// Provides methods for managing indexes.
+    /// </summary>
+    //UNDONE:<?xxx: Delete IndexManager and rename IndexManager_INSTANCE to IndexManager
+    public class IndexManager_INSTANCE : IIndexManager // alias LuceneManager
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
 
-        internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; } =
-            new DistributedIndexingActivityQueue();
-        private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; } =
-            new CentralizedIndexingActivityQueue();
+        internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
+        private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; }
+
+        public IndexManager_INSTANCE()
+        {
+            DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this);
+            CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue();
+        }
 
         /* ==================================================================== Managing index */
 
@@ -45,8 +53,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
             await IndexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
 
             CommitManager = IndexingEngine.IndexIsCentralized
-                ? (ICommitManager)new NoDelayCommitManager()
-                : new NearRealTimeCommitManager();
+                ? (ICommitManager)new NoDelayCommitManager(this)
+                : new NearRealTimeCommitManager(this);
 
             SnTrace.Index.Write("LM: {0} created.", CommitManager.GetType().Name);
 
@@ -224,7 +232,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         internal void ActivityFinished(int activityId)
         {
             SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
-            CommitManager?.ActivityFinished();
+            CommitManager?.ActivityFinishedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         internal STT.Task CommitAsync(CancellationToken cancellationToken)
@@ -372,7 +380,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             return data == null ? null : CompleteIndexDocument(data);
         }
-        internal IndexDocument CompleteIndexDocument(IndexDocumentData docData)
+        public IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
             var doc = docData?.IndexDocument;
 
@@ -418,104 +426,103 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
 
 
-    /// <summary>
-    /// Provides methods for managing indexes.
-    /// </summary>
+    //UNDONE:<?xxx: Delete IndexManager and rename IndexManager_INSTANCE to IndexManager
     public static class IndexManager // alias LuceneManager
     {
         private static IndexManager_INSTANCE IndexManagerImplementation => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static DistributedIndexingActivityQueue DistributedIndexingActivityQueue
             => IndexManagerImplementation.DistributedIndexingActivityQueue;
 
         /* ==================================================================== Managing index */
 
-        [Obsolete("####", true)]
+        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static bool Running => IndexManagerImplementation.Running;
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static int[] GetNotIndexedNodeTypes()
             => IndexManagerImplementation.GetNotIndexedNodeTypes();
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
             => IndexManagerImplementation.StartAsync(consoleOut, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static void ShutDown()
             => IndexManagerImplementation.ShutDown();
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task ClearIndexAsync(CancellationToken cancellationToken)
             => IndexManagerImplementation.ClearIndexAsync(cancellationToken);
 
         /* ========================================================================================== Activity */
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task RegisterActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
             => IndexManagerImplementation.RegisterActivityAsync(activity, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
             => IndexManagerImplementation.ExecuteActivityAsync(activity, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static int GetLastStoredIndexingActivityId()
             => IndexManagerImplementation.GetLastStoredIndexingActivityId();
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
             => IndexManagerImplementation.DeleteAllIndexingActivitiesAsync(cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
             => IndexManagerImplementation.GetCurrentIndexingActivityStatus();
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
             => IndexManagerImplementation.DeleteRestorePointsAsync(cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
             => IndexManagerImplementation.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
             => IndexManagerImplementation.RestoreIndexingActivityStatusAsync(status, cancellationToken);
 
         /*========================================================================================== Commit */
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
             => IndexManagerImplementation.ActivityFinished(activityId, executingUnprocessedActivities);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static void ActivityFinished(int activityId)
             => IndexManagerImplementation.ActivityFinished(activityId);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task CommitAsync(CancellationToken cancellationToken)
             => IndexManagerImplementation.CommitAsync(cancellationToken);
 
         /* ==================================================================== Document operations */
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
             => IndexManagerImplementation.AddDocumentsAsync(documents, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task<bool> AddDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
             => IndexManagerImplementation.AddDocumentAsync(document, versioning, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task<bool> UpdateDocumentAsync(IndexDocument document, VersioningInfo versioning, CancellationToken cancellationToken)
             => IndexManagerImplementation.UpdateDocumentAsync(document, versioning, cancellationToken);
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static STT.Task<bool> DeleteDocumentsAsync(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning, CancellationToken cancellationToken)
             => IndexManagerImplementation.DeleteDocumentsAsync(deleteTerms, versioning, cancellationToken);
 
@@ -524,19 +531,19 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         /* ==================================================================== IndexDocument management */
 
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IPerFieldIndexingInfo NameFieldIndexingInfo => IndexManagerImplementation.NameFieldIndexingInfo;
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IPerFieldIndexingInfo PathFieldIndexingInfo => IndexManagerImplementation.PathFieldIndexingInfo;
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo => IndexManagerImplementation.InTreeFieldIndexingInfo;
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo => IndexManagerImplementation.InFolderFieldIndexingInfo;
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IndexDocument LoadIndexDocumentByVersionId(int versionId) => IndexManagerImplementation.LoadIndexDocumentByVersionId(versionId);
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds) => IndexManagerImplementation.LoadIndexDocumentsByVersionId(versionIds);
-        [Obsolete("####", true)]
+        [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         internal static IndexDocument CompleteIndexDocument(IndexDocumentData docData) => IndexManagerImplementation.CompleteIndexDocument(docData);
     }
 }

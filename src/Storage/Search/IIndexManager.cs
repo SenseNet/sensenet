@@ -117,5 +117,14 @@ namespace SenseNet.ContentRepository.Search
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(
             IndexingActivityStatus status, CancellationToken cancellationToken);
+
+        /* ==================================================================== IndexDocument management */
+
+        /// <summary>
+        /// Returns finalized IndexDocument extracted from passed <paramref name="docData"/>.
+        /// Finalization means adding place-in-tree information to the IndexDocument e.g. Name, Path, ParentId, IsSystem etc.
+        /// </summary>
+        IndexDocument CompleteIndexDocument(IndexDocumentData docData);
+
     }
 }

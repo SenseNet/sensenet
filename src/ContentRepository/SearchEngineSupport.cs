@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
 
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
-            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).CompleteIndexDocument(indexDocumentData);
+            return Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
         }
     }
 }
