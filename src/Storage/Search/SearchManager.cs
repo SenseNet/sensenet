@@ -14,7 +14,7 @@ using SenseNet.Search.Querying;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Search
 {
-    //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager
+    //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager if all references rewritten in the ecosystem
     /// <summary>
     /// Provides indexing and querying related management elements for all service layers. 
     /// </summary>
@@ -132,97 +132,77 @@ namespace SenseNet.ContentRepository.Search
         }
     }
 
-    /// <summary>
-    /// Provides indexing and querying related management elements for all service layers. 
-    /// </summary>
+    //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager if all references rewritten in the ecosystem
     public class SearchManager
     {
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", IndexValue.Yes });
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static bool ContentQueryIsAllowed => Providers.Instance.SearchManager.ContentQueryIsAllowed;
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static ISearchEngine SearchEngine => Providers.Instance.SearchManager.SearchEngine;
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
             return Providers.Instance.SearchManager.ExecuteContentQuery(text, settings, parameters);
         }
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IIndexPopulator GetIndexPopulator()
         {
             return Providers.Instance.SearchManager.GetIndexPopulator();
         }
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
         }
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
             return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
         }
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static bool IsOuterEngineEnabled => Providers.Instance.SearchManager.IsOuterEngineEnabled;
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static string IndexDirectoryPath => Providers.Instance.SearchManager.IndexDirectoryPath;
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static void SetIndexDirectoryPath(string path)
         {
             Providers.Instance.SearchManager.IndexDirectoryPath = path;
         }
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
             return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
         }
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
             return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
         }
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
             return Providers.Instance.SearchManager.LoadIndexDocumentsByPath(path, excludedNodeTypes);
         }
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static FilterStatus EnableAutofiltersDefaultValue => SnQuery.EnableAutofiltersDefaultValue;
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static FilterStatus EnableLifespanFilterDefaultValue => SnQuery.EnableLifespanFilterDefaultValue;
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static bool IsAutofilterEnabled(FilterStatus value) =>
             Providers.Instance.SearchManager.IsAutofilterEnabled(value);
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static bool IsLifespanFilterEnabled(FilterStatus value) =>
             Providers.Instance.SearchManager.IsLifespanFilterEnabled(value);
