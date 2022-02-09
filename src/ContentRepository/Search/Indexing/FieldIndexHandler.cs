@@ -652,9 +652,9 @@ namespace SenseNet.Search.Indexing
         public override IndexValue Parse(string text)
         {
             var v = text.ToLowerInvariant();
-            if (SearchManager_INSTANCE.YesList.Contains(v))
+            if (IndexValue.YesList.Contains(v))
                 return new IndexValue(true);
-            if (SearchManager_INSTANCE.NoList.Contains(v))
+            if (IndexValue.NoList.Contains(v))
                 return new IndexValue(false);
             if (bool.TryParse(v, out var b))
                 return new IndexValue(b);

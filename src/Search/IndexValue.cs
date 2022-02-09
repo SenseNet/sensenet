@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.Search
 {
@@ -36,6 +35,17 @@ namespace SenseNet.Search
     [DebuggerDisplay("{ValueAsString}:{Type}")]
     public class IndexValue : IComparable<IndexValue>, IComparable
     {
+        /// <summary>
+        /// Contains all values that mean "true". These are: "1", "true", "y" and "yes"
+        /// </summary>
+        public static IReadOnlyList<string> YesList =
+            new List<string>(new[] { "1", "true", "y", IndexValue.Yes }).AsReadOnly();
+        /// <summary>
+        /// Contains all values that mean "false". These are: "0", "false", "n" and "no"
+        /// </summary>
+        public static IReadOnlyList<string> NoList =
+            new List<string>(new[] { "0", "false", "n", IndexValue.No }).AsReadOnly();
+
         /// <summary>
         /// Generalized value of the "true" used in indexing and querying.
         /// </summary>
