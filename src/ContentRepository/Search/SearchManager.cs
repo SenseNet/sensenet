@@ -87,7 +87,7 @@ namespace SenseNet.ContentRepository.Search
         }
         public IIndexPopulator GetIndexPopulator()
         {
-            return Providers.Instance.SearchManager.IsOuterEngineEnabled
+            return IsOuterEngineEnabled
                 ? (IIndexPopulator)new DocumentPopulator()
                 : NullPopulator.Instance;
         }
