@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Search
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
-            return Providers.Instance.SearchManager.CompleteIndexDocument(indexDocumentData);
+            return Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
         }
 
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]

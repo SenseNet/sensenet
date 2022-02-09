@@ -95,10 +95,6 @@ namespace SenseNet.ContentRepository.Search
         {
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
-        public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
-        {
-            return Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
-        }
 
         public IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {

@@ -72,8 +72,6 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
 
-        public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData);
-
         /// <summary>
         /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
         /// </summary>

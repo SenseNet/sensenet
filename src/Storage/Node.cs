@@ -5198,7 +5198,7 @@ namespace SenseNet.ContentRepository.Storage
             var docProvider = Providers.Instance.IndexDocumentProvider;
             var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
             var docData = DataStore.CreateIndexDocumentData(this, doc, null);
-            Providers.Instance.SearchManager.CompleteIndexDocument(docData);
+            Providers.Instance.IndexManager.CompleteIndexDocument(docData);
             return doc;
         }
     }
