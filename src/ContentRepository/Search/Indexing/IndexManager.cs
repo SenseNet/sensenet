@@ -380,6 +380,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             return data == null ? null : CompleteIndexDocument(data);
         }
+
         public IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
             var doc = docData?.IndexDocument;
@@ -423,6 +424,32 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 pathSteps[i] = string.Join(separator, fragments, 0, i + 1);
             return pathSteps;
         }
+
+        public void AddTextExtract(int versionId, string textExtract)
+        {
+            // 1: load indexDocument.
+            var docData = Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
+            var indexDoc = docData.IndexDocument;
+
+            // 2: original and new text extract concatenation.
+            textExtract = (indexDoc.GetStringValue(IndexFieldName.AllText) ?? "") + textExtract;
+
+            indexDoc.Add(new IndexField(IndexFieldName.AllText, textExtract, IndexingMode.Analyzed, IndexStoringMode.No,
+                IndexTermVector.No));
+
+            // 3: save indexDocument.
+            docData.IndexDocumentChanged();
+            Providers.Instance.DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
+
+            // 4: distributed cache invalidation because of version timestamp.
+            Providers.Instance.DataStore.RemoveNodeDataFromCacheByVersionId(versionId);
+
+            // 5: index update.
+            var node = Node.LoadNodeByVersionId(versionId);
+            if (node != null)
+                Providers.Instance.SearchManager.GetIndexPopulator()
+                    .RebuildIndexAsync(node, CancellationToken.None).GetAwaiter().GetResult();
+        }
     }
 
 
@@ -437,7 +464,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         /* ==================================================================== Managing index */
 
-        //UNDONE:<?xxx: Delete if all references rewritten in the ecosystem
         [Obsolete("Use Providers.Instance.IndexManager instead.", true)]
         public static IIndexingEngine IndexingEngine => Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
 

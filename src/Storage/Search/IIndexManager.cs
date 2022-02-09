@@ -126,5 +126,9 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         IndexDocument CompleteIndexDocument(IndexDocumentData docData);
 
+        /// <summary>
+        /// Loads the index document of an explicit Content version, extends it with text extract and update in database and index.
+        /// </summary>
+        void AddTextExtract(int versionId, string textExtract);
     }
 }

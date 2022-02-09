@@ -400,7 +400,7 @@ namespace SenseNet.Tests.Core.Tests
                 node.Save();
 
                 // ACTION
-                IndexingTools.AddTextExtract(node.VersionId, additionalText);
+                Providers.Instance.IndexManager.AddTextExtract(node.VersionId, additionalText);
 
                 node = Node.Load<SystemFolder>(node.Id);
 
