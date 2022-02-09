@@ -146,13 +146,11 @@ namespace SenseNet.Search.Tests
         public void Indexing_ActivitySelector_Distributed()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
-            var searchEngineSupport = new SearchEngineSupport();
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
@@ -171,13 +169,11 @@ namespace SenseNet.Search.Tests
         public void Indexing_ActivitySelector_Centralized()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
-            var searchEngineSupport = new SearchEngineSupport();
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
@@ -200,7 +196,6 @@ namespace SenseNet.Search.Tests
             Assert.Inconclusive();
 
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
-            var searchEngineSupport = new SearchEngineSupport();
             var nodeId = 0;
             var versionId = 0;
             var path = string.Empty;
@@ -208,29 +203,19 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
             {
-                using (new Swindler<SearchEngineSupport>(new SearchEngineSupport(),
-                    () => (SearchEngineSupport)new TypeAccessor(typeof(SearchManager)).GetStaticField(
-                        "_searchEngineSupport"),
-                    value =>
-                    {
-                        new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
-                    }))
-                {
-                    // create a valid version
-                    var nodeName = "Indexing_Centralized_InMemory_ExecuteUnprocessed";
-                    var node = new SystemFolder(Repository.Root) { Name = nodeName };
-                    node.Save();
-                    nodeId = node.Id;
-                    versionId = node.VersionId;
-                    path = node.Path;
-                }
+                // create a valid version
+                var nodeName = "Indexing_Centralized_InMemory_ExecuteUnprocessed";
+                var node = new SystemFolder(Repository.Root) { Name = nodeName };
+                node.Save();
+                nodeId = node.Id;
+                versionId = node.VersionId;
+                path = node.Path;
             });
 
             SnTrace.Test.Write("Indexing_Centralized_InMemory_ExecuteUnprocessed ACTION");
@@ -247,28 +232,18 @@ namespace SenseNet.Search.Tests
                 RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
             }, () =>
             {
-                using (new Swindler<SearchEngineSupport>(new SearchEngineSupport(),
-                        () => (SearchEngineSupport) new TypeAccessor(typeof(SearchManager)).GetStaticField(
-                            "_searchEngineSupport"),
-                        value =>
-                        {
-                            new TypeAccessor(typeof(SearchManager)).SetStaticField("_searchEngineSupport", value);
-                        }))
-                {
-                    var log = searchEngine.GetIndexingLog();
-                    Assert.AreEqual(
-                        "CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n" +
-                        "CENTRALIZED. deletions: 0, updates: 1, addition: 0\r\n" +
-                        "CENTRALIZED. deletions: 0, updates: 1, addition: 0\r\n", log);
-                }
+                var log = searchEngine.GetIndexingLog();
+                Assert.AreEqual(
+                    "CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n" +
+                    "CENTRALIZED. deletions: 0, updates: 1, addition: 0\r\n" +
+                    "CENTRALIZED. deletions: 0, updates: 1, addition: 0\r\n", log);
             });
         }
 

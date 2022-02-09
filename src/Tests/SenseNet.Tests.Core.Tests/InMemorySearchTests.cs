@@ -26,6 +26,21 @@ namespace SenseNet.Tests.Core.Tests
     [TestClass]
     public class InMemorySearchTests : TestBase
     {
+        #region private class TestSearchManager
+        private class TestSearchManager : SearchManager_INSTANCE
+        {
+            private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfos;
+            public TestSearchManager(IDictionary<string, IPerFieldIndexingInfo> indexingInfos)
+            {
+                _indexingInfos = indexingInfos;
+            }
+            public override IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+            {
+                return _indexingInfos.TryGetValue(fieldName, out var indexingInfo) ? indexingInfo : null;
+            }
+        }
+        #endregion
+
         private IDataStore DataStore => Providers.Instance.DataStore;
         private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE) Providers.Instance.IndexManager;
 
@@ -875,9 +890,7 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                var searchEngineSupport = new SearchEngineSupport();
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
@@ -923,9 +936,7 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new TestSearchManager(indexingInfo));
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
@@ -973,9 +984,7 @@ namespace SenseNet.Tests.Core.Tests
             string resolved = null;
             Test(builder =>
             {
-                var searchEngineSupport = new TestSearchEngineSupport(indexingInfo);
-                builder.UseSearchEngineSupport(searchEngineSupport);
-                builder.UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport));
+                builder.UseSearchManager(new TestSearchManager(indexingInfo));
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>

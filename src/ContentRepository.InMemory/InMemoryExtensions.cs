@@ -70,7 +70,6 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.ResetBlobProviders();
 
             var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
-            var searchEngineSupport = services?.GetService<ISearchEngineSupport>() ?? new SearchEngineSupport();
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
@@ -83,8 +82,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchEngineSupport(searchEngineSupport)
-                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseSearchManager(new SearchManager_INSTANCE())
                 .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

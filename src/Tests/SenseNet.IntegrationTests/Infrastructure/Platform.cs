@@ -34,7 +34,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
             OnBeforeGettingRepositoryBuilder(builder);
 
             var dataProvider = GetDataProvider();
-            var searchEngineSupport = new SearchEngineSupport();
 
             builder
                       .UseLogger(new DebugWriteLoggerAdapter())
@@ -50,8 +49,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
-                .UseSearchEngineSupport(searchEngineSupport)
-                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseSearchManager(new SearchManager_INSTANCE())
                 .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

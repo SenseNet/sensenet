@@ -240,7 +240,6 @@ namespace SenseNet.Configuration
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         public virtual ISearchEngine SearchEngine { get; set; }
-        public ISearchEngineSupport SearchEngineSupport { get; set; }
         public ISearchManager SearchManager { get; set; }
         public IIndexManager IndexManager { get; set; }
 

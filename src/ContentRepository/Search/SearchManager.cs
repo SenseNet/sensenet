@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
@@ -17,13 +18,7 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager_INSTANCE : ISearchManager
     {
-        private ISearchEngineSupport _searchEngineSupport;
         private IDataStore DataStore => Providers.Instance.DataStore;
-
-        public SearchManager_INSTANCE(ISearchEngineSupport searchEngineSupport)
-        {
-            _searchEngineSupport = searchEngineSupport;
-        }
 
         public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
             ? InternalSearchEngine.Instance
@@ -88,19 +83,21 @@ namespace SenseNet.ContentRepository.Search
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
-            return _searchEngineSupport.ExecuteContentQuery(text, settings, parameters);
+            return ContentQuery.Query(text, settings, parameters);
         }
         public IIndexPopulator GetIndexPopulator()
         {
-            return _searchEngineSupport.GetIndexPopulator();
+            return Providers.Instance.SearchManager.IsOuterEngineEnabled
+                ? (IIndexPopulator)new DocumentPopulator()
+                : NullPopulator.Instance;
         }
-        public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        public virtual IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
+            return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
         public IndexDocument CompleteIndexDocument(IndexDocumentData indexDocumentData)
         {
-            return _searchEngineSupport.CompleteIndexDocument(indexDocumentData);
+            return Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
         }
 
         public IndexDocumentData LoadIndexDocumentByVersionId(int versionId)

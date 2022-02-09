@@ -212,12 +212,6 @@ namespace SenseNet.Extensions.DependencyInjection
             return repositoryBuilder;
         }
 
-        public static IRepositoryBuilder UseSearchEngineSupport(this IRepositoryBuilder repositoryBuilder, ISearchEngineSupport searchEngineSupport)
-        {
-            Configuration.Providers.Instance.SearchEngineSupport = searchEngineSupport;
-            WriteLog("SearchEngineSupport", searchEngineSupport);
-            return repositoryBuilder;
-        }
         public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
         {
             Configuration.Providers.Instance.SearchManager = searchManager;

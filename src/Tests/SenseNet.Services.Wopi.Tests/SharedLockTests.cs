@@ -751,7 +751,6 @@ namespace SenseNet.Services.Wopi.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
-            var searchEngineSupport = new SearchEngineSupport();
 
             return new RepositoryBuilder()
                 .UseDataProvider(dataProvider)
@@ -763,8 +762,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchEngineSupport(searchEngineSupport)
-                .UseSearchManager(new SearchManager_INSTANCE(searchEngineSupport))
+                .UseSearchManager(new SearchManager_INSTANCE())
                 .UseIndexManager(new IndexManager_INSTANCE())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
