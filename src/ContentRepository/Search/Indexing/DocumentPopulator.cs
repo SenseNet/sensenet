@@ -325,7 +325,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private IEnumerable<IndexDocument> LoadIndexDocumentsByPath(string path)
         {
-            return Providers.Instance.SearchManager.LoadIndexDocumentsByPath(path, Providers.Instance.IndexManager.GetNotIndexedNodeTypes())
+            var indxDocs = DataStore.LoadIndexDocumentsAsync(path, Providers.Instance.IndexManager.GetNotIndexedNodeTypes());
+            return indxDocs
                 .Select(d =>
                 {
                     try

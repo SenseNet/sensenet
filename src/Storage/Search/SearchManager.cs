@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
@@ -60,17 +62,18 @@ namespace SenseNet.ContentRepository.Search
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
-            return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
+            return Providers.Instance.DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None).GetAwaiter().GetResult()
+                .FirstOrDefault();
         }
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
-            return Providers.Instance.SearchManager.LoadIndexDocumentByVersionId(versionId);
+            return Providers.Instance.DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
         }
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
-            return Providers.Instance.SearchManager.LoadIndexDocumentsByPath(path, excludedNodeTypes);
+            return Providers.Instance.DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
         [Obsolete("Use Providers.Instance.SearchManager instead.", true)]

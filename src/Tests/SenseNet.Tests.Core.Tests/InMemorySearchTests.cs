@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -26,21 +27,6 @@ namespace SenseNet.Tests.Core.Tests
     [TestClass]
     public class InMemorySearchTests : TestBase
     {
-        #region private class TestSearchManager
-        private class TestSearchManager : SearchManager_INSTANCE
-        {
-            private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfos;
-            public TestSearchManager(IDictionary<string, IPerFieldIndexingInfo> indexingInfos)
-            {
-                _indexingInfos = indexingInfos;
-            }
-            public override IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-            {
-                return _indexingInfos.TryGetValue(fieldName, out var indexingInfo) ? indexingInfo : null;
-            }
-        }
-        #endregion
-
         private IDataStore DataStore => Providers.Instance.DataStore;
         private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE) Providers.Instance.IndexManager;
 
@@ -936,11 +922,12 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                builder.UseSearchManager(new TestSearchManager(indexingInfo));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
+                SetPerFieldIndexingInfo(indexingInfo);
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
                 var cqueryAcc = new ObjectAccessor(cquery);
                 cqueryAcc.SetFieldOrProperty("IsSafe", true);
@@ -984,11 +971,12 @@ namespace SenseNet.Tests.Core.Tests
             string resolved = null;
             Test(builder =>
             {
-                builder.UseSearchManager(new TestSearchManager(indexingInfo));
+                builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
+                SetPerFieldIndexingInfo(indexingInfo);
                 resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
             });
 
@@ -1053,6 +1041,12 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         /* ============================================================================ */
+
+        private void SetPerFieldIndexingInfo(Dictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            foreach (var item in indexingInfo)
+                ContentTypeManager.SetPerFieldIndexingInfo(item.Key, null, item.Value);
+        }
 
         private InMemoryIndex GetTestIndex()
         {

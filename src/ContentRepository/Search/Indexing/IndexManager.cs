@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -336,7 +337,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = executingUnprocessedActivities ? new[] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
-            var docs = SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
+            var docs = DataStore.LoadIndexDocumentsAsync(treeRoot, excludedNodeTypes)
                 .Select(CreateIndexDocument);
             await IndexingEngine.WriteIndexAsync(delTerms, null, docs, cancellationToken).ConfigureAwait(false);
             return true;
@@ -348,32 +349,33 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __nameFieldIndexingInfo;
         internal IPerFieldIndexingInfo NameFieldIndexingInfo =>
-            __nameFieldIndexingInfo ??= SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
+            __nameFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __pathFieldIndexingInfo;
         internal IPerFieldIndexingInfo PathFieldIndexingInfo =>
-            __pathFieldIndexingInfo ??= SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
+            __pathFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
         internal IPerFieldIndexingInfo InTreeFieldIndexingInfo =>
-            __inTreeFieldIndexingInfo ??= SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
+            __inTreeFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
         internal IPerFieldIndexingInfo InFolderFieldIndexingInfo =>
-            __inFolderFieldIndexingInfo ??= SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
+            __inFolderFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
 
         internal IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {
-            return CreateIndexDocument(SearchManager.LoadIndexDocumentByVersionId(versionId));
+            return CreateIndexDocument(DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
+                .GetAwaiter().GetResult().FirstOrDefault());
         }
         internal IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
             return versionIds.Length == 0
-                ? new IndexDocument[0]
-                : SearchManager.LoadIndexDocumentByVersionId(versionIds)
+                ? Array.Empty<IndexDocument>()
+                : DataStore.LoadIndexDocumentsAsync(versionIds, CancellationToken.None).GetAwaiter().GetResult()
                     .Select(CreateIndexDocument)
                     .ToArray();
         }
@@ -429,7 +431,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.
-            var docData = SearchManager.LoadIndexDocumentByVersionId(versionId);
+            var docData = DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
+                .GetAwaiter().GetResult().FirstOrDefault();
             var indexDoc = docData.IndexDocument;
 
             // 2: original and new text extract concatenation.

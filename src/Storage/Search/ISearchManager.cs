@@ -71,20 +71,5 @@ namespace SenseNet.ContentRepository.Search
         /// Gets indexing metadata descriptor instance by fieldName
         /// </summary>
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
-
-        /// <summary>
-        /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
-        /// </summary>
-        public IndexDocumentData LoadIndexDocumentByVersionId(int versionId);
-
-        /// <summary>
-        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
-        /// </summary>
-        public IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId);
-
-        /// <summary>
-        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
-        /// </summary>
-        public IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes);
     }
 }

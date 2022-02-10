@@ -95,19 +95,5 @@ namespace SenseNet.ContentRepository.Search
         {
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
-
-        public IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
-        {
-            return DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None).GetAwaiter().GetResult()
-                .FirstOrDefault();
-        }
-        public IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
-        {
-            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        public IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
-        {
-            return DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes);
-        }
     }
 }
