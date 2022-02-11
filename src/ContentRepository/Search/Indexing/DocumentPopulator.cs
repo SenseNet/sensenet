@@ -18,16 +18,15 @@ using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public class DocumentPopulator : IIndexPopulator //UNDONE:<?xxxxxxxxxxx Make Singleton service
+    public class DocumentPopulator : IIndexPopulator
     {
-        private IDataStore DataStore;
-
-        private IIndexManager IndexManager;
+        private readonly IDataStore _dataStore;
+        private readonly IIndexManager _indexManager;
 
         public DocumentPopulator(IDataStore dataStore, IIndexManager indexManager)
         {
-            DataStore = dataStore;
-            IndexManager = indexManager;
+            _dataStore = dataStore;
+            _indexManager = indexManager;
         }
 
         private class DocumentPopulatorData
@@ -55,29 +54,29 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // Local engines may work, but centralized engines do not. This is why we have to
             // start it if it is not running already. In that case we have to stop it
             // after the operation.
-            if (!IndexManager.Running)
+            if (!_indexManager.Running)
             {
-                await IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
+                await _indexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
                 stopIndexing = true;
             }
             // recreate
             consoleWriter?.Write("  Cleanup index ... ");
-            await IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
+            await _indexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
             consoleWriter?.WriteLine("ok");
 
-            await IndexManager.AddDocumentsAsync(LoadIndexDocumentsByPath("/Root"), cancellationToken).ConfigureAwait(false);
+            await _indexManager.AddDocumentsAsync(LoadIndexDocumentsByPath("/Root"), cancellationToken).ConfigureAwait(false);
 
             // delete progress characters
             consoleWriter?.Write("                                             \n");
             consoleWriter?.Write("  Commiting ... ");
-            await IndexManager.CommitAsync(cancellationToken).ConfigureAwait(false); // explicit commit
+            await _indexManager.CommitAsync(cancellationToken).ConfigureAwait(false); // explicit commit
             consoleWriter?.WriteLine("ok");
 
             consoleWriter?.Write("  Deleting indexing activities ... ");
-            await IndexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
+            await _indexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
 
             if (stopIndexing)
-                IndexManager.ShutDown();
+                _indexManager.ShutDown();
 
             op.Successful = true;
         }
@@ -95,7 +94,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         foreach (var node in Node.LoadNode(path).LoadVersions())
                         {
                             SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                            await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken)
+                            await _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken)
                                 .ConfigureAwait(false);
 
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
@@ -108,7 +107,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                                 foreach (var node in n.LoadVersions())
                                 {
                                     SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                                    DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken)
+                                    _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken)
                                         .GetAwaiter().GetResult();
                                     OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
@@ -274,7 +273,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (databaseAndIndex)
             {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    await DataStore.SaveIndexDocumentAsync(version, false, false, cancellationToken)
+                    await _dataStore.SaveIndexDocumentAsync(version, false, false, cancellationToken)
                         .ConfigureAwait(false);
             }
 
@@ -298,11 +297,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 if (databaseAndIndex)
                 {
-                    await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
+                    await _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
 
                     //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        n => { _dataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                             .GetAwaiter().GetResult(); });
                 }
 
@@ -332,13 +331,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private IEnumerable<IndexDocument> LoadIndexDocumentsByPath(string path)
         {
-            var indxDocs = DataStore.LoadIndexDocumentsAsync(path, IndexManager.GetNotIndexedNodeTypes());
+            var indxDocs = _dataStore.LoadIndexDocumentsAsync(path, _indexManager.GetNotIndexedNodeTypes());
             return indxDocs
                 .Select(d =>
                 {
                     try
                     {
-                        var indexDoc = IndexManager.CompleteIndexDocument(d);
+                        var indexDoc = _indexManager.CompleteIndexDocument(d);
                         OnNodeIndexed(d.Path, d.NodeId, d.VersionId, indexDoc.Version);
                         return indexDoc;
                     }
@@ -412,8 +411,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private async STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
-            await IndexManager.RegisterActivityAsync(activity, cancellationToken).ConfigureAwait(false);
-            await IndexManager.ExecuteActivityAsync(activity, cancellationToken).ConfigureAwait(false);
+            await _indexManager.RegisterActivityAsync(activity, cancellationToken).ConfigureAwait(false);
+            await _indexManager.ExecuteActivityAsync(activity, cancellationToken).ConfigureAwait(false);
         }
     }
 }
