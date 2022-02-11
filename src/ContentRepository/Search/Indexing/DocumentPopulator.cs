@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { _dataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        n => { _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
                             .GetAwaiter().GetResult(); });
                 }
 
