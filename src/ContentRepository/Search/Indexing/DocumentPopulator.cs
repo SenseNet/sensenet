@@ -18,7 +18,7 @@ using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    internal class DocumentPopulator : IIndexPopulator
+    public class DocumentPopulator : IIndexPopulator //UNDONE:<?xxxxxxxxxxx Make Singleton service
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
         private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
@@ -48,14 +48,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // Local engines may work, but centralized engines do not. This is why we have to
             // start it if it is not running already. In that case we have to stop it
             // after the operation.
-            if (!Providers.Instance.IndexManager.Running)
+            if (!IndexManager.Running)
             {
-                await Providers.Instance.IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
+                await IndexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
                 stopIndexing = true;
             }
             // recreate
             consoleWriter?.Write("  Cleanup index ... ");
-            await Providers.Instance.IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
+            await IndexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
             consoleWriter?.WriteLine("ok");
 
             await IndexManager.AddDocumentsAsync(LoadIndexDocumentsByPath("/Root"), cancellationToken).ConfigureAwait(false);
@@ -70,7 +70,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             await IndexManager.DeleteAllIndexingActivitiesAsync(cancellationToken).ConfigureAwait(false);
 
             if (stopIndexing)
-                Providers.Instance.IndexManager.ShutDown();
+                IndexManager.ShutDown();
 
             op.Successful = true;
         }
@@ -325,7 +325,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private IEnumerable<IndexDocument> LoadIndexDocumentsByPath(string path)
         {
-            var indxDocs = DataStore.LoadIndexDocumentsAsync(path, Providers.Instance.IndexManager.GetNotIndexedNodeTypes());
+            var indxDocs = DataStore.LoadIndexDocumentsAsync(path, IndexManager.GetNotIndexedNodeTypes());
             return indxDocs
                 .Select(d =>
                 {
@@ -405,8 +405,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private async STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
-            await Providers.Instance.IndexManager.RegisterActivityAsync(activity, cancellationToken).ConfigureAwait(false);
-            await Providers.Instance.IndexManager.ExecuteActivityAsync(activity, cancellationToken).ConfigureAwait(false);
+            await IndexManager.RegisterActivityAsync(activity, cancellationToken).ConfigureAwait(false);
+            await IndexManager.ExecuteActivityAsync(activity, cancellationToken).ConfigureAwait(false);
         }
     }
 }

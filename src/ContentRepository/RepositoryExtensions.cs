@@ -86,6 +86,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.AddSingleton<ISearchManager, SearchManager_INSTANCE>();
             services.AddSingleton<IIndexManager, IndexManager_INSTANCE>();
+            services.AddSingleton<IIndexPopulator, DocumentPopulator>();
 
             return services;
         }

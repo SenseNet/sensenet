@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -222,6 +223,12 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             Configuration.Providers.Instance.IndexManager = indexManager;
             WriteLog("IndexManager", indexManager);
+            return repositoryBuilder;
+        }
+        public static IRepositoryBuilder UseIndexPopulator(this IRepositoryBuilder repositoryBuilder, IIndexPopulator indexPopulator)
+        {
+            Configuration.Providers.Instance.IndexPopulator = indexPopulator;
+            WriteLog("IndexPopulator", indexPopulator);
             return repositoryBuilder;
         }
 

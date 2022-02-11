@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Search
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
 
-        public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
+        public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled  //UNDONE:<?xxxxxxxxxxx Set once in startup seq.
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
@@ -87,9 +87,7 @@ namespace SenseNet.ContentRepository.Search
         }
         public IIndexPopulator GetIndexPopulator()
         {
-            return IsOuterEngineEnabled
-                ? (IIndexPopulator)new DocumentPopulator()
-                : NullPopulator.Instance;
+            return IsOuterEngineEnabled ? Providers.Instance.IndexPopulator : NullPopulator.Instance;
         }
         public virtual IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {

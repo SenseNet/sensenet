@@ -84,6 +84,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager_INSTANCE())
                 .UseIndexManager(new IndexManager_INSTANCE())
+                .UseIndexPopulator(new DocumentPopulator())
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -143,6 +144,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 Providers.Instance.SearchEngine = searchEngine;
             Providers.Instance.SearchManager = provider.GetRequiredService<ISearchManager>();
             Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
+            Providers.Instance.IndexPopulator = provider.GetRequiredService<IIndexPopulator>();
 
 #pragma warning disable 618
 
