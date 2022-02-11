@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -27,6 +28,7 @@ namespace SenseNet.Tests.Core.Tests
     public class InMemorySearchTests : TestBase
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE) Providers.Instance.IndexManager;
 
         [TestMethod, TestCategory("IR")]
         public void InMemSearch_Core_Indexing_Create()
@@ -70,7 +72,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.AddDocument, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(1, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -137,7 +139,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.UpdateDocument, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(2, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -209,7 +211,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(lastActivity);
                 Assert.AreEqual(IndexingActivityType.RemoveTree, lastActivity.ActivityType);
 
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(3, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -285,7 +287,7 @@ namespace SenseNet.Tests.Core.Tests
 
                 //return new Tuple<Node[], IndexingActivityHistory, InMemoryIndex>(nodes,
                 //    IndexingActivityHistory.GetHistory(), GetTestIndex());
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 var index = GetTestIndex();
 
 
@@ -399,7 +401,7 @@ namespace SenseNet.Tests.Core.Tests
                 node.Save();
 
                 // ACTION
-                IndexingTools.AddTextExtract(node.VersionId, additionalText);
+                Providers.Instance.IndexManager.AddTextExtract(node.VersionId, additionalText);
 
                 node = Node.Load<SystemFolder>(node.Id);
 
@@ -413,7 +415,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsTrue(indexDoc.IndexDocument.GetStringValue(IndexFieldName.AllText).Contains(additionalText));
 
                 // check executed activities
-                var history = IndexingActivityHistory.GetHistory();
+                var history = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory();
                 Assert.AreEqual(2, history.RecentLength);
                 var item = history.Recent[0];
                 Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
@@ -446,7 +448,8 @@ namespace SenseNet.Tests.Core.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    await SearchManager.GetIndexPopulator().ClearAndPopulateAllAsync(CancellationToken.None, console).ConfigureAwait(false);
+                    await Providers.Instance.SearchManager.GetIndexPopulator()
+                        .ClearAndPopulateAllAsync(CancellationToken.None, console).ConfigureAwait(false);
 
                 // load last indexing activity
                 var activityId = await DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).ConfigureAwait(false);
@@ -470,7 +473,7 @@ namespace SenseNet.Tests.Core.Tests
                 Assert.IsNotNull(activities);
                 Assert.AreEqual(0, activities.Length);
 
-                var historyItems = IndexingActivityHistory.GetHistory().Recent;
+                var historyItems = IndexManager.DistributedIndexingActivityQueue.GetIndexingActivityHistory().Recent;
                 Assert.AreEqual(0, historyItems.Length);
 
                 var nodeCountInIndex = index.GetTermCount(IndexFieldName.NodeId);
@@ -871,7 +874,13 @@ namespace SenseNet.Tests.Core.Tests
             var log = new List<string>();
             QueryResult result = null;
 
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
+            {
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+            }, () =>
             {
                 var qtext = "Id:{{Name:'MyDocument.doc' .SELECT:OwnerId}}";
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
@@ -912,15 +921,19 @@ namespace SenseNet.Tests.Core.Tests
             var log = new List<string>();
             QueryResult result = null;
 
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
             {
-                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
-                {
-                    var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
-                    var cqueryAcc = new ObjectAccessor(cquery);
-                    cqueryAcc.SetFieldOrProperty("IsSafe", true);
-                    result = cquery.Execute();
-                }
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+            }, () =>
+            {
+                SetPerFieldIndexingInfo(indexingInfo);
+                var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
+                var cqueryAcc = new ObjectAccessor(cquery);
+                cqueryAcc.SetFieldOrProperty("IsSafe", true);
+                result = cquery.Execute();
             });
 
             Assert.AreEqual(42, result.Identifiers.First());
@@ -958,10 +971,16 @@ namespace SenseNet.Tests.Core.Tests
 
             var log = new List<string>();
             string resolved = null;
-            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            Test(builder =>
             {
-                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
-                    resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
+                builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
+            }, () =>
+            {
+                SetPerFieldIndexingInfo(indexingInfo);
+                resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
             });
 
             Assert.AreEqual(expected, resolved);
@@ -1011,7 +1030,7 @@ namespace SenseNet.Tests.Core.Tests
 
             await Test(async () =>
             {
-                var searchEngine = SearchManager.SearchEngine;
+                var searchEngine = Providers.Instance.SearchManager.SearchEngine;
                 var originalStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
                 await searchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(newStatus, CancellationToken.None).ConfigureAwait(false);
 
@@ -1026,9 +1045,15 @@ namespace SenseNet.Tests.Core.Tests
 
         /* ============================================================================ */
 
+        private void SetPerFieldIndexingInfo(Dictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            foreach (var item in indexingInfo)
+                ContentTypeManager.SetPerFieldIndexingInfo(item.Key, null, item.Value);
+        }
+
         private InMemoryIndex GetTestIndex()
         {
-            return ((InMemorySearchEngine) SearchManager.SearchEngine).Index;
+            return ((InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine).Index;
         }
 
         private class SearchEngineForNestedQueryTests : ISearchEngine

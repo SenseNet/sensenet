@@ -3,6 +3,8 @@ using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -32,6 +34,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             OnBeforeGettingRepositoryBuilder(builder);
 
             var dataProvider = GetDataProvider();
+
             builder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
@@ -46,6 +49,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
+                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

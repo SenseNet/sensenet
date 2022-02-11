@@ -938,7 +938,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
-            return IndexingActivityHistory.GetHistory();
+            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).DistributedIndexingActivityQueue.GetIndexingActivityHistory();
         }
 
         /// <summary>
@@ -978,7 +978,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
-            return IndexingActivityHistory.Reset();
+            return ((IndexManager_INSTANCE)Providers.Instance.IndexManager).DistributedIndexingActivityQueue.ResetIndexingActivityHistory();
         }
 
         /// <summary>

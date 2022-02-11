@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             using (new SystemAccount())
             {
                 // import scenario
-                if (!SearchManager.ContentQueryIsAllowed)
+                if (!Providers.Instance.SearchManager.ContentQueryIsAllowed)
                 {
                     var schema = Providers.Instance.StorageSchema;
                     var resultIds = NodeQuery.QueryNodesByTypeAndPathAndName(new[]

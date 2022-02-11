@@ -138,7 +138,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 Console.Write($"{count} / {nodeCount}   \r");
                 using (new SystemAccount())
                 {
-                    var populator = SearchManager.GetIndexPopulator();
+                    var populator = Providers.Instance.SearchManager.GetIndexPopulator();
                     populator.IndexDocumentRefreshed += (sender, e) =>
                     {
                         Console.Write($"{++count} / {nodeCount}   \r");
@@ -152,7 +152,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 // Save index
                 Console.Write("Saving index...");
                 var indexFileName = Path.Combine(arguments.OutputPath, "index.txt");
-                if (SearchManager.SearchEngine is SearchEngineForInitialDataGenerator searchEngine)
+                if (Providers.Instance.SearchManager.SearchEngine is SearchEngineForInitialDataGenerator searchEngine)
                 {
                     searchEngine.Index.Save(indexFileName);
                     var indexDocumentsFileName = Path.Combine(arguments.OutputPath, "indexDocuments.txt");
@@ -178,6 +178,9 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSearchEngine(new SearchEngineForInitialDataGenerator())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

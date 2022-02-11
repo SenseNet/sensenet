@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.i18n;
@@ -640,17 +641,6 @@ namespace SenseNet.Search.Indexing
     /// </summary>
     public class BooleanIndexHandler : FieldIndexHandler, IIndexValueConverter<bool>, IIndexValueConverter
     {
-        /// <summary>
-        /// Contains all string value that will be converted to "true".
-        /// Shortcut of the similar property of the <see cref="SearchManager" />
-        /// </summary>
-        public static List<string> YesList => SearchManager.YesList;
-        /// <summary>
-        /// Contains all string value that will be converted to "false".
-        /// Shortcut of the similar property of the <see cref="SearchManager" />
-        /// </summary>
-        public static List<string> NoList => SearchManager.NoList;
-
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
@@ -662,9 +652,9 @@ namespace SenseNet.Search.Indexing
         public override IndexValue Parse(string text)
         {
             var v = text.ToLowerInvariant();
-            if (YesList.Contains(v))
+            if (IndexValue.YesList.Contains(v))
                 return new IndexValue(true);
-            if (NoList.Contains(v))
+            if (IndexValue.NoList.Contains(v))
                 return new IndexValue(false);
             if (bool.TryParse(v, out var b))
                 return new IndexValue(b);

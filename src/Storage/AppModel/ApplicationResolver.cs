@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static NodeHead ResolveFirstByPaths(IEnumerable<string> paths)
         {
-            if (SearchManager.IsOuterEngineEnabled)
+            if (Providers.Instance.SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
             return Providers.Instance.DataStore
                 .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false, CancellationToken.None)
@@ -157,7 +157,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             foreach (var path in paths)
             {
-                var r = SearchManager.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
+                var r = Providers.Instance.SearchManager.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
                 if (r.Count > 0)
                     return NodeHead.Get(r.Identifiers.First());
             }
@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static IEnumerable<NodeHead> ResolveAllByPaths(IEnumerable<string> paths, bool resolveChildren)
         {
-            return SearchManager.IsOuterEngineEnabled
+            return Providers.Instance.SearchManager.IsOuterEngineEnabled
                 ? ResolveAllByPathsFromIndexedEngine(paths, resolveChildren)
                 : Providers.Instance.DataStore
                     .LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren, CancellationToken.None)
@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             {
                 if (resolveChildren)
                 {
-                    var r = SearchManager.ExecuteContentQuery("InTree:@0.SORT:Path",
+                    var r = Providers.Instance.SearchManager.ExecuteContentQuery("InTree:@0.SORT:Path",
                         QuerySettings.AdminSettings, path);
                     if (r.Count > 0)
                         // skip first because it is the root of subtree

@@ -25,6 +25,7 @@ using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using SenseNet.ContentRepository.Search;
 using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
@@ -239,6 +240,9 @@ namespace SenseNet.Configuration
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         public virtual ISearchEngine SearchEngine { get; set; }
+        public ISearchManager SearchManager { get; set; }
+        public IIndexManager IndexManager { get; set; }
+        public IIndexPopulator IndexPopulator { get; set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>

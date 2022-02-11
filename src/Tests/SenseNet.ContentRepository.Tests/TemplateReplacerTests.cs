@@ -208,7 +208,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     AddRootAccessibilityToAdmin();
-                    var queryEngine = (InMemoryQueryEngine)SearchManager.SearchEngine.QueryEngine;
+                    var queryEngine = (InMemoryQueryEngine)Providers.Instance.SearchManager.SearchEngine.QueryEngine;
 
                     queryEngine.ClearLog();
                     var expected = $"ExecuteQuery: Id:{User.Current.Id} .AUTOFILTERS:OFF";
@@ -228,7 +228,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     AddRootAccessibilityToAdmin();
-                    var queryEngine = (InMemoryQueryEngine)SearchManager.SearchEngine.QueryEngine;
+                    var queryEngine = (InMemoryQueryEngine)Providers.Instance.SearchManager.SearchEngine.QueryEngine;
 
                     queryEngine.ClearLog();
                     var expected = $"ExecuteQueryAndProject: Id:{User.Current.Id} .AUTOFILTERS:OFF";

@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository
             // This scenario auto-generates the whole index from the database. The most common case is
             // when a new web app domain (usually a container) is started in a load balanced environment.
 
-            var populator = SearchManager.GetIndexPopulator();
+            var populator = Providers.Instance.SearchManager.GetIndexPopulator();
             var indexCount = 0;
 
             populator.IndexingError += (sender, eventArgs) =>

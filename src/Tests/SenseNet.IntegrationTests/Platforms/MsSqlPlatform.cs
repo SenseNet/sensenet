@@ -39,8 +39,8 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override void OnAfterRepositoryStart(RepositoryInstance repository)
         {
-            var state = DistributedIndexingActivityQueue.GetCurrentState();
-            DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
+            var state = ((IndexManager_INSTANCE)Providers.Instance.IndexManager).DistributedIndexingActivityQueue.GetCurrentState();
+            ((IndexManager_INSTANCE)Providers.Instance.IndexManager).DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
             base.OnAfterRepositoryStart(repository);
         }
 

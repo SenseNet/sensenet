@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
@@ -168,7 +169,8 @@ namespace SenseNet.Packaging.Steps.Internal
                 {
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
-                        var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
+                        var indx = Providers.Instance.DataStore.LoadIndexDocumentsAsync(new[] { versionId },
+                                CancellationToken.None).GetAwaiter().GetResult().FirstOrDefault();
                         var _ = Providers.Instance.DataStore
                             .SaveIndexDocumentAsync(node, indx, CancellationToken.None)
                             .GetAwaiter().GetResult();

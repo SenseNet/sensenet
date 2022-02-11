@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.Storage
             switch (_hint)
             {
                 case ExecutionHint.None:
-                    return SearchManager.ContentQueryIsAllowed
+                    return Providers.Instance.SearchManager.ContentQueryIsAllowed
                         ? QueryChildrenFromIndex(thisId)
                         : QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
@@ -162,7 +162,7 @@ namespace SenseNet.ContentRepository.Storage
             var q = $"ParentId:{thisId}";
             if (_filter != null)
                 q += $" +({_filter})";
-            return SearchManager.ExecuteContentQuery(q, QuerySettings.AdminSettings);
+            return Providers.Instance.SearchManager.ExecuteContentQuery(q, QuerySettings.AdminSettings);
         }
         private QueryResult QueryChildrenFromDatabase(int thisId)
         {

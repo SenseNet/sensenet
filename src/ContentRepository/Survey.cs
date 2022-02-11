@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
@@ -137,7 +138,7 @@ namespace SenseNet.ContentRepository
 
         public override void Save(SavingMode mode)
         {
-            if (this.Id > 0 && SearchManager.ContentQueryIsAllowed)
+            if (this.Id > 0 && Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
                 if (ContentQuery.Query(SafeQueries.SurveyItemsInFolderCount, null, this.Id)
                     .Count > 0 && _originalContentListDefinition != this.ContentListDefinition)

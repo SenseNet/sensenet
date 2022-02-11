@@ -97,7 +97,7 @@ namespace SenseNet.ApplicationModel
             List<Device> devices;
             var sorted = new List<Device>();
 
-            if (SearchManager.ContentQueryIsAllowed)
+            if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
                 var result = ContentQuery.Query(SafeQueries.AllDevices);
                 devices = result.Nodes.Cast<Device>().ToList();

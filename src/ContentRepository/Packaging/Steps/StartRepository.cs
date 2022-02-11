@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 
@@ -47,7 +48,9 @@ namespace SenseNet.Packaging.Steps
                         indexPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(context.TargetPath, indexPath));
                 }
             }
-            var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : SearchManager.IsOuterEngineEnabled;
+            var startIndexingEngine = _startIndexingEngineChanged
+                ? StartIndexingEngine
+                : Providers.Instance.SearchManager.IsOuterEngineEnabled;
 
             Logger.LogMessage("startIndexingEngine: " + startIndexingEngine);
             Logger.LogMessage("indexPath: " + indexPath);

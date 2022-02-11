@@ -956,7 +956,7 @@ namespace SenseNet.ContentRepository
             int count;
             using (new SystemAccount())
             {
-                if (SearchManager.ContentQueryIsAllowed)
+                if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
                 {
                     count = Content.All.OfType<ContentList>().Count(cl => (string)cl["ListEmail"] == email && cl.Id != this.Id);
                 }
