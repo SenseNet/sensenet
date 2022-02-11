@@ -878,7 +878,7 @@ namespace SenseNet.Tests.Core.Tests
             {
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -925,7 +925,7 @@ namespace SenseNet.Tests.Core.Tests
             {
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -975,7 +975,7 @@ namespace SenseNet.Tests.Core.Tests
             {
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {

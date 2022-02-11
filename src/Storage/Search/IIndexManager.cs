@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -130,5 +131,9 @@ namespace SenseNet.ContentRepository.Search
         /// Loads the index document of an explicit Content version, extends it with text extract and update in database and index.
         /// </summary>
         void AddTextExtract(int versionId, string textExtract);
+
+        Task AddDocumentsAsync(IEnumerable<IndexDocument> loadIndexDocumentsByPath, CancellationToken cancellationToken);
+        Task CommitAsync(CancellationToken cancellationToken);
+        Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken);
     }
 }

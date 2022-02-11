@@ -20,8 +20,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     public class DocumentPopulator : IIndexPopulator //UNDONE:<?xxxxxxxxxxx Make Singleton service
     {
-        private IDataStore DataStore => Providers.Instance.DataStore;
-        private IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
+        private IDataStore DataStore;
+
+        private IIndexManager IndexManager;
+
+        public DocumentPopulator(IDataStore dataStore, IIndexManager indexManager)
+        {
+            DataStore = dataStore;
+            IndexManager = indexManager;
+        }
 
         private class DocumentPopulatorData
         {

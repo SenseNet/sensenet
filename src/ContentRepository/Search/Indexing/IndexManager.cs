@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        internal STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             return DataStore.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             CommitManager?.ActivityFinishedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        internal STT.Task CommitAsync(CancellationToken cancellationToken)
+        public STT.Task CommitAsync(CancellationToken cancellationToken)
         {
             var state = GetCurrentIndexingActivityStatus();
             SnTrace.Index.Write("LM: WriteActivityStatusToIndex: {0}", state);
@@ -247,7 +247,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /* ==================================================================== Document operations */
 
         /* ClearAndPopulateAll */
-        internal STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
+        public STT.Task AddDocumentsAsync(IEnumerable<IndexDocument> documents, CancellationToken cancellationToken)
         {
             return IndexingEngine.WriteIndexAsync(null, null, documents, cancellationToken);
         }

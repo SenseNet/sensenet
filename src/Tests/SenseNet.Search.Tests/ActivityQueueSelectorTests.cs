@@ -152,7 +152,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -176,7 +176,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -207,7 +207,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -237,7 +237,7 @@ namespace SenseNet.Search.Tests
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
                 builder.UseSearchManager(new SearchManager_INSTANCE());
                 builder.UseIndexManager(new IndexManager_INSTANCE());
-                builder.UseIndexPopulator(new DocumentPopulator());
+                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);

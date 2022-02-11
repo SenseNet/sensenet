@@ -1742,7 +1742,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager_INSTANCE())
                 .UseIndexManager(new IndexManager_INSTANCE())
-                .UseIndexPopulator(new DocumentPopulator())
+                .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
