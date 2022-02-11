@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
@@ -123,6 +125,15 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetApiKeys(this IServiceCollection services)
         {
             return services.AddSenseNetApiKeyManager<ApiKeyManager>();
+        }
+
+        public static IServiceCollection AddSenseNetEmailManager(this IServiceCollection services, 
+            Action<EmailOptions> configureSmtp = null)
+        {
+            return services
+                .AddSingleton<IEmailTemplateManager, RepositoryEmailTemplateManager>()
+                .AddSingleton<IEmailSender, EmailSender>()
+                .Configure<EmailOptions>(options => { configureSmtp?.Invoke(options);});
         }
     }
 }
