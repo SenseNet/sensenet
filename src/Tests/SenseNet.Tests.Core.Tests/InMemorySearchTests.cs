@@ -876,8 +876,8 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager_INSTANCE());
-                builder.UseIndexManager(new IndexManager_INSTANCE());
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
                 builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
@@ -923,8 +923,8 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager_INSTANCE());
-                builder.UseIndexManager(new IndexManager_INSTANCE());
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
                 builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
@@ -973,8 +973,8 @@ namespace SenseNet.Tests.Core.Tests
             string resolved = null;
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager_INSTANCE());
-                builder.UseIndexManager(new IndexManager_INSTANCE());
+                builder.UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore));
+                builder.UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager));
                 builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>

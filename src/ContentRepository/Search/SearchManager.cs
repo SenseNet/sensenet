@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager_INSTANCE : ISearchManager
     {
-        private IDataStore DataStore => Providers.Instance.DataStore;
+        private IDataStore _dataStore;
 
         public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled  //UNDONE:<?xxxxxxxxxxx Set once in startup seq.
             ? InternalSearchEngine.Instance
@@ -34,6 +34,12 @@ namespace SenseNet.ContentRepository.Search
 
         // ReSharper disable once InconsistentNaming
         private bool? __isOuterSearchEngineEnabled;
+
+        public SearchManager_INSTANCE(IDataStore dataStore)
+        {
+            _dataStore = dataStore;
+        }
+
         public bool IsOuterEngineEnabled
         {
             get => __isOuterSearchEngineEnabled ?? Configuration.Indexing.IsOuterSearchEngineEnabled;

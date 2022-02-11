@@ -23,21 +23,23 @@ namespace SenseNet.ContentRepository.Search.Indexing
     //UNDONE:<?xxx: Delete IndexManager and rename IndexManager_INSTANCE to IndexManager if all references rewritten in the ecosystem
     public class IndexManager_INSTANCE : IIndexManager // alias LuceneManager
     {
-        private IDataStore DataStore => Providers.Instance.DataStore;
-        private ISearchManager SearchManager => Providers.Instance.SearchManager;
+        private readonly IDataStore _dataStore;
+        private readonly ISearchManager _searchManager;
 
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
         private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; }
 
-        public IndexManager_INSTANCE()
+        public IndexManager_INSTANCE(IDataStore dataStore, ISearchManager searchManager)
         {
+            _dataStore = dataStore;
+            _searchManager = searchManager;
             DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this);
             CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue();
         }
 
         /* ==================================================================== Managing index */
 
-        public IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
+        public IIndexingEngine IndexingEngine => _searchManager.SearchEngine.IndexingEngine;
         internal ICommitManager CommitManager { get; private set; }
 
         public bool Running => IndexingEngine?.Running ?? false;
@@ -83,7 +85,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             try
             {
-                var status = SearchManager.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
+                var status = _searchManager.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
                             .GetAwaiter().GetResult();
                 SnTrace.Index.Write($"  Status: {status}");
 
@@ -133,12 +135,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public STT.Task RegisterActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
-            return DataStore.RegisterIndexingActivityAsync(activity, cancellationToken);
+            return _dataStore.RegisterIndexingActivityAsync(activity, cancellationToken);
         }
 
         public STT.Task ExecuteActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
-            return SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized
+            return _searchManager.SearchEngine.IndexingEngine.IndexIsCentralized
                 ? ExecuteCentralizedActivityAsync(activity, cancellationToken)
                 : ExecuteDistributedActivityAsync(activity, cancellationToken);
         }
@@ -175,12 +177,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public int GetLastStoredIndexingActivityId()
         {
-            return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
+            return _dataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
-            return DataStore.DeleteAllIndexingActivitiesAsync(cancellationToken);
+            return _dataStore.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
 
         public IndexingActivityStatus GetCurrentIndexingActivityStatus()
@@ -190,11 +192,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
         {
-            return DataStore.DeleteRestorePointsAsync(cancellationToken);
+            return _dataStore.DeleteRestorePointsAsync(cancellationToken);
         }
         public STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            return DataStore.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
+            return _dataStore.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
         }
 
         public async STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(
@@ -203,7 +205,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // Running state of the activity is only used in the centralized indexing scenario. 
             // Additionally, the activity table can be too large in the distributed indexing scenario
             // so it would be blocked for a long time by RestoreIndexingActivityStatusAsync.
-            if (!SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
+            if (!_searchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
                 throw new SnNotSupportedException();
 
             // No action is required if the status is the default
@@ -211,12 +213,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return IndexingActivityStatusRestoreResult.NotNecessary;
 
             // Request to restore the running state of the stored activities by the status.
-            var result = await DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken)
+            var result = await _dataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken)
                 .ConfigureAwait(false);
 
             // Reset activity status in the index if an actual operation happened.
             if (result == IndexingActivityStatusRestoreResult.Restored)
-                await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
+                await _searchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
                     IndexingActivityStatus.Startup, cancellationToken).ConfigureAwait(false);
 
             return result;
@@ -337,7 +339,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = executingUnprocessedActivities ? new[] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
-            var docs = DataStore.LoadIndexDocumentsAsync(treeRoot, excludedNodeTypes)
+            var docs = _dataStore.LoadIndexDocumentsAsync(treeRoot, excludedNodeTypes)
                 .Select(CreateIndexDocument);
             await IndexingEngine.WriteIndexAsync(delTerms, null, docs, cancellationToken).ConfigureAwait(false);
             return true;
@@ -368,14 +370,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         internal IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {
-            return CreateIndexDocument(DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
+            return CreateIndexDocument(_dataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
                 .GetAwaiter().GetResult().FirstOrDefault());
         }
         internal IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
             return versionIds.Length == 0
                 ? Array.Empty<IndexDocument>()
-                : DataStore.LoadIndexDocumentsAsync(versionIds, CancellationToken.None).GetAwaiter().GetResult()
+                : _dataStore.LoadIndexDocumentsAsync(versionIds, CancellationToken.None).GetAwaiter().GetResult()
                     .Select(CreateIndexDocument)
                     .ToArray();
         }
@@ -431,7 +433,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.
-            var docData = DataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
+            var docData = _dataStore.LoadIndexDocumentsAsync(new[] { versionId }, CancellationToken.None)
                 .GetAwaiter().GetResult().FirstOrDefault();
             var indexDoc = docData.IndexDocument;
 
@@ -443,15 +445,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // 3: save indexDocument.
             docData.IndexDocumentChanged();
-            DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
+            _dataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
 
             // 4: distributed cache invalidation because of version timestamp.
-            DataStore.RemoveNodeDataFromCacheByVersionId(versionId);
+            _dataStore.RemoveNodeDataFromCacheByVersionId(versionId);
 
             // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
-                SearchManager.GetIndexPopulator()
+                _searchManager.GetIndexPopulator()
                     .RebuildIndexAsync(node, CancellationToken.None).GetAwaiter().GetResult();
         }
     }

@@ -69,6 +69,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             Providers.Instance.ResetBlobProviders();
 
+            var dataStore = Providers.Instance.DataStore;
             var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
 
             repositoryBuilder
@@ -82,9 +83,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                .UseSearchManager(new SearchManager_INSTANCE())
-                .UseIndexManager(new IndexManager_INSTANCE())
-                .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+                .UseSearchManager(new SearchManager_INSTANCE(dataStore))
+                .UseIndexManager(new IndexManager_INSTANCE(dataStore, Providers.Instance.SearchManager))
+                .UseIndexPopulator(new DocumentPopulator(dataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

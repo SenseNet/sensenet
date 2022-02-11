@@ -36,7 +36,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             var dataProvider = GetDataProvider();
 
             builder
-                      .UseLogger(new DebugWriteLoggerAdapter())
+                .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
@@ -49,8 +49,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
-                .UseSearchManager(new SearchManager_INSTANCE())
-                .UseIndexManager(new IndexManager_INSTANCE())
+                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
