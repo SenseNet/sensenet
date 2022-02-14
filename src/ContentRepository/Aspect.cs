@@ -322,7 +322,7 @@ namespace SenseNet.ContentRepository
         /// <param name="name">Name of the <see cref="Aspect"/>.</param>
         public static bool AspectExists(string name)
         {
-            if (SearchManager.ContentQueryIsAllowed)
+            if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
                 return ContentQuery.Query(SafeQueries.AspectExists, null, name).Count > 0;
             return LoadAspectByName(name) != null;
         }

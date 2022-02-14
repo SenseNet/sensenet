@@ -124,14 +124,12 @@ namespace SenseNet.ContentRepository
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
 
-            SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
-
             InitializeLogger();
 
             RegisterAppdomainEventHandlers();
 
             if (_settings.IndexPath != null)
-                SearchManager.SetIndexDirectoryPath(_settings.IndexPath);
+                Providers.Instance.SearchManager.IndexDirectoryPath = _settings.IndexPath;
 
             LoadAssemblies(_settings.IsWebContext);
 
@@ -173,7 +171,7 @@ namespace SenseNet.ContentRepository
                 return;
             }
             ConsoleWriteLine("Starting IndexingEngine:");
-            IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
+            Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             ConsoleWriteLine("IndexingEngine has started.");
         }
 
@@ -253,7 +251,11 @@ namespace SenseNet.ContentRepository
 
                 ConsoleWrite("Starting message channel ... ");
                 channel = DistributedApplication.ClusterChannel;
+                channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+                
                 ConsoleWriteLine("ok.");
+                SnLog.WriteInformation($"Message channel {channel.GetType().FullName} started." +
+                                       $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
 
                 ConsoleWrite("Sending greeting message ... ");
                 new PingMessage(new string[0]).SendAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -458,7 +460,7 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.SecurityHandler.ShutDownSecurity();
 
                 SnTrace.Repository.Write("Shutting down IndexingEngine.");
-                IndexManager.ShutDown();
+                Providers.Instance.IndexManager.ShutDown();
 
                 ContextHandler.Reset();
 
@@ -504,11 +506,9 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                     throw new NotSupportedException("Querying running state of IndexingEngine is not supported when RepositoryInstance is not created.");
-                return IndexManager.Running;
+                return Providers.Instance.IndexManager.Running;
             }
         }
-        [Obsolete("Use SearchManager.ContentQueryIsAllowed instead.")]
-        public static bool ContentQueryIsAllowed => SearchManager.ContentQueryIsAllowed;
 
         // ======================================== IDisposable
         private bool _disposed;

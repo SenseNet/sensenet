@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -64,9 +66,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 dataProvider = new InMemoryDataProvider();
                 repositoryBuilder.UseDataProvider(dataProvider);
             }
-            
+
             Providers.Instance.ResetBlobProviders();
 
+            var dataStore = Providers.Instance.DataStore;
             var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
 
             repositoryBuilder
@@ -80,6 +83,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UseSearchManager(new SearchManager_INSTANCE(dataStore))
+                .UseIndexManager(new IndexManager_INSTANCE(dataStore, Providers.Instance.SearchManager))
+                .UseIndexPopulator(new DocumentPopulator(dataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

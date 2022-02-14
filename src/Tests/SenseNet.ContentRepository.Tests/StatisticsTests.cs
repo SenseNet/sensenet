@@ -2704,10 +2704,12 @@ namespace SenseNet.ContentRepository.Tests
                     "?timewindow=year", services).ConfigureAwait(false);
 
                 // ASSERT-3
+                var thisYear = DateTime.UtcNow.Year;
+                var nextYear = thisYear + 1;
                 var result3 = (JObject)JsonSerializer.CreateDefault().Deserialize(new JsonTextReader(new StringReader(response3)));
                 Assert.AreEqual("WebHook", result3["DataType"].Value<string>());
-                Assert.AreEqual(new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["Start"].Value<DateTime>());
-                Assert.AreEqual(new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(thisYear, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["Start"].Value<DateTime>());
+                Assert.AreEqual(new DateTime(nextYear, 1, 1, 0, 0, 0, DateTimeKind.Utc), result3["End"].Value<DateTime>());
                 Assert.AreEqual("Year", result3["TimeWindow"].Value<string>());
                 Assert.AreEqual("Month", result3["Resolution"].Value<string>());
                 Assert.AreEqual(12, ((JArray)result3["CallCount"]).Count);

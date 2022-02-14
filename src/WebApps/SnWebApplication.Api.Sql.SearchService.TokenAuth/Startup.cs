@@ -50,11 +50,11 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseMsSqlExclusiveLockDataProviderExtension();
-            })
+                {
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseMsSqlExclusiveLockDataProviderExtension();
+                })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
@@ -66,6 +66,10 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddRabbitMqSecurityMessageProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()
+                .AddRabbitMqMessageProvider(configureRabbitMq: options =>
+                {
+                    Configuration.GetSection("sensenet:rabbitmq").Bind(options);
+                })
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddComponent(provider => new MsSqlClientStoreComponent())

@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Data.MsSqlClient;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
     public static class StorageExtensions
@@ -95,6 +98,20 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDataInstaller<T>(this IServiceCollection services) where T : class, IDataInstaller
         {
             return services.AddSingleton<IDataInstaller, T>();
+        }
+
+        /// <summary>
+        /// Adds a message provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetMessaging<T>(this IServiceCollection services,
+            Action<ClusterMemberInfo> configure = null) where T: class, IClusterChannel
+        {
+            services
+                .AddSingleton<IClusterMessageFormatter, BinaryMessageFormatter>()
+                .AddSingleton<IClusterChannel, T>()
+                .Configure<ClusterMemberInfo>(cmi => { configure?.Invoke(cmi); });
+
+            return services;
         }
     }
 }

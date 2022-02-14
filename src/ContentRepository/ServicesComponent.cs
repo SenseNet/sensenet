@@ -1106,6 +1106,59 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.25", "7.7.25.1", "2022-02-14", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region String resource changes
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesEF.xml")
+                        .Class("Ctd-EmailTemplate")
+                        .Culture("en")
+                        .AddResource("DisplayName", "Email template")
+                        .AddResource("Description", "Defines an email template used by notification features.")
+                        .AddResource("Subject-DisplayName", "Subject")
+                        .AddResource("Subject-Description", "Email subject")
+                        .AddResource("Body-DisplayName", "Body")
+                        .AddResource("Body-Description", "Email message text in richtext format.")
+                        .Culture("hu")
+                        .AddResource("DisplayName", "Email minta")
+                        .AddResource("Description", "Az értesítések küldéséhez használt email tartalomtípus.")
+                        .AddResource("Subject-DisplayName", "Tárgy")
+                        .AddResource("Subject-Description", "Levél tárgya")
+                        .AddResource("Body-DisplayName", "Üzenet")
+                        .AddResource("Body-Description", "Üzenet szövege.");
+
+                    rb.Apply();
+
+                    #endregion
+
+                    #region CTD changes
+
+                    const string EmailTemplateCtd = @"<ContentType name=""EmailTemplate"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Email.EmailTemplate"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-EmailTemplate,DisplayName</DisplayName>
+  <Description>$Ctd-EmailTemplate,Description</Description>
+  <Icon>EmailTemplate</Icon>
+  <Fields>
+    <Field name=""Subject"" type=""ShortText"">
+      <DisplayName>$Ctd-EmailTemplate,Subject-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Subject-Description</Description>
+    </Field>
+    <Field name=""Body"" type=""RichText"">
+      <DisplayName>$Ctd-EmailTemplate,Body-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Body-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+    </Field>
+  </Fields>
+</ContentType>";
+                    ContentTypeInstaller.InstallContentType(EmailTemplateCtd);
+
+                    #endregion
+                });
         }
 
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)

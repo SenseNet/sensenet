@@ -69,6 +69,50 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-EmailTemplate">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Email template</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Defines an email template used by notification features.</value>
+        </data>
+	      <data name="Subject-DisplayName" xml:space="preserve">
+			<value>Subject</value>
+		  </data>
+	      <data name="Subject-Description" xml:space="preserve">
+			<value>Email subject</value>
+		  </data>
+	      <data name="Body-DisplayName" xml:space="preserve">
+			<value>Body</value>
+		  </data>
+	      <data name="Body-Description" xml:space="preserve">
+			<value>Email message text in richtext format.</value>
+		  </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Email minta</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Az értesítések küldéséhez használt email tartalomtípus.</value>
+        </data>
+	      <data name="Subject-DisplayName" xml:space="preserve">
+			<value>Tárgy</value>
+		  </data>
+	      <data name="Subject-Description" xml:space="preserve">
+			<value>Levél tárgya</value>
+		  </data>
+	      <data name="Body-DisplayName" xml:space="preserve">
+			<value>Üzenet</value>
+		  </data>
+	      <data name="Body-Description" xml:space="preserve">
+			<value>Üzenet szövege.</value>
+		  </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-EventList">
     <Languages>
       <Language cultureName="en">

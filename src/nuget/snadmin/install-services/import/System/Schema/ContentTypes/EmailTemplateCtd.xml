@@ -1,0 +1,18 @@
+<ContentType name="EmailTemplate" parentType="GenericContent" handler="SenseNet.ContentRepository.Email.EmailTemplate" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-EmailTemplate,DisplayName</DisplayName>
+  <Description>$Ctd-EmailTemplate,Description</Description>
+  <Icon>EmailTemplate</Icon>
+  <Fields>
+    <Field name="Subject" type="ShortText">
+      <DisplayName>$Ctd-EmailTemplate,Subject-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Subject-Description</Description>
+    </Field>
+    <Field name="Body" type="RichText">
+      <DisplayName>$Ctd-EmailTemplate,Body-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Body-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+    </Field>
+  </Fields>
+</ContentType>

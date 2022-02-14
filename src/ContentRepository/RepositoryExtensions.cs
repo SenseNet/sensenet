@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
@@ -80,6 +84,15 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        public static IServiceCollection AddSenseNetSearchComponents(this IServiceCollection services)
+        {
+            services.AddSingleton<ISearchManager, SearchManager_INSTANCE>();
+            services.AddSingleton<IIndexManager, IndexManager_INSTANCE>();
+            services.AddSingleton<IIndexPopulator, DocumentPopulator>();
+
+            return services;
+        }
+
         /// <summary>
         /// Adds the provided search engine to the service collection.
         /// </summary>
@@ -123,6 +136,15 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetApiKeys(this IServiceCollection services)
         {
             return services.AddSenseNetApiKeyManager<ApiKeyManager>();
+        }
+
+        public static IServiceCollection AddSenseNetEmailManager(this IServiceCollection services, 
+            Action<EmailOptions> configureSmtp = null)
+        {
+            return services
+                .AddSingleton<IEmailTemplateManager, RepositoryEmailTemplateManager>()
+                .AddSingleton<IEmailSender, EmailSender>()
+                .Configure<EmailOptions>(options => { configureSmtp?.Invoke(options);});
         }
     }
 }

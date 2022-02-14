@@ -1,53 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage;
-using System.Net;
 
 namespace SenseNet.Communication.Messaging
 {
     [Serializable]
     public class ClusterMemberInfo
     {
-        public string ClusterID;
-        public string ClusterMemberID;
-        public string InstanceID;
-        public string Machine;
-        public bool NeedToRecover = true;
+        public string ClusterID { get; set; }
+        public string ClusterMemberID { get; set; }
+        public string InstanceID { get; set; } = Guid.NewGuid().ToString();
+        public string Machine { get; set; } = GetIpAddress();
+        public bool NeedToRecover { get; set; } = true;
 
-        private static ClusterMemberInfo _current;
-        private static object _syncRoot = new object();
+        private static Lazy<ClusterMemberInfo> _cmi = new Lazy<ClusterMemberInfo>(() => new ClusterMemberInfo());
+
         public static ClusterMemberInfo Current
         {
-            get
-            {
-                if (_current == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_current == null)
-                        {
-                            var current = new ClusterMemberInfo();
-                            current.InstanceID = Guid.NewGuid().ToString();
-                            current.Machine = GetIpAddress();
-                            _current = current;
-                            SnLog.WriteInformation("ClusterMemberInfo created.", EventId.RepositoryLifecycle,
-                                properties: new Dictionary<string, object> {{"InstanceID", _current.InstanceID}});
-                        }
-                    }
-                }
-                return _current;
-            }
+            get => _cmi.Value;
+            set { _cmi = new Lazy<ClusterMemberInfo>(() => value); }
         }
 
-        public bool IsMe
-        {
-            get
-            {
-                return this.InstanceID == ClusterMemberInfo.Current.InstanceID;
-            }
-        }
+        public bool IsMe => this.InstanceID == ClusterMemberInfo.Current.InstanceID;
 
         public static string GetIpAddress()
         {

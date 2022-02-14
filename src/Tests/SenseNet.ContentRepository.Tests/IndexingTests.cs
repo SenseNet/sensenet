@@ -567,7 +567,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // Memorize instances.
                 dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
-                searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
+                searchProvider = (InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine;
                 blobProvider = (InMemoryBlobProvider)Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
 
                 // Create 8 activities.
@@ -660,7 +660,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Empty test
                 db.IndexingActivities.Clear();
 
-                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var emptyState = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual("0()", emptyState.ToString());
@@ -692,7 +692,7 @@ namespace SenseNet.ContentRepository.Tests
                     db.IndexingActivities.Insert(item);
 
                 // ACTION
-                IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
+                Providers.Instance.IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
@@ -711,7 +711,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Empty test
                 db.IndexingActivities.Clear();
 
-                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var emptyState = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual("0()", emptyState.ToString());
@@ -742,7 +742,7 @@ namespace SenseNet.ContentRepository.Tests
                     db.IndexingActivities.Insert(item);
 
                 // ACTION
-                var state = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                var state = Providers.Instance.IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
@@ -787,12 +787,12 @@ namespace SenseNet.ContentRepository.Tests
                 var state = new IndexingActivityStatus { LastActivityId = 15, Gaps = new[] { 13, 14 } };
 
                 // ACTION
-                var inMemEngine = (InMemoryIndexingEngine)SearchManager.SearchEngine.IndexingEngine;
+                var inMemEngine = (InMemoryIndexingEngine)Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
                 try
                 {
                     inMemEngine.IndexIsCentralized = true;
 
-                    IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
+                    Providers.Instance.IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                 }
                 finally

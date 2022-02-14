@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Search;
+﻿using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Indexing;
@@ -16,7 +17,7 @@ namespace SenseNet.Search.Querying
         /// <inheritdoc />
         public int UserId { get; }
         /// <inheritdoc />
-        public IQueryEngine QueryEngine => SearchManager.SearchEngine.QueryEngine;
+        public IQueryEngine QueryEngine => Providers.Instance.SearchManager.SearchEngine.QueryEngine;
         /// <inheritdoc />
         public IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
@@ -32,7 +33,7 @@ namespace SenseNet.Search.Querying
         /// <inheritdoc />
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return SearchManager.GetPerFieldIndexingInfo(fieldName);
+            return Providers.Instance.SearchManager.GetPerFieldIndexingInfo(fieldName);
         }
 
         /// <summary>

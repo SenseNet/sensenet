@@ -25,6 +25,7 @@ using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using SenseNet.ContentRepository.Search;
 using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
@@ -239,6 +240,9 @@ namespace SenseNet.Configuration
         public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
 
         public virtual ISearchEngine SearchEngine { get; set; }
+        public ISearchManager SearchManager { get; set; }
+        public IIndexManager IndexManager { get; set; }
+        public IIndexPopulator IndexPopulator { get; set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
@@ -329,39 +333,8 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IClusterChannel> _clusterChannelProvider = new Lazy<IClusterChannel>
-        private Lazy<IClusterChannel> _clusterChannelProvider = new Lazy<IClusterChannel>(() =>
-        {
-            IClusterChannel provider;
-
-            try
-            {
-                provider = (IClusterChannel)TypeResolver.CreateInstance(ClusterChannelProviderClassName, 
-                    new BinaryMessageFormatter(), ClusterMemberInfo.Current);
-            }
-            catch (TypeNotFoundException)
-            {
-                throw new ConfigurationException($"ClusterChannel implementation does not exist: {ClusterChannelProviderClassName}");
-            }
-            catch (InvalidCastException)
-            {
-                throw new ConfigurationException($"Invalid ClusterChannel implementation: {ClusterChannelProviderClassName}");
-            }
-            
-            provider.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-            SnTrace.Messaging.Write("Cluster channel created: " + ClusterChannelProviderClassName);
-            SnLog.WriteInformation($"ClusterChannel created: {ClusterChannelProviderClassName}");
-
-            return provider;
-        });
-        public virtual IClusterChannel ClusterChannelProvider
-        {
-            get { return _clusterChannelProvider.Value; }
-            set { _clusterChannelProvider = new Lazy<IClusterChannel>(() => value); }
-        }
-
-        #endregion
+        public virtual IClusterChannel ClusterChannelProvider { get; set; } =
+            new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
 
         #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
         private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>

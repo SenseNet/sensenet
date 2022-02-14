@@ -14,7 +14,7 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Do not use this property directly. Use SearchManager.IndexDirectoryPath instead.
         /// </summary>
-        internal static string IndexDirectoryFullPath
+        public static string IndexDirectoryFullPath
         {
             get
             {

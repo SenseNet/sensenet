@@ -55,7 +55,7 @@ namespace SenseNet.Packaging.Steps
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
-            var populator = SearchManager.GetIndexPopulator();
+            var populator = Providers.Instance.SearchManager.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
             populator.IndexDocumentRefreshed += Populator_IndexDocumentRefreshed;
             populator.IndexingError += Populator_IndexingError;

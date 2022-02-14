@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
@@ -42,7 +43,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                if (!SearchManager.ContentQueryIsAllowed)
+                if (!Providers.Instance.SearchManager.ContentQueryIsAllowed)
                     return 0;
 
                 QueryResult cq = ContentQuery.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");

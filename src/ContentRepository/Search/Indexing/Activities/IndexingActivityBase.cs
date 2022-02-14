@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
+using SenseNet.Configuration;
 using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -142,7 +143,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         private bool IsExecutable()
         {
             // if not running or paused, skip execution except executing unprocessed activities
-            return IsUnprocessedActivity || IndexManager.Running;
+            return IsUnprocessedActivity || Providers.Instance.IndexManager.Running;
         }
 
         /// <summary>

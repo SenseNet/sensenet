@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -208,6 +210,25 @@ namespace SenseNet.Extensions.DependencyInjection
             Configuration.Providers.Instance.SearchEngine = searchEngine;
             WriteLog("SearchEngine", searchEngine);
 
+            return repositoryBuilder;
+        }
+
+        public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
+        {
+            Configuration.Providers.Instance.SearchManager = searchManager;
+            WriteLog("SearchManager", searchManager);
+            return repositoryBuilder;
+        }
+        public static IRepositoryBuilder UseIndexManager(this IRepositoryBuilder repositoryBuilder, IIndexManager indexManager)
+        {
+            Configuration.Providers.Instance.IndexManager = indexManager;
+            WriteLog("IndexManager", indexManager);
+            return repositoryBuilder;
+        }
+        public static IRepositoryBuilder UseIndexPopulator(this IRepositoryBuilder repositoryBuilder, IIndexPopulator indexPopulator)
+        {
+            Configuration.Providers.Instance.IndexPopulator = indexPopulator;
+            WriteLog("IndexPopulator", indexPopulator);
             return repositoryBuilder;
         }
 

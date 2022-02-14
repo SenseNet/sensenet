@@ -3,10 +3,14 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -47,7 +51,6 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
-            services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientStoreOptions>(configuration.GetSection("sensenet:Authentication"));
@@ -92,6 +95,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
+                .AddSenseNetSearchComponents()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
@@ -99,6 +103,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetIdentityServerClients()
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()
+                .AddSenseNetEmailManager(options =>
+                {
+                    configuration.GetSection("sensenet:Email").Bind(options);
+                })
                 .AddSenseNetRegistration();
 
             services.AddStatistics();
@@ -139,6 +147,9 @@ namespace SenseNet.Extensions.DependencyInjection
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
+            Providers.Instance.SearchManager = provider.GetRequiredService<ISearchManager>();
+            Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
+            Providers.Instance.IndexPopulator = provider.GetRequiredService<IIndexPopulator>();
 
 #pragma warning disable 618
 
@@ -161,6 +172,14 @@ namespace SenseNet.Extensions.DependencyInjection
             var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
             if (statisticalDataProvider != null)
                 Providers.Instance.DataProvider.SetExtension(typeof(IStatisticalDataProvider), statisticalDataProvider);
+
+            var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
+            if (cmi != null)
+                ClusterMemberInfo.Current = cmi;
+
+            var ccp = provider.GetService<IClusterChannel>();
+            if (ccp != null)
+                Providers.Instance.ClusterChannelProvider = ccp;
 
             return provider;
         }
