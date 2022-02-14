@@ -51,7 +51,6 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<DataOptions>(configuration.GetSection("sensenet:Data"));
             services.Configure<BlobStorageOptions>(configuration.GetSection("sensenet:BlobStorage"));
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
-            services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientStoreOptions>(configuration.GetSection("sensenet:Authentication"));
@@ -104,6 +103,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetIdentityServerClients()
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()
+                .AddSenseNetEmailManager(options =>
+                {
+                    configuration.GetSection("sensenet:Email").Bind(options);
+                })
                 .AddSenseNetRegistration();
 
             services.AddStatistics();
