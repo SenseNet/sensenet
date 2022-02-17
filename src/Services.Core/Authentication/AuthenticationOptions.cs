@@ -13,6 +13,12 @@ namespace SenseNet.Services.Core.Authentication
         public string Authority { get; set; }
 
         /// <summary>
+        /// Default url of the application that connects to the repository. Features may use this
+        /// url as a return url after authentication operations.
+        /// </summary>
+        public string ClientApplicationUrl { get; set; }
+
+        /// <summary>
         /// Add a cookie containing the JWT bearer token if it was sent in the
         /// request header. If this cookie is sent by the client later and
         /// there is no authorization header, the system will set the value

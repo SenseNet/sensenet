@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
@@ -1110,7 +1109,11 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.25", "7.7.25.1", "2022-02-14", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
+
                     #region String resource changes
+
+                    logger.LogTrace("Adding string resources...");
 
                     var rb = new ResourceBuilder();
 
@@ -1123,21 +1126,23 @@ namespace SenseNet.ContentRepository
                         .AddResource("Subject-Description", "Email subject")
                         .AddResource("Body-DisplayName", "Body")
                         .AddResource("Body-Description", "Email message text in richtext format.")
+                        .AddResource("SendPasswordChange", "Send change password email")
                         .Culture("hu")
                         .AddResource("DisplayName", "Email minta")
                         .AddResource("Description", "Az értesítések küldéséhez használt email tartalomtípus.")
                         .AddResource("Subject-DisplayName", "Tárgy")
                         .AddResource("Subject-Description", "Levél tárgya")
                         .AddResource("Body-DisplayName", "Üzenet")
-                        .AddResource("Body-Description", "Üzenet szövege.");
+                        .AddResource("Body-Description", "Üzenet szövege.")
+                        .AddResource("SendPasswordChange", "Jelszómódosító email küldése");
 
                     rb.Apply();
 
                     #endregion
-
+                    
                     #region CTD changes
 
-                    const string EmailTemplateCtd = @"<ContentType name=""EmailTemplate"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Email.EmailTemplate"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                    const string emailTemplateCtd = @"<ContentType name=""EmailTemplate"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Email.EmailTemplate"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-EmailTemplate,DisplayName</DisplayName>
   <Description>$Ctd-EmailTemplate,Description</Description>
   <Icon>EmailTemplate</Icon>
@@ -1155,7 +1160,120 @@ namespace SenseNet.ContentRepository
     </Field>
   </Fields>
 </ContentType>";
-                    ContentTypeInstaller.InstallContentType(EmailTemplateCtd);
+
+                    logger.LogTrace("Installing email template content type...");
+                    ContentTypeInstaller.InstallContentType(emailTemplateCtd);
+
+                    #endregion
+
+                    #region Content changes (email template)
+
+                    #region Content constants
+                    const string emailTemplate = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"" />
+    <title></title>
+</head>
+<body>
+    <div style=""text-align: center;padding: 10px;padding-top:30px"">
+        <div style=""width: 600px;margin: 0 auto;
+                    text-align: left;
+                    font-family: Roboto, Arial, Helvetica, sans-serif;
+                    color: #757575;
+                    font-size: 16px;
+                    line-height: 150%;"">
+            <div style=""text-align: center"">
+                <img src=""https://github.com/SenseNet/sn-resources/blob/master/images/sn-icon/sensenet-icon-64.png?raw=true"" alt=""sensenet logo"" />
+            </div>
+            <div style=""padding: 10px"">
+                <h1 style=""font-size: 16px"">Welcome to sensenet!</h1>
+                <div>Before you log in, please change your password.</div>
+                <div>If you did not create an account using this address (<a style=""color: #007C89 !important;text-decoration: none !important"">{Email}</a>), please skip this mail.</div>
+                <table width=""100%"" border=""0"" cellspacing=""0"" cellpadding=""0"">
+                    <tr>
+                        <td align=""center"" style=""padding: 30px"">
+                            <table border=""0"" cellspacing=""0"" cellpadding=""0"">
+                                <tr>
+                                    <td align=""center"" style=""border-radius: 25px;text-align: center;"" bgcolor=""#13a5ad"">
+                                        <a href=""{ActionUrl}"" target=""_blank""
+                                           style="" font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; text-decoration: none;border-radius: 25px;padding: 10px; border: 1px solid #13a5ad; display: inline-block;"">
+                                            Change your password
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <div style=""text-align: center; width: auto; font-size: 80%;"">
+                    Or using this link:<br />
+                    <a style=""color: #007C89"" href=""{ActionUrl}"">{ActionUrl}</a>
+                </div>
+                <br />
+                <div>Thank you!</div>
+                <br />
+                <div>regards,<br />sensenet team</div>
+            </div>
+            <br />
+            <br />
+            <div style=""width: 100%;clear: both;display:block;text-align: center;border-top: solid 1px #cfcfcf;margin-top: 20px;padding: 10px;margin: 20px 10px 10px"">
+                <table style=""margin: 0 auto"">
+                    <tr>
+                        <td style=""padding: 10px"">
+                            <a href=""https://github.com/SenseNet"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-github-48.png"" />
+                            </a>
+                        </td>
+                        <td style=""padding: 10px"">
+                            <a href=""https://community.sensenet.com/"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-link-48.png"" />
+                            </a>
+                        </td>
+                        <td style=""padding: 10px"">
+                            <a href=""https://www.linkedin.com/company/sense-net-inc/about/"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-linkedin-48.png"" />
+                            </a>
+                        </td>
+                        <td style=""padding: 10px"">
+                            <a href=""https://medium.com/sensenet"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-medium-48.png"" />
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                <div style=""font-size: 12px"">
+                    <em>Copyright © 2022 Sense/Net, All rights reserved.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>";
+                    const string templatesFolderPath = "/Root/System/Templates";
+                    const string emailTemplateParentPath = $"{templatesFolderPath}/Email/Registration";
+                    const string emailTemplateName = "ChangePassword";
+                    const string emailTemplatePath = $"{emailTemplateParentPath}/{emailTemplateName}";
+                    #endregion
+
+                    if (Node.Exists(emailTemplatePath))
+                    {
+                        // previous email template was of a different type
+                        logger.LogTrace("Deleting change password email template... ");
+                        Node.ForceDelete(emailTemplatePath);
+                    }
+
+                    logger.LogTrace("Creating email template (with parent structure if necessary)...");
+                    var _ = RepositoryTools.CreateStructure(templatesFolderPath, "SystemFolder");
+                    var parent = RepositoryTools.CreateStructure(emailTemplateParentPath, "Folder") ??
+                                 Content.Load(emailTemplateParentPath);
+
+                    var pwChangeEmailTemplate = Content.CreateNew("EmailTemplate", parent.ContentHandler,
+                        emailTemplateName);
+
+                    pwChangeEmailTemplate["Body"] = emailTemplate;
+                    pwChangeEmailTemplate["Subject"] = "sensenet - Please change your password!";
+                    pwChangeEmailTemplate.SaveSameVersion();
 
                     #endregion
                 });

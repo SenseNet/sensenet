@@ -429,6 +429,9 @@
         <data name="PasswordChange" xml:space="preserve">
           <value>Change password</value>
         </data>
+	      <data name="SendPasswordChange" xml:space="preserve">
+          <value>Send change password email</value>
+        </data>
         <data name="UploadResume" xml:space="preserve">
           <value>Resume upload</value>
         </data>
@@ -874,6 +877,9 @@
         </data>
         <data name="PasswordChange" xml:space="preserve">
           <value>Jelszómódosítás</value>
+        </data>
+	      <data name="SendPasswordChange" xml:space="preserve">
+          <value>Jelszómódosító email küldése</value>
         </data>
         <data name="UploadResume" xml:space="preserve">
           <value>Feltöltés folytatása</value>

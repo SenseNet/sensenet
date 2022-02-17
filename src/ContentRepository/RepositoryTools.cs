@@ -1326,6 +1326,17 @@ namespace SenseNet.ContentRepository
 
             return "https://" + url;
         }
+
+        public static string AddUrlParameter(this string url, string name, string value)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            url ??= string.Empty;
+            url += url.Contains("?") ? "&" : "?";
+
+            return url + $"{name}={value}";
+        }
     }
 
     public struct SecurityMembershipInfo
