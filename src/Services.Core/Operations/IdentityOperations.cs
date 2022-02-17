@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Email;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -138,6 +146,127 @@ namespace SenseNet.Services.Core.Operations
             return Content.Create(user);
         }
 
+        [ODataAction(OperationName = "SendChangePasswordMail", Icon = "security", DisplayName = "$Action,SendPasswordChange")]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.All)]
+        public static async Task SendChangePasswordMailByEmail(Content content, HttpContext httpContext, 
+            string email, string returnUrl = null)
+        {
+            if (string.IsNullOrEmpty(email))
+                throw new ArgumentNullException(nameof(email));
+
+            // This method will never throw an exception (except if no email address was provided).
+            // The caller can be a Visitor, so they should not receive any information about
+            // whether the user exists or not and if we know the email or not.
+
+            // query user in elevated mode
+            using (new SystemAccount())
+            {
+                var user = Content.All.FirstOrDefault(c => c.TypeIs("User") && (string)c["Email"] == email);
+                if (user == null)
+                    return;
+
+                try
+                {
+                    await SendChangePasswordMail(user, httpContext, returnUrl).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex, $"Error during sending password change email for {email}.");
+                }
+            }
+        }
+
+        [ODataAction(Icon = "security", DisplayName = "$Action,SendPasswordChange")]
+        [ContentTypes(N.CT.User)]
+        [RequiredPermissions(N.P.Open)]
+        public static async Task SendChangePasswordMail(Content content, HttpContext httpContext, string returnUrl = null)
+        {
+            var user = (User)content.ContentHandler;
+            if (!PasswordIsEditableByCurrentUser(user))
+                throw new SenseNetSecurityException("You do not have enough permissions " +
+                                                    $"to change the password of {user.Username}.");
+
+            // collect services
+            var logger = httpContext.RequestServices.GetRequiredService<ILogger<IEmailSender>>();
+            var authOptions = httpContext.RequestServices.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+            var clientStoreOptions = httpContext.RequestServices.GetRequiredService<IOptions<ClientStoreOptions>>().Value;
+            var templateManager = httpContext.RequestServices.GetRequiredService<IEmailTemplateManager>();
+            var emailSender = httpContext.RequestServices.GetRequiredService<IEmailSender>();
+
+            // default return url
+            if (string.IsNullOrEmpty(returnUrl))
+                returnUrl = !string.IsNullOrEmpty(authOptions.ClientApplicationUrl)
+                    ? authOptions.ClientApplicationUrl.AddUrlSchema()
+                    : authOptions.Authority.AddUrlSchema();
+
+            try
+            {
+                var email = (string)content["Email"];
+                var fullName = (string)content["FullName"];
+
+                if (string.IsNullOrEmpty(email))
+                    throw new InvalidOperationException("Email address is empty.");
+
+                // set a token on the user
+                var guid = Guid.NewGuid().ToString();
+
+                content["SyncGuid"] = guid;
+                content.SaveSameVersion();
+
+                logger.LogTrace($"Sync guid {guid} was set on user {content.Name} ({content.Id}) " +
+                                "before sending password change mail.");
+
+                var repositoryUrl = clientStoreOptions.RepositoryUrl.AddUrlSchema().TrimEnd('/');
+                var encodedRepoUrl = System.Net.WebUtility.UrlEncode(repositoryUrl);
+
+                // append additional parameters
+                returnUrl = returnUrl
+                    .AddUrlParameter("repoUrl", encodedRepoUrl)
+                    .AddUrlParameter("snrepo", encodedRepoUrl);
+
+                //TODO: let developers customize password change action link
+                // Assemble the link the user will receive in the email. This will take them to the
+                // IdentityServer UI to change their password.
+                var actionUrl = $"{authOptions.Authority.AddUrlSchema().TrimEnd('/')}/account/PasswordChange?" +
+                                $"returnUrl={HttpUtility.UrlEncode(returnUrl)}&token={guid}";
+
+                logger.LogTrace($"Action url to include in password change email for user {content.Name} ({content.Id}): " +
+                                actionUrl);
+
+                var (subject, message) = await templateManager.LoadEmailTemplateAsync(
+                        "Registration/ChangePassword",
+                        p =>
+                        {
+                            p["Email"] = email;
+                            p["Username"] = email;
+                            p["FullName"] = fullName;
+                            p["RepositoryUrl"] = repositoryUrl;
+                            p["ActionUrl"] = actionUrl;
+
+                            return Task.CompletedTask;
+                        })
+                    .ConfigureAwait(false);
+
+                // send the email to the user
+                await emailSender.SendAsync(new EmailData
+                {
+                    ToAddress = email,
+                    ToName = fullName,
+                    //FromName = 
+                    Subject = subject,
+                    Body = message
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex, $"Error during sending password change mail. User: {content.Path} ({content.Id}). " +
+                                           $"Authority: {authOptions.Authority}");
+
+                throw new InvalidOperationException($"Sending password change mail failed. {ex.Message}");
+            }
+        }
+
         [ODataAction(Icon = "security", DisplayName = "$Action,PasswordChange")]
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]
@@ -174,6 +303,8 @@ namespace SenseNet.Services.Core.Operations
 
         private static bool PasswordIsEditableByCurrentUser(User user)
         {
+            // Every user can edit their own password and admins may forcefully change others' password
+            // if they have Save permission on the user content anyway.
             return User.Current.Id == user.Id ||
                    SenseNet.Configuration.Providers.Instance.SecurityHandler.HasPermission(user, PermissionType.Save);
         }

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>Templates</ContentName>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Save>Allow</Save>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
