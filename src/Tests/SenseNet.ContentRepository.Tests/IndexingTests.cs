@@ -602,10 +602,14 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Test(builder =>
                 {
+                    Providers.Instance.DataStore = null;
                     builder
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
                         .UseInitialData(null)
+                        .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
+                        .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                        .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
