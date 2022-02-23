@@ -194,6 +194,8 @@ namespace SenseNet.ContentRepository.InMemory
                         return field.BooleanValue ? IndexValue.Yes : IndexValue.No;
                     case IndexValueType.Int:
                         return field.IntegerValue.ToString(CultureInfo.InvariantCulture);
+                    case IndexValueType.IntArray:
+                        throw new NotImplementedException();
                     case IndexValueType.Long:
                         return field.LongValue.ToString(CultureInfo.InvariantCulture);
                     case IndexValueType.Float:

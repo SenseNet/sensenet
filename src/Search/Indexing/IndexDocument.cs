@@ -242,6 +242,25 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
+        /// Returns with the array of System.Int32 values of the existing named field.
+        /// If the field does not exist in the document, returns with null.
+        /// If the IndexValueType of the existing field is not Int or IntArray, an ApplicationException will be thrown.
+        /// If the IndexValueType of the existing field is Int, returns with an one element array.
+        /// </summary>
+        public int[] GetIntegerArrayValue(string fieldName)
+        {
+            if (!_fields.TryGetValue(fieldName, out var field))
+                return default(int[]);
+
+            if (field.Type == IndexValueType.Int)
+                return new[] { field.IntegerValue };
+
+            if (field.Type == IndexValueType.IntArray)
+                return field.IntegerArrayValue;
+
+            throw TypeError(fieldName, field.Type);
+        }
+        /// <summary>
         /// Returns with the System.Int64 value of the existing named field.
         /// If the field does not exist in the document, returns with 0l.
         /// If the IndexValueType of the existing field is not Long, an ApplicationException will be thrown.
@@ -414,6 +433,9 @@ namespace SenseNet.Search.Indexing
                             break;
                         case IndexValueType.Int:
                             indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.IntArray:
+                            indexField = new IndexField(name, (int[])value, mode, store, termVector);
                             break;
                         case IndexValueType.Long:
                             indexField = new IndexField(name, Convert.ToInt64(value), mode, store, termVector);
