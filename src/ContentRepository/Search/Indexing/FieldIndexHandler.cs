@@ -981,10 +981,10 @@ namespace SenseNet.Search.Indexing
         {
             textExtract = string.Empty;
             var data = snField.GetData();
-            if (data is Node node)
+            if (data is INode node)
                 return CreateField(snField.Name, node.Id);
             if (data is IEnumerable nodes)
-                return nodes.Cast<Node>().Select(n => CreateField(snField.Name, n.Id).First());
+                return nodes.Cast<INode>().Select(n => CreateField(snField.Name, n.Id).First());
 
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
@@ -1001,7 +1001,7 @@ namespace SenseNet.Search.Indexing
             if (value == null)
                 return new IndexValue(SnQuery.NullReferenceValue);
 
-            if (value is Node node)
+            if (value is INode node)
                 return new IndexValue(node.Id);
 
             if (value is IEnumerable)
