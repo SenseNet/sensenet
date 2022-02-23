@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
@@ -15,9 +17,12 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 using SenseNet.Storage.Diagnostics;
@@ -642,5 +647,47 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
+
+        [TestMethod]
+        public void RepositoryStart_IndexAnalyzers()
+        {
+            var searchEngineImpl = new InMemorySearchEngine(GetInitialIndex());
+
+            Test(repoBuilder =>
+            {
+                repoBuilder.UseSearchEngine(searchEngineImpl);
+            }, () =>
+            {
+                var searchEngine = Providers.Instance.SearchEngine;
+
+                Assert.AreSame(searchEngineImpl, searchEngine);
+
+                var expectedAnalyzers = GetAnalyzers(ContentTypeManager.Instance.IndexingInfo);
+                var analyzers = searchEngine.GetAnalyzers();
+                analyzers.Should().Equal(expectedAnalyzers);
+
+                // double check
+                ResetContentTypeManager();
+                ContentType.GetByName("GenericContent");
+                var analyzers2 = searchEngine.GetAnalyzers();
+                analyzers2.Should().Equal(expectedAnalyzers);
+
+            });
+        }
+        private Dictionary<string, IndexFieldAnalyzer> GetAnalyzers(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();
+
+            foreach (var item in indexingInfo)
+            {
+                var fieldName = item.Key;
+                var fieldInfo = item.Value;
+                if (fieldInfo.Analyzer != IndexFieldAnalyzer.Default)
+                    analyzerTypes.Add(fieldName, fieldInfo.Analyzer);
+            }
+
+            return analyzerTypes;
+        }
+
     }
 }

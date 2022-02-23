@@ -1251,9 +1251,9 @@ namespace SenseNet.ContentRepository
 </body>
 </html>";
                     const string templatesFolderPath = "/Root/System/Templates";
-                    const string emailTemplateParentPath = $"{templatesFolderPath}/Email/Registration";
+                    /*const*/ string emailTemplateParentPath = $"{templatesFolderPath}/Email/Registration";
                     const string emailTemplateName = "ChangePassword";
-                    const string emailTemplatePath = $"{emailTemplateParentPath}/{emailTemplateName}";
+                    /*const*/ string emailTemplatePath = $"{emailTemplateParentPath}/{emailTemplateName}";
                     #endregion
 
                     if (Node.Exists(emailTemplatePath))
