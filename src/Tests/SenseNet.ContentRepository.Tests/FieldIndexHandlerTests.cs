@@ -336,7 +336,7 @@ namespace SenseNet.ContentRepository.Tests
                 fieldIndexHandler.OwnerIndexingInfo = snField.FieldSetting.IndexingInfo;
 
                 var indexed = fieldIndexHandler.GetIndexFields(snField, out _);
-                Assert.AreEqual(IndexValueType.Int, indexed.First().Type);
+                Assert.AreEqual(IndexValueType.IntArray, indexed.First().Type);
                 var parsed = fieldIndexHandler.Parse("2");
                 Assert.AreEqual(IndexValueType.Int, parsed.Type);
                 var termValue = fieldIndexHandler.ConvertToTermValue(User.Administrator);
@@ -375,10 +375,10 @@ namespace SenseNet.ContentRepository.Tests
         public void FieldIndexHandler_ReferenceIndexHandler_Multi()
         {
             var nodeIds = new[] {1, 3, 5, 7};
-            var expectation = nodeIds
-                .Select(id =>
-                    new IndexField("Refs", id, IndexingMode.NotAnalyzed, IndexStoringMode.No, IndexTermVector.No))
-                .ToArray();
+            var expectation = new[]
+            {
+                new IndexField("Refs", nodeIds, IndexingMode.NotAnalyzed, IndexStoringMode.No, IndexTermVector.No)
+            };
             var references = nodeIds.Select(id => new TestNode {Id = id}).ToArray();
             var snField = new TestMultiRefField("Refs", references);
             var fieldIndexHandler = new ReferenceIndexHandler

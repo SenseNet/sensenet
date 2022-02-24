@@ -435,7 +435,9 @@ namespace SenseNet.Search.Indexing
                             indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
                             break;
                         case IndexValueType.IntArray:
-                            indexField = new IndexField(name, (int[])value, mode, store, termVector);
+                            var stringArray = (string[]) value ?? Array.Empty<string>();
+                            var intValues = stringArray.Select(x => Convert.ToInt32(x)).ToArray();
+                            indexField = new IndexField(name, intValues, mode, store, termVector);
                             break;
                         case IndexValueType.Long:
                             indexField = new IndexField(name, Convert.ToInt64(value), mode, store, termVector);

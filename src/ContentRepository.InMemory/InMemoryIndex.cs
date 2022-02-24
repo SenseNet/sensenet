@@ -112,7 +112,8 @@ namespace SenseNet.ContentRepository.InMemory
                         existingFieldData.Add(fieldValue, versionIds);
                     }
 
-                    versionIds.Add(versionId);
+                    if(!versionIds.Contains(versionId))
+                        versionIds.Add(versionId);
                 }
             }
         }
@@ -268,8 +269,8 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 if (field.Type == IndexValueType.StringArray)
                     fieldValues.AddRange(field.StringArrayValue.Select(s => s.ToLowerInvariant()));
-                if (field.Type == IndexValueType.IntArray)
-                    fieldValues.AddRange(field.IntegerArrayValue.Select(s => s.ToString()));
+                else if (field.Type == IndexValueType.IntArray)
+                    fieldValues.AddRange(field.IntegerArrayValue.Select(IntToString));
                 else
                     fieldValues.Add(IndexValueToString(field));
             }
@@ -289,7 +290,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* ========================================================================== Activity status */
 
-        private IndexingActivityStatus _activityStatus = new IndexingActivityStatus { LastActivityId = 0, Gaps = new int[0] };
+        private IndexingActivityStatus _activityStatus = new IndexingActivityStatus { LastActivityId = 0, Gaps = Array.Empty<int>() };
 
         internal void WriteActivityStatus(IndexingActivityStatus status)
         {
