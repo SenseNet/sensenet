@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private STT.Task ExecuteCentralizedActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
-            var activityBase = (IndexingActivityBase)activity; //UNDONE:<?xxx: wrong parameter interface
+            var activityBase = (IndexingActivityBase)activity;
 
             SnTrace.Index.Write("ExecuteCentralizedActivity: #{0}", activity.Id);
             CentralizedIndexingActivityQueue.ExecuteActivity(activityBase);
@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private async STT.Task ExecuteDistributedActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
-            var activityBase = (IndexingActivityBase)activity; //UNDONE:<?xxx: wrong parameter interface
+            var activityBase = (IndexingActivityBase)activity;
             SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
             await activityBase.DistributeAsync(cancellationToken).ConfigureAwait(false);
 
