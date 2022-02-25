@@ -20,8 +20,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     /// <summary>
     /// Provides methods for managing indexes.
     /// </summary>
-    //UNDONE:<?xxx: Delete IndexManager and rename IndexManager_INSTANCE to IndexManager if all references rewritten in the ecosystem
-    public class IndexManager_INSTANCE : IIndexManager // alias LuceneManager
+    public class IndexManager : IIndexManager // alias LuceneManager
     {
         private readonly IDataStore _dataStore;
         private readonly ISearchManager _searchManager;
@@ -29,7 +28,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
         private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; }
 
-        public IndexManager_INSTANCE(IDataStore dataStore, ISearchManager searchManager)
+        public IndexManager(IDataStore dataStore, ISearchManager searchManager)
         {
             _dataStore = dataStore;
             _searchManager = searchManager;

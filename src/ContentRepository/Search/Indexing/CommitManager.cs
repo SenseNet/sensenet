@@ -26,9 +26,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
     internal class NoDelayCommitManager : ICommitManager
     {
-        private IndexManager_INSTANCE _indexManager;
+        private IndexManager _indexManager;
 
-        public NoDelayCommitManager(IndexManager_INSTANCE indexManager)
+        public NoDelayCommitManager(IndexManager indexManager)
         {
             _indexManager = indexManager;
         }
@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
     internal class NearRealTimeCommitManager : ICommitManager
     {
-        private IndexManager_INSTANCE _indexManager;
+        private IndexManager _indexManager;
 
         private static readonly TimeSpan MaxWaitTime = TimeSpan.FromSeconds(10);
         private DateTime _lastCommitTime;
@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static System.Timers.Timer _timer;
         private static readonly int HearthBeatMilliseconds = 1000;
 
-        public NearRealTimeCommitManager(IndexManager_INSTANCE indexManager)
+        public NearRealTimeCommitManager(IndexManager indexManager)
         {
             _indexManager = indexManager;
         }
