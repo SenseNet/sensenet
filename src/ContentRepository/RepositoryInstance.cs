@@ -172,6 +172,7 @@ namespace SenseNet.ContentRepository
             }
             ConsoleWriteLine("Starting IndexingEngine:");
             Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
             ConsoleWriteLine("IndexingEngine has started.");
         }
 

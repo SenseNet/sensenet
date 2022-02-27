@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private readonly DependencyManager _dependencyManager;
         private readonly IndexingActivityHistoryController _activityHistory;
 
-        public DistributedIndexingActivityQueue(IndexManager_INSTANCE indexManager)
+        public DistributedIndexingActivityQueue(IndexManager indexManager)
         {
             _terminationHistory = new TerminationHistory();
             _activityHistory = new IndexingActivityHistoryController(this);
@@ -193,13 +193,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             private readonly TerminationHistory _terminationHistory;
             private readonly DistributedIndexingActivityQueue _activityQueue;
             private readonly IndexingActivityHistoryController _activityHistory;
-            private IndexManager_INSTANCE _indexManager;
+            private IndexManager _indexManager;
 
             internal Serializer(DistributedIndexingActivityQueue activityQueue,
                 DependencyManager dependencyManager,
                 TerminationHistory terminationHistory,
                 IndexingActivityHistoryController activityHistory
-                , IndexManager_INSTANCE indexManager)
+                , IndexManager indexManager)
             {
                 _activityQueue = activityQueue;
                 _dependencyManager = dependencyManager;
@@ -665,10 +665,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             private readonly DependencyManager _dependencyManager;
             private readonly IndexingActivityHistoryController _activityHistory;
-            private IndexManager_INSTANCE _indexManager;
+            private IndexManager _indexManager;
 
             public Executor(DependencyManager dependencyManager, IndexingActivityHistoryController activityHistory,
-                IndexManager_INSTANCE indexManager)
+                IndexManager indexManager)
             {
                 _dependencyManager = dependencyManager;
                 _activityHistory = activityHistory;

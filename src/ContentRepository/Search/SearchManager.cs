@@ -12,15 +12,14 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search
 {
-    //UNDONE:<?xxx: Delete SearchManager and rename SearchManager_INSTANCE to SearchManager if all references rewritten in the ecosystem
     /// <summary>
     /// Provides indexing and querying related management elements for all service layers. 
     /// </summary>
-    public class SearchManager_INSTANCE : ISearchManager
+    public class SearchManager : ISearchManager
     {
         private IDataStore _dataStore;
 
-        public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled  //UNDONE:<?xxxxxxxxxxx Set once in startup seq.
+        public ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled  //TODO: Set once in startup seq.
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
@@ -35,7 +34,7 @@ namespace SenseNet.ContentRepository.Search
         // ReSharper disable once InconsistentNaming
         private bool? __isOuterSearchEngineEnabled;
 
-        public SearchManager_INSTANCE(IDataStore dataStore)
+        public SearchManager(IDataStore dataStore)
         {
             _dataStore = dataStore;
         }

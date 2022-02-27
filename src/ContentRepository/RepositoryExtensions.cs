@@ -86,8 +86,8 @@ namespace SenseNet.Extensions.DependencyInjection
 
         public static IServiceCollection AddSenseNetSearchComponents(this IServiceCollection services)
         {
-            services.AddSingleton<ISearchManager, SearchManager_INSTANCE>();
-            services.AddSingleton<IIndexManager, IndexManager_INSTANCE>();
+            services.AddSingleton<ISearchManager, SearchManager>();
+            services.AddSingleton<IIndexManager, IndexManager>();
             services.AddSingleton<IIndexPopulator, DocumentPopulator>();
 
             return services;
