@@ -104,6 +104,16 @@ namespace SenseNet.Search.Indexing
                     OwnerIndexingInfo.TermVectorStoringMode)
             };
         /// <summary>
+        /// Creates IndexFields from a given name and a IEnumerable&lt;int&gt; value.
+        /// </summary>
+        protected IEnumerable<IndexField> CreateField(string name, IEnumerable<int> value) => new[]
+        {
+            new IndexField(name, value.ToArray(),
+                OwnerIndexingInfo.IndexingMode,
+                OwnerIndexingInfo.IndexStoringMode,
+                OwnerIndexingInfo.TermVectorStoringMode)
+        };
+        /// <summary>
         /// Creates IndexFields from a given name and a System.Double value.
         /// </summary>
         protected IEnumerable<IndexField> CreateField(string name, double value) => new[]
@@ -976,15 +986,17 @@ namespace SenseNet.Search.Indexing
     /// </summary>
     public class ReferenceIndexHandler : FieldIndexHandler, IIndexValueConverter<int>, IIndexValueConverter
     {
+        public override IndexValueType IndexFieldType => IndexValueType.IntArray;
+
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             textExtract = string.Empty;
             var data = snField.GetData();
-            if (data is Node node)
-                return CreateField(snField.Name, node.Id);
+            if (data is INode node)
+                return CreateField(snField.Name, new[] {node.Id});
             if (data is IEnumerable nodes)
-                return nodes.Cast<Node>().Select(n => CreateField(snField.Name, n.Id).First());
+                return CreateField(snField.Name, nodes.Cast<INode>().Select(n => n.Id));
 
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
@@ -1001,7 +1013,7 @@ namespace SenseNet.Search.Indexing
             if (value == null)
                 return new IndexValue(SnQuery.NullReferenceValue);
 
-            if (value is Node node)
+            if (value is INode node)
                 return new IndexValue(node.Id);
 
             if (value is IEnumerable)

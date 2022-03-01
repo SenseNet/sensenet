@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 
 namespace SenseNet.Search
 {
@@ -18,6 +19,8 @@ namespace SenseNet.Search
         Bool,
         /// <summary>Represents a System.Int32 value.</summary>
         Int,
+        /// <summary>Represents an array of System.Int32 values.</summary>
+        IntArray,
         /// <summary>Represents a System.Int64 value.</summary>
         Long,
         /// <summary>Represents a System.Single value.</summary>
@@ -81,6 +84,12 @@ namespace SenseNet.Search
         public IndexValue(int value) { Type = IndexValueType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
 
         /// <summary>
+        /// Initializes an instance of the IndexValue with an array of System.Int32.
+        /// </summary>
+        /// <param name="value">System.Int32 value</param>
+        public IndexValue(int[] value) { Type = IndexValueType.IntArray; IntegerArrayValue = value; ValueAsString = string.Join(",", value.Select(x=>x.ToString())); }
+
+        /// <summary>
         /// Initializes an instance of the IndexValue with a System.Int64 value.
         /// </summary>
         /// <param name="value">System.Int64 value</param>
@@ -127,6 +136,10 @@ namespace SenseNet.Search
         /// </summary>
         public virtual int IntegerValue { get; }
         /// <summary>
+        /// Gets an array of System.Int32 values of the instance if the Type is IndexValueType.IntArray, otherwise null.
+        /// </summary>
+        public virtual int[] IntegerArrayValue { get; }
+        /// <summary>
         /// Gets the System.Int64 value of the instance if the Type is IndexValueType.Long, otherwise 0l.
         /// </summary>
         public virtual long LongValue { get; }
@@ -148,9 +161,10 @@ namespace SenseNet.Search
         /// </summary>
         public string ValueAsString { get; }
 
+        private string[] _typesStrings = {"S", "S[]", "B", "I", "I[]", "L", "F", "D", "T"};
         public override string ToString()
         {
-            var type = "SABILFDT"[(int)Type];
+            var type = _typesStrings[(int)Type];
             string value;
             switch (Type)
             {
@@ -165,6 +179,8 @@ namespace SenseNet.Search
                 case IndexValueType.Int:
                     value = IntegerValue.ToString(CultureInfo.InvariantCulture);
                     break;
+                case IndexValueType.IntArray:
+                    throw new NotSupportedException();
                 case IndexValueType.Long:
                     value = LongValue.ToString(CultureInfo.InvariantCulture);
                     break;
@@ -203,6 +219,8 @@ namespace SenseNet.Search
                     return BooleanValue.CompareTo(other.BooleanValue);
                 case IndexValueType.Int:
                     return IntegerValue.CompareTo(other.IntegerValue);
+                case IndexValueType.IntArray:
+                    return string.Compare(ValueAsString, other.ValueAsString, StringComparison.Ordinal);
                 case IndexValueType.Long:
                     return LongValue.CompareTo(other.LongValue);
                 case IndexValueType.Float:
