@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -57,6 +58,11 @@ namespace SenseNet.Search.Indexing
                 case IndexValueType.StringArray:
                     writer.WriteStartArray();
                     writer.WriteRaw("\"" + string.Join("\",\"", value.StringArrayValue) + "\"");
+                    writer.WriteEndArray();
+                    break;
+                case IndexValueType.IntArray:
+                    writer.WriteStartArray();
+                    writer.WriteRaw(string.Join(",", value.IntegerArrayValue.Select(x=>x.ToString())));
                     writer.WriteEndArray();
                     break;
                 default:

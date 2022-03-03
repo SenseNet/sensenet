@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Storage.DataModel.Usage
 {
-    public interface IDatabaseUsageLoader //UNDONE:<?usage: Register service
+    public interface IDatabaseUsageLoader
     {
         Task<DatabaseUsage> LoadAsync(CancellationToken cancel = default);
     }

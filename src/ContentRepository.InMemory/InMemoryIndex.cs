@@ -64,6 +64,8 @@ namespace SenseNet.ContentRepository.InMemory
                     return new IndexField(field.Name, field.BooleanValue, field.Mode, field.Store, field.TermVector);
                 case IndexValueType.Int:
                     return new IndexField(field.Name, field.IntegerValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.IntArray:
+                    return new IndexField(field.Name, field.IntegerArrayValue.ToArray(), field.Mode, field.Store, field.TermVector);
                 case IndexValueType.Long:
                     return new IndexField(field.Name, field.LongValue, field.Mode, field.Store, field.TermVector);
                 case IndexValueType.Float:
@@ -110,7 +112,8 @@ namespace SenseNet.ContentRepository.InMemory
                         existingFieldData.Add(fieldValue, versionIds);
                     }
 
-                    versionIds.Add(versionId);
+                    if(!versionIds.Contains(versionId))
+                        versionIds.Add(versionId);
                 }
             }
         }
@@ -145,6 +148,9 @@ namespace SenseNet.ContentRepository.InMemory
                             break;
                         case IndexValueType.StringArray:
                             value = "[" + string.Join(", ", field.StringArrayValue.Select(s => $"\"{s}\"").ToArray()) + "]";
+                            break;
+                        case IndexValueType.IntArray:
+                            value = "[" + string.Join(", ", field.IntegerArrayValue.Select(s => $"{s}").ToArray()) + "]";
                             break;
                         case IndexValueType.DateTime:
                             value = $"\"{field.ValueAsString}\"";
@@ -262,7 +268,9 @@ namespace SenseNet.ContentRepository.InMemory
             else
             {
                 if (field.Type == IndexValueType.StringArray)
-                    fieldValues.AddRange(field.StringArrayValue.Select(s=>s.ToLowerInvariant()));
+                    fieldValues.AddRange(field.StringArrayValue.Select(s => s.ToLowerInvariant()));
+                else if (field.Type == IndexValueType.IntArray)
+                    fieldValues.AddRange(field.IntegerArrayValue.Select(IntToString));
                 else
                     fieldValues.Add(IndexValueToString(field));
             }
@@ -282,7 +290,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* ========================================================================== Activity status */
 
-        private IndexingActivityStatus _activityStatus = new IndexingActivityStatus { LastActivityId = 0, Gaps = new int[0] };
+        private IndexingActivityStatus _activityStatus = new IndexingActivityStatus { LastActivityId = 0, Gaps = Array.Empty<int>() };
 
         internal void WriteActivityStatus(IndexingActivityStatus status)
         {
@@ -309,6 +317,7 @@ namespace SenseNet.ContentRepository.InMemory
                 case IndexValueType.StringArray: throw new NotImplementedException(); //TODO: Test and implement or rewrite to NotSupportedException
                 case IndexValueType.Bool: return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
                 case IndexValueType.Int: return IntToString(value.IntegerValue);
+                case IndexValueType.IntArray: throw new NotImplementedException(); //TODO: Test and implement or rewrite to NotSupportedException
                 case IndexValueType.Long: return LongToString(value.LongValue);
                 case IndexValueType.Float: return SingleToString(value.SingleValue);
                 case IndexValueType.Double: return DoubleToString(value.DoubleValue);
@@ -459,6 +468,7 @@ namespace SenseNet.ContentRepository.InMemory
                 case IndexValueType.StringArray: throw new NotSupportedException();
                 case IndexValueType.Bool: indexField = new IndexField(name, (bool)x["BooleanValue"], mode, store, termVector); break;
                 case IndexValueType.Int: indexField = new IndexField(name, (int)x["IntegerValue"], mode, store, termVector); break;
+                case IndexValueType.IntArray: throw new NotSupportedException();
                 case IndexValueType.Long: indexField = new IndexField(name, (long)x["LongValue"], mode, store, termVector); break;
                 case IndexValueType.Float: indexField = new IndexField(name, (float)x["SingleValue"], mode, store, termVector); break;
                 case IndexValueType.Double: indexField = new IndexField(name, (double)x["DoubleValue"], mode, store, termVector); break;

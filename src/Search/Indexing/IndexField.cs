@@ -146,6 +146,15 @@ namespace SenseNet.Search.Indexing
         /// <param name="termVector">Term vector handling.</param>
         public IndexField(string name, int value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
         /// <summary>
+        /// Initializes an instance of the IndexField with a named System.Int32 array and indexing metadata.
+        /// </summary>
+        /// <param name="name">The name of the term.</param>
+        /// <param name="value">System.Int32 value</param>
+        /// <param name="mode">Indexing mode.</param>
+        /// <param name="store">Index storing mode.</param>
+        /// <param name="termVector">Term vector handling.</param>
+        public IndexField(string name, int[] value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
+        /// <summary>
         /// Initializes an instance of the IndexField with a named System.Int64 value and indexing metadata.
         /// </summary>
         /// <param name="name">The name of the term.</param>

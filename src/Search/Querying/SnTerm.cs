@@ -35,6 +35,12 @@ namespace SenseNet.Search.Querying
         /// <param name="value">System.Int32 value</param>
         public SnTerm(string name, int value) : base(value) { Name = name; }
         /// <summary>
+        /// Initializes an instance of the SnTerm with a named System.Int32 value
+        /// </summary>
+        /// <param name="name">The name of the term.</param>
+        /// <param name="value">System.Int32 value</param>
+        public SnTerm(string name, int[] value) : base(value) { Name = name; }
+        /// <summary>
         /// Initializes an instance of the SnTerm with a named System.Int64 value
         /// </summary>
         /// <param name="name">The name of the term.</param>

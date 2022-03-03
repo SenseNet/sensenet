@@ -55,6 +55,8 @@ namespace SenseNet.ContentRepository.Search
                     result = GetResultByWildcard(field.StringValue, value.StringValue);
                 else if (field.Type == IndexValueType.StringArray && value.Type == IndexValueType.String)
                     result = field.StringArrayValue.Contains(value.StringValue);
+                else if(field.Type == IndexValueType.IntArray && value.Type == IndexValueType.Int)
+                    result = field.IntegerArrayValue.Contains(value.IntegerValue);
                 else if (field.Type == value.Type && field.CompareTo(value) == 0)
                     result = true;
             }

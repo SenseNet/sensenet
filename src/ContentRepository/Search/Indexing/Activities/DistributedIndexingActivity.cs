@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
-        protected IndexManager_INSTANCE IndexManager => (IndexManager_INSTANCE)Providers.Instance.IndexManager;
+        protected IndexManager IndexManager => (IndexManager)Providers.Instance.IndexManager;
 
         /// <summary>
         /// Executes the activity's main action.

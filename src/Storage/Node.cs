@@ -29,6 +29,13 @@ using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage
 {
+    public interface INode
+    {
+        public int Id { get; }
+        public int ParentId { get; }
+        public string Path { get; }
+    }
+
     /// <summary>
     /// Represents the method that will handle the revocable events of a <see cref="Node"/>.
     /// </summary>
@@ -96,7 +103,7 @@ namespace SenseNet.ContentRepository.Storage
     /// }
     /// </code></example>
     [DebuggerDisplay("Id={Id}, Name={Name}, Version={Version}, Path={Path}")]
-    public abstract class Node : IPasswordSaltProvider
+    public abstract class Node : INode, IPasswordSaltProvider
     {
         private NodeData _data;
         internal NodeData Data => _data;

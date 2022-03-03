@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
@@ -15,9 +17,12 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 using SenseNet.Storage.Diagnostics;
@@ -196,8 +201,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
@@ -242,8 +247,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -276,8 +281,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -313,8 +318,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -347,8 +352,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -387,8 +392,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
@@ -495,8 +500,8 @@ namespace SenseNet.ContentRepository.Tests
                     .AddBlobProvider(new InMemoryBlobProvider())
                     .UseSecurityDataProvider(securityDbProvider)
                     .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                    .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                    .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                     .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                     .UseSearchEngine(searchEngine)
                     .UseAccessProvider(accessProvider)
@@ -542,8 +547,8 @@ namespace SenseNet.ContentRepository.Tests
                     .AddBlobProvider(new InMemoryBlobProvider())
                     .UseSecurityDataProvider(securityDbProvider)
                     .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                    .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                    .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                     .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                     .UseSearchEngine(searchEngine)
                     .UseAccessProvider(accessProvider)
@@ -585,8 +590,8 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
@@ -627,8 +632,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseSearchManager(new SearchManager_INSTANCE(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager_INSTANCE(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
@@ -642,5 +647,47 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
+
+        [TestMethod]
+        public void RepositoryStart_IndexAnalyzers()
+        {
+            var searchEngineImpl = new InMemorySearchEngine(GetInitialIndex());
+
+            Test(repoBuilder =>
+            {
+                repoBuilder.UseSearchEngine(searchEngineImpl);
+            }, () =>
+            {
+                var searchEngine = Providers.Instance.SearchEngine;
+
+                Assert.AreSame(searchEngineImpl, searchEngine);
+
+                var expectedAnalyzers = GetAnalyzers(ContentTypeManager.Instance.IndexingInfo);
+                var analyzers = searchEngine.GetAnalyzers();
+                analyzers.Should().Equal(expectedAnalyzers);
+
+                // double check
+                ResetContentTypeManager();
+                ContentType.GetByName("GenericContent");
+                var analyzers2 = searchEngine.GetAnalyzers();
+                analyzers2.Should().Equal(expectedAnalyzers);
+
+            });
+        }
+        private Dictionary<string, IndexFieldAnalyzer> GetAnalyzers(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();
+
+            foreach (var item in indexingInfo)
+            {
+                var fieldName = item.Key;
+                var fieldInfo = item.Value;
+                if (fieldInfo.Analyzer != IndexFieldAnalyzer.Default)
+                    analyzerTypes.Add(fieldName, fieldInfo.Analyzer);
+            }
+
+            return analyzerTypes;
+        }
+
     }
 }
