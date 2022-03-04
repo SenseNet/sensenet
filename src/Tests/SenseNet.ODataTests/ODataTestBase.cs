@@ -217,7 +217,7 @@ namespace SenseNet.ODataTests
 
             var builder = base.CreateRepositoryBuilderForTestInstance(); //CreateRepositoryBuilder();
 
-            //UNDONE:<?:   do not call discovery and providers setting in the static ctor of ODataMiddleware
+            //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();

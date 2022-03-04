@@ -69,7 +69,6 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDataProvider<T>(this IServiceCollection services)
             where T : DataProvider
         {
-            //UNDONE: [DIREF] register and get service using an interface
             return services.AddSingleton<DataProvider, T>()
                 .AddSenseNetDataStore<DataStore>();
         }
