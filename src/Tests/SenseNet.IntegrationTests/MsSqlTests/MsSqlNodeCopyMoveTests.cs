@@ -137,6 +137,29 @@ namespace SenseNet.IntegrationTests.MsSqlTests
             TestCase.NodeCopy_CrossBinding_DataType_Binary();
         }
 
+        /* ================================================================================ COPY SYSTEM NODES */
+
+        [TestMethod]
+        public void IntT_MsSql_NodeCopy_NonSystem_to_NonSystem()
+        {
+            TestCase.NodeCopy_NonSystem_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeCopy_NonSystem_to_System()
+        {
+            TestCase.NodeCopy_NonSystem_to_System();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeCopy_System_to_NonSystem()
+        {
+            TestCase.NodeCopy_System_to_NonSystem();
+        }
+        [TestMethod]
+        public void IntT_MsSql_NodeCopy_System_to_System()
+        {
+            TestCase.NodeCopy_System_to_System();
+        }
+
         /* ==================================================================================== MOVE */
 
         [TestMethod]
