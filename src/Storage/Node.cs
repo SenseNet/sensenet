@@ -5200,7 +5200,7 @@ namespace SenseNet.ContentRepository.Storage
             if (_indexDocument != null && IsDeleted)
                 return _indexDocument;
 
-            //UNDONE:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
+            //TODO:<?predication: Somehow store the index document after saving and get the stored object here, instead of recreating it.
             // Problem: the index doc finalization doing in an async indexing task and it maybe not ready yet.
             var docProvider = Providers.Instance.IndexDocumentProvider;
             var doc = docProvider.GetIndexDocument(this, false, this.IsNew, out var _);
