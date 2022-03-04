@@ -190,7 +190,7 @@ namespace SenseNet.Search.Tests
             });
         }
 
-        //UNDONE: Indexing_ActivitySelector_Centralized_InMemory_ExecuteUnprocessed is inactivated
+        //TODO: Indexing_ActivitySelector_Centralized_InMemory_ExecuteUnprocessed is inactivated
         //[TestMethod, TestCategory("IR")]
         public void Indexing_ActivitySelector_Centralized_InMemory_ExecuteUnprocessed()
         {
