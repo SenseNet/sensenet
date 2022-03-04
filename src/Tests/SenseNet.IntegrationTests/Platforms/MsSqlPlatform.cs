@@ -108,7 +108,6 @@ namespace SenseNet.IntegrationTests.Platforms
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
-            //UNDONE:<?IntT: Force delete "write.lock" when getting the platform the first time.
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
 
