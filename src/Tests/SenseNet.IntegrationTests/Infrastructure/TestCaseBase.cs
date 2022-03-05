@@ -210,7 +210,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             initializer?.Invoke(builder);
             return builder;
         }
-        private IConfiguration GetConfiguration()
+        protected IConfiguration GetConfiguration()
         {
             var builder = new ConfigurationBuilder();
             builder.AddJsonFile("appsettings.json");

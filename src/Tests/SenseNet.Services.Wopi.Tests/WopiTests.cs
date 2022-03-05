@@ -31,9 +31,10 @@ using SenseNet.Services.Wopi.Tests.Accessors;
 namespace SenseNet.Services.Wopi.Tests
 {
     [TestClass]
-    //UNDONE:<?: test: WopiTests class need to be inherited from TestBase
-    public class WopiTests //: TestBase
+    public class WopiTests : TestBase
     {
+        protected override bool ReusesRepository => true;
+
         /* --------------------------------------------------------- GetLock */
 
         [TestMethod]
@@ -1633,7 +1634,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             Providers.Instance.ResetBlobProviders();
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForWopiTest();
 
             builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseLogger(new SnFileSystemEventLogger())
@@ -1726,7 +1727,7 @@ namespace SenseNet.Services.Wopi.Tests
             return provider.GetSharedLockCreationDate(nodeId);
         }
 
-        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
+        protected static RepositoryBuilder CreateRepositoryBuilderForWopiTest()
         {
             var dataProvider = new InMemoryDataProvider();
 

@@ -2,6 +2,7 @@
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
@@ -16,9 +17,12 @@ namespace SenseNet.IntegrationTests.MsSqlTests
     [TestClass]
     public class MsSqlDataProviderUnitTests : IntegrationTest<MsSqlDataProviderPlatform, DataProviderUnitTestCases>
     {
+        protected override bool ReusesRepository => true;
+
         private MsSqlDataContext CreateDataContext(CancellationToken cancellation)
         {
-            return new MsSqlDataContext(ConnectionStrings.ConnectionString, new DataOptions(), cancellation);
+            var connectionString = Platform.AppConfig.GetConnectionString("SnCrMsSql");
+            return new MsSqlDataContext(connectionString, new DataOptions(), cancellation);
         }
         private async Task<int[]> GetReferencesFromDbAsync(int versionId, int propertyTypeId, CancellationToken cancellation)
         {
