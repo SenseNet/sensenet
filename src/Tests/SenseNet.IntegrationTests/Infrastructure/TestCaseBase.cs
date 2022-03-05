@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -21,15 +25,13 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public void NoRepoIntegrationTest(Action callback)
         {
             var platformName = Platform.GetType().Name;
-            var builder = Platform.CreateRepositoryBuilder();
-            TestInitializer?.Invoke(builder);
+            InitNoRepoIntegrationTest();
             callback();
         }
         public async Task NoRepoIntegrationTestAsync(Func<Task> callback)
         {
             var platformName = Platform.GetType().Name;
-            var builder = Platform.CreateRepositoryBuilder();
-            TestInitializer?.Invoke(builder);
+            InitNoRepoIntegrationTest();
             await callback().ConfigureAwait(false);
         }
 
@@ -52,8 +54,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private void IntegrationTest(Action<RepositoryBuilder> initialize,
             Action callback, Action<SystemFolder> callbackWithSandbox)
         {
-            var builder = Platform.CreateRepositoryBuilder();
-            initialize?.Invoke(builder);
+            var builder = InitIntegrationTest(initialize);
 
             using (var repository = Repository.Start(builder))
             {
@@ -94,8 +95,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private void IntegrationTest<T>(Action<RepositoryBuilder> initialize,
             Action callback, Action<T> callbackWithSandbox) where T : GenericContent
         {
-            var builder = Platform.CreateRepositoryBuilder();
-            initialize?.Invoke(builder);
+            var builder = InitIntegrationTest(initialize);
 
             using (var repository = Repository.Start(builder))
             {
@@ -145,8 +145,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private async Task IntegrationTestAsync(Action<RepositoryBuilder> initialize,
             Func<Task> callback, Func<SystemFolder, Task> callbackWithSandbox)
         {
-            var builder = Platform.CreateRepositoryBuilder();
-            initialize?.Invoke(builder);
+            var builder = InitIntegrationTest(initialize);
 
             using (var repository = Repository.Start(builder))
             {
@@ -196,6 +195,28 @@ namespace SenseNet.IntegrationTests.Infrastructure
         //}
 
         /* ==================================================================== */
+
+        private void InitNoRepoIntegrationTest()
+        {
+            Platform.AppConfig = GetConfiguration();
+            var builder = Platform.CreateRepositoryBuilder();
+            TestInitializer?.Invoke(builder);
+        }
+        private RepositoryBuilder InitIntegrationTest(Action<RepositoryBuilder> initializer)
+        {
+            Platform.AppConfig = GetConfiguration();
+            var builder = Platform.CreateRepositoryBuilder();
+            TestInitializer?.Invoke(builder);
+            initializer?.Invoke(builder);
+            return builder;
+        }
+        private IConfiguration GetConfiguration()
+        {
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json");
+            builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
+            return builder.Build(); ;
+        }
 
         protected SystemFolder CreateSandbox()
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -26,9 +27,8 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlPlatform : Platform
     {
-        //UNDONE:<?IntT: remove local connectionstring
-        public string ConnectionString { get; } =
-            "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=.\\SQL2016";
+        private string _connectionString;
+        public string ConnectionString => _connectionString ??= AppConfig.GetConnectionString("SnCrMsSql");
 
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
