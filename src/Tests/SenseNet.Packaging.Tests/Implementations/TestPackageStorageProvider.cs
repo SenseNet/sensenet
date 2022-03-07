@@ -10,7 +10,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
-    public class TestPackageStorageProvider : IPackagingDataProviderExtension
+    public class TestPackageStorageProvider : IPackagingDataProvider
     {
         private int _id;
 

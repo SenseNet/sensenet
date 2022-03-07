@@ -1797,7 +1797,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProviderExtension>();
+            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProvider>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

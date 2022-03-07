@@ -61,7 +61,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemoryAccessTokenDataProvider();
         }
-        public override IPackagingDataProviderExtension GetPackagingDataProviderExtension()
+        public override IPackagingDataProvider GetPackagingDataProvider()
         {
             return new InMemoryPackageStorageProvider();
         }

@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for packaging database operations.
     /// </summary>
-    public interface IPackagingDataProviderExtension
+    public interface IPackagingDataProvider
     {
         /// <summary>
         /// Loads all installed components. The descriptions come from installers

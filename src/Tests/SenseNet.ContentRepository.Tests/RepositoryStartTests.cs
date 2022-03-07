@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private class TestPackagingDataProvider : IPackagingDataProviderExtension
+        private class TestPackagingDataProvider : IPackagingDataProvider
         {
             public System.Threading.Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
             {
@@ -602,7 +602,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProvider>().GetType());
                 Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }

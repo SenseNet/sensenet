@@ -47,7 +47,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(GetBlobProviderSelector())
                 .UseAccessTokenDataProvider(GetAccessTokenDataProvider())
-                .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
+                .UsePackagingDataProvider(GetPackagingDataProvider())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
@@ -79,7 +79,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
         public abstract IBlobProviderSelector GetBlobProviderSelector();
         public abstract IAccessTokenDataProvider GetAccessTokenDataProvider();
-        public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
+        public abstract IPackagingDataProvider GetPackagingDataProvider();
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
         public abstract ISearchEngine GetSearchEngine();

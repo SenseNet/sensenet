@@ -47,7 +47,7 @@ namespace SenseNet.Services.Core
                 .UseTracer(new SnFileSystemTracer())
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
-                .UsePackagingDataProviderExtension(new MsSqlPackagingDataProvider())
+                .UsePackagingDataProvider(new MsSqlPackagingDataProvider())
                 .StartWorkflowEngine(false)
                 .UseEventDistributor(new EventDistributor())
                 .AddAsyncEventProcessors(eventProcessors)

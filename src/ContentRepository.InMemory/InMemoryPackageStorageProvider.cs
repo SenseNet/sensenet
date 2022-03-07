@@ -11,10 +11,10 @@ using SenseNet.ContentRepository.Storage.Data;
 namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary> 
-    /// This is an in-memory implementation of the <see cref="IPackagingDataProviderExtension"/> interface.
+    /// This is an in-memory implementation of the <see cref="IPackagingDataProvider"/> interface.
     /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
     /// </summary>
-    public class InMemoryPackageStorageProvider : IPackagingDataProviderExtension
+    public class InMemoryPackageStorageProvider : IPackagingDataProvider
     {
         public DataCollection<PackageDoc> GetPackages()
         {

@@ -327,8 +327,8 @@
 //        [TestInitialize]
 //        public Task InitializePackagingTest()
 //        {
-//            //Providers.Instance.SetProvider(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
-//            Providers.Instance.SetProvider(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+//            //Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new TestPackageStorageProvider());
+//            Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new TestPackageStorageProvider());
 
 //            // make sure that every test starts with a clean slate (no existing installed components)
 //            return PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);

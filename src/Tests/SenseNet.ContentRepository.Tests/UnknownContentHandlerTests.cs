@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Tests
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
             var builder = base.CreateRepositoryBuilderForTestInstance();
-            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             return builder;
         }

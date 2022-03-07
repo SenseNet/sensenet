@@ -179,7 +179,7 @@ namespace SenseNet.Tests.Core
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))

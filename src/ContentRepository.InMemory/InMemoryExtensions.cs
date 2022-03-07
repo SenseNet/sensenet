@@ -82,7 +82,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager(dataStore))
                 .UseIndexManager(new IndexManager(dataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(dataStore, Providers.Instance.IndexManager))

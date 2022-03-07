@@ -14,10 +14,10 @@ using SenseNet.Configuration;
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary> 
-    /// This is an MS SQL implementation of the <see cref="IPackagingDataProviderExtension"/> interface.
+    /// This is an MS SQL implementation of the <see cref="IPackagingDataProvider"/> interface.
     /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
     /// </summary>
-    public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
+    public class MsSqlPackagingDataProvider : IPackagingDataProvider
     {
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);

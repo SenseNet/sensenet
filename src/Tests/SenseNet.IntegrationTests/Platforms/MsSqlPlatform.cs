@@ -88,7 +88,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new MsSqlAccessTokenDataProvider();
         }
-        public override IPackagingDataProviderExtension GetPackagingDataProviderExtension()
+        public override IPackagingDataProvider GetPackagingDataProvider()
         {
             return new MsSqlPackagingDataProvider();
         }
