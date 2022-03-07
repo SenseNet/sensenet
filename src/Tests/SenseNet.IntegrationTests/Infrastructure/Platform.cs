@@ -46,7 +46,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .AddBlobProviders(GetBlobProviders()) // extension for platforms
                 .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(GetBlobProviderSelector())
-                .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
+                .UseAccessTokenDataProvider(GetAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
@@ -78,7 +78,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension();
         public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
         public abstract IBlobProviderSelector GetBlobProviderSelector();
-        public abstract IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension();
+        public abstract IAccessTokenDataProvider GetAccessTokenDataProvider();
         public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
         public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();

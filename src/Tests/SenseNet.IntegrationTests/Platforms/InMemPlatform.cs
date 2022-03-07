@@ -57,7 +57,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return new[] { new InMemoryBlobProvider() };
         }
 
-        public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
         {
             return new InMemoryAccessTokenDataProvider();
         }

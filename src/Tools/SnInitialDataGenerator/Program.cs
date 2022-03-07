@@ -177,7 +177,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))

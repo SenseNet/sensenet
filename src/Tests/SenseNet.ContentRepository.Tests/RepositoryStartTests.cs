@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
-        private class TestAccessTokenDataProvider : IAccessTokenDataProviderExtension
+        private class TestAccessTokenDataProvider : IAccessTokenDataProvider
         {
             public System.Threading.Tasks.Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
             {
@@ -246,7 +246,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
@@ -280,7 +280,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
@@ -603,7 +603,7 @@ namespace SenseNet.ContentRepository.Tests
             using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProviderExtension>().GetType());
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 
@@ -629,7 +629,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
+                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
@@ -644,7 +644,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 

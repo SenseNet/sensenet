@@ -178,7 +178,7 @@ namespace SenseNet.Tests.Core
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))

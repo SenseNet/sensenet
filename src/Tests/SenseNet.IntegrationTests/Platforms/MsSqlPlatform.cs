@@ -84,7 +84,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 null,
                 Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
         }
-        public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
         {
             return new MsSqlAccessTokenDataProvider();
         }

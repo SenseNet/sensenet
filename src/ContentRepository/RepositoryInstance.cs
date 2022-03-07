@@ -321,8 +321,8 @@ namespace SenseNet.ContentRepository
             // set default value of well-known data provider extensions
             if (null == Providers.Instance.GetProvider<IPackagingDataProviderExtension>())
                 Providers.Instance.SetProvider(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
-            if (null == Providers.Instance.GetProvider<IAccessTokenDataProviderExtension>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), new MsSqlAccessTokenDataProvider());
+            if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
+                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider());
             if (null == Providers.Instance.GetProvider<ISharedLockDataProviderExtension>())
                 Providers.Instance.SetProvider(typeof(ISharedLockDataProviderExtension), new MsSqlSharedLockDataProvider());
         }

@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for managing access tokens in the database.
     /// </summary>
-    public interface IAccessTokenDataProviderExtension
+    public interface IAccessTokenDataProvider
     {
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.

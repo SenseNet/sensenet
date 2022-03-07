@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_Create_MinTimeOut()
         {
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider());
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
             Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_Create_MaxTimeOut()
         {
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider());
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
             Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_GetOrAdd_MinTimeOut()
         {
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider());
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
             Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_GetOrAdd_MaxTimeOut()
         {
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider());
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
             Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
