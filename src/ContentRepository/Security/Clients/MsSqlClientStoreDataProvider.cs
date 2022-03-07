@@ -14,9 +14,9 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 namespace SenseNet.ContentRepository.Security.Clients
 {
     /// <summary>
-    /// MsSql implementation of the <see cref="IClientStoreDataProviderExtension"/> interface.
+    /// MsSql implementation of the <see cref="IClientStoreDataProvider"/> interface.
     /// </summary>
-    public class MsSqlClientStoreDataProviderExtension : IClientStoreDataProviderExtension
+    public class MsSqlClientStoreDataProvider : IClientStoreDataProvider
     {
         #region Create scripts
         public static readonly string DropAndCreateTablesSql = @"

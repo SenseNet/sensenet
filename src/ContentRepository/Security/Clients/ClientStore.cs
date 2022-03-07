@@ -12,10 +12,10 @@ namespace SenseNet.ContentRepository.Security.Clients
     /// </summary>
     public class ClientStore
     {
-        private readonly IClientStoreDataProviderExtension _storage;
+        private readonly IClientStoreDataProvider _storage;
         private readonly ClientStoreOptions _options;
         private readonly ILogger<ClientStore> _logger;
-        public ClientStore(IClientStoreDataProviderExtension storage, IOptions<ClientStoreOptions> options, ILogger<ClientStore> logger)
+        public ClientStore(IClientStoreDataProvider storage, IOptions<ClientStoreOptions> options, ILogger<ClientStore> logger)
         {
             _storage = storage;
             _options = options.Value;

@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Components
                     try
                     {
                         using var ctx = dataProvider.CreateDataContext(CancellationToken.None);
-                        ctx.ExecuteNonQueryAsync(MsSqlClientStoreDataProviderExtension.DropAndCreateTablesSql)
+                        ctx.ExecuteNonQueryAsync(MsSqlClientStoreDataProvider.DropAndCreateTablesSql)
                             .GetAwaiter().GetResult();
                     }
                     catch (Exception ex)

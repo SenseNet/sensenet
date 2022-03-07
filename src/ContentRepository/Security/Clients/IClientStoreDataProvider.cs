@@ -6,7 +6,7 @@ namespace SenseNet.ContentRepository.Security.Clients
     /// <summary>
     /// Defines methods for handling IdentityServer clients and their secrets.
     /// </summary>
-    public interface IClientStoreDataProviderExtension
+    public interface IClientStoreDataProvider
     {
         /// <summary>
         /// Loads all clients by <paramref name="repositoryHost"/>.
