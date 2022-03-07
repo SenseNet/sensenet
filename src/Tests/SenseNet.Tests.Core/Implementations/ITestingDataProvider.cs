@@ -10,7 +10,7 @@ namespace SenseNet.Tests.Core.Implementations
     /// <summary>
     /// Defines helper data methods necessary for tests to run.
     /// </summary>
-    public interface ITestingDataProviderExtension
+    public interface ITestingDataProvider
     {
         void InitializeForTests();
         string GetSecurityControlStringForTests();

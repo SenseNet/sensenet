@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Tests
         // ReSharper disable once InconsistentNaming
         private static DataProvider DP => Providers.Instance.DataStore.DataProvider;
         // ReSharper disable once InconsistentNaming
-        private static ITestingDataProviderExtension TDP => Providers.Instance.GetProvider<ITestingDataProviderExtension>();
+        private static ITestingDataProvider TDP => Providers.Instance.GetProvider<ITestingDataProvider>();
 
         /* ================================================================================================== Transaction */
 
@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider DP, ITestingDataProviderExtension tdp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider DP, ITestingDataProvider tdp)
         {
             var nodes = await DP.GetNodeCountAsync(path, CancellationToken.None);
             var versions = await DP.GetVersionCountAsync(path, CancellationToken.None);

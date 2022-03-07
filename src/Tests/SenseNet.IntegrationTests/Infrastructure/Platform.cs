@@ -40,7 +40,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
-                .UseTestingDataProviderExtension(GetTestingDataProviderExtension())
+                .UseTestingDataProvider(GetTestingDataProvider())
                 .UseSharedLockDataProvider(GetSharedLockDataProvider())
                 .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider())
                 .AddBlobProviders(GetBlobProviders()) // extension for platforms
@@ -81,7 +81,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public abstract IAccessTokenDataProvider GetAccessTokenDataProvider();
         public abstract IPackagingDataProvider GetPackagingDataProvider();
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
-        public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
+        public abstract ITestingDataProvider GetTestingDataProvider();
         public abstract ISearchEngine GetSearchEngine();
         public abstract IStatisticalDataProvider GetStatisticalDataProvider();
     }

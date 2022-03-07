@@ -1711,7 +1711,7 @@ namespace SenseNet.Services.Wopi.Tests
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            var provider = Providers.Instance.GetProvider<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProvider>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -1719,7 +1719,7 @@ namespace SenseNet.Services.Wopi.Tests
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            var provider = Providers.Instance.GetProvider<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProvider>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -1746,7 +1746,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
+                .UseTestingDataProvider(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()

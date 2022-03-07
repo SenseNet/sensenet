@@ -99,7 +99,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 ConnectionString = ConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
-        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
+        public override ITestingDataProvider GetTestingDataProvider()
         {
             return new MsSqlTestingDataProvider();
         }

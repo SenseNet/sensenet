@@ -94,7 +94,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
+        public override ITestingDataProvider GetTestingDataProvider()
         {
             return new InMemoryTestingDataProvider();
         }

@@ -577,9 +577,9 @@
 
 //        internal static void SetContentHandler(string contentTypeName, string handler)
 //        {
-//            var testingDataProvider = Providers.Instance.GetProvider<ITestingDataProviderExtension>();
+//            var testingDataProvider = Providers.Instance.GetProvider<ITestingDataProvider>();
 //            if (testingDataProvider == null)
-//                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+//                Assert.Inconclusive($"{nameof(ITestingDataProvider)} implementation is not available.");
 
 //            testingDataProvider.SetContentHandler(contentTypeName, handler);
 //        }

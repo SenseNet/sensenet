@@ -7,9 +7,9 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class TestingDataProviderExtension
     {
-        public static IRepositoryBuilder UseTestingDataProviderExtension(this IRepositoryBuilder repositoryBuilder, ITestingDataProviderExtension provider)
+        public static IRepositoryBuilder UseTestingDataProvider(this IRepositoryBuilder repositoryBuilder, ITestingDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(ITestingDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(ITestingDataProvider), provider);
             return repositoryBuilder;
         }
     }
