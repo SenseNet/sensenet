@@ -31,6 +31,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             try
             {
+                Platform.AppConfig = GetConfiguration();
                 var builder = Platform.CreateRepositoryBuilder();
                 if(Providers.Instance.BlobStorage == null)
                     Providers.Instance.InitializeBlobProviders();

@@ -11,9 +11,7 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class NodeCopyMoveTestCases : TestCaseBase
     {
-        //UNDONE:<?IntT: Missing test cases for IsSystem flag
-
-        /* ==================================================================================== TOOLS */
+        /* ==================================================================================== COPY */
 
         public void NodeCopy_Node_from_Outer_to_Outer()
         {
@@ -653,6 +651,105 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(copied.ContentListTypeId, loadedTarget.ContentListTypeId);
 
                 assertCopiedValues(testFile, copied);
+            });
+        }
+
+        /* ================================================================================ COPY SYSTEM NODES */
+
+        public void NodeCopy_NonSystem_to_NonSystem()
+        {
+            IntegrationTest<Workspace>((sandbox) =>
+            {
+                // ALIGN
+                CreateStructureForMovingSystemContentTests(sandbox);
+
+                var targetFolder = new Folder(sandbox) { Name = "Target" };
+                targetFolder.Save();
+                var targetPath = targetFolder.Path;
+
+                // ACTION
+                var sourcePath = RepositoryPath.Combine(sandbox.Path, "F1");
+                Node.Copy(sourcePath, targetFolder.Path);
+
+                // ASSERT
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1/Leaf1")).IsSystem);
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2")).IsSystem);
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2/Leaf2")).IsSystem);
+            });
+        }
+        public void NodeCopy_NonSystem_to_System()
+        {
+            IntegrationTest<Workspace>((sandbox) =>
+            {
+                // ALIGN
+                CreateStructureForMovingSystemContentTests(sandbox);
+
+                var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
+                targetFolder.Save();
+                var targetPath = targetFolder.Path;
+
+                // ACTION
+                var sourcePath = RepositoryPath.Combine(sandbox.Path, "F1");
+                Node.Copy(sourcePath, targetFolder.Path);
+
+                // ASSERT
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1/Leaf1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2/Leaf2")).IsSystem);
+            });
+
+        }
+        public void NodeCopy_System_to_NonSystem()
+        {
+            IntegrationTest<Workspace>((sandbox) =>
+            {
+                // ALIGN
+                var sourceFolder = new SystemFolder(sandbox) { Name = "Source" };
+                sourceFolder.Save();
+
+                CreateStructureForMovingSystemContentTests(sourceFolder);
+
+                var targetFolder = new Folder(sandbox) { Name = "Target" };
+                targetFolder.Save();
+                var targetPath = targetFolder.Path;
+
+                // ACTION
+                var sourcePath = RepositoryPath.Combine(sourceFolder.Path, "F1");
+                Node.Copy(sourcePath, targetFolder.Path);
+
+                // ASSERT
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1/Leaf1")).IsSystem);
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2")).IsSystem);
+                Assert.IsFalse(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2/Leaf2")).IsSystem);
+            });
+        }
+        public void NodeCopy_System_to_System()
+        {
+            IntegrationTest<SystemFolder>((sandbox) =>
+            {
+                // ALIGN
+                CreateStructureForMovingSystemContentTests(sandbox);
+
+                var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
+                targetFolder.Save();
+                var targetPath = targetFolder.Path;
+
+                // ACTION
+                var sourcePath = RepositoryPath.Combine(sandbox.Path, "F1");
+                Node.Copy(sourcePath, targetFolder.Path);
+
+                // ASSERT
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/SF1/Leaf1")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2")).IsSystem);
+                Assert.IsTrue(Node.LoadNode(RepositoryPath.Combine(targetPath, "F1/F2/Leaf2")).IsSystem);
             });
         }
 

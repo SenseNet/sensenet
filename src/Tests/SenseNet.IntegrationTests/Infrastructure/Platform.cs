@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.IO;
+using Microsoft.Extensions.Configuration;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -11,7 +10,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Common;
 using SenseNet.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tests.Core.Implementations;
@@ -20,11 +18,14 @@ namespace SenseNet.IntegrationTests.Infrastructure
 {
     public interface IPlatform
     {
+        IConfiguration AppConfig { get; set; }
         RepositoryBuilder CreateRepositoryBuilder();
         void OnAfterRepositoryStart(RepositoryInstance repository);
     }
     public abstract class Platform : IPlatform
     {
+        public IConfiguration AppConfig { get; set; }
+
         public RepositoryBuilder CreateRepositoryBuilder()
         {
             Providers.Instance.ResetBlobProviders();

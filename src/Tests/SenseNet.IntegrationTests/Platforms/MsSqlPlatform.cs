@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -26,9 +27,8 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlPlatform : Platform
     {
-        //UNDONE:<?IntT: remove local connectionstring
-        public string ConnectionString { get; } =
-            "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=.\\SQL2016";
+        private string _connectionString;
+        public string ConnectionString => _connectionString ??= AppConfig.GetConnectionString("SnCrMsSql");
 
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
@@ -108,7 +108,6 @@ namespace SenseNet.IntegrationTests.Platforms
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
-            //UNDONE:<?IntT: Force delete "write.lock" when getting the platform the first time.
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
 

@@ -10,7 +10,7 @@ namespace SenseNet.Tests.Core
 {
     public static class Extensions
     {
-        public static void StartTest(this TestContext testContext, bool traceToFile = false)
+        public static void StartTest(this TestContext testContext, bool traceToFile = false, bool reusesRepository = false)
         {
             if (traceToFile)
             {
@@ -19,11 +19,12 @@ namespace SenseNet.Tests.Core
                 if (!tracers.Any(x => x is SnFileSystemTracer))
                     SnTrace.SnTracers.Add(new SnFileSystemTracer());
             }
-            StartTestPrivate(testContext);
+            StartTestPrivate(testContext, reusesRepository);
         }
-        private static void StartTestPrivate(TestContext testContext)
+        private static void StartTestPrivate(TestContext testContext, bool reusesRepository)
         {
-            Providers.Instance = new Providers();
+            if(!reusesRepository)
+                Providers.Instance = new Providers();
             using (new Swindler<bool>(false, () => SnTrace.Event.Enabled, x => SnTrace.Event.Enabled = x))
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =

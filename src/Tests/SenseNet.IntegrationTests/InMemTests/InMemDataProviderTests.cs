@@ -76,11 +76,6 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public Task IntT_InMem_DP_TreeSize_Item() { return TestCase.DP_TreeSize_Item(); }
 
-        /* ================================================================================================== ShortText escape */
-
-        //[TestMethod]
-        //public async Task DP_ShortText_Escape() { return TestCase.DP_ShortText_Escape(); }
-
         /* ================================================================================================== NodeQuery */
 
         [TestMethod]

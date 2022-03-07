@@ -67,7 +67,6 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_Blob_BuiltIn_WriteChunksBig()
         {
-            //UNDONE:<?Blob: Check database after this test
             TestCase.TestCase_WriteChunksBig();
         }
 

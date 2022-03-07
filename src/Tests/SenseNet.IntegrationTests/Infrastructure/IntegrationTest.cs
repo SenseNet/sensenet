@@ -10,6 +10,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
         // Injected by MsTest framework.
         public TestContext TestContext { get; set; }
 
+        protected virtual bool ReusesRepository => true;
+
         protected TPlatform Platform { get; }
         protected TTestCase TestCase { get; }
 
@@ -22,7 +24,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         [TestInitialize]
         public void _initializeTest()
         {
-            TestContext.StartTest();
+            TestContext.StartTest(traceToFile: false, reusesRepository: ReusesRepository);
         }
         [TestCleanup]
         public void _cleanupTest()
