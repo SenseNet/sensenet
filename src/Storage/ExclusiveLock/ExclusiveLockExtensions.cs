@@ -9,28 +9,28 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class ExclusiveLockExtensions
     {
         /// <summary>
-        /// Sets the current <see cref="IExclusiveLockDataProviderExtension"/> instance that will be responsible
+        /// Sets the current <see cref="IExclusiveLockDataProvider"/> instance that will be responsible
         /// for managing exclusive locks.
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseExclusiveLockDataProviderExtension(this IRepositoryBuilder builder, 
-            IExclusiveLockDataProviderExtension provider)
+        public static IRepositoryBuilder UseExclusiveLockDataProvider(this IRepositoryBuilder builder, 
+            IExclusiveLockDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(IExclusiveLockDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(IExclusiveLockDataProvider), provider);
             return builder;
         }
         /// <summary>
         /// Sets an <see cref="MsSqlExclusiveLockDataProvider"/> as the current
-        /// <see cref="IExclusiveLockDataProviderExtension"/> instance that will be responsible
+        /// <see cref="IExclusiveLockDataProvider"/> instance that will be responsible
         /// for managing exclusive locks.
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseMsSqlExclusiveLockDataProviderExtension(this IRepositoryBuilder builder)
+        public static IRepositoryBuilder UseMsSqlExclusiveLockDataProvider(this IRepositoryBuilder builder)
         {
-            return UseExclusiveLockDataProviderExtension(builder, new MsSqlExclusiveLockDataProvider());
+            return UseExclusiveLockDataProvider(builder, new MsSqlExclusiveLockDataProvider());
         }
     }
 }

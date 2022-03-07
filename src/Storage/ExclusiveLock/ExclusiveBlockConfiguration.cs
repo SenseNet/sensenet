@@ -51,9 +51,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public TimeSpan WaitTimeout { get; set; }
 
-        internal IExclusiveLockDataProviderExtension DataProvider { get; } =
-            Providers.Instance.GetProvider<IExclusiveLockDataProviderExtension>() ??
-            DefaultExclusiveLockDataProviderExtension.Instance;
+        internal IExclusiveLockDataProvider DataProvider { get; } =
+            Providers.Instance.GetProvider<IExclusiveLockDataProvider>() ??
+            DefaultExclusiveLockDataProvider.Instance;
 
         internal CancellationToken CancellationToken { get; set; }
     }

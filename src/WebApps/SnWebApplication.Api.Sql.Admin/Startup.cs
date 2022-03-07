@@ -42,7 +42,7 @@ namespace SnWebApplication.Api.Sql.Admin
                 repositoryBuilder
                     .UseLogger(provider)
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProviderExtension();
+                    .UseMsSqlExclusiveLockDataProvider();
             })
                 .AddEFCSecurityDataProvider(options =>
                 {

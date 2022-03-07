@@ -65,7 +65,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return null;
         }
 
-        public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
         {
             return new MsSqlExclusiveLockDataProvider();
         }

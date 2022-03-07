@@ -40,7 +40,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return new InMemorySharedLockDataProvider();
         }
 
-        public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
         {
             return new InMemoryExclusiveLockDataProvider();
         }

@@ -77,7 +77,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseTracer(new SnDebugViewTracer())
                 .UseInitialData(initialData)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseExclusiveLockDataProviderExtension(new InMemoryExclusiveLockDataProvider())
+                .UseExclusiveLockDataProvider(new InMemoryExclusiveLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
