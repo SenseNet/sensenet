@@ -63,22 +63,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             // Do nothing if the provider is stateless.
         }
 
-        /* =============================================================================================== Extensions */
-
-        private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
-
-        public void SetExtension(Type providerType, IDataProviderExtension provider)
-        {
-            _dataProvidersByType[providerType] = provider;
-        }
-
-        public T GetExtension<T>() where T : class, IDataProviderExtension
-        {
-            if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
-                return provider as T;
-            return null;
-        }
-
         /* =============================================================================================== Nodes */
 
         /// <summary>

@@ -19,10 +19,10 @@ namespace SenseNet.IntegrationTests.TestCases
         private ITestingDataProviderExtension _tdp;
 
         // ReSharper disable once InconsistentNaming
-        private IStatisticalDataProvider DP => _dp ??= Providers.Instance.DataProvider.GetExtension<IStatisticalDataProvider>();
+        private IStatisticalDataProvider DP => _dp ??= Providers.Instance.GetProvider<IStatisticalDataProvider>();
 
         // ReSharper disable once InconsistentNaming
-        private ITestingDataProviderExtension TDP => _tdp ??= Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+        private ITestingDataProviderExtension TDP => _tdp ??= Providers.Instance.GetProvider<ITestingDataProviderExtension>();
 
         public async Task Stat_DataProvider_WriteData()
         {

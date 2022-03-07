@@ -52,17 +52,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             _logger = logger;
         }
 
-        [Obsolete("Use DataProvider.GetExtension method.", true)]
-        public T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
-        {
-            return DataProvider.GetExtension<T>();
-        }
-        [Obsolete("Use DataProvider.SetExtension method", true)]
-        public void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)
-        {
-            DataProvider.SetExtension(providerType, provider);
-        }
-
         public void Reset()
         {
             DataProvider.Reset();

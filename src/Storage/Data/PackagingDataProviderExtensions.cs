@@ -19,7 +19,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The updated IRepositoryBuilder.</returns>
         public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(IPackagingDataProviderExtension), provider);
             return builder;
         }
     }

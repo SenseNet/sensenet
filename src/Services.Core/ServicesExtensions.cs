@@ -171,7 +171,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
             if (statisticalDataProvider != null)
-                Providers.Instance.DataProvider.SetExtension(typeof(IStatisticalDataProvider), statisticalDataProvider);
+                Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), statisticalDataProvider);
 
             var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
             if (cmi != null)

@@ -19,7 +19,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The updated IRepositoryBuilder.</returns>
         public static IRepositoryBuilder UseSharedLockDataProviderExtension(this IRepositoryBuilder builder, ISharedLockDataProviderExtension provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(ISharedLockDataProviderExtension), provider);
             return builder;
         }
     }

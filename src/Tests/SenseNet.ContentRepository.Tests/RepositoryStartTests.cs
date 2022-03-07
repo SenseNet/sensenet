@@ -602,8 +602,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProviderExtension>().GetType());
             }
         }
 
@@ -644,7 +644,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProviderExtension>().GetType());
             }
         }
 

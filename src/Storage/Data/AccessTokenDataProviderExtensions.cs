@@ -19,7 +19,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The updated IRepositoryBuilder.</returns>
         public static IRepositoryBuilder UseAccessTokenDataProviderExtension(this IRepositoryBuilder builder, IAccessTokenDataProviderExtension provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProviderExtension), provider);
             return builder;
         }
     }

@@ -45,7 +45,7 @@ namespace SenseNet.Tests.Core.Tests
             Test(() =>
             {
                 var lastNodeId =
-                    Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync()
+                    Providers.Instance.GetProvider<ITestingDataProviderExtension>().GetLastNodeIdAsync()
                     .GetAwaiter().GetResult();
 
                 var root = Node.LoadNode(Identifiers.RootPath);

@@ -22,7 +22,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The updated IRepositoryBuilder.</returns>
         public static IRepositoryBuilder UseStatisticalDataProvider(this IRepositoryBuilder builder, IStatisticalDataProvider provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(IStatisticalDataProvider), provider);
+            Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), provider);
             return builder;
         }
     }

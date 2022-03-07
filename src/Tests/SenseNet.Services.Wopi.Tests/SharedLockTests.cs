@@ -38,7 +38,7 @@ namespace SenseNet.Services.Wopi.Tests
     {
         private ISharedLockDataProviderExtension GetDataProvider()
         {
-            return Providers.Instance.DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+            return Providers.Instance.GetProvider<ISharedLockDataProviderExtension>();
         }
 
         [TestMethod]
@@ -727,7 +727,7 @@ namespace SenseNet.Services.Wopi.Tests
 
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProviderExtension>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -735,7 +735,7 @@ namespace SenseNet.Services.Wopi.Tests
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProviderExtension>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 

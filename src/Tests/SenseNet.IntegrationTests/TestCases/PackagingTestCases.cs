@@ -942,8 +942,8 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             NoRepoIntegrationTest(() =>
             {
-                Providers.Instance.DataProvider
-                    .GetExtension<IPackagingDataProviderExtension>()
+                Providers.Instance
+                    .GetProvider<IPackagingDataProviderExtension>()
                     .DeleteAllPackagesAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
                 RepositoryVersionInfo.Reset();
@@ -954,8 +954,8 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
-                await Providers.Instance.DataProvider
-                    .GetExtension<IPackagingDataProviderExtension>()
+                await Providers.Instance
+                    .GetProvider<IPackagingDataProviderExtension>()
                     .DeleteAllPackagesAsync(CancellationToken.None)
                     .ConfigureAwait(false);
                 RepositoryVersionInfo.Reset();
