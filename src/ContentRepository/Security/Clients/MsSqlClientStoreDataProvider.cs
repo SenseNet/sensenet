@@ -87,7 +87,7 @@ ALTER TABLE [dbo].[ClientSecrets] CHECK CONSTRAINT [FK_ClientSecrets_ClientApps]
 
         /* =============================================================================================== LOAD */
 
-        private static readonly string LoadClientsByRepositorySql = @"-- MsSqlClientStoreDataProviderExtension.LoadClientsByRepository
+        private static readonly string LoadClientsByRepositorySql = @"-- MsSqlClientStoreDataProvider.LoadClientsByRepository
 SELECT * FROM ClientApps WHERE Repository = @Repository
 SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHERE A.Repository = @Repository
 ";
@@ -105,7 +105,7 @@ SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHE
         }
 
 
-        private static readonly string LoadClientsByAuthority = @"-- MsSqlClientStoreDataProviderExtension.LoadClientsByAuthority
+        private static readonly string LoadClientsByAuthority = @"-- MsSqlClientStoreDataProvider.LoadClientsByAuthority
 SELECT * FROM ClientApps WHERE Authority = @Authority
 SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHERE A.Authority = @Authority
 ";
@@ -160,7 +160,7 @@ SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHE
 
         /* =============================================================================================== SAVE */
 
-        private static readonly string UpsertClientSql = @"-- MsSqlClientStoreDataProviderExtension.SaveClient/UpsertClientApp
+        private static readonly string UpsertClientSql = @"-- MsSqlClientStoreDataProvider.SaveClient/UpsertClientApp
 BEGIN TRY
     INSERT INTO [ClientApps] ([ClientId], [Name], [Repository], [UserName], [Authority], [Type])
     				  VALUES (@ClientId,  @Name,  @Repository,  @UserName,  @Authority,  @Type)
@@ -176,7 +176,7 @@ BEGIN CATCH
 END CATCH
 ";
 
-        private static readonly string DeleteSecretSql = @"-- MsSqlClientStoreDataProviderExtension.SaveClient/DeleteSecrets
+        private static readonly string DeleteSecretSql = @"-- MsSqlClientStoreDataProvider.SaveClient/DeleteSecrets
 DELETE FROM [ClientSecrets] WHERE [ClientId] = @ClientId
 ";
 
@@ -225,12 +225,12 @@ DELETE FROM [ClientSecrets] WHERE [ClientId] = @ClientId
             MsSqlDataContext ctx)
         {
             var sql = deleteBefore
-                ? @"-- MsSqlClientStoreDataProviderExtension.SaveSecret (delete and insert)
+                ? @"-- MsSqlClientStoreDataProvider.SaveSecret (delete and insert)
 DELETE FROM [ClientSecrets] WHERE Id = @Id
 INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTill])
                       VALUES( @Id,  @ClientId,  @Value,  @CreationDate,  @ValidTill)
 "
-                : @"-- MsSqlClientStoreDataProviderExtension.SaveSecret (insert only)
+                : @"-- MsSqlClientStoreDataProvider.SaveSecret (insert only)
 INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTill])
                       VALUES( @Id,  @ClientId,  @Value,  @CreationDate,  @ValidTill)
 ";
@@ -246,7 +246,7 @@ INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTi
 
         /* =============================================================================================== DELETE */
 
-        private static readonly string DeleteClientSql = @"-- MsSqlClientStoreDataProviderExtension.DeleteClient
+        private static readonly string DeleteClientSql = @"-- MsSqlClientStoreDataProvider.DeleteClient
 DELETE FROM [ClientApps] WHERE [ClientId] = @ClientId
 ";
         /// <inheritdoc/>
@@ -275,9 +275,9 @@ DELETE FROM [ClientApps] WHERE [ClientId] = @ClientId
         }
 
 
-        private static readonly string DeleteSecretByHostSql = @"-- MsSqlClientStoreDataProviderExtension.DeleteSecretByHost (secrets)
+        private static readonly string DeleteSecretByHostSql = @"-- MsSqlClientStoreDataProvider.DeleteSecretByHost (secrets)
 DELETE FROM ClientSecrets WHERE [ClientId] IN (SELECT [ClientId] FROM ClientApps WHERE [Repository] = @Repository)";
-        private static readonly string DeleteClientByHostSql = @"-- MsSqlClientStoreDataProviderExtension.DeleteClientByHost (clientApp)
+        private static readonly string DeleteClientByHostSql = @"-- MsSqlClientStoreDataProvider.DeleteClientByHost (clientApp)
 DELETE FROM [ClientApps] WHERE [Repository] = @Repository
 ";
         /// <inheritdoc/>
@@ -305,7 +305,7 @@ DELETE FROM [ClientApps] WHERE [Repository] = @Repository
             }
         }
 
-        private static readonly string DeleteSecret = @"-- MsSqlClientStoreDataProviderExtension.DeleteSecret (secrets)
+        private static readonly string DeleteSecret = @"-- MsSqlClientStoreDataProvider.DeleteSecret (secrets)
 DELETE FROM ClientSecrets WHERE [ClientId] = @ClientId AND [Id] = @SecretId";
 
         /// <inheritdoc/>
