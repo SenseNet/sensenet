@@ -5,7 +5,7 @@ using SenseNet.Tools;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
-    public static class TestingDataProviderExtension
+    public static class TestingDataProviderExtensions
     {
         public static IRepositoryBuilder UseTestingDataProvider(this IRepositoryBuilder repositoryBuilder, ITestingDataProvider provider)
         {

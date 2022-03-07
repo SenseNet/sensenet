@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             return new InMemoryDataProvider();
         }
-        protected override IExclusiveLockDataProvider GetDataProviderExtension()
+        protected override IExclusiveLockDataProvider GetDataProvider()
         {
             return new InMemoryExclusiveLockDataProvider();
         }
