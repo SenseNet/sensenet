@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Data;
 
 // ReSharper disable CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -9,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for handling shared lock storage.
     /// </summary>
-    public interface ISharedLockDataProviderExtension : IDataProviderExtension
+    public interface ISharedLockDataProviderExtension
     {
         TimeSpan SharedLockTimeout { get; }
 

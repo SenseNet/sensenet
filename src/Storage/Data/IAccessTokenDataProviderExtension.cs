@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -10,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for managing access tokens in the database.
     /// </summary>
-    public interface IAccessTokenDataProviderExtension : IDataProviderExtension
+    public interface IAccessTokenDataProviderExtension
     {
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.

@@ -1,13 +1,12 @@
 ﻿using System.Threading;
 using Tasks=System.Threading.Tasks;
-using SenseNet.Data;
 
 namespace SenseNet.ContentRepository.Security.Clients
 {
     /// <summary>
     /// Defines methods for handling IdentityServer clients and their secrets.
     /// </summary>
-    public interface IClientStoreDataProviderExtension : IDataProviderExtension
+    public interface IClientStoreDataProviderExtension
     {
         /// <summary>
         /// Loads all clients by <paramref name="repositoryHost"/>.

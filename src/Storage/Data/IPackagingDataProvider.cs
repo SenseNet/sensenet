@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -10,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for packaging database operations.
     /// </summary>
-    public interface IPackagingDataProviderExtension : IDataProviderExtension
+    public interface IPackagingDataProviderExtension
     {
         /// <summary>
         /// Loads all installed components. The descriptions come from installers

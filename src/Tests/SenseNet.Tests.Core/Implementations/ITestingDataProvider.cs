@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
-using SenseNet.Data;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Core.Implementations
@@ -11,7 +10,7 @@ namespace SenseNet.Tests.Core.Implementations
     /// <summary>
     /// Defines helper data methods necessary for tests to run.
     /// </summary>
-    public interface ITestingDataProviderExtension : IDataProviderExtension
+    public interface ITestingDataProviderExtension
     {
         void InitializeForTests();
         string GetSecurityControlStringForTests();

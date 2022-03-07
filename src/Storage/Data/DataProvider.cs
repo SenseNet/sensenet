@@ -7,7 +7,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DataModel.Usage;
