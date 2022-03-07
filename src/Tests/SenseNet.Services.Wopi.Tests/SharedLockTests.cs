@@ -33,9 +33,10 @@ using File = SenseNet.ContentRepository.File;
 namespace SenseNet.Services.Wopi.Tests
 {
     [TestClass]
-    //UNDONE:<?: test: SharedLockTests class need to be inherited from TestBase
-    public class SharedLockTests //: TestBase
+    public class SharedLockTests : TestBase
     {
+        protected override bool ReusesRepository => true;
+
         private ISharedLockDataProvider GetDataProvider()
         {
             return Providers.Instance.GetProvider<ISharedLockDataProvider>();
@@ -679,7 +680,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             Providers.Instance.ResetBlobProviders();
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForSharedLockTest();
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
@@ -748,7 +749,7 @@ namespace SenseNet.Services.Wopi.Tests
             _wopiHandlerAcc.InvokeStatic("SaveFile", file, lockValue);
         }
 
-        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
+        protected static RepositoryBuilder CreateRepositoryBuilderForSharedLockTest()
         {
             var dataProvider = new InMemoryDataProvider();
 

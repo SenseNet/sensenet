@@ -33,18 +33,20 @@ namespace SenseNet.Tests.Core
     {
         public TestContext TestContext { get; set; }
 
+        protected virtual bool ReusesRepository => false;
+
         protected virtual void InitializeTest()
         {
             // do nothing;
         }
         [TestInitialize]
-        public void _initializeTest()
+        public virtual void _initializeTest()
         {
             //// workaround for having a half-started repository
             //if (RepositoryInstance.Started())
             //    RepositoryInstance.Shutdown();
 
-            TestContext.StartTest();
+            TestContext.StartTest(traceToFile: false, reusesRepository: ReusesRepository);
             InitializeTest();
         }
 

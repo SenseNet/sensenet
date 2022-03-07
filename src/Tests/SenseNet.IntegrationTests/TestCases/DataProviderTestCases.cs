@@ -975,51 +975,6 @@ namespace SenseNet.IntegrationTests.TestCases
             });
         }
 
-        /* ================================================================================================== ShortText escape */
-
-        //UNDONE:<?:IntT:!!! Only MsSql serializes the dynamic properties
-        //public async Task DP_ShortText_Escape()
-        //{
-        //    await IntegrationTestAsync(() =>
-        //    {
-        //        var properties = new PropertyType[]
-        //        {
-        //            PropertyType.GetByName("Domain"),
-        //            PropertyType.GetByName("FullName"),
-        //            PropertyType.GetByName("Email"),
-        //            PropertyType.GetByName("LoginName"),
-        //        };
-        //        var inputValues = new[]
-        //        {
-        //            "Domain1",
-        //            "LastName\tFirstName",
-        //            "a@b.c \\ d@e.f",
-        //            "asdf\\\r\nqwer",
-        //        };
-        //        var data = new Dictionary<PropertyType, object>();
-        //        for (int i = 0; i < inputValues.Length; i++)
-        //        {
-        //            data.Add(properties[i], inputValues[i]);
-        //        }
-
-
-        //        // ACTION
-        //        var serialized = DP.SerializeDynamicProperties(data);
-        //        var deserialized = DP.DeserializeDynamicProperties(serialized);
-
-        //        // ASSERT
-        //        var keys = deserialized.Keys.ToArray();
-        //        var values = deserialized.Values.ToArray();
-        //        for (int i = 0; i < inputValues.Length; i++)
-        //        {
-        //            Assert.AreEqual(properties[i], keys[i]);
-        //            Assert.AreEqual(inputValues[i], values[i]);
-        //        }
-
-        //        return Task.CompletedTask;
-        //    });
-        //}
-
         /* ================================================================================================== NodeQuery */
 
         public async Task DP_NodeQuery_InstanceCount()

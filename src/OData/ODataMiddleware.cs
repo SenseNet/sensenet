@@ -66,7 +66,7 @@ namespace SenseNet.OData
                 FieldConverters.Add(fieldConverter);
             }
 
-            //UNDONE:<?:   do not call discovery and providers setting in the static ctor of ODataMiddleware
+            //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             OperationCenter.Discover();
             Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
         }
