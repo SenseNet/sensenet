@@ -174,7 +174,7 @@ namespace SenseNet.Tests.Core
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())

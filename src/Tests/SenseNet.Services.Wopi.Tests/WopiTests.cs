@@ -1635,7 +1635,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
-            builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+            builder.UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer());
 
@@ -1705,9 +1705,9 @@ namespace SenseNet.Services.Wopi.Tests
             Assert.AreEqual(expectedValue, actualValue);
         }
 
-        private ISharedLockDataProviderExtension GetDataProvider()
+        private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.GetProvider<ISharedLockDataProviderExtension>();
+            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
@@ -1734,7 +1734,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())

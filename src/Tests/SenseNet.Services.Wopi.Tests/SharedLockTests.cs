@@ -36,9 +36,9 @@ namespace SenseNet.Services.Wopi.Tests
     //UNDONE:<?: test: SharedLockTests class need to be inherited from TestBase
     public class SharedLockTests //: TestBase
     {
-        private ISharedLockDataProviderExtension GetDataProvider()
+        private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.GetProvider<ISharedLockDataProviderExtension>();
+            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
         }
 
         [TestMethod]
@@ -756,7 +756,7 @@ namespace SenseNet.Services.Wopi.Tests
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())

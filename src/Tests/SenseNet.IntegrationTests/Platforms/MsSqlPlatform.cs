@@ -55,7 +55,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
-        public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
+        public override ISharedLockDataProvider GetSharedLockDataProvider()
         {
             return new MsSqlSharedLockDataProvider();
         }

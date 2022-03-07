@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for handling shared lock storage.
     /// </summary>
-    public interface ISharedLockDataProviderExtension
+    public interface ISharedLockDataProvider
     {
         TimeSpan SharedLockTimeout { get; }
 

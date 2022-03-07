@@ -10,10 +10,10 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary> 
-    /// This is an MS SQL implementation of the <see cref="ISharedLockDataProviderExtension"/> interface.
+    /// This is an MS SQL implementation of the <see cref="ISharedLockDataProvider"/> interface.
     /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
     /// </summary>
-    public class MsSqlSharedLockDataProvider : ISharedLockDataProviderExtension
+    public class MsSqlSharedLockDataProvider : ISharedLockDataProvider
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 

@@ -14,7 +14,7 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class SharedLockUnitTestsCases : TestCaseBase
     {
-        private ISharedLockDataProviderExtension Provider => Providers.Instance.GetProvider<ISharedLockDataProviderExtension>();
+        private ISharedLockDataProvider Provider => Providers.Instance.GetProvider<ISharedLockDataProvider>();
         protected ITestingDataProviderExtension TDP => Providers.Instance.GetProvider<ITestingDataProviderExtension>();
 
         /* ====================================================================== */

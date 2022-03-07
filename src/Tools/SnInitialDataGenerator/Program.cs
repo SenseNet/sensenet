@@ -172,7 +172,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())

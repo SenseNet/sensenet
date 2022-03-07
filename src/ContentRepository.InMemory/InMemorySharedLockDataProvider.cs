@@ -11,10 +11,10 @@ using STT = System.Threading.Tasks;
 namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary> 
-    /// This is an in-memory implementation of the <see cref="ISharedLockDataProviderExtension"/> interface.
+    /// This is an in-memory implementation of the <see cref="ISharedLockDataProvider"/> interface.
     /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
     /// </summary>
-    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension
+    public class InMemorySharedLockDataProvider : ISharedLockDataProvider
     {
         public DataCollection<SharedLockDoc> GetSharedLocks()
         {

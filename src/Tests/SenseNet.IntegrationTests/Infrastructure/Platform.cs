@@ -41,7 +41,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
                 .UseTestingDataProviderExtension(GetTestingDataProviderExtension())
-                .UseSharedLockDataProviderExtension(GetSharedLockDataProviderExtension())
+                .UseSharedLockDataProvider(GetSharedLockDataProvider())
                 .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider())
                 .AddBlobProviders(GetBlobProviders()) // extension for platforms
                 .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
@@ -73,7 +73,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider();
-        public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
+        public abstract ISharedLockDataProvider GetSharedLockDataProvider();
         public abstract IEnumerable<IBlobProvider> GetBlobProviders();
         public abstract IExclusiveLockDataProvider GetExclusiveLockDataProvider();
         public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
