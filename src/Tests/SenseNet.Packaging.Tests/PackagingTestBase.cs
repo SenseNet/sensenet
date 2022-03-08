@@ -40,7 +40,7 @@ namespace SenseNet.Packaging.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
-            builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider());
+            builder.UsePackagingDataProvider(new InMemoryPackageStorageProvider());
 
             RepositoryVersionInfo.Reset();
         }
@@ -53,7 +53,7 @@ namespace SenseNet.Packaging.Tests
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
             var builder = base.CreateRepositoryBuilderForTestInstance();
-            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             return builder;
         }
@@ -124,7 +124,7 @@ namespace SenseNet.Packaging.Tests
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
+            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProvider>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

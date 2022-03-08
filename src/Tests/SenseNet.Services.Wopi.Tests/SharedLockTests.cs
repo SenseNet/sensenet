@@ -37,9 +37,9 @@ namespace SenseNet.Services.Wopi.Tests
     {
         protected override bool ReusesRepository => true;
 
-        private ISharedLockDataProviderExtension GetDataProvider()
+        private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
         }
 
         [TestMethod]
@@ -728,7 +728,7 @@ namespace SenseNet.Services.Wopi.Tests
 
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProvider>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -736,7 +736,7 @@ namespace SenseNet.Services.Wopi.Tests
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            var provider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<ITestingDataProvider>();
             if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
@@ -757,19 +757,19 @@ namespace SenseNet.Services.Wopi.Tests
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
+                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
+                .UseTestingDataProvider(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()

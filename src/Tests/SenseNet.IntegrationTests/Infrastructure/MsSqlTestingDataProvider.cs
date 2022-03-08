@@ -22,7 +22,7 @@ using SenseNet.Tests.Core.Implementations;
 namespace SenseNet.IntegrationTests.Infrastructure
 {
     [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
-    public class MsSqlTestingDataProvider : ITestingDataProviderExtension
+    public class MsSqlTestingDataProvider : ITestingDataProvider
     {
         // ReSharper disable once InconsistentNaming
         private RelationalDataProviderBase __dataProvider;

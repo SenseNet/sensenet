@@ -53,7 +53,7 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 {
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseMsSqlExclusiveLockDataProviderExtension();
+                        .UseMsSqlExclusiveLockDataProvider();
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {

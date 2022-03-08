@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
@@ -9,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage
     /// <summary>
     /// Defines methods for handling the persistent, distributed application wide exclusive lock.
     /// </summary>
-    public interface IExclusiveLockDataProviderExtension : IDataProviderExtension
+    public interface IExclusiveLockDataProvider
     {
         /// <summary>
         /// Tries to acquire a named exclusive lock. Returns true if successful or false if the lock is used by another
@@ -69,10 +68,10 @@ namespace SenseNet.ContentRepository.Storage
         Task ReleaseAllAsync(CancellationToken cancellationToken);
     }
 
-    internal class DefaultExclusiveLockDataProviderExtension : IExclusiveLockDataProviderExtension
+    internal class DefaultExclusiveLockDataProvider : IExclusiveLockDataProvider
     {
-        public static IExclusiveLockDataProviderExtension Instance { get; } =
-            new DefaultExclusiveLockDataProviderExtension();
+        public static IExclusiveLockDataProvider Instance { get; } =
+            new DefaultExclusiveLockDataProvider();
 
         public Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit, CancellationToken cancellationToken)
         {

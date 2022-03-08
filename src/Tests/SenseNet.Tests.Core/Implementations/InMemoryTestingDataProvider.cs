@@ -19,10 +19,10 @@ using SenseNet.Testing;
 namespace SenseNet.Tests.Core.Implementations
 {
     /// <summary>
-    /// In-memory implementation of the <see cref="ITestingDataProviderExtension"/> interface.
+    /// In-memory implementation of the <see cref="ITestingDataProvider"/> interface.
     /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
     /// </summary>
-    public class InMemoryTestingDataProvider : ITestingDataProviderExtension
+    public class InMemoryTestingDataProvider : ITestingDataProvider
     {
         private DataProvider _mainProvider;
         public DataProvider MainProvider => _mainProvider ?? (_mainProvider = Providers.Instance.DataProvider);

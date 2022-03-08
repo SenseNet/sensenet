@@ -11,15 +11,15 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class SharedLockDataProviderExtensions
     {
         /// <summary>
-        /// Sets the current <see cref="ISharedLockDataProviderExtension"/> instance that will be responsible
+        /// Sets the current <see cref="ISharedLockDataProvider"/> instance that will be responsible
         /// for managing shared locks.
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseSharedLockDataProviderExtension(this IRepositoryBuilder builder, ISharedLockDataProviderExtension provider)
+        public static IRepositoryBuilder UseSharedLockDataProvider(this IRepositoryBuilder builder, ISharedLockDataProvider provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), provider);
             return builder;
         }
     }

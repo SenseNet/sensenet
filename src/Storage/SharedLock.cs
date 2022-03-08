@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public static class SharedLock
     {
-        private static ISharedLockDataProviderExtension Storage => Providers.Instance.DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+        private static ISharedLockDataProvider Storage => Providers.Instance.GetProvider<ISharedLockDataProvider>();
 
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.

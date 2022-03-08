@@ -9,10 +9,10 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary> 
-    /// This is an in-memory implementation of the <see cref="IAccessTokenDataProviderExtension"/> interface.
+    /// This is an in-memory implementation of the <see cref="IAccessTokenDataProvider"/> interface.
     /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
     /// </summary>
-    public class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
+    public class InMemoryAccessTokenDataProvider : IAccessTokenDataProvider
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()
         {

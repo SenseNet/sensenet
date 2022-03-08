@@ -13,7 +13,6 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 
@@ -50,17 +49,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             DataProvider = dataProvider;
             _logger = logger;
-        }
-
-        [Obsolete("Use DataProvider.GetExtension method.", true)]
-        public T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
-        {
-            return DataProvider.GetExtension<T>();
-        }
-        [Obsolete("Use DataProvider.SetExtension method", true)]
-        public void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)
-        {
-            DataProvider.SetExtension(providerType, provider);
         }
 
         public void Reset()

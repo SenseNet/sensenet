@@ -100,7 +100,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         private void Initialize()
         {
-            var dpe = Providers.Instance.DataProvider.GetExtension<IExclusiveLockDataProviderExtension>();
+            var dpe = Providers.Instance.GetProvider<IExclusiveLockDataProvider>();
             dpe.ReleaseAllAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             SnTrace.Custom.Enabled = true;
             SnTrace.System.Enabled = true;

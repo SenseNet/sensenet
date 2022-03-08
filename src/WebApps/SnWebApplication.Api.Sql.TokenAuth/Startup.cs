@@ -49,7 +49,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 repositoryBuilder
                     .UseLogger(provider)
                     .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProviderExtension();
+                    .UseMsSqlExclusiveLockDataProvider();
             })
                 .AddEFCSecurityDataProvider(options =>
                 {

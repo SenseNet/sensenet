@@ -327,8 +327,8 @@
 //        [TestInitialize]
 //        public Task InitializePackagingTest()
 //        {
-//            //DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
-//            Providers.Instance.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+//            //Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new TestPackageStorageProvider());
+//            Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new TestPackageStorageProvider());
 
 //            // make sure that every test starts with a clean slate (no existing installed components)
 //            return PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);
@@ -551,7 +551,7 @@
 
 //            // reload version info
 //            installedComponent = RepositoryVersionInfo.Instance.Components.Single(c => c.ComponentId == componentId);
-            
+
 //            if (successfulPatchVersions?.Any() ?? false)
 //            {
 //                // the component was successfully upgraded
@@ -577,9 +577,9 @@
 
 //        internal static void SetContentHandler(string contentTypeName, string handler)
 //        {
-//            var testingDataProvider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+//            var testingDataProvider = Providers.Instance.GetProvider<ITestingDataProvider>();
 //            if (testingDataProvider == null)
-//                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+//                Assert.Inconclusive($"{nameof(ITestingDataProvider)} implementation is not available.");
 
 //            testingDataProvider.SetContentHandler(contentTypeName, handler);
 //        }

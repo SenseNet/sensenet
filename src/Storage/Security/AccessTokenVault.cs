@@ -13,13 +13,13 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// <summary>
     /// Supports AccessToken operations. Developers may use this API for securing access to a feature.
     /// Token storage is handled through a configurable dataprovider extension that implements
-    /// the <see cref="IAccessTokenDataProviderExtension"/> interface.
+    /// the <see cref="IAccessTokenDataProvider"/> interface.
     /// </summary>
     public class AccessTokenVault
     {
         private const int MinimumTokenExpirationMinutes = 5;
 
-        private static IAccessTokenDataProviderExtension Storage => Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
+        private static IAccessTokenDataProvider Storage => Providers.Instance.GetProvider<IAccessTokenDataProvider>();
 
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.

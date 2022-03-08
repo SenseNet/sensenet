@@ -8,9 +8,9 @@ using STT = System.Threading.Tasks;
 namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary>
-    /// In memory implementation of the <see cref="IExclusiveLockDataProviderExtension"/> interface.
+    /// In memory implementation of the <see cref="IExclusiveLockDataProvider"/> interface.
     /// </summary>
-    public class InMemoryExclusiveLockDataProvider : IExclusiveLockDataProviderExtension
+    public class InMemoryExclusiveLockDataProvider : IExclusiveLockDataProvider
     {
         private static readonly object Sync = new object();
         private readonly Dictionary<string, DateTime> _locks = new Dictionary<string, DateTime>();

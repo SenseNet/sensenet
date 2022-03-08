@@ -55,7 +55,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
-        public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
+        public override ISharedLockDataProvider GetSharedLockDataProvider()
         {
             return new MsSqlSharedLockDataProvider();
         }
@@ -65,7 +65,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return null;
         }
 
-        public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
         {
             return new MsSqlExclusiveLockDataProvider();
         }
@@ -84,11 +84,11 @@ namespace SenseNet.IntegrationTests.Platforms
                 null,
                 Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
         }
-        public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
         {
             return new MsSqlAccessTokenDataProvider();
         }
-        public override IPackagingDataProviderExtension GetPackagingDataProviderExtension()
+        public override IPackagingDataProvider GetPackagingDataProvider()
         {
             return new MsSqlPackagingDataProvider();
         }
@@ -99,7 +99,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 ConnectionString = ConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
-        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
+        public override ITestingDataProvider GetTestingDataProvider()
         {
             return new MsSqlTestingDataProvider();
         }

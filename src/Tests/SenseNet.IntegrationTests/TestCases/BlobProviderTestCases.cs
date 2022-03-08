@@ -603,7 +603,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.GetProvider<ITestingDataProvider>();
 
                 Assert.AreEqual(BlobDeletionPolicy.BackgroundDelayed, Configuration.BlobStorage.BlobDeletionPolicy);
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -623,7 +623,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.GetProvider<ITestingDataProvider>();
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 using (new BlobDeletionPolicySwindler(BlobDeletionPolicy.Immediately))
@@ -639,7 +639,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest((sandbox) =>
             {
                 var dp = DataStore.DataProvider;
-                var tdp = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+                var tdp = Providers.Instance.GetProvider<ITestingDataProvider>();
                 var countsBefore = GetDbObjectCountsAsync(null, dp, tdp).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 using (BlobStoragePlatform.SwindleWaitingBetweenCleanupFiles(10))
@@ -691,7 +691,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 //Assert.IsNull(Node.Load<File>(f4.Id));
             }
         }
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider dp, ITestingDataProviderExtension tdp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider dp, ITestingDataProvider tdp)
         {
             var nodesTask = dp.GetNodeCountAsync(path, CancellationToken.None);
             var versionsTask = dp.GetVersionCountAsync(path, CancellationToken.None);

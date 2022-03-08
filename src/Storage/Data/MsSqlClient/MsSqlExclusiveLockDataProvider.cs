@@ -11,10 +11,10 @@ using SenseNet.Configuration;
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     /// <summary> 
-    /// This is an MS SQL implementation of the <see cref="IExclusiveLockDataProviderExtension"/> interface.
+    /// This is an MS SQL implementation of the <see cref="IExclusiveLockDataProvider"/> interface.
     /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
     /// </summary>
-    public class MsSqlExclusiveLockDataProvider : IExclusiveLockDataProviderExtension
+    public class MsSqlExclusiveLockDataProvider : IExclusiveLockDataProvider
     {
         private const string AcquireScript = @"-- MsSqlExclusiveLockDataProvider.Acquire
 -- Ensure existing row for the @Name in a fault-tolerant manner

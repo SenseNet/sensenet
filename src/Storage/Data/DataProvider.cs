@@ -7,7 +7,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DataModel.Usage;
@@ -61,22 +60,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual void Reset()
         {
             // Do nothing if the provider is stateless.
-        }
-
-        /* =============================================================================================== Extensions */
-
-        private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
-
-        public void SetExtension(Type providerType, IDataProviderExtension provider)
-        {
-            _dataProvidersByType[providerType] = provider;
-        }
-
-        public T GetExtension<T>() where T : class, IDataProviderExtension
-        {
-            if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
-                return provider as T;
-            return null;
         }
 
         /* =============================================================================================== Nodes */

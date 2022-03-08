@@ -41,14 +41,14 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
-                .UseTestingDataProviderExtension(GetTestingDataProviderExtension())
-                .UseSharedLockDataProviderExtension(GetSharedLockDataProviderExtension())
-                .UseExclusiveLockDataProviderExtension(GetExclusiveLockDataProviderExtension())
+                .UseTestingDataProvider(GetTestingDataProvider())
+                .UseSharedLockDataProvider(GetSharedLockDataProvider())
+                .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider())
                 .AddBlobProviders(GetBlobProviders()) // extension for platforms
                 .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(GetBlobProviderSelector())
-                .UseAccessTokenDataProviderExtension(GetAccessTokenDataProviderExtension())
-                .UsePackagingDataProviderExtension(GetPackagingDataProviderExtension())
+                .UseAccessTokenDataProvider(GetAccessTokenDataProvider())
+                .UsePackagingDataProvider(GetPackagingDataProvider())
                 .UseStatisticalDataProvider(GetStatisticalDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
@@ -74,15 +74,15 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider();
-        public abstract ISharedLockDataProviderExtension GetSharedLockDataProviderExtension();
+        public abstract ISharedLockDataProvider GetSharedLockDataProvider();
         public abstract IEnumerable<IBlobProvider> GetBlobProviders();
-        public abstract IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension();
+        public abstract IExclusiveLockDataProvider GetExclusiveLockDataProvider();
         public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
         public abstract IBlobProviderSelector GetBlobProviderSelector();
-        public abstract IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension();
-        public abstract IPackagingDataProviderExtension GetPackagingDataProviderExtension();
+        public abstract IAccessTokenDataProvider GetAccessTokenDataProvider();
+        public abstract IPackagingDataProvider GetPackagingDataProvider();
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
-        public abstract ITestingDataProviderExtension GetTestingDataProviderExtension();
+        public abstract ITestingDataProvider GetTestingDataProvider();
         public abstract ISearchEngine GetSearchEngine();
         public abstract IStatisticalDataProvider GetStatisticalDataProvider();
     }

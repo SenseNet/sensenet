@@ -11,15 +11,15 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class PackagingDataProviderExtensions
     {
         /// <summary>
-        /// Sets the current <see cref="IPackagingDataProviderExtension"/> instance that will be responsible
+        /// Sets the current <see cref="IPackagingDataProvider"/> instance that will be responsible
         /// for packaging operations.
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
+        public static IRepositoryBuilder UsePackagingDataProvider(this IRepositoryBuilder builder, IPackagingDataProvider provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(IPackagingDataProvider), provider);
             return builder;
         }
     }

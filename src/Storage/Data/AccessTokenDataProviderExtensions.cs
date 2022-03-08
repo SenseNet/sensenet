@@ -11,15 +11,15 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class AccessTokenDataProviderExtensions
     {
         /// <summary>
-        /// Sets the current <see cref="IAccessTokenDataProviderExtension"/> instance that will be responsible
+        /// Sets the current <see cref="IAccessTokenDataProvider"/> instance that will be responsible
         /// for managing access tokens.
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseAccessTokenDataProviderExtension(this IRepositoryBuilder builder, IAccessTokenDataProviderExtension provider)
+        public static IRepositoryBuilder UseAccessTokenDataProvider(this IRepositoryBuilder builder, IAccessTokenDataProvider provider)
         {
-            Providers.Instance.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), provider);
+            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), provider);
             return builder;
         }
     }

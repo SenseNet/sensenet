@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var dp = new InMemoryTestingDataProvider();
             var builder = CreateRepositoryBuilderForTest();
-            builder.UseTestingDataProviderExtension(dp);
+            builder.UseTestingDataProvider(dp);
             var table = dp.DB.LogEntries;
             table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-2.1d), LogId = table.GetNextId()});
             table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-2.1d), LogId = table.GetNextId()});
@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Tests
             table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId()});
             table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId() });
 
-            var testingDataProvider = Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = Providers.Instance.GetProvider<ITestingDataProvider>();
             testingDataProvider.InitializeForTests();
 
             // ACTION
@@ -40,10 +40,10 @@ namespace SenseNet.ContentRepository.Tests
         public void DataProviderExtension_CallingNotInterfaceMethod()
         {
             var builder = CreateRepositoryBuilderForTest();
-            builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider());
+            builder.UseTestingDataProvider(new InMemoryTestingDataProvider());
 
             // ACTION: Call a not interface method
-            var actual = ((InMemoryTestingDataProvider) Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>())
+            var actual = ((InMemoryTestingDataProvider) Providers.Instance.GetProvider<ITestingDataProvider>())
                 .TestMethodThatIsNotInterfaceMember("asdf");
 
             // ASSERT

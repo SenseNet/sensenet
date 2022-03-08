@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private class TestPackagingDataProvider : IPackagingDataProviderExtension
+        private class TestPackagingDataProvider : IPackagingDataProvider
         {
             public System.Threading.Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
             {
@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
-        private class TestAccessTokenDataProvider : IAccessTokenDataProviderExtension
+        private class TestAccessTokenDataProvider : IAccessTokenDataProvider
         {
             public System.Threading.Tasks.Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
             {
@@ -242,18 +242,18 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
+                .UseTestingDataProvider(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
@@ -276,18 +276,18 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
+                .UseTestingDataProvider(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
@@ -602,8 +602,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProvider>().GetType());
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 
@@ -629,7 +629,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
+                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
@@ -644,7 +644,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 

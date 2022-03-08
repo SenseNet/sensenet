@@ -144,7 +144,7 @@ namespace SenseNet.Packaging.Steps
                                             ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
                                             QuerySettings.AdminSettings, p, typeNames).Count).Sum();
 
-            var PDP = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
+            var PDP = Providers.Instance.GetProvider<IPackagingDataProvider>();
             var result = new ContentTypeDependencies
             {
                 ContentTypeNames = rootTypeNames,

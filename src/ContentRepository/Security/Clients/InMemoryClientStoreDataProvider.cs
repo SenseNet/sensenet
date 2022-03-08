@@ -6,10 +6,10 @@ using Tasks=System.Threading.Tasks;
 namespace SenseNet.ContentRepository.Security.Clients
 {
     /// <summary>
-    /// In memory implementation of the <see cref="IClientStoreDataProviderExtension"/> interface.
+    /// In memory implementation of the <see cref="IClientStoreDataProvider"/> interface.
     /// Do not use this in production code, the class is not thread safe.
     /// </summary>
-    public class InMemoryClientStoreDataProviderExtension : IClientStoreDataProviderExtension
+    public class InMemoryClientStoreDataProvider : IClientStoreDataProvider
     {
         private readonly List<Client> _clients = new List<Client>();
         

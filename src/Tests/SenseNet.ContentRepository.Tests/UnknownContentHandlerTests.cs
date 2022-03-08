@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Tests
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
             var builder = base.CreateRepositoryBuilderForTestInstance();
-            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             return builder;
         }
@@ -266,7 +266,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var testingDataProvider = GetTestingDataProvider();
             if (testingDataProvider == null)
-                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+                Assert.Inconclusive($"{nameof(ITestingDataProvider)} implementation is not available.");
 
             testingDataProvider.SetContentHandler(contentTypeName, handler);
         }
@@ -274,14 +274,14 @@ namespace SenseNet.ContentRepository.Tests
         {
             var testingDataProvider = GetTestingDataProvider();
             if (testingDataProvider == null)
-                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+                Assert.Inconclusive($"{nameof(ITestingDataProvider)} implementation is not available.");
 
             testingDataProvider.AddField(contentTypeName, fieldName, fieldType, fieldHandler);
         }
 
-        private static ITestingDataProviderExtension GetTestingDataProvider()
+        private static ITestingDataProvider GetTestingDataProvider()
         {
-            return Providers.Instance.DataProvider.GetExtension<ITestingDataProviderExtension>();
+            return Providers.Instance.GetProvider<ITestingDataProvider>();
         }
     }
 

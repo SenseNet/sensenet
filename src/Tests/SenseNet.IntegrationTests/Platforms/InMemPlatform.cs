@@ -35,12 +35,12 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             return new InMemoryDataProvider();
         }
-        public override ISharedLockDataProviderExtension GetSharedLockDataProviderExtension()
+        public override ISharedLockDataProvider GetSharedLockDataProvider()
         {
             return new InMemorySharedLockDataProvider();
         }
 
-        public override IExclusiveLockDataProviderExtension GetExclusiveLockDataProviderExtension()
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
         {
             return new InMemoryExclusiveLockDataProvider();
         }
@@ -57,11 +57,11 @@ namespace SenseNet.IntegrationTests.Platforms
             return new[] { new InMemoryBlobProvider() };
         }
 
-        public override IAccessTokenDataProviderExtension GetAccessTokenDataProviderExtension()
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
         {
             return new InMemoryAccessTokenDataProvider();
         }
-        public override IPackagingDataProviderExtension GetPackagingDataProviderExtension()
+        public override IPackagingDataProvider GetPackagingDataProvider()
         {
             return new InMemoryPackageStorageProvider();
         }
@@ -94,7 +94,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-        public override ITestingDataProviderExtension GetTestingDataProviderExtension()
+        public override ITestingDataProvider GetTestingDataProvider()
         {
             return new InMemoryTestingDataProvider();
         }

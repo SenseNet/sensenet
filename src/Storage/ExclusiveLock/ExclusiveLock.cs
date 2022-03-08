@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage
             private readonly string _key;
             private readonly string _operationId;
             private readonly TimeSpan _refreshPeriod;
-            private readonly IExclusiveLockDataProviderExtension _dataProvider;
+            private readonly IExclusiveLockDataProvider _dataProvider;
             private readonly CancellationTokenSource _finisher;
             private readonly CancellationToken _cancellationToken;
 

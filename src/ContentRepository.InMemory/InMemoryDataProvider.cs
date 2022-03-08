@@ -1729,7 +1729,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ContentTypeManager.Reset();
             }
 
-            var provider = Providers.Instance.DataProvider.GetExtension<IPackagingDataProviderExtension>();
+            var provider = Providers.Instance.GetProvider<IPackagingDataProvider>();
             if (provider is InMemoryPackageStorageProvider inMemProvider)
             {
                 foreach (var package in GetInitialPackages())

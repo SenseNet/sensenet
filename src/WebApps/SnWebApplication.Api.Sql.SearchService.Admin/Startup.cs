@@ -50,7 +50,7 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
             {
                 repositoryBuilder
                     .UseLogger(provider)
-                    .UseMsSqlExclusiveLockDataProviderExtension();
+                    .UseMsSqlExclusiveLockDataProvider();
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
