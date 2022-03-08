@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
@@ -205,6 +206,11 @@ namespace SenseNet.IntegrationTests.Infrastructure
         private RepositoryBuilder InitIntegrationTest(Action<RepositoryBuilder> initializer)
         {
             Platform.AppConfig = GetConfiguration();
+            var connectionString = Platform.AppConfig.GetConnectionString("SnCrMsSql");
+            ConnectionStrings.ConnectionString = connectionString;
+            ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
+            ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
+
             var builder = Platform.CreateRepositoryBuilder();
             TestInitializer?.Invoke(builder);
             initializer?.Invoke(builder);
