@@ -18,15 +18,15 @@ namespace SenseNet.Storage.Data.MsSqlClient
         protected DataOptions DataOptions { get; }
         private string ConnectionString { get; }
 
-        public MsSqlStatisticalDataProvider()
-        {
-            DataOptions = DataOptions.GetLegacyConfiguration();
-            ConnectionString = ConnectionStrings.ConnectionString;
-        }
         public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
             DataOptions = options?.Value ?? new DataOptions();
-            ConnectionString = (connectionOptions?.Value ?? new ConnectionStringOptions()).Repository;
+
+            if (connectionOptions == null)
+                throw new ArgumentNullException(nameof(connectionOptions));
+            ConnectionString = connectionOptions.Value.Repository;
+            if (ConnectionString == null)
+                throw new ArgumentException($"The {connectionOptions.Value.Repository} cannot be null");
         }
 
         private static readonly string WriteDataScript = @"-- MsSqlStatisticalDataProvider.WriteData

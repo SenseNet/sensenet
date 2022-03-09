@@ -1848,8 +1848,10 @@ namespace SenseNet.ContentRepository.Tests
         {
             Assert.Fail();
 
-            ConnectionStrings.ConnectionString = "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=SNPC007\\SQL2016";
-            var statDataProvider = new MsSqlStatisticalDataProvider();
+            //UNDONE: Do not place connection string here.
+            var cnstr = "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=????????";
+            var statDataProvider = new MsSqlStatisticalDataProvider(null,
+                Options.Create(new ConnectionStringOptions{Repository = cnstr }));
 
             StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
                 new IStatisticalDataAggregator[]
