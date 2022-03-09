@@ -161,7 +161,9 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;            
+            var connectionStrings = new ConnectionStringOptions
+                {Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True"};
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=True";
@@ -178,7 +180,9 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+            var connectionStrings = new ConnectionStringOptions
+                { Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True" };
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=master;Integrated Security=True";
@@ -197,7 +201,9 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+            var connectionStrings = new ConnectionStringOptions
+                { Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True" };
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=False;Persist Security Info=False;User ID=User1;Password=123";
