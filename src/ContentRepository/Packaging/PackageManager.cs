@@ -8,6 +8,8 @@ using System.Diagnostics;
 using SenseNet.ContentRepository;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -25,7 +27,7 @@ namespace SenseNet.Packaging
         internal static IPackagingDataProvider Storage => Providers.Instance.GetProvider<IPackagingDataProvider>();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase,
-            string[] parameters, TextWriter console, RepositoryBuilder builder = null,
+            string[] parameters, TextWriter console, RepositoryBuilder builder,
             bool editConnectionString = false)
         {
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
@@ -35,7 +37,7 @@ namespace SenseNet.Packaging
         }
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, 
             PackageParameter[] parameters, TextWriter console, 
-            RepositoryBuilder builder = null, bool editConnectionString = false)
+            RepositoryBuilder builder, bool editConnectionString = false)
         {
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
@@ -339,20 +341,20 @@ namespace SenseNet.Packaging
             return propertyName;
         }
 
-        internal static PackagingResult ExecutePatch(string manifestXml, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePatch(string manifestXml, RepositoryBuilder repositoryBuilder)
         {
             try
             {
                 var xml = new XmlDocument();
                 xml.LoadXml(manifestXml);
-                return ExecutePatch(xml, settings);
+                return ExecutePatch(xml, repositoryBuilder);
             }
             catch (XmlException ex)
             {
                 throw new InvalidPackageException("Invalid manifest xml.", ex);
             }
         }
-        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, RepositoryBuilder repositoryBuilder)
         {
             var phase = -1;
             var errors = 0;
@@ -360,22 +362,22 @@ namespace SenseNet.Packaging
 
             do
             {
-                result = ExecutePhase(manifestXml, ++phase, settings);
+                result = ExecutePhase(manifestXml, ++phase, repositoryBuilder);
                 errors += result.Errors;
             } while (result.NeedRestart);
 
             result.Errors = errors;
             return result;
         }
-        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, RepositoryBuilder repositoryBuilder)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
 
-            // Fill context with indexing folder, repo start settings, providers and other 
+            // Fill context with indexing folder, repo start settings (builder), providers and other 
             // parameters necessary for on-the-fly steps to run.
             var executionContext = ExecutionContext.Create("packagePath", "targetPath", 
                 new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, 
-                null, null, settings);
+                null, null, repositoryBuilder);
 
             PackagingResult result; 
 

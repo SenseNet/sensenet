@@ -40,10 +40,14 @@ namespace SenseNet.Packaging.Steps.Internal
 
         private static CancellationToken cancel = CancellationToken.None;
 
+        private DataHandler _dataHandler;
+
         public override void Execute(ExecutionContext context)
         {
             Tracer.Write("Phase-0: Initializing.");
-            DataHandler.InstallTables(cancel);
+
+            _dataHandler = new DataHandler(DataOptions.GetLegacyConfiguration(), context.ConnectionStrings);
+            _dataHandler.InstallTables(cancel);
 
             using (var op = Tracer.StartOperation("Phase-1: Reindex metadata."))
             {
@@ -53,7 +57,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             using (var op = Tracer.StartOperation("Phase-2: Create background tasks."))
             {
-                DataHandler.StartBackgroundTasks(cancel);
+                _dataHandler.StartBackgroundTasks(cancel);
                 op.Successful = true;
             }
 
@@ -65,7 +69,7 @@ namespace SenseNet.Packaging.Steps.Internal
             using (new SystemAccount())
             {
                 Tracer.Write("Phase-1: Discover node ids.");
-                var nodeIds = DataHandler.GetAllNodeIds(cancel);
+                var nodeIds = _dataHandler.GetAllNodeIds(cancel);
                 _nodeCount = nodeIds.Count;
 
                 Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes. Create background tasks");
@@ -93,116 +97,118 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void CreateBinaryReindexTask(Node node, int rank)
         {
-            DataHandler.CreateTempTask(node.VersionId, rank, cancel);
+            _dataHandler.CreateTempTask(node.VersionId, rank, cancel);
             _taskCount++;
             Tracer.Write($"V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
         }
 
         /* =============================================================== */
 
-        private static bool _featureIsRunning;
-        private static bool _featureIsRequested;
+        //UNDONE:CNSTR: Uncomment or delete: GetBackgroundTasksAndExecute
+        /**/
+        //private static bool _featureIsRunning;
+        //private static bool _featureIsRequested;
 
-        /// <summary>
-        /// Gets some background task from the database and executes them.
-        /// Task execution is skipped if the version is modified after this time.
-        /// Returns true if there are no more tasks.
-        /// Triggered by the SnMaintenance via the ReindexBinariesTask.
-        /// </summary>
-        /// <param name="timeLimit">Execution is skipped if the version is modified after this time.</param>
-        /// <param name="taskCount">Default 10.</param>
-        /// <param name="timeoutInMinutes">Default 5.</param>
-        /// <returns>True if there are no more tasks.</returns>
-        internal static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
-        {
-            if (_featureIsRunning)
-            {
-                _featureIsRequested = true;
-                Tracer.Write("Maintenance call skipped.");
-                return false;
-            }
-            Tracer.Write("Maintenance call.");
-            _featureIsRunning = true;
+        ///// <summary>
+        ///// Gets some background task from the database and executes them.
+        ///// Task execution is skipped if the version is modified after this time.
+        ///// Returns true if there are no more tasks.
+        ///// Triggered by the SnMaintenance via the ReindexBinariesTask.
+        ///// </summary>
+        ///// <param name="timeLimit">Execution is skipped if the version is modified after this time.</param>
+        ///// <param name="taskCount">Default 10.</param>
+        ///// <param name="timeoutInMinutes">Default 5.</param>
+        ///// <returns>True if there are no more tasks.</returns>
+        //internal static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
+        //{
+        //    if (_featureIsRunning)
+        //    {
+        //        _featureIsRequested = true;
+        //        Tracer.Write("Maintenance call skipped.");
+        //        return false;
+        //    }
+        //    Tracer.Write("Maintenance call.");
+        //    _featureIsRunning = true;
 
-            do
-            {
-                _featureIsRequested = false;
-                var assignedTasks = DataHandler.AssignTasks(
-                    taskCount > 0 ? taskCount : 10,
-                    timeoutInMinutes > 0 ? timeoutInMinutes : 5, cancel);
+        //    do
+        //    {
+        //        _featureIsRequested = false;
+        //        var assignedTasks = _dataHandler.AssignTasks(
+        //            taskCount > 0 ? taskCount : 10,
+        //            timeoutInMinutes > 0 ? timeoutInMinutes : 5, cancel);
 
-                var versionIds = assignedTasks.VersionIds;
-                if (assignedTasks.RemainingTaskCount == 0)
-                {
-                    _featureIsRequested = false;
-                    _featureIsRunning = false;
-                    return true;
-                }
+        //        var versionIds = assignedTasks.VersionIds;
+        //        if (assignedTasks.RemainingTaskCount == 0)
+        //        {
+        //            _featureIsRequested = false;
+        //            _featureIsRunning = false;
+        //            return true;
+        //        }
 
-                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {assignedTasks.RemainingTaskCount}");
+        //        Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {assignedTasks.RemainingTaskCount}");
 
-                foreach (var versionId in versionIds)
-                {
-                    if (ReindexBinaryProperties(versionId, timeLimit))
-                        DataHandler.FinishTask(versionId, cancel);
-                }
-            } while (_featureIsRequested); // repeat if the maintenance called in the previous loop. 
+        //        foreach (var versionId in versionIds)
+        //        {
+        //            if (ReindexBinaryProperties(versionId, timeLimit))
+        //                DataHandler.FinishTask(versionId, cancel);
+        //        }
+        //    } while (_featureIsRequested); // repeat if the maintenance called in the previous loop. 
 
-            _featureIsRunning = false;
-            return false;
-        }
-        private static bool ReindexBinaryProperties(int versionId, DateTime timeLimit)
-        {
-            using (new SystemAccount())
-            {
-                var node = Node.LoadNodeByVersionId(versionId);
-                if (node == null)
-                    return true;
+        //    _featureIsRunning = false;
+        //    return false;
+        //}
+        //private static bool ReindexBinaryProperties(int versionId, DateTime timeLimit)
+        //{
+        //    using (new SystemAccount())
+        //    {
+        //        var node = Node.LoadNodeByVersionId(versionId);
+        //        if (node == null)
+        //            return true;
 
-                if (node.VersionModificationDate > timeLimit)
-                {
-                    Tracer.Write($"SKIP V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
-                    return true;
-                }
+        //        if (node.VersionModificationDate > timeLimit)
+        //        {
+        //            Tracer.Write($"SKIP V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+        //            return true;
+        //        }
 
-                try
-                {
-                    Retrier.Retry(3, 2000, typeof(Exception), () =>
-                    {
-                        var indx = Providers.Instance.DataStore.LoadIndexDocumentsAsync(new[] { versionId },
-                                CancellationToken.None).GetAwaiter().GetResult().FirstOrDefault();
-                        var _ = Providers.Instance.DataStore
-                            .SaveIndexDocumentAsync(node, indx, CancellationToken.None)
-                            .GetAwaiter().GetResult();
-                    });
-                    Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Tracer.WriteError("Error after 3 attempts: {0}", e);
-                    return false;
-                }
-            }
-        }
+        //        try
+        //        {
+        //            Retrier.Retry(3, 2000, typeof(Exception), () =>
+        //            {
+        //                var indx = Providers.Instance.DataStore.LoadIndexDocumentsAsync(new[] { versionId },
+        //                        CancellationToken.None).GetAwaiter().GetResult().FirstOrDefault();
+        //                var _ = Providers.Instance.DataStore
+        //                    .SaveIndexDocumentAsync(node, indx, CancellationToken.None)
+        //                    .GetAwaiter().GetResult();
+        //            });
+        //            Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+        //            return true;
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Tracer.WriteError("Error after 3 attempts: {0}", e);
+        //            return false;
+        //        }
+        //    }
+        //}
 
-        internal static DateTime GetTimeLimit()
-        {
-            return DataHandler.LoadTimeLimit(cancel);
-        }
-        internal static bool IsFeatureActive()
-        {
-            if (Debugger.IsAttached)
-                return false;
-            if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
-                return false;
+        //internal static DateTime GetTimeLimit()
+        //{
+        //    return DataHandler.LoadTimeLimit(cancel);
+        //}
+        //internal static bool IsFeatureActive()
+        //{
+        //    if (Debugger.IsAttached)
+        //        return false;
+        //    if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
+        //        return false;
 
-            return DataHandler.CheckFeature(cancel);
-        }
-        internal static void InactivateFeature()
-        {
-            DataHandler.DropTables(cancel);
-            Tracer.Write("Feature is inactivated.");
-        }
+        //    return DataHandler.CheckFeature(cancel);
+        //}
+        //internal static void InactivateFeature()
+        //{
+        //    DataHandler.DropTables(cancel);
+        //    Tracer.Write("Feature is inactivated.");
+        //}
     }
 }

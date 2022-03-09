@@ -25,13 +25,13 @@ namespace SenseNet.Packaging.Steps
             if (string.IsNullOrEmpty(Query))
                 throw new PackagingException(PackagingExceptionType.InvalidParameter);
 
-            return ExecuteSql(Query);
+            return ExecuteSql(Query, context.ConnectionStrings.Repository);
         }
 
-        internal static bool ExecuteSql(string script)
+        internal static bool ExecuteSql(string script, string connectionString)
         {
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 try
                 {

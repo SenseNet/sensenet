@@ -32,7 +32,7 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string) context.ResolveVariable(UserName),
                 Password = (string) context.ResolveVariable(Password)
             };
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo);
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings);
 
             var initialData = InitialData.Load(new SenseNetServicesInitialData(), null);
             var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());

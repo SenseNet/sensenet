@@ -13,16 +13,25 @@ namespace SenseNet.Packaging.Steps.Internal
     public partial class ReindexBinaries
     {
         //TODO: [DIREF] get options from DI through constructor
-        private static class DataHandler
+        private class DataHandler
         {
-            internal static void InstallTables(CancellationToken cancellationToken)
+            private readonly DataOptions _dataOptions;
+            private readonly ConnectionStringOptions _connectionStrings;
+
+            public DataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                _dataOptions = dataOptions;
+                _connectionStrings = connectionStrings;
+            }
+
+            internal void InstallTables(CancellationToken cancellationToken)
+            {
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             }
-            internal static void StartBackgroundTasks(CancellationToken cancellationToken)
+            internal void StartBackgroundTasks(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             }
 
@@ -31,11 +40,11 @@ namespace SenseNet.Packaging.Steps.Internal
                 public int[] VersionIds;
                 public int RemainingTaskCount;
             }
-            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
+            internal AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
             {
                 var result = new List<int>();
                 int remainingTasks = 0;
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
@@ -57,9 +66,9 @@ namespace SenseNet.Packaging.Steps.Internal
                 return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
             }
 
-            internal static void FinishTask(int versionId, CancellationToken cancellationToken)
+            internal void FinishTask(int versionId, CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -68,9 +77,9 @@ namespace SenseNet.Packaging.Steps.Internal
 
             /* ========================================================================================= */
 
-            public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
+            public void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -78,9 +87,9 @@ namespace SenseNet.Packaging.Steps.Internal
                     }).GetAwaiter().GetResult();
             }
 
-            public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
+            public List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 {
                     return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
@@ -92,17 +101,17 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static void DropTables(CancellationToken cancellationToken)
+            public void DropTables(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             }
 
-            public static bool CheckFeature(CancellationToken cancellationToken)
+            public bool CheckFeature(CancellationToken cancellationToken)
             {
                 try
                 {
-                    using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                    using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                         return Convert.ToInt32(result) != 0;
@@ -120,9 +129,9 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
+            public DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
