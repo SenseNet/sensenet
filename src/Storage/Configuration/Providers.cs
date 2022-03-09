@@ -191,7 +191,7 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        public void ResetBlobProviders()
+        public void ResetBlobProviders(ConnectionStringOptions connectionStrings)
         {
             BlobStorage = null;
             BlobProviderSelector = null;
@@ -200,16 +200,16 @@ namespace SenseNet.Configuration
 
             // add default internal blob provider
             BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
-                Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings())));
+                Options.Create(connectionStrings)));
         }
 
-        public void InitializeBlobProviders()
+        public void InitializeBlobProviders(ConnectionStringOptions connectionStrings)
         {
             // add built-in provider manually if necessary
             if (!BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
             {
                 BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
-                    Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings())));
+                    Options.Create(connectionStrings)));
             }
 
             if (BlobProviderSelector == null)
@@ -222,7 +222,7 @@ namespace SenseNet.Configuration
                 BlobMetaDataProvider = new MsSqlBlobMetaDataProvider(BlobProviders,
                     Options.Create(DataOptions.GetLegacyConfiguration()),
                     Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                    Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
+                    Options.Create(connectionStrings));
 
             // assemble the main api instance if necessary (for tests)
             if (BlobStorage == null)

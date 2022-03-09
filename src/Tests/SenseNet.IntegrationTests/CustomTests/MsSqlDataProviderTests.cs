@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -20,7 +21,17 @@ namespace SenseNet.IntegrationTests.CustomTests
     {
         private MsSqlDataProvider CreateDataProvider()
         {
-            var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json");
+            builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
+            var appConfig = builder.Build(); ;
+
+            var connectionString = appConfig.GetConnectionString("SnCrMsSql");
+            ConnectionStrings.ConnectionString = connectionString;
+            ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
+            ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
+
+            var connOptions = Options.Create(new ConnectionStringOptions{ConnectionString = connectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
                 dbInstallerOptions,

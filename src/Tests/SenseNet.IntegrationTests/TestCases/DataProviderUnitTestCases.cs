@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -34,7 +35,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 Platform.AppConfig = GetConfiguration();
                 var builder = Platform.CreateRepositoryBuilder();
                 if(Providers.Instance.BlobStorage == null)
-                    Providers.Instance.InitializeBlobProviders();
+                    Providers.Instance.InitializeBlobProviders(
+                        new ConnectionStringOptions{ConnectionString = Platform.AppConfig.GetConnectionString("SnCrMsSql") });
                 TestInitializer?.Invoke(builder);
                 callback();
             }

@@ -46,7 +46,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider()
         {
-            var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
+            var connOptions = Options.Create(new ConnectionStringOptions{ConnectionString = this.ConnectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
@@ -75,7 +75,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
                 Options.Create(DataOptions.GetLegacyConfiguration()),
                 Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
+                Options.Create(new ConnectionStringOptions { ConnectionString = this.ConnectionString }));
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {

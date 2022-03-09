@@ -71,7 +71,7 @@ namespace SenseNet.Configuration
         /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
         /// </summary>
         /// <returns>A new instance of ConnectionStringOptions filled with static configuration values.</returns>
-        [Obsolete]
+        [Obsolete("####", true)]
         public static ConnectionStringOptions GetLegacyConnectionStrings()
         {
             return new ConnectionStringOptions

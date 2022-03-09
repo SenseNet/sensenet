@@ -67,7 +67,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 repositoryBuilder.UseDataProvider(dataProvider);
             }
 
-            Providers.Instance.ResetBlobProviders();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var dataStore = Providers.Instance.DataStore;
             var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
