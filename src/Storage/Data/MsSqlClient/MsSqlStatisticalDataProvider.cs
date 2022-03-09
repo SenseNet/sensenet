@@ -26,7 +26,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
         public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
             DataOptions = options?.Value ?? new DataOptions();
-            ConnectionString = (connectionOptions?.Value ?? new ConnectionStringOptions()).ConnectionString;
+            ConnectionString = (connectionOptions?.Value ?? new ConnectionStringOptions()).Repository;
         }
 
         private static readonly string WriteDataScript = @"-- MsSqlStatisticalDataProvider.WriteData

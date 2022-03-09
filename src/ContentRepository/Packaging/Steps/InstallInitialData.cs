@@ -38,7 +38,7 @@ namespace SenseNet.Packaging.Steps
             var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());
             var connOptions = Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             });
             
             var installer = new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>());

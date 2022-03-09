@@ -36,7 +36,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var builder = Platform.CreateRepositoryBuilder();
                 if(Providers.Instance.BlobStorage == null)
                     Providers.Instance.InitializeBlobProviders(
-                        new ConnectionStringOptions{ConnectionString = Platform.AppConfig.GetConnectionString("SnCrMsSql") });
+                        new ConnectionStringOptions{Repository = Platform.AppConfig.GetConnectionString("SnCrMsSql") });
                 TestInitializer?.Invoke(builder);
                 callback();
             }

@@ -549,13 +549,13 @@ DELETE FROM StatisticalAggregations
             public MsSqlCannotCommitDataProvider(string connectionString) : base(Options.Create(DataOptions.GetLegacyConfiguration()),
                 Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             }), Options.Create(new MsSqlDatabaseInstallationOptions()), 
                 new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationOptions()),
                     NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
                 new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>())
             {

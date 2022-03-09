@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             CreateData(dataSet, data, msdp);
 
-            await WriteToDatabaseAsync(dataSet, ConnectionStrings.ConnectionString, cancel).ConfigureAwait(false);
+            await WriteToDatabaseAsync(dataSet, ConnectionStrings.Repository, cancel).ConfigureAwait(false);
         }
 
         /* ==================================================================================================== Tables */

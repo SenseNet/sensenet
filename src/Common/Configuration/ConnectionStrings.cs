@@ -63,39 +63,20 @@ namespace SenseNet.Configuration
 
     public class ConnectionStringOptions
     {
-        private string _securityDatabase;
-        private string _signalRDatabase;
+        public string Repository { get; set; }
 
-        //TODO: [DIREF] remove legacy configuration when upper layers are ready.
-        /// <summary>
-        /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
-        /// </summary>
-        /// <returns>A new instance of ConnectionStringOptions filled with static configuration values.</returns>
-        [Obsolete("####", true)]
-        public static ConnectionStringOptions GetLegacyConnectionStrings()
+        private string _security;
+        public string Security
         {
-            return new ConnectionStringOptions
-            {
-                ConnectionString = ConnectionStrings.ConnectionString,
-                SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString,
-                SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString
-            };
+            get => _security ?? Repository;
+            set => _security = value;
         }
 
-        //UNDONE: find a proper name for connection string properties
-        // Maybe: Repository, Security, SignalR?
-        public string ConnectionString { get; set; }
-
-        public string SecurityDatabase
+        private string _signalR;
+        public string SignalR
         {
-            get => _securityDatabase ?? ConnectionString;
-            set => _securityDatabase = value;
-        }
-
-        public string SignalRDatabase
-        {
-            get => _signalRDatabase ?? ConnectionString;
-            set => _signalRDatabase = value;
+            get => _signalR ?? Repository;
+            set => _signalR = value;
         }
     }
 
@@ -109,9 +90,9 @@ namespace SenseNet.Configuration
         {
             return services.Configure<ConnectionStringOptions>(options =>
             {
-                options.ConnectionString = ConnectionStrings.ConnectionString;
-                options.SecurityDatabase = ConnectionStrings.SecurityDatabaseConnectionString;
-                options.SignalRDatabase = ConnectionStrings.SignalRDatabaseConnectionString;
+                options.Repository = ConnectionStrings.ConnectionString;
+                options.Security = ConnectionStrings.SecurityDatabaseConnectionString;
+                options.SignalR = ConnectionStrings.SignalRDatabaseConnectionString;
             });
         }
     }

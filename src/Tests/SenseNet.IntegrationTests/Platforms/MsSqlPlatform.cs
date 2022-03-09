@@ -46,7 +46,7 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider()
         {
-            var connOptions = Options.Create(new ConnectionStringOptions{ConnectionString = this.ConnectionString});
+            var connOptions = Options.Create(new ConnectionStringOptions{Repository = this.ConnectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
@@ -75,7 +75,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
                 Options.Create(DataOptions.GetLegacyConfiguration()),
                 Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                Options.Create(new ConnectionStringOptions { ConnectionString = this.ConnectionString }));
+                Options.Create(new ConnectionStringOptions { Repository = this.ConnectionString }));
         }
         public override IBlobProviderSelector GetBlobProviderSelector()
         {
@@ -114,7 +114,7 @@ namespace SenseNet.IntegrationTests.Platforms
         public override IStatisticalDataProvider GetStatisticalDataProvider()
         {
             return new MsSqlStatisticalDataProvider(Options.Create(new DataOptions()),
-                Options.Create(new ConnectionStringOptions {ConnectionString = ConnectionString}));
+                Options.Create(new ConnectionStringOptions {Repository = ConnectionString}));
         }
 
         /* ============================================================== */

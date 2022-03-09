@@ -33,7 +33,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
             ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
 
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions { ConnectionString = connectionString });
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions { Repository = connectionString });
 
             var builder = new RepositoryBuilder();
 

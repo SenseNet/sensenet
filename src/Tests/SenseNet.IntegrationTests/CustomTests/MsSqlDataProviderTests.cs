@@ -31,7 +31,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
             ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
 
-            var connOptions = Options.Create(new ConnectionStringOptions{ConnectionString = connectionString});
+            var connOptions = Options.Create(new ConnectionStringOptions{Repository = connectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
                 dbInstallerOptions,
