@@ -26,6 +26,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
     {
         public IConfiguration AppConfig { get; set; }
 
+        public string RepositoryConnectionString => AppConfig.GetConnectionString("SnCrMsSql");
+
         public RepositoryBuilder CreateRepositoryBuilder()
         {
             var connectionString = AppConfig.GetConnectionString("SnCrMsSql");
