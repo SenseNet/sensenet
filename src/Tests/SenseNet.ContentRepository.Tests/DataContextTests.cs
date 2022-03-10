@@ -138,12 +138,6 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DC_MSSQL_Construction_Default()
-        {
-            var dataContext = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
-            Assert.AreEqual(ConnectionStrings.ConnectionString, dataContext.ConnectionString);
-        }
-        [TestMethod]
         public void DC_MSSQL_Construction_ConnectionString()
         {
             var connectionString = "ConnectionString1";
