@@ -45,7 +45,7 @@ namespace SnConsoleInstaller
                             .ReadFrom.Configuration(hb.Configuration)
                             .CreateLogger());
                     })
-                    .ConfigureLegacyConnectionStrings()
+                    .ConfigureConnectionStrings(hb.Configuration)
                     .AddSenseNetMsSqlDataProvider()
                     .AddSenseNetSecurity()
                     .AddEFCSecurityDataProvider(options =>

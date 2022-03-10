@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SenseNet.Configuration
@@ -78,22 +81,27 @@ namespace SenseNet.Configuration
             get => _signalR ?? Repository;
             set => _signalR = value;
         }
+
+        public IDictionary<string, string> AllConnectionStrings { get; set; }
+
     }
 
     public static class ConnectionOptionExtensions
     {
-        /// <summary>
-        /// Configures connection strings using the old configuration values.
-        /// DO NOT USE THIS IN YOUR CODE.
-        /// </summary>
-        public static IServiceCollection ConfigureLegacyConnectionStrings(this IServiceCollection services)
+        public static IServiceCollection ConfigureConnectionStrings(this IServiceCollection services, IConfiguration configuration)
         {
+            var defaultConnectionString = configuration.GetConnectionString("SnCrMsSql");
             return services.Configure<ConnectionStringOptions>(options =>
             {
-                options.Repository = ConnectionStrings.ConnectionString;
-                options.Security = ConnectionStrings.SecurityDatabaseConnectionString;
-                options.SignalR = ConnectionStrings.SignalRDatabaseConnectionString;
+                options.Repository = defaultConnectionString;
+                options.Security = configuration.GetConnectionString("SecurityStorage") ?? defaultConnectionString;
+                options.SignalR = configuration.GetConnectionString("SignalRDatabase") ?? defaultConnectionString;
+
+                var section = configuration.GetSection("ConnectionStrings");
+                options.AllConnectionStrings = section.GetChildren()
+                    .ToDictionary(x => x.Key, x => x.Value);
             });
         }
+
     }
 }

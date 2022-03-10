@@ -202,7 +202,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             var connectionStrings = new ConnectionStringOptions
-                { Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True" };
+                { Repository = "Data Source=ds;Initial Catalog=ic;Persist Security Info=False;Integrated Security=True" };
             var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
 
             // ASSERT

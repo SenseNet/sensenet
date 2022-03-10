@@ -24,12 +24,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             ConnectionString = connectionString;
         }
 
-        public static string GetConnectionString(ConnectionInfo connectionInfo)
+        public static string GetConnectionString(ConnectionInfo connectionInfo, ConnectionStringOptions connectionStrings)
         {
             string cnstr;
 
             if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
-                throw new NotSupportedException("Unknown ConnectionName");
+                cnstr = connectionStrings.Repository;
             else
             if (!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
                 || cnstr == null)
