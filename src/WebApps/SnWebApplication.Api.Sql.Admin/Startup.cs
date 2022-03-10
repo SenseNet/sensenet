@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
@@ -38,15 +37,19 @@ namespace SnWebApplication.Api.Sql.Admin
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProvider();
-            })
+                {
+                    repositoryBuilder
+                                   .UseLogger(provider)
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        .UseMsSqlExclusiveLockDataProvider();
+                })
                 .AddEFCSecurityDataProvider(options =>
                 {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                    //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
+                    //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
+                    //options.ConnectionString = connectionStrings.Security;
+                    options.ConnectionString = Configuration.GetConnectionString("SecurityStorage")
+                                               ?? Configuration.GetConnectionString("SnCrMsSql");
                 })
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()

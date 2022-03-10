@@ -50,7 +50,11 @@ namespace SnConsoleInstaller
                     .AddSenseNetSecurity()
                     .AddEFCSecurityDataProvider(options =>
                     {
-                        options.ConnectionString = ConnectionStrings.ConnectionString;
+                        //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
+                        //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
+                        //options.ConnectionString = connectionStrings.Security;
+                        options.ConnectionString = hb.Configuration.GetConnectionString("SecurityStorage")
+                                                   ?? hb.Configuration.GetConnectionString("SnCrMsSql");
                     }));
     }
 }

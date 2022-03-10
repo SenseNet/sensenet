@@ -53,7 +53,11 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             })
                 .AddEFCSecurityDataProvider(options =>
                 {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                    //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
+                    //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
+                    //options.ConnectionString = connectionStrings.Security;
+                    options.ConnectionString = Configuration.GetConnectionString("SecurityStorage")
+                                               ?? Configuration.GetConnectionString("SnCrMsSql");
                 })
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()

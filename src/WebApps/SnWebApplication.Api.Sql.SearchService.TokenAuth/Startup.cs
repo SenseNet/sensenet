@@ -57,7 +57,11 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                    //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
+                    //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
+                    //options.ConnectionString = connectionStrings.Security;
+                    options.ConnectionString = Configuration.GetConnectionString("SecurityStorage")
+                                               ?? Configuration.GetConnectionString("SnCrMsSql");
                 })
                 .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
