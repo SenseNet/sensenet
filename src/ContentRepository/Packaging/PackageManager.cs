@@ -42,8 +42,9 @@ namespace SenseNet.Packaging
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
+            var mainProvider = Providers.Instance.DataProvider as RelationalDataProviderBase;
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider());
+                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider(mainProvider));
 
             var packageParameters = parameters ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters

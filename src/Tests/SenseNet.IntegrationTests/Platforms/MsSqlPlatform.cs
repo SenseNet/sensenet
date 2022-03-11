@@ -88,7 +88,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IPackagingDataProvider GetPackagingDataProvider()
         {
-            return new MsSqlPackagingDataProvider();
+            return new MsSqlPackagingDataProvider(_dataProvider);
         }
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
         {
