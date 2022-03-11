@@ -339,7 +339,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {
