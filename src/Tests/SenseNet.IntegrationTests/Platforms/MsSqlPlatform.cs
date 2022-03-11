@@ -41,16 +41,19 @@ namespace SenseNet.IntegrationTests.Platforms
             base.OnAfterRepositoryStart(repository);
         }
 
+        private IOptions<ConnectionStringOptions> _connectionStringOptions;
+        MsSqlDataProvider _dataProvider;
         public override DataProvider GetDataProvider()
         {
-            var connOptions = Options.Create(new ConnectionStringOptions{Repository = RepositoryConnectionString });
+            _connectionStringOptions = Options.Create(new ConnectionStringOptions{Repository = RepositoryConnectionString });
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
-            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
+            _dataProvider = new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), _connectionStringOptions,
                 dbInstallerOptions,
                 new MsSqlDatabaseInstaller(dbInstallerOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
-                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
+                new MsSqlDataInstaller(_connectionStringOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
+            return _dataProvider;
         }
         public override ISharedLockDataProvider GetSharedLockDataProvider()
         {
@@ -98,7 +101,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ITestingDataProvider GetTestingDataProvider()
         {
-            return new MsSqlTestingDataProvider();
+            return new MsSqlTestingDataProvider(_dataProvider, _connectionStringOptions);
         }
         public override ISearchEngine GetSearchEngine()
         {

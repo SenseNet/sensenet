@@ -25,12 +25,7 @@ namespace SenseNet.IntegrationTests.CustomTests
             builder.AddJsonFile("appsettings.json");
             builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
             var appConfig = builder.Build(); ;
-
             var connectionString = appConfig.GetConnectionString("SnCrMsSql");
-            ConnectionStrings.ConnectionString = connectionString;
-            ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
-            ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
-
             var connOptions = Options.Create(new ConnectionStringOptions{Repository = connectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
