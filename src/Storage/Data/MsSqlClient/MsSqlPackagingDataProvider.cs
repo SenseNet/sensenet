@@ -19,7 +19,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class MsSqlPackagingDataProvider : IPackagingDataProvider
     {
-        private RelationalDataProviderBase _mainProvider;
+        private readonly RelationalDataProviderBase _mainProvider;
+
         public MsSqlPackagingDataProvider(RelationalDataProviderBase mainProvider)
         {
             _mainProvider = mainProvider;

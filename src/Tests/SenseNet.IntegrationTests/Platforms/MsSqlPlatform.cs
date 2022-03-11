@@ -55,7 +55,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override ISharedLockDataProvider GetSharedLockDataProvider()
         {
-            return new MsSqlSharedLockDataProvider();
+            return new MsSqlSharedLockDataProvider(_dataProvider);
         }
 
         public override IEnumerable<IBlobProvider> GetBlobProviders()
@@ -84,7 +84,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         public override IAccessTokenDataProvider GetAccessTokenDataProvider()
         {
-            return new MsSqlAccessTokenDataProvider();
+            return new MsSqlAccessTokenDataProvider(_dataProvider);
         }
         public override IPackagingDataProvider GetPackagingDataProvider()
         {

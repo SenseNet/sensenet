@@ -324,9 +324,9 @@ namespace SenseNet.ContentRepository
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
                 Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider(mainProvider));
             if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider());
+                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider(mainProvider));
             if (null == Providers.Instance.GetProvider<ISharedLockDataProvider>())
-                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), new MsSqlSharedLockDataProvider());
+                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), new MsSqlSharedLockDataProvider(mainProvider));
         }
 
         private static void InitializeOAuthProviders()
