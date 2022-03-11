@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private DataOptions DataOptions { get; }
         private readonly MsSqlDatabaseInstallationOptions _dbInstallerOptions;
         private readonly MsSqlDatabaseInstaller _databaseInstaller;
-        private ConnectionStringOptions ConnectionStrings { get; }
+        private IOptions<ConnectionStringOptions> ConnectionStrings { get; }
         private IDataInstaller DataInstaller { get; }
         private readonly ILogger _logger;
 
@@ -38,13 +38,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             DataOptions = dataOptions.Value;
             _dbInstallerOptions = dbInstallerOptions.Value;
             _databaseInstaller = databaseInstaller;
-            ConnectionStrings = connectionOptions.Value;
+            ConnectionStrings = connectionOptions;
             _logger = logger;
         }
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            return new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, token);
+            return new MsSqlDataContext(ConnectionStrings.Value.Repository, DataOptions, token);
         }
         /* =========================================================================================== Platform specific implementations */
 
@@ -294,7 +294,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override SchemaWriter CreateSchemaWriter()
         {
-            return new MsSqlSchemaWriter();
+            return new MsSqlSchemaWriter(this.ConnectionStrings);
         }
 
         /* =============================================================================================== Logging */

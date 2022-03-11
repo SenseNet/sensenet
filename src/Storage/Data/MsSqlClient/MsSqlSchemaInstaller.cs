@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         //UNDONE: [DIREF] get connection string through constructor
 
-        public static async Task InstallSchemaAsync(RepositorySchemaData schema, string connectionString = null)
+        public static async Task InstallSchemaAsync(RepositorySchemaData schema, string connectionString)
         {
             var dataSet = new DataSet();
 
@@ -149,7 +149,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
-            using (var connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
                 using (var transaction = connection.BeginTransaction())
