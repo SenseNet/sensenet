@@ -31,9 +31,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public RepositoryBuilder CreateRepositoryBuilder()
         {
             var connectionString = AppConfig.GetConnectionString("SnCrMsSql");
-            ConnectionStrings.ConnectionString = connectionString;
-            ConnectionStrings.SecurityDatabaseConnectionString = connectionString;
-            ConnectionStrings.SignalRDatabaseConnectionString = connectionString;
 
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions { Repository = connectionString });
 

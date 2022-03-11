@@ -29,8 +29,6 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
-            //UNDONE: [DIREF]: do not set the global connection string
-            ConnectionStrings.ConnectionString = RepositoryConnectionString;
             PrepareDatabase();
             base.OnBeforeGettingRepositoryBuilder(builder);
         }
