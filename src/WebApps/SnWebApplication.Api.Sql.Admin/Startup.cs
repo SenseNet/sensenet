@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
@@ -33,24 +35,22 @@ namespace SnWebApplication.Api.Sql.Admin
             // [sensenet]: Authentication: switched off below
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
+            // [sensenet]: Set options for EFCSecurityDataProvider
+            services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
+                .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
+                    securityOptions.ConnectionString = systemConnections.Value.Security);
+
             // [sensenet]: add sensenet services
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
                     repositoryBuilder
-                                   .UseLogger(provider)
+                        .UseLogger(provider)
                         .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
                         .UseMsSqlExclusiveLockDataProvider();
                 })
-                .AddEFCSecurityDataProvider(options =>
-                {
-                    //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
-                    //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
-                    //options.ConnectionString = connectionStrings.Security;
-                    options.ConnectionString = Configuration.GetConnectionString("SecurityStorage")
-                                               ?? Configuration.GetConnectionString("SnCrMsSql");
-                })
+                .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()
                 .AddComponent(provider => new MsSqlExclusiveLockComponent())

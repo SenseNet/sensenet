@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
@@ -37,24 +38,26 @@ namespace SnConsoleInstaller
                     .AddJsonFile("appsettings.json", true, true)
                     .AddUserSecrets<Program>()
                 )
-                .ConfigureServices((hb, services) => services
-                    .SetSenseNetConfiguration(hb.Configuration)
-                    .AddLogging(logging =>
-                    {
-                        logging.AddSerilog(new LoggerConfiguration()
-                            .ReadFrom.Configuration(hb.Configuration)
-                            .CreateLogger());
-                    })
-                    .ConfigureConnectionStrings(hb.Configuration)
-                    .AddSenseNetMsSqlDataProvider()
-                    .AddSenseNetSecurity()
-                    .AddEFCSecurityDataProvider(options =>
-                    {
-                        //UNDONE:CNSTR: AddEFCSecurityDataProvider extension needs Action<DataOptions options, IServiceProvider provider> parameter.
-                        //var connectionStrings = provider.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
-                        //options.ConnectionString = connectionStrings.Security;
-                        options.ConnectionString = hb.Configuration.GetConnectionString("SecurityStorage")
-                                                   ?? hb.Configuration.GetConnectionString("SnCrMsSql");
-                    }));
+                .ConfigureServices((hb, services) =>
+                {
+                    // [sensenet]: Set options for EFCSecurityDataProvider
+                    services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
+                        .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
+                            securityOptions.ConnectionString = systemConnections.Value.Security);
+
+                    // [sensenet]: add sensenet services
+                    services
+                                        .SetSenseNetConfiguration(hb.Configuration)
+                        .AddLogging(logging =>
+                        {
+                            logging.AddSerilog(new LoggerConfiguration()
+                                .ReadFrom.Configuration(hb.Configuration)
+                                .CreateLogger());
+                        })
+                        .ConfigureConnectionStrings(hb.Configuration)
+                        .AddSenseNetMsSqlDataProvider()
+                        .AddSenseNetSecurity()
+                        .AddEFCSecurityDataProvider();
+                });
     }
 }
