@@ -31,9 +31,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
                 cnstr = connectionStrings.Repository;
             else
-            if (!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
-                || cnstr == null)
-                throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
+                if (!connectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
+                    || cnstr == null)
+                    throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
 
             var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
             switch (connectionInfo.InitialCatalog)

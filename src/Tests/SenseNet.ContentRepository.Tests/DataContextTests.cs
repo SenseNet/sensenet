@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -201,6 +202,55 @@ namespace SenseNet.ContentRepository.Tests
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=False;Persist Security Info=False;User ID=User1;Password=123";
+            Assert.AreEqual(expected, connectionString);
+        }
+        [TestMethod]
+        public void DC_MSSQL_Construction_ConnectionInfo_Named_Master()
+        {
+            var connectionInfo = new ConnectionInfo
+            {
+                ConnectionName = "CustomCnStr",
+                InitialCatalog = InitialCatalog.Master,
+            };
+
+            // ACTION
+            var connectionStrings = new ConnectionStringOptions
+            {
+                Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True",
+                AllConnectionStrings = new Dictionary<string, string>
+                {
+                    {"CustomCnStr", "Data Source=CustomServer;Initial Catalog=InitialCatalog1;Integrated Security=True"}
+                }
+            };
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
+
+            // ASSERT
+            var expected = "Data Source=CustomServer;Initial Catalog=master;Integrated Security=True";
+            Assert.AreEqual(expected, connectionString);
+        }
+        [TestMethod]
+        public void DC_MSSQL_Construction_ConnectionInfo_Named_CustomDb()
+        {
+            var connectionInfo = new ConnectionInfo
+            {
+                ConnectionName = "CustomCnStr",
+                InitialCatalog = InitialCatalog.Initial,
+                InitialCatalogName = "CustomDb"
+            };
+
+            // ACTION
+            var connectionStrings = new ConnectionStringOptions
+            {
+                Repository = "Data Source=ds;Initial Catalog=ic;Integrated Security=True",
+                AllConnectionStrings = new Dictionary<string, string>
+                {
+                    {"CustomCnStr", "Data Source=CustomServer;Initial Catalog=InitialCatalog1;Integrated Security=True"}
+                }
+            };
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, connectionStrings);
+
+            // ASSERT
+            var expected = "Data Source=CustomServer;Initial Catalog=CustomDb;Integrated Security=True";
             Assert.AreEqual(expected, connectionString);
         }
     }
