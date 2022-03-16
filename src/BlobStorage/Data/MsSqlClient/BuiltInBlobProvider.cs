@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
         protected DataOptions DataOptions { get; }
-        private ConnectionStringOptions ConnectionStrings { get; }
+        private string _connectionString;
 
         // This property injection is a workaround for the service circular reference caused
         // by the built-in blob provider. It requires a BlobStorage instance to be able to
@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
         {
             DataOptions = options?.Value ?? new DataOptions();
-            ConnectionStrings = connectionOptions?.Value ?? new ConnectionStringOptions();
+            _connectionString = connectionOptions?.Value.Repository;
         }
 
         /// <inheritdoc />
@@ -94,8 +94,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            //UNDONE: [DIREF] get connection string through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                 {
@@ -174,8 +173,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         public byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            //UNDONE: [DIREF] get connection string through constructor (new options class)
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
                 {
@@ -206,8 +204,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
-            //UNDONE: [DIREF] get connection string through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {
