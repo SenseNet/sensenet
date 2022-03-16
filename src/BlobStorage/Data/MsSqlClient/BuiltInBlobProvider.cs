@@ -27,6 +27,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
         protected DataOptions DataOptions { get; }
+        // Do not make readonly this field because tests write her.
+        // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private string _connectionString;
 
         // This property injection is a workaround for the service circular reference caused

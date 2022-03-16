@@ -56,8 +56,7 @@ namespace SenseNet.IntegrationTests.CustomTests
                     var cnstr = GetConnectionString();
                     var builtInBlobProvider = (BuiltInBlobProvider) Providers.Instance.BlobProviders.BuiltInBlobProvider;
                     var builtInBlobProviderAcc = new ObjectAccessor(builtInBlobProvider);
-                    var connectionStrings = (ConnectionStringOptions)builtInBlobProviderAcc.GetProperty("ConnectionStrings");
-                    connectionStrings.Repository = cnstr;
+                    builtInBlobProviderAcc.SetField("_connectionString", cnstr);
                 },
                 () =>
                 {
