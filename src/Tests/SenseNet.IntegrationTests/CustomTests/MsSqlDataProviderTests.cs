@@ -12,6 +12,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
+using SenseNet.Testing;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.IntegrationTests.CustomTests
@@ -19,13 +20,23 @@ namespace SenseNet.IntegrationTests.CustomTests
     [TestClass]
     public class MsSqlDataProviderTests : TestBase
     {
+        private string __connectionString;
+        private string GetConnectionString()
+        {
+            if (__connectionString == null)
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json");
+                builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
+                var appConfig = builder.Build(); ;
+                __connectionString = appConfig.GetConnectionString("SnCrMsSql");
+            }
+            return __connectionString;
+        }
+
         private MsSqlDataProvider CreateDataProvider()
         {
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonFile("appsettings.json");
-            builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
-            var appConfig = builder.Build(); ;
-            var connectionString = appConfig.GetConnectionString("SnCrMsSql");
+            var connectionString = GetConnectionString();
             var connOptions = Options.Create(new ConnectionStringOptions{Repository = connectionString});
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
@@ -39,45 +50,54 @@ namespace SenseNet.IntegrationTests.CustomTests
         [TestMethod]
         public async Task MsSqlDataProvider_ShortText_Escape()
         {
-            await Test(() =>
-            {
-                var dp = CreateDataProvider();
-
-                var properties = new PropertyType[]
+            await Test(builder =>
                 {
-                    PropertyType.GetByName("Domain"),
-                    PropertyType.GetByName("FullName"),
-                    PropertyType.GetByName("Email"),
-                    PropertyType.GetByName("LoginName"),
-                };
-                var inputValues = new[]
+                    //UNDONE:CNSTR: Avoid connectionString problems in any other tests in this assembly.
+                    var cnstr = GetConnectionString();
+                    var builtInBlobProvider = (BuiltInBlobProvider) Providers.Instance.BlobProviders.BuiltInBlobProvider;
+                    var builtInBlobProviderAcc = new ObjectAccessor(builtInBlobProvider);
+                    var connectionStrings = (ConnectionStringOptions)builtInBlobProviderAcc.GetProperty("ConnectionStrings");
+                    connectionStrings.Repository = cnstr;
+                },
+                () =>
                 {
-                    "Domain1",
-                    "LastName\tFirstName",
-                    "a@b.c \\ d@e.f",
-                    "asdf\\\r\nqwer",
-                };
-                var data = new Dictionary<PropertyType, object>();
-                for (int i = 0; i < inputValues.Length; i++)
-                {
-                    data.Add(properties[i], inputValues[i]);
-                }
+                    var dp = CreateDataProvider();
 
-                // ACTION
-                var serialized = dp.SerializeDynamicProperties(data);
-                var deserialized = dp.DeserializeDynamicProperties(serialized);
+                    var properties = new PropertyType[]
+                    {
+                        PropertyType.GetByName("Domain"),
+                        PropertyType.GetByName("FullName"),
+                        PropertyType.GetByName("Email"),
+                        PropertyType.GetByName("LoginName"),
+                    };
+                    var inputValues = new[]
+                    {
+                        "Domain1",
+                        "LastName\tFirstName",
+                        "a@b.c \\ d@e.f",
+                        "asdf\\\r\nqwer",
+                    };
+                    var data = new Dictionary<PropertyType, object>();
+                    for (int i = 0; i < inputValues.Length; i++)
+                    {
+                        data.Add(properties[i], inputValues[i]);
+                    }
 
-                // ASSERT
-                var keys = deserialized.Keys.ToArray();
-                var values = deserialized.Values.ToArray();
-                for (int i = 0; i < inputValues.Length; i++)
-                {
-                    Assert.AreEqual(properties[i], keys[i]);
-                    Assert.AreEqual(inputValues[i], values[i]);
-                }
+                    // ACTION
+                    var serialized = dp.SerializeDynamicProperties(data);
+                    var deserialized = dp.DeserializeDynamicProperties(serialized);
 
-                return Task.CompletedTask;
-            });
+                    // ASSERT
+                    var keys = deserialized.Keys.ToArray();
+                    var values = deserialized.Values.ToArray();
+                    for (int i = 0; i < inputValues.Length; i++)
+                    {
+                        Assert.AreEqual(properties[i], keys[i]);
+                        Assert.AreEqual(inputValues[i], values[i]);
+                    }
+
+                    return Task.CompletedTask;
+                });
         }
     }
 }
