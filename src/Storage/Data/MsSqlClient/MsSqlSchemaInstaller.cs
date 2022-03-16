@@ -22,11 +22,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             public static readonly string ContentListTypes = "ContentListTypes";
         }
 
-        private static Dictionary<string, string[]> _columnNames;
+        private Dictionary<string, string[]> _columnNames;
 
-        //UNDONE: [DIREF] get connection string through constructor
+        private readonly string _connectionString;
 
-        public static async Task InstallSchemaAsync(RepositorySchemaData schema, string connectionString)
+        public MsSqlSchemaInstaller(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        public async Task InstallSchemaAsync(RepositorySchemaData schema)
         {
             var dataSet = new DataSet();
 
@@ -38,19 +43,19 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             CreateData(dataSet, schema);
 
-            await WriteToDatabaseAsync(dataSet, connectionString).ConfigureAwait(false);
+            await WriteToDatabaseAsync(dataSet, _connectionString).ConfigureAwait(false);
         }
 
         /* ==================================================================================================== Tables */
 
-        private static void CreateTableStructure(DataSet dataSet)
+        private void CreateTableStructure(DataSet dataSet)
         {
             AddNodeTypesTable(dataSet);
             AddPropertyTypesTable(dataSet);
             AddContentListTypesTable(dataSet);
         }
 
-        private static void AddPropertyTypesTable(DataSet dataSet)
+        private void AddPropertyTypesTable(DataSet dataSet)
         {
             var table = new DataTable(TableName.PropertyTypes);
             table.Columns.AddRange(new[]
@@ -64,7 +69,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             dataSet.Tables.Add(table);
         }
 
-        private static void AddNodeTypesTable(DataSet dataSet)
+        private void AddNodeTypesTable(DataSet dataSet)
         {
             var table = new DataTable(TableName.NodeTypes);
             table.Columns.AddRange(new[]
@@ -78,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             dataSet.Tables.Add(table);
         }
 
-        private static void AddContentListTypesTable(DataSet dataSet)
+        private void AddContentListTypesTable(DataSet dataSet)
         {
             var table = new DataTable(TableName.ContentListTypes);
             table.Columns.AddRange(new[]
@@ -92,7 +97,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* ==================================================================================================== Fill Data */
 
-        private static void CreateData(DataSet dataSet, RepositorySchemaData schema)
+        private void CreateData(DataSet dataSet, RepositorySchemaData schema)
         {
             var propertyTypes = dataSet.Tables[TableName.PropertyTypes];
             foreach (var propertyType in schema.PropertyTypes)
@@ -119,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        private static void SetPropertyTypeRow(DataRow row, PropertyTypeData propertyType)
+        private void SetPropertyTypeRow(DataRow row, PropertyTypeData propertyType)
         {
             row["PropertyTypeId"] = propertyType.Id;
             row["Name"] = propertyType.Name;
@@ -128,7 +133,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["IsContentListProperty"] = propertyType.IsContentListProperty ? Yes : No;
         }
 
-        private static void SetNodeTypeRow(DataRow row, NodeTypeData nodeType, List<NodeTypeData> allNodeTypes)
+        private void SetNodeTypeRow(DataRow row, NodeTypeData nodeType, List<NodeTypeData> allNodeTypes)
         {
             row["NodeTypeId"] = nodeType.Id;
             row["Name"] = nodeType.Name;
@@ -138,7 +143,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["Properties"] = string.Join(" ", nodeType.Properties);
         }
 
-        private static void SetContentListTypeRow(DataRow row, ContentListTypeData contentListType)
+        private void SetContentListTypeRow(DataRow row, ContentListTypeData contentListType)
         {
             row["ContentListTypeId"] = contentListType.Id;
             row["Name"] = contentListType.Name;
@@ -147,7 +152,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* ==================================================================================================== Writing */
 
-        private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
+        private async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -162,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        private static async Task BulkInsertAsync(DataSet dataSet, string tableName, SqlConnection connection, SqlTransaction transaction)
+        private async Task BulkInsertAsync(DataSet dataSet, string tableName, SqlConnection connection, SqlTransaction transaction)
         {
             //using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand())
