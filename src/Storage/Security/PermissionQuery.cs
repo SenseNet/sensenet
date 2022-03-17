@@ -8,15 +8,22 @@ using SenseNet.Security;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
 {
-    public static class PermissionQuery
+    public class PermissionQuery
     {
+        private SecurityHandler _securityHandler;
+
+        public PermissionQuery(SecurityHandler securityHandler)
+        {
+            _securityHandler = securityHandler;
+        }
+
         /// <summary>
         /// Returns users and groups that have any explicit permissions on the given content or its subtree.
         /// </summary>
         /// <param name="contentPath">Path of the content.</param>
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind.</param>
-        public static IEnumerable<Node> GetRelatedIdentities(string contentPath, PermissionLevel level, IdentityKind identityKind)
+        public IEnumerable<Node> GetRelatedIdentities(string contentPath, PermissionLevel level, IdentityKind identityKind)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -29,9 +36,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind.</param>
-        public static IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind)
+        public IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind)
         {
-            var identityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedIdentities(contentId, level);
+            var identityIds = _securityHandler.SecurityContext.GetRelatedIdentities(contentId, level);
             return Filter(identityIds, identityKind);
         }
 
@@ -44,7 +51,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. Allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="includedTypes">Filter by content type names.</param>
-        public static IDictionary<PermissionType, int> GetRelatedPermissions(string contentPath, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<string> includedTypes)
+        public IDictionary<PermissionType, int> GetRelatedPermissions(string contentPath, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<string> includedTypes)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -61,18 +68,18 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. Allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="includedTypes">Filter by content type names.</param>
-        public static IDictionary<PermissionType, int> GetRelatedPermissions(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<string> includedTypes)
+        public IDictionary<PermissionType, int> GetRelatedPermissions(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<string> includedTypes)
         {
             var filter = new ContentTypeFilterForGettingRelatedPermissions(includedTypes);
-            var counters = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedPermissions(contentId, level, explicitOnly, identityId, filter.IsEnabled);
+            var counters = _securityHandler.SecurityContext.GetRelatedPermissions(contentId, level, explicitOnly, identityId, filter.IsEnabled);
             var result = new Dictionary<PermissionType, int>(PermissionType.PermissionCount);
             foreach (var item in counters)
                 result.Add(PermissionType.GetByIndex(item.Key.Index), item.Value);
             return result;
         }
-        public static IDictionary<PermissionType, int> GetExplicitPermissionsInSubtree(int contentId, int[] identities, bool includeRoot)
+        public IDictionary<PermissionType, int> GetExplicitPermissionsInSubtree(int contentId, int[] identities, bool includeRoot)
         {
-            var counters = Providers.Instance.SecurityHandler.SecurityContext.GetExplicitPermissionsInSubtree(contentId, identities, includeRoot);
+            var counters = _securityHandler.SecurityContext.GetExplicitPermissionsInSubtree(contentId, identities, includeRoot);
             var result = new Dictionary<PermissionType, int>(PermissionType.PermissionCount);
             foreach (var item in counters)
                 result.Add(PermissionType.GetByIndex(item.Key.Index), item.Value);
@@ -88,7 +95,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public static IEnumerable<Node> GetRelatedNodes(string contentPath, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionType> permissions)
+        public IEnumerable<Node> GetRelatedNodes(string contentPath, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionType> permissions)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -104,9 +111,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public static IEnumerable<Node> GetRelatedNodes(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionType> permissions)
+        public IEnumerable<Node> GetRelatedNodes(int contentId, PermissionLevel level, bool explicitOnly, int identityId, IEnumerable<PermissionType> permissions)
         {
-            var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedEntities(contentId, level, explicitOnly, identityId, permissions);
+            var contentIds = _securityHandler.SecurityContext.GetRelatedEntities(contentId, level, explicitOnly, identityId, permissions);
             return new NodeList<Node>(contentIds);
         }
 
@@ -117,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind.</param>
         /// <param name="permissions">Filtering by permission type.</param>
-        public static IEnumerable<Node> GetRelatedIdentities(string contentPath, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionTypeBase> permissions)
+        public IEnumerable<Node> GetRelatedIdentities(string contentPath, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionTypeBase> permissions)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -131,9 +138,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="level">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind.</param>
         /// <param name="permissions">Filtering by permission type.</param>
-        public static IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionTypeBase> permissions)
+        public IEnumerable<Node> GetRelatedIdentities(int contentId, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionTypeBase> permissions)
         {
-            var identityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedIdentities(contentId, level, permissions);
+            var identityIds = _securityHandler.SecurityContext.GetRelatedIdentities(contentId, level, permissions);
             return Filter(identityIds, identityKind);
         }
 
@@ -145,7 +152,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="level">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public static IEnumerable<Node> GetRelatedNodesOneLevel(string contentPath, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
+        public IEnumerable<Node> GetRelatedNodesOneLevel(string contentPath, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -160,13 +167,13 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="level">Filtering by the permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityId">Id of the group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this permissions list.</param>
-        public static IEnumerable<Node> GetRelatedNodesOneLevel(int contentId, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
+        public IEnumerable<Node> GetRelatedNodesOneLevel(int contentId, PermissionLevel level, int identityId, IEnumerable<PermissionTypeBase> permissions)
         {
             var folder = Node.LoadNode(contentId) as IFolder;
             if (folder == null)
                 return new Node[0];
 
-            var entityIds = Providers.Instance.SecurityHandler.SecurityContext.GetRelatedEntitiesOneLevel(contentId, level, identityId, permissions);
+            var entityIds = _securityHandler.SecurityContext.GetRelatedEntitiesOneLevel(contentId, level, identityId, permissions);
             return new NodeList<Node>(entityIds);
         }
 
@@ -177,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentPath">Path of the content.</param>
         /// <param name="permissions">Only those users appear in the output that have permission settings in connection with the given permissions.</param>
-        public static IEnumerable<Node> GetAllowedUsers(string contentPath, IEnumerable<PermissionType> permissions)
+        public IEnumerable<Node> GetAllowedUsers(string contentPath, IEnumerable<PermissionType> permissions)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -190,9 +197,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="permissions">Only those users appear in the output that have permission settings in connection with the given permissions.</param>
-        public static IEnumerable<Node> GetAllowedUsers(int contentId, IEnumerable<PermissionType> permissions)
+        public IEnumerable<Node> GetAllowedUsers(int contentId, IEnumerable<PermissionType> permissions)
         {
-            var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetAllowedUsers(contentId, permissions);
+            var contentIds = _securityHandler.SecurityContext.GetAllowedUsers(contentId, permissions);
             return new NodeList<Node>(contentIds);
         }
 
@@ -201,7 +208,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentPath">Path of the group or user.</param>
         /// <param name="directOnly">Switch of the direct or indirect membership.</param>
-        public static IEnumerable<Node> GetParentGroups(string contentPath, bool directOnly)
+        public IEnumerable<Node> GetParentGroups(string contentPath, bool directOnly)
         {
             var head = NodeHead.Get(contentPath);
             if (head == null)
@@ -213,13 +220,13 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the group or user.</param>
         /// <param name="directOnly">Switch of the direct or indirect membership.</param>
-        public static IEnumerable<Node> GetParentGroups(int contentId, bool directOnly)
+        public IEnumerable<Node> GetParentGroups(int contentId, bool directOnly)
         {
-            var contentIds = Providers.Instance.SecurityHandler.SecurityContext.GetParentGroups(contentId, directOnly);
+            var contentIds = _securityHandler.SecurityContext.GetParentGroups(contentId, directOnly);
             return new NodeList<Node>(contentIds);
         }
 
-        private static IEnumerable<Node> Filter(IEnumerable<int> identityIds, IdentityKind identityKind)
+        private IEnumerable<Node> Filter(IEnumerable<int> identityIds, IdentityKind identityKind)
         {
             var identities = new NodeList<Node>(identityIds);
             switch (identityKind)

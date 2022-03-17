@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Nito.AsyncEx;
 using SenseNet.Configuration;
@@ -170,9 +172,27 @@ namespace SenseNet.Tests.Core
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
+            var configuration = new ConfigurationBuilder()
+                //.AddJsonFile("appSettings.json")
+                .Build();
+
+            var services = new ServiceCollection();
+            var serviceProvider = services
+                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseLogger(provider)
+                        .UseAccessProvider(new UserAccessProvider())
+                        .UseInactiveAuditEventWriter();
+                })
+                .AddSenseNetInMemoryProviders()
+                //.AddSenseNetWebHooks()
+                .BuildServiceProvider();
+
             var dataProvider = new InMemoryDataProvider();
 
-            return new RepositoryBuilder()
+            return new RepositoryBuilder(serviceProvider)
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())

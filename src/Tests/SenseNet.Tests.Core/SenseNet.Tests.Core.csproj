@@ -47,6 +47,7 @@
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\..\Search\SenseNet.Search.csproj" />
+    <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
   </ItemGroup>
 
