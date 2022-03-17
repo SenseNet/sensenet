@@ -15,11 +15,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public string ConnectionString { get; }
 
-        [Obsolete("Use the constructor that expects data options instead.", true)]
-        public MsSqlDataContext(CancellationToken cancellationToken) : base(cancellationToken)
-        {
-            ConnectionString = ConnectionStrings.ConnectionString;
-        }
         public MsSqlDataContext(string connectionString, DataOptions options, CancellationToken cancel)
             : base(options, cancel)
         {
@@ -28,27 +23,17 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             
             ConnectionString = connectionString;
         }
-        [Obsolete("Use the constructor that expects data options instead.", true)]
-        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken) : base(cancellationToken)
-        {
-            ConnectionString = connectionString ?? ConnectionStrings.ConnectionString;
-        }
-        [Obsolete("Use the constructor that expects data options instead.", true)]
-        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken) : base(cancellationToken)
-        {
-            ConnectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
-        }
 
-        public static string GetConnectionString(ConnectionInfo connectionInfo)
+        public static string GetConnectionString(ConnectionInfo connectionInfo, ConnectionStringOptions connectionStrings)
         {
             string cnstr;
 
             if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
-                cnstr = ConnectionStrings.ConnectionString;
+                cnstr = connectionStrings.Repository;
             else
-            if (!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
-                || cnstr == null)
-                throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
+                if (!connectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
+                    || cnstr == null)
+                    throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
 
             var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
             switch (connectionInfo.InitialCatalog)

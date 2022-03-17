@@ -293,13 +293,13 @@ namespace SenseNet.ContentRepository
                 dummy = SenseNetResourceManager.Current;
                 ConsoleWriteLine("ok.");
 
-                serviceInstances = new List<ISnService>();
+                _serviceInstances = new List<ISnService>();
                 foreach (var serviceType in TypeResolver.GetTypesByInterface(typeof(ISnService)))
                 {
                     var service = (ISnService)Activator.CreateInstance(serviceType);
                     service.Start();
                     ConsoleWriteLine("Service started: ", serviceType.Name);
-                    serviceInstances.Add(service);
+                    _serviceInstances.Add(service);
                 }
 
                 // register this application in the task management component
@@ -314,17 +314,19 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private List<ISnService> serviceInstances;
+        private List<ISnService> _serviceInstances;
 
+        //UNDONE:CNSTR: Delete this method
         private static void InitializeDataProviderExtensions()
         {
+            var mainProvider = Providers.Instance.DataProvider as RelationalDataProviderBase;
             // set default value of well-known data provider extensions
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider());
+                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider(mainProvider));
             if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider());
+                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider(mainProvider));
             if (null == Providers.Instance.GetProvider<ISharedLockDataProvider>())
-                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), new MsSqlSharedLockDataProvider());
+                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), new MsSqlSharedLockDataProvider(mainProvider));
         }
 
         private static void InitializeOAuthProviders()
@@ -448,7 +450,7 @@ namespace SenseNet.ContentRepository
                 var pingMessage = new PingMessage();
                 pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                foreach (var svc in _instance.serviceInstances)
+                foreach (var svc in _instance._serviceInstances)
                 {
                     SnTrace.Repository.Write("Shutting down {0}", svc.GetType().Name);
                     svc.Shutdown();

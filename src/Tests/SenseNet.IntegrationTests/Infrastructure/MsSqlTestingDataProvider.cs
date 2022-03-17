@@ -24,13 +24,21 @@ namespace SenseNet.IntegrationTests.Infrastructure
     [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
     public class MsSqlTestingDataProvider : ITestingDataProvider
     {
-        // ReSharper disable once InconsistentNaming
-        private RelationalDataProviderBase __dataProvider;
-        private RelationalDataProviderBase MainProvider => __dataProvider ?? (__dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
+        //// ReSharper disable once InconsistentNaming
+        //private RelationalDataProviderBase __dataProvider;
+        //private RelationalDataProviderBase MainProvider => __dataProvider ?? (__dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
+
+        private readonly RelationalDataProviderBase _mainProvider;
+        ConnectionStringOptions _connectionStrings;
+        public MsSqlTestingDataProvider(RelationalDataProviderBase mainProvider, IOptions<ConnectionStringOptions> connectionStrings)
+        {
+            _mainProvider = mainProvider;
+            _connectionStrings = connectionStrings.Value;
+        }
 
         public void InitializeForTests()
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(@"
 ALTER TABLE [BinaryProperties] CHECK CONSTRAINT ALL
@@ -48,7 +56,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
         {
             var sql = "SELECT NodeId, ParentNodeId, [OwnerId] FROM Nodes ORDER BY NodeId";
             var securityEntitiesArray = new List<object>();
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(sql, (reader, cancel) =>
                 {
@@ -78,7 +86,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
             var sql = $"SELECT COUNT(1) FROM LogEntries WHERE Title = 'PermissionChanged' AND" +
                         $" LogDate>='{moment:yyyy-MM-dd HH:mm:ss}'";
 
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return ctx.ExecuteReaderAsync(sql, (reader, cancel) =>
                 {
@@ -113,7 +121,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
 
         public async Task<int> GetLastNodeIdAsync()
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (int)await ctx.ExecuteScalarAsync(
                     "SELECT i.last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'Nodes'");
         }
@@ -130,7 +138,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
 
         public async Task<int[]> GetChildNodeIdsByParentNodeIdAsync(int parentNodeId)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return await ctx.ExecuteReaderAsync(
                     "SELECT * FROM Nodes WHERE ParentNodeId = @ParentNodeId",
@@ -153,7 +161,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
 
         public async Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return await ctx.ExecuteReaderAsync("SELECT * FROM Nodes WHERE NodeId = @NodeId", cmd =>
                 {
@@ -201,7 +209,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
 
         public async Task<VersionData> GetVersionDataAsync(int versionId)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return await ctx.ExecuteReaderAsync("SELECT * FROM Versions WHERE VersionId = @VersionId", cmd =>
                 {
@@ -230,25 +238,25 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
 
         public async Task<int> GetBinaryPropertyCountAsync(string path)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (int)await ctx.ExecuteScalarAsync("SELECT COUNT (1) FROM BinaryProperties NOLOCK", cmd => { });
         }
 
         public async Task<int> GetFileCountAsync(string path)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (int)await ctx.ExecuteScalarAsync("SELECT COUNT (1) FROM Files NOLOCK", cmd => { });
         }
 
         public async Task<int> GetLongTextCountAsync(string path)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (int)await ctx.ExecuteScalarAsync("SELECT COUNT (1) FROM LongTextProperties NOLOCK", cmd => { });
         }
 
         public async Task<long> GetAllFileSize()
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (long)await ctx.ExecuteScalarAsync("SELECT SUM(Size) FROM Files");
         }
         public async Task<long> GetAllFileSizeInSubtree(string path)
@@ -259,7 +267,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
     JOIN Nodes n on n.NodeId = v.NodeId
 WHERE Path LIKE '{path}%'";
 
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (long)await ctx.ExecuteScalarAsync(sql);
         }
         public async Task<long> GetFileSize(string path)
@@ -270,7 +278,7 @@ WHERE Path LIKE '{path}%'";
     JOIN Nodes n on n.NodeId = v.NodeId
 WHERE Path = '{path}'";
 
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 return (long)await ctx.ExecuteScalarAsync(sql);
 
         }
@@ -300,7 +308,7 @@ WHERE Path = '{path}'";
         }
         private async Task<object> GetReferencePropertyValueAsync(int versionId, PropertyType propertyType)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return await ctx.ExecuteReaderAsync(
                     "SELECT ReferredNodeId FROM ReferenceProperties " +
@@ -324,7 +332,7 @@ WHERE Path = '{path}'";
         }
         private async Task<object> GetLongTextValueAsync(int versionId, PropertyType propertyType)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 return (string)await ctx.ExecuteScalarAsync(
                     "SELECT TOP 1 Value FROM LongTextProperties " +
@@ -341,7 +349,7 @@ WHERE Path = '{path}'";
         }
         private async Task<object> GetDynamicPropertyValueAsync(int versionId, PropertyType propertyType)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 var result = (string)await ctx.ExecuteScalarAsync(
                     "SELECT TOP 1 DynamicProperties FROM Versions WHERE VersionId = @VersionId",
@@ -350,7 +358,7 @@ WHERE Path = '{path}'";
                         cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
                     });
 
-                var properties = MainProvider.DeserializeDynamicProperties(result);
+                var properties = _mainProvider.DeserializeDynamicProperties(result);
                 if (properties.TryGetValue(propertyType, out var value))
                     return value;
                 return null;
@@ -365,7 +373,7 @@ WHERE Path = '{path}'";
             {
                 case DataType.Text:
                     var stringValue = (string)value;
-                    using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+                    using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                     {
                         await ctx.ExecuteNonQueryAsync(
                             "UPDATE LongTextProperties SET Length = @Length, Value = @Value " +
@@ -396,7 +404,7 @@ WHERE Path = '{path}'";
 
         public async Task SetFileStagingAsync(int fileId, bool staging)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(
                     "UPDATE Files SET Staging = @Staging WHERE FileId = @FileId",
@@ -413,7 +421,7 @@ WHERE Path = '{path}'";
 
         public async Task DeleteFileAsync(int fileId)
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(
                     "DELETE FROM Files WHERE FileId = @FileId",
@@ -429,7 +437,7 @@ WHERE Path = '{path}'";
 
         public async Task EnsureOneUnlockedSchemaLockAsync()
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 await ctx.ExecuteNonQueryAsync(@"DELETE FROM SchemaModification
 INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
 ");
@@ -439,7 +447,7 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
         {
             const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
 
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -456,7 +464,7 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
         {
             const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
 
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
@@ -471,7 +479,7 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
 
         public DataProvider CreateCannotCommitDataProvider(DataProvider mainDataProvider)
         {
-            return new MsSqlCannotCommitDataProvider(ConnectionStrings.ConnectionString);
+            return new MsSqlCannotCommitDataProvider(_connectionStrings.Repository);
         }
 
         public async Task DeleteAllStatisticalDataAsync(IStatisticalDataProvider dataProvider)
@@ -479,7 +487,7 @@ INSERT INTO SchemaModification (ModificationDate) VALUES (GETUTCDATE())
             const string sql = @"DELETE FROM StatisticalData
 DELETE FROM StatisticalAggregations
 ";
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 await ctx.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
         }
 
@@ -487,7 +495,7 @@ DELETE FROM StatisticalAggregations
         {
             const string sql = "SELECT * FROM StatisticalData";
             var records = new List<IStatisticalDataRecord>();
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(sql, (reader, cancel) =>
                 {
@@ -522,7 +530,7 @@ DELETE FROM StatisticalAggregations
         {
             const string sql = "SELECT * FROM StatisticalAggregations";
             var aggregations = new List<Aggregation>();
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {
@@ -549,13 +557,13 @@ DELETE FROM StatisticalAggregations
             public MsSqlCannotCommitDataProvider(string connectionString) : base(Options.Create(DataOptions.GetLegacyConfiguration()),
                 Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             }), Options.Create(new MsSqlDatabaseInstallationOptions()), 
                 new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationOptions()),
                     NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
                 new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>())
             {
@@ -592,7 +600,7 @@ DELETE FROM StatisticalAggregations
 
         public async Task ClearIndexingActivitiesAsync()
         {
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
                 await ctx.ExecuteNonQueryAsync(@"DELETE FROM IndexingActivities");
         }
 

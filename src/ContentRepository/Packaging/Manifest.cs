@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
@@ -251,7 +252,10 @@ namespace SenseNet.Packaging
 
             if (SystemInstall && editConnectionString)
             {
-                EditConnectionString(this.Parameters, packageParameters);
+                //UNDONE:CNSTR: Get ConnectionStringOptions from ServiceProvider or another general location.
+                var connectionStrings = new ConnectionStringOptions();
+                throw new SnNotSupportedException();
+                EditConnectionString(connectionStrings, this.Parameters, packageParameters);
                 RepositoryVersionInfo.Reset();
             }
 
@@ -287,7 +291,7 @@ namespace SenseNet.Packaging
                 CheckDependency(dependency, versionInfo, log);
         }
 
-        internal static void EditConnectionString(Dictionary<string, string> parameters, PackageParameter[] packageParameters)
+        internal static void EditConnectionString(ConnectionStringOptions connectionStrings, Dictionary<string, string> parameters, PackageParameter[] packageParameters)
         {
             string dataSource;
             if (!parameters.TryGetValue("@datasource", out dataSource))
@@ -319,11 +323,11 @@ namespace SenseNet.Packaging
                 UserName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "username", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value,
                 Password = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "password", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value
             };
-
-            var origCnStr = Configuration.ConnectionStrings.ConnectionString;
+             
+            var origCnStr = connectionStrings.Repository;
             var newCnStr = EditConnectionString(origCnStr, inputCnInfo, defaultCnInfo);
             if (newCnStr != origCnStr)
-                Configuration.ConnectionStrings.ConnectionString = newCnStr;
+                connectionStrings.Repository = newCnStr;
         }
 
         internal static string EditConnectionString(string cnStr, ConnectionInfo inputCnInfo, ConnectionInfo defaultInfo)

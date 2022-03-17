@@ -61,6 +61,8 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            var connectionStrings = builder.Services?.GetRequiredService<IOptions<ConnectionStringOptions>>();
+
             // legacy behavior: set provider instance defaults
 
             if (Providers.Instance.SecurityDataProvider == null)
@@ -69,7 +71,7 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.SecurityMessageProvider = builder.Services?.GetService<IMessageProvider>();
 
             Providers.Instance.InitializeDataProvider(builder.Services);
-            Providers.Instance.InitializeBlobProviders();
+            Providers.Instance.InitializeBlobProviders(connectionStrings?.Value ?? new ConnectionStringOptions());
 
             EnsureDatabase(builder);
             

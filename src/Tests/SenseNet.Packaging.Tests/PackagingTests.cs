@@ -1625,84 +1625,77 @@ namespace SenseNet.Packaging.Tests
 
         #endregion
 
-        //#region // ========================================= SystemInstall Package connectionStrintg
+        #region // ========================================= SystemInstall Package connectionStrintg
 
         [TestMethod]
         public void Packaging_SysInstallCnStr_Default()
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_ExplicitDefault()
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(".", "sensenet"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(".", "sensenet"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SwitchSrv()
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=SQL1;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL1"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL1"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SwitchDb()
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=.;Initial Catalog=DB1;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, "DB1"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, "DB1"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_Default_2()
         {
             var originalCnStr = "Data Source=SQL1;Initial Catalog=DB1;Integrated Security=True";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SwitchSrv_2()
         {
             var originalCnStr = "Data Source=SQL1;Initial Catalog=DB1;Integrated Security=True";
             var expectedCnStr = "Data Source=SQL2;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL2"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL2"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SwitchDb_2()
         {
             var originalCnStr = "Data Source=SQL1;Initial Catalog=DB1;Integrated Security=True";
             var expectedCnStr = "Data Source=.;Initial Catalog=DB2;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, "DB2"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, "DB2"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
 
         [TestMethod]
@@ -1710,55 +1703,50 @@ namespace SenseNet.Packaging.Tests
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR1"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR1"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_OnlyPassword()
         {
             var originalCnStr = "";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, null, "PWD1"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, null, "PWD1"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_IntegratedAuthToSqlAuth()
         {
             var originalCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=False;User ID=USR1;Password=PWD1";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR1", "PWD1"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR1", "PWD1"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SqlAuthToIntegrated()
         {
             var originalCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=False;User ID=USR1;Password=PWD1";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
         [TestMethod]
         public void Packaging_SysInstallCnStr_SqlAuthChange()
         {
             var originalCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=False;User ID=USR1;Password=PWD1";
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=False;User ID=USR2;Password=PWD2";
-            using (CnStr(originalCnStr))
-            {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR2", "PWD2"), CnInfo());
-                Assert.AreEqual(expectedCnStr, actualCnStr);
-            }
+            // ACTION
+            var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, "USR2", "PWD2"), CnInfo());
+            // ASSERT
+            Assert.AreEqual(expectedCnStr, actualCnStr);
         }
 
         //============================================================
@@ -1774,39 +1762,7 @@ namespace SenseNet.Packaging.Tests
             };
         }
 
-        private IDisposable CnStr(string connectionString)
-        {
-            return new ConnectionStringSwindler(connectionString);
-        }
-        private class ConnectionStringSwindler : Swindler<string>
-        {
-            public ConnectionStringSwindler(string connectionString):base(connectionString) { }
-            protected override string Value
-            {
-                get => Configuration.ConnectionStrings.ConnectionString;
-                set => Configuration.ConnectionStrings.ConnectionString = value;
-            }
-        }
-        private abstract class Swindler<T> : IDisposable
-        {
-            protected abstract T Value { get; set; }
-
-            private readonly T _saved;
-
-            [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
-            // Message supressed because the overridden member cannot cause any class inconsistence.
-            protected Swindler(T value)
-            {
-                _saved = Value;
-                Value = value;
-            }
-            public void Dispose()
-            {
-                Value = _saved;
-            }
-        }
-
-        //#endregion
+        #endregion
 
     }
 }

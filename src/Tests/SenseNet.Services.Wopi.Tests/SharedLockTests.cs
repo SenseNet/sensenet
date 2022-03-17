@@ -678,7 +678,7 @@ namespace SenseNet.Services.Wopi.Tests
             //var portalContextAcc = new TypeAccessor(typeof(PortalContext));
             //portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
-            Providers.Instance.ResetBlobProviders();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var builder = CreateRepositoryBuilderForSharedLockTest();
 

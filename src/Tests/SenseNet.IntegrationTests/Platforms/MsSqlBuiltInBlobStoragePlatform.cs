@@ -139,8 +139,7 @@ namespace SenseNet.IntegrationTests.Platforms
         }
         protected virtual async Task<byte[][]> GetRawDataAsync(int fileId)
         {
-            using (var ctx = new MsSqlDataContext(Configuration.ConnectionStrings.ConnectionString,
-                new DataOptions(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(RepositoryConnectionString, new DataOptions(), CancellationToken.None))
             {
                 var script = "SELECT [Stream] FROM Files WHERE FileId = @FileId";
                 var scalar = await ctx.ExecuteScalarAsync(script, cmd =>
