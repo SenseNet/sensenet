@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
@@ -9,6 +10,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
 {
     internal class ReindexBinariesTask : IMaintenanceTask
     {
+        private readonly ConnectionStringOptions _connectionStrings;
         private bool? _enabled;
         private DateTime _timeLimit;
 
@@ -29,12 +31,14 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
             }
         }
 
+        public ReindexBinariesTask(IOptions<ConnectionStringOptions> connectionOptions)
+        {
+            _connectionStrings = connectionOptions.Value;
+        }
+
         public System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            //UNDONE:DI: Get dependencies from ctor.
-            var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["SnCrMsSql"];
-            var connectionStrings = new ConnectionStringOptions {Repository = connectionString.ConnectionString};
-            var dataHandler = new ReindexBinariesDataHandler(new DataOptions(), connectionStrings);
+            var dataHandler = new ReindexBinariesDataHandler(new DataOptions(), _connectionStrings);
             var taskHandler = new ReindexBinariesTaskManager(dataHandler);
 
             if (_enabled == null)
