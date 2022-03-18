@@ -169,28 +169,35 @@ namespace SenseNet.Tests.Core
             }
         }
 
+        protected static IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null,
+            Action<IServiceCollection> modifyServices = null)
+        {
+            var configurationBuilder = new ConfigurationBuilder();
+            //configuration.AddJsonFile("appSettings.json")
+            modifyConfig?.Invoke(configurationBuilder);
+            var configuration = configurationBuilder.Build();
+
+            var services = new ServiceCollection()
+                    .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                    {
+                        repositoryBuilder
+                            .BuildInMemoryRepository()
+                            .UseLogger(provider)
+                            .UseAccessProvider(new UserAccessProvider())
+                            .UseInactiveAuditEventWriter();
+                    })
+                    .AddSenseNetInMemoryProviders()
+                //.AddSenseNetWebHooks()
+                ;
+            modifyServices?.Invoke(services);
+            return services.BuildServiceProvider();
+        }
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
-            var configuration = new ConfigurationBuilder()
-                //.AddJsonFile("appSettings.json")
-                .Build();
+            var serviceProvider = CreateServiceProviderForTest();
 
-            var services = new ServiceCollection();
-            var serviceProvider = services
-                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
-                {
-                    repositoryBuilder
-                        .BuildInMemoryRepository()
-                        .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
-                })
-                .AddSenseNetInMemoryProviders()
-                //.AddSenseNetWebHooks()
-                .BuildServiceProvider();
-
-            var dataProvider = new InMemoryDataProvider();
+            var dataProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
 
             return new RepositoryBuilder(serviceProvider)
                 .UseDataProvider(dataProvider)

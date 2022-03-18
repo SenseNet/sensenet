@@ -2,13 +2,20 @@
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Diagnostics;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Storage;
+using SenseNet.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.MiddlewareTests
@@ -38,6 +45,53 @@ namespace SenseNet.MiddlewareTests
     [TestClass]
     public class MembershipExtenderTests : MiddleWareTestBase
     {
+        //UNDONE:TEST: Finalize this method and use it in all tests
+        private IServiceCollection AddSenseNetForMembershipExtenderTest(IServiceCollection services,
+            Action<RepositoryBuilder, IServiceProvider> buildRepository,
+            Func<RepositoryInstance, IServiceProvider, Task> onRepositoryStartedAsync = null)
+        {
+            services/*.ConfigureSenseNet(configuration)*/
+                .AddSenseNetILogger()
+                .AddSenseNetMsSqlDataProvider()
+                .AddSenseNetBlobStorage()
+                .AddSenseNetSecurity(config =>
+                {
+                    config.SystemUserId = Identifiers.SystemUserId;
+                    config.VisitorUserId = Identifiers.VisitorUserId;
+                    config.EveryoneGroupId = Identifiers.EveryoneGroupId;
+                    config.OwnerGroupId = Identifiers.OwnersGroupId;
+                })
+                .AddSingleton<SecurityHandler>() //UNDONE: AddSingleton<SecurityHandler>
+                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
+                .AddSenseNetSearchComponents()
+                .AddSenseNetTaskManager()
+                .AddSenseNetDocumentPreviewProvider()
+                .AddLatestComponentStore()
+                .AddSenseNetCors()
+                .AddSenseNetIdentityServerClients()
+                .AddSenseNetDefaultClientManager()
+                .AddSenseNetApiKeys()
+                .AddSenseNetRegistration();
+
+            // add sn components defined in the content repository layer
+            services.AddRepositoryComponents();
+
+            return services;
+        }
+
+        private void BuildBaseServices(IServiceCollection services)
+        {
+            AddSenseNetForMembershipExtenderTest(services, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseLogger(provider)
+                        .UseAccessProvider(new UserAccessProvider())
+                        .UseInactiveAuditEventWriter();
+                })
+                .AddSenseNetInMemoryProviders();
+        }
+
         [TestMethod]
         public async Task MW_MembershipExtender_KeepOriginalList()
         {
@@ -47,6 +101,7 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
+                    BuildBaseServices(services);
                     services.AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>()
                         .AddSenseNetMembershipExtender<TestMembershipExtenderOperator>();
                 }, app =>
@@ -105,6 +160,8 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
+                    BuildBaseServices(services);
+
                     // register 3 extenders
                     services.AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>()
                         .AddSenseNetMembershipExtender<TestMembershipExtenderOperator>()
@@ -157,7 +214,10 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
-                    // the first extender will throw and exception
+                    BuildBaseServices(services);
+                    //services.AddSingleton<SecurityHandler>();//UNDONE: AddSingleton<SecurityHandler>
+
+                    // the first extender will throw an exception
                     services.AddSenseNetMembershipExtender<TestMembershipExtenderFail>()
                         .AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>();
                 }, app =>

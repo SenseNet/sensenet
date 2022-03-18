@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Search;
@@ -751,9 +752,11 @@ namespace SenseNet.Services.Wopi.Tests
 
         protected static RepositoryBuilder CreateRepositoryBuilderForSharedLockTest()
         {
-            var dataProvider = new InMemoryDataProvider();
+            var serviceProvider = CreateServiceProviderForTest();
 
-            return new RepositoryBuilder()
+            var dataProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
+
+            return new RepositoryBuilder(serviceProvider)
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())

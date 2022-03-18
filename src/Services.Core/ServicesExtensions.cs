@@ -94,7 +94,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddSingleton<SecurityHandler>()
+                .AddSingleton<SecurityHandler>() //UNDONE: AddSingleton<SecurityHandler>
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSenseNetSearchComponents()
                 .AddSenseNetTaskManager()

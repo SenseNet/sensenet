@@ -172,6 +172,8 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataTestBase : TestBase
     {
+        private IServiceProvider _serviceProvider;
+
         protected void ODataTest(Action callback)
         {
             ODataTestAsync(null, null, () =>
@@ -215,7 +217,8 @@ namespace SenseNet.ODataTests
 
             OnTestInitialize();
 
-            var builder = base.CreateRepositoryBuilderForTestInstance(); //CreateRepositoryBuilder();
+            var builder = base.CreateRepositoryBuilderForTestInstance();
+            _serviceProvider = builder.Services;
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
@@ -247,35 +250,35 @@ namespace SenseNet.ODataTests
             }
         }
 
-        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataGetAsync(string resource, string queryString, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, null, "GET", services, config);
         }
-        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataDeleteAsync(string resource, string queryString, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, null, "DELETE", services, config);
         }
-        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT", services, config);
         }
-        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH", services, config);
         }
-        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE", services, config);
         }
-        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST", services, config);
         }
-        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod, IServiceProvider services = null, IConfiguration config = null)
+        internal Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod, IServiceProvider services = null, IConfiguration config = null)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod, services, config);
         }
-        private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
+        private async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
             string requestBodyJson, string httpMethod, IServiceProvider services, IConfiguration config)
         {
             var httpContext = CreateHttpContext(resource, queryString, services);
@@ -300,7 +303,7 @@ namespace SenseNet.ODataTests
 
             return new ODataResponse { Result = output, StatusCode = httpContext.Response.StatusCode };
         }
-        internal static async Task<HttpContext> ODataProcessRequestEmptyResponseAsync(string resource, string queryString,
+        internal async Task<HttpContext> ODataProcessRequestEmptyResponseAsync(string resource, string queryString,
             string requestBodyJson, string httpMethod, IConfiguration config)
         {
             var httpContext = CreateHttpContext(resource, queryString);
@@ -320,10 +323,10 @@ namespace SenseNet.ODataTests
             return httpContext;
         }
 
-        internal static HttpContext CreateHttpContext(string resource, string queryString, IServiceProvider services = null)
+        internal HttpContext CreateHttpContext(string resource, string queryString, IServiceProvider services = null)
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.RequestServices = services;
+            httpContext.RequestServices = services ?? _serviceProvider;
             var request = httpContext.Request;
             request.Method = "GET";
             request.Path = resource;
