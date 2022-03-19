@@ -88,6 +88,19 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Sets the blob provider store.
+        /// </summary>
+        /// <param name="repositoryBuilder"></param>
+        /// <param name="store">IBlobProviderStore instance.</param>
+        public static IRepositoryBuilder UseBlobProviderStore(this IRepositoryBuilder repositoryBuilder, IBlobProviderStore store)
+        {
+            Configuration.Providers.Instance.BlobProviders = store;
+            WriteLog("IBlobProviderStore", store);
+
+            return repositoryBuilder;
+        }
+
+        /// <summary>
         /// Legacy API for tests and tools. In production use the AddSenseNetBlobProvider method
         /// instead to register a blob provider service in DI.
         /// </summary>

@@ -92,18 +92,6 @@ var xxx = services.GetService<DataProvider>();
                 new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
-        public override ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services) => services.GetRequiredService<ISharedLockDataProvider>();
-
-        public override IEnumerable<IBlobProvider> GetBlobProviders()
-        {
-            return null;
-        }
-
-        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services) => services.GetRequiredService<IExclusiveLockDataProvider>();
-        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services) => services.GetRequiredService<IBlobStorageMetaDataProvider>();
-        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
-        public override IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services) => services.GetRequiredService<IAccessTokenDataProvider>();
-        public override IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services) => services.GetRequiredService<IPackagingDataProvider>();
 
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
         {
@@ -112,9 +100,6 @@ var xxx = services.GetService<DataProvider>();
                 ConnectionString = ConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
-
-        public override ITestingDataProvider GetTestingDataProvider(IServiceProvider services) => services.GetRequiredService<ITestingDataProvider>();
-
         public override ISearchEngine GetSearchEngine()
         {
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
@@ -122,8 +107,6 @@ var xxx = services.GetService<DataProvider>();
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
-
-        public override IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services) => services.GetRequiredService<IStatisticalDataProvider>();
 
         /* ============================================================== */
 

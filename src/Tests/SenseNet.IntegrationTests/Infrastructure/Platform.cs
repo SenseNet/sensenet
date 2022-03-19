@@ -48,15 +48,15 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
-                .UseTestingDataProvider(GetTestingDataProvider(services))
-                .UseSharedLockDataProvider(GetSharedLockDataProvider(services))
-                .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider(services))
-                .AddBlobProviders(GetBlobProviders()) // extension for platforms
-                .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider, services))
-                .UseBlobProviderSelector(GetBlobProviderSelector(services))
-                .UseAccessTokenDataProvider(GetAccessTokenDataProvider(services))
-                .UsePackagingDataProvider(GetPackagingDataProvider(services))
-                .UseStatisticalDataProvider(GetStatisticalDataProvider(services))
+                .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
+                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
+                .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
+                .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
+                .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
+                .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
+                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
+                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
+                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
@@ -83,16 +83,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider(IServiceProvider services);
-        public abstract ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services);
-        public abstract IEnumerable<IBlobProvider> GetBlobProviders();
-        public abstract IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services);
-        public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services);
-        public abstract IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services);
-        public abstract IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services);
-        public abstract IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services);
         public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services);
-        public abstract ITestingDataProvider GetTestingDataProvider(IServiceProvider services);
         public abstract ISearchEngine GetSearchEngine();
-        public abstract IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services);
     }
 }

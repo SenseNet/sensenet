@@ -57,19 +57,6 @@ namespace SenseNet.IntegrationTests.Platforms
         //}
 
         public override DataProvider GetDataProvider(IServiceProvider services) => services.GetRequiredService<DataProvider>();
-        public override ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services) => services.GetRequiredService<ISharedLockDataProvider>();
-        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services) => services.GetRequiredService<IExclusiveLockDataProvider>();
-
-        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services) => services.GetRequiredService<IBlobStorageMetaDataProvider>();
-        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
-
-        public override IEnumerable<IBlobProvider> GetBlobProviders()
-        {
-            return new[] { new InMemoryBlobProvider() };
-        }
-
-        public override IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services) => services.GetRequiredService<IAccessTokenDataProvider>();
-        public override IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services) => services.GetRequiredService<IPackagingDataProvider>();
 
         public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
         {
@@ -100,15 +87,9 @@ namespace SenseNet.IntegrationTests.Platforms
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-
-        public override ITestingDataProvider GetTestingDataProvider(IServiceProvider services) => services.GetRequiredService<ITestingDataProvider>();
-
         public override ISearchEngine GetSearchEngine()
         {
             return new InMemorySearchEngine(new InMemoryIndex());
         }
-
-        public override IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services) => services.GetRequiredService<IStatisticalDataProvider>();
-
     }
 }

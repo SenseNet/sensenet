@@ -32,13 +32,6 @@ namespace SenseNet.IntegrationTests.Platforms
         public override Type ExpectedBlobProviderDataType => typeof(LocalDiskBlobProvider.LocalDiskBlobProviderData);
         public override bool UseChunk => false;
 
-        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
-
-        public override IEnumerable<IBlobProvider> GetBlobProviders()
-        {
-            return new[] { new LocalDiskBlobProvider() };
-        }
-
         protected override async Task<byte[][]> GetRawDataAsync(int fileId)
         {
             string blobProvider = null;
