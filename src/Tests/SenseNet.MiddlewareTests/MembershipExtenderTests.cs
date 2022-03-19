@@ -47,9 +47,9 @@ namespace SenseNet.MiddlewareTests
     {
         //UNDONE:TEST: Finalize this method and use it in all tests
         private IServiceCollection AddSenseNetForMembershipExtenderTest(IServiceCollection services,
-            Action<RepositoryBuilder, IServiceProvider> buildRepository,
-            Func<RepositoryInstance, IServiceProvider, Task> onRepositoryStartedAsync = null)
+            Action<RepositoryBuilder, IServiceProvider> buildRepository)
         {
+            //UNDONE:    buildRepository is not called
             services/*.ConfigureSenseNet(configuration)*/
                 .AddSenseNetILogger()
                 .AddSenseNetMsSqlDataProvider()

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
@@ -19,6 +21,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
     public interface IPlatform
     {
         IConfiguration AppConfig { get; set; }
+        void BuildServices(IConfiguration configuration, IServiceCollection services);
         RepositoryBuilder CreateRepositoryBuilder();
         void OnAfterRepositoryStart(RepositoryInstance repository);
     }
@@ -28,33 +31,37 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
         public RepositoryBuilder CreateRepositoryBuilder()
         {
+            var serviceCollection = new ServiceCollection();
+            BuildServices(AppConfig, serviceCollection);
+            var services = serviceCollection.BuildServiceProvider();
+
             Providers.Instance.ResetBlobProviders();
 
-            var builder = new RepositoryBuilder();
+            var builder = new RepositoryBuilder(services);
 
             OnBeforeGettingRepositoryBuilder(builder);
 
-            var dataProvider = GetDataProvider();
+            var dataProvider = GetDataProvider(services);
 
             builder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(Initializer.InitialData)
-                .UseTestingDataProvider(GetTestingDataProvider())
-                .UseSharedLockDataProvider(GetSharedLockDataProvider())
-                .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider())
+                .UseTestingDataProvider(GetTestingDataProvider(services))
+                .UseSharedLockDataProvider(GetSharedLockDataProvider(services))
+                .UseExclusiveLockDataProvider(GetExclusiveLockDataProvider(services))
                 .AddBlobProviders(GetBlobProviders()) // extension for platforms
-                .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(GetBlobProviderSelector())
-                .UseAccessTokenDataProvider(GetAccessTokenDataProvider())
-                .UsePackagingDataProvider(GetPackagingDataProvider())
-                .UseStatisticalDataProvider(GetStatisticalDataProvider())
+                .UseBlobMetaDataProvider(GetBlobMetaDataProvider(dataProvider, services))
+                .UseBlobProviderSelector(GetBlobProviderSelector(services))
+                .UseAccessTokenDataProvider(GetAccessTokenDataProvider(services))
+                .UsePackagingDataProvider(GetPackagingDataProvider(services))
+                .UseStatisticalDataProvider(GetStatisticalDataProvider(services))
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(GetSearchEngine())
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider, services))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
@@ -69,21 +76,23 @@ namespace SenseNet.IntegrationTests.Infrastructure
             return builder;
         }
 
+        public abstract void BuildServices(IConfiguration configuration, IServiceCollection services);
+
         public virtual void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder) { }
         public virtual void OnAfterGettingRepositoryBuilder(RepositoryBuilder builder) { }
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
-        public abstract DataProvider GetDataProvider();
-        public abstract ISharedLockDataProvider GetSharedLockDataProvider();
+        public abstract DataProvider GetDataProvider(IServiceProvider services);
+        public abstract ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services);
         public abstract IEnumerable<IBlobProvider> GetBlobProviders();
-        public abstract IExclusiveLockDataProvider GetExclusiveLockDataProvider();
-        public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider);
-        public abstract IBlobProviderSelector GetBlobProviderSelector();
-        public abstract IAccessTokenDataProvider GetAccessTokenDataProvider();
-        public abstract IPackagingDataProvider GetPackagingDataProvider();
-        public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider);
-        public abstract ITestingDataProvider GetTestingDataProvider();
+        public abstract IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services);
+        public abstract IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services);
+        public abstract IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services);
+        public abstract IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services);
+        public abstract IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services);
+        public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services);
+        public abstract ITestingDataProvider GetTestingDataProvider(IServiceProvider services);
         public abstract ISearchEngine GetSearchEngine();
-        public abstract IStatisticalDataProvider GetStatisticalDataProvider();
+        public abstract IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services);
     }
 }

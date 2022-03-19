@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -18,14 +20,22 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            base.BuildServices(configuration, services);
+
+            services
+                .AddSingleton<IBlobProviderSelector>(new TestBlobProviderSelector(typeof(LocalDiskChunkBlobProvider), true))
+                .AddSingleton<IBlobProvider, LocalDiskChunkBlobProvider>()
+                ;
+        }
+
         public override Type ExpectedExternalBlobProviderType => typeof(LocalDiskChunkBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData);
         public override bool UseChunk => true;
 
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new TestBlobProviderSelector(typeof(LocalDiskChunkBlobProvider), true);
-        }
+        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
+
         public override IEnumerable<IBlobProvider> GetBlobProviders()
         {
             return new[] { new LocalDiskChunkBlobProvider() };

@@ -4,6 +4,8 @@ using System.Data;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -16,14 +18,22 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            base.BuildServices(configuration, services);
+
+            services
+                .AddSingleton<IBlobProviderSelector>(new TestBlobProviderSelector(typeof(LocalDiskBlobProvider), true))
+                .AddSingleton<IBlobProvider, LocalDiskBlobProvider>()
+                ;
+        }
+
         public override Type ExpectedExternalBlobProviderType => typeof(LocalDiskBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(LocalDiskBlobProvider.LocalDiskBlobProviderData);
         public override bool UseChunk => false;
 
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new TestBlobProviderSelector(typeof(LocalDiskBlobProvider), true);
-        }
+        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
+
         public override IEnumerable<IBlobProvider> GetBlobProviders()
         {
             return new[] { new LocalDiskBlobProvider() };
@@ -66,7 +76,6 @@ namespace SenseNet.IntegrationTests.Platforms
 
             return GetRawDataAsync(blobProvider, blobProviderData);
         }
-
         private byte[][] GetRawDataAsync(string blobProvider, string blobProviderData)
         {
             var provider = (LocalDiskBlobProvider)BlobStorage.GetProvider(blobProvider);

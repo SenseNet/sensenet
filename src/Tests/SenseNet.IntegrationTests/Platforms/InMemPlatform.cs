@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -23,6 +26,28 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemPlatform : Platform
     {
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            services
+                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseLogger(provider)
+                        .UseAccessProvider(new UserAccessProvider())
+                        .UseInactiveAuditEventWriter();
+                })
+                .AddSenseNetInMemoryProviders()
+
+                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                ;
+        }
+
         //public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         //{
         //    // in-memory provider works as a regular provider
@@ -31,41 +56,22 @@ namespace SenseNet.IntegrationTests.Platforms
         //    base.OnBeforeGettingRepositoryBuilder(builder);
         //}
 
-        public override DataProvider GetDataProvider()
-        {
-            return new InMemoryDataProvider();
-        }
-        public override ISharedLockDataProvider GetSharedLockDataProvider()
-        {
-            return new InMemorySharedLockDataProvider();
-        }
+        public override DataProvider GetDataProvider(IServiceProvider services) => services.GetRequiredService<DataProvider>();
+        public override ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services) => services.GetRequiredService<ISharedLockDataProvider>();
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services) => services.GetRequiredService<IExclusiveLockDataProvider>();
 
-        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
-        {
-            return new InMemoryExclusiveLockDataProvider();
-        }
-        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
-        {
-            return new InMemoryBlobStorageMetaDataProvider((InMemoryDataProvider)dataProvider);
-        }
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new InMemoryBlobProviderSelector();
-        }
+        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services) => services.GetRequiredService<IBlobStorageMetaDataProvider>();
+        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
+
         public override IEnumerable<IBlobProvider> GetBlobProviders()
         {
             return new[] { new InMemoryBlobProvider() };
         }
 
-        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
-        {
-            return new InMemoryAccessTokenDataProvider();
-        }
-        public override IPackagingDataProvider GetPackagingDataProvider()
-        {
-            return new InMemoryPackageStorageProvider();
-        }
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services) => services.GetRequiredService<IAccessTokenDataProvider>();
+        public override IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services) => services.GetRequiredService<IPackagingDataProvider>();
+
+        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
         {
             return new MemoryDataProvider(new DatabaseStorage
             {
@@ -94,17 +100,15 @@ namespace SenseNet.IntegrationTests.Platforms
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-        public override ITestingDataProvider GetTestingDataProvider()
-        {
-            return new InMemoryTestingDataProvider();
-        }
+
+        public override ITestingDataProvider GetTestingDataProvider(IServiceProvider services) => services.GetRequiredService<ITestingDataProvider>();
+
         public override ISearchEngine GetSearchEngine()
         {
             return new InMemorySearchEngine(new InMemoryIndex());
         }
-        public override IStatisticalDataProvider GetStatisticalDataProvider()
-        {
-            return new InMemoryStatisticalDataProvider();
-        }
+
+        public override IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services) => services.GetRequiredService<IStatisticalDataProvider>();
+
     }
 }

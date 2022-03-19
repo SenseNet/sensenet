@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -30,6 +34,37 @@ namespace SenseNet.IntegrationTests.Platforms
         private string _connectionString;
         public string ConnectionString => _connectionString ??= AppConfig.GetConnectionString("SnCrMsSql");
 
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            services
+                //.AddSenseNetInstallPackage()
+                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data",
+                            "LocalIndex"))
+                        .UseMsSqlExclusiveLockDataProvider();
+                })
+                .AddEFCSecurityDataProvider(options =>
+                {
+                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                })
+                .AddSenseNetMsSqlStatisticalDataProvider()
+                .AddSenseNetMsSqlClientStoreDataProvider()
+                .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddComponent(provider => new MsSqlStatisticsComponent())
+                .AddComponent(provider => new MsSqlClientStoreComponent())
+
+                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                ;
+        }
+
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
             //UNDONE: [DIREF]: do not set the global connection string
@@ -44,8 +79,10 @@ namespace SenseNet.IntegrationTests.Platforms
             base.OnAfterRepositoryStart(repository);
         }
 
-        public override DataProvider GetDataProvider()
+        public override DataProvider GetDataProvider(IServiceProvider services)
         {
+var xxx = services.GetService<DataProvider>();
+
             var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
@@ -55,54 +92,29 @@ namespace SenseNet.IntegrationTests.Platforms
                 new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
-        public override ISharedLockDataProvider GetSharedLockDataProvider()
-        {
-            return new MsSqlSharedLockDataProvider();
-        }
+        public override ISharedLockDataProvider GetSharedLockDataProvider(IServiceProvider services) => services.GetRequiredService<ISharedLockDataProvider>();
 
         public override IEnumerable<IBlobProvider> GetBlobProviders()
         {
             return null;
         }
 
-        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
-        {
-            return new MsSqlExclusiveLockDataProvider();
-        }
-        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
-        {
-            //TODO: get services and options from outside
-            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
-                Options.Create(DataOptions.GetLegacyConfiguration()),
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings()));
-        }
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new BuiltInBlobProviderSelector(
-                Providers.Instance.BlobProviders,
-                null,
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
-        }
-        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
-        {
-            return new MsSqlAccessTokenDataProvider();
-        }
-        public override IPackagingDataProvider GetPackagingDataProvider()
-        {
-            return new MsSqlPackagingDataProvider();
-        }
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
+        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider(IServiceProvider services) => services.GetRequiredService<IExclusiveLockDataProvider>();
+        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider, IServiceProvider services) => services.GetRequiredService<IBlobStorageMetaDataProvider>();
+        public override IBlobProviderSelector GetBlobProviderSelector(IServiceProvider services) => services.GetRequiredService<IBlobProviderSelector>();
+        public override IAccessTokenDataProvider GetAccessTokenDataProvider(IServiceProvider services) => services.GetRequiredService<IAccessTokenDataProvider>();
+        public override IPackagingDataProvider GetPackagingDataProvider(IServiceProvider services) => services.GetRequiredService<IPackagingDataProvider>();
+
+        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
         {
             return new EFCSecurityDataProvider(new MessageSenderManager(), Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
             {
                 ConnectionString = ConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
-        public override ITestingDataProvider GetTestingDataProvider()
-        {
-            return new MsSqlTestingDataProvider();
-        }
+
+        public override ITestingDataProvider GetTestingDataProvider(IServiceProvider services) => services.GetRequiredService<ITestingDataProvider>();
+
         public override ISearchEngine GetSearchEngine()
         {
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
@@ -111,11 +123,7 @@ namespace SenseNet.IntegrationTests.Platforms
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
         }
 
-        public override IStatisticalDataProvider GetStatisticalDataProvider()
-        {
-            return new MsSqlStatisticalDataProvider(Options.Create(new DataOptions()),
-                Options.Create(new ConnectionStringOptions {ConnectionString = ConnectionString}));
-        }
+        public override IStatisticalDataProvider GetStatisticalDataProvider(IServiceProvider services) => services.GetRequiredService<IStatisticalDataProvider>();
 
         /* ============================================================== */
 

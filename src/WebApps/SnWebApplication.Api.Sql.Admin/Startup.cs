@@ -38,12 +38,12 @@ namespace SnWebApplication.Api.Sql.Admin
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProvider();
-            })
+                {
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        .UseMsSqlExclusiveLockDataProvider();
+                })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = ConnectionStrings.ConnectionString;
