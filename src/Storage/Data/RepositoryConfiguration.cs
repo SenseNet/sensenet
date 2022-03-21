@@ -59,9 +59,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: ConnectionStrings MOVED
 
-        public static string ConnectionString => ConnectionStrings.ConnectionString;
-        public static string SecurityDatabaseConnectionString => ConnectionStrings.SecurityDatabaseConnectionString;
-        public static string SignalRDatabaseConnectionString => ConnectionStrings.SignalRDatabaseConnectionString;
+        //public static string ConnectionString => ConnectionStrings.ConnectionString;
+        //public static string SecurityDatabaseConnectionString => ConnectionStrings.SecurityDatabaseConnectionString;
+        //public static string SignalRDatabaseConnectionString => ConnectionStrings.SignalRDatabaseConnectionString;
 
         #endregion
 

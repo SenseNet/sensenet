@@ -69,7 +69,8 @@ END
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings)
+                                   ?? context.ConnectionStrings.Repository;
 
             //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))

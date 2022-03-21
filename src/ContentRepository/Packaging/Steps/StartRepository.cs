@@ -55,7 +55,7 @@ namespace SenseNet.Packaging.Steps
             Logger.LogMessage("startIndexingEngine: " + startIndexingEngine);
             Logger.LogMessage("indexPath: " + indexPath);
 
-            var startSettings = (context.RepositoryStartSettings ?? new RepositoryBuilder
+            var startSettings = (context.RepositoryStartSettings ?? new RepositoryBuilder(context.RepositoryStartSettings.Services)
             {
                 StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,

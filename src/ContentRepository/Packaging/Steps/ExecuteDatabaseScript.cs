@@ -116,7 +116,8 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings)
+                                   ?? context.ConnectionStrings.Repository;
 
             while (sqlReader.ReadScript())
             {

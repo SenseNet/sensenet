@@ -165,7 +165,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         {
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
-            Providers.Instance.ResetBlobProviders();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var builder = new RepositoryBuilder()
                 .UseTracer(new SnFileSystemTracer())

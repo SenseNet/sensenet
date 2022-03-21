@@ -31,9 +31,6 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlPlatform : Platform
     {
-        private string _connectionString;
-        public string ConnectionString => _connectionString ??= AppConfig.GetConnectionString("SnCrMsSql");
-
         public override void BuildServices(IConfiguration configuration, IServiceCollection services)
         {
             services
@@ -48,7 +45,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                    options.ConnectionString = RepositoryConnectionString;
                 })
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()
@@ -67,8 +64,6 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
-            //UNDONE: [DIREF]: do not set the global connection string
-            ConnectionStrings.ConnectionString = ConnectionString;
             PrepareDatabase();
             base.OnBeforeGettingRepositoryBuilder(builder);
         }
@@ -81,15 +76,13 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider(IServiceProvider services)
         {
-var xxx = services.GetService<DataProvider>();
-
-            var connOptions = Options.Create(ConnectionStringOptions.GetLegacyConnectionStrings());
+            var connectionStringOptions = Options.Create(new ConnectionStringOptions{Repository = RepositoryConnectionString });
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
-            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
+            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connectionStringOptions,
                 dbInstallerOptions,
                 new MsSqlDatabaseInstaller(dbInstallerOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
-                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
+                new MsSqlDataInstaller(connectionStringOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
 
@@ -97,7 +90,7 @@ var xxx = services.GetService<DataProvider>();
         {
             return new EFCSecurityDataProvider(new MessageSenderManager(), Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
             {
-                ConnectionString = ConnectionString
+                ConnectionString = RepositoryConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
         }
         public override ISearchEngine GetSearchEngine()
@@ -116,7 +109,7 @@ var xxx = services.GetService<DataProvider>();
                 // ReSharper disable once AssignNullToNotNullAttribute
                 AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\Storage\Data\MsSqlClient\Scripts"));
 
-            var databaseName = GetDatabaseName(ConnectionString);
+            var databaseName = GetDatabaseName(RepositoryConnectionString);
             var dbid = ExecuteSqlScalarNative<int?>($"SELECT database_id FROM sys.databases WHERE Name = '{databaseName}'", "master");
             if (dbid == null)
             {
@@ -175,7 +168,7 @@ var xxx = services.GetService<DataProvider>();
         }
         private string GetConnectionString(string databaseName)
         {
-            var builder = new SqlConnectionStringBuilder(ConnectionString);
+            var builder = new SqlConnectionStringBuilder(RepositoryConnectionString);
             builder.InitialCatalog = databaseName;
             return builder.ToString();
         }

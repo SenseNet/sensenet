@@ -19,8 +19,14 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class MsSqlPackagingDataProvider : IPackagingDataProvider
     {
-        private RelationalDataProviderBase _dataProvider;
-        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
+        private readonly RelationalDataProviderBase _mainProvider;
+
+        public MsSqlPackagingDataProvider(DataProvider mainProvider)
+        {
+            if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
+                throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
+            _mainProvider = relationalDataProviderBase;
+        }
 
         #region SQL LoadInstalledComponentsScript
         private static readonly string InstalledComponentsScript = $@"-- MsSqlPackagingDataProvider.LoadInstalledComponents
@@ -33,13 +39,13 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         #endregion
         public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
-            if (!(await MainProvider.IsDatabaseReadyAsync(cancellationToken)))
+            if (!(await _mainProvider.IsDatabaseReadyAsync(cancellationToken)))
                 return new ComponentInfo[0];
 
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteReaderAsync(InstalledComponentsScript,
                     async (reader, cancel) =>
@@ -86,13 +92,13 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         #endregion
         public async Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
         {
-            if (!(await MainProvider.IsDatabaseReadyAsync(cancellationToken)))
+            if (!(await _mainProvider.IsDatabaseReadyAsync(cancellationToken)))
                 return new ComponentInfo[0];
 
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteReaderAsync(IncompleteComponentsScript,
                     async (reader, cancel) =>
@@ -137,7 +143,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         {
             var packages = new List<Package>();
 
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                     async (reader, cancel) =>
@@ -181,7 +187,7 @@ SELECT @@IDENTITY";
         #endregion
         public async Task SavePackageAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
                 {
@@ -224,7 +230,7 @@ WHERE Id = @Id
         #endregion
         public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
                 {
@@ -260,7 +266,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             , CancellationToken cancellationToken)
         {
             int count;
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
                 {
@@ -283,7 +289,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); }).ConfigureAwait(false);
@@ -292,7 +298,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
         public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
         {
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages").ConfigureAwait(false);
             }
@@ -303,7 +309,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         #endregion
         public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
                 {
@@ -339,7 +345,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {

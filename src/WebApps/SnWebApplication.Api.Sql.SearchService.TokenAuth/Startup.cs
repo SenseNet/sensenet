@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
@@ -46,6 +47,11 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             //TODO: temp switch, remove this after upgrading to .net5
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
+            // [sensenet]: Set options for EFCSecurityDataProvider
+            services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
+                .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
+                    securityOptions.ConnectionString = systemConnections.Value.Security);
+
             // [sensenet]: add sensenet services
             services
                 .AddSenseNetInstallPackage()
@@ -55,10 +61,7 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                         .UseLogger(provider)
                         .UseMsSqlExclusiveLockDataProvider();
                 })
-                .AddEFCSecurityDataProvider(options =>
-                {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
-                })
+                .AddEFCSecurityDataProvider()
                 .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<RabbitMqOptions>(Configuration.GetSection("sensenet:security:rabbitmq"))

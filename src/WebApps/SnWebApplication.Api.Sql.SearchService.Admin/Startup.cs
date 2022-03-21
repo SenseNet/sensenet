@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
@@ -43,19 +44,21 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                     options.Audience = "sensenet";
                 });
 
+            // [sensenet]: Set options for EFCSecurityDataProvider
+            services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
+                .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
+                    securityOptions.ConnectionString = systemConnections.Value.Security);
+
             // [sensenet]: add sensenet services
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseMsSqlExclusiveLockDataProvider();
-            })
-                .AddEFCSecurityDataProvider(options =>
                 {
-                    options.ConnectionString = ConnectionStrings.ConnectionString;
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseMsSqlExclusiveLockDataProvider();
                 })
+                .AddEFCSecurityDataProvider()
                 .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<RabbitMqOptions>(Configuration.GetSection("sensenet:security:rabbitmq"))

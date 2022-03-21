@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -9,6 +11,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public class MsSqlSchemaWriter : SchemaWriter
     {
+        private readonly string _connectionString;
+
+        public MsSqlSchemaWriter(IOptions<ConnectionStringOptions> connectionStrings)
+        {
+            _connectionString = connectionStrings.Value.Repository;
+        }
+
         public override bool CanWriteDifferences => false;
 
         public override async Task WriteSchemaAsync(RepositorySchemaData schema)
@@ -34,7 +43,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 foreach (var contentListType in contentListTypes)
                     contentListType.Id = ++lastId;
             }
-            await MsSqlSchemaInstaller.InstallSchemaAsync(schema).ConfigureAwait(false);
+
+            var installer = new MsSqlSchemaInstaller(_connectionString);
+            await installer.InstallSchemaAsync(schema).ConfigureAwait(false);
         }
 
         #region unused methods

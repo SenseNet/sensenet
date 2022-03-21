@@ -4,134 +4,154 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
 {
-    public partial class ReindexBinaries
+    internal class ReindexBinariesDataHandler
     {
-        //TODO: [DIREF] get options from DI through constructor
-        private static class DataHandler
+        private readonly DataOptions _dataOptions;
+        private readonly ConnectionStringOptions _connectionStrings;
+
+        private SnTrace.SnTraceCategory __tracer;
+        internal SnTrace.SnTraceCategory Tracer
         {
-            internal static void InstallTables(CancellationToken cancellationToken)
+            get
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
-            }
-            internal static void StartBackgroundTasks(CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
-            }
-
-            internal class AssignedTaskResult
-            {
-                public int[] VersionIds;
-                public int RemainingTaskCount;
-            }
-            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
-            {
-                var result = new List<int>();
-                int remainingTasks = 0;
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
+                if (__tracer == null)
                 {
-                    ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
-                    {
-                        cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
-                        cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
-                    }, async (reader, cancel) =>
-                    {
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                            result.Add(reader.GetInt32(0));
-                        await reader.NextResultAsync(cancel).ConfigureAwait(false);
-
-                        await reader.ReadAsync(cancel).ConfigureAwait(false);
-                        remainingTasks = reader.GetInt32(0);
-
-                        return Task.FromResult(0);
-                    }).GetAwaiter().GetResult();
+                    __tracer = SnTrace.Category(ReindexBinaries.TraceCategory);
+                    __tracer.Enabled = true;
                 }
-
-                return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
-            }
-
-            internal static void FinishTask(int versionId, CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
-                    {
-                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                    }).GetAwaiter().GetResult();
-            }
-
-            /* ========================================================================================= */
-
-            public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
-                    {
-                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                        cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
-                    }).GetAwaiter().GetResult();
-            }
-
-            public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                {
-                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
-                    {
-                        var result = new List<int>();
-                        while (reader.Read())
-                            result.Add(reader.GetInt32(0));
-                        return Task.FromResult(result);
-                    }).GetAwaiter().GetResult();
-                }
-            }
-
-            public static void DropTables(CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
-            }
-
-            public static bool CheckFeature(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                    {
-                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
-                        return Convert.ToInt32(result) != 0;
-                    }
-                }
-                catch (AggregateException ae)
-                {
-                    if (ae.InnerException is NotSupportedException)
-                        return false;
-                    throw;
-                }
-                catch (NotSupportedException)
-                {
-                    return false;
-                }
-            }
-
-            public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
-            {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions.GetLegacyConfiguration(), cancellationToken))
-                {
-                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
-                    var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
-                    Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
-                    return timeLimit;
-                }
+                return __tracer;
             }
         }
 
+        public ReindexBinariesDataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings)
+        {
+            _dataOptions = dataOptions;
+            _connectionStrings = connectionStrings;
+        }
+
+        internal void InstallTables(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
+        }
+        internal void StartBackgroundTasks(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
+        }
+
+        internal class AssignedTaskResult
+        {
+            public int[] VersionIds;
+            public int RemainingTaskCount;
+        }
+        internal AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
+        {
+            var result = new List<int>();
+            int remainingTasks = 0;
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            {
+                ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
+                {
+                    cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
+                    cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
+                }, async (reader, cancel) =>
+                {
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                        result.Add(reader.GetInt32(0));
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+
+                    await reader.ReadAsync(cancel).ConfigureAwait(false);
+                    remainingTasks = reader.GetInt32(0);
+
+                    return Task.FromResult(0);
+                }).GetAwaiter().GetResult();
+            }
+
+            return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
+        }
+
+        internal void FinishTask(int versionId, CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                {
+                    cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                }).GetAwaiter().GetResult();
+        }
+
+        /* ========================================================================================= */
+
+        public void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                {
+                    cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                    cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
+                }).GetAwaiter().GetResult();
+        }
+
+        public List<int> GetAllNodeIds(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            {
+                return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
+                {
+                    var result = new List<int>();
+                    while (reader.Read())
+                        result.Add(reader.GetInt32(0));
+                    return Task.FromResult(result);
+                }).GetAwaiter().GetResult();
+            }
+        }
+
+        public void DropTables(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
+        }
+
+        public bool CheckFeature(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+                {
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
+                    return Convert.ToInt32(result) != 0;
+                }
+            }
+            catch (AggregateException ae)
+            {
+                if (ae.InnerException is NotSupportedException)
+                    return false;
+                throw;
+            }
+            catch (NotSupportedException)
+            {
+                return false;
+            }
+        }
+
+        public DateTime LoadTimeLimit(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            {
+                var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
+                var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
+                Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
+                return timeLimit;
+            }
+        }
+
+        #region private static class SqlScripts
         private static class SqlScripts
         {
             private const string TempTableName = "Maintenance.BinaryReindexingTemp";
@@ -258,5 +278,7 @@ ELSE
 ";
             #endregion
         }
+        #endregion
     }
+
 }

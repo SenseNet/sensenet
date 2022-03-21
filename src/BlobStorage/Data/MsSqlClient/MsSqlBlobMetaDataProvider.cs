@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql = ClearStreamByFileIdScript + sql;
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
@@ -370,7 +370,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
                 return await LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx).ConfigureAwait(false);
         }
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
@@ -441,7 +441,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
-                using (var dctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+                using (var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
@@ -495,7 +495,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             try
             {
-                using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+                using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -539,7 +539,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         }
         private async Task CleanupFilesSetDeleteFlagAsync(string script, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 using (var transaction = ctx.BeginTransaction())
                 {
@@ -558,7 +558,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
-            using (var dctx = new MsSqlDataContext(ConnectionStrings.ConnectionString, DataOptions, cancellationToken))
+            using (var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 return await dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>
                 {

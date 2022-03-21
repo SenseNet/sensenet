@@ -81,7 +81,7 @@ namespace SenseNet.Tests.Core
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            Providers.Instance.ResetBlobProviders();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             OnTestInitialize();
 
@@ -141,7 +141,7 @@ namespace SenseNet.Tests.Core
         }
         private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Providers.Instance.ResetBlobProviders();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             OnTestInitialize();
 

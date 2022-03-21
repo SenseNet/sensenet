@@ -63,9 +63,7 @@ namespace SenseNet.Extensions.DependencyInjection
             // default MS SQL configuration
             services.Configure<MsSqlDatabaseInstallationOptions>(configuration.GetSection("sensenet:install:mssql"));
 
-            //TODO: remove workaround for legacy connection string configuration
-            // and replace it with real configuration load like above.
-            services.ConfigureLegacyConnectionStrings();
+            services.ConfigureConnectionStrings(configuration);
 
             return services;
         }

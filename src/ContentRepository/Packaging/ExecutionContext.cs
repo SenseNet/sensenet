@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 
 namespace SenseNet.Packaging
@@ -48,7 +52,7 @@ namespace SenseNet.Packaging
         /// <summary>True if the StartRepository step has already executed.</summary>
         public bool RepositoryStarted { get; internal set; }
         internal bool Test { get; set; }
-        internal RepositoryStartSettings RepositoryStartSettings { get; set; }
+        internal RepositoryBuilder RepositoryStartSettings { get; set; }
 
         /// <summary>
         /// DO NOT USE THIS CONSTRUCTOR FROM TESTS. Use ExecutionContext.CreateForTest method instead.
@@ -82,12 +86,16 @@ namespace SenseNet.Packaging
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console) { Test = true };
         }
-        internal static ExecutionContext Create(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, PackageParameter[] packageParameters, TextWriter console, RepositoryStartSettings settings)
+        internal static ExecutionContext Create(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, PackageParameter[] packageParameters, TextWriter console, RepositoryBuilder repositoryBuilder)
         {
+            var services = repositoryBuilder.Services;
+            var connectionStrings = services.GetRequiredService<IOptions<ConnectionStringOptions>>().Value;
+
             return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console)
             {
                 Test = false,
-                RepositoryStartSettings = settings
+                RepositoryStartSettings = repositoryBuilder,
+                ConnectionStrings = connectionStrings
             };
         }
 
@@ -102,6 +110,8 @@ namespace SenseNet.Packaging
         public TerminationReason TerminationReason { get; private set; }
         public bool Terminated { get { return TerminationMessage != null; } }
         public int TerminatorStepId { get; private set; }
+        public ConnectionStringOptions ConnectionStrings { get; private set; }
+
         public void TerminateExecution(string message, TerminationReason reason, Steps.Step terminatorStep)
         {
             this.TerminationMessage = message;

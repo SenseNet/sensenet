@@ -32,13 +32,13 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string) context.ResolveVariable(UserName),
                 Password = (string) context.ResolveVariable(Password)
             };
-            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo);
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings);
 
             var initialData = InitialData.Load(new SenseNetServicesInitialData(), null);
             var dataOptions = Options.Create(DataOptions.GetLegacyConfiguration());
             var connOptions = Options.Create(new ConnectionStringOptions
             {
-                ConnectionString = connectionString
+                Repository = connectionString
             });
             
             var installer = new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>());
