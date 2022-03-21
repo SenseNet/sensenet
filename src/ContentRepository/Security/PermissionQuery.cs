@@ -14,55 +14,6 @@ using SCSS = SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security
 {
-    [Obsolete("##", true)]
-    public static class PermissionQuery
-    {
-        //public static IEnumerable<Content> GetRelatedIdentities(Content content, PermissionLevel level, IdentityKind identityKind)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind).Select(Content.Create);
-        //}
-        //public static IDictionary<PermissionType, int> GetRelatedPermissions(Content content, PermissionLevel level, bool explicitOnly, ISecurityMember member, IEnumerable<string> includedTypes)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetRelatedPermissions(content.Id, level, explicitOnly, member.Id, includedTypes);
-        //}
-        //public static IDictionary<PermissionType, int> GetExplicitPermissionsInSubtree(Content content, int[] identities, bool includeRoot)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetExplicitPermissionsInSubtree(content.Id, identities, includeRoot);
-        //}
-        //public static IEnumerable<Content> GetRelatedItems(Content content, PermissionLevel level, bool explicitOnly, ISecurityMember member, IEnumerable<PermissionType> permissions)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetRelatedNodes(content.Id, level, explicitOnly, member.Id, permissions).Select(Content.Create);
-        //}
-
-        //public static IEnumerable<Content> GetRelatedIdentities(Content content, PermissionLevel level, IdentityKind identityKind, IEnumerable<PermissionType> permissions)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetRelatedIdentities(content.Id, level, identityKind, permissions).Select(Content.Create);
-        //}
-        //public static IEnumerable<Content> GetRelatedItemsOneLevel(Content content, PermissionLevel level, ISecurityMember member, IEnumerable<PermissionType> permissions)
-        //{
-        //    content.ContentHandler.Security.AssertSubtree(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery.GetRelatedNodesOneLevel(content.Id, level, member.Id, permissions).Select(Content.Create);
-        //}
-
-        //public static IEnumerable<Content> GetAllowedUsers(Content content, IEnumerable<PermissionType> permissions)
-        //{
-        //    content.ContentHandler.Security.Assert(PermissionType.SeePermissions);
-        //    return SCSS.PermissionQuery
-        //        .GetAllowedUsers(content.Id, permissions)
-        //        .Where(n => n is User)
-        //        .Select(Content.Create);
-        //}
-
-        //public static IEnumerable<Content> GetParentGroups(Content content, bool directOnly)
-        //{
-        //    return SCSS.PermissionQuery.GetParentGroups(content.Id, directOnly).Select(Content.Create);
-        //}
-    }
     public static class PermissionQueryForRest
     {
         // ============================================================================= Classes for serialization
