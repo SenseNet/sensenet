@@ -816,8 +816,10 @@ namespace  SenseNet.ContentRepository.Schema
                 ContentType contentTypeToDelete = ContentTypeManager.Instance.GetContentTypeByName(this.Name);
                 if (contentTypeToDelete != null)
                 {
-                    if (!IsDeletable(contentTypeToDelete))
-                        throw new ApplicationException(String.Concat("Cannot delete ContentType '", this.Name, "' because one or more Content use this type or any descendant type."));
+                    // We must prevent removing the content type from the schema database,
+                    // because this operation is not reversible if the delete operation below fails.
+                    if (!IsDeletable(contentTypeToDelete, out var message))
+                        throw new ApplicationException($"Cannot delete ContentType '{Name}' because {message}.");
                     ContentTypeManager.Instance.RemoveContentType(contentTypeToDelete.Name);
                 }
             }
@@ -827,13 +829,28 @@ namespace  SenseNet.ContentRepository.Schema
             base.Delete();
             ContentTypeManager.Reset(); // necessary (Delete)
         }
-        private static bool IsDeletable(ContentType contentType)
+        private static bool IsDeletable(ContentType contentType, out string message)
         {
+            message = null;
+
             // Returns false if there is a Node which is inherited from passed ContentType or its descendant.
-            NodeType nodeType = Providers.Instance.StorageSchema.NodeTypes[contentType.Name];
+            var nodeType = Providers.Instance.StorageSchema.NodeTypes[contentType.Name];
             if (nodeType == null)
                 return true;
-            return NodeQuery.InstanceCount(nodeType, false) == 0;
+
+            if (ContentProtector.GetProtectedPaths().Contains(contentType.Path, StringComparer.OrdinalIgnoreCase))
+            {
+                message = "it is protected";
+                return false;
+            }
+
+            if (NodeQuery.InstanceCount(nodeType, false) > 0)
+            {
+                message = "one or more Content items use this type or any descendant type";
+                return false;
+            }
+
+            return true;
         }
         /// <summary>
         /// Returns true if this <see cref="ContentType"/> is a descendant of the given ContentType.
