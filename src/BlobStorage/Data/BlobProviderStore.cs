@@ -21,9 +21,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public BlobProviderStore(IEnumerable<IBlobProvider> providers)
-        : base(providers.ToDictionary(bp => bp.GetType().FullName, bp => bp))
         {
-            
+            foreach (var provider in providers) 
+                this[provider.GetType().FullName] = provider;
         }
 
         public void AddProvider(IBlobProvider provider)
