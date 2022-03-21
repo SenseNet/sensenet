@@ -20,6 +20,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public MsSqlAccessTokenDataProvider(DataProvider mainProvider)
         {
+            if (mainProvider == null)
+                return;
             if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
                 throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
             _mainProvider = relationalDataProviderBase;

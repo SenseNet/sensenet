@@ -28,7 +28,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         ConnectionStringOptions _connectionStrings;
         public MsSqlTestingDataProvider(DataProvider mainProvider, IOptions<ConnectionStringOptions> connectionStrings)
         {
-            if(!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
+            if (mainProvider == null)
+                return;
+            if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
                 throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
             _mainProvider = relationalDataProviderBase;
             _connectionStrings = connectionStrings.Value;
