@@ -7,4 +7,9 @@
     <FullName>PublicAdmin</FullName>
     <LoginName>PublicAdmin</LoginName>
   </Fields>
+  <Permissions>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Open>Allow</Open>
+    </Identity>
+  </Permissions>
 </ContentMetaData>

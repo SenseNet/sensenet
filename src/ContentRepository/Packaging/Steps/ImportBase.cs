@@ -664,16 +664,14 @@ namespace SenseNet.Packaging.Steps
                         .Allow(SystemFolderContentTypeId, DevelopersGroupId, false, PermissionType.See, PermissionType.Open, PermissionType.RunApplication);
                 }
 
-                if (EveryoneGroupId != 0)
-                {
-                    // Allow See on common content types for everyone (workspace, list, file, listitem)
-                    aclEd.Allow(WorkspaceContentTypeId, EveryoneGroupId, true, PermissionType.See)              // LOCAL only
-                        .Allow(ContentListContentTypeId, EveryoneGroupId, false, PermissionType.See)
-                        .Allow(FileContentTypeId, EveryoneGroupId, true, PermissionType.See)                    // LOCAL only
-                        .Allow(ContentType.GetByName("Image").Id, EveryoneGroupId, false, PermissionType.See)
-                        .Allow(FolderContentTypeId, EveryoneGroupId, true, PermissionType.See)                  // LOCAL only
-                        .Allow(ListItemContentTypeId, EveryoneGroupId, false, PermissionType.See);
-                }
+                // Allow See on common content types for everyone (workspace, list, file, listitem)
+                aclEd.Allow(WorkspaceContentTypeId, EveryoneGroupId, true, PermissionType.See)              // LOCAL only
+                    .Allow(ContentListContentTypeId, EveryoneGroupId, false, PermissionType.See)
+                    .Allow(FileContentTypeId, EveryoneGroupId, true, PermissionType.See)                    // LOCAL only
+                    .Allow(ContentType.GetByName("Image").Id, EveryoneGroupId, false, PermissionType.See)
+                    .Allow(FolderContentTypeId, EveryoneGroupId, true, PermissionType.See)                  // LOCAL only
+                    .Allow(ListItemContentTypeId, EveryoneGroupId, false, PermissionType.See);
+                
                 if (contentExplorersGroup != null)
                 {
                     aclEd.Allow(RootContentId, contentExplorersGroup.Id, true, PermissionType.Open);
@@ -691,13 +689,30 @@ namespace SenseNet.Packaging.Steps
                 if (sharingGroupContentTypeId != 0)
                     aclEd.BreakInheritance(sharingGroupContentTypeId, new[] { EntryType.Normal });
 
+                // anybody can modify and delete CTDs created by themselves
+                aclEd.Allow(GenericContentTypeId, Identifiers.OwnersGroupId, false,
+                    PermissionType.Save, PermissionType.AddNew, PermissionType.Delete, PermissionType.SetPermissions);
+
                 // set permissions for public admins
                 if (publicAdminsGroupId != 0)
                 {
+                    // Although public admins get strong permissions here, the content protector feature
+                    // will prevent them (and anybody else) deleting certain built-in content types.
                     aclEd.Allow(GenericContentTypeId, publicAdminsGroupId, false, 
-                        PermissionType.Open, PermissionType.AddNew)
-                        .Allow(contentTypeId, publicAdminsGroupId, false, PermissionType.See)
-                        .Allow(SystemFolderContentTypeId, publicAdminsGroupId, true, PermissionType.Open);
+                        PermissionType.Save, PermissionType.AddNew, PermissionType.Delete, PermissionType.SetPermissions)
+                        .Allow(contentTypeId, publicAdminsGroupId, false, PermissionType.See);
+
+                    // Public admins must not be able to modify built-in CTDs:
+                    // DENY local Save, Delete, SetPermissions permission on protected paths.
+                    foreach (var protectedId in ContentProtector.GetProtectedPaths().Where(p =>
+                                 SNC.Storage.RepositoryPath.IsInTree(p, Repository.ContentTypesFolderPath))
+                                 .Select(NodeHead.Get).Where(nh => nh != null)
+                                 .Select(nh => nh.Id))
+                    {
+                        // deny all strong permissions locally on built-in content types
+                        aclEd.Deny(protectedId, publicAdminsGroupId, true, 
+                            PermissionType.Save, PermissionType.Delete, PermissionType.SetPermissions);
+                    }
                 }
 
                 // Apply all changes
