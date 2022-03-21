@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Schema;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -17,6 +19,15 @@ namespace SenseNet.IntegrationTests.Platforms
     {
         //TODO: [DIREF] get blob service through the constructor
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            base.BuildServices(configuration, services);
+
+            services
+                .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
+                ;
+        }
 
         public virtual Type ExpectedExternalBlobProviderType => typeof(InMemoryBlobProvider);
         public virtual Type ExpectedBlobProviderDataType => typeof(InMemoryBlobProviderData);

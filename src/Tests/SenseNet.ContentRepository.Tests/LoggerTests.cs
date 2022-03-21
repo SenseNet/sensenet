@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -56,6 +57,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Test(builder =>
                 {
+                    // ACTION
                     builder.UseLogger(new TestLogger());
                 },
                 () =>
@@ -77,7 +79,7 @@ namespace SenseNet.ContentRepository.Tests
             // test of the restoration: logger instance need to be the default
             Test(() =>
             {
-                Assert.IsTrue(SnLog.Instance is SnEventLogger);
+                Assert.AreNotEqual(loggerTypeName, SnLog.Instance.GetType().FullName);
             });
         }
         [TestMethod]

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Nito.AsyncEx;
 using SenseNet.Configuration;
@@ -167,28 +169,64 @@ namespace SenseNet.Tests.Core
             }
         }
 
+        protected static IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null,
+            Action<IServiceCollection> modifyServices = null)
+        {
+            var configurationBuilder = new ConfigurationBuilder();
+            //configuration.AddJsonFile("appSettings.json")
+            modifyConfig?.Invoke(configurationBuilder);
+            var configuration = configurationBuilder.Build();
+
+            var services = new ServiceCollection()
+                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseLogger(provider)
+                        .UseAccessProvider(new UserAccessProvider())
+                        .UseInactiveAuditEventWriter();
+                })
+                .AddSenseNetInMemoryProviders()
+                //.AddSenseNetWebHooks()
+                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IBlobProvider, InMemoryBlobProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                ;
+            modifyServices?.Invoke(services);
+            return services.BuildServiceProvider();
+        }
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
-            var dataProvider = new InMemoryDataProvider();
+            var services = CreateServiceProviderForTest();
 
-            return new RepositoryBuilder()
+            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
+
+            return new RepositoryBuilder(services)
+                .UseLogger(new DebugWriteLoggerAdapter())
+                .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
-                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
+                .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
+                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
+                .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
+                .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
+                .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
+                .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
+                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
+                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
+                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProvider(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()

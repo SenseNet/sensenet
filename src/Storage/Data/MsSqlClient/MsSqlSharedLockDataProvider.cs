@@ -19,9 +19,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private readonly RelationalDataProviderBase _mainProvider;
 
-        public MsSqlSharedLockDataProvider(RelationalDataProviderBase mainProvider)
+        public MsSqlSharedLockDataProvider(DataProvider mainProvider)
         {
-            _mainProvider = mainProvider;
+            if (mainProvider == null)
+                return;
+            if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
+                throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
+            _mainProvider = relationalDataProviderBase;
         }
 
         public async Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)

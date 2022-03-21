@@ -9,6 +9,7 @@ using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
@@ -135,6 +136,8 @@ namespace SenseNet.ContentRepository
 
             InitializeDataProviderExtensions();
 
+            //UNDONE: move in the Services.AddSenseNetProviderInstances();
+            Providers.Instance.SecurityHandler = _settings.Services.GetRequiredService<SecurityHandler>();
             Providers.Instance.SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
 
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};

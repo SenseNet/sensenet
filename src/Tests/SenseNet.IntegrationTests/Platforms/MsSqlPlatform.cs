@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -27,6 +31,37 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class MsSqlPlatform : Platform
     {
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            services
+                //.AddSenseNetInstallPackage()
+                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                {
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data",
+                            "LocalIndex"))
+                        .UseMsSqlExclusiveLockDataProvider();
+                })
+                .AddEFCSecurityDataProvider(options =>
+                {
+                    options.ConnectionString = RepositoryConnectionString;
+                })
+                .AddSenseNetMsSqlStatisticalDataProvider()
+                .AddSenseNetMsSqlClientStoreDataProvider()
+                .AddComponent(provider => new MsSqlExclusiveLockComponent())
+                .AddComponent(provider => new MsSqlStatisticsComponent())
+                .AddComponent(provider => new MsSqlClientStoreComponent())
+
+                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                ;
+        }
+
         public override void OnBeforeGettingRepositoryBuilder(RepositoryBuilder builder)
         {
             PrepareDatabase();
@@ -39,67 +74,24 @@ namespace SenseNet.IntegrationTests.Platforms
             base.OnAfterRepositoryStart(repository);
         }
 
-        private IOptions<ConnectionStringOptions> _connectionStringOptions;
-        MsSqlDataProvider _dataProvider;
-        public override DataProvider GetDataProvider()
+        public override DataProvider GetDataProvider(IServiceProvider services)
         {
-            _connectionStringOptions = Options.Create(new ConnectionStringOptions{Repository = RepositoryConnectionString });
+            var connectionStringOptions = Options.Create(new ConnectionStringOptions{Repository = RepositoryConnectionString });
             var dbInstallerOptions = Options.Create(new MsSqlDatabaseInstallationOptions());
 
-            _dataProvider = new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), _connectionStringOptions,
+            return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connectionStringOptions,
                 dbInstallerOptions,
                 new MsSqlDatabaseInstaller(dbInstallerOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
-                new MsSqlDataInstaller(_connectionStringOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
+                new MsSqlDataInstaller(connectionStringOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
-            return _dataProvider;
-        }
-        public override ISharedLockDataProvider GetSharedLockDataProvider()
-        {
-            return new MsSqlSharedLockDataProvider(_dataProvider);
         }
 
-        public override IEnumerable<IBlobProvider> GetBlobProviders()
-        {
-            return null;
-        }
-
-        public override IExclusiveLockDataProvider GetExclusiveLockDataProvider()
-        {
-            return new MsSqlExclusiveLockDataProvider();
-        }
-        public override IBlobStorageMetaDataProvider GetBlobMetaDataProvider(DataProvider dataProvider)
-        {
-            //TODO: get services and options from outside
-            return new MsSqlBlobMetaDataProvider(Providers.Instance.BlobProviders,
-                Options.Create(DataOptions.GetLegacyConfiguration()),
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                Options.Create(new ConnectionStringOptions { Repository = RepositoryConnectionString }));
-        }
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new BuiltInBlobProviderSelector(
-                Providers.Instance.BlobProviders,
-                null,
-                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
-        }
-        public override IAccessTokenDataProvider GetAccessTokenDataProvider()
-        {
-            return new MsSqlAccessTokenDataProvider(_dataProvider);
-        }
-        public override IPackagingDataProvider GetPackagingDataProvider()
-        {
-            return new MsSqlPackagingDataProvider(_dataProvider);
-        }
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider)
+        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
         {
             return new EFCSecurityDataProvider(new MessageSenderManager(), Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
             {
                 ConnectionString = RepositoryConnectionString
             }), NullLogger<EFCSecurityDataProvider>.Instance);
-        }
-        public override ITestingDataProvider GetTestingDataProvider()
-        {
-            return new MsSqlTestingDataProvider(_dataProvider, _connectionStringOptions);
         }
         public override ISearchEngine GetSearchEngine()
         {
@@ -107,12 +99,6 @@ namespace SenseNet.IntegrationTests.Platforms
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
-        }
-
-        public override IStatisticalDataProvider GetStatisticalDataProvider()
-        {
-            return new MsSqlStatisticalDataProvider(Options.Create(new DataOptions()),
-                Options.Create(new ConnectionStringOptions {Repository = RepositoryConnectionString }));
         }
 
         /* ============================================================== */

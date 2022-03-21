@@ -24,15 +24,15 @@ namespace SenseNet.IntegrationTests.Infrastructure
     [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
     public class MsSqlTestingDataProvider : ITestingDataProvider
     {
-        //// ReSharper disable once InconsistentNaming
-        //private RelationalDataProviderBase __dataProvider;
-        //private RelationalDataProviderBase MainProvider => __dataProvider ?? (__dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
-
         private readonly RelationalDataProviderBase _mainProvider;
         ConnectionStringOptions _connectionStrings;
-        public MsSqlTestingDataProvider(RelationalDataProviderBase mainProvider, IOptions<ConnectionStringOptions> connectionStrings)
+        public MsSqlTestingDataProvider(DataProvider mainProvider, IOptions<ConnectionStringOptions> connectionStrings)
         {
-            _mainProvider = mainProvider;
+            if (mainProvider == null)
+                return;
+            if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
+                throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
+            _mainProvider = relationalDataProviderBase;
             _connectionStrings = connectionStrings.Value;
         }
 

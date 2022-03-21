@@ -24,12 +24,12 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class InMemoryExtensions
     {
-        public static RepositoryInstance StartInMemoryRepository(Action<IRepositoryBuilder> buildRepository = null)
+        public static RepositoryInstance StartInMemoryRepository(IServiceProvider services, Action<IRepositoryBuilder> buildRepository = null)
         {
             //TODO:~ missing repo start pieces
             // - user access provider
             
-            var repositoryBuilder = new RepositoryBuilder()
+            var repositoryBuilder = new RepositoryBuilder(services)
                 .BuildInMemoryRepository();
 
             buildRepository?.Invoke(repositoryBuilder);

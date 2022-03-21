@@ -26,7 +26,7 @@ namespace SenseNet.MiddlewareTests
                     webBuilder.UseTestServer().ConfigureServices(configureServices).Configure(configure);
                 }).Build())
             {
-                using (InMemoryExtensions.StartInMemoryRepository(repositoryBuilder =>
+                using (InMemoryExtensions.StartInMemoryRepository(host.Services, repositoryBuilder =>
                 {
                     repositoryBuilder.UseAccessProvider(new UserAccessProvider());
                 }))

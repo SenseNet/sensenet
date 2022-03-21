@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage.Data;
@@ -13,19 +15,27 @@ namespace SenseNet.IntegrationTests.Platforms
 {
     public class InMemChunkBlobStoragePlatform : InMemBlobStoragePlatform
     {
+
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
+
+        public override void BuildServices(IConfiguration configuration, IServiceCollection services)
+        {
+            base.BuildServices(configuration, services);
+
+            services
+                .AddSingleton<IBlobProviderSelector>(new TestBlobProviderSelector(typeof(InMemoryChunkBlobProvider), false))
+                .AddSingleton<IBlobProvider, InMemoryChunkBlobProvider>()
+                ;
+        }
+
         public override Type ExpectedExternalBlobProviderType => typeof(InMemoryChunkBlobProvider);
         public override Type ExpectedBlobProviderDataType => typeof(InMemoryChunkBlobProviderData);
         public override bool UseChunk => true;
 
-        public override IBlobProviderSelector GetBlobProviderSelector()
-        {
-            return new TestBlobProviderSelector(typeof(InMemoryChunkBlobProvider), false);
-        }
-        public override IEnumerable<IBlobProvider> GetBlobProviders()
-        {
-            return new[] { new InMemoryChunkBlobProvider() };
-        }
+//public override IEnumerable<IBlobProvider> GetBlobProviders()
+//{
+//    return new[] { new InMemoryChunkBlobProvider() };
+//}
 
         protected override byte[][] GetRawData(string blobProvider, string blobProviderData)
         {

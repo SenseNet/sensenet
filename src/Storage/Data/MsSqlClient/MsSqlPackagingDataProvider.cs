@@ -21,9 +21,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         private readonly RelationalDataProviderBase _mainProvider;
 
-        public MsSqlPackagingDataProvider(RelationalDataProviderBase mainProvider)
+        public MsSqlPackagingDataProvider(DataProvider mainProvider)
         {
-            _mainProvider = mainProvider;
+            if (mainProvider == null)
+                return;
+            if (!(mainProvider is RelationalDataProviderBase relationalDataProviderBase))
+                throw new ArgumentException("The mainProvider need to be RelationalDataProviderBase.");
+            _mainProvider = relationalDataProviderBase;
         }
 
         #region SQL LoadInstalledComponentsScript
