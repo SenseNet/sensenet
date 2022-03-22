@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,13 +22,11 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Tests.Core;
-using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools;
 using SenseNet.Tools.Diagnostics;
 
@@ -63,58 +60,6 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private class TestPackagingDataProvider : IPackagingDataProvider
-        {
-            public System.Threading.Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public System.Threading.Tasks.Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public System.Threading.Tasks.Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
-            {
-                throw new NotImplementedException();
-            }
-
-            public System.Threading.Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public System.Threading.Tasks.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-        }
         private class TestAccessTokenDataProvider : IAccessTokenDataProvider
         {
             public System.Threading.Tasks.Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
@@ -183,8 +128,10 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(IServiceProvider services, DataProvider dbProvider, AccessProvider accessProvider = null)
+        private IRepositoryBuilder CreateRepositoryBuilder(IServiceProvider services, DataProvider dataProvider = null,
+            AccessProvider accessProvider = null, ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
         {
+            var dbProvider = dataProvider ?? services.GetRequiredService<DataProvider>();
             return new RepositoryBuilder(services)
                 .UseAccessProvider(accessProvider ?? new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
@@ -192,25 +139,21 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-
+                .UseSecurityDataProvider(securityDbProvider ?? services.GetRequiredService<ISecurityDataProvider>())
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-
+                .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
                 .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
                 .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
-
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-                ;
         }
 
         [TestMethod]
         public void RepositoryStart_NamedProviders()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
@@ -219,9 +162,11 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider, accessProvider: accessProvider)
-                .UseSecurityDataProvider(securityDbProvider)
-                .UseSearchEngine(searchEngine);
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest(),
+                dataProvider: dbProvider,
+                accessProvider: accessProvider,
+                securityDbProvider: securityDbProvider,
+                searchEngine: searchEngine);
 
             using (Repository.Start(repoBuilder))
             {
@@ -248,12 +193,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableAll()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
                 .DisableNodeObservers();
 
             using (Repository.Start(repoBuilder))
@@ -265,12 +205,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableOne()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(TestNodeObserver1));
 
@@ -285,12 +220,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableMore()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2));
 
@@ -305,12 +235,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableOne()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
                 .DisableNodeObservers(typeof(TestNodeObserver1));
 
             using (Repository.Start(repoBuilder))
@@ -326,16 +251,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NullPopulator()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-
-            var dbProvider2 = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-            Providers.Instance.DataProvider = dbProvider2;
-            var securityDbProvider = (MemoryDataProvider)serviceProvider.GetRequiredService<ISecurityDataProvider>();
-            var searchEngine = (InMemorySearchEngine)serviceProvider.GetRequiredService<ISearchEngine>();
-
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider2)
-                .UseSecurityDataProvider(securityDbProvider)
-                .UseSearchEngine(searchEngine);
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest());
 
             var originalIsOuterSearchEngineEnabled = Indexing.IsOuterSearchEngineEnabled;
             Indexing.IsOuterSearchEngineEnabled = false;
@@ -414,21 +330,13 @@ namespace SenseNet.ContentRepository.Tests
             var originalWriter = SnLog.AuditEventWriter;
             var auditWriter = new DatabaseAuditEventWriter();
 
-            var serviceProvider = CreateServiceProviderForTest();
-
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-            var securityDbProvider = (MemoryDataProvider)serviceProvider.GetRequiredService<ISecurityDataProvider>();
-            var searchEngine = (InMemorySearchEngine)serviceProvider.GetRequiredService<ISearchEngine>();
-
             try
             {
                 // Clear the slot to ensure a real test.
                 Providers.Instance.AuditEventWriter = null;
 
-                var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                    .UseAuditEventWriter(auditWriter) // <-- The important line
-                    .UseSecurityDataProvider(securityDbProvider)
-                    .UseSearchEngine(searchEngine);
+                var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+                    .UseAuditEventWriter(auditWriter);
 
                 using (Repository.Start(repoBuilder))
                 {
@@ -446,21 +354,13 @@ namespace SenseNet.ContentRepository.Tests
         {
             var originalWriter = SnLog.AuditEventWriter;
 
-            var serviceProvider = CreateServiceProviderForTest();
-
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-            var securityDbProvider = (MemoryDataProvider)serviceProvider.GetRequiredService<ISecurityDataProvider>();
-            var searchEngine = (InMemorySearchEngine)serviceProvider.GetRequiredService<ISearchEngine>();
-
             try
             {
                 // Clear the slot to ensure a real test.
                 Providers.Instance.AuditEventWriter = null;
 
-                var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                    .UseInactiveAuditEventWriter() // <-- The important line
-                    .UseSecurityDataProvider(securityDbProvider)
-                    .UseSearchEngine(searchEngine);
+                var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+                    .UseInactiveAuditEventWriter();
 
                 using (Repository.Start(repoBuilder))
                 {
@@ -477,18 +377,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_Default()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-            var securityDbProvider = (MemoryDataProvider)serviceProvider.GetRequiredService<ISecurityDataProvider>();
-            var searchEngine = (InMemorySearchEngine)serviceProvider.GetRequiredService<ISearchEngine>();
-
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseSecurityDataProvider(securityDbProvider)
-                .UseSearchEngine(searchEngine);
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest());
 
             using (Repository.Start(repoBuilder))
             {
@@ -500,19 +392,11 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_OverrideDefault()
         {
-            var serviceProvider = CreateServiceProviderForTest();
-
-            var dbProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
-            var securityDbProvider = (MemoryDataProvider)serviceProvider.GetRequiredService<ISecurityDataProvider>();
-            var searchEngine = (InMemorySearchEngine)serviceProvider.GetRequiredService<ISearchEngine>();
-
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(serviceProvider, dbProvider)
-                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider())     // ACTION: set test provider
-                .UseSecurityDataProvider(securityDbProvider)
-                .UseSearchEngine(searchEngine);
+            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider());
 
             using (Repository.Start(repoBuilder))
             {
