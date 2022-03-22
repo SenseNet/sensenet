@@ -1727,6 +1727,7 @@ namespace SenseNet.Services.Wopi.Tests
             return provider.GetSharedLockCreationDate(nodeId);
         }
 
+        //UNDONE:xxxx Call service registrations and service.GetRequiredService<>
         protected static RepositoryBuilder CreateRepositoryBuilderForWopiTest()
         {
             var dataProvider = new InMemoryDataProvider();

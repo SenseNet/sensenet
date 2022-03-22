@@ -750,13 +750,14 @@ namespace SenseNet.Services.Wopi.Tests
             _wopiHandlerAcc.InvokeStatic("SaveFile", file, lockValue);
         }
 
+        //UNDONE:xxxx Call service.GetRequiredService<>
         protected static RepositoryBuilder CreateRepositoryBuilderForSharedLockTest()
         {
-            var serviceProvider = CreateServiceProviderForTest();
+            var services = CreateServiceProviderForTest();
 
-            var dataProvider = (InMemoryDataProvider)serviceProvider.GetRequiredService<DataProvider>();
+            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
 
-            return new RepositoryBuilder(serviceProvider)
+            return new RepositoryBuilder(services)
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
@@ -766,9 +767,10 @@ namespace SenseNet.Services.Wopi.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
-            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+            //UNDONE: Refactor
+            .UseSearchManager(services.GetRequiredService<ISearchManager>())
+            .UseIndexManager(services.GetRequiredService<IIndexManager>())
+            .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

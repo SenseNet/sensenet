@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -149,10 +150,16 @@ namespace SenseNet.Search.Tests
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
+                var services = builder.Services;
+
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            builder.UseSearchManager(new SearchManager(DataStore));
-            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            //UNDONE: Refactor
+            //builder.UseSearchManager(new SearchManager(DataStore));
+            //builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
+            //builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
+            builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
+            builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>

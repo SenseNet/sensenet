@@ -221,9 +221,10 @@ namespace SenseNet.Tests.Core
                 .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
                 .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
-            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+            //UNDONE: Refactor
+            .UseSearchManager(services.GetRequiredService<ISearchManager>())
+            .UseIndexManager(services.GetRequiredService<IIndexManager>())
+            .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
