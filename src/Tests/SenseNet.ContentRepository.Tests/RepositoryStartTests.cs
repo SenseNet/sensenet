@@ -128,9 +128,11 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(IServiceProvider services, DataProvider dataProvider = null,
-            AccessProvider accessProvider = null, ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
+        private IRepositoryBuilder CreateRepositoryBuilder(DataProvider dataProvider = null, AccessProvider accessProvider = null,
+            ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
         {
+            var services = CreateServiceProviderForTest();
+
             var dbProvider = dataProvider ?? services.GetRequiredService<DataProvider>();
             return new RepositoryBuilder(services)
                 .UseAccessProvider(accessProvider ?? new DesktopAccessProvider())
@@ -141,10 +143,10 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider ?? services.GetRequiredService<ISecurityDataProvider>())
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
+            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
-                .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-                .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-                .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
@@ -162,7 +164,7 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest(),
+            var repoBuilder = CreateRepositoryBuilder(
                 dataProvider: dbProvider,
                 accessProvider: accessProvider,
                 securityDbProvider: securityDbProvider,
@@ -193,7 +195,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableAll()
         {
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+            var repoBuilder = CreateRepositoryBuilder()
                 .DisableNodeObservers();
 
             using (Repository.Start(repoBuilder))
@@ -205,7 +207,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableOne()
         {
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+            var repoBuilder = CreateRepositoryBuilder()
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(TestNodeObserver1));
 
@@ -220,7 +222,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableMore()
         {
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+            var repoBuilder = CreateRepositoryBuilder()
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2));
 
@@ -235,7 +237,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableOne()
         {
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+            var repoBuilder = CreateRepositoryBuilder()
                 .DisableNodeObservers(typeof(TestNodeObserver1));
 
             using (Repository.Start(repoBuilder))
@@ -251,7 +253,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NullPopulator()
         {
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest());
+            var repoBuilder = CreateRepositoryBuilder();
 
             var originalIsOuterSearchEngineEnabled = Indexing.IsOuterSearchEngineEnabled;
             Indexing.IsOuterSearchEngineEnabled = false;
@@ -335,7 +337,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Clear the slot to ensure a real test.
                 Providers.Instance.AuditEventWriter = null;
 
-                var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+                var repoBuilder = CreateRepositoryBuilder()
                     .UseAuditEventWriter(auditWriter);
 
                 using (Repository.Start(repoBuilder))
@@ -359,7 +361,7 @@ namespace SenseNet.ContentRepository.Tests
                 // Clear the slot to ensure a real test.
                 Providers.Instance.AuditEventWriter = null;
 
-                var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+                var repoBuilder = CreateRepositoryBuilder()
                     .UseInactiveAuditEventWriter();
 
                 using (Repository.Start(repoBuilder))
@@ -380,7 +382,7 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest());
+            var repoBuilder = CreateRepositoryBuilder();
 
             using (Repository.Start(repoBuilder))
             {
@@ -395,7 +397,7 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder(CreateServiceProviderForTest())
+            var repoBuilder = CreateRepositoryBuilder()
                 .UseAccessTokenDataProvider(new TestAccessTokenDataProvider());
 
             using (Repository.Start(repoBuilder))

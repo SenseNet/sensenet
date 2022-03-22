@@ -607,9 +607,9 @@ namespace SenseNet.ContentRepository.Tests
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
                         .UseInitialData(null)
-                        .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-                        .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-                        .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                    .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))

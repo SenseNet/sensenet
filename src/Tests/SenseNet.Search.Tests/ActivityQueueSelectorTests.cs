@@ -150,9 +150,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(new SearchManager(DataStore));
-                builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            builder.UseSearchManager(new SearchManager(DataStore));
+            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
+            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -174,9 +174,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(new SearchManager(DataStore));
-                builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            builder.UseSearchManager(new SearchManager(DataStore));
+            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
+            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -206,9 +206,9 @@ namespace SenseNet.Search.Tests
             Test(builder =>
             {
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(new SearchManager(DataStore));
-                builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            builder.UseSearchManager(new SearchManager(DataStore));
+            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
+            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -236,9 +236,9 @@ namespace SenseNet.Search.Tests
                 RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(new SearchManager(DataStore));
-                builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            builder.UseSearchManager(new SearchManager(DataStore));
+            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
+            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
