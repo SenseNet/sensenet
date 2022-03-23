@@ -50,7 +50,7 @@ namespace SenseNet.Services.Core.Tests
         #endregion
 
         [TestMethod]
-        public void Registration_AddProvider()
+        public void Registration_AddProvider_CSrv()
         {
             var services = new ServiceCollection();
 

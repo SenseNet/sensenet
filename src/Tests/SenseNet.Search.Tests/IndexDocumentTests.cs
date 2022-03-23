@@ -12,7 +12,7 @@ namespace SenseNet.Search.Tests
     public class IndexDocumentTests : TestBase
     {
         [TestMethod, TestCategory("IR")]
-        public void IndexDoc_Security_CannotAddPassword()
+        public void IndexDoc_Security_CannotAddPassword_CSrv()
         {
             var passwordFieldName = "Password";
             var passwordField = new IndexField(passwordFieldName, "password123",

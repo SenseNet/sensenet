@@ -428,7 +428,7 @@ namespace SenseNet.Search.Tests
             }
         }
         [TestMethod, TestCategory("IR")]
-        public void SnQuery_Parser_AggregateSettingsCountOnlyAllVersions()
+        public void SnQuery_Parser_AggregateSettingsCountOnlyAllVersions_CSrv()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {

@@ -10,7 +10,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemDbUsageTests : IntegrationTest<InMemPlatform, DbUsageTests>
     {
         [TestMethod]
-        public async Task IntT_InMem_DbUsage_PreviewsVersionsBlobsTexts()
+        public async Task IntT_InMem_DbUsage_PreviewsVersionsBlobsTexts_CSrv()
         {
             await TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false);
         }

@@ -498,7 +498,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async Task OD_MBOM_ActionsFunction()
+        public async Task OD_MBOM_ActionsFunction_CSrv()
         {
             await ODataTestAsync(async () =>
             {

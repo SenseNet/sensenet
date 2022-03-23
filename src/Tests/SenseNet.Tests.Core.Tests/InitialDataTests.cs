@@ -288,7 +288,7 @@ namespace SenseNet.Tests.Core.Tests
             Assert.AreEqual(expected, actual);
         }
         [TestMethod]
-        public void InitialData_Core_GetBlobBytes_HexDump_WithHeader()
+        public void InitialData_Core_GetBlobBytes_HexDump_WithHeader_CSrv()
         {
             var path = "/Root/Anything";
             var propertyName = "Binary";

@@ -199,7 +199,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        public void SnQuery_Classify_UsedFieldNames()
+        public void SnQuery_Classify_UsedFieldNames_CSrv()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {

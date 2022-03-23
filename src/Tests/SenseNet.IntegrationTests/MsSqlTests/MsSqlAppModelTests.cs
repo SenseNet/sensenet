@@ -11,6 +11,6 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_AppModel_ResolveFromPredefinedPaths_First() { TestCase.AppModel_ResolveFromPredefinedPaths_First(); }
         [TestMethod]
-        public void IntT_MsSql_AppModel_ResolveFromPredefinedPaths_All() { TestCase.AppModel_ResolveFromPredefinedPaths_All(); }
+        public void IntT_MsSql_AppModel_ResolveFromPredefinedPaths_All_CSrv() { TestCase.AppModel_ResolveFromPredefinedPaths_All(); }
     }
 }

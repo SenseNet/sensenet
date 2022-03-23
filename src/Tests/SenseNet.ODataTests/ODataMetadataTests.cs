@@ -14,7 +14,7 @@ namespace SenseNet.ODataTests
     public class ODataMetadataTests : ODataTestBase
     {
         [TestMethod]
-        public void OD_Meta_Typescript_Validity()
+        public void OD_Meta_Typescript_Validity_CSrv()
         {
             ODataTest(() =>
             {

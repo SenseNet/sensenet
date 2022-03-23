@@ -17,7 +17,7 @@ namespace SenseNet.Services.Core.Tests
     public class CorsTests : TestBase
     {
         [TestMethod]
-        public void Cors_AllowedDomain()
+        public void Cors_AllowedDomain_CSrv()
         {
             // empty
             Assert.AreEqual(null, SnCorsPolicyProvider.GetAllowedDomain("abc", new string[0]));

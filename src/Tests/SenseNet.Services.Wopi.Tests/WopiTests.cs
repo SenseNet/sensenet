@@ -1450,7 +1450,7 @@ namespace SenseNet.Services.Wopi.Tests
         /* =============================================================================== Actions */
 
         [TestMethod]
-        public void Wopi_Action_Open()
+        public void Wopi_Action_Open_CSrv()
         {
             var parent = CreateTestContent("SystemFolder", Repository.Root).ContentHandler;
             var wopiConfig = new WopiDiscovery

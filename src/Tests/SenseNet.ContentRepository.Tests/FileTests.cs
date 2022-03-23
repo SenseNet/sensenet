@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Tests
     public class FileTests : GenericContentTests
     {
         [TestMethod]
-        public void MultiStep_Existing_Incremental()
+        public void MultiStep_Existing_Incremental_CSrv()
         {
             Test(() =>
             {

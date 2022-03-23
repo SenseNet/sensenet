@@ -14,7 +14,7 @@ namespace SenseNet.Search.Tests
     public class IndexSerializationTests : TestBase
     {
         [TestMethod]
-        public void IndxSer_Deserialization()
+        public void IndxSer_Deserialization_CSrv()
         {
             // ARRANGE
             var doc = new IndexDocument

@@ -93,7 +93,7 @@ namespace SenseNet.ODataTests
             AssertSequenceEqual(numbers, array);
         }
         [TestMethod]
-        public void OD_OdataArray_Creation_bool()
+        public void OD_OdataArray_Creation_bool_CSrv()
         {
             var predicates = new [] { true, false, true };
             var array = new ODataArray<bool>(predicates);

@@ -2062,7 +2062,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public async Task OD_FIX_Copy_RightExceptionIfTargetExists()
+        public async Task OD_FIX_Copy_RightExceptionIfTargetExists_CSrv()
         {
             await ODataTestAsync(async () =>
             {

@@ -170,7 +170,7 @@ namespace SenseNet.Search.Tests
             });
         }
         [TestMethod, TestCategory("IR")]
-        public void Indexing_ActivitySelector_Centralized()
+        public void Indexing_ActivitySelector_Centralized_CSrv()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
             var indxManConsole = new StringWriter();

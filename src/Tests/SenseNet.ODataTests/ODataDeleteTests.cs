@@ -133,7 +133,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_DELETE_ByAction_DefaultParam()
+        public async Task OD_DELETE_ByAction_DefaultParam_CSrv()
         {
             await ODataTestAsync(async () =>
             {

@@ -95,7 +95,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void ContentProtector_Group_DeleteLastUser()
+        public void ContentProtector_Group_DeleteLastUser_CSrv()
         {
             Test(builder =>
             {

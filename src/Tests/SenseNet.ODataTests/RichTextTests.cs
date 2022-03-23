@@ -121,7 +121,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_RichText_Create()
+        public async Task OD_RichText_Create_CSrv()
         {
             await ODataTestAsync(async () =>
             {

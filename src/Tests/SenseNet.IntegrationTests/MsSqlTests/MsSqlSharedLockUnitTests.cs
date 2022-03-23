@@ -14,7 +14,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public async Task UT_MsSql_SharedLock_LockAndGetLock() { await TestCase.SharedLock_LockAndGetLock().ConfigureAwait(false); }
         [TestMethod]
-        public async Task UT_MsSql_SharedLock_GetTimedOut() { await TestCase.SharedLock_GetTimedOut().ConfigureAwait(false); }
+        public async Task UT_MsSql_SharedLock_GetTimedOut_CSrv() { await TestCase.SharedLock_GetTimedOut().ConfigureAwait(false); }
         [TestMethod]
         public async Task UT_MsSql_SharedLock_Lock_Same() { await TestCase.SharedLock_Lock_Same().ConfigureAwait(false); }
         [TestMethod]

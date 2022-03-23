@@ -258,7 +258,7 @@ namespace SenseNet.Tests.Core.Tests
             Assert.AreEqual("PT1", ArrayToString(schema.NodeTypes[0].Properties));
         }
         [TestMethod]
-        public void InMemSchemaWriter_Core_AddPropertyTypeToContentListType()
+        public void InMemSchemaWriter_Core_AddPropertyTypeToContentListType_CSrv()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.ContentListTypes.Add(new ContentListTypeData() { Id = 1, Name = "LT0" });

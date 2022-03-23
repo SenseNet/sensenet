@@ -194,7 +194,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Patching_System_CreateInstallerFromPackage()
+        public void Patching_System_CreateInstallerFromPackage_CSrv()
         {
             var package = new Package
             {

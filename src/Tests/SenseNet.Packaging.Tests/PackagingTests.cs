@@ -1610,7 +1610,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expected, actual);
         }
         [TestMethod]
-        public async Tasks.Task Packaging_DeleteAll()
+        public async Tasks.Task Packaging_DeleteAll_CSrv()
         {
             await SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             await SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);

@@ -27,7 +27,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Middleware()
+        public async Task OD_Middleware_CSrv()
         {
             await ODataTestAsync(async () =>
             {

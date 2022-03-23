@@ -105,7 +105,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void FilteredEnumerable_Filtered()
+        public void FilteredEnumerable_Filtered_CSrv()
         {
             ODataTest(() =>
             {

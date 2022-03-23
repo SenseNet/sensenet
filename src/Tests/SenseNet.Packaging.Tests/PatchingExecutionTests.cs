@@ -2176,7 +2176,7 @@ namespace SenseNet.Packaging.Tests
                 PackagesToString(packages[23]));
         }
         [TestMethod]
-        public void Patching_Exec_InstallerIsLast()
+        public void Patching_Exec_InstallerIsLast_CSrv()
         {
             // Faulty execution blocks the following patches on the same component.
             var packages = new List<Package[]>();

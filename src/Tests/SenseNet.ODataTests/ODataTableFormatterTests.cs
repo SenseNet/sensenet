@@ -52,7 +52,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async Task OD_GET_ChildrenCollection_Table()
+        public async Task OD_GET_ChildrenCollection_Table_CSrv()
         {
             await ODataTestAsync(async () =>
             {

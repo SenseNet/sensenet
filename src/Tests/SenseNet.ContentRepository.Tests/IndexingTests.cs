@@ -552,7 +552,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync()
+        public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync_CSrv()
         {
             // Temporary storages for manage repository's restart.
             InMemoryDataProvider dataProvider = null;

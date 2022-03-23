@@ -83,7 +83,7 @@ DELETE FROM BinaryProperties WHERE VersionId IN ({versionIdString})
         }
 
 
-        [TestMethod] public void UT_MsSql_UTDP_Node_InsertDraft() { TestCase.UT_Node_InsertDraft(Cleanup); }
+        [TestMethod] public void UT_MsSql_UTDP_Node_InsertDraft_CSrv() { TestCase.UT_Node_InsertDraft(Cleanup); }
         [TestMethod] public void UT_MsSql_UTDP_Node_InsertPublic() { TestCase.UT_Node_InsertPublic(Cleanup); }
         [TestMethod] public void UT_MsSql_UTDP_Node_UpdateFirstDraft() { TestCase.UT_Node_UpdateFirstDraft(Cleanup); }
 

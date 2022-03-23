@@ -802,7 +802,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void Sharing_Create_User()
+        public void Sharing_Create_User_CSrv()
         {
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>

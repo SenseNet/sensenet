@@ -225,7 +225,7 @@ namespace SenseNet.Search.Tests
             Assert.IsNull(msg, msg);
         }
         [TestMethod, TestCategory("IR")]
-        public void SnQuery_Lexer_AndOrNot()
+        public void SnQuery_Lexer_AndOrNot_CSrv()
         {
             var expectedTokens = new TokenChecker[]
             {

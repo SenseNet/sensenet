@@ -51,7 +51,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public async Task IntT_MsSql_AccessToken_Exists_Expired() { await TestCase.AccessToken_Exists_Expired().ConfigureAwait(false); }
 
         [TestMethod]
-        public async Task IntT_MsSql_AccessToken_AssertExists() { await TestCase.AccessToken_AssertExists().ConfigureAwait(false); }
+        public async Task IntT_MsSql_AccessToken_AssertExists_CSrv() { await TestCase.AccessToken_AssertExists().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_MsSql_AccessToken_AssertExists_Missing() { await TestCase.AccessToken_AssertExists_Missing().ConfigureAwait(false); }
         [TestMethod]

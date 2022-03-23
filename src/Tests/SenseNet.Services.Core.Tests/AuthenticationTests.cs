@@ -15,7 +15,7 @@ namespace SenseNet.Services.Core.Tests
     public class AuthenticationTests : TestBase
     {
         [TestMethod]
-        public Task Authentication_Validate_Disabled()
+        public Task Authentication_Validate_Disabled_CSrv()
         {
             return Test(async () =>
             {

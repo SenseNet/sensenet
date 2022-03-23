@@ -35,7 +35,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         }
 
         [TestMethod]
-        public void Packaging_PopulateIndex_HardReindexWorksOnAllVersions()
+        public void Packaging_PopulateIndex_HardReindexWorksOnAllVersions_CSrv()
         {
             Test(() =>
             {

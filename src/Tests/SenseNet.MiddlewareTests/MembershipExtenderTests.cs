@@ -93,7 +93,7 @@ namespace SenseNet.MiddlewareTests
         }
 
         [TestMethod]
-        public async Task MW_MembershipExtender_KeepOriginalList()
+        public async Task MW_MembershipExtender_KeepOriginalList_CSrv()
         {
             int[] extensionIds = null;
 

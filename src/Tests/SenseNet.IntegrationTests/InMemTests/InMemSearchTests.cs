@@ -12,7 +12,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemSearchTests : IntegrationTest<InMemPlatform, SearchTestCases>
     {
         [TestMethod]
-        public void IntT_InMem_Search_ReferenceField()
+        public void IntT_InMem_Search_ReferenceField_CSrv()
         {
             TestCase.Search_ReferenceField();
         }

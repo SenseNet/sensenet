@@ -80,7 +80,7 @@ namespace SnInitialDataGenerator.Tests
         }
 
         [TestMethod]
-        public void InMemoryDatabaseGenerator_HexDump()
+        public void InMemoryDatabaseGenerator_HexDump_CSrv()
         {
             string BytesToHex(byte[] bytes)
             {

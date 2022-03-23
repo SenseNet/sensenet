@@ -22,7 +22,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         }
 
         [TestMethod, TestCategory("IR")]
-        public async Task IntT_InMem_Indexing_Centralized_InMemory_Allocate01_SelectWaiting()
+        public async Task IntT_InMem_Indexing_Centralized_InMemory_Allocate01_SelectWaiting_CSrv()
         {
             await TestCase.Indexing_Centralized_Allocate01_SelectWaiting().ConfigureAwait(false);
         }

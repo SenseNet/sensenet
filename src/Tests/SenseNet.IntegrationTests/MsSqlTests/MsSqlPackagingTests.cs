@@ -75,6 +75,6 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public async Task IntT_MsSql_Packaging_DeleteOne() { await TestCase.Packaging_DeleteOne().ConfigureAwait(false); }
         [TestMethod]
-        public async Task IntT_MsSql_Packaging_DeleteAll() { await TestCase.Packaging_DeleteAll().ConfigureAwait(false); }
+        public async Task IntT_MsSql_Packaging_DeleteAll_CSrv() { await TestCase.Packaging_DeleteAll().ConfigureAwait(false); }
     }
 }

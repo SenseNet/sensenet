@@ -279,7 +279,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Security_Break()
+        public async Task OD_Security_Break_CSrv()
         {
             await ODataTestAsync(async () =>
             {

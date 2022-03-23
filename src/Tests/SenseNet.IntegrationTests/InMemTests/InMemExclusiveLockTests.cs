@@ -9,7 +9,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemExclusiveLockTests : IntegrationTest<InMemPlatform, ExclusiveLockTestCases>
     {
         [TestMethod]
-        public void UT_InMem_ExclusiveLock_SkipIfLocked() { TestCase.ExclusiveLock_SkipIfLocked(); }
+        public void UT_InMem_ExclusiveLock_SkipIfLocked_CSrv() { TestCase.ExclusiveLock_SkipIfLocked(); }
         [TestMethod]
         public void UT_InMem_ExclusiveLock_WaitForReleased() { TestCase.ExclusiveLock_WaitForReleased(); }
         [TestMethod]

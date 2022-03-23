@@ -2519,7 +2519,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_MBO_Actions_ActionIds()
+        public void OD_MBO_Actions_ActionIds_CSrv()
         {
             ODataTest(() =>
             {

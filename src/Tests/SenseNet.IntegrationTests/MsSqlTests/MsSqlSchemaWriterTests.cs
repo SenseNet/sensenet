@@ -44,7 +44,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_SchemaWriter_AddPropertyTypeToNodeType_Inherited() { TestCase.SchemaWriter_AddPropertyTypeToNodeType_Inherited(); }
         [TestMethod]
-        public void IntT_MsSql_SchemaWriter_AddPropertyTypeToContentListType() { TestCase.SchemaWriter_AddPropertyTypeToContentListType(); }
+        public void IntT_MsSql_SchemaWriter_AddPropertyTypeToContentListType_CSrv() { TestCase.SchemaWriter_AddPropertyTypeToContentListType(); }
         [TestMethod]
         public void IntT_MsSql_SchemaWriter_RemovePropertyTypeFromNodeType() { TestCase.SchemaWriter_RemovePropertyTypeFromNodeType(); }
         [TestMethod]
