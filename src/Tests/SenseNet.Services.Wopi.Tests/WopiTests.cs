@@ -1634,7 +1634,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
-            var builder = CreateRepositoryBuilderForWopiTest();
+            var builder = CreateRepositoryBuilderForTest();
 
             builder.UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseLogger(new SnFileSystemEventLogger())
@@ -1725,35 +1725,6 @@ namespace SenseNet.Services.Wopi.Tests
                 throw new PlatformNotSupportedException();
 
             return provider.GetSharedLockCreationDate(nodeId);
-        }
-
-        //UNDONE:xxxx Call service registrations and service.GetRequiredService<>
-        protected static RepositoryBuilder CreateRepositoryBuilderForWopiTest()
-        {
-            var dataProvider = new InMemoryDataProvider();
-
-            return new RepositoryBuilder()
-                .UseDataProvider(dataProvider)
-                .UseAccessProvider(new DesktopAccessProvider())
-                .UseInitialData(GetInitialData())
-                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
-            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProvider(new InMemoryTestingDataProvider())
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)

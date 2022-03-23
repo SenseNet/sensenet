@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -681,7 +682,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
-            var builder = CreateRepositoryBuilderForSharedLockTest();
+            var builder = CreateRepositoryBuilderForTest();
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
@@ -748,38 +749,6 @@ namespace SenseNet.Services.Wopi.Tests
         private void WopiHandler_SaveFile(File file, string lockValue)
         {
             _wopiHandlerAcc.InvokeStatic("SaveFile", file, lockValue);
-        }
-
-        //UNDONE:xxxx Call service.GetRequiredService<>
-        protected static RepositoryBuilder CreateRepositoryBuilderForSharedLockTest()
-        {
-            var services = CreateServiceProviderForTest();
-
-            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
-
-            return new RepositoryBuilder(services)
-                .UseDataProvider(dataProvider)
-                .UseAccessProvider(new DesktopAccessProvider())
-                .UseInitialData(GetInitialData())
-                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
-            //UNDONE: Refactor
-            .UseSearchManager(services.GetRequiredService<ISearchManager>())
-            .UseIndexManager(services.GetRequiredService<IIndexManager>())
-            .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseTestingDataProvider(new InMemoryTestingDataProvider())
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
