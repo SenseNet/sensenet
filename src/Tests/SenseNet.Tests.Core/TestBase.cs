@@ -195,6 +195,8 @@ namespace SenseNet.Tests.Core
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
+
+                .AddSingleton<ElevatedModificationVisibilityRule>() //UNDONE: Platform independent service registration
                 ;
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
@@ -227,7 +229,7 @@ namespace SenseNet.Tests.Core
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))

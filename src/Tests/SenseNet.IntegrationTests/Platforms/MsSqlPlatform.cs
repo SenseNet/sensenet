@@ -59,6 +59,8 @@ namespace SenseNet.IntegrationTests.Platforms
                 .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
                 .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                 .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()
+
+                .AddSingleton<ElevatedModificationVisibilityRule>() //UNDONE: Platform independent service registration
                 ;
         }
 
