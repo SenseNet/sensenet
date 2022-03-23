@@ -39,13 +39,13 @@ namespace SenseNet.IntegrationTests.Platforms
                 })
                 .AddSenseNetInMemoryProviders()
 
-                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IBlobProvider, InMemoryBlobProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
+                .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
+                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
+                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
         }
 

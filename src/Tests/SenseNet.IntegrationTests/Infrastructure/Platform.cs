@@ -61,10 +61,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
                 .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
-            //UNDONE: Refactor
-            .UseSearchManager(services.GetRequiredService<ISearchManager>())
-            .UseIndexManager(services.GetRequiredService<IIndexManager>())
-            .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
+                .UseSearchManager(services.GetRequiredService<ISearchManager>())
+                .UseIndexManager(services.GetRequiredService<IIndexManager>())
+                .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider, services))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))

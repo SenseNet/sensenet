@@ -188,13 +188,13 @@ namespace SenseNet.Tests.Core
                 })
                 .AddSenseNetInMemoryProviders()
                 //.AddSenseNetWebHooks()
-                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IBlobProvider, InMemoryBlobProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
+                .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
+                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
+                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
@@ -221,10 +221,9 @@ namespace SenseNet.Tests.Core
                 .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
                 .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
-            //UNDONE: Refactor
-            .UseSearchManager(services.GetRequiredService<ISearchManager>())
-            .UseIndexManager(services.GetRequiredService<IIndexManager>())
-            .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
+                .UseSearchManager(services.GetRequiredService<ISearchManager>())
+                .UseIndexManager(services.GetRequiredService<IIndexManager>())
+                .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
