@@ -154,9 +154,6 @@ namespace SenseNet.Search.Tests
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             //UNDONE: Refactor
-            //builder.UseSearchManager(new SearchManager(DataStore));
-            //builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-            //builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
             builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
             builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
             builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
@@ -180,10 +177,13 @@ namespace SenseNet.Search.Tests
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
+                var services = builder.Services;
+
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            builder.UseSearchManager(new SearchManager(DataStore));
-            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            //UNDONE: Refactor
+            builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
+            builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
+            builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -212,10 +212,13 @@ namespace SenseNet.Search.Tests
             var indxManConsole = new StringWriter();
             Test(builder =>
             {
+                var services = builder.Services;
+
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            builder.UseSearchManager(new SearchManager(DataStore));
-            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            //UNDONE: Refactor
+            builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
+            builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
+            builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -235,6 +238,8 @@ namespace SenseNet.Search.Tests
             var dp2 = Providers.Instance.DataProvider;
             Test(builder =>
             {
+                var services = builder.Services;
+
                 Providers.Instance.DataProvider = dp2;
 
                 DataStore.DataProvider.DeleteAllIndexingActivitiesAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -243,9 +248,10 @@ namespace SenseNet.Search.Tests
                 RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            builder.UseSearchManager(new SearchManager(DataStore));
-            builder.UseIndexManager(new IndexManager(DataStore, Providers.Instance.SearchManager));
-            builder.UseIndexPopulator(new DocumentPopulator(DataStore, Providers.Instance.IndexManager));
+            //UNDONE: Refactor
+            builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
+            builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
+            builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);
