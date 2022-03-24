@@ -78,7 +78,7 @@ namespace WebAppTests
         [TestMethod]
         public void WebApp_Services_Api_InMem_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(new Dictionary<Type, Type>()
+            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(new Dictionary<Type, Type>
             {
                 // Logging
                 {typeof(IEventLogger), typeof(SnILogger)},
@@ -100,8 +100,66 @@ namespace WebAppTests
                 // Security
                 {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+                //{typeof(ISnComponent), typeof(ServicesComponent)},
+
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
+                //UNDONE:ServicesTest: Resolve method .AddStatistics()
+                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+            });
+        }
+        [TestMethod]
+        public void WebApp_Services_Api_InMem_TokenAuth()
+        {
+            StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(InMemoryDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -137,7 +195,7 @@ namespace WebAppTests
         [TestMethod]
         public void WebApp_Services_Api_Sql_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(new Dictionary<Type, Type>()
+            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(new Dictionary<Type, Type>
             {
                 // Logging
                 {typeof(IEventLogger), typeof(SnILogger)},
@@ -159,8 +217,183 @@ namespace WebAppTests
                 // Security
                 {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+                //{typeof(ISnComponent), typeof(ServicesComponent)},
+
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
+                //UNDONE:ServicesTest: Resolve method .AddStatistics()
+                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+            });
+        }
+        [TestMethod]
+        public void WebApp_Services_Api_Sql_TokenAuth()
+        {
+            StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(MsSqlDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+                //{typeof(ISnComponent), typeof(ServicesComponent)},
+
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
+                //UNDONE:ServicesTest: Resolve method .AddStatistics()
+                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+            });
+        }
+
+        [TestMethod]
+        public void WebApp_Services_Api_Sql_SearchService_Admin()
+        {
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(MsSqlDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)}, //UNDONE: ???
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+                //{typeof(ISnComponent), typeof(ServicesComponent)},
+
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
+                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
+                //UNDONE:ServicesTest: Resolve method .AddStatistics()
+                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+            });
+        }
+        [TestMethod]
+        public void WebApp_Services_Api_Sql_SearchService_TokenAuth()
+        {
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(MsSqlDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)}, //UNDONE: ???
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
