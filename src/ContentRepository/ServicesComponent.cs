@@ -1106,7 +1106,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.25", "7.7.25.2", "2022-02-23", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.25", "7.7.25.3", "2022-03-22", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1274,6 +1274,46 @@ namespace SenseNet.ContentRepository
                     pwChangeEmailTemplate["Body"] = emailTemplate;
                     pwChangeEmailTemplate["Subject"] = "sensenet - Please change your password!";
                     pwChangeEmailTemplate.SaveSameVersion();
+
+                    #endregion
+
+                    #region Permission changes
+
+                    logger.LogTrace("Adding permissions for public administrators and owners on content types.");
+
+                    var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
+                    var publicAdminUserId = Node.LoadNode("/Root/IMS/BuiltIn/Portal/Admin")?.Id ?? 0;
+                    var genericContentTypeId = ContentType.GetByName("GenericContent").Id;
+
+                    var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+                    aclEditor.Allow(genericContentTypeId, Identifiers.OwnersGroupId, false,
+                        PermissionType.Save, PermissionType.AddNew, PermissionType.Delete, PermissionType.SetPermissions);
+
+                    // set permissions for public admins
+                    if (publicAdminsGroupId != 0)
+                    {
+                        aclEditor.Allow(publicAdminUserId, publicAdminsGroupId, false,
+                                PermissionType.Open)
+                            .Allow(genericContentTypeId, publicAdminsGroupId, false,
+                                PermissionType.Save, PermissionType.AddNew, PermissionType.Delete,
+                                PermissionType.SetPermissions);
+
+                        // Public admins must not be able to modify built-in CTDs:
+                        // DENY local Save, Delete, SetPermissions permission on protected paths.
+                        foreach (var protectedId in ContentProtector.GetProtectedPaths().Where(p =>
+                                         RepositoryPath.IsInTree(p, Repository.ContentTypesFolderPath))
+                                     .Select(NodeHead.Get).Where(nh => nh != null)
+                                     .Select(nh => nh.Id))
+                        {
+                            // deny all strong permissions locally on built-in content types
+                            aclEditor.Deny(protectedId, publicAdminsGroupId, true,
+                                PermissionType.Save, PermissionType.Delete, PermissionType.SetPermissions);
+                        }
+
+                    }
+
+                    aclEditor.Apply();
 
                     #endregion
                 });
