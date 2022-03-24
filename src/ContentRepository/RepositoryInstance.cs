@@ -140,6 +140,14 @@ namespace SenseNet.ContentRepository
             Providers.Instance.SecurityHandler = _settings.Services.GetRequiredService<SecurityHandler>();
             Providers.Instance.SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
 
+            //UNDONE: modernize TemplateManager
+            // Set legacy collection from the new services collection and reset the
+            // current singleton list to force the system to regenerate it. 
+            TemplateManager.TemplateReplacerInstances =
+                _settings.Services.GetService<IEnumerable<TemplateReplacerBase>>()?.ToArray() ??
+                Array.Empty<TemplateReplacerBase>();
+            TemplateManager.Clear();
+
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
 
             // We have to log the access provider here because it cannot be logged 

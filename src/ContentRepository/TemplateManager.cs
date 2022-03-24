@@ -49,6 +49,17 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        public static void Clear()
+        {
+            lock (LOCK_OBJECT)
+            {
+                _templateReplacers = null;
+            }
+        }
+
+        // This is a temporary storage for template replacers registered through the service collection DI interface
+        internal static TemplateReplacerBase[] TemplateReplacerInstances { get; set; }
+
         private static Dictionary<string, Dictionary<string, TemplateReplacerBase>> DiscoverTemplateReplacers()
         {
             var trType = typeof(TemplateReplacerBase);
@@ -75,7 +86,26 @@ namespace SenseNet.ContentRepository
                 // Store the replace patterns for this replacer base type. Key is the base type name,
                 // value is a _dictionary_ containing replacer instances for template names handled by
                 // this replacer family.
-                var replacerBaseInstance = Activator.CreateInstance(itr) as TemplateReplacerBase;
+                
+                // first look for a registered instance
+                var replacerBaseInstance = TemplateReplacerInstances?.FirstOrDefault(tr => 
+                    tr.GetType().FullName == itr.FullName);
+
+                if (replacerBaseInstance == null)
+                {
+                    // fallback to reflection
+                    try
+                    {
+                        // check if there is a default constructor
+                        if (itr.GetConstructors().Any(c => !c.GetParameters().Any()))
+                            replacerBaseInstance = Activator.CreateInstance(itr) as TemplateReplacerBase;
+                    }
+                    catch (Exception e)
+                    {
+                        SnTrace.System.Write($"Could not create an instance of {itr.FullName} automatically. {e.Message}");
+                    }
+                }
+
                 if (replacerBaseInstance == null)
                     continue;
 
@@ -105,7 +135,10 @@ namespace SenseNet.ContentRepository
 
             foreach (var replacerType in replacerTypes)
             {
-                var replacerInstance = Activator.CreateInstance(replacerType) as TemplateReplacerBase;
+                var replacerInstance = TemplateReplacerInstances?.FirstOrDefault(tr =>
+                                           tr.GetType().FullName == replacerType.FullName) ??
+                                       Activator.CreateInstance(replacerType) as TemplateReplacerBase;
+
                 if (replacerInstance == null)
                     continue;
 
