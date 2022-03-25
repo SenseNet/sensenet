@@ -325,9 +325,18 @@ namespace SenseNet.WebHooks
             // validate payload
             if (!string.IsNullOrWhiteSpace(Payload))
             {
+                // We have to replace parameters because otherwise the
+                // json may be invalid (e.g. a parameter name instead of a number).
+                var replacedPayload = TemplateManager.Replace(typeof(WebHooksTemplateReplacer), Payload,
+                    new WebHooksTemplateReplacerContext
+                    {
+                        Node = this,
+                        Subscription = this
+                    });
+
                 try
                 {
-                    var _ = JsonConvert.DeserializeObject(Payload);
+                    var _ = JsonConvert.DeserializeObject(replacedPayload);
                 }
                 catch (Exception ex)
                 {

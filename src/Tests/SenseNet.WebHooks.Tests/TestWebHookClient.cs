@@ -28,6 +28,10 @@ namespace SenseNet.WebHooks.Tests
         {
             return PostProperties.TryGetValue(name, out var en) ? Convert.ToInt32(en) : 0;
         }
+        public DateTime GetPostPropertyDate(string name)
+        {
+            return PostProperties.TryGetValue(name, out var en) ? (DateTime)en : default;
+        }
 
         private IDictionary<string, object> GetPostProperties()
         {

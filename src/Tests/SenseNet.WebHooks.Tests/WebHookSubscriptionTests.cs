@@ -425,14 +425,44 @@ namespace SenseNet.WebHooks.Tests
                     // custom property is sent
                     Assert.IsTrue(string.Equals(request.GetPostPropertyString("text"), "hello", StringComparison.InvariantCulture));
 
-                    // default properties are NOT there
-                    Assert.AreEqual(0, request.NodeId);
-                    Assert.AreEqual(null, request.EventName);
+                    // default properties are still there (merged with the custom json)
+                    Assert.AreEqual(((Node)file).Id, request.NodeId);
+                    Assert.AreEqual("Modify", request.EventName);
                 }, payload: "{ \"text\": \"hello\" }");
         }
 
+        [TestMethod]
+        public async Task WebHookSubscription_Payload_Custom_WithParameters()
+        {
+            await Test_WebHook((file, client, subscription) =>
+            {
+                var node = (Node)file;
+                var request = client.Requests.First();
+
+                // custom properties are evaluated
+                Assert.IsTrue(string.Equals(request.GetPostPropertyString("text"), "hello", StringComparison.InvariantCulture));
+                Assert.AreEqual(DateTime.Today, request.GetPostPropertyDate("dateprop"));
+                Assert.AreEqual(User.Current.Id, request.GetPostPropertyInt("currentuser"));
+                Assert.AreEqual(node.Path, request.GetPostPropertyString("filepath"));
+                Assert.AreEqual(node.Index, request.GetPostPropertyInt("index"));
+
+                // default properties are still there (merged with the custom json)
+                Assert.AreEqual(node.Id, request.NodeId);
+                Assert.AreEqual("Modify", request.EventName);
+                Assert.AreEqual(subscription.Id, request.GetPostPropertyInt("subscriptionId"));
+            }, payload: @"
+{ 
+    ""text"": ""hello"",
+    ""dateprop"": ""@@today@@"",
+    ""currentuser"": @@currentuser@@,
+    ""filepath"": ""@@content.Path@@"",
+    ""index"": @@content.Index@@
+}",
+                useCurrentUser: true); // this is necessary for a real current user instead of a system account
+        }
+
         internal async Task Test_WebHook(Action<object, TestWebHookClient, WebHookSubscription> assertAction,
-            string subscribedEvents = null, string headers = null, string payload = null)
+            string subscribedEvents = null, string headers = null, string payload = null, bool useCurrentUser = false)
         {
             File file = null;
 
@@ -450,21 +480,21 @@ namespace SenseNet.WebHooks.Tests
                 assertAction,
                 subscribedEvents,
                 headers,
-                payload);
+                payload,
+                useCurrentUser);
         }
 
         internal async Task Test_WebHook(Func<Task> actionBeforeSubscription, Func<Task<object>> actionAfterSubscription,
             Action<object, TestWebHookClient, WebHookSubscription> assertAction, 
-            string subscribedEvents = null, string headers = null, string payload = null)
+            string subscribedEvents = null, string headers = null, string payload = null, bool useCurrentUser = false)
         {
             // subscribe to all events by default
-            if (subscribedEvents == null)
-                subscribedEvents = @"""All""";
+            subscribedEvents ??= @"""All""";
 
             var store = new TestWebHookSubscriptionStore(new WebHookSubscription[0]);
             var webHookClient = new TestWebHookClient();
 
-            await Test((builder) =>
+            await Test(useCurrentUser, (builder) =>
                 {
                     builder
                         .UseComponent(new WebHookComponent())
@@ -501,6 +531,14 @@ namespace SenseNet.WebHooks.Tests
 
                     assertAction?.Invoke(result, webHookClient, wh);
                 });
+        }
+
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        {
+            return CreateRepositoryBuilderForTest(services =>
+            {
+                services.AddSenseNetWebHooks();
+            });
         }
 
         private Task<WebHookSubscription> CreateWebHookSubscriptionAsync(string filter, string headers = null, string payload = null)

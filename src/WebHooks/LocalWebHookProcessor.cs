@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.Clients;
@@ -95,9 +96,32 @@ namespace SenseNet.WebHooks
         private object GetPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node,
             VersionNumber previousVersion)
         {
-            return string.IsNullOrWhiteSpace(subscription.Payload) 
-                ? GetDefaultPayload(subscription, eventType, node, previousVersion) 
-                : JsonConvert.DeserializeObject(subscription.Payload);
+            var defaultPayload = GetDefaultPayload(subscription, eventType, node, previousVersion);
+            
+            return string.IsNullOrWhiteSpace(subscription.Payload)
+                ? defaultPayload
+                : GetMergedPayload(subscription, eventType, node, defaultPayload);
+        }
+
+        private object GetMergedPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node, object defaultPayload)
+        {
+            // replace dynamic parameters (e.g. currentuser, content.Path, etc.)
+            var replacedPayload = TemplateManager.Replace(typeof(WebHooksTemplateReplacer), subscription.Payload,
+                new WebHooksTemplateReplacerContext
+                {
+                    Node = node,
+                    EventType = eventType,
+                    Subscription = subscription
+                });
+
+            var defaultJson = JsonConvert.SerializeObject(defaultPayload, Formatting.Indented);
+            var jo = JsonConvert.DeserializeObject<JObject>(defaultJson);
+
+            // merge the provided custom payload into the default
+            var newJson = JsonConvert.DeserializeObject<JObject>(replacedPayload);
+            jo.Merge(newJson);
+
+            return jo;
         }
 
         private object GetDefaultPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node, 

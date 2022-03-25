@@ -19,6 +19,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             services.AddHttpClient();
             services.AddSenseNetWebHookClient<HttpWebHookClient>();
+            services.AddSenseNetTemplateReplacer<WebHooksTemplateReplacer>();
 
             services.AddSingleton<IEventProcessor, LocalWebHookProcessor>();
             services.AddSingleton<IWebHookSubscriptionStore, BuiltInWebHookSubscriptionStore>();

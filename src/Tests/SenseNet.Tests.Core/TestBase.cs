@@ -195,9 +195,9 @@ namespace SenseNet.Tests.Core
             return services.BuildServiceProvider();
         }
 
-        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
+        protected static RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
         {
-            var services = CreateServiceProviderForTest();
+            var services = CreateServiceProviderForTest(modifyServices: modifyServices);
 
             var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
 

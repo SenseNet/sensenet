@@ -137,5 +137,14 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IEmailSender, EmailSender>()
                 .Configure<EmailOptions>(options => { configureSmtp?.Invoke(options);});
         }
+
+
+        /// <summary>
+        /// Adds the provided template replacer to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetTemplateReplacer<T>(this IServiceCollection services) where T : TemplateReplacerBase
+        {
+            return services.AddSingleton<TemplateReplacerBase, T>();
+        }
     }
 }
