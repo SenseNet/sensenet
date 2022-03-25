@@ -187,16 +187,9 @@ namespace SenseNet.Tests.Core
                         .UseInactiveAuditEventWriter();
                 })
                 .AddSenseNetInMemoryProviders()
-                //.AddSenseNetWebHooks()
-                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
-                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
-                .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
-                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
-                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
-                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
-                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
 
-                .AddSingleton<ElevatedModificationVisibilityRule>() //UNDONE: Platform independent service registration
+                //.AddSenseNetWebHooks()
+                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();

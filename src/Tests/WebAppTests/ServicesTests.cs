@@ -16,6 +16,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.IntegrationTests.Platforms;
 using SenseNet.Preview;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -26,6 +28,7 @@ using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 
 namespace WebAppTests
 {
@@ -50,7 +53,15 @@ namespace WebAppTests
             startupAcc.Invoke("ConfigureServices", new[] { typeof(IServiceCollection) }, new[] { serviceCollection });
 
             // ASSERT
-            var services = serviceCollection.BuildServiceProvider();
+            AssertServices(serviceCollection, expectation);
+        }
+
+        private void AssertServices(IServiceCollection serviceCollection, Dictionary<Type, Type> expectation)
+        {
+            AssertServices(serviceCollection.BuildServiceProvider(), expectation);
+        }
+        private void AssertServices(IServiceProvider services, Dictionary<Type, Type> expectation)
+        {
             var dump = expectation.ToDictionary(
                 x => x.Key,
                 x => services.GetService(x.Key)?.GetType());
@@ -75,6 +86,15 @@ namespace WebAppTests
         }
         #endregion
 
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
+        //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
+        //UNDONE:ServicesTest: Resolve method .AddStatistics()
+        //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_Admin()
         {
@@ -94,8 +114,8 @@ namespace WebAppTests
                 {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
                 {typeof(IBlobStorage), typeof(BlobStorage)},
                 {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
 
                 // Security
                 {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
@@ -117,20 +137,16 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
 
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+
             });
         }
         [TestMethod, TestCategory("Services")]
@@ -152,8 +168,8 @@ namespace WebAppTests
                 {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
                 {typeof(IBlobStorage), typeof(BlobStorage)},
                 {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
 
                 // Security
                 {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
@@ -175,20 +191,15 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
 
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
             });
         }
 
@@ -234,20 +245,15 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
 
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
@@ -292,20 +298,15 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
 
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
 
@@ -351,20 +352,15 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
-
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
@@ -409,22 +405,211 @@ namespace WebAppTests
 
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                //{typeof(ISnComponent), typeof(ServicesComponent)},
 
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-                //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-                //UNDONE:ServicesTest: Resolve method .AddStatistics()
-                //UNDONE:ServicesTest: Resolve "add maintenance tasks"
-
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
 
+
+
+        private class Xxx : TestBase { public IServiceProvider CreateServiceProvider() { return CreateServiceProviderForTest(); } }
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_TestBase()
+        {
+            var x = new Xxx();
+
+            // ACTION
+            var services = x.CreateServiceProvider();
+
+            // ASSERT
+            AssertServices(services, new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(InMemoryDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+
+                // Test specific
+                { typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+            });
+        }
+
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_Integration_InMem()
+        {
+            var x = new InMemPlatform();
+            var configuration = new ConfigurationBuilder().Build();
+            var services = new ServiceCollection();
+
+            // ACTION
+            x.BuildServices(configuration, services);
+
+            // ASSERT
+            AssertServices(services, new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(InMemoryDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+
+                // Test specific
+                { typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+            });
+        }
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_Integration_MsSql()
+        {
+            var x = new MsSqlPlatform();
+            var configuration = new ConfigurationBuilder().Build();
+            var services = new ServiceCollection();
+
+            // ACTION
+            x.BuildServices(configuration, services);
+
+            // ASSERT
+            AssertServices(services, new Dictionary<Type, Type>
+            {
+                // Logging
+                {typeof(IEventLogger), typeof(SnILogger)},
+                {typeof(ISnTracer), typeof(SnILoggerTracer)},
+
+                // DataProvider
+                {typeof(DataProvider), typeof(MsSqlDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
+                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
+                {typeof(IBlobStorage), typeof(BlobStorage)},
+                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
+                {typeof(SecurityHandler), typeof(SecurityHandler)},
+                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                // Search
+                {typeof(ISearchManager), typeof(SearchManager)},
+                {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+
+                // TaskManager
+                {typeof(ITaskManager), typeof(TaskManagerBase)},
+                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+
+                // Preview
+                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
+
+                // Components
+                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
+
+                // Platform independent additions
+                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
+
+                // ????
+                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
+
+                // Test specific
+                { typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
+            });
+        }
     }
 }

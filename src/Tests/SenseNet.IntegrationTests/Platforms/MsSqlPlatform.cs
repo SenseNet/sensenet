@@ -53,14 +53,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddComponent(provider => new MsSqlClientStoreComponent())
 
-                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
-                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
-                .AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>()
-                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
-                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                 .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()
-
-                .AddSingleton<ElevatedModificationVisibilityRule>() //UNDONE: Platform independent service registration
                 ;
         }
 

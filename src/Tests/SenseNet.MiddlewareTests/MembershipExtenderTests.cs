@@ -10,6 +10,9 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core;
@@ -53,6 +56,10 @@ namespace SenseNet.MiddlewareTests
             services/*.ConfigureSenseNet(configuration)*/
                 .AddSenseNetILogger()
                 .AddSenseNetMsSqlDataProvider()
+                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
+                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
+                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                 .AddSenseNetBlobStorage()
                 .AddSenseNetSecurity(config =>
                 {
@@ -61,9 +68,7 @@ namespace SenseNet.MiddlewareTests
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddSingleton<SecurityHandler>()
-                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
-                .AddSenseNetSearchComponents()
+                .AddPlatformIndependentServices()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
@@ -92,7 +97,7 @@ namespace SenseNet.MiddlewareTests
                 .AddSenseNetInMemoryProviders();
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task MW_MembershipExtender_KeepOriginalList_CSrv()
         {
             int[] extensionIds = null;
