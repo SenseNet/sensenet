@@ -336,7 +336,7 @@ namespace WebAppTests
                 {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
-                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)}, //UNDONE: ???
+                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -389,7 +389,7 @@ namespace WebAppTests
                 {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
-                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)}, //UNDONE: ???
+                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
