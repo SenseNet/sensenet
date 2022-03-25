@@ -230,7 +230,7 @@ CREATE TABLE [dbo].[Packages](
 
         /* ===================================================================== EXECUTION VS VERSIONINFO TESTS */
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_MsSql_Patching_Exec_ComponentLifeCycleVsVersionInfo_CSrv()
         {
             TestCase.Patching_Exec_ComponentLifeCycleVsVersionInfo();

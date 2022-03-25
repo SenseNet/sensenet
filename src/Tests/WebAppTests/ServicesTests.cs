@@ -75,7 +75,7 @@ namespace WebAppTests
         }
         #endregion
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_Admin()
         {
             StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(new Dictionary<Type, Type>
@@ -133,7 +133,7 @@ namespace WebAppTests
                 { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
             });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_TokenAuth()
         {
             StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(new Dictionary<Type, Type>
@@ -192,7 +192,7 @@ namespace WebAppTests
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_Admin()
         {
             StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(new Dictionary<Type, Type>
@@ -247,10 +247,10 @@ namespace WebAppTests
 
 
                 // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
             });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_TokenAuth()
         {
             StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(new Dictionary<Type, Type>
@@ -305,11 +305,11 @@ namespace WebAppTests
 
 
                 // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_Admin()
         {
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(new Dictionary<Type, Type>
@@ -364,10 +364,10 @@ namespace WebAppTests
 
 
                 // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
             });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_TokenAuth()
         {
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(new Dictionary<Type, Type>
@@ -422,7 +422,7 @@ namespace WebAppTests
 
 
                 // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
             });
         }
 

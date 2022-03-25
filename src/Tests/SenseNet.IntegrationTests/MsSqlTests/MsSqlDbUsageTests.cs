@@ -9,7 +9,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
     [TestClass]
     public class MsSqlDbUsageTests : IntegrationTest<MsSqlPlatform, DbUsageTests>
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task IntT_MsSql_DbUsage_PreviewsVersionsBlobsTexts_CSrv()
         {
             await TestCase.DbUsage_PreviewsVersionsBlobsTexts().ConfigureAwait(false);

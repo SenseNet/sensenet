@@ -30,7 +30,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public async Task IntT_MsSql_Packaging_Step_DeleteContentType_WithRelatedContent() { await TestCase.Test_WithRelatedContent().ConfigureAwait(false); }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task IntT_MsSql_Packaging_Step_DeleteContentType_Applications_CSrv() { await TestCase.Test_Applications().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_MsSql_Packaging_Step_DeleteContentType_ContentTemplate() { await TestCase.Test_ContentTemplate().ConfigureAwait(false); }

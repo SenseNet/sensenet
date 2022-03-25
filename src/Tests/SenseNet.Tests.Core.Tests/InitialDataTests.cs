@@ -287,7 +287,7 @@ namespace SenseNet.Tests.Core.Tests
             var actual = RepositoryTools.GetStreamString(new MemoryStream(bytes));
             Assert.AreEqual(expected, actual);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void InitialData_Core_GetBlobBytes_HexDump_WithHeader_CSrv()
         {
             var path = "/Root/Anything";

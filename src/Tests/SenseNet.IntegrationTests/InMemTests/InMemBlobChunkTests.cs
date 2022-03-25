@@ -95,7 +95,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.TestCase_BinaryCacheEntitySmall();
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_InMem_Blob_Chunk_BinaryCacheEntityBig_CSrv()
         {
             TestCase.TestCase_BinaryCacheEntityBig();

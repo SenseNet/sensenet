@@ -50,7 +50,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public async Task IntT_InMem_AccessToken_Exists_Expired() { await TestCase.AccessToken_Exists_Expired().ConfigureAwait(false); }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task IntT_InMem_AccessToken_AssertExists_CSrv() { await TestCase.AccessToken_AssertExists().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_InMem_AccessToken_AssertExists_Missing() { await TestCase.AccessToken_AssertExists_Missing().ConfigureAwait(false); }

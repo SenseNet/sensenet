@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class CacheTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Cache_Builtin_DeleteParent_SubtreeRemoved_CSrv()
         {
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },

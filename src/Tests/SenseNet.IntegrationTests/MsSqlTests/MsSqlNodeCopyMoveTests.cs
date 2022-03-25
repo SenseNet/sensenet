@@ -131,7 +131,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         {
             TestCase.NodeCopy_CrossBinding_DataType_Reference();
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_MsSql_NodeCopy_CrossBinding_DataType_Binary_CSrv()
         {
             TestCase.NodeCopy_CrossBinding_DataType_Binary();

@@ -34,7 +34,7 @@ namespace SenseNet.IntegrationTests.InMemTests
             db.Files.Clear();
         }
 
-        [TestMethod] public void UT_InMem_UTDP_Node_InsertDraft_CSrv() { TestCase.UT_Node_InsertDraft(Cleanup); }
+        [TestMethod, TestCategory("Services")] public void UT_InMem_UTDP_Node_InsertDraft_CSrv() { TestCase.UT_Node_InsertDraft(Cleanup); }
         [TestMethod] public void UT_InMem_UTDP_Node_InsertPublic() { TestCase.UT_Node_InsertPublic(Cleanup); }
         [TestMethod] public void UT_InMem_UTDP_Node_UpdateFirstDraft() { TestCase.UT_Node_UpdateFirstDraft(Cleanup); }
 

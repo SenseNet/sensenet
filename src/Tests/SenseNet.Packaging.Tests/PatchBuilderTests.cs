@@ -298,7 +298,7 @@ namespace SenseNet.Packaging.Tests
 
         /* ================================================================ DEPENDENCY TESTS */
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Patching_Builder_Dependency_Direct_CSrv()
         {
             var builder = new PatchBuilder(new TestComponent());

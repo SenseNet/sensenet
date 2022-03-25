@@ -551,7 +551,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync_CSrv()
         {
             // Temporary storages for manage repository's restart.

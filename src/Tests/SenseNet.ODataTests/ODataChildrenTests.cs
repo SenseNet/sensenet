@@ -290,7 +290,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_GET_Children_Binary_Expand_EnabledByExtension_CSrv()
         {
             await ODataChildrenTest(async () =>

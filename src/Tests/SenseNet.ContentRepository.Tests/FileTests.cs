@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class FileTests : GenericContentTests
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void MultiStep_Existing_Incremental_CSrv()
         {
             Test(() =>

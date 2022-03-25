@@ -14,7 +14,7 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataCreationTests : ODataTestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_POST_Creation_CSrv()
         {
             await ODataTestAsync(async () =>

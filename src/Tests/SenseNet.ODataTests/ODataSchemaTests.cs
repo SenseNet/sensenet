@@ -16,7 +16,7 @@ namespace SenseNet.ODataTests
     public class ODataSchemaTests : ODataTestBase
     {
         [TestMethod]
-        [TestCategory("Metadata")]
+        [TestCategory("Metadata"), TestCategory("Services")]
         public async Task OD_ClientMetadataProvider_ExistingType_CSrv()
         {
             await ODataTestAsync(() =>

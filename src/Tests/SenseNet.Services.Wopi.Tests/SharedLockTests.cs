@@ -616,7 +616,7 @@ namespace SenseNet.Services.Wopi.Tests
 
 
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void SharedLock_Checkout_Locked_Folder_CSrv()
         {
             var node = CreateTestFolder();

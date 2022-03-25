@@ -45,7 +45,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(false, boundary.MinVersionIsExclusive);
             Assert.AreEqual(false, boundary.MaxVersionIsExclusive);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Patching_SelfTest_CreateDependency_CSrv()
         {
             // "C1: 1.0 <= v <= 1.0"

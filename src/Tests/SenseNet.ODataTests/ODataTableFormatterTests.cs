@@ -51,7 +51,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(raw.EndsWith("</html>"));
             }).ConfigureAwait(false);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_GET_ChildrenCollection_Table_CSrv()
         {
             await ODataTestAsync(async () =>

@@ -984,7 +984,7 @@ namespace SenseNet.Tests.Core.Tests
 
         /* ============================================================================ */
 
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public async Task InMemSearch_Core_ActivityStatus_WithoutRepository_CSrv()
         {
             var newStatus = new IndexingActivityStatus

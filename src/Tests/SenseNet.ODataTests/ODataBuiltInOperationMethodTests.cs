@@ -103,7 +103,7 @@ namespace SenseNet.ODataTests
 
         /* ====================================================================== RepositoryTools */
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void OD_MBO_BuiltIn_Ancestors_CSrv()
         {
             ODataTest(() =>

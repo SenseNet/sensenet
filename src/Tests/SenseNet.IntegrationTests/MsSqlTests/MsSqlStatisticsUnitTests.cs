@@ -40,7 +40,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_OverwriteAggregation() { await TestCase.Stat_DataProvider_OverwriteAggregation().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadAggregations() { await TestCase.Stat_DataProvider_LoadAggregations().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_CleanupRecords() { await TestCase.Stat_DataProvider_CleanupRecords().ConfigureAwait(false); }
-        [TestMethod] public async Task UT_MsSql_Stat_DataProvider_CleanupAggregations_CSrv() { await TestCase.Stat_DataProvider_CleanupAggregations().ConfigureAwait(false); }
+        [TestMethod, TestCategory("Services")] public async Task UT_MsSql_Stat_DataProvider_CleanupAggregations_CSrv() { await TestCase.Stat_DataProvider_CleanupAggregations().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadUsageList() { await TestCase.Stat_DataProvider_LoadUsageList().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadUsageListByTargetId() { await TestCase.Stat_DataProvider_LoadUsageListByTargetId().ConfigureAwait(false); }
         [TestMethod] public async Task UT_MsSql_Stat_DataProvider_LoadFirstAggregationTimesByResolutions() { await TestCase.LoadFirstAggregationTimesByResolutions().ConfigureAwait(false); }

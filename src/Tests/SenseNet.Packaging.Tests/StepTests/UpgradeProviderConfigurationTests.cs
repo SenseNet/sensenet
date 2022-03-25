@@ -421,7 +421,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             Assert.IsTrue(_log.ToString().Contains("Unity section is totally removed."));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Step_UpgradeProviderConfig_CleanupUnitySection_KeepProviders_CSrv()
         {
             #region var config = ...

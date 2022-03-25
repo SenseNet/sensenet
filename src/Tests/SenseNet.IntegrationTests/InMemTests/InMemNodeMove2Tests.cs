@@ -44,7 +44,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         public void IntT_InMem_NodeMove_2_ContentList_ContentListTreeToNode() { TestCase.NodeMove_2_ContentList_ContentListTreeToNode(); }
         [TestMethod]
         public void IntT_InMem_NodeMove_2_ContentList_ContentListItemToNode() { TestCase.NodeMove_2_ContentList_ContentListItemToNode(); }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_InMem_NodeMove_2_ContentList_ContentListItemToContentList_CSrv() { TestCase.NodeMove_2_ContentList_ContentListItemToContentList(); }
         [TestMethod]
         public void IntT_InMem_NodeMove_2_ContentList_ContentListItemToContentListItem() { TestCase.NodeMove_2_ContentList_ContentListItemToContentListItem(); }

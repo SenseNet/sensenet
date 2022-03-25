@@ -131,7 +131,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         {
             TestCase.NodeCopy_CrossBinding_DataType_Reference();
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_InMem_NodeCopy_CrossBinding_DataType_Binary_CSrv()
         {
             TestCase.NodeCopy_CrossBinding_DataType_Binary();

@@ -101,7 +101,7 @@ namespace SenseNet.Packaging.Tests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Patching_Version_Check_BoundaryAutoFill_CSrv()
         {
             // Input                       Output

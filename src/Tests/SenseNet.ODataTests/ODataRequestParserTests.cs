@@ -207,7 +207,7 @@ namespace SenseNet.ODataTests
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void OD_GET_Parsing_Format_CSrv()
         {
             ODataTest(() =>

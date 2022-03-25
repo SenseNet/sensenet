@@ -22,7 +22,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             loggerAcc.SetStaticField("_loggers", loggers);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Step_EditAllowedChildTypes_0Orig_0New_0Old_CSrv()
         {
             var result = EditAllowedChildTypes.GetEditedList(new string[0], null, null);

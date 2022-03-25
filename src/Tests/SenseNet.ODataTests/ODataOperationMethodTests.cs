@@ -2518,7 +2518,7 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void OD_MBO_Actions_ActionIds_CSrv()
         {
             ODataTest(() =>

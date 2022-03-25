@@ -13,7 +13,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class IndexSerializationTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IndxSer_Deserialization_CSrv()
         {
             // ARRANGE

@@ -427,7 +427,7 @@ namespace SenseNet.Search.Tests
                 Assert.IsTrue((!snQuery.Sort.Any() && expectedSortInfo[sortIndex] == null) || expectedSortInfo[sortIndex].Count() == snQuery.Sort.Length);
             }
         }
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public void SnQuery_Parser_AggregateSettingsCountOnlyAllVersions_CSrv()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>

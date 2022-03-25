@@ -49,7 +49,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public Task IntT_MsSql_DP_LoadChildTypesToAllow() { return TestCase.DP_LoadChildTypesToAllow(); }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public Task IntT_MsSql_DP_ContentListTypesInTree_CSrv() { return TestCase.DP_ContentListTypesInTree(); }
 
         [TestMethod]

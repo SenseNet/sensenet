@@ -29,7 +29,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         }
         #endregion
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void UT_MsSql_ExclusiveLock_SkipIfLocked_CSrv() { TestCase.ExclusiveLock_SkipIfLocked(); }
         [TestMethod]
         public void UT_MsSql_ExclusiveLock_WaitForReleased() { TestCase.ExclusiveLock_WaitForReleased(); }

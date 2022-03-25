@@ -11,7 +11,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class IndexDocumentTests : TestBase
     {
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public void IndexDoc_Security_CannotAddPassword_CSrv()
         {
             var passwordFieldName = "Password";

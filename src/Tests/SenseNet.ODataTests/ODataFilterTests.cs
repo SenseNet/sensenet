@@ -222,7 +222,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_GET_Filter_ContentField_CSrv()
         {
             await ODataTestAsync(async () =>

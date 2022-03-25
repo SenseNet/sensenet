@@ -47,7 +47,7 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public Task IntT_InMem_DP_LoadChildTypesToAllow() { return TestCase.DP_LoadChildTypesToAllow(); }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public Task IntT_InMem_DP_ContentListTypesInTree_CSrv() { return TestCase.DP_ContentListTypesInTree(); }
 
         [TestMethod]

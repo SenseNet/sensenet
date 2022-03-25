@@ -222,7 +222,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(newName, node.Name);
             }).ConfigureAwait(false); ;
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_FIX_ModifyWithInvisibleParent_CSrv()
         {
             await ODataTestAsync(

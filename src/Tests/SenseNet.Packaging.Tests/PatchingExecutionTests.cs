@@ -2175,7 +2175,7 @@ namespace SenseNet.Packaging.Tests
                             "6, C1: Patch Successful, 3.0",
                 PackagesToString(packages[23]));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Patching_Exec_InstallerIsLast_CSrv()
         {
             // Faulty execution blocks the following patches on the same component.

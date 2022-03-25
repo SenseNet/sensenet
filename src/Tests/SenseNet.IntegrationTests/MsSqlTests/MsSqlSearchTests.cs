@@ -8,7 +8,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
     [TestClass]
     public class MsSqlSearchTests : IntegrationTest<MsSqlPlatform, SearchTestCases>
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_MsSql_Search_ReferenceField_CSrv()
         {
             TestCase.Search_ReferenceField();

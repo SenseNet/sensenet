@@ -13,7 +13,7 @@ namespace SenseNet.IntegrationTests.InMemTests
     {
         [TestMethod]
         public async Task UT_InMem_SharedLock_LockAndGetLock() { await TestCase.SharedLock_LockAndGetLock().ConfigureAwait(false); }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task UT_InMem_SharedLock_GetTimedOut_CSrv() { await TestCase.SharedLock_GetTimedOut().ConfigureAwait(false); }
         [TestMethod]
         public async Task UT_InMem_SharedLock_Lock_Same() { await TestCase.SharedLock_Lock_Same().ConfigureAwait(false); }

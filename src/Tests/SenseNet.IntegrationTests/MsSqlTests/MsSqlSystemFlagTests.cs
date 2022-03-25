@@ -15,7 +15,7 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         [TestMethod]
         public void IntT_MsSql_SystemFlag_OnFolderUnderSystemFolder() { TestCase.SystemFlag_OnFolderUnderSystemFolder(); }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void IntT_MsSql_SystemFlag_Copy_FromFolderToFolder_CSrv() { TestCase.SystemFlag_Copy_FromFolderToFolder(); }
         [TestMethod]
         public void IntT_MsSql_SystemFlag_Copy_FromSystemFolderToSystemFolder() { TestCase.SystemFlag_Copy_FromSystemFolderToSystemFolder(); }

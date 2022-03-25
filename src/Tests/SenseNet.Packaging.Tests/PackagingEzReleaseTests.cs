@@ -99,7 +99,7 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(RunComponent(C("CompA", "7.1.0", "7.1.0", permittingFunction)));
             Assert.IsTrue(invoked, "The function was not invoked.");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task Packaging_EzRelease_CompatibleComponent_CanRun_CSrv()
         {
             await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);

@@ -198,7 +198,7 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
 
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public void SnQuery_Classify_UsedFieldNames_CSrv()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>

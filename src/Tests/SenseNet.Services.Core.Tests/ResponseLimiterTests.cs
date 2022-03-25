@@ -16,7 +16,7 @@ namespace SenseNet.Services.Core.Tests
     [TestClass]
     public class ResponseLimiterTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Limiter_FileLength_CSrv()
         {
             using (GetResetResponseLimiterSwindler())

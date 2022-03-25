@@ -50,7 +50,7 @@ namespace SenseNet.ODataTests
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public async Task OD_AllowedChildTypes_Patch_CSrv()
         {
             await ODataTestAsync(async () =>

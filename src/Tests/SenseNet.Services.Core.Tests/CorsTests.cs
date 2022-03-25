@@ -16,7 +16,7 @@ namespace SenseNet.Services.Core.Tests
     [TestClass]
     public class CorsTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Cors_AllowedDomain_CSrv()
         {
             // empty

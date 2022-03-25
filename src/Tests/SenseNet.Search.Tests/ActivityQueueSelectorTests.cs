@@ -169,7 +169,7 @@ namespace SenseNet.Search.Tests
                     searchEngine.GetIndexingLog());
             });
         }
-        [TestMethod, TestCategory("IR")]
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
         public void Indexing_ActivitySelector_Centralized_CSrv()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);

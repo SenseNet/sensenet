@@ -801,7 +801,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Sharing_Create_User_CSrv()
         {
             // we need the sharing observer for this feature

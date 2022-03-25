@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class LoggerTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("Services")]
         public void Provider_Logger_Configured_CSrv()
         {
             var loggerTypeName = typeof(TestLogger).FullName;
