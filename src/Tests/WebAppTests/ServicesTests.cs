@@ -417,16 +417,15 @@ namespace WebAppTests
             });
         }
 
+        /* ========================================================================= Test tests */
 
-
-        private class Xxx : TestBase { public IServiceProvider CreateServiceProvider() { return CreateServiceProviderForTest(); } }
+        private class TestClassForTestingServices : TestBase
+        { public IServiceProvider CreateServiceProvider() => CreateServiceProviderForTest(); }
         [TestMethod, TestCategory("Services")]
         public void Test_Services_TestBase()
         {
-            var x = new Xxx();
-
             // ACTION
-            var services = x.CreateServiceProvider();
+            var services = new TestClassForTestingServices().CreateServiceProvider();
 
             // ASSERT
             AssertServices(services, new Dictionary<Type, Type>
