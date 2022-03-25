@@ -127,8 +127,8 @@ namespace SnInitialDataGenerator.Tests
             Assert.AreEqual(Arguments.DefaultNamespace, arguments.IndexNamespace);
             Assert.AreEqual(Arguments.DefaultIndexName, arguments.IndexClassName);
         }
-        [TestMethod]
-        public void DataGen_Args_CustomDataFile()
+        [TestMethod, TestCategory("Services")]
+        public void DataGen_Args_CustomDataFile_CSrv()
         {
             var expectedDataFile = "DataBase1.cs";
             var expectedDataClassName = "DataBase1";

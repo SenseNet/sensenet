@@ -92,8 +92,8 @@ namespace SenseNet.ODataTests
             var array = new ODataArray<byte>(numbers);
             AssertSequenceEqual(numbers, array);
         }
-        [TestMethod]
-        public void OD_OdataArray_Creation_bool()
+        [TestMethod, TestCategory("Services")]
+        public void OD_OdataArray_Creation_bool_CSrv()
         {
             var predicates = new [] { true, false, true };
             var array = new ODataArray<bool>(predicates);

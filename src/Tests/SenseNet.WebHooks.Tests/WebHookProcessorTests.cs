@@ -15,8 +15,8 @@ namespace SenseNet.WebHooks.Tests
     [TestClass]
     public class WebHookProcessorTests : TestBase
     {
-        [TestMethod]
-        public async Task WebHook_Basic()
+        [TestMethod, TestCategory("Services")]
+        public async Task WebHook_Basic_CSrv()
         {
             await Test(
                 builder => { builder.UseComponent(new WebHookComponent()); },

@@ -224,8 +224,8 @@ namespace SenseNet.Tests.Core.Tests
             });
         }
 
-        [TestMethod]
-        public void InMemDb_Core_ChunkUpload_NewFile()
+        [TestMethod, TestCategory("Services")]
+        public void InMemDb_Core_ChunkUpload_NewFile_CSrv()
         {
             Test(async () =>
             {

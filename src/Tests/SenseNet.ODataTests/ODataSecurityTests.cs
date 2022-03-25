@@ -278,8 +278,8 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task OD_Security_Break()
+        [TestMethod, TestCategory("Services")]
+        public async Task OD_Security_Break_CSrv()
         {
             await ODataTestAsync(async () =>
             {

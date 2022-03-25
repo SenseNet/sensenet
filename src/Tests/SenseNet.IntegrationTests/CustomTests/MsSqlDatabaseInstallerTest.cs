@@ -179,8 +179,8 @@ namespace SenseNet.IntegrationTests.CustomTests
                 status);
         }
 
-        [TestMethod]
-        public void MsSqlDbInstaller_CleanInstall_IntegratedCreatorForHerself()
+        [TestMethod, TestCategory("Services")]
+        public void MsSqlDbInstaller_CleanInstall_IntegratedCreatorForHerself_CSrv()
         {
             CleanupServer("Database1", "Customer1");
             EnsureCreator("Creator1", "CreatorPassword1");

@@ -22,8 +22,8 @@ namespace SenseNet.Packaging.Tests.StepTests
             loggerAcc.SetStaticField("_loggers", loggers);
         }
 
-        [TestMethod]
-        public void Step_EditAllowedChildTypes_0Orig_0New_0Old()
+        [TestMethod, TestCategory("Services")]
+        public void Step_EditAllowedChildTypes_0Orig_0New_0Old_CSrv()
         {
             var result = EditAllowedChildTypes.GetEditedList(new string[0], null, null);
             Assert.AreEqual(0, result.Length);

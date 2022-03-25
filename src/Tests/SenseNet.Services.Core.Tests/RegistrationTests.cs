@@ -49,8 +49,8 @@ namespace SenseNet.Services.Core.Tests
         }
         #endregion
 
-        [TestMethod]
-        public void Registration_AddProvider()
+        [TestMethod, TestCategory("Services")]
+        public void Registration_AddProvider_CSrv()
         {
             var services = new ServiceCollection();
 

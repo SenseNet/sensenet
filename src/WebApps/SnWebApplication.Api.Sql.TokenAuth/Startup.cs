@@ -51,12 +51,12 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             services
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .UseLogger(provider)
-                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                    .UseMsSqlExclusiveLockDataProvider();
-            })
+                {
+                    repositoryBuilder
+                        .UseLogger(provider)
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        .UseMsSqlExclusiveLockDataProvider();
+                })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlStatisticalDataProvider()
                 .AddSenseNetMsSqlClientStoreDataProvider()

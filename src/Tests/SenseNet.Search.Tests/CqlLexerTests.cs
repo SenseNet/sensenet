@@ -224,8 +224,8 @@ namespace SenseNet.Search.Tests
             var msg = CheckTokensAndEof(tokens, expectedTokens);
             Assert.IsNull(msg, msg);
         }
-        [TestMethod, TestCategory("IR")]
-        public void SnQuery_Lexer_AndOrNot()
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
+        public void SnQuery_Lexer_AndOrNot_CSrv()
         {
             var expectedTokens = new TokenChecker[]
             {

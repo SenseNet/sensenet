@@ -1104,8 +1104,8 @@ namespace SenseNet.Packaging.Tests.StepTests
 
         /* ---------------------------------------------------------------------------------------------- */
 
-        [TestMethod]
-        public void Step_EditConfiguration_DeleteKey()
+        [TestMethod, TestCategory("Services")]
+        public void Step_EditConfiguration_DeleteKey_CSrv()
         {
             var config = @"<?xml version='1.0' encoding='utf-8'?>
 <configuration>

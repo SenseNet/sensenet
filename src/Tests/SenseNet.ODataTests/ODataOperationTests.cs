@@ -497,8 +497,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(exp, function2 + "," + function22);
             }).ConfigureAwait(false);
         }
-        [TestMethod]
-        public async Task OD_MBOM_ActionsFunction()
+        [TestMethod, TestCategory("Services")]
+        public async Task OD_MBOM_ActionsFunction_CSrv()
         {
             await ODataTestAsync(async () =>
             {

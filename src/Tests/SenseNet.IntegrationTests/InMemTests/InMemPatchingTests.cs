@@ -191,8 +191,8 @@ namespace SenseNet.IntegrationTests.InMemTests
 
         /* ===================================================================== EXECUTION VS VERSIONINFO TESTS */
 
-        [TestMethod]
-        public void IntT_InMem_Patching_Exec_ComponentLifeCycleVsVersionInfo()
+        [TestMethod, TestCategory("Services")]
+        public void IntT_InMem_Patching_Exec_ComponentLifeCycleVsVersionInfo_CSrv()
         {
             TestCase.Patching_Exec_ComponentLifeCycleVsVersionInfo();
         }

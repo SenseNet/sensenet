@@ -29,8 +29,8 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
         }
 
-        [TestMethod]
-        public void Step_UndoChanges_All() => Test(() =>
+        [TestMethod, TestCategory("Services")]
+        public void Step_UndoChanges_All_CSrv() => Test(() =>
         {
             var parent = CretateFolder(Repository.Root, true);
             var file = CreateFileAndCheckout(parent);

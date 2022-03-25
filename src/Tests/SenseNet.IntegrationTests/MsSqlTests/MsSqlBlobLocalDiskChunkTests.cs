@@ -97,8 +97,8 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         {
             TestCase.TestCase_BinaryCacheEntitySmall();
         }
-        [TestMethod]
-        public void IntT_MsSql_Blob_LocalDiskChunk_BinaryCacheEntityBig()
+        [TestMethod, TestCategory("Services")]
+        public void IntT_MsSql_Blob_LocalDiskChunk_BinaryCacheEntityBig_CSrv()
         {
             TestCase.TestCase_BinaryCacheEntityBig();
         }

@@ -104,8 +104,8 @@ namespace SenseNet.ODataTests
                 AssertSequenceEqual(expectedNames, actualNames);
             });
         }
-        [TestMethod]
-        public void FilteredEnumerable_Filtered()
+        [TestMethod, TestCategory("Services")]
+        public void FilteredEnumerable_Filtered_CSrv()
         {
             ODataTest(() =>
             {

@@ -48,8 +48,8 @@ namespace SenseNet.WebHooks.Tests
                 });
         }
 
-        [TestMethod]
-        public async Task WebHookSubscription_Complex()
+        [TestMethod, TestCategory("Services")]
+        public async Task WebHookSubscription_Complex_CSrv()
         {
             await Test(
                 builder => { builder.UseComponent(new WebHookComponent()); },

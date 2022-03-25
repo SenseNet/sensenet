@@ -24,8 +24,8 @@ namespace SenseNet.Search.Tests
             
         }
 
-        [TestMethod, TestCategory("IR")]
-        public void SnQuery_Visitor_Rewrite()
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
+        public void SnQuery_Visitor_Rewrite_CSrv()
         {
             var tree = new LogicalPredicate(
                 new []

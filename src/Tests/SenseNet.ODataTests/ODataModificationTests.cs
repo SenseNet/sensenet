@@ -222,8 +222,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(newName, node.Name);
             }).ConfigureAwait(false); ;
         }
-        [TestMethod]
-        public async Task OD_FIX_ModifyWithInvisibleParent()
+        [TestMethod, TestCategory("Services")]
+        public async Task OD_FIX_ModifyWithInvisibleParent_CSrv()
         {
             await ODataTestAsync(
                 builder => { builder.AddAllTestPolicies(); },

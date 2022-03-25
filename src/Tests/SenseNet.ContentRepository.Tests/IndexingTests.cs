@@ -551,8 +551,8 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        [TestMethod, TestCategory("IR")]
-        public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync()
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
+        public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync_CSrv()
         {
             // Temporary storages for manage repository's restart.
             InMemoryDataProvider dataProvider = null;
@@ -607,9 +607,9 @@ namespace SenseNet.ContentRepository.Tests
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
                         .UseInitialData(null)
-                        .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-                        .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-                        .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+                    .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))

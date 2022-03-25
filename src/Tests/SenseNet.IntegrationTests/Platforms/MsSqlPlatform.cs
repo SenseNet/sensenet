@@ -53,12 +53,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 .AddComponent(provider => new MsSqlStatisticsComponent())
                 .AddComponent(provider => new MsSqlClientStoreComponent())
 
-                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>() //UNDONE:TEST: generalize service addition
-                .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>() //UNDONE:TEST: generalize service addition
+                .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()
                 ;
         }
 

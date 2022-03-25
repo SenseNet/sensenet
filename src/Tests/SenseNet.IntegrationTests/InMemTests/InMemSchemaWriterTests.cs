@@ -43,8 +43,8 @@ namespace SenseNet.IntegrationTests.InMemTests
         public void IntT_InMem_SchemaWriter_AddPropertyTypeToNodeType_Declared() { TestCase.SchemaWriter_AddPropertyTypeToNodeType_Declared(); }
         [TestMethod]
         public void IntT_InMem_SchemaWriter_AddPropertyTypeToNodeType_Inherited() { TestCase.SchemaWriter_AddPropertyTypeToNodeType_Inherited(); }
-        [TestMethod]
-        public void IntT_InMem_SchemaWriter_AddPropertyTypeToContentListType() { TestCase.SchemaWriter_AddPropertyTypeToContentListType(); }
+        [TestMethod, TestCategory("Services")]
+        public void IntT_InMem_SchemaWriter_AddPropertyTypeToContentListType_CSrv() { TestCase.SchemaWriter_AddPropertyTypeToContentListType(); }
         [TestMethod]
         public void IntT_InMem_SchemaWriter_RemovePropertyTypeFromNodeType() { TestCase.SchemaWriter_RemovePropertyTypeFromNodeType(); }
         [TestMethod]

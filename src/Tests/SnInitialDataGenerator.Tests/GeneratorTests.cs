@@ -79,8 +79,8 @@ namespace SnInitialDataGenerator.Tests
             Assert.AreEqual(IndexTermVector.Default, parsed.TermVector);
         }
 
-        [TestMethod]
-        public void InMemoryDatabaseGenerator_HexDump()
+        [TestMethod, TestCategory("Services")]
+        public void InMemoryDatabaseGenerator_HexDump_CSrv()
         {
             string BytesToHex(byte[] bytes)
             {

@@ -121,6 +121,12 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services
                 .AddSenseNetInMemoryDataProvider()
+                .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
+                .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
+                .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
                 .AddSenseNetInMemoryStatisticalDataProvider()
                 .AddSenseNetInMemoryClientStoreDataProvider()

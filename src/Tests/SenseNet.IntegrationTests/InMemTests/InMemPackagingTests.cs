@@ -78,7 +78,7 @@ namespace SenseNet.IntegrationTests.InMemTests
 
         [TestMethod]
         public async Task IntT_InMem_Packaging_DeleteOne() { await TestCase.Packaging_DeleteOne().ConfigureAwait(false); }
-        [TestMethod]
-        public async Task IntT_InMem_Packaging_DeleteAll() { await TestCase.Packaging_DeleteAll().ConfigureAwait(false); }
+        [TestMethod, TestCategory("Services")]
+        public async Task IntT_InMem_Packaging_DeleteAll_CSrv() { await TestCase.Packaging_DeleteAll().ConfigureAwait(false); }
     }
 }

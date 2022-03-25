@@ -132,8 +132,8 @@ namespace SenseNet.ODataTests
             });
         }
 
-        [TestMethod]
-        public async Task OD_DELETE_ByAction_DefaultParam()
+        [TestMethod, TestCategory("Services")]
+        public async Task OD_DELETE_ByAction_DefaultParam_CSrv()
         {
             await ODataTestAsync(async () =>
             {

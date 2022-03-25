@@ -30,8 +30,8 @@ namespace SenseNet.IntegrationTests.InMemTests
         [TestMethod]
         public async Task IntT_InMem_Packaging_Step_DeleteContentType_WithRelatedContent() { await TestCase.Test_WithRelatedContent().ConfigureAwait(false); }
 
-        [TestMethod]
-        public async Task IntT_InMem_Packaging_Step_DeleteContentType_Applications() { await TestCase.Test_Applications().ConfigureAwait(false); }
+        [TestMethod, TestCategory("Services")]
+        public async Task IntT_InMem_Packaging_Step_DeleteContentType_Applications_CSrv() { await TestCase.Test_Applications().ConfigureAwait(false); }
         [TestMethod]
         public async Task IntT_InMem_Packaging_Step_DeleteContentType_ContentTemplate() { await TestCase.Test_ContentTemplate().ConfigureAwait(false); }
         [TestMethod]

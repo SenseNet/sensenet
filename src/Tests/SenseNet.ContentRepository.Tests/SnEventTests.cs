@@ -288,8 +288,8 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        [TestMethod]
-        public void Event_EventProcessor_Asynchrony()
+        [TestMethod, TestCategory("Services")]
+        public void Event_EventProcessor_Asynchrony_CSrv()
         {
             Node node = null;
             EventProcessorAsynchronyTest("NodeModifiedEvent", "NodeModifyingEvent",

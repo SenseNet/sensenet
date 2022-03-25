@@ -1609,8 +1609,8 @@ namespace SenseNet.Packaging.Tests
             var expected = "I:1.0-2 | P:1.1-5 | P:1.2-10";
             Assert.AreEqual(expected, actual);
         }
-        [TestMethod]
-        public async Tasks.Task Packaging_DeleteAll()
+        [TestMethod, TestCategory("Services")]
+        public async Tasks.Task Packaging_DeleteAll_CSrv()
         {
             await SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             await SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);

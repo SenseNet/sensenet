@@ -44,8 +44,8 @@ namespace SenseNet.IntegrationTests.MsSqlTests
         public void IntT_MsSql_NodeMove_2_ContentList_ContentListTreeToNode() { TestCase.NodeMove_2_ContentList_ContentListTreeToNode(); }
         [TestMethod]
         public void IntT_MsSql_NodeMove_2_ContentList_ContentListItemToNode() { TestCase.NodeMove_2_ContentList_ContentListItemToNode(); }
-        [TestMethod]
-        public void IntT_MsSql_NodeMove_2_ContentList_ContentListItemToContentList() { TestCase.NodeMove_2_ContentList_ContentListItemToContentList(); }
+        [TestMethod, TestCategory("Services")]
+        public void IntT_MsSql_NodeMove_2_ContentList_ContentListItemToContentList_CSrv() { TestCase.NodeMove_2_ContentList_ContentListItemToContentList(); }
         [TestMethod]
         public void IntT_MsSql_NodeMove_2_ContentList_ContentListItemToContentListItem() { TestCase.NodeMove_2_ContentList_ContentListItemToContentListItem(); }
         [TestMethod]

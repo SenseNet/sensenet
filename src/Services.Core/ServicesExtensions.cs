@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -84,6 +85,10 @@ namespace SenseNet.Extensions.DependencyInjection
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
                 .AddSenseNetMsSqlDataProvider()
+                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
+                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
+                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                 .AddSenseNetBlobStorage()
                 .AddSenseNetSecurity(config =>
                 {
@@ -92,9 +97,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddSingleton<SecurityHandler>() //UNDONE: AddSingleton<SecurityHandler>
-                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
-                .AddSenseNetSearchComponents()
+                .AddPlatformIndependentServices()
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
@@ -128,7 +131,21 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
-        
+
+        public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<SecurityHandler>()
+                .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
+
+                .AddSingleton<ISearchManager, SearchManager>()
+                .AddSingleton<IIndexManager, IndexManager>()
+                .AddSingleton<IIndexPopulator, DocumentPopulator>()
+
+                .AddSingleton<ElevatedModificationVisibilityRule>()
+            ;
+        }
+
         /// <summary>
         /// Sets well-known singleton provider instances that are used by legacy code.
         /// </summary>

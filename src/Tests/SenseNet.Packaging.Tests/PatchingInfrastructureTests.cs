@@ -193,8 +193,8 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expectedManifest, pkg.Manifest);
         }
 
-        [TestMethod]
-        public void Patching_System_CreateInstallerFromPackage()
+        [TestMethod, TestCategory("Services")]
+        public void Patching_System_CreateInstallerFromPackage_CSrv()
         {
             var package = new Package
             {

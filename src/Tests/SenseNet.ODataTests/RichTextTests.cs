@@ -120,8 +120,8 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task OD_RichText_Create()
+        [TestMethod, TestCategory("Services")]
+        public async Task OD_RichText_Create_CSrv()
         {
             await ODataTestAsync(async () =>
             {

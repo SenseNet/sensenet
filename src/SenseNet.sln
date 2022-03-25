@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31912.275
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{875EF569-4684-473D-A2D4-A35B20B4A07C}"
 EndProject
@@ -87,6 +87,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.Sql.SearchService.TokenAuth", "WebApps\SnWebApplication.Api.Sql.SearchService.TokenAuth\SnWebApplication.Api.Sql.SearchService.TokenAuth.csproj", "{1136196B-B909-47FE-9D70-1788402DF4D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.Sql.SearchService.Admin", "WebApps\SnWebApplication.Api.Sql.SearchService.Admin\SnWebApplication.Api.Sql.SearchService.Admin.csproj", "{ED5CDB50-26D9-40E0-B1D9-80D1977FA2E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAppTests", "Tests\WebAppTests\WebAppTests.csproj", "{124EF02B-26DF-4410-9232-812B0D14526E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -668,6 +670,22 @@ Global
 		{ED5CDB50-26D9-40E0-B1D9-80D1977FA2E2}.Release|x64.Build.0 = Release|Any CPU
 		{ED5CDB50-26D9-40E0-B1D9-80D1977FA2E2}.Release|x86.ActiveCfg = Release|Any CPU
 		{ED5CDB50-26D9-40E0-B1D9-80D1977FA2E2}.Release|x86.Build.0 = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|x64.Build.0 = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Debug|x86.Build.0 = Debug|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|x64.ActiveCfg = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|x64.Build.0 = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|x86.ActiveCfg = Release|Any CPU
+		{124EF02B-26DF-4410-9232-812B0D14526E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -709,6 +727,7 @@ Global
 		{EC55EA80-E068-440B-A357-89D4CA1BECB8} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 		{1136196B-B909-47FE-9D70-1788402DF4D0} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 		{ED5CDB50-26D9-40E0-B1D9-80D1977FA2E2} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
+		{124EF02B-26DF-4410-9232-812B0D14526E} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}

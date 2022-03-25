@@ -876,9 +876,6 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager(Providers.Instance.DataStore));
-                builder.UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -923,9 +920,6 @@ namespace SenseNet.Tests.Core.Tests
 
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager(Providers.Instance.DataStore));
-                builder.UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -973,9 +967,6 @@ namespace SenseNet.Tests.Core.Tests
             string resolved = null;
             Test(builder =>
             {
-                builder.UseSearchManager(new SearchManager(Providers.Instance.DataStore));
-                builder.UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager));
-                builder.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager));
                 builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log));
             }, () =>
             {
@@ -993,8 +984,8 @@ namespace SenseNet.Tests.Core.Tests
 
         /* ============================================================================ */
 
-        [TestMethod, TestCategory("IR")]
-        public async Task InMemSearch_Core_ActivityStatus_WithoutRepository()
+        [TestMethod, TestCategory("IR"), TestCategory("Services")]
+        public async Task InMemSearch_Core_ActivityStatus_WithoutRepository_CSrv()
         {
             var newStatus = new IndexingActivityStatus
             {
