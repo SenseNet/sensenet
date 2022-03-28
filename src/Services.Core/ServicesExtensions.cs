@@ -185,8 +185,6 @@ namespace SenseNet.Extensions.DependencyInjection
             if (taskManager != null)
                 SnTaskManager.Instance = taskManager;
 
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-
 #pragma warning restore 618
 
             var securityDataProvider = provider.GetService<ISecurityDataProvider>();

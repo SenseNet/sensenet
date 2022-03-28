@@ -75,8 +75,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom");
 
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-
             OnAfterGettingRepositoryBuilder(builder);
 
             return builder;

@@ -96,8 +96,6 @@ namespace SenseNet.Extensions.DependencyInjection
                        ?? new InMemoryStatisticalDataProvider();
             repositoryBuilder.UseStatisticalDataProvider(statDp);
 
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-            
             return repositoryBuilder;
         }
 
