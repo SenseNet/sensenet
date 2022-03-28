@@ -39,8 +39,6 @@ namespace SenseNet.Configuration
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
             "SenseNet.Diagnostics.EventPropertyCollector");
-        public static string AuditEventWriterClassName { get; internal set; } = GetProvider("AuditEventWriter",
-            typeof(DatabaseAuditEventWriter).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -51,8 +49,6 @@ namespace SenseNet.Configuration
             typeof(Sha256PasswordHashProviderWithoutSalt).FullName);
         public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
-        public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
-            "SenseNet.Preview.DefaultDocumentPreviewProvider");
 
         public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
@@ -73,12 +69,12 @@ namespace SenseNet.Configuration
 
         public Providers(IServiceProvider services)
         {
-            if (services == null)
-                throw new ArgumentNullException(nameof(services));
-            Services = services;
+            Services = services ?? throw new ArgumentNullException(nameof(services));
 
             CacheProvider = services.GetService<ISnCache>();
             IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
+            AuditEventWriter = services.GetService<IAuditEventWriter>();
+            PreviewProvider = services.GetService<IPreviewProvider>();
         }
 
         /// <summary>
@@ -116,18 +112,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>
-        private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>(() =>
-        {
-            var aewr = CreateProviderInstance<IAuditEventWriter>(AuditEventWriterClassName, "AuditEventWriter");
-            return aewr;
-        });
-        public virtual IAuditEventWriter AuditEventWriter
-        {
-            get { return _auditEventWriter.Value; }
-            set { _auditEventWriter = new Lazy<IAuditEventWriter>(() => value); }
-        }
-        #endregion
+        public IAuditEventWriter AuditEventWriter { get; set; }
 
         #region DataProvider & DataStore
 
@@ -268,24 +253,9 @@ namespace SenseNet.Configuration
         public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
         public virtual IMessageProvider SecurityMessageProvider { get; set; }
 
-        public SecurityHandler SecurityHandler { get; set; } = new SecurityHandler();
+        public SecurityHandler SecurityHandler { get; set; }
         
-        #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
-        private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 
-            CreateProviderInstance<IPreviewProvider>(DocumentPreviewProviderClassName,"DocumentPreviewProvider"));
-
-        /// <summary>
-        /// Preview provider instance. Do NOT set this property directly,
-        /// because it has to be an instance of the DocumentPreviewProvider class
-        /// that resides in the ContentRepository layer.
-        /// Use the extension methods on the IRepositoryBuilder api instead.
-        /// </summary>
-        public virtual IPreviewProvider PreviewProvider
-        {
-            get => _previewProvider.Value;
-            set { _previewProvider = new Lazy<IPreviewProvider>(() => value); }
-        }
-        #endregion
+        public IPreviewProvider PreviewProvider { get; set; }
 
         public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; set; }
 
