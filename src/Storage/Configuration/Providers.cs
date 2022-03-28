@@ -88,7 +88,6 @@ namespace SenseNet.Configuration
             Services = services;
         }
 
-        private static Providers _instance;
         /// <summary>
         /// Lets you access the replaceable providers in the system. This instance may be replaced 
         /// by a derived special implementation that stores instances on a thread context 
