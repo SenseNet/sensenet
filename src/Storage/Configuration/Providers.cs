@@ -79,12 +79,22 @@ namespace SenseNet.Configuration
 
         //===================================================================================== Instance
 
+        public IServiceProvider Services { get; }
+
+        public Providers(IServiceProvider services)
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            Services = services;
+        }
+
+        private static Providers _instance;
         /// <summary>
         /// Lets you access the replaceable providers in the system. This instance may be replaced 
         /// by a derived special implementation that stores instances on a thread context 
         /// for testing purposes.
         /// </summary>
-        public static Providers Instance { get; set; } = new Providers();
+        public static Providers Instance { get; set; }
 
         //===================================================================================== Named providers
 

@@ -38,7 +38,7 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTest(TestContext);
 
             builder.UsePackagingDataProvider(new InMemoryPackageStorageProvider());
 

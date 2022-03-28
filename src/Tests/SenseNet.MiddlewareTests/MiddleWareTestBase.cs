@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace SenseNet.MiddlewareTests
                     webBuilder.UseTestServer().ConfigureServices(configureServices).Configure(configure);
                 }).Build())
             {
+                Providers.Instance = new Providers(host.Services);
                 using (InMemoryExtensions.StartInMemoryRepository(host.Services, repositoryBuilder =>
                 {
                     repositoryBuilder.UseAccessProvider(new UserAccessProvider());

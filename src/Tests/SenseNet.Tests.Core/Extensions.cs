@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -23,8 +22,7 @@ namespace SenseNet.Tests.Core
         }
         private static void StartTestPrivate(TestContext testContext, bool reusesRepository)
         {
-            if(!reusesRepository)
-                Providers.Instance = new Providers();
+            testContext.Properties["ReusesRepository"] = reusesRepository;
             using (new Swindler<bool>(false, () => SnTrace.Event.Enabled, x => SnTrace.Event.Enabled = x))
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =

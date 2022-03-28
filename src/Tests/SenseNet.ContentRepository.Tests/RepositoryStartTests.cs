@@ -132,6 +132,7 @@ namespace SenseNet.ContentRepository.Tests
             ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
         {
             var services = CreateServiceProviderForTest();
+            Providers.Instance = new Providers(services);
 
             var dbProvider = dataProvider ?? services.GetRequiredService<DataProvider>();
             return new RepositoryBuilder(services)

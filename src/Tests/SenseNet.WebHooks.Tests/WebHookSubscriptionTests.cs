@@ -535,7 +535,7 @@ namespace SenseNet.WebHooks.Tests
 
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
-            return CreateRepositoryBuilderForTest(services =>
+            return CreateRepositoryBuilderForTest(TestContext, services =>
             {
                 services.AddSenseNetWebHooks();
             });
