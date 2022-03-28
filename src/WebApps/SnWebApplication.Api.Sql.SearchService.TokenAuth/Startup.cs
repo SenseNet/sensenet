@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
@@ -59,23 +58,23 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 {
                     repositoryBuilder
                         .UseLogger(provider)
+                        //UNDONE: MSSQLSEPARATE move this call to the common SQL registration method (make sure it is registered!)
                         .UseMsSqlExclusiveLockDataProvider();
                 })
                 .AddEFCSecurityDataProvider()
+                .AddSenseNetMsSqlProviders(installOptions =>
+                {
+                    Configuration.Bind("sensenet:install:mssql", installOptions);
+                })
                 .Configure<GrpcClientOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<CentralizedOptions>(Configuration.GetSection("sensenet:search:service"))
                 .Configure<RabbitMqOptions>(Configuration.GetSection("sensenet:security:rabbitmq"))
                 .AddLucene29CentralizedSearchEngineWithGrpc()
                 .AddRabbitMqSecurityMessageProvider()
-                .AddSenseNetMsSqlStatisticalDataProvider()
-                .AddSenseNetMsSqlClientStoreDataProvider()
                 .AddRabbitMqMessageProvider(configureRabbitMq: options =>
                 {
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
-                .AddComponent(provider => new MsSqlExclusiveLockComponent())
-                .AddComponent(provider => new MsSqlStatisticsComponent())
-                .AddComponent(provider => new MsSqlClientStoreComponent())
                 .AddSenseNetWebHooks();
         }
 

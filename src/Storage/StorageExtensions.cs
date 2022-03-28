@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
-using SenseNet.Storage.Data.MsSqlClient;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -48,21 +47,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
-
-        /// <summary>
-        /// Adds the default MS SQL data provider to the service collection.
-        /// </summary>
-        public static IServiceCollection AddSenseNetMsSqlDataProvider(this IServiceCollection services)
-        {
-            return services.AddSenseNetDataProvider<MsSqlDataProvider>()
-                .AddSenseNetDataInstaller<MsSqlDataInstaller>()
-                .AddSingleton<MsSqlDatabaseInstaller>()
-                .Configure<MsSqlDatabaseInstallationOptions>(_ =>
-                {
-                    // this method is for making sure that the option object is registered
-                });
-        }
-
+        
         /// <summary>
         /// Adds a data provider to the service collection.
         /// </summary>
@@ -82,15 +67,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services.AddSingleton<IDataStore, T>();
         }
-
-        /// <summary>
-        /// Adds the MS SQL statistical data provider to the service collection.
-        /// </summary>
-        public static IServiceCollection AddSenseNetMsSqlStatisticalDataProvider(this IServiceCollection services)
-        {
-            return services.AddStatisticalDataProvider<MsSqlStatisticalDataProvider>();
-        }
-
+        
         /// <summary>
         /// Adds a data installer to the service collection.
         /// </summary>

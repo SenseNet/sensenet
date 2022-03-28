@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
 
 namespace SnWebApplication.Api.Sql.Admin
@@ -48,14 +47,14 @@ namespace SnWebApplication.Api.Sql.Admin
                     repositoryBuilder
                         .UseLogger(provider)
                         .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        //UNDONE: MSSQLSEPARATE move this call to the common SQL registration method (make sure it is registered!)
                         .UseMsSqlExclusiveLockDataProvider();
                 })
                 .AddEFCSecurityDataProvider()
-                .AddSenseNetMsSqlStatisticalDataProvider()
-                .AddSenseNetMsSqlClientStoreDataProvider()
-                .AddComponent(provider => new MsSqlExclusiveLockComponent())
-                .AddComponent(provider => new MsSqlStatisticsComponent())
-                .AddComponent(provider => new MsSqlClientStoreComponent())
+                .AddSenseNetMsSqlProviders(installOptions =>
+                {
+                    Configuration.Bind("sensenet:install:mssql", installOptions);
+                })
                 .AddSenseNetWebHooks();
         }
 

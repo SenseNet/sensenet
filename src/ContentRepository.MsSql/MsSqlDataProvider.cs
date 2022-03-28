@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using STT=System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /* =============================================================================================== NodeHead */
         /* =============================================================================================== NodeQuery */
 
-        public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
+        public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken)
         {
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
@@ -103,120 +103,116 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken))
+            using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
+            return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
             {
-                return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
+                cancel.ThrowIfCancellationRequested();
+                var result = new List<int>();
+                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    result.Add(reader.GetSafeInt32(0));
+                }
+                return (IEnumerable<int>)result;
+            }).ConfigureAwait(false);
+        }
+
+        public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
+            List<QueryPropertyData> properties, CancellationToken cancellationToken)
+        {
+            using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
+            var typeCount = nodeTypeIds?.Length ?? 0;
+            var onlyNodes = true;
+            (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value)[] propertyMapping = null;
+
+            if (properties != null && properties.Any())
+            {
+                propertyMapping = properties.Select(GetPropertyMappingForQuery).ToArray();
+                onlyNodes = propertyMapping.All(x => x.IsNodeTable);
+            }
+
+            var parameters = new List<DbParameter>();
+            var sqlBuilder = new StringBuilder();
+            sqlBuilder.AppendLine("-- MsSqlDataProvider.QueryNodesByTypeAndPathAndProperty");
+
+            if (typeCount > 1)
+            {
+                sqlBuilder.AppendLine("DECLARE @TypeIdTable AS TABLE(Id INT)");
+                sqlBuilder.AppendLine("INSERT INTO @TypeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@TypeIds, ',')");
+            }
+
+            sqlBuilder.AppendLine("SELECT n.NodeId FROM Nodes n");
+            if (!onlyNodes)
+                sqlBuilder.AppendLine("    JOIN Versions V ON V.NodeId = n.NodeId");
+
+            sqlBuilder.Append("WHERE ");
+            var first = true;
+
+            if (!string.IsNullOrEmpty(pathStart))
+            {
+                sqlBuilder.AppendLine("(/*[Path] = @Path OR*/ [Path] LIKE REPLACE(@Path, '_', '[_]') + '/%' COLLATE Latin1_General_CI_AS)");
+                parameters.Add(ctx.CreateParameter("@Path", DbType.String, pathStart));
+                first = false;
+            }
+
+            if (typeCount == 1)
+            {
+                if (!first)
+                    sqlBuilder.Append("    AND ");
+
+                sqlBuilder.AppendLine("n.NodeTypeId = @TypeId");
+                // ReSharper disable once AssignNullToNotNullAttribute
+                parameters.Add(ctx.CreateParameter("@TypeId", DbType.Int32, nodeTypeIds.First()));
+                first = false;
+            }
+            else if (typeCount > 1)
+            {
+                if (!first)
+                    sqlBuilder.Append("    AND ");
+                sqlBuilder.AppendLine("n.NodeTypeId IN (SELECT Id FROM @TypeIdTable)");
+                // ReSharper disable once AssignNullToNotNullAttribute
+                parameters.Add(ctx.CreateParameter("@TypeIds", DbType.String, string.Join(",", nodeTypeIds.Select(x => x.ToString()))));
+                first = false;
+            }
+
+            if (propertyMapping != null)
+            {
+                var index = 1;
+                foreach (var item in propertyMapping)
+                {
+                    if (!first)
+                        sqlBuilder.Append("    AND ");
+
+                    var paramName = "@Property" + index++;
+
+                    if (item.IsColumn)
+                        sqlBuilder.Append(item.IsNodeTable ? "n." : "v.").AppendLine($"[{item.Column}] = {paramName}");
+                    else
+                        sqlBuilder.AppendLine($"v.DynamicProperties LIKE '%' + {paramName} + '%'");
+
+                    parameters.Add(ctx.CreateParameter(paramName, item.DataType, item.Value));
+
+                    first = false;
+                }
+            }
+
+            if (orderByPath && !string.IsNullOrEmpty(pathStart))
+                sqlBuilder.AppendLine("ORDER BY n.[Path]");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
+                cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
+                async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<int>();
                     while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
-                        result.Add(reader.GetSafeInt32(0));
+                        result.Add(reader.GetInt32(0));
                     }
-                    return (IEnumerable<int>)result;
+                    return result;
                 }).ConfigureAwait(false);
-            }
-        }
-
-        public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
-            List<QueryPropertyData> properties, CancellationToken cancellationToken)
-        {
-            using (var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken))
-            {
-                var typeCount = nodeTypeIds?.Length ?? 0;
-                var onlyNodes = true;
-                (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value)[] propertyMapping = null;
-
-                if (properties != null && properties.Any())
-                {
-                    propertyMapping = properties.Select(GetPropertyMappingForQuery).ToArray();
-                    onlyNodes = propertyMapping.All(x => x.IsNodeTable);
-                }
-
-                var parameters = new List<DbParameter>();
-                var sqlBuilder = new StringBuilder();
-                sqlBuilder.AppendLine("-- MsSqlDataProvider.QueryNodesByTypeAndPathAndProperty");
-
-                if (typeCount > 1)
-                {
-                    sqlBuilder.AppendLine("DECLARE @TypeIdTable AS TABLE(Id INT)");
-                    sqlBuilder.AppendLine("INSERT INTO @TypeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@TypeIds, ',')");
-                }
-
-                sqlBuilder.AppendLine("SELECT n.NodeId FROM Nodes n");
-                if (!onlyNodes)
-                    sqlBuilder.AppendLine("    JOIN Versions V ON V.NodeId = n.NodeId");
-
-                sqlBuilder.Append("WHERE ");
-                var first = true;
-
-                if (!string.IsNullOrEmpty(pathStart))
-                {
-                    sqlBuilder.AppendLine("(/*[Path] = @Path OR*/ [Path] LIKE REPLACE(@Path, '_', '[_]') + '/%' COLLATE Latin1_General_CI_AS)");
-                    parameters.Add(ctx.CreateParameter("@Path", DbType.String, pathStart));
-                    first = false;
-                }
-
-                if (typeCount == 1)
-                {
-                    if (!first)
-                        sqlBuilder.Append("    AND ");
-
-                    sqlBuilder.AppendLine("n.NodeTypeId = @TypeId");
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    parameters.Add(ctx.CreateParameter("@TypeId", DbType.Int32, nodeTypeIds.First()));
-                    first = false;
-                }
-                else if (typeCount > 1)
-                {
-                    if (!first)
-                        sqlBuilder.Append("    AND ");
-                    sqlBuilder.AppendLine("n.NodeTypeId IN (SELECT Id FROM @TypeIdTable)");
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    parameters.Add(ctx.CreateParameter("@TypeIds", DbType.String, string.Join(",", nodeTypeIds.Select(x => x.ToString()))));
-                    first = false;
-                }
-
-                if (propertyMapping != null)
-                {
-                    var index = 1;
-                    foreach (var item in propertyMapping)
-                    {
-                        if (!first)
-                            sqlBuilder.Append("    AND ");
-
-                        var paramName = "@Property" + index++;
-
-                        if (item.IsColumn)
-                            sqlBuilder.Append(item.IsNodeTable ? "n." : "v.").AppendLine($"[{item.Column}] = {paramName}");
-                        else
-                            sqlBuilder.AppendLine($"v.DynamicProperties LIKE '%' + {paramName} + '%'");
-
-                        parameters.Add(ctx.CreateParameter(paramName, item.DataType, item.Value));
-
-                        first = false;
-                    }
-                }
-
-                if (orderByPath && !string.IsNullOrEmpty(pathStart))
-                    sqlBuilder.AppendLine("ORDER BY n.[Path]");
-
-                cancellationToken.ThrowIfCancellationRequested();
-                return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
-                    cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
-                    async (reader, cancel) =>
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        var result = new List<int>();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                        {
-                            cancel.ThrowIfCancellationRequested();
-                            result.Add(reader.GetInt32(0));
-                        }
-                        return result;
-                    }).ConfigureAwait(false);
-            }
         }
         private (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value) GetPropertyMappingForQuery(QueryPropertyData property)
         {
@@ -307,12 +303,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Installation */
 
-        public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
+        public override async STT.Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
             await DataInstaller.InstallInitialDataAsync(data, this, cancellationToken).ConfigureAwait(false);
         }
         
-        public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)
+        public override async STT.Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
             if (!string.IsNullOrEmpty(_dbInstallerOptions.DatabaseName))
             {
@@ -349,12 +345,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             _logger.LogTrace("Executing security schema script.");
             await ExecuteEmbeddedNonQueryScriptAsync(
-                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
+                    "SenseNet.ContentRepository.MsSql.Scripts.MsSqlInstall_Security.sql", cancellationToken)
                 .ConfigureAwait(false);
 
             _logger.LogTrace("Executing database schema script.");
             await ExecuteEmbeddedNonQueryScriptAsync(
-                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
+                    "SenseNet.ContentRepository.MsSql.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -453,28 +449,20 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="scriptName">Resource identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        private async Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
+        private async STT.Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
         {
-            using (var stream = GetType().Assembly.GetManifestResourceStream(scriptName))
+            using var stream = GetType().Assembly.GetManifestResourceStream(scriptName);
+            if (stream == null)
+                throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
+
+            using var sr = new StreamReader(stream);
+            using var sqlReader = new SqlScriptReader(sr);
+            while (sqlReader.ReadScript())
             {
-                if (stream == null)
-                    throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
+                var script = sqlReader.Script;
 
-                using (var sr = new StreamReader(stream))
-                {
-                    using (var sqlReader = new SqlScriptReader(sr))
-                    {
-                        while (sqlReader.ReadScript())
-                        {
-                            var script = sqlReader.Script;
-
-                            using (var ctx = CreateDataContext(cancellationToken))
-                            {
-                                await ctx.ExecuteNonQueryAsync(script);
-                            }
-                        }
-                    }
-                }
+                using var ctx = CreateDataContext(cancellationToken);
+                await ctx.ExecuteNonQueryAsync(script);
             }
         }
     }

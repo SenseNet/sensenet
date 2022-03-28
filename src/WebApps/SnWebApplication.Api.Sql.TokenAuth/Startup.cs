@@ -55,14 +55,14 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     repositoryBuilder
                         .UseLogger(provider)
                         .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        //UNDONE: MSSQLSEPARATE move this call to the common SQL registration method (make sure it is registered!)
                         .UseMsSqlExclusiveLockDataProvider();
                 })
                 .AddEFCSecurityDataProvider()
-                .AddSenseNetMsSqlStatisticalDataProvider()
-                .AddSenseNetMsSqlClientStoreDataProvider()
-                .AddComponent(provider => new MsSqlExclusiveLockComponent())
-                .AddComponent(provider => new MsSqlStatisticsComponent())
-                .AddComponent(provider => new MsSqlClientStoreComponent())
+                .AddSenseNetMsSqlProviders(installOptions =>
+                {
+                    Configuration.Bind("sensenet:install:mssql", installOptions);
+                })
                 .AddSenseNetWebHooks();
         }
 

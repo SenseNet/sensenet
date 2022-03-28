@@ -9,11 +9,9 @@ using SenseNet.ContentRepository;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
@@ -42,9 +40,8 @@ namespace SenseNet.Packaging
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
-            var mainProvider = Providers.Instance.DataProvider as RelationalDataProviderBase;
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider(mainProvider));
+                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), builder.Services.GetRequiredService<IPackagingDataProvider>());
 
             var packageParameters = parameters ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters

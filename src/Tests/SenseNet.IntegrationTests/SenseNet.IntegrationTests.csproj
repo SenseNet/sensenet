@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
+    <ProjectReference Include="..\..\ContentRepository.MsSql\SenseNet.ContentRepository.MsSql.csproj" />
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\SenseNet.Tests.Core\SenseNet.Tests.Core.csproj" />
   </ItemGroup>

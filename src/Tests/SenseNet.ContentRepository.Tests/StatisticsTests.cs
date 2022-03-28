@@ -38,7 +38,6 @@ using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
-using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.DataModel.Usage;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
@@ -1850,8 +1849,11 @@ namespace SenseNet.ContentRepository.Tests
 
             //UNDONE: Do not place connection string here.
             var cnstr = "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=SenseNet.IntegrationTests;Data Source=????????";
-            var statDataProvider = new MsSqlStatisticalDataProvider(null,
-                Options.Create(new ConnectionStringOptions{Repository = cnstr }));
+
+            //UNDONE: MSSQLSEPARATE move this test to the IntegrationTests project where the MsSql platform is available
+            IStatisticalDataProvider statDataProvider = null; 
+                //= new MsSqlStatisticalDataProvider(null,
+                //Options.Create(new ConnectionStringOptions{Repository = cnstr }));
 
             StatisticalDataAggregationController controller = new StatisticalDataAggregationController(statDataProvider,
                 new IStatisticalDataAggregator[]
