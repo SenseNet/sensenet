@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
@@ -40,18 +41,18 @@ namespace SenseNet.ContentRepository.Tests
             var loggerTypeName = typeof(TestLogger).FullName;
 
             // backup configuration
+            var providersBackup = Providers.Instance;
             var eventLoggerClassNameBackup = Providers.EventLoggerClassName;
-            var propCollector = Providers.Instance.PropertyCollector;
 
             // configure the logger provider and reinitialize the instance
+            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
+            var propCollector = Providers.Instance.PropertyCollector;
+
             Providers.EventLoggerClassName = loggerTypeName;
-            Providers.Instance = new Providers
-            {
-                // Workaround: the default property collector tries to load the
-                // current user, even if the repo is not running.
-                DataProvider = new InMemoryDataProvider(),
-                PropertyCollector = new NullEventPropertyCollector()
-            };
+            // Workaround: the default property collector tries to load the
+            // current user, even if the repo is not running.
+            Providers.Instance.DataProvider = new InMemoryDataProvider();
+            Providers.Instance.PropertyCollector = new NullEventPropertyCollector();
 
             try
             {
@@ -69,11 +70,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // rollback to the original configuration
                 Providers.EventLoggerClassName = eventLoggerClassNameBackup;
-                Providers.Instance = new Providers
-                {
-                    DataProvider = new InMemoryDataProvider(),
-                    PropertyCollector = propCollector
-                };
+                Providers.Instance = providersBackup;
             }
 
             // test of the restoration: logger instance need to be the default

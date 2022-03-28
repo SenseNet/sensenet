@@ -675,14 +675,7 @@ namespace SenseNet.Services.Wopi.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            //var portalContextAcc = new TypeAccessor(typeof(PortalContext));
-            //portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
-
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTest(context);
 
             Indexing.IsOuterSearchEngineEnabled = true;
 

@@ -81,8 +81,6 @@ namespace SenseNet.Tests.Core
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
             OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
@@ -141,8 +139,6 @@ namespace SenseNet.Tests.Core
         }
         private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
             OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
@@ -195,13 +191,27 @@ namespace SenseNet.Tests.Core
             return services.BuildServiceProvider();
         }
 
-        protected static RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
+        protected static RepositoryBuilder CreateRepositoryBuilderForTest(TestContext testContext, Action<IServiceCollection> modifyServices = null)
         {
-            var services = CreateServiceProviderForTest(modifyServices: modifyServices);
+            IServiceProvider services;
 
+            var reusesRepository = (bool)(testContext.Properties["ReusesRepository"] ?? false);
+            if (!reusesRepository || Providers.Instance == null)
+            {
+                services = CreateServiceProviderForTest(modifyServices: modifyServices);
+                Providers.Instance = new Providers(services);
+            }
+            else
+            {
+                services = Providers.Instance.Services;
+            }
+
+            Cache.Reset();
+            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
+            
             var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
 
-            return new RepositoryBuilder(services)
+            var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseDataProvider(dataProvider)
@@ -227,11 +237,15 @@ namespace SenseNet.Tests.Core
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+
+            ContentTypeManager.Reset();
+
+            return builder;
         }
 
         protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
-            return CreateRepositoryBuilderForTest();
+            return CreateRepositoryBuilderForTest(TestContext);
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)

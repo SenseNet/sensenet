@@ -33,7 +33,12 @@ namespace SenseNet.Services.Wopi.Tests
     [TestClass]
     public class WopiTests : TestBase
     {
-        protected override bool ReusesRepository => true;
+        protected override bool ReusesRepository => false;
+
+        protected override void InitializeTest()
+        {
+            Providers.Instance = _providers;
+        }
 
         /* --------------------------------------------------------- GetLock */
 
@@ -1623,18 +1628,14 @@ namespace SenseNet.Services.Wopi.Tests
         /* =================================================== */
 
         private static RepositoryInstance _repository;
+        private static Providers _providers;
 
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            Cache.Reset();
-            //ContentTypeManager.Reset();
-            //var portalContextAcc = new PrivateType(typeof(PortalContext));
-            //portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+            Repository.Shutdown();
 
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTest(context);
 
             builder.UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseLogger(new SnFileSystemEventLogger())
@@ -1643,6 +1644,7 @@ namespace SenseNet.Services.Wopi.Tests
             Indexing.IsOuterSearchEngineEnabled = true;
 
             _repository = Repository.Start(builder);
+            _providers = Providers.Instance;
 
             using (new SystemAccount())
             {

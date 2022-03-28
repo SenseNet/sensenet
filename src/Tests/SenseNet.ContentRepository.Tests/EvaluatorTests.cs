@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -34,7 +35,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             const string script = "[Script:testTag]...myscript...[/Script]";
 
-            var repo = new RepositoryBuilder();
+            var repo = new RepositoryBuilder(new ServiceCollection().BuildServiceProvider());
             using (new Swindler<IEvaluator>(new TestEvaluator(),
                 () => Providers.Instance.GetProvider<IEvaluator>(Evaluator.GetFullTagName("testTag")),
                 value => { repo.UseScriptEvaluator(value); }
@@ -55,7 +56,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             const string script = "[Script:testTag]...myscript...[/Script]";
 
-            var repo = new RepositoryBuilder();
+            var repo = new RepositoryBuilder(new ServiceCollection().BuildServiceProvider());
             using (new Swindler<IEvaluator>(new CustomTestEvaluator(),
                 () => Providers.Instance.GetProvider<IEvaluator>(Evaluator.GetFullTagName("testTag")),
                 value => { repo.UseScriptEvaluator(value); }

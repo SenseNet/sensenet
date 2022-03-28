@@ -213,8 +213,6 @@ namespace SenseNet.ODataTests
         }
         private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
         {
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
             OnTestInitialize();
 
             var builder = base.CreateRepositoryBuilderForTestInstance();

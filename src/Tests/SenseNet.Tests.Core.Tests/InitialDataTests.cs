@@ -215,11 +215,7 @@ namespace SenseNet.Tests.Core.Tests
         }
         private void InitialDataTestPrivate(Action callback, bool withSecurity)
         {
-            Cache.Reset();
-            ContentTypeManager.Reset();
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTest(TestContext);
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
