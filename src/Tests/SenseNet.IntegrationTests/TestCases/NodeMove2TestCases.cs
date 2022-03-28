@@ -165,7 +165,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             MoveTest(testRoot =>
             {
-                IUser visitor = Node.LoadNode(RepositoryConfiguration.VisitorUserId) as IUser;
+                IUser visitor = Node.LoadNode(Identifiers.VisitorUserId) as IUser;
                 EnsureNode(testRoot, "Source");
                 EnsureNode(testRoot, "TargetFolder");
                 Node sourceNode = LoadNode(testRoot, "Source");
