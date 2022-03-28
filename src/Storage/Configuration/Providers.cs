@@ -36,25 +36,17 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
-        public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
-            "SenseNet.ContentRepository.Security.DesktopAccessProvider");
-        public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
-        public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
-        public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",
-            typeof(SenseNetPasswordHashProvider).FullName);
-        public static string OutdatedPasswordHashProviderClassName { get; internal set; } = GetProvider("OutdatedPasswordHashProvider",
-            typeof(Sha256PasswordHashProviderWithoutSalt).FullName);
-        public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
-        public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
-
-        public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
-            "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
-
-
-        public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
-
-        public static bool RepositoryPathProviderEnabled { get; internal set; } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
+        public static string EventLoggerClassName => null;
+        public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
+        public static string ContentNamingProviderClassName => null;
+        public static string TaskManagerClassName => null;
+        public static string PasswordHashProviderClassName => "SenseNet.ContentRepository.Storage.Security.SenseNetPasswordHashProvider";
+        public static string OutdatedPasswordHashProviderClassName { get; } = "SenseNet.ContentRepository.Storage.Security.Sha256PasswordHashProviderWithoutSalt";
+        public static string SkinManagerClassName => "SenseNet.Portal.SkinManager";
+        public static string DirectoryProviderClassName => null;
+        public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
+        public static string ApplicationCacheClassName => "SenseNet.ContentRepository.ApplicationCache";
+        public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
         private static string GetProvider(string key, string defaultValue = null)
         {
