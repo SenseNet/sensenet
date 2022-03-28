@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
@@ -143,6 +144,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
 
                 .AddSingleton<ElevatedModificationVisibilityRule>()
+
+                .AddSingleton<ISnCache, SnMemoryCache>()
+                .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()
             ;
         }
 

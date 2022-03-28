@@ -53,22 +53,12 @@ namespace SenseNet.Configuration
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
         public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
             "SenseNet.Preview.DefaultDocumentPreviewProvider");
-        public static string ClusterChannelProviderClassName { get; internal set; } = GetProvider("ClusterChannelProvider",
-            typeof(VoidChannel).FullName);
-        public static string SearchEngineClassName { get; internal set; } = GetProvider("SearchEngine",
-            "SenseNet.Search.Lucene29.Lucene29SearchEngine");
+
         public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
-        public static string CacheClassName { get; internal set; } = GetProvider("Cache",
-            typeof(SnMemoryCache).FullName);
 
-        public static string IndexDocumentProviderClassName { get; internal set; } = "SenseNet.ContentRepository.Search.Indexing.IndexDocumentProvider";
 
         public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
-
-        public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
-            GetProvider("ElevatedModificationVisibilityRuleProvider",
-                "SenseNet.ContentRepository.SnElevatedModificationVisibilityRule");
 
         public static bool RepositoryPathProviderEnabled { get; internal set; } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
@@ -86,6 +76,9 @@ namespace SenseNet.Configuration
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             Services = services;
+
+            CacheProvider = services.GetService<ISnCache>();
+            IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
         }
 
         /// <summary>
@@ -294,16 +287,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
-        private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
-            new Lazy<ElevatedModificationVisibilityRule>(() => CreateProviderInstance<ElevatedModificationVisibilityRule>(
-                ElevatedModificationVisibilityRuleProviderName, "ElevatedModificationVisibilityRule"));
-        public virtual ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider
-        {
-            get { return _elevatedModificationVisibilityRuleProvider.Value; }
-            set { _elevatedModificationVisibilityRuleProvider = new Lazy<ElevatedModificationVisibilityRule>(() => value); }
-        }
-        #endregion
+        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; set; }
 
         #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
         private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() => CreateProviderInstance<MembershipExtenderBase>(MembershipExtenderClassName, "MembershipExtender"));
@@ -314,24 +298,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
-        private Lazy<ISnCache> _cacheProvider =
-            new Lazy<ISnCache>(() =>
-            {
-                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider", true);
-                cache.Events = new CacheEventStore();
-                return cache;
-            });
-        public virtual ISnCache CacheProvider
-        {
-            get => _cacheProvider.Value;
-            set { _cacheProvider = new Lazy<ISnCache>(() =>
-            {
-                value.Events = new CacheEventStore();
-                return value;
-            }); }
-        }
-        #endregion
+        public ISnCache CacheProvider { get; set; }
 
         #region private Lazy<IApplicationCache> _applicationCacheProvider = new Lazy<IApplicationCache>
         private Lazy<IApplicationCache> _applicationCacheProvider =
@@ -402,16 +369,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>
-        private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() =>
-            CreateProviderInstance<IIndexDocumentProvider>(IndexDocumentProviderClassName, "IndexDocumentProvider"));
-        public virtual IIndexDocumentProvider IndexDocumentProvider
-        {
-            get { return _indexDocumentProvider.Value; }
-            set { _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() => value); }
-        }
-
-        #endregion
+        public IIndexDocumentProvider IndexDocumentProvider { get; set; }
 
         #region ContentProtector
         private Lazy<ContentProtector> _contentProtector =
