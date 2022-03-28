@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -167,7 +168,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             Providers.Instance.DataProvider = dataProvider;
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
-            var builder = new RepositoryBuilder()
+            var builder = new RepositoryBuilder(new ServiceCollection().BuildServiceProvider()) //UNDONE: Manage services
                 .UseTracer(new SnFileSystemTracer())
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseAccessProvider(new DesktopAccessProvider())

@@ -37,6 +37,8 @@ namespace SenseNet.IntegrationTests.Infrastructure
             BuildServices(AppConfig, serviceCollection);
             var services = serviceCollection.BuildServiceProvider();
 
+            Providers.Instance = new Providers(services);
+
             var connectionString = AppConfig.GetConnectionString("SnCrMsSql");
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions { Repository = connectionString });
 

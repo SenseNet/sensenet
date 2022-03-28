@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security;
@@ -86,7 +87,7 @@ namespace SenseNet.ContentRepository.Tests
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.test.json")
                 .Build();
-            var _ = new RepositoryBuilder()
+            var _ = new RepositoryBuilder(new ServiceCollection().BuildServiceProvider())
                 .UseConfiguration(config);
 
             var providersInstanceAcc = new ObjectAccessor(Providers.Instance);
