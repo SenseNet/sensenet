@@ -37,8 +37,6 @@ namespace SenseNet.Configuration
         private const string SectionName = "sensenet/providers";
 
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
-        public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
-            "SenseNet.Diagnostics.EventPropertyCollector");
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -75,6 +73,7 @@ namespace SenseNet.Configuration
             IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
             AuditEventWriter = services.GetService<IAuditEventWriter>();
             PreviewProvider = services.GetService<IPreviewProvider>();
+            PropertyCollector = services.GetService<IEventPropertyCollector>();
         }
 
         /// <summary>
@@ -99,18 +98,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>
-
-        private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>(() =>
-            string.IsNullOrEmpty(PropertyCollectorClassName)
-                ? new EventPropertyCollector()
-                : CreateProviderInstance<IEventPropertyCollector>(PropertyCollectorClassName, "PropertyCollector"));
-        public virtual IEventPropertyCollector PropertyCollector
-        {
-            get => _propertyCollector.Value;
-            set { _propertyCollector = new Lazy<IEventPropertyCollector>(() => value); }
-        }
-        #endregion
+        public  IEventPropertyCollector PropertyCollector { get; set; }
 
         public IAuditEventWriter AuditEventWriter { get; set; }
 

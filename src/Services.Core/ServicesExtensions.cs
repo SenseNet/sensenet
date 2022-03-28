@@ -32,6 +32,7 @@ using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using SenseNet.Tools.Diagnostics;
 using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable once CheckNamespace
@@ -147,6 +148,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 .AddSingleton<ISnCache, SnMemoryCache>()
                 .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()
+                .AddSingleton<IEventPropertyCollector, EventPropertyCollector>()
             ;
         }
 
@@ -155,6 +157,8 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceProvider AddSenseNetProviderInstances(this IServiceProvider provider)
         {
+            Providers.Instance = new Providers(provider);
+
             Providers.Instance.BlobProviders = provider.GetRequiredService<IBlobProviderStore>();
             Providers.Instance.BlobStorage = provider.GetRequiredService<IBlobStorage>();
             Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();
