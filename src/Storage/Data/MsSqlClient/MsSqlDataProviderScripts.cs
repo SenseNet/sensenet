@@ -1310,7 +1310,7 @@ SELECT @LogCount = COUNT(1) FROM [LogEntries] (NOLOCK)
 if @LogCount > 0
 	SELECT @LogCount [Rows],
 		   SUM(CAST(48 AS bigint) + COALESCE(DATALENGTH([Category]), 0) + DATALENGTH([Severity]) + DATALENGTH([Title]) + DATALENGTH([ContentPath])
-			  + DATALENGTH([UserName]) + DATALENGTH([MachineName]) + DATALENGTH([AppDomainName]) + DATALENGTH([ProcessID])
+			  + COALESCE(DATALENGTH([UserName]), 0) + DATALENGTH([MachineName]) + DATALENGTH([AppDomainName]) + DATALENGTH([ProcessID])
 			  + DATALENGTH([ProcessName]) + COALESCE(DATALENGTH([ThreadName]), 0) + DATALENGTH([Win32ThreadId]) 
 			  + DATALENGTH([Message])) [Metadata],
 		   SUM(CAST(DATALENGTH([FormattedMessage]) AS bigint)) [Text]

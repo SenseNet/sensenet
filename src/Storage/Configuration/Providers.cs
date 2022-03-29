@@ -36,7 +36,7 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName => null;
+        public static string EventLoggerClassName { get; set; } = null;
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
         public static string ContentNamingProviderClassName => null;
         public static string TaskManagerClassName => null;
@@ -66,6 +66,7 @@ namespace SenseNet.Configuration
             AuditEventWriter = services.GetService<IAuditEventWriter>();
             PreviewProvider = services.GetService<IPreviewProvider>();
             PropertyCollector = services.GetService<IEventPropertyCollector>();
+            SecurityHandler = services.GetService<SecurityHandler>();
         }
 
         /// <summary>
