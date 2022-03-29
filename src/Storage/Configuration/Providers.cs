@@ -204,8 +204,18 @@ namespace SenseNet.Configuration
             BlobStorage.Initialize();
         }
 
-        //UNDONE: Delete initialization and use something like this: repositoryBuilder.UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
-        public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
+        private IBlobProviderStore _blobProviders;
+        public IBlobProviderStore BlobProviders
+        {
+            get
+            {
+                if (_blobProviders == null)
+                    //UNDONE: Delete initialization and use something like this everywhere: repositoryBuilder.UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
+                    _blobProviders = new BlobProviderStore(Array.Empty<IBlobProvider>());
+                return _blobProviders;
+            }
+            set => _blobProviders = value;
+        }
 
         public virtual ISearchEngine SearchEngine { get; set; }
         public ISearchManager SearchManager { get; set; }
