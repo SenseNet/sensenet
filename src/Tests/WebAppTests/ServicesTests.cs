@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
@@ -479,6 +480,9 @@ namespace WebAppTests
 
                 // Test specific
                 { typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+
+                // Not used?
+                { typeof(IApplicationCache), typeof(ApplicationCache)},
             });
         }
 

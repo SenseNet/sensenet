@@ -42,10 +42,8 @@ namespace SenseNet.Configuration
         public static string TaskManagerClassName => null;
         public static string PasswordHashProviderClassName => "SenseNet.ContentRepository.Storage.Security.SenseNetPasswordHashProvider";
         public static string OutdatedPasswordHashProviderClassName { get; } = "SenseNet.ContentRepository.Storage.Security.Sha256PasswordHashProviderWithoutSalt";
-        public static string SkinManagerClassName => "SenseNet.Portal.SkinManager";
         public static string DirectoryProviderClassName => null;
         public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
-        public static string ApplicationCacheClassName => "SenseNet.ContentRepository.ApplicationCache";
         public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
         private static string GetProvider(string key, string defaultValue = null)
@@ -62,6 +60,7 @@ namespace SenseNet.Configuration
             Services = services ?? throw new ArgumentNullException(nameof(services));
 
             CacheProvider = services.GetService<ISnCache>();
+            ApplicationCacheProvider = services.GetService<IApplicationCache>();
             IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
             AuditEventWriter = services.GetService<IAuditEventWriter>();
             PreviewProvider = services.GetService<IPreviewProvider>();
@@ -261,15 +260,7 @@ namespace SenseNet.Configuration
 
         public ISnCache CacheProvider { get; set; }
 
-        #region private Lazy<IApplicationCache> _applicationCacheProvider = new Lazy<IApplicationCache>
-        private Lazy<IApplicationCache> _applicationCacheProvider =
-            new Lazy<IApplicationCache>(() => CreateProviderInstance<IApplicationCache>(ApplicationCacheClassName, "ApplicationCacheProvider"));
-        public virtual IApplicationCache ApplicationCacheProvider
-        {
-            get { return _applicationCacheProvider.Value; }
-            set { _applicationCacheProvider = new Lazy<IApplicationCache>(() => value); }
-        }
-        #endregion
+        public IApplicationCache ApplicationCacheProvider { get; set; }
 
         public virtual IClusterChannel ClusterChannelProvider { get; set; } =
             new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
