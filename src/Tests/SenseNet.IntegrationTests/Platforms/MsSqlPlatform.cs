@@ -40,16 +40,15 @@ namespace SenseNet.IntegrationTests.Platforms
                     repositoryBuilder
                         .UseLogger(provider)
                         .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data",
-                            "LocalIndex"))
-                        .UseMsSqlExclusiveLockDataProvider();
+                            "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = RepositoryConnectionString;
                 })
-                .AddSenseNetMsSqlProviders(installOptions =>
+                .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
                 {
-                    //Configuration.Bind("sensenet:install:mssql", installOptions);
+                    configuration.Bind("sensenet:install:mssql", installOptions);
                 })
 
                 .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()

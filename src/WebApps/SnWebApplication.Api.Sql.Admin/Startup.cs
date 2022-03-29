@@ -46,12 +46,10 @@ namespace SnWebApplication.Api.Sql.Admin
                 {
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                        //UNDONE: MSSQLSEPARATE move this call to the common SQL registration method (make sure it is registered!)
-                        .UseMsSqlExclusiveLockDataProvider();
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider()
-                .AddSenseNetMsSqlProviders(installOptions =>
+                .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
                 {
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })

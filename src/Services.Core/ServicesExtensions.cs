@@ -141,6 +141,8 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceProvider AddSenseNetProviderInstances(this IServiceProvider provider)
         {
+            Providers.Instance = new Providers(provider);
+
             Providers.Instance.BlobProviders = provider.GetRequiredService<IBlobProviderStore>();
             Providers.Instance.BlobStorage = provider.GetRequiredService<IBlobStorage>();
             Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();

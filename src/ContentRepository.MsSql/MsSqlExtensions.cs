@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
@@ -17,9 +18,10 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Adds all MS SQL implementations to the service collection.
         /// </summary>
         public static IServiceCollection AddSenseNetMsSqlProviders(this IServiceCollection services,
-            Action<MsSqlDatabaseInstallationOptions> configureInstallation)
+            Action<ConnectionStringOptions> configureConnectionStrings = null,
+            Action<MsSqlDatabaseInstallationOptions> configureInstallation = null,
+            Action<DataOptions> configureDataOptions = null)
         {
-            //UNDONE: MSSQLSEPARATE collect all MS SQL-related service registrations here
             return services.AddSenseNetMsSqlDataProvider()
                     .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
                     .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
@@ -31,10 +33,9 @@ namespace SenseNet.Extensions.DependencyInjection
                     .AddComponent<MsSqlStatisticsComponent>()
                     .AddComponent<MsSqlClientStoreComponent>()
 
-                    //UNDONE: MSSQLSEPARATE add configure method param for data options (connection strings)
-                    //UNDONE: MSSQLSEPARATE bind configuration in the caller!
-                    //.Configure<MsSqlDatabaseInstallationOptions>(configuration.GetSection("sensenet:install:mssql"))
+                    .Configure<ConnectionStringOptions>(options => { configureConnectionStrings?.Invoke(options); })
                     .Configure<MsSqlDatabaseInstallationOptions>(options => { configureInstallation?.Invoke(options); })
+                    .Configure<DataOptions>(options => { configureDataOptions?.Invoke(options); })
                 ;
         }
 

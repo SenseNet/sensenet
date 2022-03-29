@@ -54,12 +54,10 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
                     repositoryBuilder
-                        .UseLogger(provider)
-                        //UNDONE: MSSQLSEPARATE move this call to the common SQL registration method (make sure it is registered!)
-                        .UseMsSqlExclusiveLockDataProvider();
+                        .UseLogger(provider);
                 })
                 .AddEFCSecurityDataProvider()
-                .AddSenseNetMsSqlProviders(installOptions =>
+                .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
                 {
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
