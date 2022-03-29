@@ -13,11 +13,9 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Events;
 using SenseNet.Search.Querying;
@@ -36,7 +34,6 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName { get; set; } = null;
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
         public static string ContentNamingProviderClassName => null;
         public static string TaskManagerClassName => null;
@@ -77,20 +74,9 @@ namespace SenseNet.Configuration
 
         //===================================================================================== Named providers
 
-        #region private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>
+        public IEventLogger EventLogger { get; set; }
 
-        private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>(() =>
-            string.IsNullOrEmpty(EventLoggerClassName)
-                ? new SnEventLogger(Logging.EventLogName, Logging.EventLogSourceName)
-                : CreateProviderInstance<IEventLogger>(EventLoggerClassName, "EventLogger"));
-        public virtual IEventLogger EventLogger
-        {
-            get => _eventLogger.Value;
-            set { _eventLogger = new Lazy<IEventLogger>(() => value); }
-        }
-        #endregion
-
-        public  IEventPropertyCollector PropertyCollector { get; set; }
+        public IEventPropertyCollector PropertyCollector { get; set; }
 
         public IAuditEventWriter AuditEventWriter { get; set; }
 

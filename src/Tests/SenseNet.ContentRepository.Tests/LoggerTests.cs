@@ -42,13 +42,11 @@ namespace SenseNet.ContentRepository.Tests
 
             // backup configuration
             var providersBackup = Providers.Instance;
-            var eventLoggerClassNameBackup = Providers.EventLoggerClassName;
 
             // configure the logger provider and reinitialize the instance
             Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
             var propCollector = Providers.Instance.PropertyCollector;
 
-            Providers.EventLoggerClassName = loggerTypeName;
             // Workaround: the default property collector tries to load the
             // current user, even if the repo is not running.
             Providers.Instance.DataProvider = new InMemoryDataProvider();
@@ -69,7 +67,6 @@ namespace SenseNet.ContentRepository.Tests
             finally
             {
                 // rollback to the original configuration
-                Providers.EventLoggerClassName = eventLoggerClassNameBackup;
                 Providers.Instance = providersBackup;
             }
 
