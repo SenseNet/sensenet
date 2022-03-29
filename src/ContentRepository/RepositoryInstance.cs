@@ -136,9 +136,7 @@ namespace SenseNet.ContentRepository
 
             InitializeDataProviderExtensions();
 
-            //UNDONE: move in the Services.AddSenseNetProviderInstances();
-            Providers.Instance.SecurityHandler = _settings.Services.GetRequiredService<SecurityHandler>();
-            Providers.Instance.SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
+            _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.IsWebContext, _settings.Services);
 
             //UNDONE: modernize TemplateManager
             // Set legacy collection from the new services collection and reset the
