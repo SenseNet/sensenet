@@ -12,50 +12,27 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
+using SenseNet.Storage;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
+    public static class ContentNamingProviderExtensions
+    {
+        public static IServiceCollection AddContentNamingProvider<T>(this IServiceCollection services) where T : class, IContentNamingProvider
+        {
+            return services.AddSingleton<IContentNamingProvider, T>();
+        }
+    }
+
     /// <summary>
     /// Base class that provides methods to generate and validate content names.
     /// </summary>
-    public abstract class ContentNamingProvider
+    public abstract class ContentNamingProvider : IContentNamingProvider
     {
-        /* instance handling */
-
-        private static ContentNamingProvider __instance;
-        private static ContentNamingProvider Instance { get { return __instance; } }
-
-        static ContentNamingProvider()
-        {
-            var className = Providers.ContentNamingProviderClassName;
-            
-            ContentNamingProvider instance = null;
-
-            if (string.IsNullOrEmpty(className))
-            {
-                instance = new CharReplacementContentNamingProvider();
-            }
-            else
-            {
-                try
-                {
-                    instance = (ContentNamingProvider)TypeResolver.CreateInstance(className);
-                }
-                catch (Exception)
-                {
-                    SnLog.WriteWarning("Error loading ContentNamingProvider type: " + className, EventId.RepositoryLifecycle);
-                }
-            }
-
-            if (instance == null)
-                instance = new CharReplacementContentNamingProvider();
-
-            SnLog.WriteInformation("ContentNamingProvider created: " + instance);
-
-            __instance = instance;
-        }
+        private static IContentNamingProvider Instance => Providers.Instance.ContentNamingProvider;
 
         /* ContentNamingProvider facade */
 
@@ -66,7 +43,7 @@ namespace SenseNet.ContentRepository
         /// <param name="contentType">ContentType that specifies the required name extension.</param>
         /// <param name="parent">Content that will be the parent of the new content. It can help in customization.</param>
         /// <returns></returns>
-        public static string GetNewName(string nameBase, ContentType contentType, Node parent)
+        public static string GetNewName(string nameBase, IContentType contentType, Node parent)
         {
             return Instance.GenerateNewName(nameBase, contentType, parent);
         }
@@ -164,14 +141,14 @@ namespace SenseNet.ContentRepository
         /// <param name="originalName">Original name to help conversion.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>The converted name.</returns>
-        protected abstract string GenerateNameFromDisplayName(string originalName, string displayName);
+        public abstract string GenerateNameFromDisplayName(string originalName, string displayName);
 
         /// <summary>
         /// Default implementation of the checking name during saving a content.
         /// Checks whether the given name does not match with the configured InvalidNameCharsPattern.
         /// If the pattern matches, an InvalidPathException will be thrown.
         /// </summary>
-        protected virtual void AssertNameIsValid(string name)
+        public virtual void AssertNameIsValid(string name)
         {
             var pattern = ContentNaming.InvalidNameCharsPattern;
             if (!String.IsNullOrEmpty(pattern))
@@ -190,12 +167,12 @@ namespace SenseNet.ContentRepository
         /// <param name="contentType">ContentType that specifies the required name extension.</param>
         /// <param name="parent">Not used in this implementation.</param>
         /// <returns></returns>
-        protected virtual string GenerateNewName(string nameBase, ContentType contentType, Node parent)
+        public virtual string GenerateNewName(string nameBase, IContentType contentType, Node parent)
         {
             var namewithext = EnforceRequiredExtension(nameBase, contentType);
             return namewithext;
         }
-        private string EnforceRequiredExtension(string nameBase, ContentType type)
+        private string EnforceRequiredExtension(string nameBase, IContentType type)
         {
             if (type != null)
             {
@@ -220,7 +197,7 @@ namespace SenseNet.ContentRepository
         /// <param name="name">Input name with suffix.</param>
         /// <param name="nameBase">Output parameter that contains the name without suffix.</param>
         /// <returns>Recognized suffix value or 0.</returns>
-        protected virtual int GetNameBaseAndSuffix(string name, out string nameBase)
+        public virtual int GetNameBaseAndSuffix(string name, out string nameBase)
         {
             nameBase = name;
             if (!name.EndsWith(")"))
@@ -242,7 +219,7 @@ namespace SenseNet.ContentRepository
         /// If the suffix does not exist it will be '(0)'.
         /// Parent id helps to explore the last existing suffix.
         /// </summary>
-        protected virtual string GetNextNameSuffix(string currentName, int parentNodeId = 0)
+        public virtual string GetNextNameSuffix(string currentName, int parentNodeId = 0)
         {
             if (parentNodeId == 0)
             {
@@ -312,7 +289,7 @@ namespace SenseNet.ContentRepository
         /// <param name="originalName">Original name to help conversion.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>Replaced name.</returns>
-        protected override string GenerateNameFromDisplayName(string originalName, string displayName)
+        public override string GenerateNameFromDisplayName(string originalName, string displayName)
         {
             if (string.IsNullOrEmpty(displayName))
                 return displayName;
@@ -391,7 +368,7 @@ namespace SenseNet.ContentRepository
         /// <param name="originalName">Original name to help conversion.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>Replaced name.</returns>
-        protected override string GenerateNameFromDisplayName(string originalName, string displayName)
+        public override string GenerateNameFromDisplayName(string originalName, string displayName)
         {
             if (string.IsNullOrEmpty(displayName))
                 return displayName;

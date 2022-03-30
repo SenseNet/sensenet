@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Storage;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema
@@ -28,7 +29,7 @@ namespace  SenseNet.ContentRepository.Schema
     /// Defines a class that can handle a Content type in the sensenet Content Repository.
     /// </summary>
     [ContentHandler]
-    public class ContentType : Node, IFolder, IIndexableDocument
+    public class ContentType : Node, IFolder, IIndexableDocument, IContentType
     {
         internal static readonly string ContentDefinitionXmlNamespaceOld = "http://schemas.sensenet" + ".hu/SenseNet/ContentRepository/ContentTypeDefinition";
         /// <summary>

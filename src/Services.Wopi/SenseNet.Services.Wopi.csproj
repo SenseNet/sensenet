@@ -16,6 +16,7 @@
     <Product>sensenet Wopi</Product>
     <Description>WOPI protocol and Office Online editing implementation for the sensenet platform.</Description>
     <LangVersion>latest</LangVersion>
+    <UserSecretsId>cbd1d31b-0291-4bf4-b04e-c5b9dfcfca2f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

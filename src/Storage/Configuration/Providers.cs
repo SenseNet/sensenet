@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.ContentRepository.Search;
+using SenseNet.Storage;
 using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
@@ -63,6 +64,7 @@ namespace SenseNet.Configuration
             SecurityHandler = services.GetService<SecurityHandler>();
             PasswordHashProvider = services.GetService<IPasswordHashProvider>();
             PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
+            ContentNamingProvider = services.GetService<IContentNamingProvider>();
         }
 
         /// <summary>
@@ -232,6 +234,8 @@ namespace SenseNet.Configuration
         public SecurityHandler SecurityHandler { get; set; }
         public IPasswordHashProvider PasswordHashProvider { get; set; }
         public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; set; }
+
+        public IContentNamingProvider ContentNamingProvider { get; set; }
 
         public IPreviewProvider PreviewProvider { get; set; }
 

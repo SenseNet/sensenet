@@ -94,6 +94,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 })
                 .AddPlatformIndependentServices()
                 .AddSenseNetTaskManager()
+                .AddContentNamingProvider<CharReplacementContentNamingProvider>()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
