@@ -83,6 +83,8 @@ namespace SenseNet.Extensions.DependencyInjection
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
                 .AddSenseNetBlobStorage()
+                .AddSenseNetPasswordHashProvider()
+                .AddPasswordHashProviderForMigration<Sha256PasswordHashProviderWithoutSalt>()
                 .AddSenseNetSecurity(config =>
                 {
                     config.SystemUserId = Identifiers.SystemUserId;

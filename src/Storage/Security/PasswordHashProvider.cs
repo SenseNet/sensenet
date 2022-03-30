@@ -20,39 +20,25 @@ namespace SenseNet.ContentRepository.Storage.Security
         string GetPasswordSalt();
     }
 
+    public interface IPasswordHashProvider
+    {
+        /// <summary>
+        /// Generates a hash from the given password with the saltProvider if there is.
+        /// </summary>
+        string Encode(string passwordInClearText, IPasswordSaltProvider saltProvider);
+        /// <summary>
+        /// Checks the password by the given hash and saltProvider with the configured or default PasswordHashProvider.
+        /// According to configuration does the migration too.
+        /// </summary>
+        bool Check(string passwordInClearText, string hash, IPasswordSaltProvider saltProvider);
+    }
+
+    public interface IPasswordHashProviderForMigration : IPasswordHashProvider { }
+
+
     public abstract class PasswordHashProvider
     {
-        private static PasswordHashProvider __instance;
-        private static object _lock = new object();
-        private static PasswordHashProvider Instance
-        {
-            get
-            {
-                if (__instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (__instance == null)
-                        {
-                            try
-                            {
-                                __instance = (PasswordHashProvider)TypeResolver.CreateInstance(Providers.PasswordHashProviderClassName);
-                            }
-                            catch (TypeNotFoundException) // rethrow
-                            {
-                                throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_PasswordHashProviderImplementationDoesNotExist, ": ", Providers.PasswordHashProviderClassName));
-                            }
-                            catch (InvalidCastException) // rethrow
-                            {
-                                throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_InvalidPasswordHashProviderImplementation, ": ", Providers.PasswordHashProviderClassName));
-                            }
-                            SnLog.WriteInformation("PasswordHashProvider created: " + __instance);
-                        }
-                    }
-                }
-                return __instance;
-            }
-        }
+        private static IPasswordHashProvider Instance => Providers.Instance.PasswordHashProvider;
 
         /// <summary>
         /// Generates a hash from the given password with the saltProvider if there is.
@@ -73,11 +59,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Implementation of the hash generator. Uses the saltProvider if there is.
         /// </summary>
-        protected abstract string Encode(string text, IPasswordSaltProvider saltProvider);
+        public abstract string Encode(string text, IPasswordSaltProvider saltProvider);
         /// <summary>
         /// Implementation of the checking of the password-hash match. Uses the saltProvider if there is.
         /// </summary>
-        protected abstract bool Check(string text, string hash, IPasswordSaltProvider saltProvider);
+        public abstract bool Check(string text, string hash, IPasswordSaltProvider saltProvider);
 
         protected string GenerateSalt(IPasswordSaltProvider saltProvider)
         {
@@ -88,41 +74,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         // ======================== Migration
 
-        private static bool __outdatedInstanceResolved;
-        private static PasswordHashProvider __outdatedInstance;
-        private static PasswordHashProvider OutdatedInstance
-        {
-            get
-            {
-                if (!__outdatedInstanceResolved)
-                {
-                    lock (_lock)
-                    {
-                        if (!__outdatedInstanceResolved)
-                        {
-                            if (Configuration.Security.EnablePasswordHashMigration)
-                            {
-                                try
-                                {
-                                    __outdatedInstance = (PasswordHashProvider)TypeResolver.CreateInstance(Providers.OutdatedPasswordHashProviderClassName);
-                                }
-                                catch (TypeNotFoundException) // rethrow
-                                {
-                                    throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_PasswordHashProviderImplementationDoesNotExist, ": ", Providers.OutdatedPasswordHashProviderClassName));
-                                }
-                                catch (InvalidCastException) // rethrow
-                                {
-                                    throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_InvalidPasswordHashProviderImplementation, ": ", Providers.OutdatedPasswordHashProviderClassName));
-                                }
-                                SnLog.WriteInformation("PasswordHashProvider created for migration: " + __outdatedInstance);
-                            }
-                            __outdatedInstanceResolved = true;
-                        }
-                    }
-                }
-                return __outdatedInstance;
-            }
-        }
+        private static IPasswordHashProvider OutdatedInstance => Providers.Instance.PasswordHashProviderForMigration;
 
         /// <summary>
         /// Checks the password by the given hash and saltProvider with the configured or default OutdatedPasswordHashProvider.

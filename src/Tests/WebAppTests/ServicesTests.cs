@@ -121,6 +121,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -173,6 +175,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -227,6 +231,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -280,6 +286,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -334,6 +342,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -387,6 +397,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -447,6 +459,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -513,6 +527,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -577,6 +593,8 @@ namespace WebAppTests
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
+                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},

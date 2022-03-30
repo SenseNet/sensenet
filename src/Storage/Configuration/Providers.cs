@@ -37,8 +37,6 @@ namespace SenseNet.Configuration
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
         public static string ContentNamingProviderClassName => null;
         public static string TaskManagerClassName => null;
-        public static string PasswordHashProviderClassName => "SenseNet.ContentRepository.Storage.Security.SenseNetPasswordHashProvider";
-        public static string OutdatedPasswordHashProviderClassName { get; } = "SenseNet.ContentRepository.Storage.Security.Sha256PasswordHashProviderWithoutSalt";
         public static string DirectoryProviderClassName => null;
         public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
         public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
@@ -63,6 +61,8 @@ namespace SenseNet.Configuration
             PreviewProvider = services.GetService<IPreviewProvider>();
             PropertyCollector = services.GetService<IEventPropertyCollector>();
             SecurityHandler = services.GetService<SecurityHandler>();
+            PasswordHashProvider = services.GetService<IPasswordHashProvider>();
+            PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
         }
 
         /// <summary>
@@ -230,7 +230,9 @@ namespace SenseNet.Configuration
         public virtual IMessageProvider SecurityMessageProvider { get; set; }
 
         public SecurityHandler SecurityHandler { get; set; }
-        
+        public IPasswordHashProvider PasswordHashProvider { get; set; }
+        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; set; }
+
         public IPreviewProvider PreviewProvider { get; set; }
 
         public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; set; }
