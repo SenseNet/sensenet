@@ -17,7 +17,7 @@ namespace SenseNet.Services.Core
     /// Background service for starting and stopping the sensenet Content Repository
     /// instance in a hosted environment.
     /// </summary>
-    internal class RepositoryHostedService : IHostedService, IDisposable
+    public class RepositoryHostedService : IHostedService, IDisposable
     {
         private IServiceProvider Services { get; }
         private RepositoryInstance Repository { get; set; }

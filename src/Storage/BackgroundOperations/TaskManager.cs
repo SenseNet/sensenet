@@ -93,55 +93,12 @@ namespace SenseNet.BackgroundOperations
 
         // ================================================================================== Instance
 
-        private static readonly object InitializationLock = new object();
-        private static ITaskManager _instance;
 
         /// <summary>
         /// Gets the Task manager instance, a singleton used by legacy code.
         /// </summary>
         [Obsolete("Use the service through the dependency injection framework instead.")]
-        public static ITaskManager Instance
-        {
-            get
-            {
-                // Legacy behavior: loads the task management type that is configured by name.
-                if (_instance == null)
-                {
-                    lock (InitializationLock)
-                    {
-                        if (_instance == null)
-                        {
-                            ITaskManager instance;
-
-                            if (string.IsNullOrEmpty(Providers.TaskManagerClassName))
-                            {
-                                instance = new TaskManagerBase(null, null);
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    instance = (ITaskManager)TypeResolver.CreateInstance(Providers.TaskManagerClassName);
-                                }
-                                catch (Exception)
-                                {
-                                    SnLog.WriteWarning("Error loading task manager type " + Providers.TaskManagerClassName,
-                                        EventId.RepositoryLifecycle);
-
-                                    instance = new TaskManagerBase(null, null);
-                                }
-                            }
-
-                            SnLog.WriteInformation("TaskManager created: " + instance);
-
-                            _instance = instance;
-                        }
-                    }
-                }
-                return _instance;
-            }
-            set => _instance = value;
-        }
+        public static ITaskManager Instance => Providers.Instance.TaskManager;
     }
 
     public class TaskManagerBase : ITaskManager

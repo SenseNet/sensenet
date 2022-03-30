@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
+using SenseNet.TaskManagement.Core;
 using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
@@ -36,8 +37,6 @@ namespace SenseNet.Configuration
         private const string SectionName = "sensenet/providers";
 
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
-        public static string ContentNamingProviderClassName => null;
-        public static string TaskManagerClassName => null;
         public static string DirectoryProviderClassName => null;
         public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
         public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
@@ -65,6 +64,7 @@ namespace SenseNet.Configuration
             PasswordHashProvider = services.GetService<IPasswordHashProvider>();
             PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
             ContentNamingProvider = services.GetService<IContentNamingProvider>();
+            TaskManager = services.GetService<ITaskManager>();
         }
 
         /// <summary>
@@ -342,6 +342,8 @@ namespace SenseNet.Configuration
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 
         public ITreeLockController TreeLock { get; set; } // Initialized by InitializeDataStore method in this instance.
+
+        public ITaskManager TaskManager { get; set; }
 
         //===================================================================================== General provider API
 
