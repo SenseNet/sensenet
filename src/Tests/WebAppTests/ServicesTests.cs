@@ -37,7 +37,7 @@ namespace WebAppTests
     public class ServicesTests : TestBase
     {
         #region Infrastructure
-        private void StartupServicesTest<T>(Dictionary<Type, Type> expectation)
+        private void StartupServicesTest<T>(IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations)
         {
             var configurationBuilder = new ConfigurationBuilder();
             //configuration.AddJsonFile("appSettings.json")
@@ -46,23 +46,31 @@ namespace WebAppTests
             var serviceCollection = new ServiceCollection();
 
             //var startup = new SnWebApplication.Api.InMem.Admin.Startup(configuration);
-            var ctor = typeof(T).GetConstructor(new[] { typeof(IConfiguration) });
+            var ctor = typeof(T).GetConstructor(new[] {typeof(IConfiguration) });
             //var startup = (T)ctor.Invoke();
 
             // ACTION
-            var startupAcc = new ObjectAccessor(typeof(T), new[] { typeof(IConfiguration) }, new[] { configuration });
-            startupAcc.Invoke("ConfigureServices", new[] { typeof(IServiceCollection) }, new[] { serviceCollection });
+            var startupAcc = new ObjectAccessor(typeof(T), new[] {typeof(IConfiguration) }, new[] { configuration });
+            startupAcc.Invoke("ConfigureServices", new[] {typeof(IServiceCollection) }, new[] { serviceCollection });
 
             // ASSERT
-            AssertServices(serviceCollection, expectation);
+            AssertServices(serviceCollection, platformSpecificExpectations, customizedExpectations);
         }
 
-        private void AssertServices(IServiceCollection serviceCollection, Dictionary<Type, Type> expectation)
+        private void AssertServices(IServiceCollection serviceCollection, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations)
         {
-            AssertServices(serviceCollection.BuildServiceProvider(), expectation);
+            AssertServices(serviceCollection.BuildServiceProvider(), platformSpecificExpectations, customizedExpectations);
         }
-        private void AssertServices(IServiceProvider services, Dictionary<Type, Type> expectation)
+        private void AssertServices(IServiceProvider services, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations = null)
         {
+            var expectation = GetGeneralizedExpectations();
+            if(platformSpecificExpectations != null)
+                foreach (var item in platformSpecificExpectations)
+                    expectation.Add(item);
+            if(customizedExpectations != null)
+                foreach (var item in customizedExpectations)
+                    expectation.Add(item);
+
             var dump = expectation.ToDictionary(
                 x => x.Key,
                 x => services.GetService(x.Key)?.GetType());
@@ -96,31 +104,20 @@ namespace WebAppTests
         //UNDONE:ServicesTest: Resolve method .AddStatistics()
         //UNDONE:ServicesTest: Resolve "add maintenance tasks"
 
-        [TestMethod, TestCategory("Services")]
-        public void WebApp_Services_Api_InMem_Admin()
+        private IDictionary<Type, Type> GetGeneralizedExpectations()
         {
-            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(new Dictionary<Type, Type>
+            return new Dictionary<Type, Type>
             {
-                // Logging
                 {typeof(IEventLogger), typeof(SnILogger)},
                 {typeof(ISnTracer), typeof(SnILoggerTracer)},
 
-                // DataProvider
-                {typeof(DataProvider), typeof(InMemoryDataProvider)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
                 {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
                 {typeof(IBlobStorage), typeof(BlobStorage)},
                 {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
 
-                // Security
-                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
                 {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
                 {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
 
@@ -140,289 +137,109 @@ namespace WebAppTests
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
 
                 // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
+                {typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
+
+                // Not used?
+                {typeof(IApplicationCache), typeof(ApplicationCache)},
+            };
+        }
+
+        private IDictionary<Type, Type> GetInMemoryPlatform()
+        {
+            return new Dictionary<Type, Type>
+            {
+                // DataProvider
+                {typeof(DataProvider), typeof(InMemoryDataProvider)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
+                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
+
+                // Security
+                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
+               // {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
 
                 // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+                {typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
+                {typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
+                {typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                {typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+            };
+        }
 
+        private IDictionary<Type, Type> GetMsSqlPlatform()
+        {
+            return new Dictionary<Type, Type>
+            {
+                // DataProvider
+                {typeof(DataProvider), typeof(MsSqlDataProvider)},
+                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
+                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
+
+                // Blob
+                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
+                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
+                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
+
+                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
+
+                // ????
+                {typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
+                {typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
+                {typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                {typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
+            };
+        }
+
+        [TestMethod, TestCategory("Services")]
+        public void WebApp_Services_Api_InMem_Admin()
+        {
+            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(GetInMemoryPlatform(), new Dictionary<Type, Type>
+            {
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(new Dictionary<Type, Type>
+            StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(GetInMemoryPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(InMemoryDataProvider)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
             });
         }
 
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(new Dictionary<Type, Type>
+            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(MsSqlDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(new Dictionary<Type, Type>
+            StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(MsSqlDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
 
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(new Dictionary<Type, Type>
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(MsSqlDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-                
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(new Dictionary<Type, Type>
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(MsSqlDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
             });
         }
 
@@ -430,198 +247,61 @@ namespace WebAppTests
 
         private class TestClassForTestingServices : TestBase
         { public IServiceProvider CreateServiceProvider() => CreateServiceProviderForTest(); }
+
         [TestMethod, TestCategory("Services")]
         public void Test_Services_TestBase()
         {
+            var expectation = GetGeneralizedExpectations();
+            var x = GetInMemoryPlatform();
+
             // ACTION
             var services = new TestClassForTestingServices().CreateServiceProvider();
 
             // ASSERT
-            AssertServices(services, new Dictionary<Type, Type>
+            AssertServices(services, GetInMemoryPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(InMemoryDataProvider)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
-
-                // Test specific
-                { typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
-
-                // Not used?
-                { typeof(IApplicationCache), typeof(ApplicationCache)},
+                {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
             });
         }
 
         [TestMethod, TestCategory("Services")]
         public void Test_Services_Integration_InMem()
         {
-            var x = new InMemPlatform();
+            var expectation = GetGeneralizedExpectations();
+            var x = GetInMemoryPlatform();
+
+            var platform = new InMemPlatform();
             var configuration = new ConfigurationBuilder().Build();
             var services = new ServiceCollection();
 
             // ACTION
-            x.BuildServices(configuration, services);
+            platform.BuildServices(configuration, services);
 
             // ASSERT
-            AssertServices(services, new Dictionary<Type, Type>
+            AssertServices(services, GetInMemoryPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(InMemoryDataProvider)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(InMemoryBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(InMemoryBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
-
-                // Test specific
-                { typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
             });
         }
         [TestMethod, TestCategory("Services")]
         public void Test_Services_Integration_MsSql()
         {
-            var x = new MsSqlPlatform();
+            var expectation = GetGeneralizedExpectations();
+
+            var platform = new MsSqlPlatform();
             var configuration = new ConfigurationBuilder().Build();
             var services = new ServiceCollection();
 
             // ACTION
-            x.BuildServices(configuration, services);
+            platform.BuildServices(configuration, services);
 
             // ASSERT
-            AssertServices(services, new Dictionary<Type, Type>
+            AssertServices(services, GetMsSqlPlatform(), new Dictionary<Type, Type>
             {
-                // Logging
-                {typeof(IEventLogger), typeof(SnILogger)},
-                {typeof(ISnTracer), typeof(SnILoggerTracer)},
-
-                // DataProvider
-                {typeof(DataProvider), typeof(MsSqlDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},
-
-                // Blob
-                {typeof(IBlobStorageMetaDataProvider), typeof(MsSqlBlobMetaDataProvider)},
-                {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
-                {typeof(IBlobStorage), typeof(BlobStorage)},
-                {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
-                {typeof(IBlobProvider), typeof(BuiltInBlobProvider)},
-                {typeof(IBlobProviderSelector), typeof(BuiltInBlobProviderSelector)},
-
-                // Security
-                {typeof(ISecurityDataProvider), typeof(EFCSecurityDataProvider)},
-                {typeof(SecurityHandler), typeof(SecurityHandler)},
-                {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
-                {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
-
-                // Search
-                {typeof(ISearchManager), typeof(SearchManager)},
-                {typeof(IIndexManager), typeof(IndexManager)},
-                {typeof(IIndexPopulator), typeof(DocumentPopulator)},
-
-                // TaskManager
-                {typeof(ITaskManager), typeof(TaskManagerBase)},
-                {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
-
-                // Preview
-                {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
-
-                // Components
-                {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
-
-                // Platform independent additions
-                { typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
-                // ????
-                { typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
-                { typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
-                { typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
-                { typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
-
-                // Test specific
-                { typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
+                {typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
             });
         }
     }
