@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
+using STT=System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override bool CanWriteDifferences => false;
 
-        public override async Task WriteSchemaAsync(RepositorySchemaData schema)
+        public override async STT.Task WriteSchemaAsync(RepositorySchemaData schema)
         {
             var propertyTypes = schema.PropertyTypes.Where(x => x.Id == 0).ToArray();
             if (propertyTypes.Any())

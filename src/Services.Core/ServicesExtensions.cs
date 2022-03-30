@@ -16,7 +16,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -29,7 +28,6 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
-using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
@@ -63,10 +61,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<RepositoryTypeOptions>(options => {});
-
-            // default MS SQL configuration
-            services.Configure<MsSqlDatabaseInstallationOptions>(configuration.GetSection("sensenet:install:mssql"));
-
+            
             services.ConfigureConnectionStrings(configuration);
 
             return services;
@@ -87,11 +82,6 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
-                .AddSenseNetMsSqlDataProvider()
-                .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
-                .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
-                .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
-                .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                 .AddSenseNetBlobStorage()
                 .AddSenseNetSecurity(config =>
                 {

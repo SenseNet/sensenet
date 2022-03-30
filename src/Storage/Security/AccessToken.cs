@@ -10,34 +10,34 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Gets the general database identifier of the object.
         /// </summary>
-        public int Id { get; internal set; }
+        public int Id { get; set; }
 
         /// <summary>
         /// Gets the value of the token.
         /// </summary>
-        public string Value { get; internal set; }
+        public string Value { get; set; }
 
         /// <summary>
         /// Gets the Id of the owner User.
         /// </summary>
-        public int UserId { get; internal set; }
+        public int UserId { get; set; }
 
         /// <summary>
         /// Gets the associated Id of the content.
         /// The value is 0 if there is no association.
         /// </summary>
-        public int ContentId { get; internal set; }
+        public int ContentId { get; set; }
 
         /// <summary>
         /// Gets the associated feature name if there is one.
         /// Default value is null.
         /// </summary>
-        public string Feature { get; internal set; }
+        public string Feature { get; set; }
 
         /// <summary>
         /// Gets the cretion date of the token.
         /// </summary>
-        public DateTime CreationDate { get; internal set; }
+        public DateTime CreationDate { get; set; }
 
         /// <summary>
         /// Gets or sets the expiration date of the token.

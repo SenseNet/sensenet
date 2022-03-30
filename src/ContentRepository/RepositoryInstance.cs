@@ -326,16 +326,15 @@ namespace SenseNet.ContentRepository
         private List<ISnService> _serviceInstances;
 
         //UNDONE:CNSTR: Delete this method
-        private static void InitializeDataProviderExtensions()
+        private void InitializeDataProviderExtensions()
         {
-            var mainProvider = Providers.Instance.DataProvider as RelationalDataProviderBase;
             // set default value of well-known data provider extensions
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), new MsSqlPackagingDataProvider(mainProvider));
+                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), _settings.Services.GetRequiredService<IPackagingDataProvider>());
             if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new MsSqlAccessTokenDataProvider(mainProvider));
+                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), _settings.Services.GetRequiredService<IAccessTokenDataProvider>());
             if (null == Providers.Instance.GetProvider<ISharedLockDataProvider>())
-                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), new MsSqlSharedLockDataProvider(mainProvider));
+                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), _settings.Services.GetRequiredService<ISharedLockDataProvider>());
         }
 
         private static void InitializeOAuthProviders()

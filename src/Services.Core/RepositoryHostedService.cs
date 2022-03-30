@@ -3,11 +3,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
@@ -41,7 +38,6 @@ namespace SenseNet.Services.Core
             // set provider instances for legacy code (task manager, preview provider)
             Services.AddSenseNetProviderInstances();
 
-            var relationalDataProvider = Providers.Instance.DataProvider as RelationalDataProviderBase;
             var components = Services.GetServices<ISnComponent>().ToArray();
             var eventProcessors = Services.GetServices<IEventProcessor>().ToArray();
 
@@ -50,7 +46,6 @@ namespace SenseNet.Services.Core
                 .UseTracer(new SnFileSystemTracer())
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
-                .UsePackagingDataProvider(new MsSqlPackagingDataProvider(relationalDataProvider))
                 .StartWorkflowEngine(false)
                 .UseEventDistributor(new EventDistributor())
                 .AddAsyncEventProcessors(eventProcessors)

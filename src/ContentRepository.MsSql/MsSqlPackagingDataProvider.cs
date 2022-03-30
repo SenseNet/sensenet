@@ -4,9 +4,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using STT=System.Threading.Tasks;
 using Newtonsoft.Json;
-using SenseNet.Configuration;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -39,7 +38,7 @@ FROM Packages WHERE
 ORDER BY ComponentId, ComponentVersion, ExecutionDate
 ";
         #endregion
-        public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
+        public async STT.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
             if (!(await _mainProvider.IsDatabaseReadyAsync(cancellationToken)))
                 return new ComponentInfo[0];
@@ -92,7 +91,7 @@ FROM Packages WHERE
 ORDER BY ComponentId, ComponentVersion, ExecutionDate
 ";
         #endregion
-        public async Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
+        public async STT.Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
         {
             if (!(await _mainProvider.IsDatabaseReadyAsync(cancellationToken)))
                 return new ComponentInfo[0];
@@ -141,43 +140,41 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
             return components.Values.ToArray();
         }
 
-        public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
+        public async STT.Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {
             var packages = new List<Package>();
 
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
-                    async (reader, cancel) =>
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
+                async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                        packages.Add(new Package
                         {
-                            cancel.ThrowIfCancellationRequested();
-                            packages.Add(new Package
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
-                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
-                                PackageType = (PackageType) Enum.Parse(typeof(PackageType),
-                                    reader.GetString(reader.GetOrdinal("PackageType"))),
-                                ReleaseDate = reader.GetDateTimeUtc(reader.GetOrdinal("ReleaseDate")),
-                                ExecutionDate = reader.GetDateTimeUtc(reader.GetOrdinal("ExecutionDate")),
-                                ExecutionResult = (ExecutionResult) Enum.Parse(typeof(ExecutionResult),
-                                    reader.GetString(reader.GetOrdinal("ExecutionResult"))),
-                                ExecutionError =
-                                    DeserializeExecutionError(
-                                        reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
-                                ComponentVersion =
-                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
-                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
-                            });
-                        }
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                            ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                            PackageType = (PackageType) Enum.Parse(typeof(PackageType),
+                                reader.GetString(reader.GetOrdinal("PackageType"))),
+                            ReleaseDate = reader.GetDateTimeUtc(reader.GetOrdinal("ReleaseDate")),
+                            ExecutionDate = reader.GetDateTimeUtc(reader.GetOrdinal("ExecutionDate")),
+                            ExecutionResult = (ExecutionResult) Enum.Parse(typeof(ExecutionResult),
+                                reader.GetString(reader.GetOrdinal("ExecutionResult"))),
+                            ExecutionError =
+                                DeserializeExecutionError(
+                                    reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
+                            ComponentVersion =
+                                DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                            Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
+                        });
+                    }
 
-                        return true;
-                    }).ConfigureAwait(false);
-            }
-            
+                    return true;
+                }).ConfigureAwait(false);
+
             return packages;
         }
 
@@ -187,34 +184,33 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
     ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion, @Manifest)
 SELECT @@IDENTITY";
         #endregion
-        public async Task SavePackageAsync(Package package, CancellationToken cancellationToken)
+        public async STT.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@Description", DbType.String, 1000,
-                            (object) package.Description ?? DBNull.Value),
-                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
-                            (object) package.ComponentId ?? DBNull.Value),
-                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
-                        ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
-                        ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
-                        ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString()),
-                        ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
-                            SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
-                        ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
-                            package.ComponentVersion == null
-                                ? DBNull.Value
-                                : (object) EncodePackageVersion(package.ComponentVersion)),
-                        ctx.CreateParameter("@Manifest", DbType.String, int.MaxValue, package.Manifest ?? (object) DBNull.Value)
-                    });
-                }).ConfigureAwait(false);
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
 
-                package.Id = Convert.ToInt32(result);
-            }
+            var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    ctx.CreateParameter("@Description", DbType.String, 1000,
+                        (object) package.Description ?? DBNull.Value),
+                    ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
+                        (object) package.ComponentId ?? DBNull.Value),
+                    ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
+                    ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
+                    ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
+                    ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString()),
+                    ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
+                        SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
+                    ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
+                        package.ComponentVersion == null
+                            ? DBNull.Value
+                            : (object) EncodePackageVersion(package.ComponentVersion)),
+                    ctx.CreateParameter("@Manifest", DbType.String, int.MaxValue, package.Manifest ?? (object) DBNull.Value)
+                });
+            }).ConfigureAwait(false);
+
+            package.Id = Convert.ToInt32(result);
         }
 
         #region SQL UpdatePackageScript
@@ -230,33 +226,31 @@ SELECT @@IDENTITY";
 WHERE Id = @Id
 ";
         #endregion
-        public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
+        public async STT.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@Id", DbType.Int32, package.Id),
-                        ctx.CreateParameter("@Description", DbType.String, 1000,
-                            (object) package.Description ?? DBNull.Value),
-                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
-                            (object) package.ComponentId ?? DBNull.Value),
-                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
-                        ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
-                        ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
-                        ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50,
-                            package.ExecutionResult.ToString()),
-                        ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
-                            SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
-                        ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
-                            package.ComponentVersion == null
-                                ? DBNull.Value
-                                : (object) EncodePackageVersion(package.ComponentVersion))
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@Id", DbType.Int32, package.Id),
+                    ctx.CreateParameter("@Description", DbType.String, 1000,
+                        (object) package.Description ?? DBNull.Value),
+                    ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
+                        (object) package.ComponentId ?? DBNull.Value),
+                    ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
+                    ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
+                    ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
+                    ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50,
+                        package.ExecutionResult.ToString()),
+                    ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
+                        SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
+                    ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
+                        package.ComponentVersion == null
+                            ? DBNull.Value
+                            : (object) EncodePackageVersion(package.ComponentVersion))
+                });
+            }).ConfigureAwait(false);
         }
 
         #region SQL PackageExistenceScript
@@ -264,7 +258,7 @@ WHERE Id = @Id
 WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVersion = @Version
 ";
         #endregion
-        public async Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version
+        public async STT.Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version
             , CancellationToken cancellationToken)
         {
             int count;
@@ -286,43 +280,37 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             return count > 0;
         }
         
-        public async Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
+        public async STT.Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
-                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); }).ConfigureAwait(false);
-            }
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
+                cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); }).ConfigureAwait(false);
         }
 
-        public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
+        public async STT.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
         {
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages").ConfigureAwait(false);
-            }
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages").ConfigureAwait(false);
         }
 
         #region SQL LoadManifestScript
         private static readonly string LoadManifestScript = @"SELECT Manifest FROM Packages WHERE Id = @Id";
         #endregion
-        public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
+        public async STT.Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
         {
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@Id", DbType.Int32, package.Id)
-                    });
-                }).ConfigureAwait(false);
+                    ctx.CreateParameter("@Id", DbType.Int32, package.Id)
+                });
+            }).ConfigureAwait(false);
 
-                package.Manifest = (string)(result == DBNull.Value ? null : result);
-            }
+            package.Manifest = (string)(result == DBNull.Value ? null : result);
         }
 
         /* =============================================================================== Methods for Steps */
@@ -347,19 +335,17 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = _mainProvider.CreateDataContext(CancellationToken.None))
+            using var ctx = _mainProvider.CreateDataContext(CancellationToken.None);
+            var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
             {
-                var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                cancel.ThrowIfCancellationRequested();
+                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                 {
                     cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        result.Add(reader.GetString(0), reader.GetString(1));
-                    }
-                    return Task.FromResult(0);
-                }).GetAwaiter().GetResult();
-            }
+                    result.Add(reader.GetString(0), reader.GetString(1));
+                }
+                return STT.Task.FromResult(0);
+            }).GetAwaiter().GetResult();
 
             return result;
         }
@@ -384,25 +370,23 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             if (e == null)
                 return null;
 
-            var serializer = new JsonSerializer();
-            serializer.NullValueHandling = NullValueHandling.Ignore;
+            var serializer = new JsonSerializer
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            };
             try
             {
-                using (var sw = new StringWriter())
-                {
-                    using (JsonWriter writer = new JsonTextWriter(sw))
-                        serializer.Serialize(writer, e);
-                    return sw.GetStringBuilder().ToString();
-                }
+                using var sw = new StringWriter();
+                using (JsonWriter writer = new JsonTextWriter(sw))
+                    serializer.Serialize(writer, e);
+                return sw.GetStringBuilder().ToString();
             }
             catch (Exception ee)
             {
-                using (var sw = new StringWriter())
-                {
-                    using (JsonWriter writer = new JsonTextWriter(sw))
-                        serializer.Serialize(writer, new Exception("Cannot serialize the execution error: " + ee.Message));
-                    return sw.GetStringBuilder().ToString();
-                }
+                using var sw = new StringWriter();
+                using (JsonWriter writer = new JsonTextWriter(sw))
+                    serializer.Serialize(writer, new Exception("Cannot serialize the execution error: " + ee.Message));
+                return sw.GetStringBuilder().ToString();
             }
         }
         private Exception DeserializeExecutionError(string data)
@@ -411,8 +395,8 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                 return null;
 
             var serializer = new JsonSerializer();
-            using (var jreader = new JsonTextReader(new StringReader(data)))
-                return serializer.Deserialize<Exception>(jreader);
+            using var jreader = new JsonTextReader(new StringReader(data));
+            return serializer.Deserialize<Exception>(jreader);
         }
     }
 }

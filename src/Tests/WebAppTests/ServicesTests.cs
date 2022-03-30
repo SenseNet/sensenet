@@ -107,8 +107,6 @@ namespace WebAppTests
 
                 // DataProvider
                 {typeof(DataProvider), typeof(InMemoryDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
 
                 // Blob
                 {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
@@ -161,8 +159,6 @@ namespace WebAppTests
 
                 // DataProvider
                 {typeof(DataProvider), typeof(InMemoryDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
 
                 // Blob
                 {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
@@ -437,8 +433,6 @@ namespace WebAppTests
 
                 // DataProvider
                 {typeof(DataProvider), typeof(InMemoryDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
 
                 // Blob
                 {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},
@@ -505,8 +499,6 @@ namespace WebAppTests
 
                 // DataProvider
                 {typeof(DataProvider), typeof(InMemoryDataProvider)},
-                {typeof(IDataInstaller), typeof(MsSqlDataInstaller)},              //UNDONE: discussion ??
-                {typeof(MsSqlDatabaseInstaller), typeof(MsSqlDatabaseInstaller)},  //UNDONE: discussion ??
 
                 // Blob
                 {typeof(IBlobStorageMetaDataProvider), typeof(InMemoryBlobStorageMetaDataProvider)},

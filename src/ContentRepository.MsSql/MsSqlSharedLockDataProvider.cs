@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Data;
 using System.Threading;
-using System.Threading.Tasks;
-using SenseNet.Configuration;
+using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
-// ReSharper disable AccessToDisposedClosure
 
+// ReSharper disable AccessToDisposedClosure
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
@@ -28,15 +27,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _mainProvider = relationalDataProviderBase;
         }
 
-        public async Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
+        public async STT.Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").ConfigureAwait(false);
-            }
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").ConfigureAwait(false);
         }
 
-        public async Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
+        public async STT.Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -78,7 +75,7 @@ SELECT @Result
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
         }
 
-        public async Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
+        public async STT.Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -114,7 +111,7 @@ SELECT @Result
             return existingLock;
         }
 
-        public async Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
+        public async STT.Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -151,25 +148,23 @@ SELECT @Result
             return existingLock;
         }
 
-        public async Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken)
+        public async STT.Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new []
                 {
-                    cmd.Parameters.AddRange(new []
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
-                return result == DBNull.Value ? null : (string)result;
-            }
+                    ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
+            return result == DBNull.Value ? null : (string)result;
         }
 
-        public async Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
+        public async STT.Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -205,20 +200,18 @@ SELECT @Result
             return existingLock;
         }
 
-        public async Task CleanupSharedLocksAsync(CancellationToken cancellationToken)
+        public async STT.Task CleanupSharedLocksAsync(CancellationToken cancellationToken)
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync(sql, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
+                });
+            }).ConfigureAwait(false);
         }
     }
 }
