@@ -2,7 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
+using STT=System.Threading.Tasks;
 using SenseNet.Configuration;
 
 // ReSharper disable ConvertToUsingDeclaration
@@ -41,7 +41,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
             _dataProvider ??= (_dataProvider = (RelationalDataProviderBase)Providers.Instance.DataProvider);
 
         /// <inheritdoc/>
-        public async Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,
+        public async STT.Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,
             CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
@@ -64,7 +64,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync(string key, string operationId, DateTime newTimeLimit,
+        public async STT.Task RefreshAsync(string key, string operationId, DateTime newTimeLimit,
             CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
@@ -84,7 +84,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         }
 
         /// <inheritdoc/>
-        public async Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
+        public async STT.Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
@@ -102,7 +102,7 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
+        public async STT.Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #{operationId}");
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
@@ -122,27 +122,23 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         }
 
         /// <inheritdoc/>
-        public async Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
+        public async STT.Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
         {
             Trace.WriteLine($"SnTrace: DATA: START: IsFeatureAvailable");
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
-            {
-                var result = await ctx.ExecuteScalarAsync(
-                    "IF OBJECT_ID('ExclusiveLocks', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0")
-                    .ConfigureAwait(false);
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(
+                "IF OBJECT_ID('ExclusiveLocks', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0")
+                .ConfigureAwait(false);
 
-                Trace.WriteLine($"SnTrace: DATA:  END: IsFeatureAvailable");
-                return 1 == (result == DBNull.Value ? 0 : (int)result);
-            }
+            Trace.WriteLine($"SnTrace: DATA:  END: IsFeatureAvailable");
+            return 1 == (result == DBNull.Value ? 0 : (int)result);
         }
 
         /// <inheritdoc/>
-        public async Task ReleaseAllAsync(CancellationToken cancellationToken)
+        public async STT.Task ReleaseAllAsync(CancellationToken cancellationToken)
         {
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks").ConfigureAwait(false);
-            }
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks").ConfigureAwait(false);
         }
 
         /* ====================================================================================== INSTALLATION SCRIPTS */

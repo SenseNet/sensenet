@@ -380,15 +380,19 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_Default()
         {
+            Assert.Inconclusive("Check the new default providers here or remove this test.");
             // switch this ON here for testing purposes (to check that repo start does not override it)
+
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = CreateRepositoryBuilder();
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProvider>().GetType());
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
+                // MsSql providers are no longer the default
+
+                //Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProvider>().GetType());
+                //Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 

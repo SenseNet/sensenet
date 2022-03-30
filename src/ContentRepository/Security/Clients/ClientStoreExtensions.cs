@@ -31,13 +31,6 @@ namespace SenseNet.Extensions.DependencyInjection
             return services.AddSingleton<IClientStoreDataProvider, T>();
         }
         /// <summary>
-        /// Adds the MS SQL ClientStore data provider to the service collection.
-        /// </summary>
-        public static IServiceCollection AddSenseNetMsSqlClientStoreDataProvider(this IServiceCollection services)
-        {
-            return services.AddSenseNetClientStoreDataProvider<MsSqlClientStoreDataProvider>();
-        }
-        /// <summary>
         /// Adds the in-memory ClientStore data provider to the service collection.
         /// </summary>
         public static IServiceCollection AddSenseNetInMemoryClientStoreDataProvider(this IServiceCollection services)

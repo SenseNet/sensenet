@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
-using SenseNet.Configuration;
+using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.DataModel;
 
 // ReSharper disable once CheckNamespace
@@ -31,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _connectionString = connectionString;
         }
 
-        public async Task InstallSchemaAsync(RepositorySchemaData schema)
+        public async STT.Task InstallSchemaAsync(RepositorySchemaData schema)
         {
             var dataSet = new DataSet();
 
@@ -152,7 +151,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* ==================================================================================================== Writing */
 
-        private async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
+        private async STT.Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -167,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        private async Task BulkInsertAsync(DataSet dataSet, string tableName, SqlConnection connection, SqlTransaction transaction)
+        private async STT.Task BulkInsertAsync(DataSet dataSet, string tableName, SqlConnection connection, SqlTransaction transaction)
         {
             //using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand())

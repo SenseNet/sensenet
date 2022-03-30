@@ -40,18 +40,16 @@ namespace SenseNet.IntegrationTests.Platforms
                     repositoryBuilder
                         .UseLogger(provider)
                         .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data",
-                            "LocalIndex"))
-                        .UseMsSqlExclusiveLockDataProvider();
+                            "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {
                     options.ConnectionString = RepositoryConnectionString;
                 })
-                .AddSenseNetMsSqlStatisticalDataProvider()
-                .AddSenseNetMsSqlClientStoreDataProvider()
-                .AddComponent(provider => new MsSqlExclusiveLockComponent())
-                .AddComponent(provider => new MsSqlStatisticsComponent())
-                .AddComponent(provider => new MsSqlClientStoreComponent())
+                .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
+                {
+                    configuration.Bind("sensenet:install:mssql", installOptions);
+                })
 
                 .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()
                 ;
@@ -102,7 +100,7 @@ namespace SenseNet.IntegrationTests.Platforms
         {
             var scriptRootPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(
                 // ReSharper disable once AssignNullToNotNullAttribute
-                AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\Storage\Data\MsSqlClient\Scripts"));
+                AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\ContentRepository.MsSql\Scripts"));
 
             var databaseName = GetDatabaseName(RepositoryConnectionString);
             var dbid = ExecuteSqlScalarNative<int?>($"SELECT database_id FROM sys.databases WHERE Name = '{databaseName}'", "master");

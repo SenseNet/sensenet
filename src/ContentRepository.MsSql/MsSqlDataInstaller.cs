@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using STT=System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _logger = logger;
         }
 
-        public async Task InstallInitialDataAsync(InitialData data, DataProvider dataProvider, CancellationToken cancel)
+        public async STT.Task InstallInitialDataAsync(InitialData data, DataProvider dataProvider, CancellationToken cancel)
         {
             if (dataProvider is not MsSqlDataProvider msdp)
                 throw new InvalidOperationException("MsSqlDataInstaller error: data provider is expected to be MsSqlDataProvider.");
@@ -433,7 +433,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* ==================================================================================================== Writing */
 
-        private async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString, CancellationToken cancellationToken)
+        private async STT.Task WriteToDatabaseAsync(DataSet dataSet, string connectionString, CancellationToken cancellationToken)
         {
             await BulkInsertAsync(dataSet, TableName.PropertyTypes, connectionString, cancellationToken).ConfigureAwait(false);
             await BulkInsertAsync(dataSet, TableName.NodeTypes, connectionString, cancellationToken).ConfigureAwait(false);
@@ -445,7 +445,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await BulkInsertAsync(dataSet, TableName.Files, connectionString, cancellationToken).ConfigureAwait(false);
             //await BulkInsertAsync(dataSet, TableName.Entities, connectionString, cancellationToken).ConfigureAwait(false);
         }
-        private async Task BulkInsertAsync(DataSet dataSet, string tableName, string connectionString,
+        private async STT.Task BulkInsertAsync(DataSet dataSet, string tableName, string connectionString,
             CancellationToken cancellationToken)
         {
             _logger.LogTrace($"BulkInsert: deleting from table {tableName}");

@@ -65,6 +65,17 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
+        /// <summary>
+        /// Adds an <see cref="ISnComponent"/> to the service collection so that the system can
+        /// collect components and their patches during repository start.
+        /// </summary>
+        public static IServiceCollection AddComponent<T>(this IServiceCollection services) where T: class, ISnComponent
+        {
+            // register this as transient so that no singleton instances remain in memory after creating them once
+            services.AddTransient<ISnComponent, T>();
+
+            return services;
+        }
 
         public static IServiceCollection AddRepositoryComponents(this IServiceCollection services)
         {
