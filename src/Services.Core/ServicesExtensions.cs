@@ -178,7 +178,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             var taskManager = provider.GetService<ITaskManager>();
             if (taskManager != null)
-                SnTaskManager.Instance = taskManager;
+                Providers.Instance.TaskManager = taskManager;
 
 #pragma warning restore 618
 
