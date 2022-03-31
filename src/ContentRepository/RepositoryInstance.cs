@@ -372,7 +372,7 @@ namespace SenseNet.ContentRepository
         {
             // look for the configured logger
             SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
-            SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? new DatabaseAuditEventWriter();
+            SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? throw new ApplicationException("Missing AuditEventWriter service.");
 
             //set configured tracers
             var tracers = Providers.Instance.GetProvider<ISnTracer[]>();

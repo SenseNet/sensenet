@@ -28,6 +28,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
                     .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                     .AddSenseNetMsSqlStatisticalDataProvider()
+                    .AddDatabaseAuditEventWriter()
                     .AddSenseNetMsSqlClientStoreDataProvider()
                     .AddComponent<MsSqlExclusiveLockComponent>()
                     .AddComponent<MsSqlStatisticsComponent>()

@@ -127,6 +127,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
                 .AddSenseNetInMemoryStatisticalDataProvider()
+                .AddInactiveAuditEventWriter()
                 .AddSenseNetInMemoryClientStoreDataProvider()
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
         }
