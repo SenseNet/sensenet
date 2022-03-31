@@ -33,7 +33,7 @@ namespace SenseNet.Services.Core
             OnRepositoryStartedAsync = onRepositoryStartedAsync;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public RepositoryBuilder BuildProviders()
         {
             // set provider instances for legacy code (task manager, preview provider)
             Services.AddSenseNetProviderInstances();
@@ -53,6 +53,13 @@ namespace SenseNet.Services.Core
 
             // hook for developers to modify the repository builder before start
             BuildRepository?.Invoke(repositoryBuilder, Services);
+
+            return repositoryBuilder;
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            var repositoryBuilder = BuildProviders();
 
             try
             {

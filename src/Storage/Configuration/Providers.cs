@@ -61,6 +61,7 @@ namespace SenseNet.Configuration
             PreviewProvider = services.GetService<IPreviewProvider>();
             PropertyCollector = services.GetService<IEventPropertyCollector>();
             SecurityHandler = services.GetService<SecurityHandler>();
+            SecurityMessageProvider = services.GetService<IMessageProvider>();
             PasswordHashProvider = services.GetService<IPasswordHashProvider>();
             PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
             ContentNamingProvider = services.GetService<IContentNamingProvider>();
@@ -228,8 +229,8 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
-        public virtual IMessageProvider SecurityMessageProvider { get; set; }
+        public ISecurityDataProvider SecurityDataProvider { get; set; }
+        public IMessageProvider SecurityMessageProvider { get; set; }
 
         public SecurityHandler SecurityHandler { get; set; }
         public IPasswordHashProvider PasswordHashProvider { get; set; }

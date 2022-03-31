@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BackgroundOperations;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Packaging;
@@ -24,12 +28,16 @@ using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Security.Messaging;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Cors;
 using SenseNet.Storage.Data.MsSqlClient;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using SenseNet.Tools.Diagnostics;
+using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace WebAppTests
 {
@@ -44,6 +52,8 @@ namespace WebAppTests
             var configuration = configurationBuilder.Build();
 
             var serviceCollection = new ServiceCollection();
+            var cnOptions = Options.Create<ConnectionStringOptions>(new ConnectionStringOptions { Repository = "fake" });
+            serviceCollection.AddSingleton<IOptions<ConnectionStringOptions>>(cnOptions);
 
             //var startup = new SnWebApplication.Api.InMem.Admin.Startup(configuration);
             var ctor = typeof(T).GetConstructor(new[] {typeof(IConfiguration) });
@@ -63,6 +73,10 @@ namespace WebAppTests
         }
         private void AssertServices(IServiceProvider services, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations = null)
         {
+            var repositoryHostedService = (RepositoryHostedService)services.GetService<IEnumerable<IHostedService>>()?
+                .FirstOrDefault(x => x.GetType() == typeof(RepositoryHostedService));
+            repositoryHostedService?.BuildProviders();
+
             var expectation = GetGeneralizedExpectations();
             if(platformSpecificExpectations != null)
                 foreach (var item in platformSpecificExpectations)
@@ -79,6 +93,8 @@ namespace WebAppTests
                 .Where(x => x.Value != null)
                 .Count(x => x.Value != expectation[x.Key]), GetMessageForDifferences(dump, expectation));
             Assert.AreEqual(0, dump.Values.Count(x => x == null), GetMessageForNulls(dump));
+
+            AssertProvidersInstance();
         }
         private string GetMessageForDifferences(Dictionary<Type, Type> dump, IDictionary<Type, Type> expectation)
         {
@@ -143,7 +159,6 @@ namespace WebAppTests
                 {typeof(IApplicationCache), typeof(ApplicationCache)},
             };
         }
-
         private IDictionary<Type, Type> GetInMemoryPlatform()
         {
             return new Dictionary<Type, Type>
@@ -165,9 +180,9 @@ namespace WebAppTests
                 {typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
                 {typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
+                {typeof(IAuditEventWriter), typeof(InactiveAuditEventWriter)},
             };
         }
-
         private IDictionary<Type, Type> GetMsSqlPlatform()
         {
             return new Dictionary<Type, Type>
@@ -189,7 +204,55 @@ namespace WebAppTests
                 {typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
                 {typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
+                {typeof(IAuditEventWriter), typeof(DatabaseAuditEventWriter)},
             };
+        }
+        private void AssertProvidersInstance()
+        {
+            var pi = Providers.Instance;
+            Assert.IsNotNull(pi);
+            Assert.IsNotNull(pi.EventLogger);
+            Assert.IsNotNull(pi.PropertyCollector);
+            Assert.IsNotNull(pi.AuditEventWriter);
+            Assert.IsNotNull(pi.DataProvider);
+            Assert.IsNotNull(pi.DataStore);
+            Assert.IsNotNull(pi.BlobMetaDataProvider);
+            Assert.IsNotNull(pi.BlobProviderSelector);
+//Assert.IsNotNull(pi.BlobStorage);
+            Assert.IsNotNull(pi.BlobProviders);
+            Assert.IsNotNull(pi.SearchEngine);
+            Assert.IsNotNull(pi.SearchManager);
+            Assert.IsNotNull(pi.IndexManager);
+            Assert.IsNotNull(pi.IndexPopulator);
+            Assert.IsNotNull(pi.AccessProvider);
+            Assert.IsNotNull(pi.SecurityDataProvider);
+            Assert.IsNotNull(pi.SecurityMessageProvider);
+            Assert.IsNotNull(pi.SecurityHandler);
+            Assert.IsNotNull(pi.PasswordHashProvider);
+            Assert.IsNotNull(pi.PasswordHashProviderForMigration);
+            Assert.IsNotNull(pi.ContentNamingProvider);
+            Assert.IsNotNull(pi.PreviewProvider);
+     //? inmem only?       Assert.IsNotNull(pi.ElevatedModificationVisibilityRuleProvider);
+            Assert.IsNotNull(pi.MembershipExtender);
+            Assert.IsNotNull(pi.CacheProvider);
+            Assert.IsNotNull(pi.ApplicationCacheProvider);
+            Assert.IsNotNull(pi.ClusterChannelProvider);
+            Assert.IsNotNull(pi.PermissionFilterFactory);
+            Assert.IsNotNull(pi.IndexDocumentProvider);
+            Assert.IsNotNull(pi.ContentProtector);
+            Assert.IsNotNull(pi.StorageSchema);
+            Assert.IsNotNull(pi.CompatibilitySupport);
+            Assert.IsNotNull(pi.EventDistributor);
+            //Assert.IsNotNull(pi.AuditLogEventProcessor);
+//Assert.IsNotNull(pi.TreeLock);
+            Assert.IsNotNull(pi.TaskManager);
+
+            Assert.IsTrue(pi.NodeObservers.Length > 0);
+            //Assert.IsTrue(pi.AsyncEventProcessors.Count > 0);
+            Assert.IsTrue(pi.Components.Count > 0);
+
+            //private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();
+            //private readonly Dictionary<Type, object> _providersByType = new Dictionary<Type, object>();
         }
 
         [TestMethod, TestCategory("Services")]
@@ -251,9 +314,6 @@ namespace WebAppTests
         [TestMethod, TestCategory("Services")]
         public void Test_Services_TestBase()
         {
-            var expectation = GetGeneralizedExpectations();
-            var x = GetInMemoryPlatform();
-
             // ACTION
             var services = new TestClassForTestingServices().CreateServiceProvider();
 
@@ -268,9 +328,6 @@ namespace WebAppTests
         [TestMethod, TestCategory("Services")]
         public void Test_Services_Integration_InMem()
         {
-            var expectation = GetGeneralizedExpectations();
-            var x = GetInMemoryPlatform();
-
             var platform = new InMemPlatform();
             var configuration = new ConfigurationBuilder().Build();
             var services = new ServiceCollection();
@@ -288,11 +345,11 @@ namespace WebAppTests
         [TestMethod, TestCategory("Services")]
         public void Test_Services_Integration_MsSql()
         {
-            var expectation = GetGeneralizedExpectations();
-
             var platform = new MsSqlPlatform();
             var configuration = new ConfigurationBuilder().Build();
             var services = new ServiceCollection();
+            var cnOptions = Options.Create<ConnectionStringOptions>(new ConnectionStringOptions {Repository = "fake"});
+            services.AddSingleton<IOptions<ConnectionStringOptions>>(cnOptions);
 
             // ACTION
             platform.BuildServices(configuration, services);
