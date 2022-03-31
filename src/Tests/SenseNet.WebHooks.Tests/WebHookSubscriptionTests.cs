@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -533,7 +534,7 @@ namespace SenseNet.WebHooks.Tests
                 });
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
             return CreateRepositoryBuilderForTest(TestContext, services =>
             {

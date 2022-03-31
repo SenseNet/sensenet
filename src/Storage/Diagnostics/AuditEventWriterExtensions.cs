@@ -26,17 +26,5 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services.AddSingleton<IAuditEventWriter, T>();
         }
-
-
-        public static IRepositoryBuilder UseAuditEventWriter(this IRepositoryBuilder builder, IAuditEventWriter provider)
-        {
-            Providers.Instance.AuditEventWriter = provider;
-            return builder;
-        }
-        public static IRepositoryBuilder UseInactiveAuditEventWriter(this IRepositoryBuilder builder)
-        {
-            Providers.Instance.AuditEventWriter = new InactiveAuditEventWriter();
-            return builder;
-        }
     }
 }

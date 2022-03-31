@@ -308,68 +308,16 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_AuditEventWriter()
         {
             var originalWriter = SnLog.AuditEventWriter;
-            var auditWriter = new TestAuditEventWriter();
-
             try
             {
-                Test(repoBuilder =>
+                Test2(services =>
                 {
-                    repoBuilder
-                        .UseAuditEventWriter(auditWriter);
+                    services.AddAuditEventWriter<TestAuditEventWriter>();
                 }, () =>
                 {
-                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
-                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
-                });
-            }
-            finally
-            {
-                SnLog.AuditEventWriter = originalWriter;
-            }
-        }
-        [TestMethod]
-        public void RepositoryStart_AuditEventWriter_Database()
-        {
-            var originalWriter = SnLog.AuditEventWriter;
-            var auditWriter = new DatabaseAuditEventWriter();
-
-            try
-            {
-                // Clear the slot to ensure a real test.
-                Providers.Instance.AuditEventWriter = null;
-
-                var repoBuilder = CreateRepositoryBuilder()
-                    .UseAuditEventWriter(auditWriter);
-
-                using (Repository.Start(repoBuilder))
-                {
-                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
-                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
-                }
-            }
-            finally
-            {
-                SnLog.AuditEventWriter = originalWriter;
-            }
-        }
-        [TestMethod]
-        public void RepositoryStart_AuditEventWriter_Inactive()
-        {
-            var originalWriter = SnLog.AuditEventWriter;
-
-            try
-            {
-                // Clear the slot to ensure a real test.
-                Providers.Instance.AuditEventWriter = null;
-
-                var repoBuilder = CreateRepositoryBuilder()
-                    .UseInactiveAuditEventWriter();
-
-                using (Repository.Start(repoBuilder))
-                {
-                    Assert.IsTrue(Providers.Instance.AuditEventWriter is InactiveAuditEventWriter);
+                    Assert.IsNotNull(Providers.Instance.AuditEventWriter);
                     Assert.AreSame(Providers.Instance.AuditEventWriter, SnLog.AuditEventWriter);
-                }
+                });
             }
             finally
             {

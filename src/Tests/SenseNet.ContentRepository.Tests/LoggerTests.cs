@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Logger_Audit_Default()
         {
-            Test(() =>
+            Test2(services => { services.AddDatabaseAuditEventWriter(); },() =>
             {
                 // operations for a "content created" audit event
                 var folder = new SystemFolder(Repository.Root) {Name = "Folder1"};

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -16,9 +17,9 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class UnknownContentHandlerTests : TestBase
     {
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
-            var builder = base.CreateRepositoryBuilderForTestInstance();
+            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
             builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             return builder;

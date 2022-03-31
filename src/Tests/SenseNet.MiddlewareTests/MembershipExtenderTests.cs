@@ -91,8 +91,7 @@ namespace SenseNet.MiddlewareTests
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders();
         }

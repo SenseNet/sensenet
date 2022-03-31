@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -50,9 +51,9 @@ namespace SenseNet.Packaging.Tests
             // do nothing
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
-            var builder = base.CreateRepositoryBuilderForTestInstance();
+            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
             builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             return builder;

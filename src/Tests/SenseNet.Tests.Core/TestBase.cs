@@ -109,6 +109,42 @@ namespace SenseNet.Tests.Core
             OnAfterRepositoryShutdown();
         }
 
+        protected void Test2(Action<IServiceCollection> initialize, Action callback)
+        {
+            Test2(false, initialize, callback);
+        }
+        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initialize, Action callback)
+        {
+            ExecuteTest2(useCurrentUser, initialize, callback);
+        }
+        private void ExecuteTest2(bool useCurrentUser, Action<IServiceCollection> initialize, Action callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTestInstance(initialize);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
+
+            using (Repository.Start(builder))
+            {
+                PrepareRepository();
+
+                User.Current = User.Administrator;
+                if (useCurrentUser)
+                    callback();
+                else
+                    using (new SystemAccount())
+                        callback();
+            }
+
+            OnAfterRepositoryShutdown();
+        }
+
         protected void ResetContentTypeManager()
         {
             var acc = new TypeAccessor(typeof(ContentTypeManager));
@@ -179,8 +215,7 @@ namespace SenseNet.Tests.Core
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
 
@@ -243,9 +278,9 @@ namespace SenseNet.Tests.Core
             return builder;
         }
 
-        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
-            return CreateRepositoryBuilderForTest(TestContext);
+            return CreateRepositoryBuilderForTest(TestContext, modifyServices);
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
