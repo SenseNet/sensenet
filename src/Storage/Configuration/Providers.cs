@@ -206,7 +206,7 @@ namespace SenseNet.Configuration
             set => _blobProviders = value;
         }
 
-        public virtual ISearchEngine SearchEngine { get; set; }
+        public ISearchEngine SearchEngine { get; set; }
         public ISearchManager SearchManager { get; set; }
         public IIndexManager IndexManager { get; set; }
         public IIndexPopulator IndexPopulator { get; set; }

@@ -2880,7 +2880,8 @@ namespace SenseNet.ContentRepository.Tests
         }
         private async STT.Task ODataTestAsync(int userId, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
+            if(Providers.Instance != null)
+                Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             OnTestInitialize();
 

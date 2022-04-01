@@ -24,6 +24,10 @@ using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.Preview;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.EFCSecurityStore;
@@ -37,6 +41,7 @@ using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools.Diagnostics;
+using SenseNet.Tools.SnInitialDataGenerator;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace WebAppTests
@@ -69,13 +74,16 @@ namespace WebAppTests
 
         private void AssertServices(IServiceCollection serviceCollection, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations)
         {
-            AssertServices(serviceCollection.BuildServiceProvider(), platformSpecificExpectations, customizedExpectations);
+            AssertServices(true, serviceCollection.BuildServiceProvider(), platformSpecificExpectations, customizedExpectations);
         }
-        private void AssertServices(IServiceProvider services, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations = null)
+        private void AssertServices(bool useHosting, IServiceProvider services, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations = null)
         {
-            var repositoryHostedService = (RepositoryHostedService)services.GetService<IEnumerable<IHostedService>>()?
-                .FirstOrDefault(x => x.GetType() == typeof(RepositoryHostedService));
-            repositoryHostedService?.BuildProviders();
+            if (useHosting)
+            {
+                var repositoryHostedService = (RepositoryHostedService)services.GetService<IEnumerable<IHostedService>>()?
+                    .FirstOrDefault(x => x.GetType() == typeof(RepositoryHostedService));
+                repositoryHostedService?.BuildProviders();
+            }
 
             var expectation = GetGeneralizedExpectations();
             if(platformSpecificExpectations != null)
@@ -83,7 +91,7 @@ namespace WebAppTests
                     expectation.Add(item);
             if(customizedExpectations != null)
                 foreach (var item in customizedExpectations)
-                    expectation.Add(item);
+                    expectation[item.Key] = item.Value;
 
             var dump = expectation.ToDictionary(
                 x => x.Key,
@@ -181,6 +189,12 @@ namespace WebAppTests
                 {typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
                 {typeof(IAuditEventWriter), typeof(InactiveAuditEventWriter)},
+
+                //UNDONE: Add to services
+                //{typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+                //InMemoryIndex?
+                //{typeof(IIndexingEngine), typeof(InMemoryIndexingEngine)},
+                //{typeof(IQueryEngine), typeof(InMemoryQueryEngine)},
             };
         }
         private IDictionary<Type, Type> GetMsSqlPlatform()
@@ -205,6 +219,12 @@ namespace WebAppTests
                 {typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
                 {typeof(IAuditEventWriter), typeof(DatabaseAuditEventWriter)},
+
+                //UNDONE: Add to services
+                //{typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
+                //IndexDirectory?
+                //{typeof(IIndexingEngine), typeof(Lucene29LocalIndexingEngine)},
+                //{typeof(IQueryEngine), typeof(Lucene29LocalQueryEngine)},
             };
         }
         private void AssertProvidersInstance()
@@ -318,7 +338,7 @@ namespace WebAppTests
             var services = new TestClassForTestingServices().CreateServiceProvider();
 
             // ASSERT
-            AssertServices(services, GetInMemoryPlatform(), new Dictionary<Type, Type>
+            AssertServices(true, services, GetInMemoryPlatform(), new Dictionary<Type, Type>
             {
                 {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                 {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
@@ -361,5 +381,21 @@ namespace WebAppTests
                 {typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
             });
         }
+
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_InitialDataGenerator()
+        {
+            // ACTION
+            var builder = SenseNet.Tools.SnInitialDataGenerator.Program.CreateRepositoryBuilder(null);
+            var services = builder.Services;
+
+            // ASSERT
+            AssertServices(true, services, GetInMemoryPlatform(), new Dictionary<Type, Type>
+            {
+                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                {typeof(ISearchEngine), typeof(SearchEngineForInitialDataGenerator)}, // overrides the platform's service
+            });
+        }
+
     }
 }

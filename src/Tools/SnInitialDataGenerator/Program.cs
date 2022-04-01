@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -21,6 +22,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
@@ -30,7 +32,7 @@ using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Tools.SnInitialDataGenerator
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -162,36 +164,62 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 Console.WriteLine("ok.");
             }
         }
-        private static RepositoryBuilder CreateRepositoryBuilder(InitialData initialData = null)
+
+
+
+        private static IServiceProvider CreateServiceProvider()
         {
-            var dataProvider = new InMemoryDataProvider();
+            var configurationBuilder = new ConfigurationBuilder();
+            //configuration.AddJsonFile("appSettings.json")
+            var configuration = configurationBuilder.Build();
+
+            var services = new ServiceCollection()
+                    .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                    {
+                        repositoryBuilder
+                            .BuildInMemoryRepository()
+                            .UseLogger(provider);
+                    })
+                    .AddSenseNetInMemoryProviders()
+                    .AddSenseNetSearchEngine<SearchEngineForInitialDataGenerator>()
+                ;
+            return services.BuildServiceProvider();
+        }
+
+        public static RepositoryBuilder CreateRepositoryBuilder(InitialData initialData = null)
+        {
+            var services = CreateServiceProvider();
+            Providers.Instance = new Providers(services);
+
+            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
             Providers.Instance.DataProvider = dataProvider;
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
-            var builder = new RepositoryBuilder(new ServiceCollection().BuildServiceProvider()) //UNDONE: Manage services
-                .UseTracer(new SnFileSystemTracer())
+            var builder = new RepositoryBuilder(services)
                 .UseLogger(new SnFileSystemEventLogger())
-                .UseAccessProvider(new DesktopAccessProvider())
+                .UseTracer(new SnFileSystemTracer())
                 .UseDataProvider(dataProvider)
-                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .AddBlobProvider(new InMemoryBlobProvider())
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
-                //.UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSearchEngine(new SearchEngineForInitialDataGenerator())
+                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
+                .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
+                .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
+                .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
+                .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
+                //.AddBlobProvider(new InMemoryBlobProvider())
+                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
+                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
+                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
+                .UseSearchManager(services.GetRequiredService<ISearchManager>())
+                .UseIndexManager(services.GetRequiredService<IIndexManager>())
+                .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
+                .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                //.UseTestingDataProvider(new InMemoryTestingDataProvider())
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
-                .EnableNodeObservers(TypeResolver.GetType("SenseNet.ContentRepository.SettingsCache"))
-                //.EnableNodeObservers(typeof(SettingsCache))
+                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("System", "Test", "Event", "Custom") as RepositoryBuilder;
 
             return builder;

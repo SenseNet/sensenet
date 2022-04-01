@@ -8,7 +8,7 @@ using SenseNet.Tools.CommandLineArguments;
 
 namespace SenseNet.Tools.SnInitialDataGenerator
 {
-    internal class Arguments
+    public class Arguments
     {
         public const string DefaultNamespace = "__namespace__";
         public const string DefaultDatabaseName = "__InitialData";
