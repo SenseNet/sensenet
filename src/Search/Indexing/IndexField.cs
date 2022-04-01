@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
@@ -245,6 +246,10 @@ namespace SenseNet.Search.Indexing
                     return new IndexField(name, value == IndexValue.Yes, mode, store, termVector);
                 case "I":
                     return new IndexField(name, int.Parse(value), mode, store, termVector);
+                case "I[]":
+                    return new IndexField(name,
+                        value.TrimStart('[').TrimEnd(']').Split(',').Select(int.Parse).ToArray(),
+                        mode, store, termVector);
                 case "L":
                     return new IndexField(name, long.Parse(value), mode, store, termVector);
                 case "F":
