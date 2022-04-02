@@ -138,8 +138,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexManager, IndexManager>()
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
 
-                .AddSingleton<ElevatedModificationVisibilityRule>()
-
                 .AddSingleton<ISnCache, SnMemoryCache>()
                 .AddSingleton<IApplicationCache, ApplicationCache>() //not used?
                 .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()

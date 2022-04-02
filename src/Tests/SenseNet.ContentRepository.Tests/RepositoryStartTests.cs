@@ -148,7 +148,6 @@ namespace SenseNet.ContentRepository.Tests
             .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
             .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
-                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");

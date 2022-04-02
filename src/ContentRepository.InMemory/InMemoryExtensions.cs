@@ -89,7 +89,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false);
 
             var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
@@ -124,6 +123,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
                 .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<ElevatedModificationVisibilityRule>()
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
                 .AddSenseNetInMemoryStatisticalDataProvider()

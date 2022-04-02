@@ -205,11 +205,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Sets the elevated modification visibility rule provider.
         /// </summary>
+        [Obsolete("Do not use this method anymore. Register ElevatedModificationVisibilityRule as a service instead.", true)]
         public static IRepositoryBuilder UseElevatedModificationVisibilityRuleProvider(this IRepositoryBuilder repositoryBuilder, ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
         {
-            Configuration.Providers.Instance.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
-            WriteLog("ElevatedModificationVisibilityRuleProvider", modificationVisibilityRuleProvider);
-
             return repositoryBuilder;
         }
 

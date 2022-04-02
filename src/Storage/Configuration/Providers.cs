@@ -66,6 +66,7 @@ namespace SenseNet.Configuration
             PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
             ContentNamingProvider = services.GetService<IContentNamingProvider>();
             TaskManager = services.GetService<ITaskManager>();
+            ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
         }
 
         /// <summary>
@@ -240,7 +241,7 @@ namespace SenseNet.Configuration
 
         public IPreviewProvider PreviewProvider { get; set; }
 
-        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; set; }
+        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; }
 
         #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
         private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() => CreateProviderInstance<MembershipExtenderBase>(MembershipExtenderClassName, "MembershipExtender"));

@@ -160,9 +160,6 @@ namespace WebAppTests
                 // Components
                 {typeof(ILatestComponentStore), typeof(DefaultLatestComponentStore)},
 
-                // Platform independent additions
-                {typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
-
                 // Not used?
                 {typeof(IApplicationCache), typeof(ApplicationCache)},
             };
@@ -181,7 +178,9 @@ namespace WebAppTests
 
                 // Security
                 {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
-               // {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                //{typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+
+                {typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????
                 {typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
