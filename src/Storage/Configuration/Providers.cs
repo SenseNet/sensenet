@@ -259,7 +259,7 @@ namespace SenseNet.Configuration
 
         public ISnCache CacheProvider { get; }
 
-        public IApplicationCache ApplicationCacheProvider { get; set; }
+        public IApplicationCache ApplicationCacheProvider { get; }
 
         public virtual IClusterChannel ClusterChannelProvider { get; set; } =
             new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
