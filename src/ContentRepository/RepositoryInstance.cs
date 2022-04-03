@@ -333,8 +333,6 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.SetProvider(typeof(IPackagingDataProvider), _settings.Services.GetRequiredService<IPackagingDataProvider>());
             if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
                 Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), _settings.Services.GetRequiredService<IAccessTokenDataProvider>());
-            if (null == Providers.Instance.GetProvider<ISharedLockDataProvider>())
-                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), _settings.Services.GetRequiredService<ISharedLockDataProvider>());
         }
 
         private static void InitializeOAuthProviders()

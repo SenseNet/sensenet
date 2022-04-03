@@ -21,7 +21,6 @@ namespace SenseNet.Extensions.DependencyInjection
         [Obsolete("Do not use this method anymore. Register ISharedLockDataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSharedLockDataProvider(this IRepositoryBuilder builder, ISharedLockDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), provider);
             return builder;
         }
     }
