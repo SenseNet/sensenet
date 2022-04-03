@@ -40,35 +40,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             var loggerTypeName = typeof(TestLogger).FullName;
 
-            // backup configuration
-            var providersBackup = Providers.Instance;
-
-            // configure the logger provider and reinitialize the instance
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
-            var propCollector = Providers.Instance.PropertyCollector;
-
-            // Workaround: the default property collector tries to load the
-            // current user, even if the repo is not running.
-            Providers.Instance.DataProvider = new InMemoryDataProvider();
-            Providers.Instance.PropertyCollector = new NullEventPropertyCollector();
-
-            try
+            // test of the custom logger
+            Test(builder =>
             {
-                Test(builder =>
-                {
-                    // ACTION
-                    builder.UseLogger(new TestLogger());
-                },
-                () =>
-                {
-                    Assert.AreEqual(loggerTypeName, SnLog.Instance.GetType().FullName);
-                });
-            }
-            finally
+                // ACTION
+                builder.UseLogger(new TestLogger());
+            },
+            () =>
             {
-                // rollback to the original configuration
-                Providers.Instance = providersBackup;
-            }
+                Assert.AreEqual(loggerTypeName, SnLog.Instance.GetType().FullName);
+            });
 
             // test of the restoration: logger instance need to be the default
             Test(() =>

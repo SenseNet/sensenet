@@ -85,7 +85,7 @@ namespace SenseNet.Configuration
 
         public IEventLogger EventLogger { get; set; }
 
-        public IEventPropertyCollector PropertyCollector { get; [Obsolete]set; }
+        public IEventPropertyCollector PropertyCollector { get; }
 
         public IAuditEventWriter AuditEventWriter { get; }
 
