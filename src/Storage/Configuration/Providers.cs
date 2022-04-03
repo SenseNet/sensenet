@@ -85,9 +85,9 @@ namespace SenseNet.Configuration
 
         public IEventLogger EventLogger { get; set; }
 
-        public IEventPropertyCollector PropertyCollector { get; set; }
+        public IEventPropertyCollector PropertyCollector { get; [Obsolete]set; }
 
-        public IAuditEventWriter AuditEventWriter { get; set; }
+        public IAuditEventWriter AuditEventWriter { get; }
 
         #region DataProvider & DataStore
 
@@ -257,7 +257,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public ISnCache CacheProvider { get; set; }
+        public ISnCache CacheProvider { get; }
 
         public IApplicationCache ApplicationCacheProvider { get; set; }
 
@@ -320,7 +320,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public IIndexDocumentProvider IndexDocumentProvider { get; set; }
+        public IIndexDocumentProvider IndexDocumentProvider { get; }
 
         #region ContentProtector
         private Lazy<ContentProtector> _contentProtector =

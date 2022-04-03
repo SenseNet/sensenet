@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -18,7 +19,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("Services")]
         public void Cache_Builtin_DeleteParent_SubtreeRemoved_CSrv()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     // create structure
@@ -65,7 +66,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_Builtin_NodeIdDependency_Private()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     Cache.Reset();
@@ -113,7 +114,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_Builtin_NodeIdDependency_Shared()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     Cache.Reset();
@@ -158,7 +159,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_Builtin_PathDependency()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     var root = CreateTestFolder(Repository.Root);
@@ -206,7 +207,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_Builtin_TypeDependency()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     var root = CreateTestFolder(Repository.Root);
@@ -249,7 +250,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_Builtin_PortletDependency()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     Cache.Reset();
@@ -279,7 +280,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_DependencyCounts()
         {
-            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+            Test2((services) => { services.AddSingleton<ISnCache, SnMemoryCache>(); },
                 () =>
                 {
                     Cache.Reset();

@@ -168,11 +168,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="cacheProvider">ICache instance.</param>
+        [Obsolete("Do not use this method anymore. Register ISnCache as a service instead.", true)]
         public static IRepositoryBuilder UseCacheProvider(this IRepositoryBuilder repositoryBuilder, ISnCache cacheProvider)
         {
-            Configuration.Providers.Instance.CacheProvider = cacheProvider;
-            WriteLog("CacheProvider", cacheProvider);
-
             return repositoryBuilder;
         }
 
