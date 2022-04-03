@@ -55,7 +55,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 //.UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(Initializer.InitialData)
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
-                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
                 .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())

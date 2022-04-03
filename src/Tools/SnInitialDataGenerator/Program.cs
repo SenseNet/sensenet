@@ -201,7 +201,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
-                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
                 .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())

@@ -253,7 +253,6 @@ namespace SenseNet.Tests.Core
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
-                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
                 .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())

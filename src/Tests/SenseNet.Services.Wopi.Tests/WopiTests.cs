@@ -1637,7 +1637,8 @@ namespace SenseNet.Services.Wopi.Tests
 
             var builder = CreateRepositoryBuilderForTest(context);
 
-            builder.UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
+            builder
+//.UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer());
 
