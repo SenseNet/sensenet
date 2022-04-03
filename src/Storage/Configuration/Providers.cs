@@ -236,7 +236,7 @@ namespace SenseNet.Configuration
         #endregion
 
         public ISecurityDataProvider SecurityDataProvider { get; set; }
-        public IMessageProvider SecurityMessageProvider { get; set; }
+        public IMessageProvider SecurityMessageProvider { get; }
 
         public SecurityHandler SecurityHandler { get; }
         public IPasswordHashProvider PasswordHashProvider { get; }
@@ -244,7 +244,7 @@ namespace SenseNet.Configuration
 
         public IContentNamingProvider ContentNamingProvider { get; }
 
-        public IPreviewProvider PreviewProvider { get; set; }
+        public IPreviewProvider PreviewProvider { get; }
 
         public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; }
 
@@ -350,7 +350,7 @@ namespace SenseNet.Configuration
 
         public ITreeLockController TreeLock { get; set; } // Initialized by InitializeDataStore method in this instance.
 
-        public ITaskManager TaskManager { get; set; }
+        public ITaskManager TaskManager { get; }
 
         //===================================================================================== General provider API
 

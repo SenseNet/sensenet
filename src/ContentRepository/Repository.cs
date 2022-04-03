@@ -67,8 +67,8 @@ namespace SenseNet.ContentRepository
 
             if (Providers.Instance.SecurityDataProvider == null)
                 Providers.Instance.SecurityDataProvider = builder.Services?.GetService<ISecurityDataProvider>();
-            if (Providers.Instance.SecurityMessageProvider == null)
-                Providers.Instance.SecurityMessageProvider = builder.Services?.GetService<IMessageProvider>();
+//if (Providers.Instance.SecurityMessageProvider == null)
+//    Providers.Instance.SecurityMessageProvider = builder.Services?.GetService<IMessageProvider>();
             if (null == Providers.Instance.GetProvider<IExclusiveLockDataProvider>())
                 Providers.Instance.SetProvider(typeof(IExclusiveLockDataProvider),
                     builder.Services?.GetService<IExclusiveLockDataProvider>());

@@ -263,7 +263,6 @@ namespace SenseNet.Tests.Core
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))

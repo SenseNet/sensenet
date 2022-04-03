@@ -65,7 +65,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(GetSearchEngine())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider, services))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))

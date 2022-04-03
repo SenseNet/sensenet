@@ -85,7 +85,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .StartWorkflowEngine(false);
 
             var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider

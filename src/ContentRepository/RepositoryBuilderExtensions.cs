@@ -155,10 +155,11 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="securityMessageProvider">IMessageProvider instance that will handle security-related messages.</param>
+        [Obsolete("Do not use this method anymore. Register IMessageProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSecurityMessageProvider(this IRepositoryBuilder repositoryBuilder, IMessageProvider securityMessageProvider)
         {
-            Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
-            WriteLog("SecurityMessageProvider", securityMessageProvider);
+//Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
+//WriteLog("SecurityMessageProvider", securityMessageProvider);
 
             return repositoryBuilder;
         }

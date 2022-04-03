@@ -164,21 +164,7 @@ namespace SenseNet.Extensions.DependencyInjection
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
-//Providers.Instance.SearchManager = provider.GetRequiredService<ISearchManager>();
-//Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
-//Providers.Instance.IndexPopulator = provider.GetRequiredService<IIndexPopulator>();
 
-#pragma warning disable 618
-
-            var previewProvider = provider.GetService<IPreviewProvider>();
-            if (previewProvider != null)
-                Providers.Instance.PreviewProvider = previewProvider;
-
-            var taskManager = provider.GetService<ITaskManager>();
-            if (taskManager != null)
-                Providers.Instance.TaskManager = taskManager;
-
-#pragma warning restore 618
 
             var securityDataProvider = provider.GetService<ISecurityDataProvider>();
             if (securityDataProvider != null)

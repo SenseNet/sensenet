@@ -143,7 +143,6 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSecurityDataProvider(securityDbProvider ?? services.GetRequiredService<ISecurityDataProvider>())
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)

@@ -178,8 +178,6 @@ namespace WebAppTests
 
                 // Security
                 {typeof(ISecurityDataProvider), typeof(MemoryDataProvider)},
-                //{typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-
                 {typeof(ElevatedModificationVisibilityRule), typeof(ElevatedModificationVisibilityRule)},
 
                 // ????

@@ -212,7 +212,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
