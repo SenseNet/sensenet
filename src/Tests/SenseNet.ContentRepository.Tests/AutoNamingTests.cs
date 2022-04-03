@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
+using SenseNet.Storage;
 using SenseNet.Testing;
 
 namespace SenseNet.ContentRepository.Tests
@@ -42,10 +43,12 @@ namespace SenseNet.ContentRepository.Tests
                 (ContentNamingProvider)new Underscore5FContentNamingProvider()
             };
 
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
             foreach (var namingProvider in namingProviders)
             {
-                Providers.Instance.ContentNamingProvider = namingProvider;
+                var services = new ServiceCollection()
+                    .AddSingleton<IContentNamingProvider>(namingProvider)
+                    .BuildServiceProvider();
+                Providers.Instance = new Providers(services);
 
                 var providerName = namingProvider.GetType().Name;
 

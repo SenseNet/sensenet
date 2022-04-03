@@ -238,11 +238,11 @@ namespace SenseNet.Configuration
         public ISecurityDataProvider SecurityDataProvider { get; set; }
         public IMessageProvider SecurityMessageProvider { get; set; }
 
-        public SecurityHandler SecurityHandler { get; set; }
-        public IPasswordHashProvider PasswordHashProvider { get; set; }
-        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; set; }
+        public SecurityHandler SecurityHandler { get; }
+        public IPasswordHashProvider PasswordHashProvider { get; }
+        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; }
 
-        public IContentNamingProvider ContentNamingProvider { get; set; }
+        public IContentNamingProvider ContentNamingProvider { get; }
 
         public IPreviewProvider PreviewProvider { get; set; }
 
