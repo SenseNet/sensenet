@@ -224,22 +224,19 @@ namespace SenseNet.Extensions.DependencyInjection
             return repositoryBuilder;
         }
 
+        [Obsolete("Do not use this method anymore. Register ISearchManager as a service instead.", true)]
         public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
         {
-            Configuration.Providers.Instance.SearchManager = searchManager;
-            WriteLog("SearchManager", searchManager);
             return repositoryBuilder;
         }
+        [Obsolete("Do not use this method anymore. Register IIndexManager as a service instead.", true)]
         public static IRepositoryBuilder UseIndexManager(this IRepositoryBuilder repositoryBuilder, IIndexManager indexManager)
         {
-            Configuration.Providers.Instance.IndexManager = indexManager;
-            WriteLog("IndexManager", indexManager);
             return repositoryBuilder;
         }
+        [Obsolete("Do not use this method anymore. Register IIndexPopulator as a service instead.", true)]
         public static IRepositoryBuilder UseIndexPopulator(this IRepositoryBuilder repositoryBuilder, IIndexPopulator indexPopulator)
         {
-            Configuration.Providers.Instance.IndexPopulator = indexPopulator;
-            WriteLog("IndexPopulator", indexPopulator);
             return repositoryBuilder;
         }
 

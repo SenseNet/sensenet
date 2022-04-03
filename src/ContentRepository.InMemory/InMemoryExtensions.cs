@@ -52,8 +52,10 @@ namespace SenseNet.Extensions.DependencyInjection
             // Precedence: if a service is registered in the collection, use that
             // instead of creating instances locally.
             var services = (repositoryBuilder as RepositoryBuilder)?.Services;
+            if (services == null)
+                throw new ApplicationException("IServiceProvider cannot be found");
 
-            if (services?.GetService<DataProvider>() is InMemoryDataProvider dataProvider)
+            if (services.GetService<DataProvider>() is InMemoryDataProvider dataProvider)
             {
                 // If there is an instance in the container, use that. We have to set
                 // these instances manually instead of using the extension method so that
@@ -63,14 +65,12 @@ namespace SenseNet.Extensions.DependencyInjection
             }
             else
             {
-                dataProvider = new InMemoryDataProvider();
-                repositoryBuilder.UseDataProvider(dataProvider);
+                throw new ApplicationException("InMemoryDataProvider cannot be found");
             }
 
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var dataStore = Providers.Instance.DataStore;
-            var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
@@ -83,10 +83,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
-                .UseSearchManager(new SearchManager(dataStore))
-                .UseIndexManager(new IndexManager(dataStore, Providers.Instance.SearchManager))
-                .UseIndexPopulator(new DocumentPopulator(dataStore, Providers.Instance.IndexManager))
-                .UseSearchEngine(searchEngine)
+                .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                 .StartWorkflowEngine(false);

@@ -607,15 +607,18 @@ namespace SenseNet.ContentRepository.Tests
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
                         .UseInitialData(null)
-                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-                    .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
+//.UseSearchManager(new SearchManager(Providers.Instance.DataStore))
+//.UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
+//.UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                         .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                         .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                         .AddBlobProvider(blobProvider);
+                    Providers.Instance.SearchManager = new SearchManager(Providers.Instance.DataStore);
+                    Providers.Instance.IndexManager = new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager);
+                    Providers.Instance.IndexPopulator = new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager);
                 }, () =>
                 {
                     // Do nothing but started successfully

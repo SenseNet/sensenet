@@ -67,6 +67,11 @@ namespace SenseNet.Configuration
             ContentNamingProvider = services.GetService<IContentNamingProvider>();
             TaskManager = services.GetService<ITaskManager>();
             ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
+
+            SearchManager = services.GetService<ISearchManager>();
+            IndexManager = services.GetService<IIndexManager>();
+            IndexPopulator = services.GetService<IIndexPopulator>();
+
         }
 
         /// <summary>
@@ -208,9 +213,9 @@ namespace SenseNet.Configuration
         }
 
         public ISearchEngine SearchEngine { get; set; }
-        public ISearchManager SearchManager { get; set; }
-        public IIndexManager IndexManager { get; set; }
-        public IIndexPopulator IndexPopulator { get; set; }
+        public ISearchManager SearchManager { get; [Obsolete]set; }
+        public IIndexManager IndexManager { get; [Obsolete]set; }
+        public IIndexPopulator IndexPopulator { get; [Obsolete]set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
