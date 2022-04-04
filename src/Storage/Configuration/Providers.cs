@@ -68,10 +68,10 @@ namespace SenseNet.Configuration
             TaskManager = services.GetService<ITaskManager>();
             ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
 
-            SetProvider(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
-            SetProvider(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
-            SetProvider(typeof(IAccessTokenDataProvider), services.GetService<IAccessTokenDataProvider>());
-            SetProvider(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
+            SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
+            SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
+            SetProviderPrivate(typeof(IAccessTokenDataProvider), services.GetService<IAccessTokenDataProvider>());
+            SetProviderPrivate(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
 
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
@@ -395,6 +395,10 @@ namespace SenseNet.Configuration
         }
         [Obsolete]
         public void SetProvider(Type providerType, object provider)
+        {
+            SetProviderPrivate(providerType, provider);
+        }
+        private void SetProviderPrivate(Type providerType, object provider)
         {
             _providersByType[providerType] = provider;
         }

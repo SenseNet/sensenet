@@ -1,4 +1,5 @@
-﻿using SenseNet.Configuration;
+﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools;
 
@@ -14,10 +15,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseExclusiveLockDataProvider(this IRepositoryBuilder builder, 
-            IExclusiveLockDataProvider provider)
+        [Obsolete("Do not use this method anymore. Register IExclusiveLockDataProvider as a service instead.", true)]
+        public static IRepositoryBuilder UseExclusiveLockDataProvider(this IRepositoryBuilder builder, IExclusiveLockDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(IExclusiveLockDataProvider), provider);
             return builder;
         }
     }

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -99,9 +101,12 @@ namespace SenseNet.ContentRepository.Tests
 
         private void Initialize()
         {
+            var services = new ServiceCollection()
+                .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
+                .BuildServiceProvider();
+            Providers.Instance = new Providers(services);
+
             Providers.Instance.DataProvider = GetMainDataProvider();
-            Providers.Instance.SetProvider(typeof(IExclusiveLockDataProvider), 
-                GetDataProvider());
             SnTrace.Custom.Enabled = true;
             SnTrace.System.Enabled = true;
         }
