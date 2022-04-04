@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BackgroundOperations;
@@ -50,7 +51,10 @@ namespace WebAppTests
     public class ServicesTests : TestBase
     {
         #region Infrastructure
-        private void StartupServicesTest<T>(IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations)
+        private void StartupServicesTest<T>(
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            Type[] includedProvidersByType, string[] includedProvidersByName,
+            IEnumerable<string> excludedProviderPropertyNames = null)
         {
             var configurationBuilder = new ConfigurationBuilder();
             //configuration.AddJsonFile("appSettings.json")
@@ -69,14 +73,26 @@ namespace WebAppTests
             startupAcc.Invoke("ConfigureServices", new[] {typeof(IServiceCollection) }, new[] { serviceCollection });
 
             // ASSERT
-            AssertServices(serviceCollection, platformSpecificExpectations, customizedExpectations);
+            AssertServices(serviceCollection,
+                platformSpecificExpectations, customizedExpectations,
+                includedProvidersByType, includedProvidersByName,
+                excludedProviderPropertyNames);
         }
 
-        private void AssertServices(IServiceCollection serviceCollection, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations)
+        private void AssertServices(IServiceCollection serviceCollection,
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            Type[] includedProvidersByType, string[] includedProvidersByName,
+            IEnumerable<string> excludedProviderPropertyNames = null)
         {
-            AssertServices(true, serviceCollection.BuildServiceProvider(), platformSpecificExpectations, customizedExpectations);
+            AssertServices(true, serviceCollection.BuildServiceProvider(),
+                platformSpecificExpectations, customizedExpectations,
+                includedProvidersByType, includedProvidersByName,
+                excludedProviderPropertyNames);
         }
-        private void AssertServices(bool useHosting, IServiceProvider services, IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations = null)
+        private void AssertServices(bool useHosting, IServiceProvider services,
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            Type[] includedProvidersByType, string[] includedProvidersByName,
+            IEnumerable<string> excludedProviderPropertyNames = null)
         {
             if (useHosting)
             {
@@ -102,7 +118,7 @@ namespace WebAppTests
                 .Count(x => x.Value != expectation[x.Key]), GetMessageForDifferences(dump, expectation));
             Assert.AreEqual(0, dump.Values.Count(x => x == null), GetMessageForNulls(dump));
 
-            AssertProvidersInstance();
+            AssertProvidersInstance(includedProvidersByType, includedProvidersByName, excludedProviderPropertyNames ?? Array.Empty<string>());
         }
         private string GetMessageForDifferences(Dictionary<Type, Type> dump, IDictionary<Type, Type> expectation)
         {
@@ -224,7 +240,8 @@ namespace WebAppTests
                 //{typeof(IQueryEngine), typeof(Lucene29LocalQueryEngine)},
             };
         }
-        private void AssertProvidersInstance()
+        private void AssertProvidersInstance(Type[] includedProvidersByType, string[] includedProvidersByName,
+            IEnumerable<string> excludedPropertyNames)
         {
             var pi = Providers.Instance;
             Assert.IsNotNull(pi);
@@ -249,7 +266,8 @@ namespace WebAppTests
             Assert.IsNotNull(pi.PasswordHashProviderForMigration);
             Assert.IsNotNull(pi.ContentNamingProvider);
             Assert.IsNotNull(pi.PreviewProvider);
-     //? inmem only?       Assert.IsNotNull(pi.ElevatedModificationVisibilityRuleProvider);
+            if(!excludedPropertyNames.Contains(nameof(pi.ElevatedModificationVisibilityRuleProvider)))
+                Assert.IsNotNull(pi.ElevatedModificationVisibilityRuleProvider);
             Assert.IsNotNull(pi.MembershipExtender);
             Assert.IsNotNull(pi.CacheProvider);
             Assert.IsNotNull(pi.ApplicationCacheProvider);
@@ -268,59 +286,110 @@ namespace WebAppTests
             //Assert.IsTrue(pi.AsyncEventProcessors.Count > 0);
             Assert.IsTrue(pi.Components.Count > 0);
 
-            //private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();
-            //private readonly Dictionary<Type, object> _providersByType = new Dictionary<Type, object>();
+            var providersMessage = GetProvidersMessage(includedProvidersByType, includedProvidersByName);
+            if(providersMessage != null)
+                Assert.Fail(providersMessage);
         }
+        private string GetProvidersMessage(Type[] includedProvidersByType, string[] includedProvidersByName)
+        {
+            var pi = Providers.Instance;
+            string providersMessage = null;
+
+            var unexpectedNames = pi.ProvidersByName.Keys.Except(includedProvidersByName).ToArray();
+            var missingNames = includedProvidersByName.Except(pi.ProvidersByName.Keys).ToArray();
+            if (unexpectedNames.Length > 0)
+                providersMessage = $"Unexpected providers by name: {string.Join(", ", unexpectedNames)}. ";
+            if (missingNames.Length > 0)
+                providersMessage += $"Missing providers by name: {string.Join(", ", missingNames)}. ";
+
+            var unexpectedTypes = pi.ProvidersByType.Keys.Except(includedProvidersByType).Select(t => t.Name).ToArray();
+            var missingTypes = includedProvidersByType.Except(pi.ProvidersByType.Keys).Select(t => t.Name).ToArray();
+            if (unexpectedTypes.Length > 0)
+                providersMessage += $"Unexpected providers by type: {string.Join(", ", unexpectedTypes)}. ";
+            if (missingTypes.Length > 0)
+                providersMessage += $"Missing providers by type: {string.Join(", ", missingTypes)}. ";
+
+            return providersMessage;
+        }
+
+        private readonly Type[] _defaultIncludedProvidersByType = new[]
+        {
+            typeof(ISharedLockDataProvider),
+            typeof(IExclusiveLockDataProvider),
+            typeof(IAccessTokenDataProvider),
+            typeof(IPackagingDataProvider),
+            typeof(IStatisticalDataProvider),
+            typeof(ISnTracer[]),
+            typeof(ILogger<SnILogger>),
+        };
+        private readonly string[] _defaultIncludedProvidersByName = Array.Empty<string>();
 
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(GetInMemoryPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_InMem_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(GetInMemoryPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
         }
-
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(
+                platformSpecificExpectations: GetMsSqlPlatform(),
+                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName,
+                excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
+            );
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(
+                platformSpecificExpectations: GetMsSqlPlatform(),
+                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName,
+                excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
+            );
         }
 
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_Admin()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(
+                platformSpecificExpectations: GetMsSqlPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                    {{typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName,
+                excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
+            );
         }
         [TestMethod, TestCategory("Services")]
         public void WebApp_Services_Api_Sql_SearchService_TokenAuth()
         {
-            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(GetMsSqlPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
-            });
+            StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(
+                platformSpecificExpectations: GetMsSqlPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                    {{typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},},
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName,
+                excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
+            );
         }
 
         /* ========================================================================= Test tests */
@@ -335,11 +404,16 @@ namespace WebAppTests
             var services = new TestClassForTestingServices().CreateServiceProvider();
 
             // ASSERT
-            AssertServices(true, services, GetInMemoryPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
-            });
+            AssertServices(true, services,
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                },
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
         }
 
         [TestMethod, TestCategory("Services")]
@@ -353,11 +427,16 @@ namespace WebAppTests
             platform.BuildServices(configuration, services);
 
             // ASSERT
-            AssertServices(services, GetInMemoryPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
-            });
+            AssertServices(services,
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                },
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
         }
         [TestMethod, TestCategory("Services")]
         public void Test_Services_Integration_MsSql()
@@ -372,11 +451,18 @@ namespace WebAppTests
             platform.BuildServices(configuration, services);
 
             // ASSERT
-            AssertServices(services, GetMsSqlPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
-            });
+            AssertServices(services,
+                platformSpecificExpectations: GetMsSqlPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
+                },
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName,
+                excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
+            );
+
         }
 
         [TestMethod, TestCategory("Services")]
@@ -387,12 +473,18 @@ namespace WebAppTests
             var services = builder.Services;
 
             // ASSERT
-            AssertServices(true, services, GetInMemoryPlatform(), new Dictionary<Type, Type>
-            {
-                {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                {typeof(ISearchEngine), typeof(SearchEngineForInitialDataGenerator)}, // overrides the platform's service
-            });
+            AssertServices(true, services,
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {
+                        typeof(ISearchEngine), typeof(SearchEngineForInitialDataGenerator)
+                    }, // overrides the platform's service
+                },
+                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
         }
-
     }
 }

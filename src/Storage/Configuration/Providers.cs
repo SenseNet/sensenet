@@ -360,7 +360,10 @@ namespace SenseNet.Configuration
         //===================================================================================== General provider API
 
         private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();
+        public Dictionary<string, object> ProvidersByName => _providersByName;
+
         private readonly Dictionary<Type, object> _providersByType = new Dictionary<Type, object>();
+        public Dictionary<Type, object> ProvidersByType => _providersByType;
 
         public virtual T GetProvider<T>(string name) where T: class 
         {
