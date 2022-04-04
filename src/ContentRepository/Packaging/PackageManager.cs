@@ -37,12 +37,6 @@ namespace SenseNet.Packaging
             PackageParameter[] parameters, TextWriter console, 
             RepositoryBuilder builder, bool editConnectionString = false)
         {
-            // Workaround for setting the packaging db provider: in normal cases this happens
-            // when the repository starts, but in case of package execution the repository 
-            // is not yet started sometimes.
-            if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), builder.Services.GetRequiredService<IPackagingDataProvider>());
-
             var packageParameters = parameters ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters
                 .FirstOrDefault(p => p.PropertyName.ToLowerInvariant() == "forcedreinstall")?

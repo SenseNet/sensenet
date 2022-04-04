@@ -225,6 +225,11 @@ namespace SenseNet.Tests.Core
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
         }
+        protected virtual IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null,
+            Action<IServiceCollection> modifyServices = null)
+        {
+            return CreateServiceProviderForTest(modifyConfig, modifyServices);
+        }
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest(TestContext testContext, Action<IServiceCollection> modifyServices = null)
         {
@@ -256,7 +261,6 @@ namespace SenseNet.Tests.Core
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

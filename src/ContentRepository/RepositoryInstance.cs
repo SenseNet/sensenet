@@ -134,8 +134,6 @@ namespace SenseNet.ContentRepository
 
             LoadAssemblies(_settings.IsWebContext);
 
-            InitializeDataProviderExtensions();
-
             _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.IsWebContext, _settings.Services);
 
             //UNDONE: modernize TemplateManager
@@ -324,14 +322,6 @@ namespace SenseNet.ContentRepository
         }
 
         private List<ISnService> _serviceInstances;
-
-        //UNDONE:CNSTR: Delete this method
-        private void InitializeDataProviderExtensions()
-        {
-            // set default value of well-known data provider extensions
-            if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), _settings.Services.GetRequiredService<IPackagingDataProvider>());
-        }
 
         private static void InitializeOAuthProviders()
         {

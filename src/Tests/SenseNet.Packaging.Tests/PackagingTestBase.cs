@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -39,9 +40,10 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var builder = CreateRepositoryBuilderForTest(TestContext);
-
-            builder.UsePackagingDataProvider(new InMemoryPackageStorageProvider());
+            var builder = CreateRepositoryBuilderForTest(TestContext, services =>
+            {
+                services.AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>();
+            });
 
             RepositoryVersionInfo.Reset();
         }
@@ -51,12 +53,20 @@ namespace SenseNet.Packaging.Tests
             // do nothing
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
-        {
-            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
-            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
+//protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
+//{
+//    var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
+//    builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
-            return builder;
+//    return builder;
+//}
+        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        {
+            return base.CreateServiceProviderForTestInstance(null, services =>
+            {
+                services.AddSingleton<IPackagingDataProvider, TestPackageStorageProvider>();
+                modifyServices?.Invoke(services);
+            });
         }
 
         /*================================================= tools */

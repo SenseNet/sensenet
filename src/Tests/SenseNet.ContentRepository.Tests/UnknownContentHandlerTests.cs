@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
@@ -17,12 +19,13 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class UnknownContentHandlerTests : TestBase
     {
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
+        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
-            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
-
-            return builder;
+            return base.CreateServiceProviderForTestInstance(null, services =>
+            {
+                services.AddSingleton<IPackagingDataProvider, TestPackageStorageProvider>();
+                modifyServices?.Invoke(services);
+            });
         }
 
         [TestMethod]

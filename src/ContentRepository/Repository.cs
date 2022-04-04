@@ -67,10 +67,6 @@ namespace SenseNet.ContentRepository
 
             if (Providers.Instance.SecurityDataProvider == null)
                 Providers.Instance.SecurityDataProvider = builder.Services?.GetService<ISecurityDataProvider>();
-            if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider),
-                    builder.Services?.GetRequiredService<IPackagingDataProvider>());
-
 
             Providers.Instance.InitializeDataProvider(builder.Services);
             Providers.Instance.InitializeBlobProviders(connectionStrings?.Value ?? new ConnectionStringOptions());
