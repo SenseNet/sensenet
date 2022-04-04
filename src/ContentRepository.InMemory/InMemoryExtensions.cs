@@ -79,7 +79,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
                 .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))

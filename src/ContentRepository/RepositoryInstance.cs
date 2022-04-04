@@ -331,8 +331,6 @@ namespace SenseNet.ContentRepository
             // set default value of well-known data provider extensions
             if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
                 Providers.Instance.SetProvider(typeof(IPackagingDataProvider), _settings.Services.GetRequiredService<IPackagingDataProvider>());
-            if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), _settings.Services.GetRequiredService<IAccessTokenDataProvider>());
         }
 
         private static void InitializeOAuthProviders()

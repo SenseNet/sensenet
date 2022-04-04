@@ -326,13 +326,13 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder()
-                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider());
-
-            using (Repository.Start(repoBuilder))
+            Test2(services =>
+            {
+                services.AddSingleton<IAccessTokenDataProvider, TestAccessTokenDataProvider>();
+            }, () =>
             {
                 Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
-            }
+            });
         }
 
         [TestMethod]

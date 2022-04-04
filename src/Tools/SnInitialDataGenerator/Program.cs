@@ -205,7 +205,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
                 //.AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
                 .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
