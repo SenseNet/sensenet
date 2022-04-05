@@ -21,5 +21,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Wopi.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.WebHooks.Tests")]
+[assembly: InternalsVisibleTo("WebAppTests")]
 
 [assembly: AssemblyTrademark("Sense/Net Inc.")]

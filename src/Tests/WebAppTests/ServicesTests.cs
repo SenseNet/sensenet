@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -10,31 +12,44 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BackgroundOperations;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security.ApiKeys;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
+using SenseNet.Packaging;
 using SenseNet.Preview;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
+using SenseNet.Search.Lucene29.Centralized.Common;
+using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Cors;
+using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.TaskManagement.Core;
@@ -43,6 +58,7 @@ using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools.Diagnostics;
 using SenseNet.Tools.SnInitialDataGenerator;
+using SenseNet.WebHooks;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace WebAppTests
@@ -109,9 +125,24 @@ namespace WebAppTests
                 foreach (var item in customizedExpectations)
                     expectation[item.Key] = item.Value;
 
+            var allServiceDescriptors = GetAllServiceDescriptors(services);
+            var snServiceDescriptors = allServiceDescriptors
+                .Where(x =>
+                    (x.Key?.FullName?.Contains("SenseNet.") ?? false) ||
+                    (
+                        (x.Value?.ServiceType?.FullName ?? "null") +
+                        (x.Value?.ImplementationType?.FullName ?? "null") +
+                        (x.Value?.ImplementationInstance?.GetType().FullName ?? "null")
+                    ).Contains("SenseNet.")
+                ).ToDictionary(x => x.Key, x => x.Value);
+            var unexpectedSnServices = snServiceDescriptors.Keys.Except(expectation.Keys)
+                .Where(x=>x.Namespace != "Microsoft.Extensions.Options")
+                .ToDictionary(x => x, x => snServiceDescriptors[x]);
+
+
             var dump = expectation.ToDictionary(
                 x => x.Key,
-                x => services.GetService(x.Key)?.GetType());
+                x => /*GetServiceOrServices(services, expectation, x.Key)*/ services.GetService(x.Key)?.GetType());
 
             Assert.AreEqual(0, dump
                 .Where(x => x.Value != null)
@@ -119,7 +150,98 @@ namespace WebAppTests
             Assert.AreEqual(0, dump.Values.Count(x => x == null), GetMessageForNulls(dump));
 
             AssertProvidersInstance(includedProvidersByType, includedProvidersByName, excludedProviderPropertyNames ?? Array.Empty<string>());
+
+            if(_assertUnexpectedSnServices)
+                Assert.AreEqual(_postponedInUnexpectedCheck.Length, unexpectedSnServices.Count, ServiceEntriesToString(unexpectedSnServices));
         }
+
+        private object GetServiceOrServices(IServiceProvider services, IDictionary<Type, object> expectation, Type key)
+        {
+            if (!expectation.TryGetValue(key, out var exp))
+                return null;
+            if (exp is Type[])
+                return services.GetServices(key)?.Select(x => x.GetType()).ToArray();
+            return services.GetService(key)?.GetType();
+        }
+
+        public static Dictionary<Type, ServiceDescriptor> GetAllServiceDescriptors(IServiceProvider provider)
+        {
+            if (provider is ServiceProvider serviceProvider)
+            {
+                var result = new Dictionary<Type, ServiceDescriptor>();
+
+                var engine = GetFieldValue(serviceProvider, "_engine");
+                var callSiteFactory = GetPropertyValue(engine, "CallSiteFactory");
+                var descriptorLookup = GetFieldValue(callSiteFactory, "_descriptorLookup");
+                if (descriptorLookup is IDictionary dictionary)
+                {
+                    foreach (DictionaryEntry entry in dictionary)
+                    {
+                        result.Add((Type)entry.Key, (ServiceDescriptor)GetPropertyValue(entry.Value, "Last"));
+                    }
+                }
+
+                return result;
+            }
+
+            throw new NotSupportedException($"Type '{provider.GetType()}' is not supported!");
+        }
+        public static object GetFieldValue(object obj, string fieldName)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+            Type objType = obj.GetType();
+            var fieldInfo = GetFieldInfo(objType, fieldName);
+            if (fieldInfo == null)
+                throw new ArgumentOutOfRangeException(fieldName,
+                    $"Couldn't find field {fieldName} in type {objType.FullName}");
+            return fieldInfo.GetValue(obj);
+        }
+        private static FieldInfo GetFieldInfo(Type type, string fieldName)
+        {
+            FieldInfo fieldInfo = null;
+            do
+            {
+                fieldInfo = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                type = type.BaseType;
+            } while (fieldInfo == null && type != null);
+
+            return fieldInfo;
+        }
+        public static object GetPropertyValue(object obj, string propertyName)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+            Type objType = obj.GetType();
+            var propertyInfo = GetPropertyInfo(objType, propertyName);
+            if (propertyInfo == null)
+                throw new ArgumentOutOfRangeException(propertyName,
+                    $"Couldn't find property {propertyName} in type {objType.FullName}");
+            return propertyInfo.GetValue(obj, null);
+        }
+        private static PropertyInfo GetPropertyInfo(Type type, string propertyName)
+        {
+            PropertyInfo propertyInfo = null;
+            do
+            {
+                propertyInfo = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                type = type.BaseType;
+            } while (propertyInfo == null && type != null);
+
+            return propertyInfo;
+        }
+
+        private string ServiceEntriesToString(Dictionary<Type, ServiceDescriptor> unexpectedSnServices)
+        {
+            //var lines = unexpectedSnServices.Select(x => x.ToString()).ToArray();
+            var lines = unexpectedSnServices.Select(x => x.Key.Name)
+//UNDONE:xxxxxxxxxxxxxxxxx Delete _postponedInUnexpectedCheck
+.Except(_postponedInUnexpectedCheck)
+                .ToArray();
+            return string.Join(" ", lines);
+        }
+
+
         private string GetMessageForDifferences(Dictionary<Type, Type> dump, IDictionary<Type, Type> expectation)
         {
             var diffs = dump.Where(x => x.Value != expectation[x.Key])
@@ -135,14 +257,17 @@ namespace WebAppTests
         }
         #endregion
 
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetCors()
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetIdentityServerClients()
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetDefaultClientManager()
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetApiKeys()
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetEmailManager(...
-        //UNDONE:ServicesTest: Resolve method .AddSenseNetRegistration()
-        //UNDONE:ServicesTest: Resolve method .AddStatistics()
-        //UNDONE:ServicesTest: Resolve "add maintenance tasks"
+        private bool _assertUnexpectedSnServices = true;
+        //UNDONE:xxxxxxxxxxxxxxxxx Delete _postponedInUnexpectedCheck
+        private readonly string[] _postponedInUnexpectedCheck = new[]
+        {
+            "ISnClientRequestParametersProvider",
+            "ClientStore", 
+            "IStatisticalDataAggregator",
+            "IMaintenanceTask",
+            "IHostedService",
+            "ISnComponent"
+        };
 
         private IDictionary<Type, Type> GetGeneralizedExpectations()
         {
@@ -178,6 +303,32 @@ namespace WebAppTests
 
                 // Not used?
                 {typeof(IApplicationCache), typeof(ApplicationCache)},
+
+                // Not categorized
+                {typeof(ISnCache), typeof(SnMemoryCache)},
+                {typeof(IIndexDocumentProvider), typeof(IndexDocumentProvider)},
+                {typeof(IEventPropertyCollector), typeof(EventPropertyCollector)},
+                {typeof(IContentNamingProvider), typeof(CharReplacementContentNamingProvider)},
+                {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
+                
+                // error: {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
+                // error: {typeof(ClientStore), typeof(ClientStore)},
+                {typeof(IClientManager), typeof(DefaultClientManager)},
+                {typeof(IApiKeyManager), typeof(ApiKeyManager)},
+                {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
+                {typeof(IEmailSender), typeof(EmailSender)},
+                {typeof(DefaultRegistrationProvider), typeof(DefaultRegistrationProvider)},
+                {typeof(RegistrationProviderStore), typeof(RegistrationProviderStore)},
+                {typeof(IStatisticalDataCollector), typeof(StatisticalDataCollector)},
+                {typeof(WebTransferRegistrator), typeof(WebTransferRegistrator)},
+                //{typeof(IStatisticalDataAggregator), typeof(IEnumerable<IStatisticalDataAggregator>)}, // DatabaseUsageStatisticalDataAggregator, WebTransferStatisticalDataAggregator, WebHookStatisticalDataAggregator
+                //{typeof(IStatisticalDataAggregator), typeof((DatabaseUsageStatisticalDataAggregator, WebTransferStatisticalDataAggregator, WebHookStatisticalDataAggregator))},
+                {typeof(IStatisticalDataAggregationController), typeof(StatisticalDataAggregationController)},
+                {typeof(IDatabaseUsageHandler), typeof(DatabaseUsageHandler)},
+                {typeof(IDataStore), typeof(DataStore)},
+                //{typeof(IMaintenanceTask), typeof(IEnumerable<IMaintenanceTask>)}, // StatisticalDataCollectorMaintenanceTask ReindexBinariesTask StatisticalDataAggregationMaintenanceTask CleanupFilesTask StartActiveDirectorySynchronizationTask AccessTokenCleanupTask SharedLockCleanupTask TestMaintenanceTask
+                {typeof(IMessageSenderManager), typeof(MessageSenderManager)},
+
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -202,6 +353,9 @@ namespace WebAppTests
                 {typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
                 {typeof(IAuditEventWriter), typeof(InactiveAuditEventWriter)},
+
+                {typeof(IClientStoreDataProvider), typeof(InMemoryClientStoreDataProvider)},
+                {typeof(IStatisticalDataProvider), typeof(InMemoryStatisticalDataProvider)},
 
                 //UNDONE: Add to services
                 //{typeof(ISearchEngine), typeof(InMemorySearchEngine)},
@@ -232,6 +386,9 @@ namespace WebAppTests
                 {typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
                 {typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
                 {typeof(IAuditEventWriter), typeof(DatabaseAuditEventWriter)},
+
+                {typeof(IClientStoreDataProvider), typeof(MsSqlClientStoreDataProvider)},
+                {typeof(IStatisticalDataProvider), typeof(MsSqlStatisticalDataProvider)},
 
                 //UNDONE: Add to services
                 //{typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
@@ -329,7 +486,17 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
@@ -339,7 +506,17 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
@@ -349,7 +526,17 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                customizedExpectations: new Lucene.Net.Support.Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
@@ -360,7 +547,17 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type> {{typeof(IMessageProvider), typeof(DefaultMessageProvider)},},
+                customizedExpectations: new Dictionary<Type, Type>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
@@ -373,7 +570,22 @@ namespace WebAppTests
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
                 customizedExpectations: new Dictionary<Type, Type>
-                    {{typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},},
+                {
+                    {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+                    {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
+                    {typeof(IIndexingEngine), typeof(Lucene29CentralizedIndexingEngine)},
+                    {typeof(IQueryEngine), typeof(Lucene29CentralizedQueryEngine)},
+                    {typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
+                    {typeof(ISearchServiceClient), typeof(GrpcServiceClient)},
+                    {typeof(IClusterMessageFormatter), typeof(BinaryMessageFormatter)},
+                    {typeof(IClusterChannel), typeof(SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
@@ -385,7 +597,22 @@ namespace WebAppTests
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
                 customizedExpectations: new Dictionary<Type, Type>
-                    {{typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},},
+                {
+                    {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+                    {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
+                    {typeof(IIndexingEngine), typeof(Lucene29CentralizedIndexingEngine)},
+                    {typeof(IQueryEngine), typeof(Lucene29CentralizedQueryEngine)},
+                    {typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
+                    {typeof(ISearchServiceClient), typeof(GrpcServiceClient)},
+                    {typeof(IClusterMessageFormatter), typeof(BinaryMessageFormatter)},
+                    {typeof(IClusterChannel), typeof(SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider)},
+
+                    {typeof(IWebHookClient), typeof(HttpWebHookClient)},
+                    {typeof(TemplateReplacerBase), typeof(WebHooksTemplateReplacer)},
+                    {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
+                    {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
+                    {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+                },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
@@ -410,6 +637,7 @@ namespace WebAppTests
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -433,6 +661,7 @@ namespace WebAppTests
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
