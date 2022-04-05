@@ -68,7 +68,7 @@ namespace WebAppTests
     {
         #region Infrastructure
         private void StartupServicesTest<T>(
-            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, object> customizedExpectations,
             Type[] includedProvidersByType, string[] includedProvidersByName,
             IEnumerable<string> excludedProviderPropertyNames = null)
         {
@@ -96,7 +96,7 @@ namespace WebAppTests
         }
 
         private void AssertServices(IServiceCollection serviceCollection,
-            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, object> customizedExpectations,
             Type[] includedProvidersByType, string[] includedProvidersByName,
             IEnumerable<string> excludedProviderPropertyNames = null)
         {
@@ -106,7 +106,7 @@ namespace WebAppTests
                 excludedProviderPropertyNames);
         }
         private void AssertServices(bool useHosting, IServiceProvider services,
-            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, Type> customizedExpectations,
+            IDictionary<Type, Type> platformSpecificExpectations, IDictionary<Type, object> customizedExpectations,
             Type[] includedProvidersByType, string[] includedProvidersByName,
             IEnumerable<string> excludedProviderPropertyNames = null)
         {
@@ -120,7 +120,7 @@ namespace WebAppTests
             var expectation = GetGeneralizedExpectations();
             if(platformSpecificExpectations != null)
                 foreach (var item in platformSpecificExpectations)
-                    expectation.Add(item);
+                    expectation[item.Key] = item.Value;
             if(customizedExpectations != null)
                 foreach (var item in customizedExpectations)
                     expectation[item.Key] = item.Value;
@@ -142,11 +142,11 @@ namespace WebAppTests
 
             var dump = expectation.ToDictionary(
                 x => x.Key,
-                x => /*GetServiceOrServices(services, expectation, x.Key)*/ services.GetService(x.Key)?.GetType());
+                x => GetServiceOrServices(services, expectation, x.Key) /*services.GetService(x.Key)?.GetType()*/);
 
             Assert.AreEqual(0, dump
                 .Where(x => x.Value != null)
-                .Count(x => x.Value != expectation[x.Key]), GetMessageForDifferences(dump, expectation));
+                .Count(x => !TypesAreEquals(x.Value, expectation[x.Key])), GetMessageForDifferences(dump, expectation));
             Assert.AreEqual(0, dump.Values.Count(x => x == null), GetMessageForNulls(dump));
 
             AssertProvidersInstance(includedProvidersByType, includedProvidersByName, excludedProviderPropertyNames ?? Array.Empty<string>());
@@ -163,7 +163,7 @@ namespace WebAppTests
                 return services.GetServices(key)?.Select(x => x.GetType()).ToArray();
             return services.GetService(key)?.GetType();
         }
-
+        #region GetAllServiceDescriptors
         public static Dictionary<Type, ServiceDescriptor> GetAllServiceDescriptors(IServiceProvider provider)
         {
             if (provider is ServiceProvider serviceProvider)
@@ -230,6 +230,7 @@ namespace WebAppTests
 
             return propertyInfo;
         }
+        #endregion
 
         private string ServiceEntriesToString(Dictionary<Type, ServiceDescriptor> unexpectedSnServices)
         {
@@ -241,16 +242,39 @@ namespace WebAppTests
             return string.Join(" ", lines);
         }
 
+        private bool TypesAreEquals(object a, object b)
+            {
+                if (a is Type && b is Type)
+                    return a == b;
+                if (!(a is Type[] aa && b is Type[] bb))
+                    return false;
+                if (aa.Length != bb.Length)
+                    return false;
+                foreach (var t in aa)
+                    if (!bb.Contains(t))
+                        return false;
 
-        private string GetMessageForDifferences(Dictionary<Type, Type> dump, IDictionary<Type, Type> expectation)
+                return true;
+            }
+        private string GetMessageForDifferences(Dictionary<Type, object> dump, IDictionary<Type, object> expectation)
         {
-            var diffs = dump.Where(x => x.Value != expectation[x.Key])
+            string GetName(object a)
+            {
+                if (a == null)
+                    return "null";
+                if (a is Type t)
+                    return t.Name;
+                return $"[{string.Join(", ", ((Type[]) a).Select(x => x.Name))}]";
+            }
+            
+            var diffs = dump.Where(x => !TypesAreEquals(x.Value, expectation[x.Key]))
                 .Where(x => x.Value != null)
                 .ToDictionary(x => x.Key, x => (Actual: x.Value, Expected: expectation[x.Key]))
-                .Select(x => $"{x.Key.Name}: actual: {x.Value.Actual?.Name ?? "null"}, expected: {x.Value.Expected.Name}");
+                .Select(x => $"{x.Key.Name}: expected: {GetName(x.Value.Expected)}, actual: {GetName(x.Value.Actual)}")
+                .ToArray();
             return $"Different services: {string.Join(", ", diffs)}";
         }
-        private string GetMessageForNulls(IDictionary<Type, Type> dump)
+        private string GetMessageForNulls(IDictionary<Type, object> dump)
         {
             var nulls = dump.Where(x => x.Value == null).Select(x => x.Key.Name);
             return $"Missing services: {string.Join(", ", nulls)}";
@@ -263,15 +287,15 @@ namespace WebAppTests
         {
             "ISnClientRequestParametersProvider",
             "ClientStore", 
-            "IStatisticalDataAggregator",
+            //"IStatisticalDataAggregator",
             "IMaintenanceTask",
             "IHostedService",
             "ISnComponent"
         };
 
-        private IDictionary<Type, Type> GetGeneralizedExpectations()
+        private IDictionary<Type, object> GetGeneralizedExpectations()
         {
-            return new Dictionary<Type, Type>
+            return new Dictionary<Type, object>
             {
                 {typeof(IEventLogger), typeof(SnILogger)},
                 {typeof(ISnTracer), typeof(SnILoggerTracer)},
@@ -310,7 +334,7 @@ namespace WebAppTests
                 {typeof(IEventPropertyCollector), typeof(EventPropertyCollector)},
                 {typeof(IContentNamingProvider), typeof(CharReplacementContentNamingProvider)},
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
-                
+
                 // error: {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 // error: {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},
@@ -321,8 +345,10 @@ namespace WebAppTests
                 {typeof(RegistrationProviderStore), typeof(RegistrationProviderStore)},
                 {typeof(IStatisticalDataCollector), typeof(StatisticalDataCollector)},
                 {typeof(WebTransferRegistrator), typeof(WebTransferRegistrator)},
-                //{typeof(IStatisticalDataAggregator), typeof(IEnumerable<IStatisticalDataAggregator>)}, // DatabaseUsageStatisticalDataAggregator, WebTransferStatisticalDataAggregator, WebHookStatisticalDataAggregator
-                //{typeof(IStatisticalDataAggregator), typeof((DatabaseUsageStatisticalDataAggregator, WebTransferStatisticalDataAggregator, WebHookStatisticalDataAggregator))},
+                {typeof(IStatisticalDataAggregator), new[] {
+                    typeof(WebTransferStatisticalDataAggregator),
+                    typeof(DatabaseUsageStatisticalDataAggregator),
+                    typeof(WebHookStatisticalDataAggregator)}},
                 {typeof(IStatisticalDataAggregationController), typeof(StatisticalDataAggregationController)},
                 {typeof(IDatabaseUsageHandler), typeof(DatabaseUsageHandler)},
                 {typeof(IDataStore), typeof(DataStore)},
@@ -486,7 +512,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.InMem.Admin.Startup>(
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
@@ -506,7 +532,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.InMem.TokenAuth.Startup>(
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
@@ -526,7 +552,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.Admin.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Lucene.Net.Support.Dictionary<Type, Type>
+                customizedExpectations: new Lucene.Net.Support.Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
@@ -547,7 +573,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.TokenAuth.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
@@ -569,7 +595,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.Admin.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
@@ -596,7 +622,7 @@ namespace WebAppTests
         {
             StartupServicesTest<SnWebApplication.Api.Sql.SearchService.TokenAuth.Startup>(
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(SenseNet.Security.Messaging.RabbitMQ.RabbitMQMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
@@ -633,11 +659,14 @@ namespace WebAppTests
             // ASSERT
             AssertServices(true, services,
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
                     {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -657,11 +686,14 @@ namespace WebAppTests
             // ASSERT
             AssertServices(services,
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
                     {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -682,10 +714,13 @@ namespace WebAppTests
             // ASSERT
             AssertServices(services,
                 platformSpecificExpectations: GetMsSqlPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(ITestingDataProvider), typeof(MsSqlTestingDataProvider)},
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -704,12 +739,13 @@ namespace WebAppTests
             // ASSERT
             AssertServices(true, services,
                 platformSpecificExpectations: GetInMemoryPlatform(),
-                customizedExpectations: new Dictionary<Type, Type>
+                customizedExpectations: new Dictionary<Type, object>
                 {
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
-                    {
-                        typeof(ISearchEngine), typeof(SearchEngineForInitialDataGenerator)
-                    }, // overrides the platform's service
+                    {typeof(ISearchEngine), typeof(SearchEngineForInitialDataGenerator)}, // overrides the platform's service
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
