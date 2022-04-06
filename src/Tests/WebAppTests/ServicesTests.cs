@@ -291,6 +291,8 @@ namespace WebAppTests
                 {typeof(IEventLogger), typeof(SnILogger)},
                 {typeof(ISnTracer), typeof(SnILoggerTracer)},
 
+                {typeof(ITreeLockController), typeof(TreeLockController)},
+
                 {typeof(IBlobProviderStore), typeof(BlobProviderStore)},
                 {typeof(IBlobStorage), typeof(BlobStorage)},
                 {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
@@ -436,6 +438,7 @@ namespace WebAppTests
             Assert.IsNotNull(pi.AuditEventWriter);
             Assert.IsNotNull(pi.DataProvider);
             Assert.IsNotNull(pi.DataStore);
+            Assert.IsNotNull(pi.TreeLock);
             Assert.IsNotNull(pi.BlobMetaDataProvider);
             Assert.IsNotNull(pi.BlobProviderSelector);
 //Assert.IsNotNull(pi.BlobStorage);
@@ -465,7 +468,6 @@ namespace WebAppTests
             Assert.IsNotNull(pi.CompatibilitySupport);
             Assert.IsNotNull(pi.EventDistributor);
             //Assert.IsNotNull(pi.AuditLogEventProcessor);
-//Assert.IsNotNull(pi.TreeLock);
             Assert.IsNotNull(pi.TaskManager);
 
             Assert.IsTrue(pi.NodeObservers.Length > 0);

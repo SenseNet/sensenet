@@ -54,6 +54,11 @@ namespace SenseNet.Configuration
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
 
+            DataProvider = services.GetService<DataProvider>();
+            DataStore = services.GetService<IDataStore>();
+
+            TreeLock = services.GetService<ITreeLockController>();
+
             CacheProvider = services.GetService<ISnCache>();
             ApplicationCacheProvider = services.GetService<IApplicationCache>();
             IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
@@ -96,9 +101,9 @@ namespace SenseNet.Configuration
 
         #region DataProvider & DataStore
 
-        public virtual DataProvider DataProvider { get; set; }
+        public DataProvider DataProvider { get; set; }
 
-        public virtual IDataStore DataStore { get; set; }
+        public IDataStore DataStore { get; set; }
 
         /// <summary>
         /// Internal method for initializing the data provider and data store instances from the service container.
@@ -106,12 +111,9 @@ namespace SenseNet.Configuration
         /// </summary>
         public void InitializeDataProvider(IServiceProvider provider)
         {
-            DataProvider ??= provider?.GetRequiredService<DataProvider>();
-
-            if (DataStore == null)
-                InitializeDataStore(provider);
-
-            InitializeTreeLock(provider);
+            if (DataProvider != null && DataStore != null && TreeLock != null)
+                return;
+            throw new InvalidOperationException("DataProvider, DataStore and TreeLock must already be initialized.");
         }
 
         /// <summary>
@@ -120,19 +122,9 @@ namespace SenseNet.Configuration
         /// </summary>
         public void InitializeDataStore(IServiceProvider provider = null)
         {
-            // This method is a temporary solution for initializing the datastore instance and other dependent service
-            // instance without starting the whole repository.
-
-            DataStore = new DataStore(DataProvider, 
-                provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>());
-            
-            InitializeTreeLock(provider);
-        }
-
-        private void InitializeTreeLock(IServiceProvider provider = null)
-        {
-            TreeLock ??= new TreeLockController(DataStore,
-                provider?.GetService<ILogger<TreeLock>>() ?? NullLoggerFactory.Instance.CreateLogger<TreeLock>());
+            if (DataProvider != null && DataStore != null && TreeLock != null)
+                return;
+            throw new InvalidOperationException("DataProvider, DataStore and TreeLock must already be initialized.");
         }
 
         #endregion

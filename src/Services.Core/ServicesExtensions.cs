@@ -131,6 +131,8 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
         {
             return services
+                .AddSingleton<ITreeLockController, TreeLockController>()
+
                 .AddSingleton<SecurityHandler>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
 
