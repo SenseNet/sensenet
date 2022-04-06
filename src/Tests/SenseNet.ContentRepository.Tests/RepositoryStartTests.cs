@@ -150,45 +150,6 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void RepositoryStart_NamedProviders()
-        {
-            var dbProvider = new InMemoryDataProvider();
-            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
-            var searchEngine = new InMemorySearchEngine(GetInitialIndex());
-            var accessProvider = new DesktopAccessProvider();
-
-            // switch this ON here for testing purposes (to check that repo start does not override it)
-            SnTrace.Custom.Enabled = true;
-
-            var repoBuilder = CreateRepositoryBuilder(
-                dataProvider: dbProvider,
-                accessProvider: accessProvider,
-                securityDbProvider: securityDbProvider,
-                searchEngine: searchEngine);
-
-            using (Repository.Start(repoBuilder))
-            {
-                Assert.AreSame(dbProvider, Providers.Instance.DataStore.DataProvider);
-                Assert.AreEqual(searchEngine, Providers.Instance.SearchManager.SearchEngine);
-                Assert.AreEqual(accessProvider, AccessProvider.Current);
-                Assert.AreEqual(typeof(ElevatedModificationVisibilityRule), Providers.Instance.ElevatedModificationVisibilityRuleProvider.GetType());
-
-                // Currently this does not work, because the property below re-creates the security 
-                // db provider from the prototype, so it cannot be ref equal with the original.
-                // Assert.AreEqual(securityDbProvider, SecurityHandler.SecurityContext.DataProvider);
-                Assert.AreEqual(securityDbProvider, Providers.Instance.SecurityDataProvider);
-
-                // Check a few trace categories that were switched ON above.
-                Assert.IsTrue(SnTrace.Custom.Enabled);
-                Assert.IsTrue(SnTrace.Test.Enabled);
-                Assert.IsTrue(SnTrace.Web.Enabled);
-                Assert.IsTrue(SnTrace.System.Enabled);
-                Assert.IsFalse(SnTrace.TaskManagement.Enabled);
-                Assert.IsFalse(SnTrace.Workflow.Enabled);
-            }
-        }
-
-        [TestMethod]
         public void RepositoryStart_NodeObservers_DisableAll()
         {
             var repoBuilder = CreateRepositoryBuilder()
