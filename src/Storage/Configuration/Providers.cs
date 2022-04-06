@@ -99,35 +99,9 @@ namespace SenseNet.Configuration
 
         public IAuditEventWriter AuditEventWriter { get; }
 
-        #region DataProvider & DataStore
-
         public DataProvider DataProvider { get; set; }
 
         public IDataStore DataStore { get; set; }
-
-        /// <summary>
-        /// Internal method for initializing the data provider and data store instances from the service container.
-        /// DO NOT USE THIS METHOD IN YOUR CODE
-        /// </summary>
-        public void InitializeDataProvider(IServiceProvider provider)
-        {
-            if (DataProvider != null && DataStore != null && TreeLock != null)
-                return;
-            throw new InvalidOperationException("DataProvider, DataStore and TreeLock must already be initialized.");
-        }
-
-        /// <summary>
-        /// Internal method for initializing the data store instance and any other service instance that depends on it.
-        /// DO NOT USE THIS METHOD IN YOUR CODE
-        /// </summary>
-        public void InitializeDataStore(IServiceProvider provider = null)
-        {
-            if (DataProvider != null && DataStore != null && TreeLock != null)
-                return;
-            throw new InvalidOperationException("DataProvider, DataStore and TreeLock must already be initialized.");
-        }
-
-        #endregion
 
         #region IBlobStorageMetaDataProvider
 

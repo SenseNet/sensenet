@@ -39,8 +39,6 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
-            Configuration.Providers.Instance.InitializeDataStore();
-
             return repositoryBuilder;
         }
 
