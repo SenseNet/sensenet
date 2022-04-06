@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.Logging.Abstractions;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -602,7 +603,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Test(builder =>
                 {
-                    Providers.Instance.DataStore = null;
                     builder
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
@@ -612,6 +612,7 @@ namespace SenseNet.ContentRepository.Tests
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                         .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                         .AddBlobProvider(blobProvider);
+                    Providers.Instance.DataStore = new DataStore(dataProvider, new NullLogger<DataStore>());
                     Providers.Instance.SearchManager = new SearchManager(Providers.Instance.DataStore);
                     Providers.Instance.IndexManager = new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager);
                     Providers.Instance.IndexPopulator = new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager);

@@ -155,7 +155,7 @@ namespace WebAppTests
 
             AssertProvidersInstance(includedProvidersByType, includedProvidersByName, excludedProviderPropertyNames ?? Array.Empty<string>());
 
-            Assert.AreEqual(0, unexpectedSnServices.Count, ServiceEntriesToString(unexpectedSnServices));
+            Assert.AreEqual(0, unexpectedSnServices.Count, $"Unexpected services: {ServiceEntriesToString(unexpectedSnServices)}");
         }
 
         private object GetServiceOrServices(IServiceProvider services, IDictionary<Type, object> expectation, Type key)
@@ -299,6 +299,7 @@ namespace WebAppTests
 
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
+                {typeof(IPermissionFilterFactory), typeof(PermissionFilterFactory)},
 
                 {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
                 {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},

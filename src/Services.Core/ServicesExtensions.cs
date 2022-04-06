@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
 using SenseNet.Services.Core;
@@ -135,6 +136,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 .AddSingleton<SecurityHandler>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
+                .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 
                 .AddSingleton<ISearchManager, SearchManager>()
                 .AddSingleton<IIndexManager, IndexManager>()

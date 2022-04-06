@@ -72,6 +72,7 @@ namespace SenseNet.Configuration
             ContentNamingProvider = services.GetService<IContentNamingProvider>();
             TaskManager = services.GetService<ITaskManager>();
             ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
+            PermissionFilterFactory = services.GetService<IPermissionFilterFactory>();
 
             SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
             SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
@@ -100,8 +101,7 @@ namespace SenseNet.Configuration
         public IAuditEventWriter AuditEventWriter { get; }
 
         public DataProvider DataProvider { get; set; }
-
-        public IDataStore DataStore { get; set; }
+        public IDataStore DataStore { get; [Obsolete]set; }
 
         #region IBlobStorageMetaDataProvider
 
@@ -235,18 +235,20 @@ namespace SenseNet.Configuration
         public virtual IClusterChannel ClusterChannelProvider { get; set; } =
             new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
 
-        #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
-        private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
-        {
-            return new PermissionFilterFactory();
-        });
-        public virtual IPermissionFilterFactory PermissionFilterFactory
-        {
-            get { return _permissionFilterFactory.Value; }
-            set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
-        }
+//#region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
+//private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
+//{
+//    return new PermissionFilterFactory();
+//});
+//public virtual IPermissionFilterFactory PermissionFilterFactory
+//{
+//    get { return _permissionFilterFactory.Value; }
+//    set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
+//}
 
-        #endregion
+//#endregion
+        public IPermissionFilterFactory PermissionFilterFactory { get; set; }
+
 
         #region NodeObservers
         private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
