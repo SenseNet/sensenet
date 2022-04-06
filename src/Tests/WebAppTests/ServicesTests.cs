@@ -155,8 +155,7 @@ namespace WebAppTests
 
             AssertProvidersInstance(includedProvidersByType, includedProvidersByName, excludedProviderPropertyNames ?? Array.Empty<string>());
 
-            if(_assertUnexpectedSnServices)
-                Assert.AreEqual(_postponedInUnexpectedCheck.Length, unexpectedSnServices.Count, ServiceEntriesToString(unexpectedSnServices));
+            Assert.AreEqual(0, unexpectedSnServices.Count, ServiceEntriesToString(unexpectedSnServices));
         }
 
         private object GetServiceOrServices(IServiceProvider services, IDictionary<Type, object> expectation, Type key)
@@ -242,10 +241,7 @@ namespace WebAppTests
         private string ServiceEntriesToString(Dictionary<Type, ServiceDescriptor> unexpectedSnServices)
         {
             //var lines = unexpectedSnServices.Select(x => x.ToString()).ToArray();
-            var lines = unexpectedSnServices.Select(x => x.Key.Name)
-//UNDONE:xxxxxxxxxxxxxxxxx Delete _postponedInUnexpectedCheck
-.Except(_postponedInUnexpectedCheck)
-                .ToArray();
+            var lines = unexpectedSnServices.Select(x => x.Key.Name).ToArray();
             return string.Join(" ", lines);
         }
 
@@ -287,18 +283,6 @@ namespace WebAppTests
             return $"Missing services: {string.Join(", ", nulls)}";
         }
         #endregion
-
-        private bool _assertUnexpectedSnServices = true;
-        //UNDONE:xxxxxxxxxxxxxxxxx Delete _postponedInUnexpectedCheck
-        private readonly string[] _postponedInUnexpectedCheck = new[]
-        {
-            "ISnClientRequestParametersProvider",
-            "ClientStore", 
-            //"IStatisticalDataAggregator",
-            //"IMaintenanceTask",
-            //"IHostedService",
-            //"ISnComponent"
-        };
 
         private IDictionary<Type, object> GetGeneralizedExpectations()
         {
@@ -342,8 +326,8 @@ namespace WebAppTests
                 {typeof(IContentNamingProvider), typeof(CharReplacementContentNamingProvider)},
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
 
-                // error: {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
-                // error: {typeof(ClientStore), typeof(ClientStore)},
+                {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
+                {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},
                 {typeof(IApiKeyManager), typeof(ApiKeyManager)},
                 {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
