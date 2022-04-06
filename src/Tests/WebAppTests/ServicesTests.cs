@@ -15,9 +15,12 @@ using SenseNet.BackgroundOperations;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
+using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Packaging.Steps.Internal;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
@@ -52,6 +55,7 @@ using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
+using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
@@ -160,7 +164,10 @@ namespace WebAppTests
             if (!expectation.TryGetValue(key, out var exp))
                 return null;
             if (exp is Type[])
-                return services.GetServices(key)?.Select(x => x.GetType()).ToArray();
+                return services.GetServices(key)?
+                    .Select(x => x.GetType())
+                    .Where(t=>t.Namespace?.Contains("SenseNet.") ?? false)
+                    .ToArray();
             return services.GetService(key)?.GetType();
         }
         #region GetAllServiceDescriptors
@@ -288,9 +295,9 @@ namespace WebAppTests
             "ISnClientRequestParametersProvider",
             "ClientStore", 
             //"IStatisticalDataAggregator",
-            "IMaintenanceTask",
-            "IHostedService",
-            "ISnComponent"
+            //"IMaintenanceTask",
+            //"IHostedService",
+            //"ISnComponent"
         };
 
         private IDictionary<Type, object> GetGeneralizedExpectations()
@@ -348,13 +355,25 @@ namespace WebAppTests
                 {typeof(IStatisticalDataAggregator), new[] {
                     typeof(WebTransferStatisticalDataAggregator),
                     typeof(DatabaseUsageStatisticalDataAggregator),
-                    typeof(WebHookStatisticalDataAggregator)}},
+                    typeof(WebHookStatisticalDataAggregator),
+                }},
                 {typeof(IStatisticalDataAggregationController), typeof(StatisticalDataAggregationController)},
                 {typeof(IDatabaseUsageHandler), typeof(DatabaseUsageHandler)},
                 {typeof(IDataStore), typeof(DataStore)},
-                //{typeof(IMaintenanceTask), typeof(IEnumerable<IMaintenanceTask>)}, // StatisticalDataCollectorMaintenanceTask ReindexBinariesTask StatisticalDataAggregationMaintenanceTask CleanupFilesTask StartActiveDirectorySynchronizationTask AccessTokenCleanupTask SharedLockCleanupTask TestMaintenanceTask
                 {typeof(IMessageSenderManager), typeof(MessageSenderManager)},
-
+                {typeof(IMaintenanceTask), new[] {
+                    //typeof(ReindexBinariesTask),
+                    typeof(CleanupFilesTask),
+                    typeof(StartActiveDirectorySynchronizationTask),
+                    typeof(AccessTokenCleanupTask),
+                    typeof(SharedLockCleanupTask),
+                    typeof(StatisticalDataAggregationMaintenanceTask),
+                    typeof(StatisticalDataCollectorMaintenanceTask),
+                }},
+                {typeof(IHostedService), new[] {
+                    typeof(RepositoryHostedService),
+                    typeof(SnMaintenance),
+                }},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -522,6 +541,11 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -542,6 +566,11 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -562,6 +591,14 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(MsSqlExclusiveLockComponent),
+                        typeof(MsSqlStatisticsComponent),
+                        typeof(MsSqlClientStoreComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -583,6 +620,14 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(MsSqlExclusiveLockComponent),
+                        typeof(MsSqlStatisticsComponent),
+                        typeof(MsSqlClientStoreComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -611,6 +656,14 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(MsSqlExclusiveLockComponent),
+                        typeof(MsSqlStatisticsComponent),
+                        typeof(MsSqlClientStoreComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -638,6 +691,14 @@ namespace WebAppTests
                     {typeof(IEventProcessor), typeof(LocalWebHookProcessor)},
                     {typeof(IWebHookSubscriptionStore), typeof(BuiltInWebHookSubscriptionStore)},
                     {typeof(IWebHookEventProcessor), typeof(LocalWebHookProcessor)},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(MsSqlExclusiveLockComponent),
+                        typeof(MsSqlStatisticsComponent),
+                        typeof(MsSqlClientStoreComponent),
+                        typeof(WebHookComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -667,6 +728,10 @@ namespace WebAppTests
                     {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
                         typeof(WebTransferStatisticalDataAggregator),
                         typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -694,6 +759,10 @@ namespace WebAppTests
                     {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
                         typeof(WebTransferStatisticalDataAggregator),
                         typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -721,6 +790,13 @@ namespace WebAppTests
                     {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
                         typeof(WebTransferStatisticalDataAggregator),
                         typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                        typeof(MsSqlExclusiveLockComponent),
+                        typeof(MsSqlStatisticsComponent),
+                        typeof(MsSqlClientStoreComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -746,6 +822,10 @@ namespace WebAppTests
                     {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
                         typeof(WebTransferStatisticalDataAggregator),
                         typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
