@@ -128,8 +128,7 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null,
-            ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
+        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null, ISearchEngine searchEngine = null)
         {
             var services = CreateServiceProviderForTest();
             Providers.Instance = new Providers(services);
@@ -141,7 +140,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseSecurityDataProvider(securityDbProvider ?? services.GetRequiredService<ISecurityDataProvider>())
+                .UseSecurityDataProvider(services.GetRequiredService<ISecurityDataProvider>())
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
