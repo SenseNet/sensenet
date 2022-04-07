@@ -79,13 +79,6 @@ namespace SenseNet.IntegrationTests.Platforms
                 NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
         }
 
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
-        {
-            return new EFCSecurityDataProvider(new MessageSenderManager(), Options.Create(new Security.EFCSecurityStore.Configuration.DataOptions
-            {
-                ConnectionString = RepositoryConnectionString
-            }), NullLogger<EFCSecurityDataProvider>.Instance);
-        }
         public override ISearchEngine GetSearchEngine()
         {
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.

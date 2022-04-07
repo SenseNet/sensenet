@@ -66,7 +66,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .StartWorkflowEngine(false);
 
             var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
@@ -96,6 +95,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services
                 .AddSenseNetInMemoryDataProvider()
+                .AddInMemorySecurityDataProviderExperimental()
                 .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
                 .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
                 .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
@@ -110,6 +110,14 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
         }
 
+        public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
+        {
+            return services.AddSingleton<ISecurityDataProvider>(provider =>
+            {
+                var dp = (InMemoryDataProvider)provider.GetRequiredService<DataProvider>();
+                return GetSecurityDataProvider(dp);
+            });
+        }
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
         {
             return new MemoryDataProvider(new DatabaseStorage
@@ -139,7 +147,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-        
+
         private static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();

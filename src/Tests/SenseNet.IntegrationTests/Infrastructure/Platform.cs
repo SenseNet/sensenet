@@ -46,8 +46,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             OnBeforeGettingRepositoryBuilder(builder);
 
-            var dataProvider = GetDataProvider(services);
-
             builder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
@@ -59,7 +57,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(GetSearchEngine())
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider, services))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
@@ -77,7 +74,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider(IServiceProvider services);
-        public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services);
         public abstract ISearchEngine GetSearchEngine();
     }
 }

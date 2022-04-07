@@ -20,6 +20,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Security;
+using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
@@ -609,9 +611,9 @@ namespace SenseNet.ContentRepository.Tests
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                        .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                         .AddBlobProvider(blobProvider);
                     Providers.Instance.DataProvider = dataProvider;
+                    Providers.Instance.SecurityDataProvider = GetSecurityDataProvider(dataProvider);
                     Providers.Instance.DataStore = new DataStore(dataProvider, new NullLogger<DataStore>());
                     Providers.Instance.SearchManager = new SearchManager(Providers.Instance.DataStore);
                     Providers.Instance.IndexManager = new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager);
@@ -651,6 +653,35 @@ namespace SenseNet.ContentRepository.Tests
 
             var expectedIds = $"{ids[1].Item1},{ids[1].Item2}; {ids[2].Item1},{ids[2].Item2}";
             Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
+        }
+        private static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
+        {
+            return new MemoryDataProvider(new DatabaseStorage
+            {
+                Aces = new List<StoredAce>
+                {
+                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
+                },
+                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
+                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
+                    {
+                        Id = x.Id,
+                        OwnerId = x.OwnerId,
+                        ParentId = x.ParentId,
+                        IsInherited = true,
+                        HasExplicitEntry = x.Id == 2
+                    }),
+                Memberships = new List<Membership>
+                {
+                    new Membership
+                    {
+                        GroupId = Identifiers.AdministratorsGroupId,
+                        MemberId = Identifiers.AdministratorUserId,
+                        IsUser = true
+                    }
+                },
+                Messages = new List<Tuple<int, DateTime, byte[]>>()
+            });
         }
 
 

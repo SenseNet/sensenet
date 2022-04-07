@@ -165,11 +165,6 @@ namespace SenseNet.Extensions.DependencyInjection
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
 
-
-            var securityDataProvider = provider.GetService<ISecurityDataProvider>();
-            if (securityDataProvider != null)
-                Providers.Instance.SecurityDataProvider = securityDataProvider;
-
             var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
             if (statisticalDataProvider != null)
                 Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), statisticalDataProvider);

@@ -140,7 +140,6 @@ namespace SenseNet.ContentRepository.Tests
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseSecurityDataProvider(services.GetRequiredService<ISecurityDataProvider>())
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)

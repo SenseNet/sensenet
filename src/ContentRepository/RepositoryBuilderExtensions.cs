@@ -138,11 +138,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="securityDataProvider">ISecurityDataProvider instance.</param>
+        [Obsolete("Do not use this method anymore. Register ISecurityDataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSecurityDataProvider(this IRepositoryBuilder repositoryBuilder, ISecurityDataProvider securityDataProvider)
         {
-            Configuration.Providers.Instance.SecurityDataProvider = securityDataProvider;
-            WriteLog("SecurityDataProvider", securityDataProvider);
-
             return repositoryBuilder;
         }
 
@@ -154,9 +152,6 @@ namespace SenseNet.Extensions.DependencyInjection
         [Obsolete("Do not use this method anymore. Register IMessageProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSecurityMessageProvider(this IRepositoryBuilder repositoryBuilder, IMessageProvider securityMessageProvider)
         {
-//Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
-//WriteLog("SecurityMessageProvider", securityMessageProvider);
-
             return repositoryBuilder;
         }
 

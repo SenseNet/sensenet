@@ -248,8 +248,6 @@ namespace SenseNet.Tests.Core
 
             Cache.Reset();
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-            
-            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
@@ -262,7 +260,6 @@ namespace SenseNet.Tests.Core
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
@@ -276,36 +273,6 @@ namespace SenseNet.Tests.Core
         protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
             return CreateRepositoryBuilderForTest(TestContext, modifyServices);
-        }
-
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
-        {
-            return new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                {
-                    Id = x.Id,
-                    OwnerId = x.OwnerId,
-                    ParentId = x.ParentId,
-                    IsInherited = true,
-                    HasExplicitEntry = x.Id == 2
-                }),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
         }
 
         protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)

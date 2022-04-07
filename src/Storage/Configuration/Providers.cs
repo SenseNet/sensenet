@@ -56,6 +56,7 @@ namespace SenseNet.Configuration
 
             DataProvider = services.GetService<DataProvider>();
             DataStore = services.GetService<IDataStore>();
+            SecurityDataProvider = services.GetService<ISecurityDataProvider>();
 
             TreeLock = services.GetService<ITreeLockController>();
 
@@ -206,7 +207,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public ISecurityDataProvider SecurityDataProvider { get; set; }
+        public ISecurityDataProvider SecurityDataProvider { get; [Obsolete]set; }
         public IMessageProvider SecurityMessageProvider { get; }
 
         public SecurityHandler SecurityHandler { get; }

@@ -205,7 +205,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 //.AddBlobProvider(new InMemoryBlobProvider())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
@@ -218,35 +217,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             var index = new InMemoryIndex();
             //index.Load(new StringReader(InitialTestIndex.Index));
             return index;
-        }
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
-        {
-            return new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                    {
-                        Id = x.Id,
-                        OwnerId = x.OwnerId,
-                        ParentId = x.ParentId,
-                        IsInherited = true,
-                        HasExplicitEntry = x.Id == 2
-                    }),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
         }
 
         private static void SaveData(string tempFolderPath)
