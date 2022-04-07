@@ -235,19 +235,7 @@ namespace SenseNet.Configuration
         public virtual IClusterChannel ClusterChannelProvider { get; set; } =
             new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
 
-//#region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
-//private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
-//{
-//    return new PermissionFilterFactory();
-//});
-//public virtual IPermissionFilterFactory PermissionFilterFactory
-//{
-//    get { return _permissionFilterFactory.Value; }
-//    set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
-//}
-
-//#endregion
-        public IPermissionFilterFactory PermissionFilterFactory { get; set; }
+        public IPermissionFilterFactory PermissionFilterFactory { get; }
 
 
         #region NodeObservers

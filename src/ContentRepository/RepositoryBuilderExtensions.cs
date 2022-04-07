@@ -127,11 +127,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="permissionFilterFactory">IPermissionFilterFactory implementation instance.</param>
+        [Obsolete("Do not use this method anymore. Register IPermissionFilterFactory as a service instead.", true)]
         public static IRepositoryBuilder UsePermissionFilterFactory(this IRepositoryBuilder repositoryBuilder, IPermissionFilterFactory permissionFilterFactory)
         {
-            Configuration.Providers.Instance.PermissionFilterFactory = permissionFilterFactory;
-            WriteLog("PermissionFilterFactory", permissionFilterFactory);
-
             return repositoryBuilder;
         }
 
