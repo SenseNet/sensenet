@@ -55,22 +55,8 @@ namespace SenseNet.Extensions.DependencyInjection
             if (services == null)
                 throw new ApplicationException("IServiceProvider cannot be found");
 
-            if (services.GetService<DataProvider>() is InMemoryDataProvider dataProvider)
-            {
-                // If there is an instance in the container, use that. We have to set
-                // these instances manually instead of using the extension method so that
-                // we do not overwrite the store instance.
-                Providers.Instance.DataProvider = dataProvider;
-                Providers.Instance.DataStore = services.GetService<IDataStore>();
-            }
-            else
-            {
-                throw new ApplicationException("InMemoryDataProvider cannot be found");
-            }
-
+            var dataProvider = services.GetRequiredService<DataProvider>();
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
-            var dataStore = Providers.Instance.DataStore;
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())

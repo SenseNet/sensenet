@@ -106,7 +106,6 @@ namespace SenseNet.ContentRepository.Tests
                 .BuildServiceProvider();
             Providers.Instance = new Providers(services);
 
-            Providers.Instance.DataProvider = GetMainDataProvider();
             SnTrace.Custom.Enabled = true;
             SnTrace.System.Enabled = true;
         }

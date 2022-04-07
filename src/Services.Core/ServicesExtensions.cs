@@ -161,10 +161,6 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();
             Providers.Instance.BlobProviderSelector = provider.GetRequiredService<IBlobProviderSelector>();
 
-            //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
-            Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
-            Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
-
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;

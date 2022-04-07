@@ -192,13 +192,11 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             Providers.Instance = new Providers(services);
 
             var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
-            Providers.Instance.DataProvider = dataProvider;
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
-                .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())

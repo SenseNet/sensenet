@@ -128,16 +128,15 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(DataProvider dataProvider = null, AccessProvider accessProvider = null,
+        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null,
             ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
         {
             var services = CreateServiceProviderForTest();
             Providers.Instance = new Providers(services);
 
-            var dbProvider = dataProvider ?? services.GetRequiredService<DataProvider>();
+            var dbProvider = services.GetRequiredService<DataProvider>();
             return new RepositoryBuilder(services)
                 .UseAccessProvider(accessProvider ?? new DesktopAccessProvider())
-                .UseDataProvider(dbProvider)
                 .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())

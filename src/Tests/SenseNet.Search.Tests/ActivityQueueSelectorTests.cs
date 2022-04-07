@@ -223,12 +223,12 @@ namespace SenseNet.Search.Tests
             SnTrace.Test.Write("Indexing_Centralized_InMemory_ExecuteUnprocessed ACTION");
             searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
 
-            var dp2 = Providers.Instance.DataProvider;
+            //var dp2 = Providers.Instance.DataProvider;
             Test(builder =>
             {
                 var services = builder.Services;
 
-                Providers.Instance.DataProvider = dp2;
+                //Providers.Instance.DataProvider = dp2;
 
                 DataStore.DataProvider.DeleteAllIndexingActivitiesAsync(CancellationToken.None).GetAwaiter().GetResult();
                 RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);

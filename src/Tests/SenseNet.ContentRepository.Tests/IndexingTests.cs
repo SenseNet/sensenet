@@ -605,13 +605,13 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     builder
                         .UseLogger(logger)
-                        .UseDataProvider(dataProvider)
                         .UseInitialData(null)
                         .UseSearchEngine(searchProvider)
                         // rewrite these instances with the original base dataProvider.
                         .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                         .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                         .AddBlobProvider(blobProvider);
+                    Providers.Instance.DataProvider = dataProvider;
                     Providers.Instance.DataStore = new DataStore(dataProvider, new NullLogger<DataStore>());
                     Providers.Instance.SearchManager = new SearchManager(Providers.Instance.DataStore);
                     Providers.Instance.IndexManager = new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager);

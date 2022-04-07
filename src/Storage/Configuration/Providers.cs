@@ -100,7 +100,7 @@ namespace SenseNet.Configuration
 
         public IAuditEventWriter AuditEventWriter { get; }
 
-        public DataProvider DataProvider { get; set; }
+        public DataProvider DataProvider { get; [Obsolete]set; }
         public IDataStore DataStore { get; [Obsolete]set; }
 
         #region IBlobStorageMetaDataProvider

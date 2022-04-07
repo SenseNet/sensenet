@@ -17,10 +17,9 @@ namespace SenseNet.ContentRepository.Tests
         public void UT_AccessToken_Create_MinTimeOut()
         {
             Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
                 .BuildServiceProvider());
-
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
             var token = AccessTokenVault.CreateTokenAsync(1, TimeSpan.MinValue, CancellationToken.None).Result;
@@ -32,10 +31,9 @@ namespace SenseNet.ContentRepository.Tests
         public void UT_AccessToken_Create_MaxTimeOut()
         {
             Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
                 .BuildServiceProvider());
-
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
             var token = AccessTokenVault.CreateTokenAsync(1, TimeSpan.MaxValue, CancellationToken.None).Result;
@@ -48,10 +46,9 @@ namespace SenseNet.ContentRepository.Tests
         public void UT_AccessToken_GetOrAdd_MinTimeOut()
         {
             Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
                 .BuildServiceProvider());
-
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
             var token = AccessTokenVault.GetOrAddToken(1, TimeSpan.MinValue);
@@ -63,10 +60,9 @@ namespace SenseNet.ContentRepository.Tests
         public void UT_AccessToken_GetOrAdd_MaxTimeOut()
         {
             Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
                 .BuildServiceProvider());
-
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
 
             // ACTION
             var token = AccessTokenVault.GetOrAddToken(1, TimeSpan.MaxValue);

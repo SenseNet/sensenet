@@ -36,9 +36,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="dataProvider">DataProvider instance.</param>
+        [Obsolete("Do not use this method anymore. Register DataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
-            Configuration.Providers.Instance.DataProvider = dataProvider;
             return repositoryBuilder;
         }
 
