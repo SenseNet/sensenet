@@ -95,16 +95,37 @@ namespace SenseNet.Configuration
         /// </summary>
         public static Providers Instance { get; set; }
 
-        //===================================================================================== Named providers
-
-        public IEventLogger EventLogger { get; set; }
+        /* ===================================================================================== Named providers */
 
         public IEventPropertyCollector PropertyCollector { get; }
-
         public IAuditEventWriter AuditEventWriter { get; }
+        public IMessageProvider SecurityMessageProvider { get; }
+        public SecurityHandler SecurityHandler { get; }
+        public IPasswordHashProvider PasswordHashProvider { get; }
+        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; }
+        public IContentNamingProvider ContentNamingProvider { get; }
+        public IPreviewProvider PreviewProvider { get; }
+        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; }
+        public ISnCache CacheProvider { get; }
+        public IApplicationCache ApplicationCacheProvider { get; }
+        public IPermissionFilterFactory PermissionFilterFactory { get; }
+        public IIndexDocumentProvider IndexDocumentProvider { get; }
+        public StorageSchema StorageSchema { get; }
+        public ICompatibilitySupport CompatibilitySupport { get; }
+        public ITreeLockController TreeLock { get; }
+        public ITaskManager TaskManager { get; }
+
 
         public DataProvider DataProvider { get; [Obsolete]set; }
         public IDataStore DataStore { get; [Obsolete]set; }
+        public ISecurityDataProvider SecurityDataProvider { get; [Obsolete]set; }
+        public ISearchManager SearchManager { get; [Obsolete]set; }
+        public IIndexManager IndexManager { get; [Obsolete]set; }
+        public IIndexPopulator IndexPopulator { get; [Obsolete]set; }
+
+        /* ========================================================= Need to refactor */
+
+        public IEventLogger EventLogger { get; set; }
 
         #region IBlobStorageMetaDataProvider
 
@@ -187,9 +208,6 @@ namespace SenseNet.Configuration
         }
 
         public ISearchEngine SearchEngine { get; set; }
-        public ISearchManager SearchManager { get; [Obsolete]set; }
-        public IIndexManager IndexManager { get; [Obsolete]set; }
-        public IIndexPopulator IndexPopulator { get; [Obsolete]set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
@@ -209,18 +227,6 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public ISecurityDataProvider SecurityDataProvider { get; [Obsolete]set; }
-        public IMessageProvider SecurityMessageProvider { get; }
-
-        public SecurityHandler SecurityHandler { get; }
-        public IPasswordHashProvider PasswordHashProvider { get; }
-        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; }
-
-        public IContentNamingProvider ContentNamingProvider { get; }
-
-        public IPreviewProvider PreviewProvider { get; }
-
-        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; }
 
         #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
         private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() => CreateProviderInstance<MembershipExtenderBase>(MembershipExtenderClassName, "MembershipExtender"));
@@ -231,14 +237,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public ISnCache CacheProvider { get; }
-
-        public IApplicationCache ApplicationCacheProvider { get; }
-
         public virtual IClusterChannel ClusterChannelProvider { get; set; } = new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
-
-        public IPermissionFilterFactory PermissionFilterFactory { get; }
-
 
         #region NodeObservers
         private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
@@ -283,7 +282,6 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public IIndexDocumentProvider IndexDocumentProvider { get; }
 
         #region ContentProtector
         private Lazy<ContentProtector> _contentProtector =
@@ -296,9 +294,6 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        public StorageSchema StorageSchema { get; }
-
-        public ICompatibilitySupport CompatibilitySupport { get; }
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor
@@ -310,9 +305,6 @@ namespace SenseNet.Configuration
         public IEventProcessor AuditLogEventProcessor { get; set; }
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 
-        public ITreeLockController TreeLock { get; }
-
-        public ITaskManager TaskManager { get; }
 
         //===================================================================================== General provider API
 
