@@ -60,6 +60,7 @@ namespace SenseNet.Configuration
 
             TreeLock = services.GetService<ITreeLockController>();
 
+            StorageSchema = services.GetService<StorageSchema>();
             CacheProvider = services.GetService<ISnCache>();
             ApplicationCacheProvider = services.GetService<IApplicationCache>();
             IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
@@ -295,10 +296,9 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        public StorageSchema StorageSchema { get; set; } = new StorageSchema();
+        public StorageSchema StorageSchema { get; }
 
-        public ICompatibilitySupport CompatibilitySupport { get; set; } =
-            new EmptyCompatibilitySupport();
+        public ICompatibilitySupport CompatibilitySupport { get; set; } = new EmptyCompatibilitySupport();
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor
@@ -310,7 +310,7 @@ namespace SenseNet.Configuration
         public IEventProcessor AuditLogEventProcessor { get; set; }
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 
-        public ITreeLockController TreeLock { get; set; } // Initialized by InitializeDataStore method in this instance.
+        public ITreeLockController TreeLock { get; }
 
         public ITaskManager TaskManager { get; }
 

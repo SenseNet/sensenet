@@ -297,6 +297,7 @@ namespace WebAppTests
                 {typeof(IBlobStorage), typeof(BlobStorage)},
                 {typeof(IExternalBlobProviderFactory), typeof(NullExternalBlobProviderFactory)},
 
+                {typeof(StorageSchema), typeof(StorageSchema)},
                 {typeof(SecurityHandler), typeof(SecurityHandler)},
                 {typeof(IMissingEntityHandler), typeof(SnMissingEntityHandler)},
                 {typeof(IPermissionFilterFactory), typeof(PermissionFilterFactory)},

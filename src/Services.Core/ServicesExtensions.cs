@@ -132,6 +132,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
         {
             return services
+                .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
                 .AddSingleton<SecurityHandler>()
