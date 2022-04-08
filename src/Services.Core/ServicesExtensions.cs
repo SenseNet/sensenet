@@ -147,6 +147,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IApplicationCache, ApplicationCache>() //not used?
                 .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()
                 .AddSingleton<IEventPropertyCollector, EventPropertyCollector>()
+                .AddSingleton<ICompatibilitySupport, EmptyCompatibilitySupport>()
             ;
         }
 

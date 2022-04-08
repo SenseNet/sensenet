@@ -75,6 +75,7 @@ namespace SenseNet.Configuration
             TaskManager = services.GetService<ITaskManager>();
             ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
             PermissionFilterFactory = services.GetService<IPermissionFilterFactory>();
+            CompatibilitySupport = services.GetService<ICompatibilitySupport>();
 
             SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
             SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
@@ -234,8 +235,7 @@ namespace SenseNet.Configuration
 
         public IApplicationCache ApplicationCacheProvider { get; }
 
-        public virtual IClusterChannel ClusterChannelProvider { get; set; } =
-            new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
+        public virtual IClusterChannel ClusterChannelProvider { get; set; } = new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
 
         public IPermissionFilterFactory PermissionFilterFactory { get; }
 
@@ -298,7 +298,7 @@ namespace SenseNet.Configuration
 
         public StorageSchema StorageSchema { get; }
 
-        public ICompatibilitySupport CompatibilitySupport { get; set; } = new EmptyCompatibilitySupport();
+        public ICompatibilitySupport CompatibilitySupport { get; }
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor

@@ -329,6 +329,7 @@ namespace WebAppTests
                 {typeof(IEventPropertyCollector), typeof(EventPropertyCollector)},
                 {typeof(IContentNamingProvider), typeof(CharReplacementContentNamingProvider)},
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
+                {typeof(ICompatibilitySupport), typeof(EmptyCompatibilitySupport)},
 
                 {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 {typeof(ClientStore), typeof(ClientStore)},
