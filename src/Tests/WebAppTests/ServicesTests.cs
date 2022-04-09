@@ -330,6 +330,7 @@ namespace WebAppTests
                 {typeof(IContentNamingProvider), typeof(CharReplacementContentNamingProvider)},
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
                 {typeof(ICompatibilitySupport), typeof(EmptyCompatibilitySupport)},
+                {typeof(IContentProtector), typeof(ContentProtector)},
 
                 {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 {typeof(ClientStore), typeof(ClientStore)},

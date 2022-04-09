@@ -148,6 +148,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()
                 .AddSingleton<IEventPropertyCollector, EventPropertyCollector>()
                 .AddSingleton<ICompatibilitySupport, EmptyCompatibilitySupport>()
+                .AddSingleton<IContentProtector, ContentProtector>()
             ;
         }
 

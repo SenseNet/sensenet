@@ -839,7 +839,7 @@ namespace  SenseNet.ContentRepository.Schema
             if (nodeType == null)
                 return true;
 
-            if (ContentProtector.GetProtectedPaths().Contains(contentType.Path, StringComparer.OrdinalIgnoreCase))
+            if (Providers.Instance.ContentProtector.GetProtectedPaths().Contains(contentType.Path, StringComparer.OrdinalIgnoreCase))
             {
                 message = "it is protected";
                 return false;

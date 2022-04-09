@@ -704,7 +704,7 @@ namespace SenseNet.Packaging.Steps
 
                     // Public admins must not be able to modify built-in CTDs:
                     // DENY local Save, Delete, SetPermissions permission on protected paths.
-                    foreach (var protectedId in ContentProtector.GetProtectedPaths().Where(p =>
+                    foreach (var protectedId in Providers.Instance.ContentProtector.GetProtectedPaths().Where(p =>
                                  SNC.Storage.RepositoryPath.IsInTree(p, Repository.ContentTypesFolderPath))
                                  .Select(NodeHead.Get).Where(nh => nh != null)
                                  .Select(nh => nh.Id))

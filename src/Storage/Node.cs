@@ -3651,7 +3651,7 @@ namespace SenseNet.ContentRepository.Storage
                 IDictionary<string, object> customData;
                 using (Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
-                    ContentProtector.AssertIsDeletable(this.Path);
+                    Providers.Instance.ContentProtector.AssertIsDeletable(this.Path);
 
                     CancellableNodeEventArgs cancellableEventArgs;
 
@@ -4867,7 +4867,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void AssertMoving(Node target)
         {
-            ContentProtector.AssertIsDeletable(this.Path);
+            Providers.Instance.ContentProtector.AssertIsDeletable(this.Path);
 
             var validators = NodeOperationValidators;
             if (validators == null)
@@ -4879,7 +4879,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void AssertDeletion()
         {
-            ContentProtector.AssertIsDeletable(this.Path);
+            Providers.Instance.ContentProtector.AssertIsDeletable(this.Path);
 
             var validators = NodeOperationValidators;
             if (validators == null)

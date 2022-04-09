@@ -76,6 +76,7 @@ namespace SenseNet.Configuration
             ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
             PermissionFilterFactory = services.GetService<IPermissionFilterFactory>();
             CompatibilitySupport = services.GetService<ICompatibilitySupport>();
+            ContentProtector = services.GetService<IContentProtector>();
 
             SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
             SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
@@ -112,6 +113,7 @@ namespace SenseNet.Configuration
         public IIndexDocumentProvider IndexDocumentProvider { get; }
         public StorageSchema StorageSchema { get; }
         public ICompatibilitySupport CompatibilitySupport { get; }
+        public IContentProtector ContentProtector { get; }
         public ITreeLockController TreeLock { get; }
         public ITaskManager TaskManager { get; }
 
@@ -281,19 +283,6 @@ namespace SenseNet.Configuration
             }
         }
         #endregion
-
-
-        #region ContentProtector
-        private Lazy<ContentProtector> _contentProtector =
-            new Lazy<ContentProtector>(() => new ContentProtector());
-        public virtual ContentProtector ContentProtector
-        {
-            get => _contentProtector.Value;
-            set { _contentProtector = new Lazy<ContentProtector>(() => value); }
-        }
-
-        #endregion
-
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor

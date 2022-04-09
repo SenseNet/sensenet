@@ -8,10 +8,54 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository.Storage
 {
     /// <summary>
+    /// Defines methods to prevent the executability of the  Content Delete, ForceDelete, Move operations.
+    /// Supports an extendable whitelist of the not-deletable Content paths.
+    /// </summary>
+    public interface IContentProtector
+    {
+        /// <summary>
+        /// Returns the whitelist of all protected paths.
+        /// WARNING: The protected paths are sensitive information.
+        /// </summary>
+        string[] GetProtectedPaths();
+
+        /// <summary>
+        /// Gets the list of all protected groups.
+        /// WARNING: The protected paths are sensitive information.
+        /// </summary>
+        string[] GetProtectedGroups();
+
+        /// <summary>
+        /// Gets the list of all protected group ids.
+        /// WARNING: The protected ids are sensitive information.
+        /// </summary>
+        int[] GetProtectedGroupIds();
+
+        /// <summary>
+        /// If the whitelist contains the passed path, an <see cref="ApplicationException"/> will be thrown.
+        /// WARNING: The protected paths are sensitive information.
+        /// </summary>
+        /// <param name="path">The examined path.</param>
+        void AssertIsDeletable(string path);
+
+        /// <summary>
+        /// Adds the all passed paths and their complete ancestor axis to the whitelist of the not-deletable Contents.
+        /// </summary>
+        /// <param name="paths">One or pore paths that will be added to.</param>
+        void AddPaths(params string[] paths);
+
+        /// <summary>
+        /// Adds the provided paths to the list of groups to protect.
+        /// </summary>
+        /// <param name="paths">Group paths.</param>
+        void AddGroupPaths(params string[] paths);
+    }
+
+    /// <summary>
     /// This class can prevent the executability of the  Content Delete, ForceDelete, Move operations.
     /// Supports an extendable whitelist of the not-deletable Content paths.
     /// </summary>
-    public class ContentProtector
+    public class ContentProtector : IContentProtector
     {
         private readonly List<string> _protectedPaths = new List<string>
         {
@@ -97,8 +141,6 @@ namespace SenseNet.ContentRepository.Storage
         };
         private Lazy<int[]> _protectedGroupIds;
 
-        private static ContentProtector Instance => Providers.Instance.ContentProtector;
-
         public ContentProtector()
         {
             ResetGroupIds();
@@ -113,39 +155,22 @@ namespace SenseNet.ContentRepository.Storage
                 .ToArray());
         }
 
-        /// <summary>
-        /// Returns the whitelist of all protected paths.
-        /// WARNING: The protected paths are sensitive information.
-        /// </summary>
-        public static string[] GetProtectedPaths()
+        public string[] GetProtectedPaths()
         {
-            return Instance._protectedPaths.ToArray();
+            return _protectedPaths.ToArray();
         }
-        /// <summary>
-        /// Gets the list of all protected groups.
-        /// WARNING: The protected paths are sensitive information.
-        /// </summary>
-        public static string[] GetProtectedGroups()
+        public string[] GetProtectedGroups()
         {
-            return Instance._protectedGroups.ToArray();
+            return _protectedGroups.ToArray();
         }
-        /// <summary>
-        /// Gets the list of all protected group ids.
-        /// WARNING: The protected ids are sensitive information.
-        /// </summary>
-        public static int[] GetProtectedGroupIds()
+        public int[] GetProtectedGroupIds()
         {
-            return Instance._protectedGroupIds.Value;
+            return _protectedGroupIds.Value;
         }
 
-        /// <summary>
-        /// If the whitelist contains the passed path, an <see cref="ApplicationException"/> will be thrown.
-        /// WARNING: The protected paths are sensitive information.
-        /// </summary>
-        /// <param name="path">The examined path.</param>
-        public static void AssertIsDeletable(string path)
+        public void AssertIsDeletable(string path)
         {
-            if (Instance._protectedPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
+            if (_protectedPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
                 throw new ApplicationException("Protected content cannot be deleted or moved.");
 
             if (AccessProvider.Current.GetOriginalUser() is Node user)
@@ -155,11 +180,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        /// <summary>
-        /// Adds the all passed paths and their complete ancestor axis to the whitelist of the not-deletable Contents.
-        /// </summary>
-        /// <param name="paths">One or pore paths that will be added to.</param>
-        public static void AddPaths(params string[] paths)
+        public void AddPaths(params string[] paths)
         {
             IEnumerable<string> GetAncestorAxis(string path)
             {
@@ -180,22 +201,18 @@ namespace SenseNet.ContentRepository.Storage
                 .OrderBy(x => x)
                 .ToArray();
 
-            var protectedPaths = Instance._protectedPaths;
+            var protectedPaths = _protectedPaths;
             protectedPaths.AddRange(allPaths.Except(protectedPaths, StringComparer.OrdinalIgnoreCase));
         }
 
-        /// <summary>
-        /// Adds the provided paths to the list of groups to protect.
-        /// </summary>
-        /// <param name="paths">Group paths.</param>
-        public static void AddGroupPaths(params string[] paths)
+        public void AddGroupPaths(params string[] paths)
         {
-            var newPaths = paths.Except(Instance._protectedGroups).ToArray();
+            var newPaths = paths.Except(_protectedGroups).ToArray();
             if (newPaths.Length == 0)
                 return;
 
-            Instance._protectedGroups.AddRange(newPaths);
-            Instance.ResetGroupIds();
+            _protectedGroups.AddRange(newPaths);
+            ResetGroupIds();
         }
     }
 }

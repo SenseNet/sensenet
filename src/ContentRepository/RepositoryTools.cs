@@ -408,7 +408,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         public static string[] GetProtectedPaths(Content content)
         {
-            var permitted = ContentProtector.GetProtectedPaths()
+            var permitted = Providers.Instance.ContentProtector.GetProtectedPaths()
                 .Where(x =>
                 {
                     var head = NodeHead.Get(x);
