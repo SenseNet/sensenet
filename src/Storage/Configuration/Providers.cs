@@ -116,12 +116,12 @@ namespace SenseNet.Configuration
         public ITaskManager TaskManager { get; }
 
 
-        public DataProvider DataProvider { get; [Obsolete]set; }
-        public IDataStore DataStore { get; [Obsolete]set; }
-        public ISecurityDataProvider SecurityDataProvider { get; [Obsolete]set; }
-        public ISearchManager SearchManager { get; [Obsolete]set; }
-        public IIndexManager IndexManager { get; [Obsolete]set; }
-        public IIndexPopulator IndexPopulator { get; [Obsolete]set; }
+        public DataProvider DataProvider { get; }
+        public IDataStore DataStore { get; }
+        public ISecurityDataProvider SecurityDataProvider { get; }
+        public ISearchManager SearchManager { get; }
+        public IIndexManager IndexManager { get; }
+        public IIndexPopulator IndexPopulator { get; }
 
         /* ========================================================= Need to refactor */
 

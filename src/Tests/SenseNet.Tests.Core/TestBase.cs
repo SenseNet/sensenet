@@ -109,19 +109,28 @@ namespace SenseNet.Tests.Core
             OnAfterRepositoryShutdown();
         }
 
-        protected void Test2(Action<IServiceCollection> initialize, Action callback)
+        protected void Test2(Action<IServiceCollection> initializeServices, Action callback)
         {
-            Test2(false, initialize, callback);
+            Test2(false, initializeServices, callback);
         }
-        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initialize, Action callback)
+        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action callback)
         {
-            ExecuteTest2(useCurrentUser, initialize, callback);
+            ExecuteTest2(useCurrentUser, initializeServices, null, callback);
         }
-        private void ExecuteTest2(bool useCurrentUser, Action<IServiceCollection> initialize, Action callback)
+        protected void Test2(Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            Test2(false, initializeServices, initialize, callback);
+        }
+        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            ExecuteTest2(useCurrentUser, initializeServices, initialize, callback);
+        }
+        private void ExecuteTest2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTestInstance(initialize);
+            var builder = CreateRepositoryBuilderForTestInstance(initializeServices);
+            initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
 

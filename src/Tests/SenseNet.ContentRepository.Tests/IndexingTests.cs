@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -561,6 +562,7 @@ namespace SenseNet.ContentRepository.Tests
             InMemoryDataProvider dataProvider = null;
             InMemorySearchEngine searchProvider = null;
             InMemoryBlobProvider blobProvider = null;
+            IBlobProviderStore blobProviderStore = null;
 
             // Storage for new contents' ids and version ids
             var ids = new Tuple<int, int>[4];
@@ -572,6 +574,7 @@ namespace SenseNet.ContentRepository.Tests
                 dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
                 searchProvider = (InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine;
                 blobProvider = (InMemoryBlobProvider)Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
+                blobProviderStore = Providers.Instance.BlobProviders;
 
                 // Create 8 activities.
                 for (int i = 0; i < 4; i++)
@@ -605,19 +608,13 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Test(builder =>
                 {
+                    var newDataProvider = (InMemoryDataProvider)Providers.Instance.DataProvider;
+                    newDataProvider.DB = dataProvider.DB;
                     builder
                         .UseLogger(logger)
                         .UseInitialData(null)
                         .UseSearchEngine(searchProvider)
-                        // rewrite these instances with the original base dataProvider.
-                        .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                         .AddBlobProvider(blobProvider);
-                    Providers.Instance.DataProvider = dataProvider;
-                    Providers.Instance.SecurityDataProvider = GetSecurityDataProvider(dataProvider);
-                    Providers.Instance.DataStore = new DataStore(dataProvider, new NullLogger<DataStore>());
-                    Providers.Instance.SearchManager = new SearchManager(Providers.Instance.DataStore);
-                    Providers.Instance.IndexManager = new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager);
-                    Providers.Instance.IndexPopulator = new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager);
                 }, () =>
                 {
                     // Do nothing but started successfully
