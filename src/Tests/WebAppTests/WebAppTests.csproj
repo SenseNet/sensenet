@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\SnInitialDataGenerator\SnInitialDataGenerator.csproj" />
     <ProjectReference Include="..\..\WebApps\SnWebApplication.Api.InMem.Admin\SnWebApplication.Api.InMem.Admin.csproj" />
     <ProjectReference Include="..\..\WebApps\SnWebApplication.Api.InMem.TokenAuth\SnWebApplication.Api.InMem.TokenAuth.csproj" />
     <ProjectReference Include="..\..\WebApps\SnWebApplication.Api.Sql.Admin\SnWebApplication.Api.Sql.Admin.csproj" />

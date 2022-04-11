@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.Diagnostics;
@@ -19,19 +20,29 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 
         public DefaultSnClientRequestParametersProvider(ClientStore clientStore,
             IOptions<ClientRequestOptions> clientOptions, 
-            IOptions<AuthenticationOptions> authOptions)
+            IOptions<AuthenticationOptions> authOptions,
+            ILogger<DefaultSnClientRequestParametersProvider> logger)
         {
             var crOptions = clientOptions?.Value ?? new ClientRequestOptions();
             var authority = authOptions?.Value?.Authority ?? string.Empty;
 
             // load admin ui clients from db using ClientStore
-            var clients = clientStore.GetClientsByAuthorityAsync(authority).GetAwaiter().GetResult()
-                .Where(c => c.Type.HasFlag(ClientType.AdminUi))
-                .Select(c => new SnIdentityServerClient
-                {
-                    ClientType = ClientAdminUi,
-                    ClientId = c.ClientId
-                }).ToList();
+            List<SnIdentityServerClient> clients;
+            try
+            {
+                clients = clientStore.GetClientsByAuthorityAsync(authority).GetAwaiter().GetResult()
+                    .Where(c => c.Type.HasFlag(ClientType.AdminUi))
+                    .Select(c => new SnIdentityServerClient
+                    {
+                        ClientType = ClientAdminUi,
+                        ClientId = c.ClientId
+                    }).ToList();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Cannot load clients from clientStore.");
+                clients = new List<SnIdentityServerClient>();
+            }
 
             // add clients from config
             clients.AddRange(crOptions.Clients);

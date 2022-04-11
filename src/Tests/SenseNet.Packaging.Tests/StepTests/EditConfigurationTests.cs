@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Text;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Testing;
@@ -42,7 +44,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestInitialize]
         public void PrepareTest()
         {
-            Providers.Instance.DataProvider = new InMemoryDataProvider();
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .BuildServiceProvider());
 
             // preparing logger
             _log = new StringBuilder();

@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Configuration;
+using SenseNet.Storage;
 using SenseNet.Testing;
 
 namespace SenseNet.ContentRepository.Tests
@@ -35,45 +38,40 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void ContentNaming_FromDisplayName()
         {
-            var providers = new[] {
+            var namingProviders = new[] {
                 (ContentNamingProvider)new CharReplacementContentNamingProvider(),
                 (ContentNamingProvider)new Underscore5FContentNamingProvider()
             };
 
-            var contentNamingProviderAcc = new TypeAccessor(typeof(ContentNamingProvider));
-            var originalProvider = contentNamingProviderAcc.GetStaticField("__instance");
-            try
+            foreach (var namingProvider in namingProviders)
             {
-                foreach (var provider in providers)
+                var services = new ServiceCollection()
+                    .AddSingleton<IContentNamingProvider>(namingProvider)
+                    .BuildServiceProvider();
+                Providers.Instance = new Providers(services);
+
+                var providerName = namingProvider.GetType().Name;
+
+                Assert.AreEqual("árvíztűrőtükörfúrógép", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép"));
+                Assert.AreEqual("ÁRVÍZTŰRŐTÜKÖRFÚRÓGÉP", ContentNamingProvider.GetNameFromDisplayName("ÁRVÍZTŰRŐTÜKÖRFÚRÓGÉP"));
+                Assert.AreEqual("ÁrvíztűrőTükörfúrógép", ContentNamingProvider.GetNameFromDisplayName("ÁrvíztűrőTükörfúrógép"));
+                Assert.AreEqual("árvíztűrőtükörfúrógép.txt", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép.txt"));
+                Assert.AreEqual("árvíztűrőtükörfúrógép.doc.txt", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép.txt", "árvíztűrőtükörfúrógép.doc"));
+                Assert.AreEqual("árvíztűrőtükörfúrógép.doc.txt", ContentNamingProvider.GetNameFromDisplayName(".txt", "árvíztűrőtükörfúrógép.doc"));
+
+                var name =  ContentNamingProvider.GetNameFromDisplayName("!*_~@#$%a^&()b{}+\"'|:<>?c/.,");
+                if (providerName == typeof(CharReplacementContentNamingProvider).Name)
                 {
-                    contentNamingProviderAcc.SetStaticField("__instance", provider);
-                    var providerName = provider.GetType().Name;
-
-                    Assert.AreEqual("árvíztűrőtükörfúrógép", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép"));
-                    Assert.AreEqual("ÁRVÍZTŰRŐTÜKÖRFÚRÓGÉP", ContentNamingProvider.GetNameFromDisplayName("ÁRVÍZTŰRŐTÜKÖRFÚRÓGÉP"));
-                    Assert.AreEqual("ÁrvíztűrőTükörfúrógép", ContentNamingProvider.GetNameFromDisplayName("ÁrvíztűrőTükörfúrógép"));
-                    Assert.AreEqual("árvíztűrőtükörfúrógép.txt", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép.txt"));
-                    Assert.AreEqual("árvíztűrőtükörfúrógép.doc.txt", ContentNamingProvider.GetNameFromDisplayName("árvíztűrőtükörfúrógép.txt", "árvíztűrőtükörfúrógép.doc"));
-                    Assert.AreEqual("árvíztűrőtükörfúrógép.doc.txt", ContentNamingProvider.GetNameFromDisplayName(".txt", "árvíztűrőtükörfúrógép.doc"));
-
-                    var name =  ContentNamingProvider.GetNameFromDisplayName("!*_~@#$%a^&()b{}+\"'|:<>?c/.,");
-                    if (providerName == typeof(CharReplacementContentNamingProvider).Name)
-                    {
-                        Assert.AreEqual("!-_-a-()b-c", name);
-                    }
-                    else if (providerName == typeof(Underscore5FContentNamingProvider).Name)
-                    {
-                        Assert.AreEqual("!_2a_5f_7e_40_23_24_25a_5e_26()b_7b_7d_2b_22_27_7c_3a_3c_3e_3fc_2f._2c", name);
-                    }
-                    else
-                    {
-                        Assert.Inconclusive("Unknown ContentNamingProvider: " + providerName);
-                    }
+                    Assert.AreEqual("!-_-a-()b-c", name);
                 }
-            }
-            finally
-            {
-                contentNamingProviderAcc.SetStaticField("__instance", originalProvider);
+                else if (providerName == typeof(Underscore5FContentNamingProvider).Name)
+                {
+                    Assert.AreEqual("!_2a_5f_7e_40_23_24_25a_5e_26()b_7b_7d_2b_22_27_7c_3a_3c_3e_3fc_2f._2c", name);
+                }
+                else
+                {
+                    Assert.Inconclusive("Unknown ContentNamingProvider: " + providerName);
+                }
             }
         }
         [TestMethod]

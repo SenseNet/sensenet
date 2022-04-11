@@ -1,33 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
 {
     /// <summary>
     /// Default PasswordHashProvider in the Sense/Net
     /// </summary>
-    public class SenseNetPasswordHashProvider : PasswordHashProvider
+    public class SenseNetPasswordHashProvider : PasswordHashProvider, IPasswordHashProvider
     {
-        protected override string Encode(string text, IPasswordSaltProvider saltProvider)
+        public override string Encode(string text, IPasswordSaltProvider saltProvider)
         {
             return BCrypt.HashPassword(text + GenerateSalt(saltProvider));
         }
-        protected override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
+        public override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
         {
             return BCrypt.Verify(text + GenerateSalt(saltProvider), hash);
         }
     }
 
-    public class Sha256PasswordHashProvider : PasswordHashProvider
+    public class Sha256PasswordHashProvider : PasswordHashProvider, IPasswordHashProvider, IPasswordHashProviderForMigration
     {
-        protected override string Encode(string text, IPasswordSaltProvider saltProvider)
+        public override string Encode(string text, IPasswordSaltProvider saltProvider)
         {
             return EncodeRaw(text + GenerateSalt(saltProvider));
         }
-        protected override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
+        public override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
         {
             return EncodeRaw(text + GenerateSalt(saltProvider)) == hash;
         }
@@ -49,13 +46,13 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// <summary>
     /// Do not use this provider. It is only here for backward compatibility
     /// </summary>
-    public class Sha256PasswordHashProviderWithoutSalt : Sha256PasswordHashProvider
+    public class Sha256PasswordHashProviderWithoutSalt : Sha256PasswordHashProvider, IPasswordHashProviderForMigration
     {
-        protected override string Encode(string text, IPasswordSaltProvider saltProvider)
+        public override string Encode(string text, IPasswordSaltProvider saltProvider)
         {
             return EncodeRaw(text);
         }
-        protected override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
+        public override bool Check(string text, string hash, IPasswordSaltProvider saltProvider)
         {
             return EncodeRaw(text) == hash;
         }

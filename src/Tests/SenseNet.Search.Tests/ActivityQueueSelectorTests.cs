@@ -153,9 +153,6 @@ namespace SenseNet.Search.Tests
                 var services = builder.Services;
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
-                builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
-                builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -179,9 +176,6 @@ namespace SenseNet.Search.Tests
                 var services = builder.Services;
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
-                builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
-                builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -213,9 +207,6 @@ namespace SenseNet.Search.Tests
                 var services = builder.Services;
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
-                builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
-                builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
             }, () =>
@@ -232,12 +223,12 @@ namespace SenseNet.Search.Tests
             SnTrace.Test.Write("Indexing_Centralized_InMemory_ExecuteUnprocessed ACTION");
             searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
 
-            var dp2 = Providers.Instance.DataProvider;
+            //var dp2 = Providers.Instance.DataProvider;
             Test(builder =>
             {
                 var services = builder.Services;
 
-                Providers.Instance.DataProvider = dp2;
+                //Providers.Instance.DataProvider = dp2;
 
                 DataStore.DataProvider.DeleteAllIndexingActivitiesAsync(CancellationToken.None).GetAwaiter().GetResult();
                 RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
@@ -245,9 +236,6 @@ namespace SenseNet.Search.Tests
                 RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
 
                 Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-                builder.UseSearchManager(services.GetRequiredService<ISearchManager>());
-                builder.UseIndexManager(services.GetRequiredService<IIndexManager>());
-                builder.UseIndexPopulator(services.GetRequiredService<IIndexPopulator>());
                 builder.UseSearchEngine(searchEngine);
                 builder.SetConsole(indxManConsole);
                 builder.UseInitialData(null);

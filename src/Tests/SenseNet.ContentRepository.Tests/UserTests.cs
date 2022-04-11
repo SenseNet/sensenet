@@ -311,5 +311,39 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
         }
+
+        private class TestPasswordSaltProvider : IPasswordSaltProvider
+        {
+            private readonly string _salt;
+            public TestPasswordSaltProvider(string salt) { _salt = salt; }
+            public string GetPasswordSalt() { return _salt; }
+        }
+        [TestMethod]
+        public void PasswordHash_Encode()
+        {
+            var hashes = new[]
+            {
+                PasswordHashProvider.EncodePassword("Password1", new TestPasswordSaltProvider("Salt1")),
+                PasswordHashProvider.EncodePassword("Password1", new TestPasswordSaltProvider("Salt2")),
+                PasswordHashProvider.EncodePassword("Password2", new TestPasswordSaltProvider("Salt1")),
+                PasswordHashProvider.EncodePassword("Password2", new TestPasswordSaltProvider("Salt2")),
+
+                PasswordHashProvider.EncodePassword("Password1", new TestPasswordSaltProvider("Salt1")),
+                PasswordHashProvider.EncodePassword("Password1", new TestPasswordSaltProvider("Salt2")),
+                PasswordHashProvider.EncodePassword("Password2", new TestPasswordSaltProvider("Salt1")),
+                PasswordHashProvider.EncodePassword("Password2", new TestPasswordSaltProvider("Salt2")),
+            };
+
+            Assert.AreNotEqual(hashes[0], hashes[1]); // same password, different salt
+            Assert.AreNotEqual(hashes[0], hashes[2]); // different password, same salt
+            Assert.AreNotEqual(hashes[0], hashes[3]); // different password, different salt
+            for (int i = 0; i < 4; i++)
+                Assert.AreNotEqual(hashes[i], hashes[i + 4]); // not equal even if created by same params.
+
+            Assert.IsTrue(PasswordHashProvider.CheckPassword("Password1", hashes[0], new TestPasswordSaltProvider("Salt1")));
+            Assert.IsTrue(PasswordHashProvider.CheckPassword("Password1", hashes[1], new TestPasswordSaltProvider("Salt2")));
+            Assert.IsTrue(PasswordHashProvider.CheckPassword("Password2", hashes[2], new TestPasswordSaltProvider("Salt1")));
+            Assert.IsTrue(PasswordHashProvider.CheckPassword("Password2", hashes[3], new TestPasswordSaltProvider("Salt2")));
+        }
     }
 }

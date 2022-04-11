@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -19,6 +21,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Security;
+using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
@@ -558,6 +562,7 @@ namespace SenseNet.ContentRepository.Tests
             InMemoryDataProvider dataProvider = null;
             InMemorySearchEngine searchProvider = null;
             InMemoryBlobProvider blobProvider = null;
+            IBlobProviderStore blobProviderStore = null;
 
             // Storage for new contents' ids and version ids
             var ids = new Tuple<int, int>[4];
@@ -569,6 +574,7 @@ namespace SenseNet.ContentRepository.Tests
                 dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
                 searchProvider = (InMemorySearchEngine)Providers.Instance.SearchManager.SearchEngine;
                 blobProvider = (InMemoryBlobProvider)Providers.Instance.BlobProviders[typeof(InMemoryBlobProvider).FullName];
+                blobProviderStore = Providers.Instance.BlobProviders;
 
                 // Create 8 activities.
                 for (int i = 0; i < 4; i++)
@@ -602,19 +608,12 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Test(builder =>
                 {
-                    Providers.Instance.DataStore = null;
+                    var newDataProvider = (InMemoryDataProvider)Providers.Instance.DataProvider;
+                    newDataProvider.DB = dataProvider.DB;
                     builder
                         .UseLogger(logger)
-                        .UseDataProvider(dataProvider)
                         .UseInitialData(null)
-                    .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-                    .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-                    .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                         .UseSearchEngine(searchProvider)
-                        // rewrite these instances with the original base dataProvider.
-                        .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                        .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                        .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
                         .AddBlobProvider(blobProvider);
                 }, () =>
                 {
@@ -652,7 +651,6 @@ namespace SenseNet.ContentRepository.Tests
             var expectedIds = $"{ids[1].Item1},{ids[1].Item2}; {ids[2].Item1},{ids[2].Item2}";
             Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
         }
-
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_DeleteRestorePoints()

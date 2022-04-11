@@ -128,69 +128,22 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(DataProvider dataProvider = null, AccessProvider accessProvider = null,
-            ISecurityDataProvider securityDbProvider = null, ISearchEngine searchEngine = null)
+        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null, ISearchEngine searchEngine = null)
         {
             var services = CreateServiceProviderForTest();
             Providers.Instance = new Providers(services);
 
-            var dbProvider = dataProvider ?? services.GetRequiredService<DataProvider>();
+            var dbProvider = services.GetRequiredService<DataProvider>();
             return new RepositoryBuilder(services)
                 .UseAccessProvider(accessProvider ?? new DesktopAccessProvider())
-                .UseDataProvider(dbProvider)
                 .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseSecurityDataProvider(securityDbProvider ?? services.GetRequiredService<ISecurityDataProvider>())
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-            .UseSearchManager(new SearchManager(Providers.Instance.DataStore))
-            .UseIndexManager(new IndexManager(Providers.Instance.DataStore, Providers.Instance.SearchManager))
-            .UseIndexPopulator(new DocumentPopulator(Providers.Instance.DataStore, Providers.Instance.IndexManager))
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
-                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-        }
-
-        [TestMethod]
-        public void RepositoryStart_NamedProviders()
-        {
-            var dbProvider = new InMemoryDataProvider();
-            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
-            var searchEngine = new InMemorySearchEngine(GetInitialIndex());
-            var accessProvider = new DesktopAccessProvider();
-
-            // switch this ON here for testing purposes (to check that repo start does not override it)
-            SnTrace.Custom.Enabled = true;
-
-            var repoBuilder = CreateRepositoryBuilder(
-                dataProvider: dbProvider,
-                accessProvider: accessProvider,
-                securityDbProvider: securityDbProvider,
-                searchEngine: searchEngine);
-
-            using (Repository.Start(repoBuilder))
-            {
-                Assert.AreSame(dbProvider, Providers.Instance.DataStore.DataProvider);
-                Assert.AreEqual(searchEngine, Providers.Instance.SearchManager.SearchEngine);
-                Assert.AreEqual(accessProvider, AccessProvider.Current);
-                Assert.AreEqual(typeof(ElevatedModificationVisibilityRule), Providers.Instance.ElevatedModificationVisibilityRuleProvider.GetType());
-
-                // Currently this does not work, because the property below re-creates the security 
-                // db provider from the prototype, so it cannot be ref equal with the original.
-                // Assert.AreEqual(securityDbProvider, SecurityHandler.SecurityContext.DataProvider);
-                Assert.AreEqual(securityDbProvider, Providers.Instance.SecurityDataProvider);
-
-                // Check a few trace categories that were switched ON above.
-                Assert.IsTrue(SnTrace.Custom.Enabled);
-                Assert.IsTrue(SnTrace.Test.Enabled);
-                Assert.IsTrue(SnTrace.Web.Enabled);
-                Assert.IsTrue(SnTrace.System.Enabled);
-                Assert.IsFalse(SnTrace.TaskManagement.Enabled);
-                Assert.IsFalse(SnTrace.Workflow.Enabled);
-            }
         }
 
         [TestMethod]
@@ -308,91 +261,20 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_AuditEventWriter()
         {
             var originalWriter = SnLog.AuditEventWriter;
-            var auditWriter = new TestAuditEventWriter();
-
             try
             {
-                Test(repoBuilder =>
+                Test2(services =>
                 {
-                    repoBuilder
-                        .UseAuditEventWriter(auditWriter);
+                    services.AddAuditEventWriter<TestAuditEventWriter>();
                 }, () =>
                 {
-                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
-                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
+                    Assert.IsNotNull(Providers.Instance.AuditEventWriter);
+                    Assert.AreSame(Providers.Instance.AuditEventWriter, SnLog.AuditEventWriter);
                 });
             }
             finally
             {
                 SnLog.AuditEventWriter = originalWriter;
-            }
-        }
-        [TestMethod]
-        public void RepositoryStart_AuditEventWriter_Database()
-        {
-            var originalWriter = SnLog.AuditEventWriter;
-            var auditWriter = new DatabaseAuditEventWriter();
-
-            try
-            {
-                // Clear the slot to ensure a real test.
-                Providers.Instance.AuditEventWriter = null;
-
-                var repoBuilder = CreateRepositoryBuilder()
-                    .UseAuditEventWriter(auditWriter);
-
-                using (Repository.Start(repoBuilder))
-                {
-                    Assert.AreSame(auditWriter, Providers.Instance.AuditEventWriter);
-                    Assert.AreSame(auditWriter, SnLog.AuditEventWriter);
-                }
-            }
-            finally
-            {
-                SnLog.AuditEventWriter = originalWriter;
-            }
-        }
-        [TestMethod]
-        public void RepositoryStart_AuditEventWriter_Inactive()
-        {
-            var originalWriter = SnLog.AuditEventWriter;
-
-            try
-            {
-                // Clear the slot to ensure a real test.
-                Providers.Instance.AuditEventWriter = null;
-
-                var repoBuilder = CreateRepositoryBuilder()
-                    .UseInactiveAuditEventWriter();
-
-                using (Repository.Start(repoBuilder))
-                {
-                    Assert.IsTrue(Providers.Instance.AuditEventWriter is InactiveAuditEventWriter);
-                    Assert.AreSame(Providers.Instance.AuditEventWriter, SnLog.AuditEventWriter);
-                }
-            }
-            finally
-            {
-                SnLog.AuditEventWriter = originalWriter;
-            }
-        }
-
-        [TestMethod]
-        public void RepositoryStart_DataProviderExtensions_Default()
-        {
-            Assert.Inconclusive("Check the new default providers here or remove this test.");
-            // switch this ON here for testing purposes (to check that repo start does not override it)
-
-            SnTrace.Custom.Enabled = true;
-
-            var repoBuilder = CreateRepositoryBuilder();
-
-            using (Repository.Start(repoBuilder))
-            {
-                // MsSql providers are no longer the default
-
-                //Assert.AreEqual(typeof(MsSqlPackagingDataProvider), Providers.Instance.GetProvider<IPackagingDataProvider>().GetType());
-                //Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
             }
         }
 
@@ -402,13 +284,13 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            var repoBuilder = CreateRepositoryBuilder()
-                .UseAccessTokenDataProvider(new TestAccessTokenDataProvider());
-
-            using (Repository.Start(repoBuilder))
+            Test2(services =>
+            {
+                services.AddSingleton<IAccessTokenDataProvider, TestAccessTokenDataProvider>();
+            }, () =>
             {
                 Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
-            }
+            });
         }
 
         [TestMethod]

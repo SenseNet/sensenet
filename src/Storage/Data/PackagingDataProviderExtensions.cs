@@ -1,4 +1,5 @@
-﻿using SenseNet.Configuration;
+﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 
@@ -17,9 +18,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
+        [Obsolete("Do not use this method anymore. Register IPackagingDataProvider as a service instead.", true)]
         public static IRepositoryBuilder UsePackagingDataProvider(this IRepositoryBuilder builder, IPackagingDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(IPackagingDataProvider), provider);
             return builder;
         }
     }

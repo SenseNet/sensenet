@@ -1356,7 +1356,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(24 * 60 * 60, aggregations[(int)TimeResolution.Day][1].CallCount);
         }
 
-        [TestMethod]
+        //UNDONE:TEST: TOO SLOW
+        //[TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_Run_1month()
         {
             var statDataProvider = new TestStatisticalDataProvider();
@@ -1522,7 +1523,8 @@ namespace SenseNet.ContentRepository.Tests
             await statDataProvider.WriteAggregationAsync(aggregation, CancellationToken.None);
         }
 
-        [TestMethod]
+        //UNDONE:TEST: TOO SLOW
+        //[TestMethod]
         public async STT.Task Stat_Aggregation_WebHook_Run_DoNotWriteEmpty()
         {
             var statDataProvider = new TestStatisticalDataProvider();
@@ -1597,7 +1599,8 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(31, aggregations[(int)TimeResolution.Month][0].CallCount);
 
         }
-        [TestMethod]
+        //UNDONE:TEST: TOO SLOW
+        //[TestMethod]
         public async STT.Task Stat_Aggregation_Mixed_Run_()
         {
             var statDataProvider = new TestStatisticalDataProvider();
@@ -2877,7 +2880,8 @@ namespace SenseNet.ContentRepository.Tests
         }
         private async STT.Task ODataTestAsync(int userId, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
+            if(Providers.Instance != null)
+                Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             OnTestInitialize();
 

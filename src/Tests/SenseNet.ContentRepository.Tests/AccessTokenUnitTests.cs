@@ -16,10 +16,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_Create_MinTimeOut()
         {
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
-
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .BuildServiceProvider());
 
             // ACTION
             var token = AccessTokenVault.CreateTokenAsync(1, TimeSpan.MinValue, CancellationToken.None).Result;
@@ -30,10 +30,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_Create_MaxTimeOut()
         {
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
-
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .BuildServiceProvider());
 
             // ACTION
             var token = AccessTokenVault.CreateTokenAsync(1, TimeSpan.MaxValue, CancellationToken.None).Result;
@@ -45,10 +45,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_GetOrAdd_MinTimeOut()
         {
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
-
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .BuildServiceProvider());
 
             // ACTION
             var token = AccessTokenVault.GetOrAddToken(1, TimeSpan.MinValue);
@@ -59,10 +59,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UT_AccessToken_GetOrAdd_MaxTimeOut()
         {
-            Providers.Instance = new Providers(new ServiceCollection().BuildServiceProvider());
-
-            Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), new InMemoryAccessTokenDataProvider());
-            Providers.Instance.DataProvider = new InMemoryDataProvider(); ;
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .BuildServiceProvider());
 
             // ACTION
             var token = AccessTokenVault.GetOrAddToken(1, TimeSpan.MaxValue);

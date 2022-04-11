@@ -6,8 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -17,8 +21,14 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void NodeIdentifier_Create()
         {
-            Providers.Instance.DataProvider = new InMemoryDataProvider();
-            Providers.Instance.InitializeDataStore();
+            var services = new ServiceCollection()
+                .AddSingleton<DataProvider>(new InMemoryDataProvider())
+                .AddSingleton(NullLoggerFactory.Instance.CreateLogger<DataStore>())
+                .AddSingleton<IDataStore, DataStore>()
+                .AddSingleton(NullLoggerFactory.Instance.CreateLogger<TreeLock>())
+                .AddSingleton<ITreeLockController, TreeLockController>()
+                .BuildServiceProvider();
+            Providers.Instance = new Providers(services);
 
             var identifier = NodeIdentifier.Get(123);
             Assert.AreEqual(123, identifier.Id, "#1 identifier is incorrect.");

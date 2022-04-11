@@ -52,11 +52,11 @@ namespace SenseNet.Services.Core.Diagnostics
         {
             if (start > DateTime.UtcNow)
             {
-                _logger.LogTrace($"Skipping statistical aggregation for a future date: {start}");
+                //_logger.LogTrace($"Skipping statistical aggregation for a future date: {start}");
                 return;
             }
 
-            _logger.LogTrace($"Aggregating statistical data START: {start}, END: {end}, resolution: {resolution}");
+            //_logger.LogTrace($"Aggregating statistical data START: {start}, END: {end}, resolution: {resolution}");
 
             foreach (var aggregator in _aggregators)
             {
@@ -78,7 +78,7 @@ namespace SenseNet.Services.Core.Diagnostics
                         Data = Serialize(aggregator.Data)
                     };
 
-                    _logger.LogTrace($"Writing statistical aggregation for {aggregator.DataType}, START: {start}, resolution: {resolution}");
+                    //_logger.LogTrace($"Writing statistical aggregation for {aggregator.DataType}, START: {start}, resolution: {resolution}");
 
                     await _statDataProvider.WriteAggregationAsync(result, cancel).ConfigureAwait(false);
                 }
@@ -100,7 +100,7 @@ namespace SenseNet.Services.Core.Diagnostics
             if (lastGenerationTimes[(int)TimeResolution.Minute] == DateTime.MinValue)
             {
                 lastGenerationTimes = await LoadLastGenerationTimes(cancel);
-                _logger.LogTrace($"Statistics aggregation: last generation times loaded: {string.Join(", ", lastGenerationTimes)}");
+                //_logger.LogTrace($"Statistics aggregation: last generation times loaded: {string.Join(", ", lastGenerationTimes)}");
             }
 
             // Execute for all resolutions
@@ -146,7 +146,7 @@ namespace SenseNet.Services.Core.Diagnostics
             if (aggregations.Length == 0)
                 return false;
 
-            _logger.LogTrace($"Summarizing aggregations for {aggregator.DataType}, resolution: {targetResolution}, count: {aggregations.Length}");
+            //_logger.LogTrace($"Summarizing aggregations for {aggregator.DataType}, resolution: {targetResolution}, count: {aggregations.Length}");
 
             aggregator.Summarize(aggregations);
             return true;

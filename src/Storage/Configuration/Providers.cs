@@ -13,11 +13,9 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Events;
 using SenseNet.Search.Querying;
@@ -26,6 +24,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.ContentRepository.Search;
+using SenseNet.Storage;
+using SenseNet.TaskManagement.Core;
 using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
@@ -36,41 +36,10 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
-        public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
-            "SenseNet.Diagnostics.EventPropertyCollector");
-        public static string AuditEventWriterClassName { get; internal set; } = GetProvider("AuditEventWriter",
-            typeof(DatabaseAuditEventWriter).FullName);
-        public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
-            "SenseNet.ContentRepository.Security.DesktopAccessProvider");
-        public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
-        public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
-        public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",
-            typeof(SenseNetPasswordHashProvider).FullName);
-        public static string OutdatedPasswordHashProviderClassName { get; internal set; } = GetProvider("OutdatedPasswordHashProvider",
-            typeof(Sha256PasswordHashProviderWithoutSalt).FullName);
-        public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
-        public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
-        public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
-            "SenseNet.Preview.DefaultDocumentPreviewProvider");
-        public static string ClusterChannelProviderClassName { get; internal set; } = GetProvider("ClusterChannelProvider",
-            typeof(VoidChannel).FullName);
-        public static string SearchEngineClassName { get; internal set; } = GetProvider("SearchEngine",
-            "SenseNet.Search.Lucene29.Lucene29SearchEngine");
-        public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
-            "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
-        public static string CacheClassName { get; internal set; } = GetProvider("Cache",
-            typeof(SnMemoryCache).FullName);
-
-        public static string IndexDocumentProviderClassName { get; internal set; } = "SenseNet.ContentRepository.Search.Indexing.IndexDocumentProvider";
-
-        public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
-
-        public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
-            GetProvider("ElevatedModificationVisibilityRuleProvider",
-                "SenseNet.ContentRepository.SnElevatedModificationVisibilityRule");
-
-        public static bool RepositoryPathProviderEnabled { get; internal set; } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
+        public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
+        public static string DirectoryProviderClassName => null;
+        public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
+        public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
         private static string GetProvider(string key, string defaultValue = null)
         {
@@ -83,9 +52,41 @@ namespace SenseNet.Configuration
 
         public Providers(IServiceProvider services)
         {
-            if (services == null)
-                throw new ArgumentNullException(nameof(services));
-            Services = services;
+            Services = services ?? throw new ArgumentNullException(nameof(services));
+
+            DataProvider = services.GetService<DataProvider>();
+            DataStore = services.GetService<IDataStore>();
+            SecurityDataProvider = services.GetService<ISecurityDataProvider>();
+
+            TreeLock = services.GetService<ITreeLockController>();
+
+            StorageSchema = services.GetService<StorageSchema>();
+            CacheProvider = services.GetService<ISnCache>();
+            ApplicationCacheProvider = services.GetService<IApplicationCache>();
+            IndexDocumentProvider = services.GetService<IIndexDocumentProvider>();
+            AuditEventWriter = services.GetService<IAuditEventWriter>();
+            PreviewProvider = services.GetService<IPreviewProvider>();
+            PropertyCollector = services.GetService<IEventPropertyCollector>();
+            SecurityHandler = services.GetService<SecurityHandler>();
+            SecurityMessageProvider = services.GetService<IMessageProvider>();
+            PasswordHashProvider = services.GetService<IPasswordHashProvider>();
+            PasswordHashProviderForMigration = services.GetService<IPasswordHashProviderForMigration>();
+            ContentNamingProvider = services.GetService<IContentNamingProvider>();
+            TaskManager = services.GetService<ITaskManager>();
+            ElevatedModificationVisibilityRuleProvider = services.GetService<ElevatedModificationVisibilityRule>();
+            PermissionFilterFactory = services.GetService<IPermissionFilterFactory>();
+            CompatibilitySupport = services.GetService<ICompatibilitySupport>();
+            ContentProtector = services.GetService<IContentProtector>();
+
+            SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
+            SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
+            SetProviderPrivate(typeof(IAccessTokenDataProvider), services.GetService<IAccessTokenDataProvider>());
+            SetProviderPrivate(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
+
+            SearchManager = services.GetService<ISearchManager>();
+            IndexManager = services.GetService<IIndexManager>();
+            IndexPopulator = services.GetService<IIndexPopulator>();
+
         }
 
         /// <summary>
@@ -95,89 +96,38 @@ namespace SenseNet.Configuration
         /// </summary>
         public static Providers Instance { get; set; }
 
-        //===================================================================================== Named providers
+        /* ===================================================================================== Named providers */
 
-        #region private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>
+        public IEventPropertyCollector PropertyCollector { get; }
+        public IAuditEventWriter AuditEventWriter { get; }
+        public IMessageProvider SecurityMessageProvider { get; }
+        public SecurityHandler SecurityHandler { get; }
+        public IPasswordHashProvider PasswordHashProvider { get; }
+        public IPasswordHashProviderForMigration PasswordHashProviderForMigration { get; }
+        public IContentNamingProvider ContentNamingProvider { get; }
+        public IPreviewProvider PreviewProvider { get; }
+        public ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; }
+        public ISnCache CacheProvider { get; }
+        public IApplicationCache ApplicationCacheProvider { get; }
+        public IPermissionFilterFactory PermissionFilterFactory { get; }
+        public IIndexDocumentProvider IndexDocumentProvider { get; }
+        public StorageSchema StorageSchema { get; }
+        public ICompatibilitySupport CompatibilitySupport { get; }
+        public IContentProtector ContentProtector { get; }
+        public ITreeLockController TreeLock { get; }
+        public ITaskManager TaskManager { get; }
 
-        private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>(() =>
-            string.IsNullOrEmpty(EventLoggerClassName)
-                ? new SnEventLogger(Logging.EventLogName, Logging.EventLogSourceName)
-                : CreateProviderInstance<IEventLogger>(EventLoggerClassName, "EventLogger"));
-        public virtual IEventLogger EventLogger
-        {
-            get => _eventLogger.Value;
-            set { _eventLogger = new Lazy<IEventLogger>(() => value); }
-        }
-        #endregion
 
-        #region private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>
+        public DataProvider DataProvider { get; }
+        public IDataStore DataStore { get; }
+        public ISecurityDataProvider SecurityDataProvider { get; }
+        public ISearchManager SearchManager { get; }
+        public IIndexManager IndexManager { get; }
+        public IIndexPopulator IndexPopulator { get; }
 
-        private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>(() =>
-            string.IsNullOrEmpty(PropertyCollectorClassName)
-                ? new EventPropertyCollector()
-                : CreateProviderInstance<IEventPropertyCollector>(PropertyCollectorClassName, "PropertyCollector"));
-        public virtual IEventPropertyCollector PropertyCollector
-        {
-            get => _propertyCollector.Value;
-            set { _propertyCollector = new Lazy<IEventPropertyCollector>(() => value); }
-        }
-        #endregion
+        /* ========================================================= Need to refactor */
 
-        #region private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>
-        private Lazy<IAuditEventWriter> _auditEventWriter = new Lazy<IAuditEventWriter>(() =>
-        {
-            var aewr = CreateProviderInstance<IAuditEventWriter>(AuditEventWriterClassName, "AuditEventWriter");
-            return aewr;
-        });
-        public virtual IAuditEventWriter AuditEventWriter
-        {
-            get { return _auditEventWriter.Value; }
-            set { _auditEventWriter = new Lazy<IAuditEventWriter>(() => value); }
-        }
-        #endregion
-
-        #region DataProvider & DataStore
-
-        public virtual DataProvider DataProvider { get; set; }
-
-        public virtual IDataStore DataStore { get; set; }
-
-        /// <summary>
-        /// Internal method for initializing the data provider and data store instances from the service container.
-        /// DO NOT USE THIS METHOD IN YOUR CODE
-        /// </summary>
-        public void InitializeDataProvider(IServiceProvider provider)
-        {
-            DataProvider ??= provider?.GetRequiredService<DataProvider>();
-
-            if (DataStore == null)
-                InitializeDataStore(provider);
-
-            InitializeTreeLock(provider);
-        }
-
-        /// <summary>
-        /// Internal method for initializing the data store instance and any other service instance that depends on it.
-        /// DO NOT USE THIS METHOD IN YOUR CODE
-        /// </summary>
-        public void InitializeDataStore(IServiceProvider provider = null)
-        {
-            // This method is a temporary solution for initializing the datastore instance and other dependent service
-            // instance without starting the whole repository.
-
-            DataStore = new DataStore(DataProvider, 
-                provider?.GetService<ILogger<DataStore>>() ?? NullLoggerFactory.Instance.CreateLogger<DataStore>());
-            
-            InitializeTreeLock(provider);
-        }
-
-        private void InitializeTreeLock(IServiceProvider provider = null)
-        {
-            TreeLock ??= new TreeLockController(DataStore,
-                provider?.GetService<ILogger<TreeLock>>() ?? NullLoggerFactory.Instance.CreateLogger<TreeLock>());
-        }
-
-        #endregion
+        public IEventLogger EventLogger { get; set; }
 
         #region IBlobStorageMetaDataProvider
 
@@ -246,13 +196,20 @@ namespace SenseNet.Configuration
             BlobStorage.Initialize();
         }
 
-        //UNDONE: Delete initialization and use something like this: repositoryBuilder.UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
-        public IBlobProviderStore BlobProviders { get; set; } = new BlobProviderStore(Array.Empty<IBlobProvider>());
+        private IBlobProviderStore _blobProviders;
+        public IBlobProviderStore BlobProviders
+        {
+            get
+            {
+                if (_blobProviders == null)
+                    //UNDONE: Delete initialization and use something like this everywhere: repositoryBuilder.UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
+                    _blobProviders = new BlobProviderStore(Array.Empty<IBlobProvider>());
+                return _blobProviders;
+            }
+            set => _blobProviders = value;
+        }
 
-        public virtual ISearchEngine SearchEngine { get; set; }
-        public ISearchManager SearchManager { get; set; }
-        public IIndexManager IndexManager { get; set; }
-        public IIndexPopulator IndexPopulator { get; set; }
+        public ISearchEngine SearchEngine { get; set; }
 
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
@@ -272,38 +229,6 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public virtual ISecurityDataProvider SecurityDataProvider { get; set; }
-        public virtual IMessageProvider SecurityMessageProvider { get; set; }
-
-        public SecurityHandler SecurityHandler { get; set; } = new SecurityHandler();
-        
-        #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
-        private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 
-            CreateProviderInstance<IPreviewProvider>(DocumentPreviewProviderClassName,"DocumentPreviewProvider"));
-
-        /// <summary>
-        /// Preview provider instance. Do NOT set this property directly,
-        /// because it has to be an instance of the DocumentPreviewProvider class
-        /// that resides in the ContentRepository layer.
-        /// Use the extension methods on the IRepositoryBuilder api instead.
-        /// </summary>
-        public virtual IPreviewProvider PreviewProvider
-        {
-            get => _previewProvider.Value;
-            set { _previewProvider = new Lazy<IPreviewProvider>(() => value); }
-        }
-        #endregion
-
-        #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
-        private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
-            new Lazy<ElevatedModificationVisibilityRule>(() => CreateProviderInstance<ElevatedModificationVisibilityRule>(
-                ElevatedModificationVisibilityRuleProviderName, "ElevatedModificationVisibilityRule"));
-        public virtual ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider
-        {
-            get { return _elevatedModificationVisibilityRuleProvider.Value; }
-            set { _elevatedModificationVisibilityRuleProvider = new Lazy<ElevatedModificationVisibilityRule>(() => value); }
-        }
-        #endregion
 
         #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
         private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() => CreateProviderInstance<MembershipExtenderBase>(MembershipExtenderClassName, "MembershipExtender"));
@@ -314,50 +239,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
-        private Lazy<ISnCache> _cacheProvider =
-            new Lazy<ISnCache>(() =>
-            {
-                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider", true);
-                cache.Events = new CacheEventStore();
-                return cache;
-            });
-        public virtual ISnCache CacheProvider
-        {
-            get => _cacheProvider.Value;
-            set { _cacheProvider = new Lazy<ISnCache>(() =>
-            {
-                value.Events = new CacheEventStore();
-                return value;
-            }); }
-        }
-        #endregion
-
-        #region private Lazy<IApplicationCache> _applicationCacheProvider = new Lazy<IApplicationCache>
-        private Lazy<IApplicationCache> _applicationCacheProvider =
-            new Lazy<IApplicationCache>(() => CreateProviderInstance<IApplicationCache>(ApplicationCacheClassName, "ApplicationCacheProvider"));
-        public virtual IApplicationCache ApplicationCacheProvider
-        {
-            get { return _applicationCacheProvider.Value; }
-            set { _applicationCacheProvider = new Lazy<IApplicationCache>(() => value); }
-        }
-        #endregion
-
-        public virtual IClusterChannel ClusterChannelProvider { get; set; } =
-            new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
-
-        #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
-        private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
-        {
-            return new PermissionFilterFactory();
-        });
-        public virtual IPermissionFilterFactory PermissionFilterFactory
-        {
-            get { return _permissionFilterFactory.Value; }
-            set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
-        }
-
-        #endregion
+        public virtual IClusterChannel ClusterChannelProvider { get; set; } = new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
 
         #region NodeObservers
         private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
@@ -402,33 +284,6 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>
-        private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() =>
-            CreateProviderInstance<IIndexDocumentProvider>(IndexDocumentProviderClassName, "IndexDocumentProvider"));
-        public virtual IIndexDocumentProvider IndexDocumentProvider
-        {
-            get { return _indexDocumentProvider.Value; }
-            set { _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() => value); }
-        }
-
-        #endregion
-
-        #region ContentProtector
-        private Lazy<ContentProtector> _contentProtector =
-            new Lazy<ContentProtector>(() => new ContentProtector());
-        public virtual ContentProtector ContentProtector
-        {
-            get => _contentProtector.Value;
-            set { _contentProtector = new Lazy<ContentProtector>(() => value); }
-        }
-
-        #endregion
-
-        public StorageSchema StorageSchema { get; set; } = new StorageSchema();
-
-        public ICompatibilitySupport CompatibilitySupport { get; set; } =
-            new EmptyCompatibilitySupport();
-
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor
         {
@@ -439,12 +294,14 @@ namespace SenseNet.Configuration
         public IEventProcessor AuditLogEventProcessor { get; set; }
         public List<IEventProcessor> AsyncEventProcessors { get; } = new List<IEventProcessor>();
 
-        public ITreeLockController TreeLock { get; set; } // Initialized by InitializeDataStore method in this instance.
 
         //===================================================================================== General provider API
 
         private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();
+        public Dictionary<string, object> ProvidersByName => _providersByName;
+
         private readonly Dictionary<Type, object> _providersByType = new Dictionary<Type, object>();
+        public Dictionary<Type, object> ProvidersByType => _providersByType;
 
         public virtual T GetProvider<T>(string name) where T: class 
         {
@@ -477,7 +334,12 @@ namespace SenseNet.Configuration
         {
             _providersByName[providerName] = provider;
         }
-        public virtual void SetProvider(Type providerType, object provider)
+        [Obsolete]
+        public void SetProvider(Type providerType, object provider)
+        {
+            SetProviderPrivate(providerType, provider);
+        }
+        private void SetProviderPrivate(Type providerType, object provider)
         {
             _providersByType[providerType] = provider;
         }

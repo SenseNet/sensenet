@@ -14,7 +14,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The passed <see cref="IRepositoryBuilder"/> instance.</returns>
         public static IRepositoryBuilder ProtectContent(this IRepositoryBuilder builder, params string[] paths)
         {
-            ContentProtector.AddPaths(paths);
+            Configuration.Providers.Instance.ContentProtector.AddPaths(paths);
             return builder;
         }
 
@@ -26,7 +26,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <returns>The passed <see cref="IRepositoryBuilder"/> instance.</returns>
         public static IRepositoryBuilder ProtectGroups(this IRepositoryBuilder builder, params string[] paths)
         {
-            ContentProtector.AddGroupPaths(paths);
+            Configuration.Providers.Instance.ContentProtector.AddGroupPaths(paths);
             return builder;
         }
     }

@@ -36,11 +36,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="dataProvider">DataProvider instance.</param>
+        [Obsolete("Do not use this method anymore. Register DataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
-            Configuration.Providers.Instance.DataProvider = dataProvider;
-            Configuration.Providers.Instance.InitializeDataStore();
-
             return repositoryBuilder;
         }
 
@@ -129,11 +127,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="permissionFilterFactory">IPermissionFilterFactory implementation instance.</param>
+        [Obsolete("Do not use this method anymore. Register IPermissionFilterFactory as a service instead.", true)]
         public static IRepositoryBuilder UsePermissionFilterFactory(this IRepositoryBuilder repositoryBuilder, IPermissionFilterFactory permissionFilterFactory)
         {
-            Configuration.Providers.Instance.PermissionFilterFactory = permissionFilterFactory;
-            WriteLog("PermissionFilterFactory", permissionFilterFactory);
-
             return repositoryBuilder;
         }
 
@@ -142,11 +138,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="securityDataProvider">ISecurityDataProvider instance.</param>
+        [Obsolete("Do not use this method anymore. Register ISecurityDataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSecurityDataProvider(this IRepositoryBuilder repositoryBuilder, ISecurityDataProvider securityDataProvider)
         {
-            Configuration.Providers.Instance.SecurityDataProvider = securityDataProvider;
-            WriteLog("SecurityDataProvider", securityDataProvider);
-
             return repositoryBuilder;
         }
 
@@ -155,11 +149,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="securityMessageProvider">IMessageProvider instance that will handle security-related messages.</param>
+        [Obsolete("Do not use this method anymore. Register IMessageProvider as a service instead.", true)]
         public static IRepositoryBuilder UseSecurityMessageProvider(this IRepositoryBuilder repositoryBuilder, IMessageProvider securityMessageProvider)
         {
-            Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
-            WriteLog("SecurityMessageProvider", securityMessageProvider);
-
             return repositoryBuilder;
         }
 
@@ -168,11 +160,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="cacheProvider">ICache instance.</param>
+        [Obsolete("Do not use this method anymore. Register ISnCache as a service instead.", true)]
         public static IRepositoryBuilder UseCacheProvider(this IRepositoryBuilder repositoryBuilder, ISnCache cacheProvider)
         {
-            Configuration.Providers.Instance.CacheProvider = cacheProvider;
-            WriteLog("CacheProvider", cacheProvider);
-
             return repositoryBuilder;
         }
 
@@ -181,11 +171,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="applicationCacheProvider">IApplicationCache instance.</param>
+        [Obsolete("Do not use this method anymore. Register IApplicationCache as a service instead.", true)]
         public static IRepositoryBuilder UseApplicationCacheProvider(this IRepositoryBuilder repositoryBuilder, IApplicationCache applicationCacheProvider)
         {
-            Configuration.Providers.Instance.ApplicationCacheProvider = applicationCacheProvider;
-            WriteLog("ApplicationCacheProvider", applicationCacheProvider);
-
             return repositoryBuilder;
         }
 
@@ -205,11 +193,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Sets the elevated modification visibility rule provider.
         /// </summary>
+        [Obsolete("Do not use this method anymore. Register ElevatedModificationVisibilityRule as a service instead.", true)]
         public static IRepositoryBuilder UseElevatedModificationVisibilityRuleProvider(this IRepositoryBuilder repositoryBuilder, ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
         {
-            Configuration.Providers.Instance.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
-            WriteLog("ElevatedModificationVisibilityRuleProvider", modificationVisibilityRuleProvider);
-
             return repositoryBuilder;
         }
 
@@ -226,22 +212,19 @@ namespace SenseNet.Extensions.DependencyInjection
             return repositoryBuilder;
         }
 
+        [Obsolete("Do not use this method anymore. Register ISearchManager as a service instead.", true)]
         public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
         {
-            Configuration.Providers.Instance.SearchManager = searchManager;
-            WriteLog("SearchManager", searchManager);
             return repositoryBuilder;
         }
+        [Obsolete("Do not use this method anymore. Register IIndexManager as a service instead.", true)]
         public static IRepositoryBuilder UseIndexManager(this IRepositoryBuilder repositoryBuilder, IIndexManager indexManager)
         {
-            Configuration.Providers.Instance.IndexManager = indexManager;
-            WriteLog("IndexManager", indexManager);
             return repositoryBuilder;
         }
+        [Obsolete("Do not use this method anymore. Register IIndexPopulator as a service instead.", true)]
         public static IRepositoryBuilder UseIndexPopulator(this IRepositoryBuilder repositoryBuilder, IIndexPopulator indexPopulator)
         {
-            Configuration.Providers.Instance.IndexPopulator = indexPopulator;
-            WriteLog("IndexPopulator", indexPopulator);
             return repositoryBuilder;
         }
 

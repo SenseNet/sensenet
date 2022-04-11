@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository
         string GetRequestItem(string name);
     }
 
-    internal class EmptyCompatibilitySupport : ICompatibilitySupport
+    public class EmptyCompatibilitySupport : ICompatibilitySupport
     {
         public Uri Request_Url => null;
         public Uri Request_UrlReferrer => null;

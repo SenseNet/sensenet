@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Search.Querying;
 
 namespace SenseNet.ContentRepository
 {
-    internal class ApplicationCache : IApplicationCache
+    public class ApplicationCache : IApplicationCache
     {
         // ========================================================== IApplicationCache Members
 

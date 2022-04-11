@@ -46,36 +46,21 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             OnBeforeGettingRepositoryBuilder(builder);
 
-            var dataProvider = GetDataProvider(services);
-
             builder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
-                .UseDataProvider(dataProvider)
                 //.UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(Initializer.InitialData)
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
-                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
-                .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
-                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
-                .UseSearchManager(services.GetRequiredService<ISearchManager>())
-                .UseIndexManager(services.GetRequiredService<IIndexManager>())
-                .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(GetSearchEngine())
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider, services))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom");
-
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
 
             OnAfterGettingRepositoryBuilder(builder);
 
@@ -89,7 +74,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
         public virtual void OnAfterRepositoryStart(RepositoryInstance repository) { }
 
         public abstract DataProvider GetDataProvider(IServiceProvider services);
-        public abstract ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services);
         public abstract ISearchEngine GetSearchEngine();
     }
 }

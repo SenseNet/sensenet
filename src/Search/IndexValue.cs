@@ -180,7 +180,10 @@ namespace SenseNet.Search
                     value = IntegerValue.ToString(CultureInfo.InvariantCulture);
                     break;
                 case IndexValueType.IntArray:
-                    throw new NotSupportedException();
+                    //throw new NotSupportedException();
+                    //UNDONE: Investigate this modification because it can cause deserialization- or parsing errors.
+                    value = $"[{string.Join(",", IntegerArrayValue.Select(x => x.ToString()))}]";
+                    break;
                 case IndexValueType.Long:
                     value = LongValue.ToString(CultureInfo.InvariantCulture);
                     break;

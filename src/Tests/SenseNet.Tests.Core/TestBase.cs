@@ -109,6 +109,51 @@ namespace SenseNet.Tests.Core
             OnAfterRepositoryShutdown();
         }
 
+        protected void Test2(Action<IServiceCollection> initializeServices, Action callback)
+        {
+            Test2(false, initializeServices, callback);
+        }
+        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action callback)
+        {
+            ExecuteTest2(useCurrentUser, initializeServices, null, callback);
+        }
+        protected void Test2(Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            Test2(false, initializeServices, initialize, callback);
+        }
+        protected void Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            ExecuteTest2(useCurrentUser, initializeServices, initialize, callback);
+        }
+        private void ExecuteTest2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTestInstance(initializeServices);
+            initialize?.Invoke(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
+
+            using (Repository.Start(builder))
+            {
+                PrepareRepository();
+
+                User.Current = User.Administrator;
+                if (useCurrentUser)
+                    callback();
+                else
+                    using (new SystemAccount())
+                        callback();
+            }
+
+            OnAfterRepositoryShutdown();
+        }
+
         protected void ResetContentTypeManager()
         {
             var acc = new TypeAccessor(typeof(ContentTypeManager));
@@ -179,8 +224,7 @@ namespace SenseNet.Tests.Core
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
 
@@ -189,6 +233,11 @@ namespace SenseNet.Tests.Core
                 ;
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
+        }
+        protected virtual IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null,
+            Action<IServiceCollection> modifyServices = null)
+        {
+            return CreateServiceProviderForTest(modifyConfig, modifyServices);
         }
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest(TestContext testContext, Action<IServiceCollection> modifyServices = null)
@@ -208,31 +257,18 @@ namespace SenseNet.Tests.Core
 
             Cache.Reset();
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-            
-            var dataProvider = (InMemoryDataProvider)services.GetRequiredService<DataProvider>();
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
-                .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
-                .UseSharedLockDataProvider(services.GetRequiredService<ISharedLockDataProvider>())
-                .UseExclusiveLockDataProvider(services.GetRequiredService<IExclusiveLockDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UseAccessTokenDataProvider(services.GetRequiredService<IAccessTokenDataProvider>())
-                .UsePackagingDataProvider(services.GetRequiredService<IPackagingDataProvider>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
-                .UseSearchManager(services.GetRequiredService<ISearchManager>())
-                .UseIndexManager(services.GetRequiredService<IIndexManager>())
-                .UseIndexPopulator(services.GetRequiredService<IIndexPopulator>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseElevatedModificationVisibilityRuleProvider(services.GetRequiredService<ElevatedModificationVisibilityRule>())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
@@ -243,39 +279,9 @@ namespace SenseNet.Tests.Core
             return builder;
         }
 
-        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
         {
-            return CreateRepositoryBuilderForTest(TestContext);
-        }
-
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
-        {
-            return new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                {
-                    Id = x.Id,
-                    OwnerId = x.OwnerId,
-                    ParentId = x.ParentId,
-                    IsInherited = true,
-                    HasExplicitEntry = x.Id == 2
-                }),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
+            return CreateRepositoryBuilderForTest(TestContext, modifyServices);
         }
 
         protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)

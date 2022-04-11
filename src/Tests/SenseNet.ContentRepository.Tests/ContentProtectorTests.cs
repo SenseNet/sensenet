@@ -37,9 +37,6 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
 
-            // CLEANUP: Restore the original list
-            Providers.Instance.ContentProtector = new ContentProtector();
-
             // TEST-2: The "TestFolder" is deletable.
             Test(() =>
             {
@@ -57,14 +54,14 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(builder =>
             {
-                originalList = ContentProtector.GetProtectedPaths();
+                originalList = Providers.Instance.ContentProtector.GetProtectedPaths();
 
                 // Add a deep path
                 builder.ProtectContent("/Root/A/B/C");
             }, () =>
             {
-                var actual = string.Join(" ", 
-                    ContentProtector.GetProtectedPaths().Except(originalList));
+                var actual = string.Join(" ",
+                    Providers.Instance.ContentProtector.GetProtectedPaths().Except(originalList));
 
                 // The whole parent axis added but the "Except" operation removes the "/Root".
                 var expected = "/Root/A /Root/A/B /Root/A/B/C";
@@ -82,11 +79,11 @@ namespace SenseNet.ContentRepository.Tests
                 builder.ProtectContent("/Root/TestFolder");
             }, () =>
             {
-                var originalList = ContentProtector.GetProtectedPaths();
+                var originalList = Providers.Instance.ContentProtector.GetProtectedPaths();
                 var expectedFirst = originalList[0];
                 originalList[0] = null;
 
-                var actualList = ContentProtector.GetProtectedPaths();
+                var actualList = Providers.Instance.ContentProtector.GetProtectedPaths();
                 var actualFirst = actualList[0];
 
                 Assert.AreEqual(expectedFirst, actualFirst);
@@ -119,14 +116,6 @@ namespace SenseNet.ContentRepository.Tests
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user3");
                 // user without groups
                 Node.ForceDelete("/Root/IMS/Public/TestOrg/user4");
-
-                // CLEANUP: Restore the original list
-                Providers.Instance.ContentProtector = new ContentProtector();
-
-                // can delete anybody
-                Node.ForceDelete("/Root/IMS/Public/TestOrg/user1");
-                Node.ForceDelete("/Root/IMS/Public/TestOrg/user2");
-                Node.ForceDelete("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -151,14 +140,6 @@ namespace SenseNet.ContentRepository.Tests
                 DisableUser("/Root/IMS/Public/TestOrg/user3");
                 // user without groups
                 DisableUser("/Root/IMS/Public/TestOrg/user4");
-
-                // CLEANUP: Restore the original list
-                Providers.Instance.ContentProtector = new ContentProtector();
-
-                // can disable anybody
-                DisableUser("/Root/IMS/Public/TestOrg/user1");
-                DisableUser("/Root/IMS/Public/TestOrg/user2");
-                DisableUser("/Root/IMS/Public/TestOrg/user5");
             });
         }
         [TestMethod]
@@ -181,14 +162,6 @@ namespace SenseNet.ContentRepository.Tests
 
                 // can be removed, group3 is not protected
                 RemoveUser("/Root/IMS/Public/group3", "/Root/IMS/Public/TestOrg/user3");
-
-                // CLEANUP: Restore the original list
-                Providers.Instance.ContentProtector = new ContentProtector();
-
-                // can remove anything
-                RemoveUser("/Root/IMS/Public/group1", "/Root/IMS/Public/TestOrg/user1");
-                RemoveUser("/Root/IMS/Public/group2", "/Root/IMS/Public/TestOrg/user2");
-                RemoveUser("/Root/IMS/Public/group5", "/Root/IMS/Public/TestOrg/user5");
             });
         }
 

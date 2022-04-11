@@ -28,6 +28,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
                     .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                     .AddSenseNetMsSqlStatisticalDataProvider()
+                    .AddDatabaseAuditEventWriter()
                     .AddSenseNetMsSqlClientStoreDataProvider()
                     .AddComponent<MsSqlExclusiveLockComponent>()
                     .AddComponent<MsSqlStatisticsComponent>()
@@ -77,9 +78,10 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
+        [Obsolete("Do not use this method anymore. Register MsSqlExclusiveLockDataProvider as a service instead.", true)]
         public static IRepositoryBuilder UseMsSqlExclusiveLockDataProvider(this IRepositoryBuilder builder)
         {
-            return builder.UseExclusiveLockDataProvider(new MsSqlExclusiveLockDataProvider());
+            return builder;
         }
     }
 }

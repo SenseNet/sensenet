@@ -34,8 +34,7 @@ namespace SenseNet.IntegrationTests.Platforms
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
 
@@ -53,35 +52,6 @@ namespace SenseNet.IntegrationTests.Platforms
 
         public override DataProvider GetDataProvider(IServiceProvider services) => services.GetRequiredService<DataProvider>();
 
-        public override ISecurityDataProvider GetSecurityDataProvider(DataProvider dataProvider, IServiceProvider services)
-        {
-            return new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = dataProvider.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                    {
-                        Id = x.Id,
-                        OwnerId = x.OwnerId,
-                        ParentId = x.ParentId,
-                        IsInherited = true,
-                        HasExplicitEntry = x.Id == 2
-                    }),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
-        }
         public override ISearchEngine GetSearchEngine()
         {
             return new InMemorySearchEngine(new InMemoryIndex());

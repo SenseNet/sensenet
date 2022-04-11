@@ -13,10 +13,13 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.AppModel;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
 using SenseNet.Services.Core;
@@ -29,6 +32,7 @@ using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using SenseNet.Tools.Diagnostics;
 using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable once CheckNamespace
@@ -80,6 +84,8 @@ namespace SenseNet.Extensions.DependencyInjection
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
                 .AddSenseNetBlobStorage()
+                .AddSenseNetPasswordHashProvider()
+                .AddPasswordHashProviderForMigration<Sha256PasswordHashProviderWithoutSalt>()
                 .AddSenseNetSecurity(config =>
                 {
                     config.SystemUserId = Identifiers.SystemUserId;
@@ -89,6 +95,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 })
                 .AddPlatformIndependentServices()
                 .AddSenseNetTaskManager()
+                .AddContentNamingProvider<CharReplacementContentNamingProvider>()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
@@ -125,14 +132,23 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
         {
             return services
+                .AddSingleton<StorageSchema>()
+                .AddSingleton<ITreeLockController, TreeLockController>()
+
                 .AddSingleton<SecurityHandler>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
+                .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 
                 .AddSingleton<ISearchManager, SearchManager>()
                 .AddSingleton<IIndexManager, IndexManager>()
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
 
-                .AddSingleton<ElevatedModificationVisibilityRule>()
+                .AddSingleton<ISnCache, SnMemoryCache>()
+                .AddSingleton<IApplicationCache, ApplicationCache>() //not used?
+                .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()
+                .AddSingleton<IEventPropertyCollector, EventPropertyCollector>()
+                .AddSingleton<ICompatibilitySupport, EmptyCompatibilitySupport>()
+                .AddSingleton<IContentProtector, ContentProtector>()
             ;
         }
 
@@ -148,34 +164,9 @@ namespace SenseNet.Extensions.DependencyInjection
             Providers.Instance.BlobMetaDataProvider = provider.GetRequiredService<IBlobStorageMetaDataProvider>();
             Providers.Instance.BlobProviderSelector = provider.GetRequiredService<IBlobProviderSelector>();
 
-            //UNDONE: [DIREF] register and get data provider service using an interface instead of a type
-            Providers.Instance.DataProvider = provider.GetRequiredService<DataProvider>();
-            Providers.Instance.DataStore = provider.GetRequiredService<IDataStore>();
-
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
-            Providers.Instance.SearchManager = provider.GetRequiredService<ISearchManager>();
-            Providers.Instance.IndexManager = provider.GetRequiredService<IIndexManager>();
-            Providers.Instance.IndexPopulator = provider.GetRequiredService<IIndexPopulator>();
-
-#pragma warning disable 618
-
-            var previewProvider = provider.GetService<IPreviewProvider>();
-            if (previewProvider != null)
-                Providers.Instance.PreviewProvider = previewProvider;
-
-            var taskManager = provider.GetService<ITaskManager>();
-            if (taskManager != null)
-                SnTaskManager.Instance = taskManager;
-
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-
-#pragma warning restore 618
-
-            var securityDataProvider = provider.GetService<ISecurityDataProvider>();
-            if (securityDataProvider != null)
-                Providers.Instance.SecurityDataProvider = securityDataProvider;
 
             var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
             if (statisticalDataProvider != null)

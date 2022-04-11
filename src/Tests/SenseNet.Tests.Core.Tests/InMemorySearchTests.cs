@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -13,6 +14,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
@@ -258,7 +260,7 @@ namespace SenseNet.Tests.Core.Tests
             Node node6; // /Root/Node5/Node6
             Node[] nodes;
 
-            Test(builder => { builder.UseCacheProvider(new EmptyCache()); }, () =>
+            Test2((services) => { services.AddSingleton<ISnCache, EmptyCache>(); }, () =>
             {
                 // create initial structure.
                 var root = Node.LoadNode(Identifiers.PortalRootId);

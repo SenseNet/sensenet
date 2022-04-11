@@ -5,6 +5,7 @@ using System.Runtime.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 // ReSharper disable RedundantBaseQualifier
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Caching
 {
     /// <summary>
@@ -29,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
         public int Count => (int)base.GetCount();
 
         /// <inheritdoc />
-        public CacheEventStore Events { get; set; }
+        public CacheEventStore Events { get; set; } = new CacheEventStore();
 
         /// <inheritdoc />
         public object Get(string key)

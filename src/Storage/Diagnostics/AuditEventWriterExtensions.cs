@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Tools.Diagnostics;
@@ -12,15 +14,17 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class AuditEventWriterExtensions
     {
-        public static IRepositoryBuilder UseAuditEventWriter(this IRepositoryBuilder builder, IAuditEventWriter provider)
+        public static IServiceCollection AddInactiveAuditEventWriter(this IServiceCollection services)
         {
-            Providers.Instance.AuditEventWriter = provider;
-            return builder;
+            return AddAuditEventWriter<InactiveAuditEventWriter>(services);
         }
-        public static IRepositoryBuilder UseInactiveAuditEventWriter(this IRepositoryBuilder builder)
+        public static IServiceCollection AddDatabaseAuditEventWriter(this IServiceCollection services)
         {
-            Providers.Instance.AuditEventWriter = new InactiveAuditEventWriter();
-            return builder;
+            return AddAuditEventWriter<DatabaseAuditEventWriter>(services);
+        }
+        public static IServiceCollection AddAuditEventWriter<T>(this IServiceCollection services) where T : class, IAuditEventWriter
+        {
+            return services.AddSingleton<IAuditEventWriter, T>();
         }
     }
 }

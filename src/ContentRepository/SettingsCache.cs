@@ -5,7 +5,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository
 {
-    internal sealed class SettingsCache : TreeCache<Settings>
+    public sealed class SettingsCache : TreeCache<Settings>
     {
         private static readonly object Sync = new object();
         private static SettingsCache __instance;

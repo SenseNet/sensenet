@@ -551,7 +551,7 @@ namespace SenseNet.ContentRepository
                 return;
 
             // is this group protected?
-            if (!ContentProtector.GetProtectedGroupIds().Contains(e.SourceNode.Id))
+            if (!Providers.Instance.ContentProtector.GetProtectedGroupIds().Contains(e.SourceNode.Id))
                 return;
 
             // Protected groups must contain at least one direct member user

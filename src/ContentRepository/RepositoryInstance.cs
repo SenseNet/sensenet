@@ -134,11 +134,7 @@ namespace SenseNet.ContentRepository
 
             LoadAssemblies(_settings.IsWebContext);
 
-            InitializeDataProviderExtensions();
-
-            //UNDONE: move in the Services.AddSenseNetProviderInstances();
-            Providers.Instance.SecurityHandler = _settings.Services.GetRequiredService<SecurityHandler>();
-            Providers.Instance.SecurityHandler.StartSecurity(_settings.IsWebContext, _settings.Services);
+            _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.IsWebContext, _settings.Services);
 
             //UNDONE: modernize TemplateManager
             // Set legacy collection from the new services collection and reset the
@@ -327,18 +323,6 @@ namespace SenseNet.ContentRepository
 
         private List<ISnService> _serviceInstances;
 
-        //UNDONE:CNSTR: Delete this method
-        private void InitializeDataProviderExtensions()
-        {
-            // set default value of well-known data provider extensions
-            if (null == Providers.Instance.GetProvider<IPackagingDataProvider>())
-                Providers.Instance.SetProvider(typeof(IPackagingDataProvider), _settings.Services.GetRequiredService<IPackagingDataProvider>());
-            if (null == Providers.Instance.GetProvider<IAccessTokenDataProvider>())
-                Providers.Instance.SetProvider(typeof(IAccessTokenDataProvider), _settings.Services.GetRequiredService<IAccessTokenDataProvider>());
-            if (null == Providers.Instance.GetProvider<ISharedLockDataProvider>())
-                Providers.Instance.SetProvider(typeof(ISharedLockDataProvider), _settings.Services.GetRequiredService<ISharedLockDataProvider>());
-        }
-
         private static void InitializeOAuthProviders()
         {
             var providerTypeNames = new List<string>();
@@ -374,8 +358,7 @@ namespace SenseNet.ContentRepository
         {
             // look for the configured logger
             SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
-            SnLog.PropertyCollector = Providers.Instance.PropertyCollector ?? new EventPropertyCollector();
-            SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? new DatabaseAuditEventWriter();
+            SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? throw new ApplicationException("Missing AuditEventWriter service.");
 
             //set configured tracers
             var tracers = Providers.Instance.GetProvider<ISnTracer[]>();

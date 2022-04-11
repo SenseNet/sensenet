@@ -52,52 +52,26 @@ namespace SenseNet.Extensions.DependencyInjection
             // Precedence: if a service is registered in the collection, use that
             // instead of creating instances locally.
             var services = (repositoryBuilder as RepositoryBuilder)?.Services;
+            if (services == null)
+                throw new ApplicationException("IServiceProvider cannot be found");
 
-            if (services?.GetService<DataProvider>() is InMemoryDataProvider dataProvider)
-            {
-                // If there is an instance in the container, use that. We have to set
-                // these instances manually instead of using the extension method so that
-                // we do not overwrite the store instance.
-                Providers.Instance.DataProvider = dataProvider;
-                Providers.Instance.DataStore = services.GetService<IDataStore>();
-            }
-            else
-            {
-                dataProvider = new InMemoryDataProvider();
-                repositoryBuilder.UseDataProvider(dataProvider);
-            }
-
+            var dataProvider = services.GetRequiredService<DataProvider>();
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
-
-            var dataStore = Providers.Instance.DataStore;
-            var searchEngine = services?.GetService<ISearchEngine>() ?? new InMemorySearchEngine(initialIndex);
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseTracer(new SnDebugViewTracer())
                 .UseInitialData(initialData)
-                .UseSharedLockDataProvider(new InMemorySharedLockDataProvider())
-                .UseExclusiveLockDataProvider(new InMemoryExclusiveLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseAccessTokenDataProvider(new InMemoryAccessTokenDataProvider())
-                .UsePackagingDataProvider(new InMemoryPackageStorageProvider())
-                .UseSearchManager(new SearchManager(dataStore))
-                .UseIndexManager(new IndexManager(dataStore, Providers.Instance.SearchManager))
-                .UseIndexPopulator(new DocumentPopulator(dataStore, Providers.Instance.IndexManager))
-                .UseSearchEngine(searchEngine)
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                .UseSecurityMessageProvider(new DefaultMessageProvider(new MessageSenderManager()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
                 .StartWorkflowEngine(false);
 
             var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
                        ?? new InMemoryStatisticalDataProvider();
             repositoryBuilder.UseStatisticalDataProvider(statDp);
 
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-            
             return repositoryBuilder;
         }
 
@@ -121,18 +95,29 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services
                 .AddSenseNetInMemoryDataProvider()
+                .AddInMemorySecurityDataProviderExperimental()
                 .AddSingleton<ISharedLockDataProvider, InMemorySharedLockDataProvider>()
                 .AddSingleton<IExclusiveLockDataProvider, InMemoryExclusiveLockDataProvider>()
                 .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
                 .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<ElevatedModificationVisibilityRule>()
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()
                 .AddSenseNetInMemoryStatisticalDataProvider()
+                .AddInactiveAuditEventWriter()
                 .AddSenseNetInMemoryClientStoreDataProvider()
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
         }
 
+        public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
+        {
+            return services.AddSingleton<ISecurityDataProvider>(provider =>
+            {
+                var dp = (InMemoryDataProvider)provider.GetRequiredService<DataProvider>();
+                return GetSecurityDataProvider(dp);
+            });
+        }
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
         {
             return new MemoryDataProvider(new DatabaseStorage
@@ -162,7 +147,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
         }
-        
+
         private static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();

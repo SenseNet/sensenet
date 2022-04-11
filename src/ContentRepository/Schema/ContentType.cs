@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Storage;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema
@@ -28,7 +29,7 @@ namespace  SenseNet.ContentRepository.Schema
     /// Defines a class that can handle a Content type in the sensenet Content Repository.
     /// </summary>
     [ContentHandler]
-    public class ContentType : Node, IFolder, IIndexableDocument
+    public class ContentType : Node, IFolder, IIndexableDocument, IContentType
     {
         internal static readonly string ContentDefinitionXmlNamespaceOld = "http://schemas.sensenet" + ".hu/SenseNet/ContentRepository/ContentTypeDefinition";
         /// <summary>
@@ -838,7 +839,7 @@ namespace  SenseNet.ContentRepository.Schema
             if (nodeType == null)
                 return true;
 
-            if (ContentProtector.GetProtectedPaths().Contains(contentType.Path, StringComparer.OrdinalIgnoreCase))
+            if (Providers.Instance.ContentProtector.GetProtectedPaths().Contains(contentType.Path, StringComparer.OrdinalIgnoreCase))
             {
                 message = "it is protected";
                 return false;

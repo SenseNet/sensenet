@@ -91,8 +91,7 @@ namespace SenseNet.MiddlewareTests
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseInactiveAuditEventWriter();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders();
         }
@@ -220,7 +219,6 @@ namespace SenseNet.MiddlewareTests
                 services =>
                 {
                     BuildBaseServices(services);
-                    //services.AddSingleton<SecurityHandler>();//UNDONE: AddSingleton<SecurityHandler>
 
                     // the first extender will throw an exception
                     services.AddSenseNetMembershipExtender<TestMembershipExtenderFail>()

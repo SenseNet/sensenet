@@ -1267,7 +1267,7 @@ namespace SenseNet.ContentRepository
 
             using (new SystemAccount())
             {
-                var protectedGroupIds = ContentProtector.GetProtectedGroupIds();
+                var protectedGroupIds = Providers.Instance.ContentProtector.GetProtectedGroupIds();
                 var sc = Providers.Instance.SecurityHandler.SecurityContext;
 
                 // Load all direct parent groups. We do not have to go up on the parent

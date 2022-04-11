@@ -13,7 +13,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Tools.SnInitialDataGenerator
 {
-    internal class SearchEngineForInitialDataGenerator : InMemorySearchEngine
+    public class SearchEngineForInitialDataGenerator : InMemorySearchEngine
     {
         private IDictionary<string, IndexFieldAnalyzer> _analyzers = new Dictionary<string, IndexFieldAnalyzer>();
 
@@ -50,7 +50,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         }
     }
 
-    internal class IndexingEngineForInitialDataGenerator : InMemoryIndexingEngine
+    public class IndexingEngineForInitialDataGenerator : InMemoryIndexingEngine
     {
         public bool Running => true;
         public bool IndexIsCentralized => false;
