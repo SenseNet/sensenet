@@ -1106,7 +1106,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.25", "7.7.25.3", "2022-03-22", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.25", "7.7.26", "2022-04-11", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1126,14 +1126,19 @@ namespace SenseNet.ContentRepository
                         .AddResource("Subject-Description", "Email subject")
                         .AddResource("Body-DisplayName", "Body")
                         .AddResource("Body-Description", "Email message text in richtext format.")
-                        .AddResource("SendPasswordChange", "Send change password email")
                         .Culture("hu")
                         .AddResource("DisplayName", "Email minta")
                         .AddResource("Description", "Az értesítések küldéséhez használt email tartalomtípus.")
                         .AddResource("Subject-DisplayName", "Tárgy")
                         .AddResource("Subject-Description", "Levél tárgya")
                         .AddResource("Body-DisplayName", "Üzenet")
-                        .AddResource("Body-Description", "Üzenet szövege.")
+                        .AddResource("Body-Description", "Üzenet szövege.");
+
+                    rb.Content("ActionResources.xml")
+                        .Class("Action")
+                        .Culture("en")
+                        .AddResource("SendPasswordChange", "Send change password email")
+                        .Culture("hu")
                         .AddResource("SendPasswordChange", "Jelszómódosító email küldése");
 
                     rb.Apply();
