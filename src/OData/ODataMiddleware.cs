@@ -24,7 +24,6 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
-using SenseNet.Services.Core;
 using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
@@ -679,142 +678,158 @@ namespace SenseNet.OData
                 if (string.IsNullOrEmpty(prop.Name) || prop.Name == "__ContentType" || prop.Name == "__ContentTemplate" || prop.Name == "Type" || prop.Name == "ContentType")
                     continue;
 
-                var hasField = content.Fields.TryGetValue(prop.Name, out var field);
-                if (!hasField && content.SupportsAddingFieldsOnTheFly && (prop.Value as JValue)?.Value != null)
+                try
                 {
-                    var value = ((JValue)prop.Value).Value;
-                    var fieldSetting = FieldSetting.InferFieldSettingFromType(value.GetType(), prop.Name);
-                    var meta = new FieldMetadata(true, true, prop.Name, prop.Name, fieldSetting);
-                    hasField = content.AddFieldsOnTheFly(new[] { meta }) && content.Fields.TryGetValue(prop.Name, out field);
-                }
-
-                if (hasField)
-                {
-                    if (!field.ReadOnly)
+                    var hasField = content.Fields.TryGetValue(prop.Name, out var field);
+                    if (!hasField && content.SupportsAddingFieldsOnTheFly && (prop.Value as JValue)?.Value != null)
                     {
-                        if (prop.Value is JValue jValue)
-                        {
-                            if (field is IntegerField)
-                            {
-                                field.SetData(Convert.ToInt32(jValue.Value));
-                                continue;
-                            }
-                            if (field is DateTimeField && jValue.Value == null)
-                                continue;
-                            if (isNew && field is ReferenceField && jValue.Value == null)
-                            {
-                                if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" || field.Name == "Owner")
-                                    continue;
-                            }
-                            if (field is ReferenceField && jValue.Value != null)
-                            {
-                                var refNode = jValue.Type == JTokenType.Integer
-                                    ? Node.LoadNode(Convert.ToInt32(jValue.Value))
-                                    : Node.LoadNode(jValue.Value.ToString());
-                                if (refNode == null)
-                                    brokenRefs.Add(field.Name);
-                                if(!skipBrokenReferences)
-                                    field.SetData(refNode);
-                                continue;
-                            }
-                            if (isNew && field.Name == "Name" && jValue.Value != null)
-                            {
-                                field.SetData(ContentNamingProvider.GetNameFromDisplayName(jValue.Value.ToString()));
-                                continue;
-                            }
-
-                            field.SetData(jValue.Value);
-                            continue;
-                        }
-
-                        if (prop.Value is JObject jObject)
-                        {
-                            if (field is BinaryField)
-                                continue;
-                            if (field is ImageField)
-                            {
-                                // the field supports int, long or string values
-                                var url = jObject["Url"].Value<string>();
-                                if (url.Length == 0)
-                                    continue;
-                            }
-                            field.SetData(prop.Value);
-                            continue;
-                        }
-
-                        if (prop.Value is JArray aValue)
-                        {
-                            if (field is ReferenceField)
-                            {
-                                var refValues = aValue.Values().ToList();
-                                if (refValues.Count == 0)
-                                {
-                                    field.SetData(null);
-                                    continue;
-                                }
-
-                                var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
-                                var nodes = refValues
-                                    .Select(rv =>
-                                    {
-                                        var value = rv.Type == JTokenType.Integer
-                                            ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
-                                            : Node.LoadNode(rv.ToString());
-                                        if(value == null)
-                                            brokenRefs.Add(field.Name);
-                                        return value;
-                                    })
-                                    .Where(x => x != null); // filter unknown or invisible items
-
-                                if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
-                                    field.SetData(nodes);
-                                else
-                                    field.SetData(nodes.First());
-
-                            }
-                            else if (field is ChoiceField)
-                            {
-                                // ChoiceField expects the value to be of type List<string>
-                                var list = new List<string>();
-                                foreach (var token in aValue)
-                                {
-                                    if (token is JValue value)
-                                        list.Add(value.Value.ToString());
-                                    else
-                                        throw new Exception(
-                                            $"Token type {token.GetType().Name} for field {field.Name} (type {field.GetType().Name}) is not supported.");
-                                }
-
-                                field.SetData(list);
-                            }
-                            else if (field is AllowedChildTypesField &&
-                                     field.Name == "AllowedChildTypes" &&
-                                     content.ContentHandler is GenericContent gc)
-                            {
-                                var types = aValue.Values().Select(rv =>
-                                {
-                                    switch (rv.Type)
-                                    {
-                                        case JTokenType.Integer:
-                                            return Node.LoadNode(Convert.ToInt32(rv.ToString())) as ContentType;
-                                        default:
-                                            var typeId = rv.ToString();
-                                            if (RepositoryPath.IsValidPath(typeId) == RepositoryPath.PathResult.Correct)
-                                                return Node.LoadNode(typeId) as ContentType;
-                                            return ContentType.GetByName(typeId);
-                                    }
-                                }).Where(ct => ct != null).ToArray();
-
-                                var ctName = content.ContentType.Name;
-                                if (ctName != "Folder" && ctName != "Page")
-                                    gc.SetAllowedChildTypes(types);
-                            }
-
-                            continue;
-                        }
-
-                        throw new SnNotSupportedException();
+                        var value = ((JValue)prop.Value).Value;
+                        var fieldSetting = FieldSetting.InferFieldSettingFromType(value.GetType(), prop.Name);
+                        var meta = new FieldMetadata(true, true, prop.Name, prop.Name, fieldSetting);
+                        hasField = content.AddFieldsOnTheFly(new[] { meta }) &&
+                                   content.Fields.TryGetValue(prop.Name, out field);
                     }
+
+                    if (hasField)
+                    {
+                        if (!field.ReadOnly)
+                        {
+                            if (prop.Value is JValue jValue)
+                            {
+                                if (field is IntegerField)
+                                {
+                                    field.SetData(Convert.ToInt32(jValue.Value));
+                                    continue;
+                                }
+
+                                if (field is DateTimeField && jValue.Value == null)
+                                    continue;
+                                if (isNew && field is ReferenceField && jValue.Value == null)
+                                {
+                                    if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" ||
+                                        field.Name == "Owner")
+                                        continue;
+                                }
+
+                                if (field is ReferenceField && jValue.Value != null)
+                                {
+                                    var refNode = jValue.Type == JTokenType.Integer
+                                        ? Node.LoadNode(Convert.ToInt32(jValue.Value))
+                                        : Node.LoadNode(jValue.Value.ToString());
+                                    if (refNode == null)
+                                        brokenRefs.Add(field.Name);
+                                    if (!skipBrokenReferences)
+                                        field.SetData(refNode);
+                                    continue;
+                                }
+
+                                if (isNew && field.Name == "Name" && jValue.Value != null)
+                                {
+                                    field.SetData(
+                                        ContentNamingProvider.GetNameFromDisplayName(jValue.Value.ToString()));
+                                    continue;
+                                }
+
+                                field.SetData(jValue.Value);
+                                continue;
+                            }
+
+                            if (prop.Value is JObject jObject)
+                            {
+                                if (field is BinaryField)
+                                    continue;
+                                if (field is ImageField)
+                                {
+                                    // the field supports int, long or string values
+                                    var url = jObject["Url"].Value<string>();
+                                    if (url.Length == 0)
+                                        continue;
+                                }
+
+                                field.SetData(prop.Value);
+                                continue;
+                            }
+
+                            if (prop.Value is JArray aValue)
+                            {
+                                if (field is ReferenceField)
+                                {
+                                    var refValues = aValue.Values().ToList();
+                                    if (refValues.Count == 0)
+                                    {
+                                        field.SetData(null);
+                                        continue;
+                                    }
+
+                                    var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
+                                    var nodes = refValues
+                                        .Select(rv =>
+                                        {
+                                            var value = rv.Type == JTokenType.Integer
+                                                ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
+                                                : Node.LoadNode(rv.ToString());
+                                            if (value == null)
+                                                brokenRefs.Add(field.Name);
+                                            return value;
+                                        })
+                                        .Where(x => x != null); // filter unknown or invisible items
+
+                                    if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
+                                        field.SetData(nodes);
+                                    else
+                                        field.SetData(nodes.First());
+
+                                }
+                                else if (field is ChoiceField)
+                                {
+                                    // ChoiceField expects the value to be of type List<string>
+                                    var list = new List<string>();
+                                    foreach (var token in aValue)
+                                    {
+                                        if (token is JValue value)
+                                            list.Add(value.Value.ToString());
+                                        else
+                                            throw new Exception(
+                                                $"Token type {token.GetType().Name} for field {field.Name} (type {field.GetType().Name}) is not supported.");
+                                    }
+
+                                    field.SetData(list);
+                                }
+                                else if (field is AllowedChildTypesField &&
+                                         field.Name == "AllowedChildTypes" &&
+                                         content.ContentHandler is GenericContent gc)
+                                {
+                                    var types = aValue.Values().Select(rv =>
+                                    {
+                                        switch (rv.Type)
+                                        {
+                                            case JTokenType.Integer:
+                                                return Node.LoadNode(Convert.ToInt32(rv.ToString())) as ContentType;
+                                            default:
+                                                var typeId = rv.ToString();
+                                                if (RepositoryPath.IsValidPath(typeId) ==
+                                                    RepositoryPath.PathResult.Correct)
+                                                    return Node.LoadNode(typeId) as ContentType;
+                                                return ContentType.GetByName(typeId);
+                                        }
+                                    }).Where(ct => ct != null).ToArray();
+
+                                    var ctName = content.ContentType.Name;
+                                    if (ctName != "Folder" && ctName != "Page")
+                                        gc.SetAllowedChildTypes(types);
+                                }
+
+                                continue;
+                            }
+
+                            throw new SnNotSupportedException();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SnTrace.Repository.WriteError($"Error updating property {prop.Name} of {content.Path}. Error: {ex.Message}");
+                    throw new ODataException($"Error updating property {prop.Name} of {content.Name}.", ODataExceptionCode.RequestError, ex);
                 }
             }
         }
