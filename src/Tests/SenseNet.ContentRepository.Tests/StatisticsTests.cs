@@ -2885,7 +2885,7 @@ namespace SenseNet.ContentRepository.Tests
 
             OnTestInitialize();
 
-            var builder = base.CreateRepositoryBuilderForTestInstance(); //CreateRepositoryBuilder();
+            var builder = base.CreateRepositoryBuilderForTest(); //CreateRepositoryBuilder();
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor

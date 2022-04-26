@@ -213,18 +213,18 @@ namespace SenseNet.ODataTests
             return ODataTestAsync(null, initialize, callback);
         }
 
-        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        protected override IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            return base.CreateServiceProviderForTestInstance(modifyConfig, services =>
+            return base.CreateServiceProviderForTest(modifyConfig, services =>
             {
                 services.AddSenseNetOData();
                 modifyServices?.Invoke(services);
             });
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
+        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
         {
-            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
+            var builder = base.CreateRepositoryBuilderForTest(modifyServices);
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
@@ -240,7 +240,7 @@ namespace SenseNet.ODataTests
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTestInstance();
+            var builder = CreateRepositoryBuilderForTest();
             _serviceProvider = builder.Services;
 
             initialize?.Invoke(builder);
