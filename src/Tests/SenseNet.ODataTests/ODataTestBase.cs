@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -211,18 +212,36 @@ namespace SenseNet.ODataTests
         {
             return ODataTestAsync(null, initialize, callback);
         }
-        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
-        {
-            OnTestInitialize();
 
-            var builder = base.CreateRepositoryBuilderForTestInstance();
-            _serviceProvider = builder.Services;
+        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        {
+            return base.CreateServiceProviderForTestInstance(modifyConfig, services =>
+            {
+                services.AddSenseNetOData();
+                modifyServices?.Invoke(services);
+            });
+        }
+
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
+        {
+            var builder = base.CreateRepositoryBuilderForTestInstance(modifyServices);
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
+            builder.UseSenseNetOData();
             Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
+
+            return builder;
+        }
+
+        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTestInstance();
+            _serviceProvider = builder.Services;
 
             initialize?.Invoke(builder);
 

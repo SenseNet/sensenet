@@ -46,13 +46,15 @@ namespace SnWebApplication.Api.Sql.Admin
                 {
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
+                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                        .UseSenseNetOData();
                 })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
                 {
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 

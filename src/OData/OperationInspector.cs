@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData
 {
-    internal class OperationInspector
+    public class OperationInspector
     {
         public static OperationInspector Instance { get; set; } = new OperationInspector();
 

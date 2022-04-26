@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\WebApps\SnWebApplication.Api.Sql.SearchService.TokenAuth\SnWebApplication.Api.Sql.SearchService.TokenAuth.csproj" />
     <ProjectReference Include="..\..\WebApps\SnWebApplication.Api.Sql.TokenAuth\SnWebApplication.Api.Sql.TokenAuth.csproj" />
     <ProjectReference Include="..\SenseNet.IntegrationTests\SenseNet.IntegrationTests.csproj" />
+    <ProjectReference Include="..\SenseNet.ODataTests\SenseNet.ODataTests.csproj" />
     <ProjectReference Include="..\SenseNet.Tests.Core\SenseNet.Tests.Core.csproj" />
   </ItemGroup>
 

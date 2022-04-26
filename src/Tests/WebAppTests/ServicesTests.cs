@@ -35,6 +35,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
+using SenseNet.OData;
+using SenseNet.ODataTests;
 using SenseNet.Packaging;
 using SenseNet.Preview;
 using SenseNet.Search;
@@ -514,6 +516,17 @@ namespace WebAppTests
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
         };
+        private readonly Type[] _includedProvidersByTypeWithOData = new[]
+        {
+            typeof(ISharedLockDataProvider),
+            typeof(IExclusiveLockDataProvider),
+            typeof(IAccessTokenDataProvider),
+            typeof(IPackagingDataProvider),
+            typeof(IStatisticalDataProvider),
+            typeof(ISnTracer[]),
+            typeof(ILogger<SnILogger>),
+            typeof(OperationInspector),
+        };
         private readonly string[] _defaultIncludedProvidersByName = Array.Empty<string>();
 
         [TestMethod, TestCategory("Services")]
@@ -536,8 +549,9 @@ namespace WebAppTests
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }
@@ -561,8 +575,9 @@ namespace WebAppTests
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }
@@ -589,8 +604,9 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -618,8 +634,9 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -654,8 +671,9 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -689,8 +707,9 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -724,6 +743,49 @@ namespace WebAppTests
                     }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
+        }
+
+        private class TestClassForTestingODataServices : ODataTestBase
+        {
+            public IServiceCollection ServiceCollection { get; private set; }
+
+            public IServiceProvider CreateServiceProvider()
+            {
+                return CreateServiceProviderForTestInstance(modifyServices: services =>
+                {
+                    ServiceCollection = services;
+                });
+            }
+            public RepositoryBuilder CreateRepositoryBuilder() => CreateRepositoryBuilderForTestInstance();
+        }
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_ODataTestBase()
+        {
+            // ACTION
+            var testInstance = new TestClassForTestingODataServices();
+            testInstance.CreateRepositoryBuilder();
+            var services = testInstance.ServiceCollection;
+
+            // ASSERT
+            AssertServices(true, services,
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, object>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                    }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                },
+                includedProvidersByType: _includedProvidersByTypeWithOData,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }

@@ -54,7 +54,8 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
                     repositoryBuilder
-                        .UseLogger(provider);
+                        .UseLogger(provider)
+                        .UseSenseNetOData();
                 })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
@@ -70,6 +71,7 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 {
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 
