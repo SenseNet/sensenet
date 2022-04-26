@@ -777,7 +777,7 @@ namespace SenseNet.OData
                                     if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                         field.SetData(nodes);
                                     else
-                                        field.SetData(nodes.First());
+                                        field.SetData(nodes.FirstOrDefault());
 
                                 }
                                 else if (field is ChoiceField)
