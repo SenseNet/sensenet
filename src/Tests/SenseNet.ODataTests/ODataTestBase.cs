@@ -231,7 +231,6 @@ namespace SenseNet.ODataTests
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
             builder.UseSenseNetOData();
-            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
 
             return builder;
         }

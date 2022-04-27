@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
@@ -15,6 +16,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
         {
             services.AddSingleton<OperationInspector>();
+            services.AddSingleton<IOperationMethodStorage, OperationMethodStorage>();
             return services;
         }
         public static IRepositoryBuilder UseSenseNetOData(this IRepositoryBuilder builder)
@@ -23,6 +25,9 @@ namespace SenseNet.Extensions.DependencyInjection
 
             var operationInspector = services.GetRequiredService<OperationInspector>();
             Providers.Instance.SetProvider(typeof(OperationInspector), operationInspector);
+
+            var operationMethodStorage = services.GetRequiredService<IOperationMethodStorage>();
+            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), operationMethodStorage);
 
             return builder;
         }
