@@ -2878,6 +2878,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             return ODataTestAsync(0, initialize, callback);
         }
+
+        protected override IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        {
+            return base.CreateServiceProviderForTest(modifyConfig, services =>
+            {
+                services.AddSenseNetOData();
+                modifyServices?.Invoke(services);
+            });
+        }
+
         private async STT.Task ODataTestAsync(int userId, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             if(Providers.Instance != null)
@@ -2891,7 +2901,11 @@ namespace SenseNet.ContentRepository.Tests
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
-            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
+            builder.UseSenseNetOData();
+
+//var operationMethodStorage = builder.Services.GetService<IOperationMethodStorage>();
+//if(Providers.Instance?.GetProvider<IOperationMethodStorage>() == null)
+//    Providers.Instance.SetProvider(typeof(IOperationMethodStorage), operationMethodStorage);
 
             initialize?.Invoke(builder);
 

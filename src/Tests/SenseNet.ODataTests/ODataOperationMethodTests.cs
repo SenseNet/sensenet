@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -2868,15 +2869,16 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Actions_FilteredByPolicy()
         {
+            IOperationMethodStorage oms = null;
             ODataTest(builder =>
                 {
                     builder.AddAllTestPolicies();
+                    oms = builder.Services.GetRequiredService<IOperationMethodStorage>();
                 },
                 () =>
                 {
                     OperationCenter.Discover();
-
-                    var os = new OperationMethodStorage();
+                    
                     var original = AccessProvider.Current.GetCurrentUser();
 
                     try
@@ -2887,12 +2889,12 @@ namespace SenseNet.ODataTests
 
                         // Root content: action is in the list
                         var content = Content.Create(Repository.Root);
-                        Assert.IsTrue(os.GetActions(new ActionBase[0], content, null, httpContext)
+                        Assert.IsTrue(oms.GetActions(new ActionBase[0], content, null, httpContext)
                             .Any(a => a.Name == "Op11"));
 
                         // other content: action is not in the list
                         content = Content.Create(User.Administrator);
-                        Assert.IsFalse(os.GetActions(new ActionBase[0], content, null, httpContext)
+                        Assert.IsFalse(oms.GetActions(new ActionBase[0], content, null, httpContext)
                             .Any(a => a.Name == "Op11"));
                     }
                     finally
@@ -2905,8 +2907,13 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Actions_VersioningActions()
         {
+            IOperationMethodStorage oms = null;
             ODataTest(
-                builder => { builder.AddAllTestPolicies(); },
+                builder =>
+                {
+                    builder.AddAllTestPolicies();
+                    oms = builder.Services.GetRequiredService<IOperationMethodStorage>();
+                },
                 () =>
                 {
                     // prepare test file
@@ -2961,7 +2968,6 @@ namespace SenseNet.ODataTests
 
             void AssertActions(Content content, string[] visible)
             {
-                var oms = new OperationMethodStorage();
                 var actions = oms.GetActions(
                     ActionFramework.GetActionsFromContentRepository(content, null, null),
                     content, null, null).ToArray();
@@ -2988,7 +2994,11 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Actions_TrashBag()
         {
-            ODataTest(() =>
+            IOperationMethodStorage oms = null;
+            ODataTest(builder =>
+            {
+                oms = builder.Services.GetRequiredService<IOperationMethodStorage>();
+            }, () =>
             {
                 using var _ = new CleanOperationCenterBlock();
                 OperationCenter.Discover();
@@ -3014,7 +3024,6 @@ namespace SenseNet.ODataTests
                     throw new InvalidOperationException("File is not in the Trash.");
 
                 var bagContent = Content.Create(bag);
-                var oms = new OperationMethodStorage();
                 var actions = oms.GetActions(
                     ActionFramework.GetActionsFromContentRepository(bagContent, null, null),
                     bagContent, null, null).ToArray();

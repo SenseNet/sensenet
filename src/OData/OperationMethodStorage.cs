@@ -12,25 +12,32 @@ namespace SenseNet.OData
 {
     internal class OperationMethodStorage : IOperationMethodStorage
     {
+        private readonly OperationInspector _inspector;
+
+        public OperationMethodStorage(OperationInspector inspector)
+        {
+            _inspector = inspector;
+        }
+
         public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario, object state)
         {
             var actualRoles =  NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
-            var inspector = Providers.Instance.GetProvider<OperationInspector>();
+            var inspector = _inspector;
             var stored = storedActions.ToArray();
 
             var operations = OperationCenter.Operations
                 .SelectMany(x => x.Value)
                 .Where(x => FilterByApplications(x.Name, stored))
                 .Where(x => FilterByScenario(x.Scenarios, scenario))
-                .Where(x => FilterByContentTypes(inspector, content, x.ContentTypes))
-                .Where(x => FilterByRoles(inspector, x.Roles, actualRoles))
+                .Where(x => FilterByContentTypes(content, x.ContentTypes))
+                .Where(x => FilterByRoles(x.Roles, actualRoles))
                 .ToArray();
 
             var actions = operations
                 .Select(x => new ODataOperationMethodDescriptor(x, GenerateUri(content, x.Name)))
                 .Where(a => Initialize(a, content))
-                .Where(a => FilterByPermissions(inspector, a, content))
-                .Where(a => FilterByPolicies(inspector, a, content, state))
+                .Where(a => FilterByPermissions(a, content))
+                .Where(a => FilterByPolicies(a, content, state))
                 .ToArray();
 
             return stored.Union(actions).ToArray();
@@ -56,20 +63,20 @@ namespace SenseNet.OData
                 return false;
             return allowedScenarios.Contains(scenario, StringComparer.InvariantCultureIgnoreCase);
         }
-        private bool FilterByContentTypes(OperationInspector inspector, Content content, string[] allowedContentTypeNames)
+        private bool FilterByContentTypes(Content content, string[] allowedContentTypeNames)
         {
             if (allowedContentTypeNames == null || allowedContentTypeNames.Length == 0)
                 return true;
 
-            return inspector.CheckByContentType(content, allowedContentTypeNames);
+            return _inspector.CheckByContentType(content, allowedContentTypeNames);
         }
-        private bool FilterByRoles(OperationInspector inspector, string[] expectedRoles, IEnumerable<string> actualRoles)
+        private bool FilterByRoles(string[] expectedRoles, IEnumerable<string> actualRoles)
         {
             if (expectedRoles.Length == 0)
                 return true;
-            return inspector.CheckByRoles(expectedRoles, actualRoles);
+            return _inspector.CheckByRoles(expectedRoles, actualRoles);
         }
-        private bool FilterByPolicies(OperationInspector inspector, ODataOperationMethodDescriptor action, Content content, object state)
+        private bool FilterByPolicies(ODataOperationMethodDescriptor action, Content content, object state)
         {
             if (action.OperationInfo.Policies.Length == 0)
                 return true;
@@ -77,7 +84,7 @@ namespace SenseNet.OData
             var httpContext = state as HttpContext; // httpContext can be null
             var context = new OperationCallingContext(content, action.OperationInfo){ HttpContext = httpContext};
 
-            switch (inspector.CheckPolicies(action.OperationInfo.Policies, context))
+            switch (_inspector.CheckPolicies(action.OperationInfo.Policies, context))
             {
                 case OperationMethodVisibility.Invisible:
                     return false;
@@ -98,17 +105,17 @@ namespace SenseNet.OData
             action.Initialize(content, null, null, null);
             return action.Visible;
         }
-        private bool FilterByPermissions(OperationInspector inspector, ODataOperationMethodDescriptor action, Content content)
+        private bool FilterByPermissions(ODataOperationMethodDescriptor action, Content content)
         {
-            action.Forbidden |= !IsPermitted(inspector, content, action.OperationInfo.Permissions);
+            action.Forbidden |= !IsPermitted(content, action.OperationInfo.Permissions);
 
             return true;
         }
-        private bool IsPermitted(OperationInspector inspector, Content content, string[] permissionNames)
+        private bool IsPermitted(Content content, string[] permissionNames)
         {
             if (permissionNames == null || permissionNames.Length == 0)
                 return true;
-            return inspector.CheckByPermissions(content, permissionNames);
+            return _inspector.CheckByPermissions(content, permissionNames);
         }
 
         internal static string GenerateUri(Content content, string operationName)
