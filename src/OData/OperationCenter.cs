@@ -152,7 +152,7 @@ namespace SenseNet.OData
             var odataParameters = new ODataParameterCollection(requestParameters, query);
             var requestParameterNames = odataParameters.Keys.ToArray();
 
-            var inspector = OperationInspector.Instance;
+            var inspector = Providers.Instance.GetProvider<OperationInspector>();
             var candidates = GetCandidatesByName(methodName);
             if (candidates.Length > 0)
             {
@@ -790,7 +790,7 @@ namespace SenseNet.OData
                 }
             }
 
-            var inspector = OperationInspector.Instance;
+            var inspector = Providers.Instance.GetProvider<OperationInspector>();
             var operation = context.Operation;
             var user = User.Current;
 

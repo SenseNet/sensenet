@@ -10,8 +10,6 @@ namespace SenseNet.OData
 {
     public class OperationInspector
     {
-        public static OperationInspector Instance { get; set; } = new OperationInspector();
-
         public virtual bool CheckByContentType(Content content, string[] contentTypes)
         {
             var contentType = content.ContentType;

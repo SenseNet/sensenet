@@ -3075,13 +3075,13 @@ namespace SenseNet.ODataTests
             private readonly OperationInspector _original;
             public OperationInspectorSwindler(OperationInspector instance)
             {
-                _original = OperationInspector.Instance;
-                OperationInspector.Instance = instance;
+                _original = Providers.Instance.GetProvider<OperationInspector>(); //OperationInspector.Instance;
+                Providers.Instance.SetProvider(typeof(OperationInspector), instance); //OperationInspector.Instance = instance;
             }
 
             public void Dispose()
             {
-                OperationInspector.Instance = _original;
+                Providers.Instance.SetProvider(typeof(OperationInspector), _original); //OperationInspector.Instance = _original;
             }
         }
         internal class PolicyStoreSwindler : IDisposable
