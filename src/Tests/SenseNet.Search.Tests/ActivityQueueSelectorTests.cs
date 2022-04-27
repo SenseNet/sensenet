@@ -264,7 +264,8 @@ namespace SenseNet.Search.Tests
         }
         private IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp)
         {
-            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
+            var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+            var activity = (IndexingActivityBase)indexingActivityFactory.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
@@ -288,7 +289,9 @@ namespace SenseNet.Search.Tests
 
         private IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId)
         {
-            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
+            var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+
+            var activity = (IndexingActivityBase)indexingActivityFactory.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
 

@@ -56,8 +56,9 @@ namespace SenseNet.Tests.Core.Tests
                 var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None)
                 .GetAwaiter().GetResult();
                 var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
                 var lastActivity =
-                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
+                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, indexingActivityFactory, CancellationToken.None)
                         .GetAwaiter().GetResult().FirstOrDefault();
 
                 var index = GetTestIndex();
@@ -123,8 +124,9 @@ namespace SenseNet.Tests.Core.Tests
                 // load the pre-converted index document and  last indexing activity
                 var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None).GetAwaiter().GetResult();
                 var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
                 var lastActivity =
-                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
+                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, indexingActivityFactory, CancellationToken.None)
                         .GetAwaiter().GetResult().FirstOrDefault();
 
                 var index = GetTestIndex();
@@ -203,7 +205,8 @@ namespace SenseNet.Tests.Core.Tests
 
                 // load last indexing activity
                 var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var lastActivity = DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+                var lastActivity = DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, indexingActivityFactory, CancellationToken.None)
                     .GetAwaiter().GetResult().FirstOrDefault();
 
                 // ASSERT
@@ -455,8 +458,9 @@ namespace SenseNet.Tests.Core.Tests
 
                 // load last indexing activity
                 var activityId = await DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).ConfigureAwait(false);
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
                 activities = await DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false,
-                    IndexingActivityFactory.Instance, CancellationToken.None).ConfigureAwait(false);
+                    indexingActivityFactory, CancellationToken.None).ConfigureAwait(false);
 
                 // We cannot call the GetNodeCount and GetVersionCount methods directly here because
                 // there may be some nodes that cannot be loaded therefore missing from the index, which

@@ -142,6 +142,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<ISearchManager, SearchManager>()
                 .AddSingleton<IIndexManager, IndexManager>()
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
+                .AddSingleton<IIndexingActivityFactory, IndexingActivityFactory>()
 
                 .AddSingleton<ISnCache, SnMemoryCache>()
                 .AddSingleton<IApplicationCache, ApplicationCache>() //not used?

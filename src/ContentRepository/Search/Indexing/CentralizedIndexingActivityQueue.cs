@@ -13,6 +13,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     internal class CentralizedIndexingActivityQueue
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private readonly IIndexingActivityFactory _indexingActivityFactory;
 
         private readonly int _maxCount = 10;
         private readonly int _runningTimeoutInSeconds = Configuration.Indexing.IndexingActivityTimeoutInSeconds;
@@ -34,9 +35,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private readonly object _waitingActivitiesSync = new object();
         private readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
 
-        public CentralizedIndexingActivityQueue()
+        public CentralizedIndexingActivityQueue(IIndexingActivityFactory indexingActivityFactory)
         {
             _lockRefreshPeriodInMilliseconds = _runningTimeoutInSeconds * 3000 / 4;
+            _indexingActivityFactory = indexingActivityFactory;
         }
 
         public void Startup(TextWriter consoleOut)
@@ -230,7 +232,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // load some executable activities and currently finished ones
             var result = DataStore.LoadExecutableIndexingActivitiesAsync(
-                IndexingActivityFactory.Instance,
+                _indexingActivityFactory,
                 _maxCount,
                 _runningTimeoutInSeconds,
                 waitingActivityIds, CancellationToken.None).GetAwaiter().GetResult();
