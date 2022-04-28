@@ -86,7 +86,6 @@ namespace SenseNet.Configuration
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
             IndexPopulator = services.GetService<IIndexPopulator>();
-
         }
 
         /// <summary>
