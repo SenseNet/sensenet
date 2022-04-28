@@ -8,11 +8,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
     /// </summary>
     public class IndexingActivityFactory : IIndexingActivityFactory
     {
-        /// <summary>
-        /// Singleton of the <see cref="IndexingActivityFactory"/> instance.
-        /// </summary>
-        public static IndexingActivityFactory Instance = new IndexingActivityFactory();
-
         /// <inheritdoc />
         public IIndexingActivity CreateActivity(IndexingActivityType activityType)
         {

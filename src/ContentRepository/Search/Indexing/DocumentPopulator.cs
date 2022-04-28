@@ -22,11 +22,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private readonly IDataStore _dataStore;
         private readonly IIndexManager _indexManager;
+        private IIndexingActivityFactory _indexingActivityFactory;
 
-        public DocumentPopulator(IDataStore dataStore, IIndexManager indexManager)
+        public DocumentPopulator(IDataStore dataStore, IIndexManager indexManager, IIndexingActivityFactory indexingActivityFactory)
         {
             _dataStore = dataStore;
             _indexManager = indexManager;
+            _indexingActivityFactory = indexingActivityFactory;
         }
 
         private class DocumentPopulatorData
@@ -370,7 +372,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         internal IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)_indexingActivityFactory.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
@@ -389,7 +391,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         internal IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)_indexingActivityFactory.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
 

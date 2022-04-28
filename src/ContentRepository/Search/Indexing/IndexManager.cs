@@ -24,16 +24,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private readonly IDataStore _dataStore;
         private readonly ISearchManager _searchManager;
+        private readonly IIndexingActivityFactory _indexingActivityFactory;
 
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
         private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; }
 
-        public IndexManager(IDataStore dataStore, ISearchManager searchManager)
+        public IndexManager(IDataStore dataStore, ISearchManager searchManager, IIndexingActivityFactory indexingActivityFactory)
         {
             _dataStore = dataStore;
             _searchManager = searchManager;
-            DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this);
-            CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue();
+            _indexingActivityFactory = indexingActivityFactory;
+            DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this, indexingActivityFactory);
+            CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue(indexingActivityFactory);
         }
 
         /* ==================================================================== Managing index */

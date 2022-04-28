@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -431,7 +432,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 var waitingIds = new[] { start[1].Id, start[2].Id };
                 await DP.RefreshIndexingActivityLockTimeAsync(waitingIds, CancellationToken.None);
 
-                var activities = await DP.LoadIndexingActivitiesAsync(startIds, false, IndexingActivityFactory.Instance, CancellationToken.None);
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+                var activities = await DP.LoadIndexingActivitiesAsync(startIds, false, indexingActivityFactory, CancellationToken.None);
 
                 Assert.AreEqual(4, activities.Length);
                 Assert.IsTrue(time1 == activities[0].LockTime);
@@ -457,7 +459,8 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 await DP.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None);
 
-                var loaded = await DP.LoadIndexingActivitiesAsync(0, int.MaxValue, 9999, false, IndexingActivityFactory.Instance, CancellationToken.None);
+                var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+                var loaded = await DP.LoadIndexingActivitiesAsync(0, int.MaxValue, 9999, false, indexingActivityFactory, CancellationToken.None);
 
                 Assert.AreEqual(3, loaded.Length);
                 Assert.AreEqual(start[2].Id, loaded[0].Id);
@@ -499,11 +502,13 @@ namespace SenseNet.IntegrationTests.TestCases
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {
-            return new DocumentPopulator(null, null).CreateActivity(type, path, nodeId, versionId, versionTimestamp, null, indexDocumentData);
+            var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+            return new DocumentPopulator(null, null, indexingActivityFactory).CreateActivity(type, path, nodeId, versionId, versionTimestamp, null, indexDocumentData);
         }
         private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            return new DocumentPopulator(null, null).CreateTreeActivity(type, path, nodeId, indexDocumentData);
+            var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
+            return new DocumentPopulator(null, null, indexingActivityFactory).CreateTreeActivity(type, path, nodeId, indexDocumentData);
         }
     }
 }

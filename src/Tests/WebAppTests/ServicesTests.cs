@@ -310,6 +310,7 @@ namespace WebAppTests
                 {typeof(ISearchManager), typeof(SearchManager)},
                 {typeof(IIndexManager), typeof(IndexManager)},
                 {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+                {typeof(IIndexingActivityFactory), typeof(IndexingActivityFactory)},
 
                 // TaskManager
                 {typeof(ITaskManager), typeof(TaskManagerBase)},
