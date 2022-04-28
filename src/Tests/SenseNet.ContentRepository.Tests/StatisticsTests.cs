@@ -2901,7 +2901,6 @@ namespace SenseNet.ContentRepository.Tests
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
-            builder.UseSenseNetOData();
 
             initialize?.Invoke(builder);
 

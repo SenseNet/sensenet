@@ -34,8 +34,7 @@ namespace SnWebApplication.Api.InMem.Admin
                     repositoryBuilder
                         .BuildInMemoryRepository()
                         .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider())
-                        .UseSenseNetOData();
+                        .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
                 .AddSenseNetOData()

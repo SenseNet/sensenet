@@ -527,34 +527,6 @@ namespace WebAppTests
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
         };
-        private readonly Type[] _includedProvidersByTypeWithOData = new[]
-        {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
-            typeof(IPackagingDataProvider),
-            typeof(IStatisticalDataProvider),
-            typeof(ISnTracer[]),
-            typeof(ILogger<SnILogger>),
-
-            typeof(OperationInspector),
-            typeof(IOperationMethodStorage),
-        };
-        private readonly Type[] _includedProvidersByTypeWithODataAndTests = new[]
-        {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
-            typeof(IPackagingDataProvider),
-            typeof(IStatisticalDataProvider),
-            typeof(ISnTracer[]),
-            typeof(ILogger<SnILogger>),
-
-            typeof(OperationInspector),
-            typeof(IOperationMethodStorage),
-
-            typeof(ITestingDataProvider),
-        };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
             typeof(ISharedLockDataProvider),
@@ -592,7 +564,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }
@@ -619,7 +591,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }
@@ -649,7 +621,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -680,7 +652,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -718,7 +690,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -755,7 +727,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithOData,
+                includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
                 excludedProviderPropertyNames: new[] {"ElevatedModificationVisibilityRuleProvider"}
             );
@@ -827,7 +799,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                 },
-                includedProvidersByType: _includedProvidersByTypeWithODataAndTests,
+                includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }

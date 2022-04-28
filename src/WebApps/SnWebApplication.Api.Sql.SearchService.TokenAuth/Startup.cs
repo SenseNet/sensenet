@@ -57,8 +57,7 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
                     repositoryBuilder
-                        .UseLogger(provider)
-                        .UseSenseNetOData();
+                        .UseLogger(provider);
                 })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>

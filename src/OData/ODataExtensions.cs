@@ -19,18 +19,6 @@ namespace SenseNet.Extensions.DependencyInjection
             services.AddSingleton<IOperationMethodStorage, OperationMethodStorage>();
             return services;
         }
-        public static IRepositoryBuilder UseSenseNetOData(this IRepositoryBuilder builder)
-        {
-            var services = ((RepositoryBuilder) builder).Services;
-
-            var operationInspector = services.GetRequiredService<OperationInspector>();
-            Providers.Instance.SetProvider(typeof(OperationInspector), operationInspector);
-
-            var operationMethodStorage = services.GetRequiredService<IOperationMethodStorage>();
-            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), operationMethodStorage);
-
-            return builder;
-        }
 
         /// <summary>
         /// Registers the sensenet OData middleware in the pipeline
