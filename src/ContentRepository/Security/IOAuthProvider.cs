@@ -6,7 +6,7 @@ namespace SenseNet.ContentRepository.Security
     /// Defines members for an OAuth provider. Developers should not implement this
     /// interface directly: use the OAuthProvider base class instead.
     /// </summary>
-    [Obsolete("This feature is obsolete. Use newer authentication methods.")]
+    [Obsolete("This feature is obsolete. Use newer authentication methods.", true)]
     public interface IOAuthProvider
     {
         string ProviderName { get; }

@@ -2,7 +2,7 @@
 
 namespace SenseNet.ContentRepository.Security
 {
-    [Obsolete("This feature is obsolete. Use newer authentication methods.")]
+    [Obsolete("This feature is obsolete. Use newer authentication methods.", true)]
     public static class OAuthProviderTools
     {
         private const string ProviderNamePrefix = "oauth-";
