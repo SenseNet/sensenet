@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -100,7 +101,7 @@ namespace SenseNet.ApplicationModel
 
         private static readonly IOperationMethodStorage DefaultOperationMethodStorage = new DefaultOperationMethodStorage();
         internal static IOperationMethodStorage OperationMethodStorage =>
-            Providers.Instance.GetProvider<IOperationMethodStorage>()
+            Providers.Instance.Services.GetService<IOperationMethodStorage>()
             ?? DefaultOperationMethodStorage;
 
         public static ActionBase GetAction(string name, Content context, object parameters,

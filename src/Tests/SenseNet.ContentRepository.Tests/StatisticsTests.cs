@@ -2903,10 +2903,6 @@ namespace SenseNet.ContentRepository.Tests
             OperationCenter.Discover();
             builder.UseSenseNetOData();
 
-//var operationMethodStorage = builder.Services.GetService<IOperationMethodStorage>();
-//if(Providers.Instance?.GetProvider<IOperationMethodStorage>() == null)
-//    Providers.Instance.SetProvider(typeof(IOperationMethodStorage), operationMethodStorage);
-
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
