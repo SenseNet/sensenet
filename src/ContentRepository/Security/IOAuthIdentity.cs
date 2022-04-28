@@ -1,8 +1,11 @@
-﻿namespace SenseNet.ContentRepository.Security
+﻿using System;
+
+namespace SenseNet.ContentRepository.Security
 {
     /// <summary>
     /// Defines a minimal set of fields that should be filled by an OAuth provider implementation.
     /// </summary>
+    [Obsolete("This feature is obsolete. Use newer authentication methods.", true)]
     public interface IOAuthIdentity
     {
         /// <summary>
@@ -31,6 +34,7 @@
     /// Built-in implementation of the IOAuthIdentity interface. Derived classes may
     /// extend it with additional, provider-specific fields.
     /// </summary>
+    [Obsolete("This feature is obsolete. Use newer authentication methods.", true)]
     public class OAuthIdentity : IOAuthIdentity
     {
         /// <inheritdoc />

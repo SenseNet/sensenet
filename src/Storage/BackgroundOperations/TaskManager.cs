@@ -8,11 +8,11 @@ using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
-using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
 {
+    [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
     public static class SnTaskManager
     {
         [SuppressMessage("ReSharper", "InconsistentNaming")]

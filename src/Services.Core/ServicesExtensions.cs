@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
+using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -20,7 +21,6 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
-using SenseNet.Security;
 using SenseNet.Security.Configuration;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
@@ -61,6 +61,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
+            services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
             services.Configure<RepositoryTypeOptions>(options => {});
             
             services.ConfigureConnectionStrings(configuration);
@@ -132,6 +133,7 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
         {
             return services
+                .AddSenseNetDefaultRepositoryServices()
                 .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
@@ -179,6 +181,10 @@ namespace SenseNet.Extensions.DependencyInjection
             var ccp = provider.GetService<IClusterChannel>();
             if (ccp != null)
                 Providers.Instance.ClusterChannelProvider = ccp;
+
+            var csp = provider.GetService<ICryptoServiceProvider>();
+            if (csp != null)
+                Providers.Instance.SetProvider(typeof(ICryptoServiceProvider), csp);
 
             return provider;
         }
