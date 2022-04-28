@@ -287,7 +287,10 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Strict_1()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -297,11 +300,8 @@ namespace SenseNet.ODataTests
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", "int x"));
 
                     // ACTION
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":42}");
-
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":42}");
                     // ASSERT
                     Assert.AreEqual(m1, context.Operation);
                     Assert.AreEqual(2, context.Parameters.Count);
@@ -314,7 +314,10 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Strict_2()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -324,11 +327,8 @@ namespace SenseNet.ODataTests
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", "int x"));
 
                     // ACTION
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""42"" }");
-
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""42"" }");
                     // ASSERT
                     Assert.AreEqual(m2, context.Operation);
                     Assert.AreEqual(2, context.Parameters.Count);
@@ -341,24 +341,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Bool()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, bool a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":true}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":true}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(true, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""true""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""true""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -369,32 +369,32 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Bool_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, bool? a", null));
 
                     // ACTION strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":true}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":true}");
+
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(true, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""true""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""true""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -406,32 +406,31 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Int_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, int? a", null));
 
                     // ACTION strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":12345678}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":12345678}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(12345678, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""12345678""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""12345678""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -443,24 +442,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Long()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, long a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(123456789L, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -471,32 +470,31 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Long_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, long? a", null));
 
                     // ACTION strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(123456789L, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -508,24 +506,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Byte()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, byte a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual((byte)142, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -536,32 +534,31 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Byte_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, byte? a", null));
 
                     // ACTION strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual((byte)142, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -573,16 +570,17 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Decimal()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, decimal a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -590,16 +588,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789m, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -610,24 +606,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Decimal_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, decimal? a", null));
 
                     // ACTION strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789m, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -635,16 +631,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789m, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -656,16 +650,17 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Float()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, float a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -673,16 +668,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789f, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -693,24 +686,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Float_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, float? a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789f, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -718,16 +711,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789f, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -739,16 +730,17 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Double()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, double a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -756,16 +748,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789d, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -776,24 +766,24 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Double_Nullable()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m = AddMethod(new TestMethodInfo("fv1", "Content content, double? a", null));
 
                     // ACTION-1 strict
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789d, context.Parameters["a"]);
 
                     // ACTION null
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -801,16 +791,14 @@ namespace SenseNet.ODataTests
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789d, context.Parameters["a"]);
 
                     // ACTION not strict, globalized
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
                     // ASSERT
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
@@ -822,7 +810,10 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Spaceship()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -830,10 +821,8 @@ namespace SenseNet.ODataTests
                     var m2 = AddMethod(new TestMethodInfo("fv1", "Content content, Elephant a", null));
 
                     // ACTION-1
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{""a"":{""Name"":""Space Bender 8"", ""Class"":""Big F Vehicle"", ""Length"":444}}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{""a"":{""Name"":""Space Bender 8"", ""Class"":""Big F Vehicle"", ""Length"":444}}");
 
                     // ASSERT
                     Assert.AreEqual(m1, context.Operation);
@@ -851,7 +840,10 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Elephant()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -859,10 +851,8 @@ namespace SenseNet.ODataTests
                     var m2 = AddMethod(new TestMethodInfo("fv1", "Content content, Elephant a", null));
 
                     // ACTION-1
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{""a"":{""Snout"":42, ""Height"":44}}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{""a"":{""Snout"":42, ""Height"":44}}");
 
                     // ASSERT
                     Assert.AreEqual(m2, context.Operation);
@@ -879,7 +869,10 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_NotStrict_1()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -889,10 +882,8 @@ namespace SenseNet.ODataTests
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", "int x"));
 
                     // ACTION-1
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""42""}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""42""}");
 
                     // ASSERT-1
                     Assert.AreEqual(m1, context.Operation);
@@ -901,9 +892,8 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(42, context.Parameters["x"]);
 
                     // ACTION-2
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
-                            @"{ ""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""true""}");
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "fv1",
+                        @"{ ""a"":""asdf"",""b"":""qwer"",""y"":12,""x"":""true""}");
 
                     // ASSERT-2
                     Assert.AreEqual(m2, context.Operation);
@@ -966,7 +956,10 @@ namespace SenseNet.ODataTests
         [ExpectedException(typeof(AmbiguousMatchException))]
         public void OD_MBO_GetMethodByRequest_AmbiguousMatch()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
@@ -976,9 +969,7 @@ namespace SenseNet.ODataTests
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", "int x"));
 
                     // ACTION
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""asdf""}");
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""asdf""}");
                 }
             });
         }
@@ -1006,43 +997,38 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_CaseInsensitiveParamNames()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("method0", "Content content, string param1", null));
                     var m1 = AddMethod(new TestMethodInfo("method1", "Content content", "string param1"));
 
-                    OperationCallingContext ctx;
-
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method0", @"models=[{ param1:""asdf""}]");
+                    var ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method0", @"models=[{ param1:""asdf""}]");
                     Assert.AreEqual(m0, ctx.Operation);
 
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method0", @"models=[{ Param1:""asdf""}]");
+                    ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method0", @"models=[{ Param1:""asdf""}]");
                     Assert.AreEqual(m0, ctx.Operation);
 
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method0", @"models=[{ pArAm1:""asdf""}]");
+                    ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method0", @"models=[{ pArAm1:""asdf""}]");
                     Assert.AreEqual(m0, ctx.Operation);
 
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method1", @"models=[{ param1:""asdf""}]");
+                    ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method1", @"models=[{ param1:""asdf""}]");
                     Assert.AreEqual(m1, ctx.Operation);
 
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method1", @"models=[{ Param1:""asdf""}]");
+                    ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method1", @"models=[{ Param1:""asdf""}]");
                     Assert.AreEqual(m1, ctx.Operation);
 
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
-                            "method1", @"models=[{ pArAm1:""asdf""}]");
+                    ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                        "method1", @"models=[{ pArAm1:""asdf""}]");
                     Assert.AreEqual(m1, ctx.Operation);
                 }
             });
@@ -1158,15 +1144,11 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                        @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                    @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[]) result;
@@ -1184,15 +1166,11 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                        null, new TestQueryCollection(@"?a=asdf&b=42&c=true&d=0.12&e=0.13&f=0.14"));
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                    null, new TestQueryCollection(@"?a=asdf&b=42&c=true&d=0.12&e=0.13&f=0.14"));
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[])result;
@@ -1210,15 +1188,11 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op2",
-                        null, new TestQueryCollection("?a=(')(\")"));
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op2",
+                    null, new TestQueryCollection("?a=(')(\")"));
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[])result;
@@ -1232,13 +1206,8 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 // ACTION
-                OperationCallingContext context;
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""dummy"":0}");
-                    result = OperationCenter.Invoke(context);
-                }
+                var context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""dummy"":0}");
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[]) result;
@@ -1250,11 +1219,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""a"":""testvalue""}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""a"":""testvalue""}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1266,11 +1232,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""b"":42}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""b"":42}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1282,11 +1245,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""c"":true}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""c"":true}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1298,11 +1258,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""d"":12.345}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""d"":12.345}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1314,11 +1271,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""e"":12.345}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""e"":12.345}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1330,11 +1284,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.0d, objects[5]);
 
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""f"":12.345}");
-                    result = OperationCenter.Invoke(context);
-                }
+                context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""f"":12.345}");
+                result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 objects = (object[]) result;
@@ -1350,16 +1301,16 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Call_MinimalParameters()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
+            {
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
             {
                 // ACTION
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                {
-                    var context = OperationCenter.GetMethodByRequest(GetContent(), "Op3", @"{""dummy"":1}");
-                    var result = OperationCenter.Invoke(context);
-                    // ASSERT
-                    Assert.AreEqual("Called", result);
-                }
+                var context = OperationCenter.GetMethodByRequest(GetContent(), "Op3", @"{""dummy"":1}");
+                var result = OperationCenter.Invoke(context);
+                // ASSERT
+                Assert.AreEqual("Called", result);
             });
         }
 
@@ -1368,15 +1319,11 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                        @"{""a"":null, ""b"":null, ""c"":null, ""d"":null, ""e"":null, ""f"":null}");
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                    @"{""a"":null, ""b"":null, ""c"":null, ""d"":null, ""e"":null, ""f"":null}");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[]) result;
@@ -1394,15 +1341,11 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                        @"{""a"":undefined, ""b"":undefined, ""c"":undefined, ""d"":undefined, ""e"":undefined, ""f"":undefined}");
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                    @"{""a"":undefined, ""b"":undefined, ""c"":undefined, ""d"":undefined, ""e"":undefined, ""f"":undefined}");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[]) result;
@@ -1418,18 +1361,18 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Call_Inspection()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
             {
-                var inspector = new AllowEverything();
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
+            {
+                var inspector = (AllowEverything)Providers.Instance.Services.GetRequiredService<OperationInspector>();
                 var content = GetContent(null, "User");
 
                 // ACTION
-                using (new OperationInspectorSwindler(inspector))
-                {
-                    var context = OperationCenter.GetMethodByRequest(content, "Op1",
-                        @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
-                    var result = OperationCenter.Invoke(context);
-                }
+                var context = OperationCenter.GetMethodByRequest(content, "Op1",
+                    @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var lines = inspector.Log.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
@@ -1450,13 +1393,9 @@ namespace SenseNet.ODataTests
                 var content = Content.Load("/Root/IMS");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(inspector))
-                {
-                    var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName,
-                        @"{""a"":""paramValue""}");
-                    result = OperationCenter.Invoke(context);
-                }
+                var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName,
+                    @"{""a"":""paramValue""}");
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 Assert.AreEqual("WrongMethodName-paramValue", result.ToString());
@@ -1476,14 +1415,10 @@ namespace SenseNet.ODataTests
                 var content = Content.Load("/Root/IMS");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(inspector))
-                {
-                    var context = OperationCenter.GetMethodByRequest(content, 
-                        nameof(TestOperations.SensitiveMethodName).ToLowerInvariant(),
-                        @"{""a"":""paramValue""}");
-                    result = OperationCenter.Invoke(context);
-                }
+                var context = OperationCenter.GetMethodByRequest(content, 
+                    nameof(TestOperations.SensitiveMethodName).ToLowerInvariant(),
+                    @"{""a"":""paramValue""}");
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 Assert.AreEqual("SensitiveMethodName-paramValue", result.ToString());
@@ -1503,13 +1438,9 @@ namespace SenseNet.ODataTests
                 var content = Content.Load("/Root/IMS");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(inspector))
-                {
-                    var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName.ToLowerInvariant(),
-                        @"{""a"":""paramValue""}");
-                    result = OperationCenter.Invoke(context);
-                }
+                var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName.ToLowerInvariant(),
+                    @"{""a"":""paramValue""}");
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 Assert.AreEqual("WrongMethodName-paramValue", result.ToString());
@@ -1525,14 +1456,10 @@ namespace SenseNet.ODataTests
                 var content = Content.Load("/Root/IMS");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(inspector))
-                {
-                    var context = OperationCenter.GetMethodByRequest(content,
-                        nameof(TestOperations.AsyncMethod),
-                        @"{""a"":""qwer""}");
-                    result = await OperationCenter.InvokeAsync(context).ConfigureAwait(false);
-                }
+                var context = OperationCenter.GetMethodByRequest(content,
+                    nameof(TestOperations.AsyncMethod),
+                    @"{""a"":""qwer""}");
+                var result = await OperationCenter.InvokeAsync(context).ConfigureAwait(false);
 
                 // ASSERT
                 Assert.AreEqual("AsyncMethod-qwer", result.ToString());
@@ -1724,17 +1651,16 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Call_JObject()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
             {
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
-                        @"{'a':{'Snout': 456, 'Height': 654}}");
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
+            {
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                    @"{'a':{'Snout': 456, 'Height': 654}}");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 Assert.AreEqual(typeof(JObject), result.GetType());
@@ -1749,27 +1675,24 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
-                        null, new TestQueryCollection(@"?a={'Snout': 456, 'Height': 654}"));
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                    null, new TestQueryCollection(@"?a={'Snout': 456, 'Height': 654}"));
             });
         }
 
         [TestMethod]
         public void OD_MBO_Call_ObjectArray()
         {
-            ODataTest(() =>
+            ODataTest2(services =>
             {
-                OperationCallingContext context;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op5",
-                        @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
+                services.AddSingleton<OperationInspector, AllowEverything>();
+            }, () =>
+            {
+                var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op5",
+                    @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
 
                 // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
+                var result = OperationCenter.Invoke(context);
 
                 // ASSERT
                 var objects = (object[]) result;
@@ -1790,16 +1713,15 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string request, T[] expectedResult)
             void Test<T>(string methodName, string request, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
                 {
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
+                {
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (T[]) result;
@@ -1825,16 +1747,15 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string request, T[] expectedResult)
             void Test<T>(string methodName, string request, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
                 {
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
+                {
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (List<T>)result;
@@ -1860,16 +1781,15 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string request, T[] expectedResult)
             void Test<T>(string methodName, string request, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
                 {
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
+                {
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -1895,16 +1815,15 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string request, T[] expectedResult)
             void Test<T>(string methodName, string request, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
                 {
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
+                {
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -1939,18 +1858,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (T[])result;
@@ -1986,18 +1904,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (T[])result;
@@ -2034,18 +1951,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (List<T>)result;
@@ -2081,18 +1997,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = (List<T>)result;
@@ -2129,18 +2044,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2176,18 +2090,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2224,18 +2137,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2271,18 +2183,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2319,18 +2230,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2362,18 +2272,17 @@ namespace SenseNet.ODataTests
             #region void Test<T>(string methodName, string queryString, T[] expectedResult)
             void Test<T>(string methodName, string queryString, T[] expectedResult)
             {
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
-                            null, new TestQueryCollection(queryString));
+                    var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                        null, new TestQueryCollection(queryString));
 
                     // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                    var result = OperationCenter.Invoke(context);
 
                     // ASSERT
                     var values = ((IEnumerable<T>)result).ToArray();
@@ -2408,17 +2317,16 @@ namespace SenseNet.ODataTests
             bool Test<T>(string methodName, string request)
             {
                 var testResult = false;
-                ODataTest(() =>
+                ODataTest2(services =>
+                {
+                    services.AddSingleton<OperationInspector, AllowEverything>();
+                }, () =>
                 {
                     try
                     {
-                        OperationCallingContext context;
-                        using (new OperationInspectorSwindler(new AllowEverything()))
-                            context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+                        var context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
-                        object result;
-                        using (new OperationInspectorSwindler(new AllowEverything()))
-                            result = OperationCenter.Invoke(context);
+                        var result = OperationCenter.Invoke(context);
 
                         testResult = true;
                     }
@@ -3079,20 +2987,6 @@ namespace SenseNet.ODataTests
                 string.Format(TestContentHandler.CTD, contentTypeName ?? "TestContent", typeof(TestContentHandler).FullName));
         }
 
-        internal class OperationInspectorSwindler : IDisposable
-        {
-            private readonly OperationInspector _original;
-            public OperationInspectorSwindler(OperationInspector instance)
-            {
-                _original = Providers.Instance.GetProvider<OperationInspector>(); //OperationInspector.Instance;
-                Providers.Instance.SetProvider(typeof(OperationInspector), instance); //OperationInspector.Instance = instance;
-            }
-
-            public void Dispose()
-            {
-                Providers.Instance.SetProvider(typeof(OperationInspector), _original); //OperationInspector.Instance = _original;
-            }
-        }
         internal class PolicyStoreSwindler : IDisposable
         {
             private readonly Dictionary<string, IOperationMethodPolicy> _backup =
