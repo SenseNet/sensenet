@@ -36,6 +36,7 @@ using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.Packaging;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Preview;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -331,7 +332,7 @@ namespace WebAppTests
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
                 {typeof(ICompatibilitySupport), typeof(EmptyCompatibilitySupport)},
                 {typeof(IContentProtector), typeof(ContentProtector)},
-
+                {typeof(DocumentBinaryProvider), typeof(DefaultDocumentBinaryProvider)},
                 {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},

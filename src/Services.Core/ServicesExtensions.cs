@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -149,6 +150,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IEventPropertyCollector, EventPropertyCollector>()
                 .AddSingleton<ICompatibilitySupport, EmptyCompatibilitySupport>()
                 .AddSingleton<IContentProtector, ContentProtector>()
+                .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
             ;
         }
 
