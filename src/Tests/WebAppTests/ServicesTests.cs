@@ -39,6 +39,7 @@ using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
 using SenseNet.ODataTests;
 using SenseNet.Packaging;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Preview;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -319,6 +320,7 @@ namespace WebAppTests
                 {typeof(ISearchManager), typeof(SearchManager)},
                 {typeof(IIndexManager), typeof(IndexManager)},
                 {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+                {typeof(IIndexingActivityFactory), typeof(IndexingActivityFactory)},
 
                 // TaskManager
                 {typeof(ITaskManager), typeof(TaskManagerBase)},
@@ -341,7 +343,7 @@ namespace WebAppTests
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
                 {typeof(ICompatibilitySupport), typeof(EmptyCompatibilitySupport)},
                 {typeof(IContentProtector), typeof(ContentProtector)},
-
+                {typeof(DocumentBinaryProvider), typeof(DefaultDocumentBinaryProvider)},
                 {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},

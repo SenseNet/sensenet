@@ -4,8 +4,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SenseNet.ApplicationModel;
-using SenseNet.Tools;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Security.Cryptography
 {
@@ -17,41 +21,17 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
     public class CryptoServiceProvider
     {
-        // ================================================================================= Internal API
-
-        private static ICryptoServiceProvider _instance;
-        private static ICryptoServiceProvider Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    var baseType = typeof(ICryptoServiceProvider);
-                    var defType = typeof(DefaultCryptoServiceProvider);
-                    var cspType = TypeResolver.GetTypesByInterface(baseType).FirstOrDefault(t =>
-                        string.Compare(t.FullName, defType.FullName, StringComparison.InvariantCultureIgnoreCase) != 0) ?? defType;
-
-                    _instance = Activator.CreateInstance(cspType) as ICryptoServiceProvider;
-
-                    if (_instance == null)
-                        SnLog.WriteInformation("CryptoServiceProvider not present.");
-                    else
-                        SnLog.WriteInformation("CryptoServiceProvider created: " + _instance.GetType().FullName);
-                }
-
-                return _instance;
-            }
-        }
-
         // ================================================================================= Static API
 
+        [Obsolete("Use the ICryptoServiceProvider service instead.", true)]
         public static string Encrypt(string plainText)
         {
-            return Instance.Encrypt(plainText);
+            throw new InvalidOperationException();
         }
+        [Obsolete("Use the ICryptoServiceProvider service instead.", true)]
         public static string Decrypt(string encodedText)
         {
-            return Instance.Decrypt(encodedText);
+            throw new InvalidOperationException();
         }
 
         // ================================================================================= OData API
@@ -59,27 +39,51 @@ namespace SenseNet.ContentRepository.Security.Cryptography
         /// <summary>Encrypts a short text using the current crypto service provider.</summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
+        /// <param name="context"></param>
         /// <param name="text">The text to encrypt.</param>
         /// <returns>The encrypted text.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static string Encrypt(Content content, string text)
+        public static string Encrypt(Content content, HttpContext context, string text)
         {
-            return Encrypt(text);
+            try
+            {
+                var csp = context.RequestServices.GetService<ICryptoServiceProvider>();
+                return csp.Encrypt(text);
+            }
+            catch (Exception ex)
+            {
+                var logger = context.RequestServices.GetService<ILogger<CryptoServiceProvider>>();
+                logger.LogWarning(ex, $"Error when trying to encrypt a text. {ex.Message}");
+            }
+
+            throw new InvalidOperationException("Could not encrypt text.");
         }
 
         /// <summary>Decrypts a short encrypted text using the current crypto service provider.</summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
+        /// <param name="context"></param>
         /// <param name="text">The text to decrypt.</param>
         /// <returns>A clear text original value.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static string Decrypt(Content content, string text)
+        public static string Decrypt(Content content, HttpContext context, string text)
         {
-            return Decrypt(text);
+            try
+            {
+                var csp = context.RequestServices.GetService<ICryptoServiceProvider>();
+                return csp.Decrypt(text);
+            }
+            catch (Exception ex)
+            {
+                var logger = context.RequestServices.GetService<ILogger<CryptoServiceProvider>>();
+                logger.LogWarning(ex, $"Error when trying to decrypt a text. {ex.Message}");
+            }
+
+            throw new InvalidOperationException("Could not decrypt text.");
         }
     }
 
@@ -89,11 +93,17 @@ namespace SenseNet.ContentRepository.Security.Cryptography
     /// </summary>
     public class DefaultCryptoServiceProvider : ICryptoServiceProvider
     {
+        private readonly CryptographyOptions _options;
+
+        public DefaultCryptoServiceProvider(IOptions<CryptographyOptions> options)
+        {
+            _options = options.Value;
+        }
         // ================================================================================= Handle certificate
 
-        private static X509Certificate2 _certificate;
-        private static bool _certLoaded;
-        private static X509Certificate2 Certificate
+        private X509Certificate2 _certificate;
+        private bool _certLoaded;
+        private X509Certificate2 Certificate
         {
             get
             {
@@ -107,7 +117,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
             }
         }
 
-        private static X509Certificate2 LoadCertificate()
+        private X509Certificate2 LoadCertificate()
         {
             // try to load the certificate from the user store first than from the machine store
             var certificate =
@@ -119,7 +129,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
             return certificate;
         }
-        private static X509Certificate2 LoadCertificate(StoreLocation storeLocation)
+        private X509Certificate2 LoadCertificate(StoreLocation storeLocation)
         {
             X509Store store = null;
 
@@ -130,7 +140,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
                 // note that CompareOrdinal does not work on the Thumbprint property
                 return store.Certificates.Cast<X509Certificate2>().FirstOrDefault(cert =>
-                    string.Compare(cert.Thumbprint, Configuration.Cryptography.CertificateThumbprint, StringComparison.InvariantCultureIgnoreCase) == 0);
+                    string.Compare(cert.Thumbprint, _options.CertificateThumbprint, StringComparison.InvariantCultureIgnoreCase) == 0);
             }
             catch (Exception ex)
             {
@@ -138,8 +148,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
             }
             finally
             {
-                if (store != null)
-                    store.Close();
+                store?.Close();
             }
 
             return null;

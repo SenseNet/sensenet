@@ -17,7 +17,8 @@ using SenseNet.Security;
 using SenseNet.Search;
 using System.Diagnostics;
 using System.Threading;
-using SenseNet.BackgroundOperations;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
@@ -1256,13 +1257,13 @@ namespace SenseNet.ContentRepository
         /// This action is intended for internal use by the Task Management module.</summary>
         /// <snCategory>AdSync</snCategory>
         /// <param name="content"></param>
+        /// <param name="context"></param>
         /// <param name="result">Result of the AD sync task.</param>
         [ODataAction]
-        public static void Ad2PortalSyncFinalizer(Content content, SnTaskResult result)
+        public static async STT.Task Ad2PortalSyncFinalizer(Content content, HttpContext context, SnTaskResult result)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            SnTaskManager.Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
-#pragma warning restore CS0618 // Type or member is obsolete
+            await(context.RequestServices.GetRequiredService<ITaskManager>())
+                .OnTaskFinishedAsync(result, context.RequestAborted).ConfigureAwait(false);
 
             // not enough information
             if (result.Task == null)

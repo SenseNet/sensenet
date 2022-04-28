@@ -8,14 +8,11 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
 using SenseNet.Search;
-using SenseNet.Security;
-using SenseNet.Security.Messaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -289,10 +286,6 @@ namespace SenseNet.ContentRepository
         public static bool UserProfilesEnabled => IdentityManagement.UserProfilesEnabled;
         [Obsolete("After V6.5 PATCH 9: Use Logging.DownloadCounterEnabled instead.")]
         public static bool DownloadCounterEnabled => Logging.DownloadCounterEnabled;
-        [Obsolete("After V6.5 PATCH 9: Use SystemStart.WarmupEnabled instead.")]
-        public static bool WarmupEnabled => SystemStart.WarmupEnabled;
-        [Obsolete("After V6.5 PATCH 9: Use SystemStart.WarmupControlQueryFilter instead.")]
-        public static string WarmupControlQueryFilter => SystemStart.WarmupControlQueryFilter;
         [Obsolete("After V6.5 PATCH 9: Use Versioning.CheckInComments instead.")]
         public static CheckInCommentsMode CheckInCommentsMode => Configuration.Versioning.CheckInCommentsMode;
         [Obsolete("After V6.5 PATCH 9: Use Providers.RepositoryPathProviderEnabled instead.")]
