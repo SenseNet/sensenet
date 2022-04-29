@@ -70,6 +70,7 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 {
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 

@@ -53,6 +53,7 @@ namespace SnWebApplication.Api.Sql.Admin
                 {
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 

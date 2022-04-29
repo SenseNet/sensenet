@@ -61,6 +61,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 {
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 

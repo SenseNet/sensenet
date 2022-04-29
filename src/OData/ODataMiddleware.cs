@@ -67,7 +67,6 @@ namespace SenseNet.OData
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             OperationCenter.Discover();
-            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);

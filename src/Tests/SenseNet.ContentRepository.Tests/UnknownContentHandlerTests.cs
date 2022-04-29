@@ -19,9 +19,9 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class UnknownContentHandlerTests : TestBase
     {
-        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        protected override IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            return base.CreateServiceProviderForTestInstance(null, services =>
+            return base.CreateServiceProviderForTest(null, services =>
             {
                 services.AddSingleton<IPackagingDataProvider, TestPackageStorageProvider>();
                 modifyServices?.Invoke(services);

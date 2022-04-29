@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -152,7 +153,7 @@ namespace SenseNet.OData
             var odataParameters = new ODataParameterCollection(requestParameters, query);
             var requestParameterNames = odataParameters.Keys.ToArray();
 
-            var inspector = OperationInspector.Instance;
+            var inspector = Providers.Instance.Services.GetService<OperationInspector>();
             var candidates = GetCandidatesByName(methodName);
             if (candidates.Length > 0)
             {
@@ -790,7 +791,7 @@ namespace SenseNet.OData
                 }
             }
 
-            var inspector = OperationInspector.Instance;
+            var inspector = Providers.Instance.Services.GetService<OperationInspector>();
             var operation = context.Operation;
             var user = User.Current;
 

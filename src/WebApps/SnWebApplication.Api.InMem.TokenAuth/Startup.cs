@@ -47,6 +47,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                         .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 

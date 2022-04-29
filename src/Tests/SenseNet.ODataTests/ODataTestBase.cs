@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -176,7 +177,7 @@ namespace SenseNet.ODataTests
 
         protected void ODataTest(Action callback)
         {
-            ODataTestAsync(null, null, () =>
+            ODataTestAsync(null, null, null, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -184,7 +185,7 @@ namespace SenseNet.ODataTests
         }
         protected void ODataTest(IUser user, Action callback)
         {
-            ODataTestAsync(user, null, () =>
+            ODataTestAsync(user, null, null, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -192,7 +193,15 @@ namespace SenseNet.ODataTests
         }
         protected void ODataTest(Action<RepositoryBuilder> initialize, Action callback)
         {
-            ODataTestAsync(null, initialize, () =>
+            ODataTestAsync(null, null, initialize, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        protected void ODataTest2(Action<IServiceCollection> modifyServices, Action callback)
+        {
+            ODataTestAsync(null, modifyServices, null, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -201,28 +210,48 @@ namespace SenseNet.ODataTests
 
         protected Task ODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, null, callback);
+            return ODataTestAsync(null, null, null, callback);
         }
         protected Task ODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, null, callback);
+            return ODataTestAsync(user, null, null, callback);
         }
         protected Task ODataTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
         {
-            return ODataTestAsync(null, initialize, callback);
+            return ODataTestAsync(null, null, initialize, callback);
         }
-        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
+        protected Task ODataTest2Async(Action<IServiceCollection> modifyServices, Func<Task> callback)
         {
-            OnTestInitialize();
+            return ODataTestAsync(null, modifyServices, null, callback);
+        }
 
-            var builder = base.CreateRepositoryBuilderForTestInstance();
-            _serviceProvider = builder.Services;
+        protected override IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        {
+            return base.CreateServiceProviderForTest(modifyConfig, services =>
+            {
+                services.AddSenseNetOData();
+                modifyServices?.Invoke(services);
+            });
+        }
+
+        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
+        {
+            var builder = base.CreateRepositoryBuilderForTest(modifyServices);
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
-            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
+
+            return builder;
+        }
+
+        private async Task ODataTestAsync(IUser user, Action<IServiceCollection> modifyServices, Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTest(modifyServices);
+            _serviceProvider = builder.Services;
 
             initialize?.Invoke(builder);
 

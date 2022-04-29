@@ -35,9 +35,43 @@ namespace SenseNet.Services.Wopi.Tests
     {
         protected override bool ReusesRepository => false;
 
+        private static RepositoryInstance _repository;
+        private static Providers _providers;
+
         protected override void InitializeTest()
         {
+
+            if (_repository == null)
+            {
+                Repository.Shutdown();
+
+                var builder = CreateRepositoryBuilderForTest();
+
+                builder
+                    .UseLogger(new SnFileSystemEventLogger())
+                    .UseTracer(new SnFileSystemTracer());
+
+                Indexing.IsOuterSearchEngineEnabled = true;
+
+                _repository = Repository.Start(builder);
+                _providers = Providers.Instance;
+
+                using (new SystemAccount())
+                {
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
+                        .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
+                        .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
+                        .Apply();
+                }
+            }
+
             Providers.Instance = _providers;
+        }
+
+        [ClassCleanup]
+        public static void ShutDownRepository()
+        {
+            _repository?.Dispose();
         }
 
         /* --------------------------------------------------------- GetLock */
@@ -1627,38 +1661,30 @@ namespace SenseNet.Services.Wopi.Tests
 
         /* =================================================== */
 
-        private static RepositoryInstance _repository;
-        private static Providers _providers;
+        //[ClassInitialize]
+        //public static void InitializeRepositoryInstance(TestContext context)
+        //{
+        //    Repository.Shutdown();
 
-        [ClassInitialize]
-        public static void InitializeRepositoryInstance(TestContext context)
-        {
-            Repository.Shutdown();
+        //    var builder = CreateRepositoryBuilderForTest(context);
 
-            var builder = CreateRepositoryBuilderForTest(context);
+        //    builder
+        //        .UseLogger(new SnFileSystemEventLogger())
+        //        .UseTracer(new SnFileSystemTracer());
 
-            builder
-                .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer());
+        //    Indexing.IsOuterSearchEngineEnabled = true;
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+        //    _repository = Repository.Start(builder);
+        //    _providers = Providers.Instance;
 
-            _repository = Repository.Start(builder);
-            _providers = Providers.Instance;
-
-            using (new SystemAccount())
-            {
-                Providers.Instance.SecurityHandler.CreateAclEditor()
-                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
-                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
-                    .Apply();
-            }
-        }
-        [ClassCleanup]
-        public static void ShutDownRepository()
-        {
-            _repository?.Dispose();
-        }
+        //    using (new SystemAccount())
+        //    {
+        //        Providers.Instance.SecurityHandler.CreateAclEditor()
+        //            .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
+        //            .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
+        //            .Apply();
+        //    }
+        //}
 
         private void WopiErrorTest(HttpStatusCode expectedStatusCode, Func<HttpContext> callback)
         {

@@ -73,6 +73,7 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 {
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
+                .AddSenseNetOData()
                 .AddSenseNetWebHooks();
         }
 
