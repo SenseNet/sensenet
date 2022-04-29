@@ -54,7 +54,8 @@ namespace SnWebApplication.Api.Sql.Admin
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
                 .AddSenseNetOData()
-                .AddSenseNetWebHooks();
+                .AddSenseNetWebHooks()
+                .AddSenseNetWopi();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

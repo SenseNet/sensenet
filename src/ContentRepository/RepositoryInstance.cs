@@ -289,13 +289,12 @@ namespace SenseNet.ContentRepository
                 dummy = SenseNetResourceManager.Current;
                 ConsoleWriteLine("ok.");
 
-                _serviceInstances = new List<ISnService>();
-                foreach (var serviceType in TypeResolver.GetTypesByInterface(typeof(ISnService)))
+                _serviceInstances = _settings.Services.GetServices<ISnService>().ToList();
+
+                foreach (var service in _serviceInstances)
                 {
-                    var service = (ISnService)Activator.CreateInstance(serviceType);
                     service.Start();
-                    ConsoleWriteLine("Service started: ", serviceType.Name);
-                    _serviceInstances.Add(service);
+                    ConsoleWriteLine("Service started: ", service.GetType().Name);
                 }
 
                 // register this application in the task management component
