@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
 using System.Collections.Concurrent;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.i18n;
@@ -20,43 +21,18 @@ namespace SenseNet.OData.Metadata
     /// </summary>
     public class ClientMetadataProvider : IClientMetadataProvider
     {
-        private const string ClientMetadataProviderKey = "ClientMetadataProvider";
-        private static readonly object MetadataProviderSync = new object();
-
         //======================================================================================= Static API
 
         /// <summary>
         /// Singleton instance for serving metadata objects for clients. Tests may change 
         /// its value temporarily as it is built on the Providers API.
         /// </summary>
-        internal static IClientMetadataProvider Instance
-        {
-            get
-            {
-                // ReSharper disable once InconsistentlySynchronizedField
-                var cmdProvider = Providers.Instance.GetProvider<IClientMetadataProvider>(ClientMetadataProviderKey);
-                if (cmdProvider == null)
-                {
-                    lock (MetadataProviderSync)
-                    {
-                        cmdProvider = Providers.Instance.GetProvider<IClientMetadataProvider>(ClientMetadataProviderKey);
-                        if (cmdProvider == null)
-                        {
-                            // default implementation
-                            cmdProvider = new ClientMetadataProvider();
-                            Providers.Instance.SetProvider(ClientMetadataProviderKey, cmdProvider);
-                        }
-                    }
-                }
-
-                return cmdProvider;
-            }
-            set => Providers.Instance.SetProvider(ClientMetadataProviderKey, value);
-        }
+        internal static IClientMetadataProvider Instance =>
+            Providers.Instance.Services.GetService<IClientMetadataProvider>();
 
         //======================================================================================= Constructors
 
-        internal ClientMetadataProvider()
+        public ClientMetadataProvider()
         {
             // per-instance event subscription
             ContentType.TypeSystemRestarted += OnTypeSystemRestarted;
