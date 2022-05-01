@@ -39,6 +39,7 @@ using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
+using SenseNet.OData.Metadata;
 using SenseNet.ODataTests;
 using SenseNet.Packaging;
 using SenseNet.Portal.Virtualization;
@@ -571,6 +572,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -598,6 +600,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -628,6 +631,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -659,6 +663,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -697,6 +702,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -734,6 +740,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -806,6 +813,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
