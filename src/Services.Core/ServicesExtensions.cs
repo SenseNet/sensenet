@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -154,6 +155,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<ICompatibilitySupport, EmptyCompatibilitySupport>()
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
+                .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
             ;
         }
 

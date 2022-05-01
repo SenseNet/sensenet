@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -90,40 +91,13 @@ namespace SenseNet.ContentRepository.Sharing
             _items = null;
         }
 
-        private const string SharingNotificationFormatterKey = "SharingNotificationFormatter";
-        private static readonly object FormatterSync = new object();
-
         /// <summary>
-        /// Gets or sets the provider responsible for formatting sharing notification
+        /// Gets the provider responsible for formatting sharing notification
         /// email subject and body. Developers may customize the values and variables
         /// available in these texts.
         /// </summary>
-        internal static ISharingNotificationFormatter NotificationFormatter
-        {
-            get
-            {
-                ISharingNotificationFormatter formatter;
-
-                // ReSharper disable once InconsistentlySynchronizedField
-                if ((formatter = Providers.Instance.GetProvider<ISharingNotificationFormatter>(
-                        SharingNotificationFormatterKey)) != null)
-                    return formatter;
-
-                lock (FormatterSync)
-                {
-                    if ((formatter = Providers.Instance.GetProvider<ISharingNotificationFormatter>(
-                            SharingNotificationFormatterKey)) != null)
-                        return formatter;
-
-                    // default implementation
-                    formatter = new DefaultSharingNotificationFormatter();
-                    Providers.Instance.SetProvider(SharingNotificationFormatterKey, formatter);
-                }
-
-                return formatter;
-            }
-            set => Providers.Instance.SetProvider(SharingNotificationFormatterKey, value);
-        }
+        internal static ISharingNotificationFormatter NotificationFormatter =>
+            Providers.Instance.Services.GetService<ISharingNotificationFormatter>();
 
         private readonly GenericContent _owner;
         internal SharingHandler(GenericContent owner)
