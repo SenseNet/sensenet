@@ -26,6 +26,8 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
+using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -350,6 +352,8 @@ namespace WebAppTests
                 {typeof(IApiKeyManager), typeof(ApiKeyManager)},
                 {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
                 {typeof(IEmailSender), typeof(EmailSender)},
+                {typeof(ICryptoServiceProvider), typeof(DefaultCryptoServiceProvider)},
+                {typeof(ISharingNotificationFormatter), typeof(DefaultSharingNotificationFormatter)},
                 {typeof(DefaultRegistrationProvider), typeof(DefaultRegistrationProvider)},
                 {typeof(RegistrationProviderStore), typeof(RegistrationProviderStore)},
                 {typeof(IStatisticalDataCollector), typeof(StatisticalDataCollector)},
@@ -528,6 +532,7 @@ namespace WebAppTests
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
+            typeof(ICryptoServiceProvider),
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
@@ -538,6 +543,7 @@ namespace WebAppTests
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
+            typeof(ICryptoServiceProvider),
 
             typeof(ITestingDataProvider),
         };

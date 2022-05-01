@@ -292,18 +292,6 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Gets or sets the provider responsible for formatting sharing notification
-        /// email subject and body. Developers may customize the values and variables
-        /// available in these texts.
-        /// </summary>
-        public static IRepositoryBuilder UseSharingNotificationFormatter(this IRepositoryBuilder repositoryBuilder, ISharingNotificationFormatter formatter)
-        {
-            SharingHandler.NotificationFormatter = formatter;
-
-            return repositoryBuilder;
-        }
-
-        /// <summary>
         /// General API for defining a provider instance that will be injected into and can be loaded
         /// from the Providers.Instance store.
         /// </summary>
