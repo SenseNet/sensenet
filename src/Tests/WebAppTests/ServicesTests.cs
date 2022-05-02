@@ -526,7 +526,6 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(ISharedLockDataProvider),
             typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
@@ -535,7 +534,6 @@ namespace WebAppTests
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(ISharedLockDataProvider),
             typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
