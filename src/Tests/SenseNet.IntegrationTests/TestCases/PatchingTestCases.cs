@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -1797,7 +1798,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProvider>();
+            var dataProvider = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

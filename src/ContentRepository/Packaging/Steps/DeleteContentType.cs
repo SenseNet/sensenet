@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
@@ -144,7 +145,7 @@ namespace SenseNet.Packaging.Steps
                                             ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
                                             QuerySettings.AdminSettings, p, typeNames).Count).Sum();
 
-            var PDP = Providers.Instance.GetProvider<IPackagingDataProvider>();
+            var PDP = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             var result = new ContentTypeDependencies
             {
                 ContentTypeNames = rootTypeNames,

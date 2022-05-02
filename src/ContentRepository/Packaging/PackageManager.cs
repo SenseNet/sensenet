@@ -22,7 +22,7 @@ namespace SenseNet.Packaging
     {
         public const string SANDBOXDIRECTORYNAME = "run";
 
-        internal static IPackagingDataProvider Storage => Providers.Instance.GetProvider<IPackagingDataProvider>();
+        internal static IPackagingDataProvider Storage => Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase,
             string[] parameters, TextWriter console, RepositoryBuilder builder,
