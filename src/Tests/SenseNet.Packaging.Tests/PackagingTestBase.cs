@@ -135,7 +135,7 @@ namespace SenseNet.Packaging.Tests
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProvider>();
+            var dataProvider = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

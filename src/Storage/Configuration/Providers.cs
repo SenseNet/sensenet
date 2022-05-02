@@ -81,7 +81,6 @@ namespace SenseNet.Configuration
             SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
             SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
             SetProviderPrivate(typeof(IAccessTokenDataProvider), services.GetService<IAccessTokenDataProvider>());
-            SetProviderPrivate(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
 
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
