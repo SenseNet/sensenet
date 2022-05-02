@@ -528,7 +528,6 @@ namespace WebAppTests
         {
             typeof(ISharedLockDataProvider),
             typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
             typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
@@ -539,7 +538,6 @@ namespace WebAppTests
         {
             typeof(ISharedLockDataProvider),
             typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
             typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),

@@ -284,12 +284,19 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
+            Test(() =>
+            {
+                Assert.IsInstanceOfType(Providers.Instance.Services.GetRequiredService<IAccessTokenDataProvider>(),
+                    typeof(InMemoryAccessTokenDataProvider));
+            });
+
             Test2(services =>
             {
                 services.AddSingleton<IAccessTokenDataProvider, TestAccessTokenDataProvider>();
             }, () =>
             {
-                Assert.AreEqual(typeof(TestAccessTokenDataProvider), Providers.Instance.GetProvider<IAccessTokenDataProvider>().GetType());
+                Assert.IsInstanceOfType(Providers.Instance.Services.GetRequiredService<IAccessTokenDataProvider>(),
+                    typeof(TestAccessTokenDataProvider));
             });
         }
 
