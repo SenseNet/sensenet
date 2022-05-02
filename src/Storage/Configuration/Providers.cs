@@ -79,7 +79,7 @@ namespace SenseNet.Configuration
             ContentProtector = services.GetService<IContentProtector>();
 
             SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
-            SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
+            //SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
             SetProviderPrivate(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
 
             SearchManager = services.GetService<ISearchManager>();
