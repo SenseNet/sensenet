@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -942,8 +943,8 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             NoRepoIntegrationTest(() =>
             {
-                Providers.Instance
-                    .GetProvider<IPackagingDataProvider>()
+                Providers.Instance.Services
+                    .GetRequiredService<IPackagingDataProvider>()
                     .DeleteAllPackagesAsync(CancellationToken.None)
                     .ConfigureAwait(false).GetAwaiter().GetResult();
                 RepositoryVersionInfo.Reset();
@@ -954,8 +955,8 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await NoRepoIntegrationTestAsync(async () =>
             {
-                await Providers.Instance
-                    .GetProvider<IPackagingDataProvider>()
+                await Providers.Instance.Services
+                    .GetRequiredService<IPackagingDataProvider>()
                     .DeleteAllPackagesAsync(CancellationToken.None)
                     .ConfigureAwait(false);
                 RepositoryVersionInfo.Reset();

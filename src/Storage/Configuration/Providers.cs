@@ -78,11 +78,6 @@ namespace SenseNet.Configuration
             CompatibilitySupport = services.GetService<ICompatibilitySupport>();
             ContentProtector = services.GetService<IContentProtector>();
 
-            SetProviderPrivate(typeof(ISharedLockDataProvider), services.GetService<ISharedLockDataProvider>());
-            SetProviderPrivate(typeof(IExclusiveLockDataProvider), services.GetService<IExclusiveLockDataProvider>());
-            SetProviderPrivate(typeof(IAccessTokenDataProvider), services.GetService<IAccessTokenDataProvider>());
-            SetProviderPrivate(typeof(IPackagingDataProvider), services.GetService<IPackagingDataProvider>());
-
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
             IndexPopulator = services.GetService<IIndexPopulator>();

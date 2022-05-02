@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -15,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public static class SharedLock
     {
-        private static ISharedLockDataProvider Storage => Providers.Instance.GetProvider<ISharedLockDataProvider>();
+        private static ISharedLockDataProvider Storage => Providers.Instance.Services.GetRequiredService<ISharedLockDataProvider>();
 
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.

@@ -27,6 +27,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -38,6 +39,7 @@ using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
+using SenseNet.OData.Metadata;
 using SenseNet.ODataTests;
 using SenseNet.Packaging;
 using SenseNet.Portal.Virtualization;
@@ -352,6 +354,8 @@ namespace WebAppTests
                 {typeof(IApiKeyManager), typeof(ApiKeyManager)},
                 {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
                 {typeof(IEmailSender), typeof(EmailSender)},
+                {typeof(ICryptoServiceProvider), typeof(DefaultCryptoServiceProvider)},
+                {typeof(ISharingNotificationFormatter), typeof(DefaultSharingNotificationFormatter)},
                 {typeof(DefaultRegistrationProvider), typeof(DefaultRegistrationProvider)},
                 {typeof(RegistrationProviderStore), typeof(RegistrationProviderStore)},
                 {typeof(IStatisticalDataCollector), typeof(StatisticalDataCollector)},
@@ -378,7 +382,6 @@ namespace WebAppTests
                     typeof(RepositoryHostedService),
                     typeof(SnMaintenance),
                 }},
-                {typeof(ICryptoServiceProvider), typeof(DefaultCryptoServiceProvider)},
                 {typeof(ISnService), Array.Empty<Type>() },
             };
         }
@@ -525,10 +528,6 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
-            typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
@@ -536,16 +535,12 @@ namespace WebAppTests
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
-            typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
+            typeof(ICryptoServiceProvider),
 
             typeof(ITestingDataProvider),
-            typeof(ICryptoServiceProvider),
         };
         private readonly string[] _defaultIncludedProvidersByName = Array.Empty<string>();
 
@@ -572,6 +567,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -600,6 +596,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -631,6 +628,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -663,6 +661,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -705,6 +704,7 @@ namespace WebAppTests
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
                     }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -746,6 +746,7 @@ namespace WebAppTests
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
                     }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -818,6 +819,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName

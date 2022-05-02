@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -100,7 +101,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
         private void Initialize()
         {
-            var dpe = Providers.Instance.GetProvider<IExclusiveLockDataProvider>();
+            var dpe = Providers.Instance.Services.GetRequiredService<IExclusiveLockDataProvider>();
             dpe.ReleaseAllAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             SnTrace.Custom.Enabled = true;
             SnTrace.System.Enabled = true;

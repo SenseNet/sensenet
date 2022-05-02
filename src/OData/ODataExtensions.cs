@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.OData.Metadata;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -15,9 +16,11 @@ namespace SenseNet.Extensions.DependencyInjection
     {
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
         {
-            services.AddSingleton<OperationInspector>();
-            services.AddSingleton<IOperationMethodStorage, OperationMethodStorage>();
-            return services;
+            return services
+                .AddSingleton<OperationInspector>()
+                .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
+                .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
+                ;
         }
 
         /// <summary>

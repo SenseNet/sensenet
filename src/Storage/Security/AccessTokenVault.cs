@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -19,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Security
     {
         private const int MinimumTokenExpirationMinutes = 5;
 
-        private static IAccessTokenDataProvider Storage => Providers.Instance.GetProvider<IAccessTokenDataProvider>();
+        private static IAccessTokenDataProvider Storage => Providers.Instance.Services.GetRequiredService<IAccessTokenDataProvider>();
 
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.
