@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.Schema;
@@ -19,7 +20,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestCategory("Metadata")]
         public void ClientMetadataProvider_ExistingType()
         {
-            Test(() =>
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
             {
                 var fileClass = new Class(ContentType.GetByName("File"));
                 var fileTypeObject = ClientMetadataProvider.Instance.GetClientMetaClass(fileClass) as JObject;
@@ -44,7 +48,10 @@ namespace SenseNet.ContentRepository.Tests
             var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             var fieldName1 = "Field123456";
 
-            Test(() =>
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
             {
                 var myType = ContentType.GetByName(contentTypeName);
 
@@ -79,7 +86,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestCategory("Metadata")]
         public void ClientMetadataProvider_GetSchema_AllTypes()
         {
-            Test(() =>
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
             {
                 var allTypeObjects = ClientMetadataProvider.GetSchema(null) as object[];
 
@@ -96,7 +106,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestCategory("Metadata")]
         public void ClientMetadataProvider_GetSchema_SingleType()
         {
-            Test(() =>
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
             {
                 var typeObjects = ClientMetadataProvider.GetSchema(null, "File") as object[];
 
@@ -116,7 +129,10 @@ namespace SenseNet.ContentRepository.Tests
         {
             // make sure that null values are not rendered to save time and bandwidth
 
-            Test(() =>
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
             {
                 var allTypeObjects = ClientMetadataProvider.GetSchema(null) as object[];
 
