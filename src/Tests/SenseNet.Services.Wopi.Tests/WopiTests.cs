@@ -18,6 +18,7 @@ using SenseNet.Tests.Core.Implementations;
 using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
@@ -1736,7 +1737,7 @@ namespace SenseNet.Services.Wopi.Tests
 
         private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
+            return Providers.Instance.Services.GetRequiredService<ISharedLockDataProvider>();
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {

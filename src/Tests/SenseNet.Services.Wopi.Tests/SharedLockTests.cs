@@ -41,7 +41,7 @@ namespace SenseNet.Services.Wopi.Tests
 
         private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
+            return Providers.Instance.Services.GetRequiredService<ISharedLockDataProvider>();
         }
 
         [TestMethod]

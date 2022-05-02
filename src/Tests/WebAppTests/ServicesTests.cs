@@ -526,9 +526,6 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
@@ -536,9 +533,6 @@ namespace WebAppTests
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
             typeof(IStatisticalDataProvider),
             typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),

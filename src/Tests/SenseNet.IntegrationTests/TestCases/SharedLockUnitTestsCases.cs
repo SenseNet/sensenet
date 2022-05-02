@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -14,7 +15,7 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class SharedLockUnitTestsCases : TestCaseBase
     {
-        private ISharedLockDataProvider Provider => Providers.Instance.GetProvider<ISharedLockDataProvider>();
+        private ISharedLockDataProvider Provider => Providers.Instance.Services.GetRequiredService<ISharedLockDataProvider>();
         protected ITestingDataProvider TDP => Providers.Instance.GetProvider<ITestingDataProvider>();
 
         /* ====================================================================== */

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 
 // ReSharper disable once CheckNamespace
@@ -52,7 +53,7 @@ namespace SenseNet.ContentRepository.Storage
         public TimeSpan WaitTimeout { get; set; }
 
         internal IExclusiveLockDataProvider DataProvider { get; } =
-            Providers.Instance.GetProvider<IExclusiveLockDataProvider>() ??
+            Providers.Instance.Services.GetRequiredService<IExclusiveLockDataProvider>() ??
             DefaultExclusiveLockDataProvider.Instance;
 
         internal CancellationToken CancellationToken { get; set; }
