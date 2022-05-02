@@ -59,6 +59,7 @@ using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Cors;
 using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Services.Wopi;
 using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
@@ -381,6 +382,7 @@ namespace WebAppTests
                     typeof(RepositoryHostedService),
                     typeof(SnMaintenance),
                 }},
+                {typeof(ISnService), Array.Empty<Type>() },
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -564,6 +566,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -592,6 +595,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -623,6 +627,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -655,6 +660,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -694,6 +700,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {
+                        typeof(ClusterChannelMonitor),
+                        typeof(WopiService),
+                    }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -732,6 +742,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {
+                        typeof(ClusterChannelMonitor),
+                        typeof(WopiService),
+                    }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,

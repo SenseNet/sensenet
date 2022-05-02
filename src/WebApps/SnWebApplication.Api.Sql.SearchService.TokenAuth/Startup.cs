@@ -74,7 +74,8 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
                 .AddSenseNetOData()
-                .AddSenseNetWebHooks();
+                .AddSenseNetWebHooks()
+                .AddSenseNetWopi();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
