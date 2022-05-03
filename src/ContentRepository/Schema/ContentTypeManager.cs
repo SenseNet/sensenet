@@ -48,9 +48,6 @@ namespace SenseNet.ContentRepository.Schema
 
         private const string ContentTypeManagerProviderKey = "ContentTypeManager";
 
-        [Obsolete("Use Instace instead.")]
-        public static ContentTypeManager Current => Instance;
-
         public static ContentTypeManager Instance
         {
             get
@@ -78,28 +75,12 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
-        internal static ContentTypeManager CreateForTests()
-        {
-            var result = new ContentTypeManager();
-
-            result._contentPaths = new Dictionary<string, string>();
-            result._contentTypes = new Dictionary<string, ContentType>();
-            result.AllFieldNames = new List<string>();
-
-            return result;
-        }
-
         // =======================================================================
 
         private Dictionary<string, string> _contentPaths;
         private Dictionary<string, ContentType> _contentTypes;
+        internal Dictionary<string, ContentType> ContentTypes => _contentTypes;
 
-        internal Dictionary<string, ContentType> ContentTypes
-        {
-            get { return _contentTypes; }
-        }
-
-        #region GetContentTypeNameByType
         private Dictionary<Type, NodeType> _contentTypeNamesByType;
         public static string GetContentTypeNameByType(Type t)
         {
@@ -131,7 +112,6 @@ namespace SenseNet.ContentRepository.Schema
 
             return null;
         }
-        #endregion
 
         private ContentTypeManager()
         {
@@ -349,6 +329,8 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        /* ---------------------------------------------------------------------- Apply Changes */
+
         internal static void ApplyChanges(ContentType settings, bool reset)
         {
             SchemaEditor editor = new SchemaEditor();
@@ -501,7 +483,6 @@ namespace SenseNet.ContentRepository.Schema
                 }
             }
         }
-
         private static void CheckDataType(string propName, RepositoryDataType dataType, string nodeTypeName, SchemaEditor editor)
         {
             var propType = editor.PropertyTypes[propName];
@@ -515,7 +496,6 @@ namespace SenseNet.ContentRepository.Schema
             throw new RegistrationException(String.Format(SR.Exceptions.Registration.Msg_DataTypeCollisionInTwoProperties_4,
                 nodeTypeName, propName, propType.DataType, dataType));
         }
-
         private static DataType ConvertDataType(RepositoryDataType source)
         {
             if (source == RepositoryDataType.NotDefined)
@@ -532,6 +512,76 @@ namespace SenseNet.ContentRepository.Schema
                 return;
             throw new NotSupportedException(String.Format(CultureInfo.InvariantCulture,
                 SR.Exceptions.Registration.Msg_InvalidReferenceField_2, cts.Name, fs.Name));
+        }
+        private static NodeTypeRegistration ParseAttributes(Type type)
+        {
+            NodeTypeRegistration ntReg = null;
+            ContentHandlerAttribute contentHandlerAttribute = null;
+
+            foreach (object attrObject in type.GetCustomAttributes(false))
+                if ((contentHandlerAttribute = attrObject as ContentHandlerAttribute) != null)
+                    break;
+
+            // Finish if there is not a ContentHandlerAttribute
+            if (contentHandlerAttribute == null)
+                return ntReg;
+
+            // Must inherit from Node.
+            if (!IsInheritedFromNode(type))
+                throw new ContentRegistrationException(String.Format(CultureInfo.CurrentCulture,
+                    SR.Exceptions.Registration.Msg_NodeTypeMustBeInheritedFromNode_1,
+                    type.FullName));
+
+            // Property checks
+            RepositoryPropertyAttribute propertyAttribute = null;
+            List<PropertyTypeRegistration> propertyTypeRegistrations = new List<PropertyTypeRegistration>();
+            Dictionary<string, RepositoryPropertyAttribute> propertyAttributes = new Dictionary<string, RepositoryPropertyAttribute>();
+
+            List<PropertyInfo> props = new List<PropertyInfo>(type.GetProperties(_publicPropertyBindingFlags));
+            props.AddRange(type.GetProperties(_nonPublicPropertyBindingFlags));
+
+            foreach (PropertyInfo propInfo in props)
+            {
+                string propName = propInfo.Name;
+
+                propertyAttribute = null;
+                foreach (object attrObject in propInfo.GetCustomAttributes(false))
+                    if ((propertyAttribute = attrObject as RepositoryPropertyAttribute) != null)
+                        break;
+
+                if (propertyAttribute == null)
+                    continue;
+
+                if (propertyAttributes.ContainsKey(propName))
+                    throw new RegistrationException(String.Format(CultureInfo.CurrentCulture,
+                        SR.Exceptions.Registration.Msg_PropertyTypeAttributesWithTheSameName_2,
+                        type.FullName, propInfo.Name));
+                propertyAttributes.Add(propName, propertyAttribute);
+
+                // Override default name with passed name
+                if (propertyAttribute.PropertyName != null)
+                    propName = propertyAttribute.PropertyName;
+
+                // Build PropertyTypeRegistration
+                PropertyTypeRegistration propReg = new PropertyTypeRegistration(propInfo, propertyAttribute);
+                propertyTypeRegistrations.Add(propReg);
+            }
+
+            // Build NodeTypeRegistration
+            ntReg = new NodeTypeRegistration(type, null, propertyTypeRegistrations);
+
+            return ntReg;
+        }
+        private static bool IsInheritedFromNode(Type type)
+        {
+            Type t = type;
+            while (t != typeof(Object))
+            {
+                if (t == typeof(Node))
+                    return true;
+                t = t.BaseType;
+            }
+            return false;
         }
 
         /* ---------------------------------------------------------------------- FieldSetting validation */
@@ -618,79 +668,6 @@ namespace SenseNet.ContentRepository.Schema
                 Binding = string.Join(", ", fs.Bindings),
                 FieldType = fs.FieldClassName
             };
-        }
-
-        // ---------------------------------------------------------------------- Attribute parsing
-
-        private static NodeTypeRegistration ParseAttributes(Type type)
-        {
-            NodeTypeRegistration ntReg = null;
-            ContentHandlerAttribute contentHandlerAttribute = null;
-
-            foreach (object attrObject in type.GetCustomAttributes(false))
-                if ((contentHandlerAttribute = attrObject as ContentHandlerAttribute) != null)
-                    break;
-
-            // Finish if there is not a ContentHandlerAttribute
-            if (contentHandlerAttribute == null)
-                return ntReg;
-
-            // Must inherit from Node.
-            if (!IsInheritedFromNode(type))
-                throw new ContentRegistrationException(String.Format(CultureInfo.CurrentCulture,
-                    SR.Exceptions.Registration.Msg_NodeTypeMustBeInheritedFromNode_1,
-                    type.FullName));
-
-            // Property checks
-            RepositoryPropertyAttribute propertyAttribute = null;
-            List<PropertyTypeRegistration> propertyTypeRegistrations = new List<PropertyTypeRegistration>();
-            Dictionary<string, RepositoryPropertyAttribute> propertyAttributes = new Dictionary<string, RepositoryPropertyAttribute>();
-
-            List<PropertyInfo> props = new List<PropertyInfo>(type.GetProperties(_publicPropertyBindingFlags));
-            props.AddRange(type.GetProperties(_nonPublicPropertyBindingFlags));
-
-            foreach (PropertyInfo propInfo in props)
-            {
-                string propName = propInfo.Name;
-
-                propertyAttribute = null;
-                foreach (object attrObject in propInfo.GetCustomAttributes(false))
-                    if ((propertyAttribute = attrObject as RepositoryPropertyAttribute) != null)
-                        break;
-
-                if (propertyAttribute == null)
-                    continue;
-
-                if (propertyAttributes.ContainsKey(propName))
-                    throw new RegistrationException(String.Format(CultureInfo.CurrentCulture,
-                        SR.Exceptions.Registration.Msg_PropertyTypeAttributesWithTheSameName_2,
-                        type.FullName, propInfo.Name));
-                propertyAttributes.Add(propName, propertyAttribute);
-
-                // Override default name with passed name
-                if (propertyAttribute.PropertyName != null)
-                    propName = propertyAttribute.PropertyName;
-
-                // Build PropertyTypeRegistration
-                PropertyTypeRegistration propReg = new PropertyTypeRegistration(propInfo, propertyAttribute);
-                propertyTypeRegistrations.Add(propReg);
-            }
-
-            // Build NodeTypeRegistration
-            ntReg = new NodeTypeRegistration(type, null, propertyTypeRegistrations);
-
-            return ntReg;
-        }
-        private static bool IsInheritedFromNode(Type type)
-        {
-            Type t = type;
-            while (t != typeof(Object))
-            {
-                if (t == typeof(Node))
-                    return true;
-                t = t.BaseType;
-            }
-            return false;
         }
 
         // ---------------------------------------------------------------------- Information methods
@@ -849,17 +826,6 @@ namespace SenseNet.ContentRepository.Schema
                 return;
 
             Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
-        }
-
-        public static long _GetTimestamp()
-        {
-            if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
-                return 0L;
-            ContentType ct = null;
-            Instance.ContentTypes.TryGetValue("Automobile", out ct);
-            if (ct == null)
-                return -1;
-            return ct.NodeTimestamp;
         }
 
         // ======================================================================
