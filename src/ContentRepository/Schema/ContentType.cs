@@ -773,7 +773,7 @@ namespace  SenseNet.ContentRepository.Schema
             if (!Object.ReferenceEquals(this, ContentTypeManager.Instance.GetContentTypeByName(this.Name)))
             {
                 string src = this.ToXml();
-                ContentTypeManager.LoadOrCreateNew(src);
+                ContentTypeManager.Instance.LoadOrCreateNew(src);
             }
             else
             {

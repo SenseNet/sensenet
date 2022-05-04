@@ -37,7 +37,9 @@ namespace SenseNet.ContentRepository.Tests
         public ContentTypeManagerAccessor(ContentTypeManager target) : base(target) { }
         public ContentType LoadOrCreateNew(string contentTypeDefinitionXml)
         {
-            return (ContentType)CallPrivateStaticMethod("LoadOrCreateNew", new Type[] { typeof(string) }, contentTypeDefinitionXml);
+            return (ContentType)CallPrivateMethod("LoadOrCreateNew",
+                new Type[] { typeof(string) },
+                new object[]{contentTypeDefinitionXml});
         }
         public void ApplyChangesInEditor(ContentType settings, SchemaEditor editor)
         {

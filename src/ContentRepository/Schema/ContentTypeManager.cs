@@ -260,11 +260,11 @@ namespace SenseNet.ContentRepository.Schema
         private const BindingFlags _publicPropertyBindingFlags = BindingFlags.Instance | BindingFlags.Public;
         private const BindingFlags _nonPublicPropertyBindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
 
-        internal static ContentType LoadOrCreateNew(string contentTypeDefinitionXml)
+        internal ContentType LoadOrCreateNew(string contentTypeDefinitionXml)
         {
             return LoadOrCreateNew(new XPathDocument(new StringReader(contentTypeDefinitionXml)));
         }
-        internal static ContentType LoadOrCreateNew(IXPathNavigable contentTypeDefinitionXml)
+        internal ContentType LoadOrCreateNew(IXPathNavigable contentTypeDefinitionXml)
         {
             // ==== saves and puts the holder
 

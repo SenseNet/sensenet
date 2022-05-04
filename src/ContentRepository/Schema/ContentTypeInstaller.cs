@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository.Schema
 
         private void Install(Ctd ctd)
         {
-            var contentType = ContentTypeManager.LoadOrCreateNew(ctd.Document);
+            var contentType = ContentTypeManager.Instance.LoadOrCreateNew(ctd.Document);
 
             if (contentType.IsInvalid)
             {
