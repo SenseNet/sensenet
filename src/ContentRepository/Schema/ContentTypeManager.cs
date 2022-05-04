@@ -82,9 +82,9 @@ namespace SenseNet.ContentRepository.Schema
         internal Dictionary<string, ContentType> ContentTypes => _contentTypes;
 
         private Dictionary<Type, NodeType> _contentTypeNamesByType;
-        public static string GetContentTypeNameByType(Type t)
+        public string GetContentTypeNameByType(Type t)
         {
-            if (Instance._contentTypeNamesByType == null)
+            if (_contentTypeNamesByType == null)
             {
                 var contentTypeNamesByType = new Dictionary<Type, NodeType>();
                 foreach (var nt in Providers.Instance.StorageSchema.NodeTypes)
@@ -104,10 +104,10 @@ namespace SenseNet.ContentRepository.Schema
                         if (prevNt.IsInstaceOfOrDerivedFrom(nt))
                         contentTypeNamesByType[type] = nt;
                 }
-                Instance._contentTypeNamesByType = contentTypeNamesByType;
+                _contentTypeNamesByType = contentTypeNamesByType;
             }
 
-            if (Instance._contentTypeNamesByType.TryGetValue(t, out var nodeType))
+            if (_contentTypeNamesByType.TryGetValue(t, out var nodeType))
                 return nodeType.Name;
 
             return null;

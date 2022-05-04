@@ -588,7 +588,7 @@ namespace SenseNet.ContentRepository.Linq
 
         private SnQueryPredicate CreateTypeIsPredicate(Type targetType)
         {
-            var contentTypeName = ContentTypeManager.GetContentTypeNameByType(targetType);
+            var contentTypeName = ContentTypeManager.Instance.GetContentTypeNameByType(targetType);
             if (contentTypeName == null)
                 throw new ApplicationException($"Unknown Content Type: {targetType.FullName}");
             return new SimplePredicate(IndexFieldName.TypeIs, ConvertValue(IndexFieldName.TypeIs, contentTypeName));

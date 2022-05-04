@@ -95,7 +95,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     // This should not throw an exception. The returned type is irrelevant: 
                     // it will be one of the descendants of the Folder content type.
-                    var _ = ContentTypeManager.GetContentTypeNameByType(typeof(Folder));
+                    var _ = ContentTypeManager.Instance.GetContentTypeNameByType(typeof(Folder));
                 });
             });
         }
