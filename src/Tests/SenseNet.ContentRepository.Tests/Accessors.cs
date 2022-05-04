@@ -41,7 +41,9 @@ namespace SenseNet.ContentRepository.Tests
         }
         public void ApplyChangesInEditor(ContentType settings, SchemaEditor editor)
         {
-            base.CallPrivateStaticMethod("ApplyChangesInEditor", new Type[] { typeof(ContentType), typeof(SchemaEditor) }, settings, editor);
+            base.CallPrivateMethod("ApplyChangesInEditor",
+                new Type[] { typeof(ContentType), typeof(SchemaEditor) },
+                new object[]{settings, editor});
         }
         public NodeTypeRegistrationAccessor ParseAttributes(Type type)
         {

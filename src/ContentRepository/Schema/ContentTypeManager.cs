@@ -331,7 +331,7 @@ namespace SenseNet.ContentRepository.Schema
 
         /* ---------------------------------------------------------------------- Apply Changes */
 
-        internal static void ApplyChanges(ContentType settings, bool reset)
+        internal void ApplyChanges(ContentType settings, bool reset)
         {
             SchemaEditor editor = new SchemaEditor();
             editor.Load();
@@ -342,7 +342,7 @@ namespace SenseNet.ContentRepository.Schema
             if (reset)
                 ContentTypeManager.Reset(); // necessary (ApplyChanges) calls ContentType.Save
         }
-        internal static void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
+        internal void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
         {
             // Find ContentHandler
             var handlerType = TypeResolver.GetType(contentType.HandlerName, false);
@@ -388,7 +388,7 @@ namespace SenseNet.ContentRepository.Schema
             // 2: Field properties
             foreach (FieldSetting fieldSetting in contentType.FieldSettings)
             {
-                Instance.AssertFieldSettingIsValid(fieldSetting);
+                AssertFieldSettingIsValid(fieldSetting);
 
                 Type[][] slots = fieldSetting.HandlerSlots;
                 int fieldSlotCount = slots.GetLength(0);
@@ -483,7 +483,7 @@ namespace SenseNet.ContentRepository.Schema
                 }
             }
         }
-        private static void CheckDataType(string propName, RepositoryDataType dataType, string nodeTypeName, SchemaEditor editor)
+        private void CheckDataType(string propName, RepositoryDataType dataType, string nodeTypeName, SchemaEditor editor)
         {
             var propType = editor.PropertyTypes[propName];
 
@@ -496,13 +496,13 @@ namespace SenseNet.ContentRepository.Schema
             throw new RegistrationException(String.Format(SR.Exceptions.Registration.Msg_DataTypeCollisionInTwoProperties_4,
                 nodeTypeName, propName, propType.DataType, dataType));
         }
-        private static DataType ConvertDataType(RepositoryDataType source)
+        private DataType ConvertDataType(RepositoryDataType source)
         {
             if (source == RepositoryDataType.NotDefined)
                 throw new ArgumentOutOfRangeException("source", "Source DataType cannot be NotDefined");
             return (DataType)source;
         }
-        private static void CheckReference(PropertyInfo propInfo, Type[] type, ContentType cts, FieldSetting fs)
+        private void CheckReference(PropertyInfo propInfo, Type[] type, ContentType cts, FieldSetting fs)
         {
             if (propInfo.PropertyType == (typeof(Node)))
                 return;
@@ -513,7 +513,7 @@ namespace SenseNet.ContentRepository.Schema
             throw new NotSupportedException(String.Format(CultureInfo.InvariantCulture,
                 SR.Exceptions.Registration.Msg_InvalidReferenceField_2, cts.Name, fs.Name));
         }
-        private static NodeTypeRegistration ParseAttributes(Type type)
+        private NodeTypeRegistration ParseAttributes(Type type)
         {
             NodeTypeRegistration ntReg = null;
             ContentHandlerAttribute contentHandlerAttribute = null;
@@ -572,7 +572,7 @@ namespace SenseNet.ContentRepository.Schema
 
             return ntReg;
         }
-        private static bool IsInheritedFromNode(Type type)
+        private bool IsInheritedFromNode(Type type)
         {
             Type t = type;
             while (t != typeof(Object))

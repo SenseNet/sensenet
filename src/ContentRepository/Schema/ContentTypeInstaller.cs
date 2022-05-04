@@ -125,7 +125,7 @@ namespace SenseNet.ContentRepository.Schema
             // skip notification during content type install to avoid missing field errors
             contentType.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
-            ContentTypeManager.ApplyChangesInEditor(contentType, _editor);
+            ContentTypeManager.Instance.ApplyChangesInEditor(contentType, _editor);
             contentType.Save(false);
             ContentTypeManager.Instance.AddContentType(contentType);
         }
