@@ -676,7 +676,10 @@ namespace SenseNet.Services.Wopi.Tests
         {
             if (_repository == null)
             {
-                var builder = CreateRepositoryBuilderForTest();
+                var builder = CreateRepositoryBuilderForTest(services =>
+                {
+                    services.AddSenseNetWopi();
+                });
 
                 Indexing.IsOuterSearchEngineEnabled = true;
 

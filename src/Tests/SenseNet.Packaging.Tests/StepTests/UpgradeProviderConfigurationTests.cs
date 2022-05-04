@@ -24,6 +24,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
             Providers.Instance = new Providers(new ServiceCollection()
                 .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .BuildServiceProvider());
 
             // preparing logger
