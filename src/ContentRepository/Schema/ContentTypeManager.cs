@@ -437,7 +437,7 @@ namespace SenseNet.ContentRepository.Schema
 
                                 ok = true;
                                 fieldSetting.HandlerSlotIndices[i] = j;
-                                fieldSetting.PropertyIsReadOnly = !PropertyHasPublicSetter(propInfo);
+                                fieldSetting.PropertyIsReadOnly = propInfo.GetSetMethod() == null;
                                 break;
                             }
                         }
@@ -735,11 +735,6 @@ namespace SenseNet.ContentRepository.Schema
             }
             if (root.ChildTypes.Count > 0)
                 sb.Append("}");
-        }
-
-        internal static bool PropertyHasPublicSetter(PropertyInfo prop)
-        {
-            return prop.GetSetMethod() != null;
         }
 
         // ====================================================================== Indexing

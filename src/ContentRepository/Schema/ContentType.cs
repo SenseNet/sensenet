@@ -698,7 +698,7 @@ namespace  SenseNet.ContentRepository.Schema
                     {
                         // code property
                         propertyType = propInfo.PropertyType;
-                        readOnly = readOnly || !ContentTypeManager.PropertyHasPublicSetter(propInfo);
+                        readOnly = readOnly || propInfo.GetSetMethod() == null;
                     }
                     else
                     {
@@ -1247,7 +1247,7 @@ namespace  SenseNet.ContentRepository.Schema
                 {
                     // code property
                     propertyType = propInfo.PropertyType;
-                    readOnly = readOnly || !ContentTypeManager.PropertyHasPublicSetter(propInfo);
+                    readOnly = readOnly || propInfo.GetSetMethod() == null;
                 }
                 else
                 {
