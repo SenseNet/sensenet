@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.18" />
     <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.0.1" />
     <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="0.0.8" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.3" />
