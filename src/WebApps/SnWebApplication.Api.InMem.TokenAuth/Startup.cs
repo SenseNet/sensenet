@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
 
@@ -36,6 +38,20 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
+
+                    string metadataHost = Configuration["sensenet:authentication:metadatahost"];
+                    if (!string.IsNullOrWhiteSpace(metadataHost))
+                    {
+                        options.MetadataAddress = $"{metadataHost}/.well-known/openid-configuration";
+                    }
+                    
+                    //options.TokenValidationParameters = new TokenValidationParameters
+                    //{
+                    //    ValidateAudience = false,
+                    //    //ValidateIssuer = false,
+                    //};
+                    
+
                 });
 
             // [sensenet]: add sensenet services
@@ -57,8 +73,8 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
+            IdentityModelEventSource.ShowPII = true;
 
             app.UseRouting();
 
