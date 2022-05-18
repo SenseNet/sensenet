@@ -72,9 +72,9 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                IdentityModelEventSource.ShowPII = true;
             }
-            //app.UseHttpsRedirection();
-            IdentityModelEventSource.ShowPII = true;
+            //app.UseHttpsRedirection();            
 
             app.UseRouting();
 
