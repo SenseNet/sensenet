@@ -5,7 +5,7 @@
     <UserSecretsId>5fc5a875-383a-4d51-ae31-06162f7c97f4</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
-    <DockerfileRunArguments>--network sensenet</DockerfileRunArguments>
+    <DockerfileRunArguments>--network sensenet --name SnWebApplication.Api.InMem.TokenAuth</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>
