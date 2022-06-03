@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository.Search
         }
         public virtual IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
+            return ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(fieldName);
         }
     }
 }

@@ -810,7 +810,7 @@ namespace SenseNet.ContentRepository.Linq
                 value = contentTypeValue.Name.ToLowerInvariant();
             }
 
-            var fieldInfo = ContentTypeManager.GetPerFieldIndexingInfo(name);
+            var fieldInfo = ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(name);
             if (fieldInfo == null)
                 throw new InvalidOperationException("Unknown field: " + name);
             var converter = fieldInfo.IndexFieldHandler;
@@ -855,7 +855,7 @@ namespace SenseNet.ContentRepository.Linq
         private enum WildcardPosition { AtStart, AtEnd, AtStartAndEnd }
         private void BuildWildcardPredicate(string field, WildcardPosition type, string argument)
         {
-            var fieldInfo = ContentTypeManager.GetPerFieldIndexingInfo(field);
+            var fieldInfo = ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(field);
             if (fieldInfo == null)
                 throw new InvalidOperationException("Unknown field: " + field);
 

@@ -1145,7 +1145,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns>An existing <see cref="IPerFieldIndexingInfo"/> instance or null.</returns>
         public static IPerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
         {
-            return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
+            return ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(fieldName);
         }
 
         // ==================================================== IIndexable Members
@@ -1303,7 +1303,7 @@ namespace  SenseNet.ContentRepository.Schema
             sb.Append(PerFieldIndexingInfo.DefaultIndexStoringMode).Append("\t");
             sb.Append(PerFieldIndexingInfo.DefaultTermVectorStoringMode).Append("\t");
             sb.AppendLine("[null]");
-            foreach (var item in ContentTypeManager.GetPerFieldIndexingInfo())
+            foreach (var item in ContentTypeManager.IndexingInfoCache.IndexingInfo)
             {
                 sb.Append(item.Key).Append("\t");
                 if(fsettinginfo.ContainsKey(item.Key))

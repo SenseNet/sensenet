@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository.Linq
             if (path == null)
                 return null;
             var fieldName = inTree ? IndexFieldName.InTree : IndexFieldName.InFolder;
-            var converter = ContentTypeManager.GetPerFieldIndexingInfo(fieldName).IndexFieldHandler;
+            var converter = ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(fieldName).IndexFieldHandler;
             return new SimplePredicate(fieldName, converter.ConvertToTermValue(path));
         }
 

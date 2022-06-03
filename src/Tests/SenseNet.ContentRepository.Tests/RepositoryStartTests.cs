@@ -314,7 +314,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreSame(searchEngineImpl, searchEngine);
 
-                var expectedAnalyzers = GetAnalyzers(ContentTypeManager.Instance.IndexingInfo);
+                var expectedAnalyzers = GetAnalyzers(ContentTypeManager.IndexingInfoCache.IndexingInfo);
                 var analyzers = searchEngine.GetAnalyzers();
                 analyzers.Should().Equal(expectedAnalyzers);
 

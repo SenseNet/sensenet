@@ -352,22 +352,22 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __nameFieldIndexingInfo;
         internal IPerFieldIndexingInfo NameFieldIndexingInfo =>
-            __nameFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
+            __nameFieldIndexingInfo ??= ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(IndexFieldName.Name);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __pathFieldIndexingInfo;
         internal IPerFieldIndexingInfo PathFieldIndexingInfo =>
-            __pathFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
+            __pathFieldIndexingInfo ??= ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(IndexFieldName.Path);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
         internal IPerFieldIndexingInfo InTreeFieldIndexingInfo =>
-            __inTreeFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
+            __inTreeFieldIndexingInfo ??= ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(IndexFieldName.InTree);
 
         // ReSharper disable once InconsistentNaming
         private IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
         internal IPerFieldIndexingInfo InFolderFieldIndexingInfo =>
-            __inFolderFieldIndexingInfo ??= ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
+            __inFolderFieldIndexingInfo ??= ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
 
         internal IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {

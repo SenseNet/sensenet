@@ -400,7 +400,7 @@ namespace SenseNet.ContentRepository.Schema
                 if (Aspect != null)
                     return this.Aspect.GetLocalPerFieldIndexingInfo(this.Name);
                 if (!Name.Contains("."))
-                    return ContentTypeManager.GetPerFieldIndexingInfo(this.Name);
+                    return ContentTypeManager.IndexingInfoCache.GetPerFieldIndexingInfo(this.Name);
                 return null;
             }
         }
@@ -1326,7 +1326,7 @@ namespace SenseNet.ContentRepository.Schema
             if (setting.Aspect == null)
             {
                 if (setting.Owner != null) // testability
-                    ContentTypeManager.SetPerFieldIndexingInfo(setting.Name, setting.Owner.Name, indexingInfo);
+                    ContentTypeManager.IndexingInfoCache.SetPerFieldIndexingInfo(setting.Name, setting.Owner.Name, indexingInfo);
             }
             else
                 setting.Aspect.SetPerFieldIndexingInfo(setting.Name, indexingInfo);
@@ -1400,7 +1400,7 @@ namespace SenseNet.ContentRepository.Schema
             indexingInfo.IndexFieldHandler.OwnerIndexingInfo = indexingInfo;
 
             if (this.Aspect == null)
-                ContentTypeManager.SetPerFieldIndexingInfo(this.Name, this.Owner.Name, indexingInfo);
+                ContentTypeManager.IndexingInfoCache.SetPerFieldIndexingInfo(this.Name, this.Owner.Name, indexingInfo);
             else
                 this.Aspect.SetPerFieldIndexingInfo(this.Name, indexingInfo);
         }

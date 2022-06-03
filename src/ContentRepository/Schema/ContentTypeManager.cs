@@ -23,6 +23,194 @@ using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Schema
 {
+    internal class IndexingInfoCache
+    {
+        private readonly object _syncRoot = new object();
+        private IDictionary<string, IPerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
+        internal IDictionary<string, IPerFieldIndexingInfo> IndexingInfo => _indexingInfoTable;
+
+        internal IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        {
+            IPerFieldIndexingInfo info = null;
+            if (fieldName.Contains('.'))
+                info = Aspect.GetPerFieldIndexingInfo(fieldName);
+
+            if (info != null || _indexingInfoTable.TryGetValue(fieldName, out info))
+                return info;
+
+            return null;
+        }
+        internal void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, IPerFieldIndexingInfo indexingInfo)
+        {
+            IPerFieldIndexingInfo origInfo;
+
+            if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
+            {
+                lock (_syncRoot)
+                {
+                    if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
+                    {
+                        _indexingInfoTable.Add(fieldName, indexingInfo);
+                        return;
+                    }
+                }
+            }
+
+            if (origInfo.IndexingMode == IndexingMode.Default)
+                origInfo.IndexingMode = indexingInfo.IndexingMode;
+            else if (indexingInfo.IndexingMode != IndexingMode.Default && indexingInfo.IndexingMode != origInfo.IndexingMode)
+                throw new ContentRegistrationException("Cannot override IndexingMode", contentTypeName, fieldName);
+
+            if (origInfo.IndexStoringMode == IndexStoringMode.Default)
+                origInfo.IndexStoringMode = indexingInfo.IndexStoringMode;
+            else if (indexingInfo.IndexStoringMode != IndexStoringMode.Default && indexingInfo.IndexStoringMode != origInfo.IndexStoringMode)
+                throw new ContentRegistrationException("Cannot override IndexStoringMode", contentTypeName, fieldName);
+
+            if (origInfo.TermVectorStoringMode == IndexTermVector.Default)
+                origInfo.TermVectorStoringMode = indexingInfo.TermVectorStoringMode;
+            else if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
+                throw new ContentRegistrationException("Cannot override TermVectorStoringMode", contentTypeName, fieldName);
+
+            if (origInfo.Analyzer == IndexFieldAnalyzer.Default)
+                origInfo.Analyzer = indexingInfo.Analyzer;
+            else if (indexingInfo.Analyzer != IndexFieldAnalyzer.Default && indexingInfo.Analyzer != origInfo.Analyzer)
+                throw new ContentRegistrationException("Cannot override Analyzer", contentTypeName, fieldName);
+        }
+
+        internal void FinalizeIndexingInfo()
+        {
+            if (!Providers.Instance.SearchManager.SearchEngine.IndexingEngine.Running)
+                return;
+
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
+        }
+
+
+        /// <summary>
+        /// Gets detailed indexing information about all fields in the repository.
+        /// </summary>
+        /// <param name="includeNonIndexedFields">Whether to include non-indexed fields.</param>
+        /// <returns>Detailed indexing information about all fields in the repository.</returns>
+        public static IEnumerable<ExplicitPerFieldIndexingInfo> GetExplicitPerFieldIndexingInfo(bool includeNonIndexedFields)
+        {
+            var infoArray = new List<ExplicitPerFieldIndexingInfo>(ContentTypeManager.Instance.ContentTypes.Count * 5);
+
+            foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
+            {
+                var xml = new System.Xml.XmlDocument();
+                var nsmgr = new System.Xml.XmlNamespaceManager(xml.NameTable);
+                var fieldCount = 0;
+
+                nsmgr.AddNamespace("x", ContentType.ContentDefinitionXmlNamespace);
+                xml.Load(contentType.Binary.GetStream());
+                var fieldNodes = xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr);
+                if (fieldNodes != null)
+                {
+                    foreach (System.Xml.XmlElement fieldElement in fieldNodes)
+                    {
+                        var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
+
+                        var info = new ExplicitPerFieldIndexingInfo
+                        {
+                            ContentTypeName = contentType.Name,
+                            ContentTypePath =
+                                contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
+                            FieldName = fieldElement.Attributes["name"].Value,
+                            FieldType = typeAttr.Value
+                        };
+
+                        var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
+                        if (fieldTitleElement != null)
+                            info.FieldTitle = fieldTitleElement.InnerText;
+
+                        var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
+                        if (fieldDescElement != null)
+                            info.FieldDescription = fieldDescElement.InnerText;
+
+                        var hasIndexing = false;
+                        var indexingNodes = fieldElement.SelectNodes("x:Indexing/*", nsmgr);
+                        if (indexingNodes != null)
+                        {
+                            foreach (System.Xml.XmlElement element in indexingNodes)
+                            {
+                                if (!Enum.TryParse(element.InnerText, out IndexFieldAnalyzer analyzer))
+                                    analyzer = IndexFieldAnalyzer.Default;
+                                hasIndexing = true;
+                                switch (element.LocalName)
+                                {
+                                    case "Analyzer":
+                                        info.Analyzer = analyzer;
+                                        break;
+                                    case "IndexHandler":
+                                        info.IndexHandler = element.InnerText.Replace("SenseNet.Search", ".");
+                                        break;
+                                    case "Mode":
+                                        info.IndexingMode = element.InnerText;
+                                        break;
+                                    case "Store":
+                                        info.IndexStoringMode = element.InnerText;
+                                        break;
+                                    case "TermVector":
+                                        info.TermVectorStoringMode = element.InnerText;
+                                        break;
+                                }
+                            }
+                        }
+
+                        fieldCount++;
+
+                        if (hasIndexing || includeNonIndexedFields)
+                            infoArray.Add(info);
+                    }
+                }
+
+                // content type without fields
+                if (fieldCount == 0 && includeNonIndexedFields)
+                {
+                    var info = new ExplicitPerFieldIndexingInfo
+                    {
+                        ContentTypeName = contentType.Name,
+                        ContentTypePath = contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
+                    };
+
+                    infoArray.Add(info);
+                }
+            }
+
+            return infoArray;
+        }
+
+        /// <summary>
+        /// Gets explicit per-field indexing information collected into a table.
+        /// </summary>
+        /// <param name="fullTable">Whether or not to include non-indexed fields.</param>
+        /// <returns>A table containing detailed indexing information.</returns>
+        public static string GetExplicitIndexingInfo(bool fullTable)
+        {
+            var infoArray = GetExplicitPerFieldIndexingInfo(fullTable);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("TypePath\tType\tField\tFieldTitle\tFieldDescription\tFieldType\tMode\tStore\tTVect\tHandler\tAnalyzer");
+            foreach (var info in infoArray)
+            {
+                sb.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}",
+                    info.ContentTypePath,
+                    info.ContentTypeName,
+                    info.FieldName,
+                    info.FieldTitle,
+                    info.FieldDescription,
+                    info.FieldType,
+                    info.IndexingMode,
+                    info.IndexStoringMode,
+                    info.TermVectorStoringMode,
+                    info.IndexHandler,
+                    info.Analyzer);
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+    }
     internal sealed class ContentTypeManager
     {
         [Serializable]
@@ -113,6 +301,8 @@ namespace SenseNet.ContentRepository.Schema
             return null;
         }
 
+        internal static IndexingInfoCache IndexingInfoCache = new IndexingInfoCache();
+
         private ContentTypeManager()
         {
         }
@@ -157,7 +347,7 @@ namespace SenseNet.ContentRepository.Schema
                 _fsInfoTable = CreateFsInfoTable();
 
                 FinalizeAllowedChildTypes(AllFieldNames);
-                FinalizeIndexingInfo();
+                IndexingInfoCache.FinalizeIndexingInfo();
             }
         }
 
@@ -182,7 +372,6 @@ namespace SenseNet.ContentRepository.Schema
                    properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
                 Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
-                _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
             }
         }
@@ -737,90 +926,12 @@ namespace SenseNet.ContentRepository.Schema
                 sb.Append("}");
         }
 
-        // ====================================================================== Indexing
-
-        private static IDictionary<string, IPerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
-        internal IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get { return _indexingInfoTable; } }
-
-        internal static IDictionary<string, IPerFieldIndexingInfo> GetPerFieldIndexingInfo()
-        {
-            return Instance.IndexingInfo;
-        }
-        internal static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-        {
-            var ensureStart = Instance;
-
-            IPerFieldIndexingInfo info = null;
-            if (fieldName.Contains('.'))
-                info = Aspect.GetPerFieldIndexingInfo(fieldName);
-
-            if (info != null || Instance.IndexingInfo.TryGetValue(fieldName, out info))
-                return info;
-
-            return null;
-        }
-        internal static void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, IPerFieldIndexingInfo indexingInfo)
-        {
-            IPerFieldIndexingInfo origInfo;
-
-            if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
-            {
-                lock (_syncRoot)
-                {
-                    if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
-                    {
-                        _indexingInfoTable.Add(fieldName, indexingInfo);
-                        return;
-                    }
-                }
-            }
-
-            if (origInfo.IndexingMode == IndexingMode.Default)
-                origInfo.IndexingMode = indexingInfo.IndexingMode;
-            else if (indexingInfo.IndexingMode != IndexingMode.Default && indexingInfo.IndexingMode != origInfo.IndexingMode)
-                throw new ContentRegistrationException("Cannot override IndexingMode", contentTypeName, fieldName);
-
-            if (origInfo.IndexStoringMode == IndexStoringMode.Default)
-                origInfo.IndexStoringMode = indexingInfo.IndexStoringMode;
-            else if (indexingInfo.IndexStoringMode != IndexStoringMode.Default && indexingInfo.IndexStoringMode != origInfo.IndexStoringMode)
-                throw new ContentRegistrationException("Cannot override IndexStoringMode", contentTypeName, fieldName);
-
-            if (origInfo.TermVectorStoringMode == IndexTermVector.Default)
-                origInfo.TermVectorStoringMode = indexingInfo.TermVectorStoringMode;
-            else if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
-                throw new ContentRegistrationException("Cannot override TermVectorStoringMode", contentTypeName, fieldName);
-
-            if (origInfo.Analyzer == IndexFieldAnalyzer.Default)
-                origInfo.Analyzer = indexingInfo.Analyzer;
-            else if (indexingInfo.Analyzer != IndexFieldAnalyzer.Default && indexingInfo.Analyzer != origInfo.Analyzer)
-                throw new ContentRegistrationException("Cannot override Analyzer", contentTypeName, fieldName);
-        }
-
-        internal static Exception AnalyzerViolationExceptionHelper(string contentTypeName, string fieldSettingName)
-        {
-            return new ContentRegistrationException(
-                String.Concat("Change analyzer in a field is not allowed. ContentType: ", contentTypeName, ", Field: ", fieldSettingName)
-                , null, contentTypeName, fieldSettingName);
-        }
-        internal static Exception ParserViolationExceptionHelper(string contentTypeName, string fieldSettingName)
-        {
-            return new ContentRegistrationException(
-                String.Concat("Change FieldIndexHandler in a field is not allowed. ContentType: ", contentTypeName, ", Field: ", fieldSettingName)
-                , null, contentTypeName, fieldSettingName);
-        }
+        // ======================================================================
 
         private void FinalizeAllowedChildTypes(List<string> allFieldNames)
         {
             foreach (var ct in this.ContentTypes.Values)
                 ct.FinalizeAllowedChildTypes(this.ContentTypes, allFieldNames);
-        }
-
-        private void FinalizeIndexingInfo()
-        {
-            if (!Providers.Instance.SearchManager.SearchEngine.IndexingEngine.Running)
-                return;
-
-            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
         }
 
         // ======================================================================
@@ -835,132 +946,8 @@ namespace SenseNet.ContentRepository.Schema
             if (includeNonIndexedFields)
                 return Instance.AllFieldNames;
 
-            return Instance.AllFieldNames.Where(x => ContentTypeManager.Instance.IndexingInfo.ContainsKey(x)
-                                                     && Instance.IndexingInfo[x].IsInIndex);
-        }
-
-        /// <summary>
-        /// Gets detailed indexing information about all fields in the repository.
-        /// </summary>
-        /// <param name="includeNonIndexedFields">Whether to include non-indexed fields.</param>
-        /// <returns>Detailed indexing information about all fields in the repository.</returns>
-        public static IEnumerable<ExplicitPerFieldIndexingInfo> GetExplicitPerFieldIndexingInfo(bool includeNonIndexedFields)
-        {
-            var infoArray = new List<ExplicitPerFieldIndexingInfo>(ContentTypeManager.Instance.ContentTypes.Count * 5);
-
-            foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
-            {
-                var xml = new System.Xml.XmlDocument();
-                var nsmgr = new System.Xml.XmlNamespaceManager(xml.NameTable);
-                var fieldCount = 0;
-
-                nsmgr.AddNamespace("x", ContentType.ContentDefinitionXmlNamespace);
-                xml.Load(contentType.Binary.GetStream());
-                var fieldNodes = xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr);
-                if (fieldNodes != null)
-                {
-                    foreach (System.Xml.XmlElement fieldElement in fieldNodes)
-                    {
-                        var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
-
-                        var info = new ExplicitPerFieldIndexingInfo
-                        {
-                            ContentTypeName = contentType.Name,
-                            ContentTypePath =
-                                contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
-                            FieldName = fieldElement.Attributes["name"].Value,
-                            FieldType = typeAttr.Value
-                        };
-
-                        var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
-                        if (fieldTitleElement != null)
-                            info.FieldTitle = fieldTitleElement.InnerText;
-
-                        var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
-                        if (fieldDescElement != null)
-                            info.FieldDescription = fieldDescElement.InnerText;
-
-                        var hasIndexing = false;
-                        var indexingNodes = fieldElement.SelectNodes("x:Indexing/*", nsmgr);
-                        if (indexingNodes != null)
-                        {
-                            foreach (System.Xml.XmlElement element in indexingNodes)
-                            {
-                                if (!Enum.TryParse(element.InnerText, out IndexFieldAnalyzer analyzer))
-                                    analyzer = IndexFieldAnalyzer.Default;
-                                hasIndexing = true;
-                                switch (element.LocalName)
-                                {
-                                    case "Analyzer":
-                                        info.Analyzer = analyzer;
-                                        break;
-                                    case "IndexHandler":
-                                        info.IndexHandler = element.InnerText.Replace("SenseNet.Search", ".");
-                                        break;
-                                    case "Mode":
-                                        info.IndexingMode = element.InnerText;
-                                        break;
-                                    case "Store":
-                                        info.IndexStoringMode = element.InnerText;
-                                        break;
-                                    case "TermVector":
-                                        info.TermVectorStoringMode = element.InnerText;
-                                        break;
-                                }
-                            }
-                        }
-
-                        fieldCount++;
-
-                        if (hasIndexing || includeNonIndexedFields)
-                            infoArray.Add(info);
-                    }
-                }
-
-                // content type without fields
-                if (fieldCount == 0 && includeNonIndexedFields)
-                {
-                    var info = new ExplicitPerFieldIndexingInfo
-                    {
-                        ContentTypeName = contentType.Name,
-                        ContentTypePath = contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
-                    };
-
-                    infoArray.Add(info);
-                }
-            }
-
-            return infoArray;
-        }
-
-        /// <summary>
-        /// Gets explicit per-field indexing information collected into a table.
-        /// </summary>
-        /// <param name="fullTable">Whether or not to include non-indexed fields.</param>
-        /// <returns>A table containing detailed indexing information.</returns>
-        public static string GetExplicitIndexingInfo(bool fullTable)
-        {
-            var infoArray = GetExplicitPerFieldIndexingInfo(fullTable);
-
-            var sb = new StringBuilder();
-            sb.AppendLine("TypePath\tType\tField\tFieldTitle\tFieldDescription\tFieldType\tMode\tStore\tTVect\tHandler\tAnalyzer");
-            foreach (var info in infoArray)
-            {
-                sb.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}",
-                    info.ContentTypePath,
-                    info.ContentTypeName,
-                    info.FieldName,
-                    info.FieldTitle,
-                    info.FieldDescription,
-                    info.FieldType,
-                    info.IndexingMode,
-                    info.IndexStoringMode,
-                    info.TermVectorStoringMode,
-                    info.IndexHandler,
-                    info.Analyzer);
-                sb.AppendLine();
-            }
-            return sb.ToString();
+            return Instance.AllFieldNames.Where(x => IndexingInfoCache.IndexingInfo.ContainsKey(x)
+                                                     && IndexingInfoCache.IndexingInfo[x].IsInIndex);
         }
 
     }

@@ -1045,7 +1045,7 @@ namespace SenseNet.Tests.Core.Tests
         private void SetPerFieldIndexingInfo(Dictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
             foreach (var item in indexingInfo)
-                ContentTypeManager.SetPerFieldIndexingInfo(item.Key, null, item.Value);
+                ContentTypeManager.IndexingInfoCache.SetPerFieldIndexingInfo(item.Key, null, item.Value);
         }
 
         private InMemoryIndex GetTestIndex()
