@@ -76,7 +76,6 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                IdentityModelEventSource.ShowPII = true;
             }
 
             //app.UseHttpsRedirection();
