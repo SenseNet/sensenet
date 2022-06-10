@@ -40,6 +40,12 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
+
+                    string metadataHost = Configuration["sensenet:authentication:metadatahost"];
+                    if (!string.IsNullOrWhiteSpace(metadataHost))
+                    {
+                        options.MetadataAddress = $"{metadataHost}/.well-known/openid-configuration";
+                    }
                 });
 
             // [sensenet]: Set options for EFCSecurityDataProvider
@@ -70,9 +76,10 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                IdentityModelEventSource.ShowPII = true;
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
