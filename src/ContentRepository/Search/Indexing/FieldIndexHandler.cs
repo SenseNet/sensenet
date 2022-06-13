@@ -622,13 +622,21 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
-            return new IndexValue(text.ToLowerInvariant());
+            return new IndexValue(IsRegex(text) ? text : text.ToLowerInvariant());
         }
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
+            if (value == null)
+                return new IndexValue(string.Empty);
+            var text = (string) value;
+            return new IndexValue(IsRegex(text) ? text : text.ToLowerInvariant());
         }
+        private bool IsRegex(string text)
+        {
+            return text.Length > 1 && text[0] == '/' && text[text.Length - 1] == '/';
+        }
+
         /// <inheritdoc cref="SenseNet.ContentRepository.Search.Indexing.IIndexValueConverter&lt;T&gt;.GetBack(string)" />
         public string GetBack(string indexFieldValue)
         {
