@@ -19,6 +19,9 @@
     },
     "Docker": {
       "commandName": "Docker",
+      "environmentVariables": {
+        "sensenet:Authentication:metadatahost": "http://SnIdentityServer"
+      },
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "publishAllPorts": true,
