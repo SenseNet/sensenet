@@ -44,14 +44,6 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                     {
                         options.MetadataAddress = $"{metadataHost}/.well-known/openid-configuration";
                     }
-                    
-                    //options.TokenValidationParameters = new TokenValidationParameters
-                    //{
-                    //    ValidateAudience = false,
-                    //    //ValidateIssuer = false,
-                    //};
-                    
-
                 });
 
             // [sensenet]: add sensenet services
