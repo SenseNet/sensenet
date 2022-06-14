@@ -103,6 +103,16 @@ namespace SenseNet.Search.Tests
             TestError(".TOP:10");
         }
         [TestMethod, TestCategory("IR")]
+        public void SnQuery_Parser_AstToString_StringDelimiters()
+        {
+            Test("Name:\"1abc'def\"", "Name:1abc'def");
+            Test("Name:\"2abc\'def\"", "Name:2abc'def");
+            Test("Name:\"3abc\\\"def\"", "Name:'3abc\"def'");
+            Test("Name:'4abc\"def'", "Name:'4abc\"def'");
+            Test("Name:'5abc\\'def'", "Name:5abc'def");
+            Test(@"Name:'5abc\'def'", "Name:5abc'def");
+        }
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_EmptyQueries()
         {
             var empty = SnQuery.EmptyText;
