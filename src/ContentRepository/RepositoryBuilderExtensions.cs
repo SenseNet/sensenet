@@ -256,10 +256,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Sets tracer instances.
         /// </summary>
+        [Obsolete("Register ISnTracer types in the service container instead.", true)]
         public static IRepositoryBuilder UseTracer(this IRepositoryBuilder repositoryBuilder, params ISnTracer[] tracer)
         {
-            // store tracers in the provider collection temporarily
-            Configuration.Providers.Instance.SetProvider(typeof(ISnTracer[]), tracer);
             return repositoryBuilder;
         }
 
@@ -282,12 +281,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds the registered ISnTracer instance to the repository builder.
         /// </summary>
+        [Obsolete("Register ISnTracer types in the service container instead.", true)]
         public static IRepositoryBuilder UseTracer(this IRepositoryBuilder repositoryBuilder, IServiceProvider provider)
         {
-            var tracer = provider.GetService<ISnTracer>();
-            if (tracer != null)
-                repositoryBuilder.UseTracer(tracer);
-
             return repositoryBuilder;
         }
 

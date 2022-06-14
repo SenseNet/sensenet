@@ -60,7 +60,6 @@ namespace SenseNet.Extensions.DependencyInjection
 
             repositoryBuilder
                 .UseLogger(new DebugWriteLoggerAdapter())
-                .UseTracer(new SnDebugViewTracer())
                 .UseInitialData(initialData)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -107,7 +106,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetInMemoryStatisticalDataProvider()
                 .AddInactiveAuditEventWriter()
                 .AddSenseNetInMemoryClientStoreDataProvider()
-                .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()));
+                .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .AddSenseNetTracer<SnDebugViewTracer>();
         }
 
         public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)

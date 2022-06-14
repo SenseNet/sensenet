@@ -48,7 +48,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
 
             builder
                 .UseLogger(new DebugWriteLoggerAdapter())
-                .UseTracer(new SnDebugViewTracer())
                 //.UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(Initializer.InitialData)
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())

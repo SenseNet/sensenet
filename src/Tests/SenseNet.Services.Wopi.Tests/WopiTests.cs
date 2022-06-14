@@ -49,8 +49,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var builder = CreateRepositoryBuilderForTest();
 
                 builder
-                    .UseLogger(new SnFileSystemEventLogger())
-                    .UseTracer(new SnFileSystemTracer());
+                    .UseLogger(new SnFileSystemEventLogger());
 
                 Indexing.IsOuterSearchEngineEnabled = true;
 
