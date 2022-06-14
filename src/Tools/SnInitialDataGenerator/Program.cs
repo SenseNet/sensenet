@@ -181,6 +181,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                             .UseLogger(provider);
                     })
                     .AddSenseNetInMemoryProviders()
+                    .AddSenseNetTracer<SnFileSystemTracer>()
                     .AddSenseNetSearchEngine<SearchEngineForInitialDataGenerator>()
                 ;
             return services.BuildServiceProvider();
@@ -196,7 +197,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData(), null))
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())

@@ -319,8 +319,8 @@ namespace SenseNet.ContentRepository
             SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? throw new ApplicationException("Missing AuditEventWriter service.");
 
             //set configured tracers
-            var tracers = Providers.Instance.GetProvider<ISnTracer[]>();
-            if (tracers?.Length > 0)
+            var tracers = Providers.Instance.Services.GetServices<ISnTracer>().ToArray();
+            if (tracers.Length > 0)
             {
                 SnTrace.SnTracers.Clear();
                 SnTrace.SnTracers.AddRange(tracers);

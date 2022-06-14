@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Preview;
 using SenseNet.Search;
@@ -172,6 +173,14 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDefaultRepositoryServices(this IServiceCollection services)
         {
             return services.AddSenseNetCryptoServiceProvider<DefaultCryptoServiceProvider>();
+        }
+
+        /// <summary>
+        /// Adds the provided tracer to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetTracer<T>(this IServiceCollection services) where T : class, ISnTracer
+        {
+            return services.AddSingleton<ISnTracer, T>();
         }
     }
 }

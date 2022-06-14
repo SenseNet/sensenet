@@ -43,7 +43,6 @@ namespace SenseNet.Services.Core
 
             var repositoryBuilder = new RepositoryBuilder(Services)
                 .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer())
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
                 .StartWorkflowEngine(false)
