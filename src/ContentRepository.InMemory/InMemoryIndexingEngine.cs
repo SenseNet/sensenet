@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
@@ -82,6 +85,23 @@ namespace SenseNet.ContentRepository.InMemory
                     Index.AddDocument(doc);
 
             return STT.Task.CompletedTask;
+        }
+
+        public IndexProperties GetIndexProperties()
+        {
+            return new IndexProperties
+            {
+                IndexingActivityStatus = Index.ReadActivityStatus(),
+                FieldInfo = Index.IndexData.ToDictionary(
+                    x => x.Key,
+                    x => x.Value.Count).OrderBy(x=>x.Key).ToArray(),
+                VersionIds = Index.IndexData
+                    .SelectMany(x => x.Value
+                        .SelectMany(y => y.Value))
+                    .Distinct()
+                    .OrderBy(z => z)
+                    .ToArray()
+            };
         }
     }
 }

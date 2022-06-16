@@ -497,6 +497,10 @@ namespace SenseNet.ODataTests
             {
                 throw new NotImplementedException();
             }
+            public IndexProperties GetIndexProperties()
+            {
+                throw new NotImplementedException();
+            }
         }
         private class SearchEngineForIndexBackupTests:ISearchEngine
         {

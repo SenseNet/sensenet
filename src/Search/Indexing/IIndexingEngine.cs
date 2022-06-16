@@ -101,5 +101,14 @@ namespace SenseNet.Search.Indexing
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken);
+
+        IndexProperties GetIndexProperties();
+    }
+
+    public class IndexProperties
+    {
+        public IndexingActivityStatus IndexingActivityStatus { get; set; }
+        public IEnumerable<KeyValuePair<string, int>> FieldInfo { get; set; }
+        public IEnumerable<int> VersionIds { get; set; }
     }
 }

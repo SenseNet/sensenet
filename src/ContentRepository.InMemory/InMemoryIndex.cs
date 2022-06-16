@@ -11,6 +11,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.InMemory
 {
@@ -351,6 +352,8 @@ namespace SenseNet.ContentRepository.InMemory
             return value.ToString(CultureInfo.InvariantCulture);
         }
 
+        /* ========================================================================== Save index */
+        
         public void Save(string fileName)
         {
             var index = new Dictionary<string, List<string>>();
@@ -372,12 +375,79 @@ namespace SenseNet.ContentRepository.InMemory
                 JsonSerializer.Create(SerializerSettings).Serialize(writer, data);
         }
 
+        public async STT.Task SaveAsync(TextWriter commitUserDataWriter, TextWriter invertedIndexWriter, TextWriter decodedDocumentWriter)
+        {
+            await STT.Task.WhenAll
+            (
+                commitUserDataWriter == null
+                    ? STT.Task.CompletedTask
+                    : STT.Task.Run(() => { WriteObject(_activityStatus, commitUserDataWriter); }),
+                invertedIndexWriter == null
+                    ? STT.Task.CompletedTask
+                    : STT.Task.Run(() => { WriteObject(GetInvertedIndex(), invertedIndexWriter); }),
+                decodedDocumentWriter == null
+                    ? STT.Task.CompletedTask
+                    : STT.Task.Run(() => { WriteObject(GetDecodedIndexDocs(), decodedDocumentWriter); })
+            );
+        }
+        private void WriteObject(object obj, TextWriter writer)
+        {
+            JsonSerializer.Create(SerializerSettings).Serialize(writer, obj);
+        }
+        private InvertedIndexData GetInvertedIndex()
+        {
+            var index = new Dictionary<string, List<string>>();
+            foreach (var item in IndexData)
+            {
+                var list = new List<string>();
+                index.Add(item.Key, list);
+                foreach (var term in item.Value)
+                    list.Add(term.Key + ": " + string.Join(", ",
+                        term.Value
+                            .OrderBy(x => x)
+                            .Select(x => x.ToString())
+                            .ToArray()));
+            }
+
+            return new InvertedIndexData() { Index = index, Stored = SerializeStoredData(StoredData) };
+        }
+        public Dictionary<int, Dictionary<string, string>> GetDecodedIndexDocs()
+        {
+            var documents = new Dictionary<int, Dictionary<string, string>>();
+            foreach (var field in IndexData)
+            {
+                var fieldName = field.Key;
+                foreach (var fieldValue in field.Value)
+                {
+                    var value = fieldValue.Key;
+                    foreach (var versionId in fieldValue.Value)
+                    {
+                        AddFieldToDocument(documents, versionId, fieldName, value);
+                    }
+                }
+            }
+
+            return documents;
+        }
+        private void AddFieldToDocument(Dictionary<int, Dictionary<string, string>> docs, int versionId, string field, string text)
+        {
+            if (!docs.TryGetValue(versionId, out var document))
+                docs.Add(versionId, document = new Dictionary<string, string>());
+            if (!document.TryGetValue(field, out var value))
+                document.Add(field, text);
+            else
+                document[field] = $"{value}, {text}";
+        }
+        private class InvertedIndexData
+        {
+            public Dictionary<string, List<string>> Index;
+            public List<StoredItemModel> Stored;
+        }
         private class StoredItemModel
         {
             public int VersionId;
             public List<string> IndexFields;
         }
-
         private List<StoredItemModel> SerializeStoredData(List<Tuple<int, List<IndexField>>> data)
         {
             return data.Select(srcItem => new StoredItemModel

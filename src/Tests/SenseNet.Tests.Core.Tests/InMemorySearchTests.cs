@@ -1040,6 +1040,21 @@ namespace SenseNet.Tests.Core.Tests
 
         }
 
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                // ACTION
+                var indexProperties = indexingEngine.GetIndexProperties();
+
+                // ASSERT
+                Assert.Fail();
+
+            }).ConfigureAwait(false);
+        }
+
         /* ============================================================================ */
 
         private void SetPerFieldIndexingInfo(Dictionary<string, IPerFieldIndexingInfo> indexingInfo)
@@ -1124,6 +1139,11 @@ namespace SenseNet.Tests.Core.Tests
                 }
                 public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
                     IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IndexProperties GetIndexProperties()
                 {
                     throw new NotImplementedException();
                 }

@@ -79,6 +79,10 @@ namespace SenseNet.Search
             {
                 throw new SnNotSupportedException();
             }
+            public IndexProperties GetIndexProperties()
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

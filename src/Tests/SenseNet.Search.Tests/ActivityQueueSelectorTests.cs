@@ -96,6 +96,10 @@ namespace SenseNet.Search.Tests
                 _log.AppendLine($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {additions?.Count() ?? 0}");
                 return Task.CompletedTask;
             }
+            public IndexProperties GetIndexProperties()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine
