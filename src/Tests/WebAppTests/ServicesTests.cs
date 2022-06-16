@@ -788,6 +788,7 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
@@ -826,6 +827,7 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
