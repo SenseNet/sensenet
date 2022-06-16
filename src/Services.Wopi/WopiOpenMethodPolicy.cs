@@ -6,7 +6,7 @@ using SenseNet.OData;
 
 namespace SenseNet.Services.Wopi
 {
-    internal abstract class WopiOpenMethodPolicy : IOperationMethodPolicy
+    public abstract class WopiOpenMethodPolicy : IOperationMethodPolicy
     {
         public abstract string WopiActionType { get; }
 
@@ -52,12 +52,12 @@ namespace SenseNet.Services.Wopi
         }        
     }
 
-    internal class WopiOpenViewMethodPolicy : WopiOpenMethodPolicy
+    public class WopiOpenViewMethodPolicy : WopiOpenMethodPolicy
     {
         public override string WopiActionType { get; } = "view";
         public override string Name { get; } = "WopiOpenView";
     }
-    internal class WopiOpenEditMethodPolicy : WopiOpenMethodPolicy
+    public class WopiOpenEditMethodPolicy : WopiOpenMethodPolicy
     {
         public override string WopiActionType { get; } = "edit";
         public override string Name { get; } = "WopiOpenEdit";
