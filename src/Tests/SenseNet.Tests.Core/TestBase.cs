@@ -229,6 +229,7 @@ namespace SenseNet.Tests.Core
                     .AddSenseNetInMemoryProviders()
 
                     //.AddSenseNetWebHooks()
+                    .AddSenseNetWopi()
                     .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
             modifyServices?.Invoke(services);
