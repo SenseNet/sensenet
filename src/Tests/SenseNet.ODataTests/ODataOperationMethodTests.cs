@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
+using SenseNet.Services.Wopi;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedVariable
 // ReSharper disable NotAccessedVariable
@@ -2781,6 +2782,8 @@ namespace SenseNet.ODataTests
             ODataTest(builder =>
                 {
                     builder.AddAllTestPolicies();
+                    OperationCenter.Policies["WopiOpenView"] = new WopiOpenViewMethodPolicy();
+                    OperationCenter.Policies["WopiOpenEdit"] = new WopiOpenEditMethodPolicy();
                     oms = builder.Services.GetRequiredService<IOperationMethodStorage>();
                 },
                 () =>
@@ -2820,6 +2823,8 @@ namespace SenseNet.ODataTests
                 builder =>
                 {
                     builder.AddAllTestPolicies();
+                    OperationCenter.Policies["WopiOpenView"] = new WopiOpenViewMethodPolicy();
+                    OperationCenter.Policies["WopiOpenEdit"] = new WopiOpenEditMethodPolicy();
                     oms = builder.Services.GetRequiredService<IOperationMethodStorage>();
                 },
                 () =>
