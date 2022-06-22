@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SenseNet.Tools" Version="3.2.7" />
     <PackageReference Include="SenseNet.Security" Version="4.1.4" />
   </ItemGroup>
