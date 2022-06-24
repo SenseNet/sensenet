@@ -11,6 +11,12 @@ namespace SenseNet.Services.Core.Authentication
         /// Url of the authentication authority - for example IdentityServer.
         /// </summary>
         public string Authority { get; set; }
+        /// <summary>
+        /// Internal url of the authentication authority - for example IdentityServer.
+        /// Used in a containerized environment when the public authority url
+        /// and metadata url must be different.
+        /// </summary>
+        public string MetadataHost { get; set; }
 
         /// <summary>
         /// Default url of the application that connects to the repository. Features may use this

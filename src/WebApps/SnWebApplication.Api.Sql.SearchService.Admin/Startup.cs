@@ -32,16 +32,8 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
 
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
-            // [sensenet]: Authentication
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.Authority = Configuration["sensenet:authentication:authority"];
-                    options.RequireHttpsMetadata = false;
-                    options.SaveToken = true;
-
-                    options.Audience = "sensenet";
-                });
+            // [sensenet]: Authentication: switched off below
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
             // [sensenet]: Set options for EFCSecurityDataProvider
             services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
