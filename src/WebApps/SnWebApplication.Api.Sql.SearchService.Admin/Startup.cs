@@ -70,7 +70,9 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
                 {
                     Configuration.GetSection("sensenet:rabbitmq").Bind(options);
                 })
-                .AddSenseNetWebHooks();
+                .AddSenseNetOData()
+                .AddSenseNetWebHooks()
+                .AddSenseNetWopi();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -41,7 +41,7 @@ namespace SenseNet.Services.Wopi.Tests
 
         private ISharedLockDataProvider GetDataProvider()
         {
-            return Providers.Instance.GetProvider<ISharedLockDataProvider>();
+            return Providers.Instance.Services.GetRequiredService<ISharedLockDataProvider>();
         }
 
         [TestMethod]
@@ -672,28 +672,51 @@ namespace SenseNet.Services.Wopi.Tests
 
         private static RepositoryInstance _repository;
 
-        [ClassInitialize]
-        public static void InitializeRepositoryInstance(TestContext context)
+        protected override void InitializeTest()
         {
-            var builder = CreateRepositoryBuilderForTest(context);
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            _repository = Repository.Start(builder);
-
-            Cache.Reset();
-            ContentTypeManager.Reset();
-
-            using (new SystemAccount())
+            if (_repository == null)
             {
-                Providers.Instance.SecurityHandler.CreateAclEditor()
-                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
-                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
-                    .Apply();
+                var builder = CreateRepositoryBuilderForTest();
+
+                Indexing.IsOuterSearchEngineEnabled = true;
+
+                _repository = Repository.Start(builder);
+
+                Cache.Reset();
+                ContentTypeManager.Reset();
+
+                using (new SystemAccount())
+                {
+                    Providers.Instance.SecurityHandler.CreateAclEditor()
+                        .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
+                        .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
+                        .Apply();
+                }
             }
+
+            SharedLock.RemoveAllLocks(CancellationToken.None);
         }
 
+        //[ClassInitialize]
+        //public static void InitializeRepositoryInstance(TestContext context)
+        //{
+        //    var builder = CreateRepositoryBuilderForTest(context);
 
+        //    Indexing.IsOuterSearchEngineEnabled = true;
+
+        //    _repository = Repository.Start(builder);
+
+        //    Cache.Reset();
+        //    ContentTypeManager.Reset();
+
+        //    using (new SystemAccount())
+        //    {
+        //        Providers.Instance.SecurityHandler.CreateAclEditor()
+        //            .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
+        //            .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
+        //            .Apply();
+        //    }
+        //}
 
         [ClassCleanup]
         public static void ShutDownRepository()
@@ -701,11 +724,11 @@ namespace SenseNet.Services.Wopi.Tests
             _repository?.Dispose();
         }
 
-        [TestInitialize]
-        public void RemoveAllLocks()
-        {
-            SharedLock.RemoveAllLocks(CancellationToken.None);
-        }
+        //[TestInitialize]
+        //public void RemoveAllLocks()
+        //{
+        //    SharedLock.RemoveAllLocks(CancellationToken.None);
+        //}
 
         private SystemFolder CreateTestFolder()
         {

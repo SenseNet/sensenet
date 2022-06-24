@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SenseNet.Services.Wopi;
 using System;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -29,6 +30,14 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseOperationMethodExecutionPolicy(new WopiOpenEditMethodPolicy());
 
             return builder;
+        }
+
+        /// <summary>
+        /// Adds sensenet WOPI services to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetWopi(this IServiceCollection services)
+        {
+            return services.AddSenseNetBackgroundService<WopiService>();
         }
     }
 }

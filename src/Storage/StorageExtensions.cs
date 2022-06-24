@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -85,9 +86,19 @@ namespace SenseNet.Extensions.DependencyInjection
             services
                 .AddSingleton<IClusterMessageFormatter, BinaryMessageFormatter>()
                 .AddSingleton<IClusterChannel, T>()
+                .AddSenseNetBackgroundService<ClusterChannelMonitor>()
                 .Configure<ClusterMemberInfo>(cmi => { configure?.Invoke(cmi); });
 
             return services;
+        }
+        
+        /// <summary>
+        /// Adds an ISnService implementation to the service collection. These services
+        /// will be started and stopped during repository startup and shutdown.
+        /// </summary>
+        public static IServiceCollection AddSenseNetBackgroundService<T>(this IServiceCollection services) where T : class, ISnService
+        {
+            return services.AddSingleton<ISnService, T>();
         }
     }
 }

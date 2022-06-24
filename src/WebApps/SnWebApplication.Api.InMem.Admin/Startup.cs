@@ -37,7 +37,9 @@ namespace SnWebApplication.Api.InMem.Admin
                         .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddSenseNetInMemoryProviders()
-                .AddSenseNetWebHooks();
+                .AddSenseNetOData()
+                .AddSenseNetWebHooks()
+                .AddSenseNetWopi();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

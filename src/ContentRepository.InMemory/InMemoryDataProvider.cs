@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -1729,7 +1730,7 @@ namespace SenseNet.ContentRepository.InMemory
                 ContentTypeManager.Reset();
             }
 
-            var provider = Providers.Instance.GetProvider<IPackagingDataProvider>();
+            var provider = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             if (provider is InMemoryPackageStorageProvider inMemProvider)
             {
                 foreach (var package in GetInitialPackages())

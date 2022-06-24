@@ -40,7 +40,7 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var builder = CreateRepositoryBuilderForTest(TestContext, services =>
+            var builder = CreateRepositoryBuilderForTest(services =>
             {
                 services.AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>();
             });
@@ -60,9 +60,9 @@ namespace SenseNet.Packaging.Tests
 
 //    return builder;
 //}
-        protected override IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
+        protected override IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            return base.CreateServiceProviderForTestInstance(null, services =>
+            return base.CreateServiceProviderForTest(null, services =>
             {
                 services.AddSingleton<IPackagingDataProvider, TestPackageStorageProvider>();
                 modifyServices?.Invoke(services);
@@ -135,7 +135,7 @@ namespace SenseNet.Packaging.Tests
 
         protected Package[] LoadPackages()
         {
-            var dataProvider = Providers.Instance.GetProvider<IPackagingDataProvider>();
+            var dataProvider = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }

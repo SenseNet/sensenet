@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
@@ -8,63 +9,18 @@ using SenseNet.ContentRepository.Security.ADSync;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Portal.Virtualization
 {
     public abstract class DocumentBinaryProvider
     {
-        protected const string DEFAULTBINARY_NAME = "Binary";
+        protected const string DefaultBinaryName = "Binary";
 
-        // ============================================================ Provider 
-
-        [Obsolete("Use Instance instead.")]
-        public static DocumentBinaryProvider Current => Instance;
-
-        internal const string DocumentBinaryProviderKey = "DocumentBinaryProvider";
-        private static readonly object SyncRoot = new object();
-        public static DocumentBinaryProvider Instance
-        {
-            get
-            {
-                var dbp = Providers.Instance.GetProvider<DocumentBinaryProvider>(DocumentBinaryProviderKey);
-                if (dbp == null)
-                {
-                    lock (SyncRoot)
-                    {
-                        dbp = Providers.Instance.GetProvider<DocumentBinaryProvider>(DocumentBinaryProviderKey);
-                        if (dbp != null) 
-                            return dbp;
-
-                        // set the default implementation
-                        var defType = typeof(DefaultDocumentBinaryProvider);
-
-                        try
-                        {
-                            dbp = Activator.CreateInstance(defType) as DocumentBinaryProvider;
-                        }
-                        catch (Exception ex)
-                        {
-                            SnLog.WriteException(ex, "Error during instantiating default document binary provider.");
-                        }
-                            
-                        Providers.Instance.SetProvider(DocumentBinaryProviderKey, dbp);
-
-                        if (dbp == null)
-                            SnLog.WriteInformation("DocumentBinaryProvider not present.");
-                        else
-                            SnLog.WriteInformation("DocumentBinaryProvider created: " + defType.FullName);
-                    }
-                }
-
-                return dbp;
-            }
-        }
-
-        // ============================================================ Instance API
+        public static DocumentBinaryProvider Instance => Providers.Instance.Services.GetRequiredService<DocumentBinaryProvider>();
 
         public abstract Stream GetStream(Node node, string propertyName, HttpContext context, out string contentType, out BinaryFileName fileName);
-        public abstract BinaryFileName GetFileName(Node node, string propertyName = DEFAULTBINARY_NAME);
+        public abstract BinaryFileName GetFileName(Node node, string propertyName = DefaultBinaryName);
     }
 
     public class DefaultDocumentBinaryProvider : DocumentBinaryProvider
@@ -98,7 +54,7 @@ namespace SenseNet.Portal.Virtualization
             return null;
         }
 
-        public override BinaryFileName GetFileName(Node node, string propertyName = DEFAULTBINARY_NAME)
+        public override BinaryFileName GetFileName(Node node, string propertyName = DefaultBinaryName)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -116,12 +72,12 @@ namespace SenseNet.Portal.Virtualization
 
         // ============================================================ Helper methods
 
-        private static BinaryData GetBinaryData(Node node, string propertyName = DEFAULTBINARY_NAME)
+        private static BinaryData GetBinaryData(Node node, string propertyName = DefaultBinaryName)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
             if (string.IsNullOrEmpty(propertyName))
-                propertyName = DEFAULTBINARY_NAME;
+                propertyName = DefaultBinaryName;
 
             BinaryData binaryData = null;
             var content = Content.Create(node);
@@ -146,7 +102,7 @@ namespace SenseNet.Portal.Virtualization
             // the Binary property, or empty
             return node is ContentRepository.File &&
                    (string.IsNullOrEmpty(propertyName) ||
-                    string.Compare(propertyName, DEFAULTBINARY_NAME, StringComparison.OrdinalIgnoreCase) == 0);
+                    string.Compare(propertyName, DefaultBinaryName, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         protected static bool RemoveAdPasswords(ADSettings adSettings, HttpContext context)

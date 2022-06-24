@@ -1,14 +1,28 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.OData.Metadata;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
     public static class ODataExtensions
     {
+        public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<OperationInspector>()
+                .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
+                .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
+                ;
+        }
+
         /// <summary>
         /// Registers the sensenet OData middleware in the pipeline
         /// if the request contains the odata.svc prefix.

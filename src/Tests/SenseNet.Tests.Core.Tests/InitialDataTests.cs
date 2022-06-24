@@ -215,7 +215,7 @@ namespace SenseNet.Tests.Core.Tests
         }
         private void InitialDataTestPrivate(Action callback, bool withSecurity)
         {
-            var builder = CreateRepositoryBuilderForTest(TestContext);
+            var builder = CreateRepositoryBuilderForTest();
 
             Indexing.IsOuterSearchEngineEnabled = true;
 

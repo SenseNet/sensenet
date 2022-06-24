@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -1637,6 +1638,30 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSharingDataAreEqual(sd1, results[0] as JObject);
                 AssertSharingDataAreEqual(sd2, results[1] as JObject);
                 AssertSharingDataAreEqual(sd3, results[2] as JObject);
+            });
+        }
+
+        private class TestSharingNotificationFormatter : ISharingNotificationFormatter
+        {
+            public string FormatBody(Node node, SharingData sharingData, string siteUrl, string body)
+                => throw new NotImplementedException();
+            public string FormatSubject(Node node, SharingData sharingData, string subject)
+                => throw new NotImplementedException();
+        }
+        [TestMethod]
+        public void Sharing_FormatterExistence()
+        {
+            Test(() =>
+            {
+                Assert.IsInstanceOfType(SharingHandler.NotificationFormatter, typeof(DefaultSharingNotificationFormatter));
+            });
+
+            Test2(services =>
+            {
+                services.AddSingleton<ISharingNotificationFormatter, TestSharingNotificationFormatter>();
+            }, () =>
+            {
+                Assert.IsInstanceOfType(SharingHandler.NotificationFormatter, typeof(TestSharingNotificationFormatter));
             });
         }
 

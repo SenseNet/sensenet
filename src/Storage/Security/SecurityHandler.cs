@@ -1171,16 +1171,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                                      OwnerGroupId = Identifiers.OwnersGroupId
                                  };
 
-            var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ??
-                                   new MessagingOptions
-                                   {
-                                       SecurityActivityLifetimeInMinutes =
-                                           Configuration.Security.SecuritActivityLifetimeInMinutes,
-                                       SecurityActivityTimeoutInSeconds =
-                                           Configuration.Security.SecuritActivityTimeoutInSeconds,
-                                       CommunicationMonitorRunningPeriodInSeconds = Configuration.Security
-                                           .SecurityMonitorRunningPeriodInSeconds
-                                   };
+            var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ?? new MessagingOptions();
 
             var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, 
                 securityConfig, messagingOptions);

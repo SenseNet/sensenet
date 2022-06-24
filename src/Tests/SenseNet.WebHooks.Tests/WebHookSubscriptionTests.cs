@@ -534,11 +534,12 @@ namespace SenseNet.WebHooks.Tests
                 });
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
+        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
         {
-            return CreateRepositoryBuilderForTest(TestContext, services =>
+            return base.CreateRepositoryBuilderForTest(services =>
             {
                 services.AddSenseNetWebHooks();
+                modifyServices?.Invoke(services);
             });
         }
 

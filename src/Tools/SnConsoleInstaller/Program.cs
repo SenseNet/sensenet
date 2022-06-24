@@ -25,7 +25,6 @@ namespace SnConsoleInstaller
             var builder = new RepositoryBuilder(host.Services)
                 .SetConsole(Console.Out)
                 .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer())
                 .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex")) as RepositoryBuilder;
 
             new Installer(builder, null, logger)
@@ -47,13 +46,14 @@ namespace SnConsoleInstaller
 
                     // [sensenet]: add sensenet services
                     services
-                                        .SetSenseNetConfiguration(hb.Configuration)
+                        .SetSenseNetConfiguration(hb.Configuration)
                         .AddLogging(logging =>
                         {
                             logging.AddSerilog(new LoggerConfiguration()
                                 .ReadFrom.Configuration(hb.Configuration)
                                 .CreateLogger());
                         })
+                        .AddSenseNetTracer<SnFileSystemTracer>()
                         .ConfigureConnectionStrings(hb.Configuration)
                         .AddSenseNetMsSqlDataProvider()
                         .AddSenseNetSecurity()

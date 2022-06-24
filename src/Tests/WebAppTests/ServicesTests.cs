@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
@@ -25,6 +26,8 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
+using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -35,7 +38,11 @@ using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
+using SenseNet.OData;
+using SenseNet.OData.Metadata;
+using SenseNet.ODataTests;
 using SenseNet.Packaging;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Preview;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -52,6 +59,7 @@ using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Cors;
 using SenseNet.Services.Core.Diagnostics;
+using SenseNet.Services.Wopi;
 using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
@@ -282,6 +290,13 @@ namespace WebAppTests
             var nulls = dump.Where(x => x.Value == null).Select(x => x.Key.Name);
             return $"Missing services: {string.Join(", ", nulls)}";
         }
+
+        protected override void InitializeTest()
+        {
+            base.InitializeTest();
+            Providers.Instance = null;
+        }
+
         #endregion
 
         private IDictionary<Type, object> GetGeneralizedExpectations()
@@ -309,6 +324,7 @@ namespace WebAppTests
                 {typeof(ISearchManager), typeof(SearchManager)},
                 {typeof(IIndexManager), typeof(IndexManager)},
                 {typeof(IIndexPopulator), typeof(DocumentPopulator)},
+                {typeof(IIndexingActivityFactory), typeof(IndexingActivityFactory)},
 
                 // TaskManager
                 {typeof(ITaskManager), typeof(TaskManagerBase)},
@@ -331,13 +347,15 @@ namespace WebAppTests
                 {typeof(ICorsPolicyProvider), typeof(SnCorsPolicyProvider)},
                 {typeof(ICompatibilitySupport), typeof(EmptyCompatibilitySupport)},
                 {typeof(IContentProtector), typeof(ContentProtector)},
-
+                {typeof(DocumentBinaryProvider), typeof(DefaultDocumentBinaryProvider)},
                 {typeof(ISnClientRequestParametersProvider), typeof(DefaultSnClientRequestParametersProvider)},
                 {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},
                 {typeof(IApiKeyManager), typeof(ApiKeyManager)},
                 {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
                 {typeof(IEmailSender), typeof(EmailSender)},
+                {typeof(ICryptoServiceProvider), typeof(DefaultCryptoServiceProvider)},
+                {typeof(ISharingNotificationFormatter), typeof(DefaultSharingNotificationFormatter)},
                 {typeof(DefaultRegistrationProvider), typeof(DefaultRegistrationProvider)},
                 {typeof(RegistrationProviderStore), typeof(RegistrationProviderStore)},
                 {typeof(IStatisticalDataCollector), typeof(StatisticalDataCollector)},
@@ -364,6 +382,7 @@ namespace WebAppTests
                     typeof(RepositoryHostedService),
                     typeof(SnMaintenance),
                 }},
+                {typeof(ISnService), Array.Empty<Type>() },
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -487,7 +506,10 @@ namespace WebAppTests
             var pi = Providers.Instance;
             string providersMessage = null;
 
-            var unexpectedNames = pi.ProvidersByName.Keys.Except(includedProvidersByName).ToArray();
+            var notNullProvidersByName = pi.ProvidersByName
+                .Where(x => x.Value != null)
+                .ToDictionary(x => x.Key, x => x.Value);
+            var unexpectedNames = notNullProvidersByName.Keys.Except(includedProvidersByName).ToArray();
             var missingNames = includedProvidersByName.Except(pi.ProvidersByName.Keys).ToArray();
             if (unexpectedNames.Length > 0)
                 providersMessage = $"Unexpected providers by name: {string.Join(", ", unexpectedNames)}. ";
@@ -506,13 +528,19 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(ISharedLockDataProvider),
-            typeof(IExclusiveLockDataProvider),
-            typeof(IAccessTokenDataProvider),
-            typeof(IPackagingDataProvider),
             typeof(IStatisticalDataProvider),
-            typeof(ISnTracer[]),
+            //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
+            typeof(ICryptoServiceProvider),
+        };
+        private readonly Type[] _includedProvidersByTypeWithTests = new[]
+        {
+            typeof(IStatisticalDataProvider),
+            //typeof(ISnTracer[]),
+            typeof(ILogger<SnILogger>),
+            typeof(ICryptoServiceProvider),
+
+            typeof(ITestingDataProvider),
         };
         private readonly string[] _defaultIncludedProvidersByName = Array.Empty<string>();
 
@@ -536,6 +564,12 @@ namespace WebAppTests
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -561,6 +595,12 @@ namespace WebAppTests
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -589,6 +629,10 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -618,6 +662,10 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -654,6 +702,13 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {
+                        typeof(ClusterChannelMonitor),
+                        typeof(WopiService),
+                    }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -689,6 +744,13 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                         typeof(WebHookComponent),
                     }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(ISnService), new[] {
+                        typeof(ClusterChannelMonitor),
+                        typeof(WopiService),
+                    }},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -699,16 +761,20 @@ namespace WebAppTests
         /* ========================================================================= Test tests */
 
         private class TestClassForTestingServices : TestBase
-        { public IServiceProvider CreateServiceProvider() => CreateServiceProviderForTest(); }
+        {
+            public TestClassForTestingServices(TestContext testContext) { TestContext = testContext; }
+            public RepositoryBuilder CreateRepositoryBuilder() => CreateRepositoryBuilderForTest();
+            public IServiceProvider CreateServiceProvider() => CreateServiceProviderForTest();
+        }
 
         [TestMethod, TestCategory("Services")]
         public void Test_Services_TestBase()
         {
             // ACTION
-            var services = new TestClassForTestingServices().CreateServiceProvider();
+            var builder = new TestClassForTestingServices(TestContext).CreateRepositoryBuilder();
 
             // ASSERT
-            AssertServices(true, services,
+            AssertServices(true, builder.Services,
                 platformSpecificExpectations: GetInMemoryPlatform(),
                 customizedExpectations: new Dictionary<Type, object>
                 {
@@ -722,8 +788,50 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
-                includedProvidersByType: _defaultIncludedProvidersByType,
+                includedProvidersByType: _includedProvidersByTypeWithTests,
+                includedProvidersByName: _defaultIncludedProvidersByName
+            );
+        }
+
+        private class TestClassForTestingODataServices : ODataTestBase
+        {
+            public TestClassForTestingODataServices(TestContext testContext) { TestContext = testContext; }
+            public RepositoryBuilder CreateRepositoryBuilder() => CreateRepositoryBuilderForTest();
+        }
+        [TestMethod, TestCategory("Services")]
+        public void Test_Services_ODataTestBase()
+        {
+            // ACTION
+            var testInstance = new TestClassForTestingODataServices(TestContext);
+            var builder = testInstance.CreateRepositoryBuilder();
+
+            // ASSERT
+            AssertServices(true, builder.Services,
+                platformSpecificExpectations: GetInMemoryPlatform(),
+                customizedExpectations: new Dictionary<Type, object>
+                {
+                    {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
+                    {typeof(ITestingDataProvider), typeof(InMemoryTestingDataProvider)},
+                    {typeof(ISearchEngine), typeof(InMemorySearchEngine)},
+                    {typeof(IStatisticalDataAggregator), new[] { // overrides the general services
+                        typeof(WebTransferStatisticalDataAggregator),
+                        typeof(DatabaseUsageStatisticalDataAggregator)}},
+
+                    {typeof(ISnComponent), new[] {
+                        typeof(ServicesComponent),
+                    }},
+                    {typeof(OperationInspector), typeof(OperationInspector)},
+                    {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                },
+                includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
             );
         }
@@ -753,6 +861,8 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -816,6 +926,8 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+
+                    {typeof(ISnTracer), typeof(SnFileSystemTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName

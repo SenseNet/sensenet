@@ -1,28 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
-using System.Configuration;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
-using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
-using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -157,9 +148,7 @@ namespace SenseNet.ContentRepository
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateCategories();
-
-            InitializeOAuthProviders();
-
+            
             ConsoleWriteLine();
             ConsoleWriteLine("Repository has started.");
             ConsoleWriteLine();
@@ -300,21 +289,21 @@ namespace SenseNet.ContentRepository
                 dummy = SenseNetResourceManager.Current;
                 ConsoleWriteLine("ok.");
 
-                _serviceInstances = new List<ISnService>();
-                foreach (var serviceType in TypeResolver.GetTypesByInterface(typeof(ISnService)))
+                _serviceInstances = _settings.Services.GetServices<ISnService>().ToList();
+
+                foreach (var service in _serviceInstances)
                 {
-                    var service = (ISnService)Activator.CreateInstance(serviceType);
                     service.Start();
-                    ConsoleWriteLine("Service started: ", serviceType.Name);
-                    _serviceInstances.Add(service);
+                    ConsoleWriteLine("Service started: ", service.GetType().Name);
                 }
 
                 // register this application in the task management component
-                SnTaskManager.RegisterApplication();
+                var taskManager = _settings.Services.GetRequiredService<ITaskManager>();
+                taskManager.RegisterApplicationAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             catch
             {
-                // If an error occoured, shut down the cluster channel.
+                // If an error occurred, shut down the cluster channel.
                 channel?.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 throw;
@@ -323,37 +312,6 @@ namespace SenseNet.ContentRepository
 
         private List<ISnService> _serviceInstances;
 
-        private static void InitializeOAuthProviders()
-        {
-            var providerTypeNames = new List<string>();
-
-            foreach (var providerType in TypeResolver.GetTypesByInterface(typeof(IOAuthProvider)).Where(t => !t.IsAbstract))
-            {
-                if (!(TypeResolver.CreateInstance(providerType.FullName) is IOAuthProvider provider))
-                    continue;
-
-                if (string.IsNullOrEmpty(provider.ProviderName))
-                {
-                    SnLog.WriteWarning($"OAuth provider type {providerType.FullName} does not expose a valid ProviderName value, therefore cannot be initialized.");
-                    continue;
-                }
-                if (string.IsNullOrEmpty(provider.IdentifierFieldName))
-                {
-                    SnLog.WriteWarning($"OAuth provider type {providerType.FullName} does not expose a valid IdentifierFieldName value, therefore cannot be initialized.");
-                    continue;
-                }
-
-                Providers.Instance.SetProvider(OAuthProviderTools.GetProviderRegistrationName(provider.ProviderName), provider);
-                providerTypeNames.Add($"{providerType.FullName} ({provider.ProviderName})");
-            }
-
-            if (providerTypeNames.Any())
-            {
-                SnLog.WriteInformation("OAuth providers registered: " + Environment.NewLine +
-                                       string.Join(Environment.NewLine, providerTypeNames));
-            }
-        }
-
         private static void InitializeLogger()
         {
             // look for the configured logger
@@ -361,8 +319,8 @@ namespace SenseNet.ContentRepository
             SnLog.AuditEventWriter = Providers.Instance.AuditEventWriter ?? throw new ApplicationException("Missing AuditEventWriter service.");
 
             //set configured tracers
-            var tracers = Providers.Instance.GetProvider<ISnTracer[]>();
-            if (tracers?.Length > 0)
+            var tracers = Providers.Instance.Services.GetServices<ISnTracer>().ToArray();
+            if (tracers.Length > 0)
             {
                 SnTrace.SnTracers.Clear();
                 SnTrace.SnTracers.AddRange(tracers);

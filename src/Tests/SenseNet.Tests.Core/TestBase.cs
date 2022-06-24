@@ -83,7 +83,7 @@ namespace SenseNet.Tests.Core
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTestInstance();
+            var builder = CreateRepositoryBuilderForTest();
 
             initialize?.Invoke(builder);
 
@@ -129,7 +129,7 @@ namespace SenseNet.Tests.Core
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTestInstance(initializeServices);
+            var builder = CreateRepositoryBuilderForTest(initializeServices);
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
@@ -186,7 +186,7 @@ namespace SenseNet.Tests.Core
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTestInstance();
+            var builder = CreateRepositoryBuilderForTest();
 
             initialize?.Invoke(builder);
 
@@ -210,7 +210,7 @@ namespace SenseNet.Tests.Core
             }
         }
 
-        protected static IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null,
+        protected virtual IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null,
             Action<IServiceCollection> modifyServices = null)
         {
             var configurationBuilder = new ConfigurationBuilder();
@@ -219,32 +219,27 @@ namespace SenseNet.Tests.Core
             var configuration = configurationBuilder.Build();
 
             var services = new ServiceCollection()
-                .AddSenseNet(configuration, (repositoryBuilder, provider) =>
-                {
-                    repositoryBuilder
-                        .BuildInMemoryRepository()
-                        .UseLogger(provider)
-                        .UseAccessProvider(new UserAccessProvider());
-                })
-                .AddSenseNetInMemoryProviders()
+                    .AddSenseNet(configuration, (repositoryBuilder, provider) =>
+                    {
+                        repositoryBuilder
+                            .BuildInMemoryRepository()
+                            .UseLogger(provider)
+                            .UseAccessProvider(new UserAccessProvider());
+                    })
+                    .AddSenseNetInMemoryProviders()
 
-                //.AddSenseNetWebHooks()
-                .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
+                    //.AddSenseNetWebHooks()
+                    .AddSenseNetWopi()
+                    .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
         }
-        protected virtual IServiceProvider CreateServiceProviderForTestInstance(Action<IConfigurationBuilder> modifyConfig = null,
-            Action<IServiceCollection> modifyServices = null)
-        {
-            return CreateServiceProviderForTest(modifyConfig, modifyServices);
-        }
-
-        protected static RepositoryBuilder CreateRepositoryBuilderForTest(TestContext testContext, Action<IServiceCollection> modifyServices = null)
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
         {
             IServiceProvider services;
 
-            var reusesRepository = (bool)(testContext.Properties["ReusesRepository"] ?? false);
+            var reusesRepository = (bool)(TestContext.Properties["ReusesRepository"] ?? false);
             if (!reusesRepository || Providers.Instance == null)
             {
                 services = CreateServiceProviderForTest(modifyServices: modifyServices);
@@ -260,7 +255,6 @@ namespace SenseNet.Tests.Core
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
-                .UseTracer(new SnDebugViewTracer())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
@@ -277,11 +271,6 @@ namespace SenseNet.Tests.Core
             ContentTypeManager.Reset();
 
             return builder;
-        }
-
-        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance(Action<IServiceCollection> modifyServices = null)
-        {
-            return CreateRepositoryBuilderForTest(TestContext, modifyServices);
         }
 
         protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)

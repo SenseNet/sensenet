@@ -55,18 +55,6 @@ namespace SenseNet.Extensions.DependencyInjection
             return head != null && head.GetNodeType().IsInstaceOfOrDerivedFrom("File");
         }
 
-        /// <summary>
-        /// Sets DocumentBinaryProvider instances.
-        /// </summary>
-        public static IRepositoryBuilder UseDocumentBinaryProvider(this IRepositoryBuilder repositoryBuilder, 
-            DocumentBinaryProvider documentBinaryProvider)
-        {
-            Configuration.Providers.Instance.SetProvider(DocumentBinaryProvider.DocumentBinaryProviderKey,
-                documentBinaryProvider);
-
-            return repositoryBuilder;
-        }
-
         internal static NodeHead GetNodeHead(this HttpRequest request)
         {
             // This is necessary so we can recognize special characters like space or UTF characters 

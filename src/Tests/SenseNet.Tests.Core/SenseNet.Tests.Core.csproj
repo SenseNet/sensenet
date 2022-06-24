@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
-    <Version>1.1.6</Version>
+    <Version>1.1.6.1</Version>
     <Authors>kavics,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -48,6 +48,7 @@
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj" />
     <ProjectReference Include="..\..\Search\SenseNet.Search.csproj" />
     <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
+    <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
   </ItemGroup>
 

@@ -5,10 +5,10 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
+using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Preview;
 using SenseNet.Search;
@@ -156,6 +156,31 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetTemplateReplacer<T>(this IServiceCollection services) where T : TemplateReplacerBase
         {
             return services.AddSingleton<TemplateReplacerBase, T>();
+        }
+
+        /// <summary>
+        /// Adds the provided crypto service provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetCryptoServiceProvider<T>(this IServiceCollection services) where T : class, ICryptoServiceProvider
+        {
+            return services.AddSingleton<ICryptoServiceProvider, T>()
+                .Configure<CryptographyOptions>(opt => {});
+        }
+
+        /// <summary>
+        /// Adds default sensenet repository services to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDefaultRepositoryServices(this IServiceCollection services)
+        {
+            return services.AddSenseNetCryptoServiceProvider<DefaultCryptoServiceProvider>();
+        }
+
+        /// <summary>
+        /// Adds the provided tracer to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetTracer<T>(this IServiceCollection services) where T : class, ISnTracer
+        {
+            return services.AddSingleton<ISnTracer, T>();
         }
     }
 }

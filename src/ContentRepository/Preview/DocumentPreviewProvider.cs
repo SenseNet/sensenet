@@ -6,6 +6,8 @@ using IO = System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -26,6 +28,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Preview
 {
@@ -1842,14 +1845,14 @@ namespace SenseNet.Preview
         /// module.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
+        /// <param name="context"></param>
         /// <param name="result">Result of the preview generation task.</param>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
-        public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)
+        public static async Task DocumentPreviewFinalizer(Content content, HttpContext context, SnTaskResult result)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            SnTaskManager.Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
-#pragma warning restore CS0618 // Type or member is obsolete
+            await (context.RequestServices.GetRequiredService<ITaskManager>())
+                .OnTaskFinishedAsync(result, context.RequestAborted).ConfigureAwait(false);
 
             // not enough information
             if (result.Task == null || string.IsNullOrEmpty(result.Task.TaskData))
