@@ -83,8 +83,6 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseHttpsRedirection();
-
             app.UseRouting();
 
             // [sensenet]: custom CORS policy
