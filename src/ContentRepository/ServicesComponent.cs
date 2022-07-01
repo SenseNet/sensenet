@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -1319,6 +1321,45 @@ namespace SenseNet.ContentRepository
                     }
 
                     aclEditor.Apply();
+
+                    #endregion
+                });
+
+            builder.Patch("7.7.26", "7.7.26.1", "2022-07-01", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
+                    
+                    #region Settings changes
+
+                    try
+                    {
+                        // add client cache header value for Setting contents if necessary
+                        var setting = Node.Load<Settings>("/Root/System/Settings/Portal.settings");
+                        if (setting != null)
+                        {
+                            using var bs = setting.Binary.GetStream();
+                            var jo = Settings.DeserializeToJObject(bs);
+                            var cc = (JArray)jo?["ClientCacheHeaders"];
+                            if (cc != null && cc.Children().All(jt => jt.Value<string>("ContentType") != "Settings"))
+                            {
+                                // no value for settings: add it
+                                cc.Add(new JObject(
+                                    new JProperty("ContentType", "Settings"),
+                                    new JProperty("MaxAge", 1)));
+
+                                var modifiedJson = JsonConvert.SerializeObject(jo, Formatting.Indented);
+
+                                using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
+                                setting.Binary.SetStream(modifiedStream);
+                                setting.Save(SavingMode.KeepVersion);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error loading or modifying Portal settings.");
+                    }
 
                     #endregion
                 });
