@@ -5,6 +5,10 @@
       "MaxAge": 1
     },
     {
+      "ContentType": "Settings",
+      "MaxAge": 1
+    },
+    {
       "Extension": "jpeg",
       "MaxAge": 604800
     },
