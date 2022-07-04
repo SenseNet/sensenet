@@ -1046,10 +1046,19 @@ namespace SenseNet.Tests.Core.Tests
             await Test(async () =>
             {
                 var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var allVersionIdsFromDb = Content.All
+                    .DisableAutofilters()
+                    .Where(c => c.InTree("/Root"))
+                    .AsEnumerable()
+                    .Select(c => c.ContentHandler.VersionId)
+                    .OrderBy(x => x)
+                    .ToArray();
+
                 // ACTION
                 var indexProperties = indexingEngine.GetIndexProperties();
 
                 // ASSERT
+                AssertSequenceEqual(allVersionIdsFromDb, indexProperties.VersionIds);
                 Assert.Fail();
 
             }).ConfigureAwait(false);

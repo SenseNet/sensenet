@@ -103,6 +103,7 @@ namespace SenseNet.Search.Indexing
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken);
 
         IndexProperties GetIndexProperties();
+
     }
 
     public class IndexProperties
