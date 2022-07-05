@@ -14,6 +14,8 @@ using System.Threading;
 using SenseNet.ContentRepository.Storage.Search;
 using System.Timers;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 using SenseNet.Storage;
@@ -441,6 +443,21 @@ namespace SenseNet.Packaging.Steps
                         operators.Save();
                     }
 
+                    // Import resources
+                    var localizationRoot = Content.Load("/Root/Localization");
+                    if (localizationRoot == null)
+                    {
+                        localizationRoot = Content.CreateNew("Resources", Repository.Root, "Localization");
+                        localizationRoot.Save();
+                    }
+                    ImportResources(fsPath);
+
+                    // Reindex Schema (other contents are re-imported and re-indexed below)
+                    Providers.Instance.IndexPopulator.RebuildIndexAsync(Repository.SchemaFolder, CancellationToken.None,
+                        recursive: true,
+                        rebuildLevel: IndexRebuildLevel.DatabaseAndIndex)
+                        .ConfigureAwait(true).GetAwaiter().GetResult();
+
                     // Import Contents
                     if (!string.IsNullOrEmpty(fsPath))
                     {
@@ -501,6 +518,31 @@ namespace SenseNet.Packaging.Steps
 
                 if (ctdPath != null || aspectPath != null)
                     ImportContentTypeDefinitionsAndAspects(ctdPath, aspectPath);
+            }
+
+            private void ImportResources(string fsPath)
+            {
+                // Check if the import structure contains the global resources folder. If yes,
+                // import global resources before other content.
+
+                string srcPath = null;
+                fsPath = IO.Path.GetFullPath(fsPath);
+
+                // 1. if the import target is /Root, check if \\source\Localization exists
+                // 2. if the import target is /Root/Localization, import settings from \\source
+                // 3. in any other case the source structure does not contain any resource content
+
+                if (RepositoryPathEquals(Repository.RootPath))
+                    srcPath = IO.Path.Combine(fsPath, "Localization");
+                else if (RepositoryPathEquals("/Root/Localization"))
+                    srcPath = fsPath;
+
+                if (srcPath == null || !IO.Directory.Exists(srcPath))
+                    return;
+
+                Log(ImportLogLevel.Info, "Installing global resources.");
+                ImportContents(srcPath, "/Root/Localization", false, true);
+                Log(ImportLogLevel.Info, "Ok");
             }
 
             private void ImportSettings(string fsPath)
