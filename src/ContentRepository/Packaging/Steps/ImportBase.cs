@@ -462,7 +462,7 @@ namespace SenseNet.Packaging.Steps
                     if (!string.IsNullOrEmpty(fsPath))
                     {
                         ImportSettings(fsPath);
-                        ImportContents(fsPath, repositoryPath, false, false);
+                        ImportContents(fsPath, repositoryPath, false, false, false);
                     }
                     else
                     {
@@ -541,7 +541,7 @@ namespace SenseNet.Packaging.Steps
                     return;
 
                 Log(ImportLogLevel.Info, "Installing global resources.");
-                ImportContents(srcPath, "/Root/Localization", false, true);
+                ImportContents(srcPath, "/Root/Localization", false, false, true);
                 Log(ImportLogLevel.Info, "Ok");
             }
 
@@ -569,7 +569,7 @@ namespace SenseNet.Packaging.Steps
                     return;
 
                 Log(ImportLogLevel.Info, "Installing global settings.");
-                ImportContents(srcPath, Repository.SettingsFolderPath, false, true);
+                ImportContents(srcPath, Repository.SettingsFolderPath, false, true, false);
                 Log(ImportLogLevel.Info, "Ok");
             }
 
@@ -812,7 +812,7 @@ namespace SenseNet.Packaging.Steps
                     var aspectFiles = FileSystemWrapper.Directory.GetFilesByExtension(aspectsPath, ".content");
                     Log(ImportLogLevel.Info, "Importing aspects:");
 
-                    ImportContents(aspectsPath, Repository.AspectsFolderPath, true, false);
+                    ImportContents(aspectsPath, Repository.AspectsFolderPath, true, false, false);
 
                     Log(ImportLogLevel.Info, "  " + aspectFiles.Length + " aspect" + (aspectFiles.Length > 1 ? "s" : "") + " imported.");
                     Log(ImportLogLevel.Progress, "Ok");
@@ -826,7 +826,7 @@ namespace SenseNet.Packaging.Steps
             private int _contentCount;
 
             // ImportContents
-            public void ImportContents(string srcPath, string targetPath, bool aspects, bool settings)
+            public void ImportContents(string srcPath, string targetPath, bool aspects, bool settings, bool resources)
             {
                 bool pathIsFile = false;
                 if (IO.File.Exists(srcPath))
@@ -864,7 +864,7 @@ namespace SenseNet.Packaging.Steps
 
                     _contentCount = 0;
                     using (CreateProgressBar())
-                        TreeWalker(srcPath, pathIsFile, importTarget, "  ", aspects, settings);
+                        TreeWalker(srcPath, pathIsFile, importTarget, "  ", aspects, settings, resources);
                     Log(ImportLogLevel.Info, "{0} contents imported.", _contentCount);
 
                     if (HasReference)
@@ -876,8 +876,10 @@ namespace SenseNet.Packaging.Steps
                 }
             }
 
-            private void TreeWalker(string path, bool pathIsFile, Node folder, string indent, bool aspects, bool settings)
+            private void TreeWalker(string path, bool pathIsFile, Node folder, string indent, bool aspects, bool settings, bool resources)
             {
+                // ALGORITHM:
+                // check whether skip or not
                 // get entries
                 // get contents
                 // foreach contents
@@ -886,11 +888,12 @@ namespace SenseNet.Packaging.Steps
                 //   entries.remove(contentinfo.attachments)
                 // foreach entries
                 //   create contentinfo
-                if (!aspects)
+
+                var insensitive = StringComparison.InvariantCultureIgnoreCase;
+
+                if (!resources)
                 {
-                    if (folder != null && (
-                        String.Compare(folder.Path, Repository.AspectsFolderPath, StringComparison.InvariantCultureIgnoreCase) == 0 ||
-                        String.Compare(folder.Path, Repository.ContentTypesFolderPath, StringComparison.InvariantCultureIgnoreCase) == 0))
+                    if (folder != null && String.Compare(folder.Path, "/Root/Localization", insensitive) == 0)
                     {
                         if (LogLevel == ImportLogLevel.Progress)
                             Console.WriteLine();
@@ -898,9 +901,23 @@ namespace SenseNet.Packaging.Steps
                         return;
                     }
                 }
+
+                if (!aspects)
+                {
+                    if (folder != null && (
+                        String.Compare(folder.Path, Repository.AspectsFolderPath, insensitive) == 0 ||
+                        String.Compare(folder.Path, Repository.ContentTypesFolderPath, insensitive) == 0))
+                    {
+                        if (LogLevel == ImportLogLevel.Progress)
+                            Console.WriteLine();
+                        Log(ImportLogLevel.Progress, "Skipped path: " + path);
+                        return;
+                    }
+                }
+
                 if (!settings)
                 {
-                    if (folder != null && (string.Compare(folder.Path, Repository.SettingsFolderPath, StringComparison.InvariantCultureIgnoreCase) == 0))
+                    if (folder != null && (string.Compare(folder.Path, Repository.SettingsFolderPath, insensitive) == 0))
                     {
                         if (LogLevel == ImportLogLevel.Progress)
                             Console.WriteLine();
@@ -1055,7 +1072,7 @@ namespace SenseNet.Packaging.Steps
                             node = content.ContentHandler;
                         if (node != null && (contentInfo.IsFolder || contentInfo.ChildrenFolder != null))
                         {
-                            TreeWalker(contentInfo.ChildrenFolder, false, node, indent + "  ", aspects, settings);
+                            TreeWalker(contentInfo.ChildrenFolder, false, node, indent + "  ", aspects, settings, resources);
                         }
                     }
                 }
