@@ -306,6 +306,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     if (currentUserIsSystem)
                         currentUser = AccessProvider.Current.GetOriginalUser();
 
+                    //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
                         new ParallelOptions { CancellationToken = cancellationToken },
                         n =>
