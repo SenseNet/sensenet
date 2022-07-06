@@ -301,10 +301,23 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     await _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
 
+                    var currentUser = AccessProvider.Current.GetCurrentUser();
+                    var currentUserIsSystem = currentUser.Id == Identifiers.SystemUserId;
+                    if (currentUserIsSystem)
+                        currentUser = AccessProvider.Current.GetOriginalUser();
+
                     //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
-                            .GetAwaiter().GetResult(); });
+                        new ParallelOptions { CancellationToken = cancellationToken },
+                        n =>
+                        {
+                            AccessProvider.Current.SetCurrentUser(currentUser);
+                            if (currentUserIsSystem)
+                                AccessProvider.ChangeToSystemAccount();
+
+                            _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
+                                .GetAwaiter().GetResult();
+                        });
                 }
 
                 await AddTreeAsync(node.Path, node.Id, cancellationToken).ConfigureAwait(false);
