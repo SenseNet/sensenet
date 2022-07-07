@@ -100,6 +100,26 @@ namespace SenseNet.Search.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine

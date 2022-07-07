@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
@@ -19,6 +17,8 @@ namespace SenseNet.ContentRepository.InMemory
         public bool Running { get; private set; }
 
         public bool IndexIsCentralized { get; set; } = false;
+
+        internal List<string> NumberFields { get; set; }
 
         public InMemoryIndexingEngine(InMemorySearchEngine searchEngine)
         {
@@ -102,6 +102,57 @@ namespace SenseNet.ContentRepository.InMemory
                     .OrderBy(z => z)
                     .ToArray()
             };
+        }
+
+        public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+        {
+            // ReSharper disable once SuspiciousTypeConversion.Global
+            return (IDictionary<string, IDictionary<string, List<int>>>)
+                Index.IndexData.ToDictionary(x=>x.Key, x=>(IDictionary<string, List<int>>)x.Value);
+        }
+
+        public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+        {
+            return Index.IndexData.TryGetValue(fieldName, out var subIndex) ? subIndex : null;
+        }
+
+        public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+        {
+            var key = InMemoryIndex.IntToString(versionId);
+            if (!Index.IndexData["VersionId"].TryGetValue(key, out var docIds))
+                return null;
+            if (docIds.Count < 1)
+                return null;
+            return GetIndexDocumentByDocumentId(docIds[0]);
+        }
+
+        public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
+        {
+            var doc = new Dictionary<string, string>();
+            foreach (var outerItem in Index.IndexData)
+            {
+                var fieldName = outerItem.Key;
+                foreach (var innerItem in outerItem.Value)
+                {
+                    var term = GetTermText(fieldName, innerItem.Key);
+                    if(innerItem.Value.Contains(documentId))
+                    {
+                        if (doc.TryGetValue(fieldName, out var fieldData))
+                            doc[fieldName] = fieldData + "," + term;
+                        else
+                            doc[fieldName] = term;
+                    }
+                }
+            }
+            return doc;
+        }
+        private string GetTermText(string fieldName, string value)
+        {
+            if (value == null)
+                return null;
+            return NumberFields.Contains(fieldName) 
+                ? value.Split('|').Last() 
+                : value;
         }
     }
 }

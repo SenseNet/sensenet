@@ -83,6 +83,26 @@ namespace SenseNet.Search
             {
                 throw new System.NotImplementedException();
             }
+
+            public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

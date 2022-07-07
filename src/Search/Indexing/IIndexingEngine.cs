@@ -103,7 +103,10 @@ namespace SenseNet.Search.Indexing
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken);
 
         IndexProperties GetIndexProperties();
-
+        IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex();
+        IDictionary<string, List<int>> GetInvertedIndex(string fieldName);
+        IDictionary<string, string> GetIndexDocumentByVersionId(int versionId);
+        IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId);
     }
 
     /// <summary>

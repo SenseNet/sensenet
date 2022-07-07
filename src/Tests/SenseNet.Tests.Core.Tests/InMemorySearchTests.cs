@@ -1093,6 +1093,84 @@ namespace SenseNet.Tests.Core.Tests
 
             }).ConfigureAwait(false);
         }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndex()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+
+                // ACTION
+                var invertedIndex = indexingEngine.GetInvertedIndex();
+
+                // ASSERT
+                // 1 - check serializability
+                var serialized = JsonSerializer.Serialize(invertedIndex,
+                    new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = true });
+                Assert.IsTrue(serialized.Length > 1000);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexByField()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+
+                // ACTION
+                var invertedIndex = indexingEngine.GetInvertedIndex("LoginName");
+
+                // ASSERT
+                var loginNames = Content.All
+                    .Where(c => c.TypeIs("User"))
+                    .AsEnumerable()
+                    .Select(c=>((string)c["LoginName"]).ToLowerInvariant())
+                    .OrderBy(x => x)
+                    .ToArray();
+                var terms = invertedIndex.Keys
+                    .OrderBy(x => x)
+                    .ToArray();
+                AssertSequenceEqual(loginNames, terms);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexDocByDocId()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var content = Content.All.First(c => c.TypeIs("User") && (string)c["LoginName"] == "VirtualADUser");
+
+                // ACTION
+                var invertedIndex = indexingEngine.GetInvertedIndex("LoginName");
+                var docId = invertedIndex["virtualaduser"].First();
+                var doc = indexingEngine.GetIndexDocumentByDocumentId(docId);
+
+                // ASSERT
+                Assert.AreEqual(content.Id.ToString(), doc["Id"]);
+                Assert.AreEqual(content.ContentHandler.VersionId.ToString(), doc["VersionId"]);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexDocByVersionId()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var content = Content.All.First(c => c.TypeIs("User") && (string)c["LoginName"] == "VirtualADUser");
+                var versionId = content.ContentHandler.VersionId;
+
+                // ACTION
+                var doc = indexingEngine.GetIndexDocumentByVersionId(versionId);
+
+                // ASSERT
+                Assert.AreEqual(content.Id.ToString(), doc["Id"]);
+                Assert.AreEqual(content.ContentHandler.VersionId.ToString(), doc["VersionId"]);
+
+            }).ConfigureAwait(false);
+        }
 
         /* ============================================================================ */
 
@@ -1181,8 +1259,27 @@ namespace SenseNet.Tests.Core.Tests
                 {
                     throw new NotImplementedException();
                 }
-
                 public IndexProperties GetIndexProperties()
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
                 {
                     throw new NotImplementedException();
                 }
