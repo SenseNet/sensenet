@@ -106,10 +106,22 @@ namespace SenseNet.Search.Indexing
 
     }
 
+    /// <summary>
+    /// Provides aggregated information of the index.
+    /// </summary>
     public class IndexProperties
     {
+        /// <summary>
+        /// Gets or sets the current <see cref="IndexingActivityStatus"/>.
+        /// </summary>
         public IndexingActivityStatus IndexingActivityStatus { get; set; }
+        /// <summary>
+        /// Gets or sets ordered list of all field names and term count of the index.
+        /// </summary>
         public IEnumerable<KeyValuePair<string, int>> FieldInfo { get; set; }
+        /// <summary>
+        /// Gets or sets ordered list of all VersionIds in the index.
+        /// </summary>
         public IEnumerable<int> VersionIds { get; set; }
     }
 }

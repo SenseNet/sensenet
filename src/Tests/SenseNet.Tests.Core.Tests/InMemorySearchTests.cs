@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
@@ -1041,7 +1043,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        public async Task InMemSearch_Core_SaveIndex()
+        public async Task InMemSearch_Core_SaveIndex_GetIndexProperties()
         {
             await Test(async () =>
             {
@@ -1058,8 +1060,36 @@ namespace SenseNet.Tests.Core.Tests
                 var indexProperties = indexingEngine.GetIndexProperties();
 
                 // ASSERT
+                // 1 - check serializability
+                var serialized = JsonSerializer.Serialize(indexProperties,
+                    new JsonSerializerOptions {WriteIndented = true, IgnoreNullValues = true});
+                Assert.IsTrue(serialized.Length > 1000);
+
+                // 2 - check versionIds
                 AssertSequenceEqual(allVersionIdsFromDb, indexProperties.VersionIds);
-                Assert.Fail();
+
+                // 3 - check field existence: indexed fields in contenttypes vs all fields in index
+                var allChoiceSortFieldNames = ContentType.GetContentTypes()
+                    .SelectMany(x => x.FieldSettings)
+                    .Where(x => x is ChoiceFieldSetting)
+                    .Select(x => x.Name+"_sort")
+                    .Distinct()
+                    .ToArray();
+                // get all indexed fields + additional fields + choice _sort fields
+                var allIndexedFields = ContentTypeManager.GetAllFieldNames(false)
+                    .Union(new[] {"_Text", "IsInherited", "IsLastDraft", "IsLastPublic", "IsMajor", "IsPublic", "NodeTimestamp", "VersionTimestamp" })
+                    .Union(allChoiceSortFieldNames)
+                    .OrderBy(x => x)
+                    .ToArray();
+                // get field names from index
+                var fieldsInIndex = indexProperties.FieldInfo
+                    .Select(x => x.Key)
+                    .OrderBy(x => x)
+                    .ToArray();
+                Assert.IsTrue(fieldsInIndex.Length > 100);
+                // only fields occurring in existing content are indexed
+                // (count of available fields is greater than the count of indexed fields).
+                AssertSequenceEqual(Array.Empty<string>() , fieldsInIndex.Except(allIndexedFields).ToArray());
 
             }).ConfigureAwait(false);
         }
