@@ -52,6 +52,7 @@ namespace SenseNet.IntegrationTests.Platforms
                 })
 
                 .AddSingleton<ITestingDataProvider, MsSqlTestingDataProvider>()
+                .AddSingleton<ISnTracer, SnDebugViewTracer>()
                 ;
         }
 

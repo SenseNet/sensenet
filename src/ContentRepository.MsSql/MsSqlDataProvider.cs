@@ -362,6 +362,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 return innerException;
             if (innerException is NodeIsOutOfDateException)
                 return innerException;
+            if (innerException is NodeAlreadyExistsException)
+                return innerException;
 
             if (!(innerException is SqlException sqlEx))
                 return null;

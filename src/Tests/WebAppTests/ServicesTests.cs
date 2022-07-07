@@ -897,6 +897,7 @@ namespace WebAppTests
                         typeof(MsSqlStatisticsComponent),
                         typeof(MsSqlClientStoreComponent),
                     }},
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
