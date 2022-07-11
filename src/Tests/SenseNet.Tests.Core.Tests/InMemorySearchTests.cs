@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -24,6 +23,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Testing;
 using SenseNet.Tests.Core.Implementations;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.Core.Tests
@@ -1061,9 +1061,11 @@ namespace SenseNet.Tests.Core.Tests
 
                 // ASSERT
                 // 1 - check serializability
-                var serialized = JsonSerializer.Serialize(indexProperties,
-                    new JsonSerializerOptions {WriteIndented = true, IgnoreNullValues = true});
-                Assert.IsTrue(serialized.Length > 1000);
+                var sb = new StringBuilder();
+                using (var writer = new StringWriter(sb))
+                    JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore })
+                        .Serialize(writer, indexProperties);
+                Assert.IsTrue(sb.Length > 1000);
 
                 // 2 - check versionIds
                 AssertSequenceEqual(allVersionIdsFromDb, indexProperties.VersionIds);
@@ -1105,9 +1107,11 @@ namespace SenseNet.Tests.Core.Tests
 
                 // ASSERT
                 // 1 - check serializability
-                var serialized = JsonSerializer.Serialize(invertedIndex,
-                    new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = true });
-                Assert.IsTrue(serialized.Length > 1000);
+                var sb = new StringBuilder();
+                using (var writer = new StringWriter(sb))
+                    JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore })
+                        .Serialize(writer, invertedIndex);
+                Assert.IsTrue(sb.Length > 1000);
             }).ConfigureAwait(false);
         }
         [TestMethod, TestCategory("IR")]
