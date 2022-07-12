@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
 {
@@ -28,14 +31,21 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             // Configure token authentication and add cookies so that non-script requests
             // (e.g. downloading files and images) work too.
 
+            var authOptions = new AuthenticationOptions();
+            Configuration.GetSection("sensenet:authentication").Bind(authOptions);
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = Configuration["sensenet:authentication:authority"];
+                    options.Authority = authOptions.Authority;
                     options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
+
+                    if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                        options.MetadataAddress =
+                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
 
             // [sensenet]: add sensenet services
@@ -58,9 +68,9 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                IdentityModelEventSource.ShowPII = true;
             }
-
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();            
 
             app.UseRouting();
 
