@@ -104,16 +104,18 @@ namespace SenseNet.ContentRepository.InMemory
             };
         }
 
-        public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+        public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            return (IDictionary<string, IDictionary<string, List<int>>>)
+            var result = (IDictionary<string, IDictionary<string, List<int>>>)
                 Index.IndexData.ToDictionary(x=>x.Key, x=>(IDictionary<string, List<int>>)x.Value);
+            return STT.Task.FromResult(result);
         }
 
-        public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+        public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
         {
-            return Index.IndexData.TryGetValue(fieldName, out var subIndex) ? subIndex : null;
+            var result = Index.IndexData.TryGetValue(fieldName, out var subIndex) ? subIndex : null;
+            return STT.Task.FromResult((IDictionary<string, List<int>>)result);
         }
 
         public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)

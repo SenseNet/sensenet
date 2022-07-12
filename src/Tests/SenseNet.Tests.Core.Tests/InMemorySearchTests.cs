@@ -1103,7 +1103,7 @@ namespace SenseNet.Tests.Core.Tests
                 var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
 
                 // ACTION
-                var invertedIndex = indexingEngine.GetInvertedIndex();
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync(CancellationToken.None);
 
                 // ASSERT
                 // 1 - check serializability
@@ -1122,7 +1122,7 @@ namespace SenseNet.Tests.Core.Tests
                 var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
 
                 // ACTION
-                var invertedIndex = indexingEngine.GetInvertedIndex("LoginName");
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync("LoginName", CancellationToken.None);
 
                 // ASSERT
                 var loginNames = Content.All
@@ -1147,7 +1147,7 @@ namespace SenseNet.Tests.Core.Tests
                 var content = Content.All.First(c => c.TypeIs("User") && (string)c["LoginName"] == "VirtualADUser");
 
                 // ACTION
-                var invertedIndex = indexingEngine.GetInvertedIndex("LoginName");
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync("LoginName", CancellationToken.None);
                 var docId = invertedIndex["virtualaduser"].First();
                 var doc = indexingEngine.GetIndexDocumentByDocumentId(docId);
 
@@ -1268,12 +1268,12 @@ namespace SenseNet.Tests.Core.Tests
                     throw new NotImplementedException();
                 }
 
-                public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+                public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
                 {
                     throw new NotImplementedException();
                 }
 
-                public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+                public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
                 {
                     throw new NotImplementedException();
                 }

@@ -502,12 +502,12 @@ namespace SenseNet.ODataTests
                 throw new NotImplementedException();
             }
 
-            public IDictionary<string, IDictionary<string, List<int>>> GetInvertedIndex()
+            public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
             {
                 throw new NotImplementedException();
             }
 
-            public IDictionary<string, List<int>> GetInvertedIndex(string fieldName)
+            public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
             {
                 throw new NotImplementedException();
             }
