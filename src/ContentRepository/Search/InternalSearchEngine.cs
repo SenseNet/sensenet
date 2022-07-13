@@ -79,6 +79,30 @@ namespace SenseNet.Search
             {
                 throw new SnNotSupportedException();
             }
+            public IndexProperties GetIndexProperties()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

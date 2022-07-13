@@ -497,6 +497,30 @@ namespace SenseNet.ODataTests
             {
                 throw new NotImplementedException();
             }
+            public IndexProperties GetIndexProperties()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
+            {
+                throw new NotImplementedException();
+            }
         }
         private class SearchEngineForIndexBackupTests:ISearchEngine
         {
