@@ -39,8 +39,8 @@ namespace SenseNet.IntegrationTests.Platforms
                 {
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data",
-                            "LocalIndex"));
+                        .UseLucene29LocalSearchEngine(NullLoggerFactory.Instance.CreateLogger<Lucene29SearchEngine>(),
+                            Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider(options =>
                 {
@@ -85,7 +85,8 @@ namespace SenseNet.IntegrationTests.Platforms
             //TODO:<?IntT: Customize indexDirectoryPath if there is more than one platform that uses a local lucene index.
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
-            return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine());
+            return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine(),
+                NullLoggerFactory.Instance.CreateLogger<Lucene29SearchEngine>());
         }
 
         /* ============================================================== */

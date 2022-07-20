@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -61,6 +62,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 await _indexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
                 stopIndexing = true;
             }
+
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+
             // recreate
             consoleWriter?.Write("  Cleanup index ... ");
             await _indexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
