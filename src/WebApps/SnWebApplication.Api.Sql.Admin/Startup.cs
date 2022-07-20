@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Search.Lucene29;
 
 namespace SnWebApplication.Api.Sql.Admin
 {
@@ -44,9 +46,11 @@ namespace SnWebApplication.Api.Sql.Admin
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
+                    var searchEngineLogger = repositoryBuilder.Services.GetService<ILogger<Lucene29SearchEngine>>();
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
+                        .UseLucene29LocalSearchEngine(searchEngineLogger,
+                            Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
