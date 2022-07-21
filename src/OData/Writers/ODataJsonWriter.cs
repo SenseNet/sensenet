@@ -118,6 +118,9 @@ namespace SenseNet.OData.Writers
         {
             var resp = httpContext.Response;
 
+            if (httpContext.Response.HasStarted)
+                return;
+
             switch (response)
             {
                 case null:
