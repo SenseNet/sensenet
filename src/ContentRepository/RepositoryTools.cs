@@ -804,32 +804,37 @@ namespace SenseNet.ContentRepository
 
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
             var response = await engine.GetInvertedIndexAsync(httpContext.RequestAborted);
-
-            httpContext.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
-
-            await httpContext.Response.WriteAsync("{");
-            var fieldLines = 0;
-            foreach (var fieldData in response)
+            
+            using (var op = SnTrace.System.StartOperation("GetWholeInvertedIndex"))
             {
-                var fieldLine = "  \"" + fieldData.Key + "\": {";
-                if (fieldLines++ == 0)
-                    await WriteAsync("\n" + fieldLine);
-                else
-                    await WriteAsync(",\n" + fieldLine);
+                httpContext.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
 
-                var termLines = 0;
-                foreach (var termData in fieldData.Value)
+                await httpContext.Response.WriteAsync("{");
+                var fieldLines = 0;
+                foreach (var fieldData in response)
                 {
-                    var termLine = "    \"" + termData.Key + "\": \"" +
-                               string.Join(" ", termData.Value.Select(x => x.ToString())) + "\"";
-                    if (termLines++ == 0)
-                        await WriteAsync("\n" + termLine);
+                    var fieldLine = "  \"" + fieldData.Key + "\": {";
+                    if (fieldLines++ == 0)
+                        await WriteAsync("\n" + fieldLine);
                     else
-                        await WriteAsync(",\n" + termLine);
+                        await WriteAsync(",\n" + fieldLine);
+
+                    var termLines = 0;
+                    foreach (var termData in fieldData.Value)
+                    {
+                        var termLine = "    \"" + termData.Key + "\": \"" +
+                                       string.Join(" ", termData.Value.Select(x => x.ToString())) + "\"";
+                        if (termLines++ == 0)
+                            await WriteAsync("\n" + termLine);
+                        else
+                            await WriteAsync(",\n" + termLine);
+                    }
+                    await WriteAsync("\n  }");
                 }
-                await WriteAsync("\n  }");
+                await WriteAsync("\n}");
+
+                op.Successful = true;
             }
-            await WriteAsync("\n}");
         }
 
         /// <summary>
