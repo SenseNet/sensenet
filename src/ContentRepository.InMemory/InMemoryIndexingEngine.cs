@@ -92,9 +92,10 @@ namespace SenseNet.ContentRepository.InMemory
             return new IndexProperties
             {
                 IndexingActivityStatus = Index.ReadActivityStatus(),
-                FieldInfo = Index.IndexData.ToDictionary(
-                    x => x.Key,
-                    x => x.Value.Count).OrderBy(x=>x.Key).ToArray(),
+                FieldInfo = Index.IndexData
+                    .ToDictionary(x => x.Key, x => x.Value.Count)
+                    .OrderBy(x=>x.Key)
+                    .ToDictionary(x=>x.Key, x=>x.Value),
                 VersionIds = Index.IndexData
                     .SelectMany(x => x.Value
                         .SelectMany(y => y.Value))
