@@ -822,7 +822,9 @@ namespace SenseNet.ContentRepository
                     var termLines = 0;
                     foreach (var termData in fieldData.Value)
                     {
-                        var termLine = "    \"" + termData.Key + "\": \"" +
+                        var termLine = "    \"" +
+                                       termData.Key.Replace("\\", "\\\\")
+                                           .Replace("\"", "\\\"") + "\": \"" +
                                        string.Join(" ", termData.Value.Select(x => x.ToString())) + "\"";
                         if (termLines++ == 0)
                             await WriteAsync("\n" + termLine);
