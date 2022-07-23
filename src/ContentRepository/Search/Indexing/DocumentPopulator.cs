@@ -91,6 +91,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public async STT.Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken, 
             IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
         {
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+
             if (level == IndexRebuildLevel.DatabaseAndIndex)
             {
                 using (var op2 = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index documents."))

@@ -54,8 +54,12 @@ namespace SenseNet.Tools.SnInitialDataGenerator
     {
         public bool Running => true;
         public bool IndexIsCentralized => false;
+        private InMemoryIndex _index;
 
-        public IndexingEngineForInitialDataGenerator(InMemorySearchEngine searchEngine) : base(searchEngine) { }
+        public IndexingEngineForInitialDataGenerator(InMemorySearchEngine searchEngine) : base(searchEngine)
+        {
+            _index = searchEngine.Index;
+        }
 
 
         List<IndexDocument> _documents = new List<IndexDocument>();
@@ -72,6 +76,18 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         private IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
+            var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();
+
+            foreach (var item in indexingInfo)
+            {
+                var fieldName = item.Key;
+                var fieldInfo = item.Value;
+                if (fieldInfo.Analyzer != IndexFieldAnalyzer.Default)
+                    analyzerTypes.Add(fieldName, fieldInfo.Analyzer);
+            }
+
+            _index.Analyzers = analyzerTypes;
+
             _indexingInfo = indexingInfo;
         }
 
