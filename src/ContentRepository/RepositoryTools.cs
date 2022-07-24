@@ -716,12 +716,12 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets summary information about the index.
-        /// Contains activity status, field info and versionId list.
+        /// Contains the activity status, field info and a versionId list.
         /// Useful in debugging scenarios.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
-        /// Here is a shortened example:
+        /// A shortened example:
         /// <code>
         /// {
         ///   "IndexingActivityStatus": {
@@ -740,9 +740,9 @@ namespace SenseNet.ContentRepository
         ///}
         /// </code>
         /// <para>The properties are:
-        /// - IndexingActivityStatus: information about the progress of the indexing process (local index only)
-        /// - FieldInfo: Sorted list of the indexed fields. Every item is a key-value pair with field name and count of terms.
-        /// - VersionIds: sorted list of all indexed versionIds. Note that the versionId is the primary key of the index documents.
+        /// - IndexingActivityStatus: information about the progress of the indexing process (local index only).
+        /// - FieldInfo: sorted list of indexed fields. Every item is a key-value pair with the field name and the count of terms.
+        /// - VersionIds: sorted list of all indexed versionIds. Note that the versionId is the primary key of index documents.
         /// </para>
         /// </remarks>
         /// <param name="content"></param>
@@ -758,25 +758,24 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Shows the whole inverted index in raw format, but with some transformations for easier readability.
-        /// WARNING! Note that the index may contain sensitive information.
-        /// It is important to know whether it should be kept confidential.
+        /// Shows the whole inverted index in a raw format with some transformations for easier readability.
+        /// WARNING! The index may contain sensitive information.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// <para>
-        /// Note that some index providers do not support this feature because of the index's enormous size.
+        /// Note that some index providers do not support this feature because of the size of the index.
         /// </para>
         /// <para>
-        /// The response does not appear all at once because it is downloaded by a streaming technique.
-        /// This may affect browser add-ons (e.g. json validator or formatter, etc.)
+        /// The response does not appear all at once because it is generated using a streaming technique.
+        /// This may affect browser add-ons (e.g. json validator or formatter, etc.).
         /// </para>
         /// An annotated example:
         /// <code>
         /// {
         ///   "ActionTypeName": {          // level-1: field
         ///     "clientaction":            // level-2: term
-        ///         "0 1 2 3 7 12 19 ..."  // level-3: sorted documentId list in one string
+        ///         "0 1 2 3 7 12 19 ..."  // level-3: sorted documentId list as a single string
         ///   },
         ///   /* ... */
         ///   "Description": {
@@ -790,7 +789,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
-        /// <returns>Whole raw index.</returns>
+        /// <returns>The whole raw index.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -840,13 +839,12 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Shows the inverted index of the requested field in raw format, but with some transformations for easier readability.
-        /// WARNING! Note that the index may contain sensitive information.
-        /// It is important to know whether it should be kept confidential.
+        /// Shows the inverted index of the requested field in a raw format with some transformations for easier readability.
+        /// WARNING! The index may contain sensitive information.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
-        /// A shortened example where the fieldName = "Description":
+        /// A shortened example where the fieldName is "Description":
         /// <code>
         /// {
         ///   /* ... */
@@ -859,8 +857,8 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
-        /// <param name="fieldName">Field name that identifies the requested sub-index.</param>
-        /// <returns>Key-value pairs of the term and sorted documentId list.</returns>
+        /// <param name="fieldName">The field name that identifies the requested sub-index.</param>
+        /// <returns>Key-value pairs of the term and a sorted documentId list.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -873,13 +871,12 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the index document (not-inverted index) of the current version of the requested resource.
-        /// WARNING! Note that the index may contain sensitive information.
-        /// It is important to know whether it should be kept confidential.
+        /// WARNING! The index may contain sensitive information.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// <para>
-        /// The version of the requested resource depends from the logged in user's permissions but can be tailored by the
+        /// The version of the requested resource depends on the logged in user's permissions but can be tailored by the
         /// general parameter "version".
         /// This parameter format is ((['V'|'v'])?[majornumber][.][minornumber]([.] [*]+)?)|'lastmajor'|'lastminor'
         /// Valid examples: V1.0, 2.3, v12.3456, lastmajor, lastminor
@@ -887,7 +884,7 @@ namespace SenseNet.ContentRepository
         /// Open, OpenMinor, RecallOldVersions.
         /// </para>
         /// <para>
-        /// The response contains key-value pairs where the key is the field name and the value is the ordered term values.
+        /// The response contains key-value pairs where the key is the field name and the value is a list of ordered term values.
         /// A shortened example:
         /// </para>
         /// <code>
@@ -935,14 +932,13 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the index document (not-inverted index) of the requested documentId.
-        /// WARNING! Note that the index may contain sensitive information.
-        /// It is important to know whether it should be kept confidential.
+        /// WARNING! The index may contain sensitive information.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
-        /// The documentId depends from the index provider and comes from the inverted index
+        /// The documentId depends on the index provider and comes from the inverted index
         /// (see the <see cref="GetInvertedIndex"/> function).
-        /// The response contains key-value pairs where the key is the field name and the value is the ordered term values.
+        /// The response contains key-value pairs where the key is the field name and the value is a list of ordered term values.
         /// A shortened example:
         /// <code>
         /// {
