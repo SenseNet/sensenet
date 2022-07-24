@@ -38,6 +38,7 @@ namespace SenseNet.ContentRepository.InMemory
             }
 
             _analyzers = analyzerTypes;
+            Index.Analyzers = _analyzers;
             ((InMemoryIndexingEngine)IndexingEngine).NumberFields = numberFields;
         }
 

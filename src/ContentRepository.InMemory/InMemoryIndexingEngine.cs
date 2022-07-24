@@ -92,9 +92,10 @@ namespace SenseNet.ContentRepository.InMemory
             return new IndexProperties
             {
                 IndexingActivityStatus = Index.ReadActivityStatus(),
-                FieldInfo = Index.IndexData.ToDictionary(
-                    x => x.Key,
-                    x => x.Value.Count).OrderBy(x=>x.Key).ToArray(),
+                FieldInfo = Index.IndexData
+                    .ToDictionary(x => x.Key, x => x.Value.Count)
+                    .OrderBy(x=>x.Key)
+                    .ToDictionary(x=>x.Key, x=>x.Value),
                 VersionIds = Index.IndexData
                     .SelectMany(x => x.Value
                         .SelectMany(y => y.Value))
@@ -108,13 +109,27 @@ namespace SenseNet.ContentRepository.InMemory
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
             var result = (IDictionary<string, IDictionary<string, List<int>>>)
-                Index.IndexData.ToDictionary(x=>x.Key, x=>(IDictionary<string, List<int>>)x.Value);
+                Index.IndexData
+                    .OrderBy(x => x.Key)
+                    .ToDictionary(
+                        x => x.Key,
+                        x => (IDictionary<string, List<int>>) x.Value
+                            .OrderBy(y => y.Key)
+                            .ToDictionary(
+                                y => GetTermText(x.Key, y.Key),
+                                y => y.Value));
             return STT.Task.FromResult(result);
         }
 
         public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
         {
-            var result = Index.IndexData.TryGetValue(fieldName, out var subIndex) ? subIndex : null;
+            var raw = Index.IndexData
+                .TryGetValue(fieldName, out var subIndex) ? subIndex : null;
+            if (raw == null)
+                return null;
+            var result = raw
+                .OrderBy(x=>x.Key)
+                .ToDictionary(x => GetTermText(fieldName, x.Key), x => x.Value);
             return STT.Task.FromResult((IDictionary<string, List<int>>)result);
         }
 

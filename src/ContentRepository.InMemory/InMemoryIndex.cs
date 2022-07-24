@@ -24,6 +24,8 @@ namespace SenseNet.ContentRepository.InMemory
         /// </summary>
         public string IndexDocumentPath { get; set; }
 
+        public IDictionary<string, IndexFieldAnalyzer> Analyzers { get; set; }
+
         /* ========================================================================== Data */
 
         // FieldName => FieldValue => VersionId
@@ -96,6 +98,8 @@ namespace SenseNet.ContentRepository.InMemory
             foreach (var field in document)
             {
                 var fieldName = field.Name;
+                if (!Analyzers.TryGetValue(fieldName, out var analyzer))
+                    analyzer = IndexFieldAnalyzer.Default;
 
                 if (!IndexData.TryGetValue(fieldName, out var existingFieldData))
                 {
@@ -103,7 +107,7 @@ namespace SenseNet.ContentRepository.InMemory
                     IndexData.Add(fieldName, existingFieldData);
                 }
 
-                var fieldValues = GetValues(field);
+                var fieldValues = GetValues(field, analyzer);
 
                 foreach (var fieldValue in fieldValues)
                 {
@@ -184,7 +188,7 @@ namespace SenseNet.ContentRepository.InMemory
                 return;
 
             var deletableVersionIds = new List<int>();
-            var fieldValues = GetValues(term);
+            var fieldValues = GetValues(term, IndexFieldAnalyzer.Default);
             foreach (var fieldValue in fieldValues)
             {
                 // get version id set by term value
@@ -230,7 +234,7 @@ namespace SenseNet.ContentRepository.InMemory
         {
             var fieldName = term.Name;
 
-            var fieldValues = GetValues(term);
+            var fieldValues = GetValues(term, IndexFieldAnalyzer.Default);
             if (fieldValues.Count == 0)
                 return null;
             if (fieldValues.Count > 1)
@@ -254,14 +258,17 @@ namespace SenseNet.ContentRepository.InMemory
             return result;
         }
 
-        private List<string> GetValues(SnTerm field)
+        private List<string> GetValues(SnTerm field, IndexFieldAnalyzer analyzer)
         {
             var fieldValues = new List<string>();
 
-            if (field.Name == IndexFieldName.AllText) //TODO: it would be better to use an analyzer
+            if (analyzer == IndexFieldAnalyzer.Standard || field.Name == IndexFieldName.AllText)
             {
                 var words = field.StringValue
                     .Split(" \t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                    .Distinct()
+                    .SelectMany(GetAnalyzedText)
+                    .Where(s => s.Length > 0)
                     .Distinct()
                     .Select(s => s.ToLowerInvariant());
                 fieldValues.AddRange(words);
@@ -276,6 +283,22 @@ namespace SenseNet.ContentRepository.InMemory
                     fieldValues.Add(IndexValueToString(field));
             }
             return fieldValues;
+        }
+
+        private string[] GetAnalyzedText(string text)
+        {
+            var chars = new char[text.Length];
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (char.IsLetterOrDigit(text[i]))
+                    chars[i] = text[i];
+                else
+                    chars[i] = ' ';
+            }
+
+            var analyzed = new string(chars);
+            var result = analyzed.Split(" \t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            return result;
         }
 
         public int GetTermCount(string fieldName)
