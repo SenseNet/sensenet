@@ -560,6 +560,13 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public User CheckedOutTo => this.LockedBy as User;
 
+        public override bool HasProperty(string name)
+        {
+            if (name == "CheckedOutTo")
+                return true;
+            return base.HasProperty(name);
+        }
+
         /// <summary>
         /// Gets a value that is true if the value of the VersioningMode is <see cref="VersioningType.Inherited"/>.
         /// </summary>
