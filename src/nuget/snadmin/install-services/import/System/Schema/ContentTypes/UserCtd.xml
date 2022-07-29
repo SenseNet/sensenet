@@ -282,6 +282,7 @@
       <Configuration>
         <FieldIndex>180</FieldIndex>
         <DateTimeMode>Date</DateTimeMode>
+        <MaxValue>@@Today@@</MaxValue>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
