@@ -2,6 +2,7 @@
 using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Diagnostics;
 
@@ -187,6 +188,32 @@ namespace SenseNet.ContentRepository.Fields
             return true;
         }
 
+        public override bool IsLocalized
+        {
+            get
+            {
+                if (!LocalizationEnabled)
+                    return false;
+                var text = (GetData() as RichTextFieldValue)?.Text;
+                if (string.IsNullOrEmpty(text))
+                    return false;
+                return text[0] == SenseNetResourceManager.ResourceKeyPrefix;
+            }
+        }
 
+        public override object GetData(bool localized)
+        {
+            var value = base.GetData(localized);
+            var rvalue = value as RichTextFieldValue;
+            var text = rvalue?.Text;
+            if (text == null)
+                return value;
+
+            rvalue.Text = SenseNetResourceManager.ParseResourceKey(text, out var className, out var name)
+                ? SenseNetResourceManager.Current.GetString(className, name)
+                : text;
+
+            return rvalue;
+        }
     }
 }
