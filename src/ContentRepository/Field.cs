@@ -358,7 +358,7 @@ namespace SenseNet.ContentRepository
         {
             get { return this.FieldSetting.LocalizationEnabled; }
         }
-        public bool IsLocalized
+        public virtual bool IsLocalized
         {
             get
             {
