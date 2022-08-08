@@ -1363,6 +1363,31 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.26.1", "7.7.26.2", "2022-08-08", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
+
+                    #region CTD changes
+
+                    try
+                    {
+                        var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+
+                        cb.Type("User")
+                            .Field("BirthDate")
+                            .Configure("MaxValue", "@@Today@@");
+
+                        cb.Apply();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error during User CTD changes.");
+                    }
+
+                    #endregion
+                });
         }
 
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
