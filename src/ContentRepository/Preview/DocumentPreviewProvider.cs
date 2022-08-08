@@ -1531,7 +1531,7 @@ namespace SenseNet.Preview
         [ODataFunction]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static object PreviewAvailable(Content content, int page)
+        public static PreviewAvailableResponse PreviewAvailable(Content content, int page)
         {
             var thumb = Current != null ? Current.GetThumbnailImage(content, page) : null;
             if (thumb != null)
@@ -1539,7 +1539,7 @@ namespace SenseNet.Preview
                 var pi = Current != null ? Current.GetPreviewImage(content, page) : null;
                 if (pi != null)
                 {
-                    return new
+                    return new PreviewAvailableResponse
                     {
                         PreviewAvailable = pi.Path,
                         Width = (int)pi["Width"],
@@ -1548,7 +1548,14 @@ namespace SenseNet.Preview
                 }
             }
 
-            return new { PreviewAvailable = (string)null };
+            return new PreviewAvailableResponse { PreviewAvailable = (string)null };
+        }
+
+        public class PreviewAvailableResponse
+        {
+            public string PreviewAvailable { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
         }
 
         /// <summary>Gets path and dimension information for existing preview images.
@@ -1581,11 +1588,11 @@ namespace SenseNet.Preview
         [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
+        public static IEnumerable<GetExistingPreviewImagesResponse> GetExistingPreviewImagesForOData(Content content)
         {
             foreach (var image in DocumentPreviewProvider.Current.GetExistingPreviewImages(content))
             {
-                yield return new
+                yield return new GetExistingPreviewImagesResponse
                 {
                     PreviewAvailable = image.Path,
                     Width = (int)image["Width"],
@@ -1593,6 +1600,10 @@ namespace SenseNet.Preview
                     Index = image.Index
                 };
             }
+        }
+        public class GetExistingPreviewImagesResponse : PreviewAvailableResponse
+        {
+            public int Index { get; set; }
         }
 
         /// <summary>Gets the number of preview pages of a document. If preview generation
@@ -1647,7 +1658,7 @@ namespace SenseNet.Preview
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         /// <param name="empty">True if the preview folder should be deleted and re-created.</param>
-        /// <returns>A custom object containing the id and path of the folder.</returns>
+        /// <returns>A response object containing the id and path of the folder.</returns>
         /// <example>
         /// <code>
         /// {
@@ -1659,7 +1670,7 @@ namespace SenseNet.Preview
         [ODataAction(Description = "Get previews folder")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static object GetPreviewsFolder(Content content, bool empty)
+        public static GetPreviewsFolderResponse GetPreviewsFolder(Content content, bool empty)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
@@ -1667,11 +1678,16 @@ namespace SenseNet.Preview
             // load, create or re-create the previews folder
             var previewsFolder = DocumentPreviewProvider.Current.GetPreviewsFolder(content.ContentHandler, empty);
 
-            return new
+            return new GetPreviewsFolderResponse
             {
                 Id = previewsFolder.Id,
                 Path = previewsFolder.Path
             };
+        }
+        public class GetPreviewsFolderResponse
+        {
+            public int Id { get; set; }
+            public string Path { get; set; }
         }
 
         /// <summary>Sets the preview status if a document.
@@ -1750,12 +1766,12 @@ namespace SenseNet.Preview
         /// and starts generating preview images - regardless of existing images.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        /// <returns>A custom object containing the current page count (likely to be
+        /// <returns>A response object containing the current page count (likely to be
         /// -1 meaning In progress and 0 as the current preview count).</returns>
         [ODataAction(Description = "Regenerate preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static object RegeneratePreviews(Content content)
+        public static RegeneratePreviewsResponse RegeneratePreviews(Content content)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
@@ -1768,7 +1784,12 @@ namespace SenseNet.Preview
             // reload to make sure we have the latest value
             var file = Node.Load<File>(content.Id);
 
-            return new { file.PageCount, PreviewCount = 0 };
+            return new RegeneratePreviewsResponse { PageCount = file.PageCount, PreviewCount = 0 };
+        }
+        public class RegeneratePreviewsResponse
+        {
+            public int PageCount { get; set; }
+            public int PreviewCount { get; set; }
         }
 
         /// <summary>Checks the number of pages and preview images of a document.</summary>
@@ -1788,14 +1809,14 @@ namespace SenseNet.Preview
         [ODataAction(Description = "Check preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static object CheckPreviews(Content content, bool generateMissing)
+        public static CheckPreviewsResponse CheckPreviews(Content content, bool generateMissing)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
 
             var file = content.ContentHandler as File;
             if (file == null || !Current.IsContentSupported(file) || !Current.HasPreviewPermission(NodeHead.Get(content.Id)))
-                return new { PageCount = 0, PreviewCount = 0 };
+                return new CheckPreviewsResponse { PageCount = 0, PreviewCount = 0 };
 
             // the page count is unknown yet or never will be known
             if (file.PageCount < 1)
@@ -1810,13 +1831,13 @@ namespace SenseNet.Preview
                         break;
                 }
 
-                return new { file.PageCount, PreviewCount = 0 };
+                return new CheckPreviewsResponse { PageCount = file.PageCount, PreviewCount = 0 };
             }
 
             // check if there is a folder for preview images
             var previewsFolder = Current.GetPreviewsFolder(file);
             if (previewsFolder == null)
-                return new { file.PageCount, PreviewCount = 0 };
+                return new CheckPreviewsResponse { PageCount = file.PageCount, PreviewCount = 0 };
 
             // number of existing preview images
             var existingCount = QueryPreviewImages(previewsFolder.Path).Count(pi => pi.Index > 0);
@@ -1837,7 +1858,13 @@ namespace SenseNet.Preview
                 });
             }
 
-            return new { file.PageCount, PreviewCount = existingCount };
+            return new CheckPreviewsResponse { PageCount = file.PageCount, PreviewCount = existingCount };
+        }
+
+        public class CheckPreviewsResponse
+        {
+            public int PageCount { get; set; }
+            public int PreviewCount { get; set; }
         }
 
         /// <summary>Finalizes a preview generation task for a document.
