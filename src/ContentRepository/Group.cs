@@ -446,7 +446,7 @@ namespace SenseNet.ContentRepository
         [ODataAction]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
-        public static object AddMembers(Content content, int[] contentIds)
+        public static void AddMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
             RepositoryTools.AssertArgumentNull(contentIds, "contentIds");
@@ -460,8 +460,6 @@ namespace SenseNet.ContentRepository
             // add the provided reference nodes
             group.AddReferences<Node>(MEMBERS, Node.LoadNodes(contentIds));
             group.Save();
-
-            return null;
         }
 
         /// <summary>
@@ -474,7 +472,7 @@ namespace SenseNet.ContentRepository
         [ODataAction]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
-        public static object RemoveMembers(Content content, int[] contentIds)
+        public static void RemoveMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
             RepositoryTools.AssertArgumentNull(contentIds, "contentIds");
@@ -489,8 +487,6 @@ namespace SenseNet.ContentRepository
             Node.LoadNodes(contentIds).ForEach(refNode => group.RemoveReference(MEMBERS, refNode));
 
             group.Save();
-
-            return null;
         }
 
         // =================================================================================== Events
