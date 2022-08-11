@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ContentRepository.MsSql\SenseNet.ContentRepository.MsSql.csproj" />
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\OpenApi\SenseNet.OpenApi.csproj" />
     <ProjectReference Include="..\..\Services.Core.Install\SenseNet.Services.Core.Install.csproj" />
     <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
     <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
