@@ -8,10 +8,9 @@ using System.Xml;
 namespace SenseNet.OpenApi
 {
     [DebuggerDisplay("{OperationName}")]
-    internal class ODataOperationInfo
+    public class ODataOperationInfo
     {
         private static string CR = Environment.NewLine;
-        private readonly XmlElement _documentationElement;
 
         public bool IsValid { get; set; } = true;
         public bool IsDeprecated { get; set; }
@@ -35,10 +34,10 @@ namespace SenseNet.OpenApi
         public OperationParameterInfo ReturnValue { get; } = new OperationParameterInfo();
 
         public string Category { get; private set; }
+        public string Url { get; set; }
 
-        public ODataOperationInfo(XmlElement documentationElement)
+        public ODataOperationInfo()
         {
-            _documentationElement = documentationElement;
         }
 
         public void Normalize()
@@ -46,13 +45,17 @@ namespace SenseNet.OpenApi
             OperationName = OperationName == null ? MethodName : OperationName.Trim('"');
 
             ContentTypes = NormalizeList(ContentTypes);
-            IsStatic = ContentTypes.Count == 1 && ContentTypes[0] == "N.CT.PortalRoot";
+            IsStatic = ContentTypes.Count == 1 && ContentTypes[0] == "PortalRoot";
             AllowedRoles = NormalizeList(AllowedRoles);
             RequiredPermissions = NormalizeList(RequiredPermissions);
             RequiredPolicies = NormalizeList(RequiredPolicies);
             Scenarios = NormalizeList(Scenarios);
 
             Description = Description?.Trim('"').Trim();
+
+            Url = IsStatic
+                ? "/OData.svc/('Root')/" + OperationName
+                : "/OData.svc/{_path}('{_name}')/" + OperationName;
         }
 
         public List<string> NormalizeList(List<string> list)
@@ -60,27 +63,27 @@ namespace SenseNet.OpenApi
             return list.SelectMany(x => x.Trim('"').Split(',').Select(y => y.Trim())).Distinct().ToList();
         }
 
-        public void ParseDocumentation()
+        public void ParseDocumentation(XmlElement documentationElement)
         {
-            if (_documentationElement == null)
+            if (documentationElement == null)
                 return;
 
-            ParseCategory();
-            ParseLinks();
-            ParseCode();
-            ParseParameterDoc();
-            ParseParagraphs();
-            ParseExamples();
-            ParseExceptions();
+            ParseCategory(documentationElement);
+            ParseLinks(documentationElement);
+            ParseCode(documentationElement);
+            ParseParameterDoc(documentationElement);
+            ParseParagraphs(documentationElement);
+            ParseExamples(documentationElement);
+            ParseExceptions(documentationElement);
 
-            var text = _documentationElement.InnerXml;
+            var text = documentationElement.InnerXml;
             text = NormalizeWhitespaces(text);
             Documentation = text;
         }
 
-        private void ParseCategory()
+        private void ParseCategory(XmlElement documentationElement)
         {
-            var node = _documentationElement.SelectSingleNode("snCategory");
+            var node = documentationElement.SelectSingleNode("snCategory");
             node?.ParentNode.RemoveChild(node);
             var category = node?.InnerText;
             if (string.IsNullOrEmpty(category))
@@ -88,32 +91,32 @@ namespace SenseNet.OpenApi
             Category = category;
         }
 
-        private void ParseParameterDoc()
+        private void ParseParameterDoc(XmlElement documentationElement)
         {
             // <value>text</value> Replace with _text_
-            foreach (var valueElement in _documentationElement.SelectNodes("//value").OfType<XmlElement>().ToArray())
+            foreach (var valueElement in documentationElement.SelectNodes("//value").OfType<XmlElement>().ToArray())
             {
                 var innerXml = valueElement.InnerXml;
                 if (string.IsNullOrEmpty(innerXml))
                     continue;
 
-                var text = _documentationElement.OwnerDocument.CreateTextNode($"_{innerXml}_");
+                var text = documentationElement.OwnerDocument.CreateTextNode($"_{innerXml}_");
                 valueElement.ParentNode.ReplaceChild(text, valueElement);
             }
 
             // <paramref name=""> Replace with _name_
-            foreach (var paramrefElement in _documentationElement.SelectNodes("//paramref").OfType<XmlElement>().ToArray())
+            foreach (var paramrefElement in documentationElement.SelectNodes("//paramref").OfType<XmlElement>().ToArray())
             {
                 var name = paramrefElement.Attributes["name"]?.Value;
                 if (name == null)
                     continue;
 
-                var text = _documentationElement.OwnerDocument.CreateTextNode($"_{name}_");
+                var text = documentationElement.OwnerDocument.CreateTextNode($"_{name}_");
                 paramrefElement.ParentNode.ReplaceChild(text, paramrefElement);
             }
 
             // <param name=""> Move to parameter's documentation
-            foreach (var paramElement in _documentationElement.SelectNodes("param").OfType<XmlElement>().ToArray())
+            foreach (var paramElement in documentationElement.SelectNodes("param").OfType<XmlElement>().ToArray())
             {
                 var name = paramElement.Attributes["name"]?.Value;
                 if (name == null)
@@ -128,25 +131,25 @@ namespace SenseNet.OpenApi
                     parameter.Example = example;
 
                 parameter.Documentation = paramElement.InnerXml;
-                _documentationElement.RemoveChild(paramElement);
+                documentationElement.RemoveChild(paramElement);
             }
 
             // <returns> Move to ReturnValue's documentation
-            var returnElement = _documentationElement.SelectSingleNode("returns");
+            var returnElement = documentationElement.SelectSingleNode("returns");
             if (returnElement == null)
                 return;
             ReturnValue.Documentation = returnElement.InnerXml;
-            _documentationElement.RemoveChild(returnElement);
+            documentationElement.RemoveChild(returnElement);
         }
 
-        private void ParseCode()
+        private void ParseCode(XmlElement documentationElement)
         {
-            foreach (var element in _documentationElement.SelectNodes("//c").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("//c").OfType<XmlElement>().ToArray())
             {
-                var text = _documentationElement.OwnerDocument.CreateTextNode($"`{element.InnerXml}`");
+                var text = documentationElement.OwnerDocument.CreateTextNode($"`{element.InnerXml}`");
                 element.ParentNode.ReplaceChild(text, element);
             }
-            foreach (var element in _documentationElement.SelectNodes("//code").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("//code").OfType<XmlElement>().ToArray())
             {
                 var src = element.InnerXml.TrimEnd(' ', '\t');
 
@@ -155,18 +158,18 @@ namespace SenseNet.OpenApi
 
                 var lang = element.Attributes["lang"]?.Value ?? string.Empty;
 
-                var text = _documentationElement.OwnerDocument.CreateTextNode($"``` {lang}{cr1}{src}{cr2}```{CR}");
+                var text = documentationElement.OwnerDocument.CreateTextNode($"``` {lang}{cr1}{src}{cr2}```{CR}");
 
                 element.ParentNode.ReplaceChild(text, element);
             }
         }
 
-        private void ParseLinks()
+        private void ParseLinks(XmlElement documentationElement)
         {
             // <seealso cref=""> Replace with _cref_
             // <see cref=""> Replace with _cref_
-            var nodes = _documentationElement.SelectNodes("//seealso").OfType<XmlElement>()
-                .Union(_documentationElement.SelectNodes("//see").OfType<XmlElement>())
+            var nodes = documentationElement.SelectNodes("//seealso").OfType<XmlElement>()
+                .Union(documentationElement.SelectNodes("//see").OfType<XmlElement>())
                 .ToArray();
             foreach (var element in nodes)
             {
@@ -174,44 +177,44 @@ namespace SenseNet.OpenApi
                 if (cref == null)
                     continue;
 
-                var text = _documentationElement.OwnerDocument.CreateTextNode($"_{cref}_");
+                var text = documentationElement.OwnerDocument.CreateTextNode($"_{cref}_");
                 element.ParentNode.ReplaceChild(text, element);
             }
         }
 
-        private void ParseParagraphs()
+        private void ParseParagraphs(XmlElement documentationElement)
         {
             // <nodoc>... Remove these nodes
-            foreach (var element in _documentationElement.SelectNodes("//nodoc").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("//nodoc").OfType<XmlElement>().ToArray())
             {
                 element.ParentNode.RemoveChild(element);
             }
             // <para>... Replace with a newline + inner text.
-            foreach (var element in _documentationElement.SelectNodes("//para").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("//para").OfType<XmlElement>().ToArray())
             {
-                var text = _documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
+                var text = documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
                 element.ParentNode.ReplaceChild(text, element);
             }
             // <summary>... Replace with a newline + inner text.
-            foreach (var element in _documentationElement.SelectNodes("summary").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("summary").OfType<XmlElement>().ToArray())
             {
                 this.Summary = element.InnerText;
-                var text = _documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
+                var text = documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
                 element.ParentNode.ReplaceChild(text, element);
             }
             // <remarks>... Replace with a newline + inner text.
-            foreach (var element in _documentationElement.SelectNodes("remarks").OfType<XmlElement>().ToArray())
+            foreach (var element in documentationElement.SelectNodes("remarks").OfType<XmlElement>().ToArray())
             {
-                var text = _documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
+                var text = documentationElement.OwnerDocument.CreateTextNode(CR + CR + element.InnerText + CR + CR);
                 element.ParentNode.ReplaceChild(text, element);
             }
         }
 
-        private void ParseExamples()
+        private void ParseExamples(XmlElement documentationElement)
         {
             var sb = new StringBuilder();
             // <example>... Move to end
-            var elements = _documentationElement.SelectNodes("example").OfType<XmlElement>().ToArray();
+            var elements = documentationElement.SelectNodes("example").OfType<XmlElement>().ToArray();
             foreach (var element in elements)
             {
                 if (sb.Length == 0)
@@ -220,15 +223,15 @@ namespace SenseNet.OpenApi
                 sb.AppendLine(element.InnerText);
                 element.ParentNode.RemoveChild(element);
             }
-            var text = _documentationElement.OwnerDocument.CreateTextNode(sb.ToString());
-            _documentationElement.AppendChild(text);
+            var text = documentationElement.OwnerDocument.CreateTextNode(sb.ToString());
+            documentationElement.AppendChild(text);
         }
 
-        private void ParseExceptions()
+        private void ParseExceptions(XmlElement documentationElement)
         {
             var sb = new StringBuilder();
             // <exception>... Move to end
-            var elements = _documentationElement.SelectNodes("exception").OfType<XmlElement>().ToArray();
+            var elements = documentationElement.SelectNodes("exception").OfType<XmlElement>().ToArray();
             foreach (var element in elements)
             {
                 var cref = element.Attributes["cref"]?.Value;
@@ -241,8 +244,8 @@ namespace SenseNet.OpenApi
                 sb.AppendLine($"- {cref}: {element.InnerText}");
                 element.ParentNode.RemoveChild(element);
             }
-            var text = _documentationElement.OwnerDocument.CreateTextNode(sb.ToString());
-            _documentationElement.AppendChild(text);
+            var text = documentationElement.OwnerDocument.CreateTextNode(sb.ToString());
+            documentationElement.AppendChild(text);
         }
 
         private string NormalizeWhitespaces(string text)

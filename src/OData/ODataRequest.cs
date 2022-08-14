@@ -17,7 +17,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.OData
 {
-    internal enum OutputFormat { None, JSON, VerboseJSON, Atom, Xml }
+    public enum OutputFormat { None, JSON, VerboseJSON, Atom, Xml }
 
     /// <summary>
     /// Defines values for handling collection count.

@@ -145,7 +145,7 @@ namespace SenseNet.OpenApi
         }
         #endregion
 
-        private static OpenApiDocument CreateOpenApiDocument(string thisUrl)
+        public static OpenApiDocument CreateOpenApiDocument(string thisUrl)
         {
             var asms = TypeResolver.GetAssemblies();
             var cr = asms.First(x => x.GetName().Name.Equals("SenseNet.ContentRepository", StringComparison.OrdinalIgnoreCase));

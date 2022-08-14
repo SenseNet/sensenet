@@ -27,8 +27,8 @@ namespace SenseNet.OpenApi
             var thisUri = new Uri(httpContext.Request.GetDisplayUrl());
             var thisUrl = $"{thisUri.Scheme}://{thisUri.Authority}";
 
-            //var api = new OpenApiGenerator().Generate(thisUrl);
-            var api = CreateOpenApiDocument(thisUrl);
+            var api = new OpenApiGenerator().Generate(thisUrl);
+            //var api = CreateOpenApiDocument(thisUrl);
 
             var settings = new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.Indented};
             var sb = new StringBuilder();
@@ -43,41 +43,35 @@ namespace SenseNet.OpenApi
         {
             var documentationFiles = new Dictionary<Assembly, XmlDocument>();
             var operations = ODataTools.GetOperations();
-            var oDataOperations = new List<ODataOperationInfo>();
-            foreach (var operation in operations.Values)
+            var api = CreateOpenApiDocument(thisUrl);
+            var apiBuilder = new OpenApiBuilder(api);
+            foreach (var operation in operations.Values.SelectMany(x => x))
             {
-                if (operation.Length == 1)
-                {
-                    var method = operation[0].Method;
-                    var documentationElement = GetDocumentationElement(method, documentationFiles);
-                    var oDataOp = BuildODataOperation(operation[0], documentationElement, documentationFiles);
-                    oDataOperations.Add(oDataOp);
-                }
-                else
-                {
-                    // has overload
-                    int w = 1;
-                }
-
-                int q = 1;
+                var method = operation.Method;
+                var oDataOp = BuildODataOperation(operation);
+                var documentationElement = GetDocumentationElement(method, documentationFiles);
+                oDataOp.ParseDocumentation(documentationElement);
+                apiBuilder.Add(oDataOp);
             }
 
-            var api = CreateOpenApiDocument(thisUrl);
-
-            //UNDONE: Build API
+            api.Paths = api.Paths
+                .OrderBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.Value);
+            api.Components.Schemas = api.Components.Schemas
+                .OrderBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.Value);
 
             return api;
         }
 
-        private ODataOperationInfo BuildODataOperation(OperationInfo operation, XmlElement documentationElement, Dictionary<Assembly, XmlDocument> documentationFiles)
+        private ODataOperationInfo BuildODataOperation(OperationInfo operation)
         {
-            var op = new ODataOperationInfo(documentationElement);
+            var op = new ODataOperationInfo();
 
             var method = operation.Method;
             op.MethodName = method.Name;
             op.ClassName = method.DeclaringType?.FullName;
 
-            method.GetCustomAttributes();
             foreach (var attribute in method.GetCustomAttributes())
             {
                 if (attribute is ODataOperationAttribute oDataOperationAttribute)
@@ -124,7 +118,7 @@ namespace SenseNet.OpenApi
             op.ReturnValue.Type = ((MethodInfo) method).ReturnType;
 
             op.Normalize();
-            op.ParseDocumentation();
+            //op.ParseDocumentation();
 
             return op;
         }
@@ -138,16 +132,16 @@ namespace SenseNet.OpenApi
             if (!docFiles.TryGetValue(asm, out var xml))
             {
                 var docFileName = System.IO.Path.ChangeExtension(asm.Location, ".xml");
-                xml = new XmlDocument();
                 try
                 {
+                    xml = new XmlDocument();
                     xml.Load(docFileName);
                     docFiles.Add(asm, xml);
                 }
                 catch
                 {
                     //UNDONE: Add "missing documentation file" error information to the OpenApiDocument summary.
-                    return null;
+                    docFiles.Add(asm, null);
                 }
             }
 
@@ -166,8 +160,5 @@ namespace SenseNet.OpenApi
 
             return documentationElement;
         }
-
-
     }
-
 }
