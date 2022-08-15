@@ -136,10 +136,5 @@ namespace SenseNet.OData
 
             return (ODataArray)ctor.Invoke(new [] { data });
         }
-
-        public static IDictionary<string, OperationInfo[]> GetOperations()
-        {
-            return OperationCenter.Operations;
-        }
     }
 }
