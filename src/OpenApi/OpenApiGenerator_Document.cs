@@ -135,7 +135,11 @@ namespace SenseNet.OpenApi
                         Url = "https://github.com/SenseNet/sensenet/blob/master/LICENSE"
                     }
                 },
-                Servers = new[] { new Server { Url = thisUrl.TrimEnd('/') } },
+                Servers = new[] { new Server
+                {
+                    Url = thisUrl.TrimEnd('/'),
+                    Description = "sensenet repository"
+                } },
                 Tags = new List<Tag>
                 {
                     new Tag{Name="Metadata", Description = "Methods that provide OData metadata documents."},
