@@ -15,7 +15,7 @@ namespace SenseNet.OpenApi
     {
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.All)]
         public static string GetOpenApiDocument(Content content, HttpContext httpContext)
         {
             var clientStoreOptions = httpContext.RequestServices.GetRequiredService<IOptions<ClientStoreOptions>>().Value;
