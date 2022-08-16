@@ -125,6 +125,10 @@ namespace SenseNet.OpenApi
                     Title = "sensenet API",
                     Description = infoDesc,
                     Version = crVersion,
+                    Contact = new Contact
+                    {
+                        Email = "support@sensenet.com"
+                    },
                     License = new License
                     {
                         Name = "GNU General Public License v2.0",
@@ -146,6 +150,7 @@ namespace SenseNet.OpenApi
                             {
                                 Tags = new []{ "Metadata" },
                                 Summary = "Returns OData Service Document.",
+                                Description = "Returns feed of the top level collections.",
                                 OperationId = "sn_v1_get_service_document",
                                 Responses = new Dictionary<string, Response>
                                 {
@@ -442,7 +447,7 @@ namespace SenseNet.OpenApi
                                     {
                                         {"application/json", new MediaType
                                             {
-                                                Schema = new ObjectSchema{Ref = Ref.Schemas + Ref.S.ContentModificationRequest}
+                                                Schema = new ObjectSchema{Ref = Ref.Schemas + Ref.S.ContentResetRequest}
                                             }
                                         }
                                     }
@@ -710,7 +715,7 @@ namespace SenseNet.OpenApi
                                     {
                                         {"application/json", new MediaType
                                             {
-                                                Schema = new ObjectSchema{Ref = Ref.Schemas + Ref.S.ContentModificationRequest}
+                                                Schema = new ObjectSchema{Ref = Ref.Schemas + Ref.S.ContentResetRequest}
                                             }
                                         }
                                     }

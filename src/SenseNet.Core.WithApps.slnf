@@ -8,6 +8,7 @@
       "ContentRepository.InMemory\\SenseNet.ContentRepository.InMemory.csproj",
       "ContentRepository\\SenseNet.ContentRepository.csproj",
       "OData\\SenseNet.OData.csproj",
+      "OpenApi\\SenseNet.OpenApi.csproj",
       "Search\\SenseNet.Search.csproj",
       "Services.Core.Install\\SenseNet.Services.Core.Install.csproj",
       "Services.Core\\SenseNet.Services.Core.csproj",
