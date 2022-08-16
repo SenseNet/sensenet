@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Security
     {
         // ============================================================================= Classes for serialization
 
-        private class IdentityInfo
+        public class IdentityInfo
         {
             [JsonProperty("path")]
             public string Path { get; set; }
@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Security
             [JsonProperty("groups")]
             public GroupInfo[] Groups { get; set; }
         }
-        private class GroupInfo
+        public class GroupInfo
         {
             [JsonProperty("path")]
             public string Path { get; set; }
@@ -43,7 +43,7 @@ namespace SenseNet.ContentRepository.Security
             [JsonProperty("displayName")]
             public string DisplayName { get; set; }
         }
-        private class ChildPermissionInfo
+        public class ChildPermissionInfo
         {
             [JsonProperty("path")]
             public string Path { get; set; }
@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Security
             [JsonProperty("subPermissions")]
             public PermissionInfo[] SubPermissions { get; set; }
         }
-        private class PermissionInfo
+        public class PermissionInfo
         {
             [JsonProperty("name")]
             public string Name { get; set; }
@@ -76,6 +76,35 @@ namespace SenseNet.ContentRepository.Security
             public string Type { get; set; }
             [JsonProperty("localOnly")]
             public bool LocalOnly { get; set; }
+        }
+
+        public abstract class PermissionInfoResponse
+        {
+            [JsonProperty("identity", Order = 1)]
+            public IdentityInfo Identity { get; set; }
+        }
+        public class SinglePermissionInfoResponse : PermissionInfoResponse
+        {
+            [JsonProperty("permissionInfo", Order = 2)]
+            public ChildPermissionInfo PermissionInfo { get; set; }
+        }
+        public class ChildrenPermissionInfoResponse : PermissionInfoResponse
+        {
+            [JsonProperty("results", Order = 2)]
+            public ChildPermissionInfo[] Results { get; set; }
+        }
+        public abstract class GetPermissionInfoResponse
+        {
+        }
+        public class GetSinglePermissionInfoResponse : GetPermissionInfoResponse
+        {
+            [JsonProperty("d")]
+            public SinglePermissionInfoResponse Data { get; set; }
+        }
+        public class GetChildrenPermissionInfoResponse : GetPermissionInfoResponse
+        {
+            [JsonProperty("d")]
+            public ChildrenPermissionInfoResponse Data { get; set; }
         }
 
         /* ============================================================================= OData operations */
@@ -254,9 +283,9 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
-        public static object GetPermissionInfo(Content content, HttpContext httpContext, string identity)
+        public static GetSinglePermissionInfoResponse GetPermissionInfo(Content content, HttpContext httpContext, string identity)
         {
-            return GetPermissionInfo(content, httpContext, identity, true);
+            return (GetSinglePermissionInfoResponse)GetPermissionInfo(content, httpContext, identity, true);
         }
 
         /// <summary>
@@ -270,12 +299,12 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
-        public static object GetChildrenPermissionInfo(Content content, HttpContext httpContext, string identity)
+        public static GetChildrenPermissionInfoResponse GetChildrenPermissionInfo(Content content, HttpContext httpContext, string identity)
         {
-            return GetPermissionInfo(content, httpContext, identity, false);
+            return (GetChildrenPermissionInfoResponse)GetPermissionInfo(content, httpContext, identity, false);
         }
 
-        private static object GetPermissionInfo(Content content, HttpContext httpContext, string identity, bool singleContent)
+        private static GetPermissionInfoResponse GetPermissionInfo(Content content, HttpContext httpContext, string identity, bool singleContent)
         {
             // This method assembles an object containing identity information (basic fields and all groups), 
             // inherited and subtree permissions that can be serialized and sent to the client.
@@ -329,23 +358,23 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
             if (singleContent)
             {
                 // collect permissions for the provided single content
-                return new
+                return new GetSinglePermissionInfoResponse
                 {
-                    d = new
+                    Data = new SinglePermissionInfoResponse
                     {
-                        identity = identityInfo,
-                        permissionInfo = GetPermissionInfo(content, httpContext, identities, permissionsTypes)
+                        Identity = identityInfo,
+                        PermissionInfo = GetPermissionInfo(content, httpContext, identities, permissionsTypes)
                     }
                 };
             }
 
             // alternatively, collect permissions for child elements
-            return new
+            return new GetChildrenPermissionInfoResponse
             {
-                d = new
+                Data = new ChildrenPermissionInfoResponse
                 {
-                    identity = identityInfo,
-                    results = content.Children.DisableAutofilters().AsEnumerable()
+                    Identity = identityInfo,
+                    Results = content.Children.DisableAutofilters().AsEnumerable()
                         .Select(child => GetPermissionInfo(child, httpContext, identities, permissionsTypes)).ToArray()
                 }
             };
