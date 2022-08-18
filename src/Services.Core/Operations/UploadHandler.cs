@@ -284,10 +284,15 @@ namespace SenseNet.Services.Core.Operations
                 {
                     // create content for an empty file if necessary
                     var emptyFile = await GetContentAsync(parent, cancellationToken).ConfigureAwait(false);
-                    if (emptyFile != null && emptyFile.IsNew)
+                    if (emptyFile != null)
                     {
+                        if (!emptyFile.IsNew)
+                        {
+                            var binaryData = (BinaryData)emptyFile[PropertyName];
+                            binaryData.Reset();
+                            binaryData.SetStream(new MemoryStream());
+                        }
                         emptyFile.Save();
-
                         return GetJsonFromContent(emptyFile, FormFile);
                     }
 
