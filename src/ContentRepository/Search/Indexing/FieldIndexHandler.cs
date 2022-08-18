@@ -916,14 +916,12 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            var field = (Field)snField;
-
-            if (SenseNetResourceManager.Running && field.LocalizationEnabled && field.IsLocalized && SenseNetResourceManager.ParseResourceKey(field.GetStoredValue(), out var className, out var name))
+            if (SenseNetResourceManager.Running && snField.LocalizationEnabled && snField.IsLocalized && SenseNetResourceManager.ParseResourceKey(snField.GetStoredValue(), out var className, out var name))
             {
                 var strings = SenseNetResourceManager.Current.GetStrings(className, name)
                     .Select(s => s.ToLowerInvariant()).ToArray();
                 textExtract = string.Join(" ", strings);
-                return CreateField(field.Name, textExtract);
+                return CreateField(snField.Name, textExtract);
             }
             var data = snField.GetData() as string;
             textExtract = data?.ToLowerInvariant() ?? string.Empty;
@@ -966,17 +964,16 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            var field = (Field)snField;
-            var text = (field.GetData() as RichTextFieldValue)?.Text;
+            var text = (snField.GetData() as RichTextFieldValue)?.Text;
             var isLocalized = string.IsNullOrEmpty(text) ? false : text[0] == SenseNetResourceManager.ResourceKeyPrefix;
 
-            if (SenseNetResourceManager.Running && field.LocalizationEnabled && isLocalized &&
+            if (SenseNetResourceManager.Running && snField.LocalizationEnabled && isLocalized &&
                 SenseNetResourceManager.ParseResourceKey(text, out var className, out var name))
             {
                 var strings = SenseNetResourceManager.Current.GetStrings(className, name)
                     .Select(s => s.ToLowerInvariant()).ToArray();
                 textExtract = string.Join(" ", strings);
-                return CreateField(field.Name, textExtract);
+                return CreateField(snField.Name, textExtract);
             }
 
             var data = snField.GetData() as RichTextFieldValue;
