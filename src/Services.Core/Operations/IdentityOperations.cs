@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,15 @@ namespace SenseNet.Services.Core.Operations
         public string Value { get; set; }
     }
 
+    [Serializable]
+    public class MissingDomainException : Exception
+    {
+        public MissingDomainException() { }
+        public MissingDomainException(string message) : base(message) { }
+        public MissingDomainException(string message, Exception inner) : base(message, inner) { }
+        protected MissingDomainException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
+
     public static class IdentityOperations
     {
         /// <summary>Validates the provided user credentials.</summary>
@@ -46,10 +56,12 @@ namespace SenseNet.Services.Core.Operations
         /// }
         /// </code>
         /// </example>
+        /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
+        /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static object ValidateCredentials(Content content, HttpContext context, string userName, string password)
+        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context, string userName, string password)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -76,13 +88,13 @@ namespace SenseNet.Services.Core.Operations
                 {
                     if (user.CheckPasswordMatch(password))
                     {
-                        return new
+                        return new CredentialValidationResult
                         {
-                            id = user.Id,
-                            email = user.Email,
-                            username = user.Username,
-                            name = user.Name,
-                            loginName = user.LoginName
+                            Id = user.Id,
+                            Email = user.Email,
+                            Username = user.Username,
+                            Name = user.Name,
+                            LoginName = user.LoginName
                         };
                     }
 
@@ -91,6 +103,20 @@ namespace SenseNet.Services.Core.Operations
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
+        }
+
+        public class CredentialValidationResult
+        {
+            [JsonProperty("id")]
+            public int Id { get; set; }
+            [JsonProperty("email")]
+            public string Email { get; set; }
+            [JsonProperty("username")]
+            public string Username { get; set; }
+            [JsonProperty("name")]
+            public string Name { get; set; }
+            [JsonProperty("loginName")]
+            public string LoginName { get; set; }
         }
 
         /// <summary>Creates an external user who registered using one of the available
