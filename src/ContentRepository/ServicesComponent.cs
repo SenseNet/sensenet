@@ -1325,7 +1325,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.26", "7.7.26.1", "2022-07-01", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.26", "7.7.27", "2022-08-19", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1354,6 +1354,12 @@ namespace SenseNet.ContentRepository
                                 setting.Binary.SetStream(modifiedStream);
                                 setting.Save(SavingMode.KeepVersion);
                             }
+                            else
+                            {
+                                logger.LogTrace(cc == null
+                                    ? "Settings contenttype header section could not be added to Portal settings."
+                                    : "Settings contenttype header section already exists in Portal settings.");
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -1362,12 +1368,6 @@ namespace SenseNet.ContentRepository
                     }
 
                     #endregion
-                });
-
-            builder.Patch("7.7.26.1", "7.7.26.2", "2022-08-08", "Upgrades sensenet content repository.")
-                .Action(context =>
-                {
-                    var logger = context.GetService<ILogger<ServicesComponent>>();
 
                     #region CTD changes
 
