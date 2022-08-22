@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -66,6 +64,50 @@ namespace SenseNet.Services.Core.Tests
             LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
             {
                 var result = ValidateCredentials("domain1\\admin", "admin");
+            });
+        }
+
+        [TestMethod]
+        public void Login_NoDomain_BuiltIn_User1_Ok_WithUser1InPublic()
+        {
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            {
+                CreateUserInPublicDomain("User1", "user1");
+                var result = ValidateCredentials("user1", "user1");
+            });
+        }
+
+        [TestMethod]
+        public void Login_NoDomain_DoubleCache()
+        {
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            {
+                var nodeId = CreateUserInPublicDomain("User1", "user1");
+
+                var key1 = "user-*-user1";
+                var key2 = "user-public-user1";
+
+                Cache.Reset();
+
+                Assert.IsNull(Cache.Get(key1));
+                Assert.IsNull(Cache.Get(key2));
+
+                ValidateCredentials("user1", "user1");
+
+                Assert.IsNotNull(Cache.Get(key1));
+                Assert.IsNull(Cache.Get(key2));
+
+                ValidateCredentials("public\\user1", "user1");
+
+                Assert.IsNotNull(Cache.Get(key1));
+                Assert.IsNotNull(Cache.Get(key2));
+
+                var user1 = Node.LoadNode(nodeId);
+                user1.Index++;
+                user1.Save();
+
+                Assert.IsNull(Cache.Get(key1));
+                Assert.IsNull(Cache.Get(key2));
             });
         }
 
@@ -146,7 +188,7 @@ namespace SenseNet.Services.Core.Tests
         }
 
 
-        private void CreateUserInPublicDomain(string loginName, string password)
+        private int CreateUserInPublicDomain(string loginName, string password)
         {
             var user = new User(Node.LoadNode("/Root/IMS/Public"))
             {
@@ -157,6 +199,8 @@ namespace SenseNet.Services.Core.Tests
                 Enabled = true
             };
             user.Save();
+
+            return user.Id;
         }
         private IdentityOperations.CredentialValidationResult ValidateCredentials(string userName, string password)
         {
@@ -169,18 +213,21 @@ namespace SenseNet.Services.Core.Tests
 
         private void LoginTest(DomainUsagePolicy domainUsagePolicy, string defaultDomain, Action callback)
         {
-            if (defaultDomain != BuiltIn)
-                new Domain(Repository.ImsFolder, defaultDomain).Save();
-
-            using (new Swindler<DomainUsagePolicy>(domainUsagePolicy,
-                       () => IdentityManagement.DomainUsagePolicy,
-                       (policy => IdentityManagement.DomainUsagePolicy = policy)))
-            using (new Swindler<string>(defaultDomain,
-                       () => IdentityManagement.DefaultDomain,
-                       (domain => IdentityManagement.DefaultDomain = domain)))
+            Test(() =>
             {
-                Test(callback);
-            }
+                if (defaultDomain != BuiltIn)
+                    new Domain(Repository.ImsFolder) {Name = defaultDomain}.Save();
+
+                using (new Swindler<DomainUsagePolicy>(domainUsagePolicy,
+                           () => IdentityManagement.DomainUsagePolicy,
+                           (policy => IdentityManagement.DomainUsagePolicy = policy)))
+                using (new Swindler<string>(defaultDomain,
+                           () => IdentityManagement.DefaultDomain,
+                           (domain => IdentityManagement.DefaultDomain = domain)))
+                {
+                    callback();
+                }
+            });
         }
     }
 }

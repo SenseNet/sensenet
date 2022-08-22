@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Security.Clients;
@@ -28,7 +29,9 @@ namespace SenseNet.Services.Core.Operations
     [Serializable]
     public class MissingDomainException : Exception
     {
-        public MissingDomainException() { }
+        public static readonly string DefaultMessage = "Domain should be specified.";
+
+        public MissingDomainException() : base(DefaultMessage) { }
         public MissingDomainException(string message) : base(message) { }
         public MissingDomainException(string message, Exception inner) : base(message, inner) { }
         protected MissingDomainException(SerializationInfo info, StreamingContext context) : base(info, context) { }
@@ -77,6 +80,7 @@ namespace SenseNet.Services.Core.Operations
                 if (user == null)
                 {
                     SnTrace.Security.Write($"Could not find a user with the name: {userName}");
+                    CheckDomainPolicy(userName);
                 }
                 else if (!user.Enabled)
                 {
@@ -103,6 +107,26 @@ namespace SenseNet.Services.Core.Operations
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
+        }
+
+        private static void CheckDomainPolicy(string userName)
+        {
+            // return if the domain is specified
+            if (userName.IndexOf('\\') >= 0)
+                return;
+
+            // policy violation if not specified
+            if (IdentityManagement.DomainUsagePolicy == DomainUsagePolicy.MandatoryDomain)
+                throw new MissingDomainException();
+
+            // "default domain" policy is ok 
+            if (IdentityManagement.DomainUsagePolicy != DomainUsagePolicy.NoDomain)
+                return;
+
+            // "no domain" policy: check user occurrence by name in all domains.
+            var users = Content.All.Where(c => c.InTree(Repository.ImsFolder) && c.Name == userName).ToArray();
+            if (users.Length > 1)
+                throw new MissingDomainException();
         }
 
         public class CredentialValidationResult

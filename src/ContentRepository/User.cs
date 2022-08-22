@@ -35,6 +35,7 @@ namespace SenseNet.ContentRepository
     public class User : GenericContent, IUser, IADSyncable, SenseNet.Security.ISecurityUser
     {
         private const string Profiles = "Profiles";
+        private const string AnyDomain = "*";
 
         /// <summary>
         /// Gets the Administrator user.
@@ -411,13 +412,25 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         public static User Load(string domain, string name, ExecutionHint hint)
         {
-            domain = string.IsNullOrWhiteSpace(domain) ? IdentityManagement.DefaultDomain : domain;
+            if (string.IsNullOrWhiteSpace(domain))
+            {
+                switch (IdentityManagement.DomainUsagePolicy)
+                {
+                    case DomainUsagePolicy.NoDomain: domain = AnyDomain; break;
+                    case DomainUsagePolicy.DefaultDomain: domain = IdentityManagement.DefaultDomain; break;
+                    case DomainUsagePolicy.MandatoryDomain: return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(
+                            "Unknown DomainUsagePolicy: " + IdentityManagement.DomainUsagePolicy);
+                }
+            }
+
             if (domain == null)
                 throw new ArgumentNullException(nameof(domain));
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
 
-            // look for the user ID in the cache by the doman-username key
+            // look for the user ID in the cache by the domain-username key
             var ck = GetUserCacheKey(domain, name);
             var userIdobject = Cache.Get(ck);
             if (userIdobject != null)
@@ -428,7 +441,10 @@ namespace SenseNet.ContentRepository
                     return cachedUser;
             }
 
-            var domainPath = string.Concat(RepositoryStructure.ImsFolderPath, RepositoryPath.PathSeparator, domain);
+            var domainPath = RepositoryStructure.ImsFolderPath;
+            if(domain != AnyDomain)
+                domainPath += RepositoryPath.PathSeparator + domain;
+
             var type = Providers.Instance.StorageSchema.NodeTypes[typeof(User).Name];
 
             User user;
