@@ -986,10 +986,14 @@ namespace SenseNet.ContentRepository
             if (withSystemFolder)
             {
                 // SystemFolder can be created anywhere if the user has the necessary permissions on the CTD
-                var systemFolderType = ContentType.GetByName(systemFolderName);
-                if (systemFolderType.Security.HasPermission(PermissionType.See))
-                    if (!names.Contains(systemFolderName))
-                        names.Add(systemFolderName);
+                //   and the folder is not /Root/System/Schema/ContentTypes
+                if (!this.Path.Equals(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    var systemFolderType = ContentType.GetByName(systemFolderName);
+                    if (systemFolderType.Security.HasPermission(PermissionType.See))
+                        if (!names.Contains(systemFolderName))
+                            names.Add(systemFolderName);
+                }
             }
 
             return names;
@@ -1046,10 +1050,14 @@ namespace SenseNet.ContentRepository
             }
 
             // SystemFolder can be created anywhere if the user has the necessary permissions on the CTD
-            var systemFolderType = ContentType.GetByName(systemFolderName);
-            if (systemFolderType.Security.HasPermission(PermissionType.See))
-                if (!types.Contains(systemFolderType))
-                    types.Add(systemFolderType);
+            //   and the folder is not /Root/System/Schema/ContentTypes
+            if (!this.Path.Equals(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                var systemFolderType = ContentType.GetByName(systemFolderName);
+                if (systemFolderType.Security.HasPermission(PermissionType.See))
+                    if (!types.Contains(systemFolderType))
+                        types.Add(systemFolderType);
+            }
 
             return types;
         }

@@ -581,6 +581,24 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void AllowedChildTypes_AdditionalSystemFolder()
+        {
+            Test(() =>
+            {
+                // ACTION
+                var names1 = Repository.ContentTypesFolder.GetAllowedChildTypeNames();
+                var names2 = Node.Load<GenericContent>(Repository.SettingsFolderPath).GetAllowedChildTypeNames();
+                var types1 = Repository.ContentTypesFolder.GetAllowedChildTypes();
+                var types2 = Node.Load<GenericContent>(Repository.SettingsFolderPath).GetAllowedChildTypes();
+
+                // ASSERT
+                Assert.AreEqual("ContentType", string.Join(", ", names1));
+                Assert.AreEqual("Settings, SystemFolder", string.Join(", ", names2));
+                Assert.AreEqual("ContentType", string.Join(", ", types1.Select(x => x.Name)));
+                Assert.AreEqual("Settings, SystemFolder", string.Join(", ", types2.Select(x => x.Name)));
+            });
+        }
 
         /* ================================================================================== */
 
