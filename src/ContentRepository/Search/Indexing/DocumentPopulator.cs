@@ -63,7 +63,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 stopIndexing = true;
             }
 
-            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.IndexingInfoCache.IndexingInfo);
 
             // recreate
             consoleWriter?.Write("  Cleanup index ... ");
@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public async STT.Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken, 
             IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
         {
-            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.IndexingInfoCache.IndexingInfo);
 
             if (level == IndexRebuildLevel.DatabaseAndIndex)
             {
