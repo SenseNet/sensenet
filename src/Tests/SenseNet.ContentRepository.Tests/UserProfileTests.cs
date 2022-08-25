@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Testing;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
@@ -32,7 +33,7 @@ namespace SenseNet.ContentRepository.Tests
             }, () =>
             {
                 CreateProfileTemplate();
-                
+
                 var parentPath = RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, IdentityManagement.BuiltInDomainName);
                 var parent = Node.LoadNode(parentPath);
                 var user1 = new User(parent)
@@ -41,7 +42,12 @@ namespace SenseNet.ContentRepository.Tests
                     LoginName = "samplesam@example.com",
                     Email = "samplesam@example.com"
                 };
-                user1.Save();
+                using (new Swindler<bool>(true,
+                           () => IdentityManagement.UserProfilesEnabled,
+                           v => IdentityManagement.UserProfilesEnabled = v))
+                {
+                    user1.Save();
+                }
 
                 // check if all items in the newly created profile subtree have the user as their Owner
                 foreach (var content in Content.All.Where(c => c.InTree(user1.ProfilePath)))
