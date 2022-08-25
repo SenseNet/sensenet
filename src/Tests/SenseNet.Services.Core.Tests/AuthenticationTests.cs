@@ -33,8 +33,8 @@ namespace SenseNet.Services.Core.Tests
                 var user = await IdentityOperations.CreateLocalUser(root, context, userName, userName, userName + "@example.com");
 
                 // check if the user can log in
-                dynamic result = IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
-                Assert.AreEqual(user.Id, result.id);
+                var result = IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
+                Assert.AreEqual(user.Id, result.Id);
 
                 // ACTION: disable the user
                 user["Enabled"] = false;

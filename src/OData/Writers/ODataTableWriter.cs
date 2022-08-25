@@ -53,9 +53,7 @@ namespace SenseNet.OData.Writers
         /// <inheritdoc />
         protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields)
         {
-            var expansion = this.ODataRequest.Select
-                .Select(x => x.Split('/'))
-                .ToDictionary(x=>x[0], x=>x.Skip(1).ToArray());
+            var expansion = GetExpansion();
 
             using (var writer = new StringWriter())
             {
@@ -92,7 +90,10 @@ namespace SenseNet.OData.Writers
                         writer.Write("      <tr><td>");
                         writer.Write(item.Key);
                         writer.Write("</td><td>");
-                        WriteValue(writer, Project(item.Value, expansion[item.Key]));
+                        if (expansion.TryGetValue(item.Key, out var exp))
+                            WriteValue(writer, Project(item.Value, exp));
+                        else
+                            WriteValue(writer, item.Value);
                         writer.Write("</td></tr>\n");
                     }
                 }
@@ -189,7 +190,11 @@ namespace SenseNet.OData.Writers
                         {
                             colIndex = colNames.IndexOf(item.Key);
                             if (colIndex >= 0)
-                                row[colIndex] = Project(item.Value, expansion[colIndex - 1]);
+                            {
+                                row[colIndex] = expansion.TryGetValue(item.Key, out var exp)
+                                    ? row[colIndex] = Project(item.Value, exp)
+                                    : row[colIndex] = item.Value;
+                            }
                         }
                         writer.Write("      <tr>\n");
 
@@ -242,11 +247,11 @@ namespace SenseNet.OData.Writers
             return value;
         }
 
-        private string[][] GetExpansion()
+        private IDictionary<string, string[]> GetExpansion()
         {
             return this.ODataRequest.Select
-                .Select(x => x.Split('/').Skip(1).ToArray())
-                .ToArray();
+                .Select(x => x.Split('/'))
+                .ToDictionary(x => x[0], x => x.Skip(1).ToArray());
         }
 
         /// <inheritdoc />
