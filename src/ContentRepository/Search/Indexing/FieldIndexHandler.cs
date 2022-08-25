@@ -622,13 +622,21 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
-            return new IndexValue(text.ToLowerInvariant());
+            return new IndexValue(IsRegex(text) ? text : text.ToLowerInvariant());
         }
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
+            if (value == null)
+                return new IndexValue(string.Empty);
+            var text = (string) value;
+            return new IndexValue(IsRegex(text) ? text : text.ToLowerInvariant());
         }
+        private bool IsRegex(string text)
+        {
+            return text.Length > 1 && text[0] == '/' && text[text.Length - 1] == '/';
+        }
+
         /// <inheritdoc cref="SenseNet.ContentRepository.Search.Indexing.IIndexValueConverter&lt;T&gt;.GetBack(string)" />
         public string GetBack(string indexFieldValue)
         {
@@ -908,6 +916,13 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
+            if (SenseNetResourceManager.Running && snField.LocalizationEnabled && snField.IsLocalized && SenseNetResourceManager.ParseResourceKey(snField.GetStoredValue(), out var className, out var name))
+            {
+                var strings = SenseNetResourceManager.Current.GetStrings(className, name)
+                    .Select(s => s.ToLowerInvariant()).ToArray();
+                textExtract = string.Join(" ", strings);
+                return CreateField(snField.Name, textExtract);
+            }
             var data = snField.GetData() as string;
             textExtract = data?.ToLowerInvariant() ?? string.Empty;
             return CreateField(snField.Name, textExtract);
@@ -949,6 +964,18 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
+            var text = (snField.GetData() as RichTextFieldValue)?.Text;
+            var isLocalized = string.IsNullOrEmpty(text) ? false : text[0] == SenseNetResourceManager.ResourceKeyPrefix;
+
+            if (SenseNetResourceManager.Running && snField.LocalizationEnabled && isLocalized &&
+                SenseNetResourceManager.ParseResourceKey(text, out var className, out var name))
+            {
+                var strings = SenseNetResourceManager.Current.GetStrings(className, name)
+                    .Select(s => s.ToLowerInvariant()).ToArray();
+                textExtract = string.Join(" ", strings);
+                return CreateField(snField.Name, textExtract);
+            }
+
             var data = snField.GetData() as RichTextFieldValue;
             textExtract = data?.Text?.ToLowerInvariant() ?? string.Empty;
             return CreateField(snField.Name, textExtract);

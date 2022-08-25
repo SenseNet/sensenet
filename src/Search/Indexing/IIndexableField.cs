@@ -32,5 +32,9 @@ namespace SenseNet.Search.Indexing
         /// The transformation uses the appropriate IFieldIndexHandler implementation.
         /// </summary>
         IEnumerable<IndexField> GetIndexFields(out string textExtract);
+
+        bool LocalizationEnabled { get; }
+        bool IsLocalized { get; }
+        string GetStoredValue();
     }
 }

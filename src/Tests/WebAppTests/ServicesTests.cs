@@ -529,14 +529,14 @@ namespace WebAppTests
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
             typeof(IStatisticalDataProvider),
-            typeof(ISnTracer[]),
+            //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
             typeof(IStatisticalDataProvider),
-            typeof(ISnTracer[]),
+            //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
 
@@ -568,6 +568,8 @@ namespace WebAppTests
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -597,6 +599,8 @@ namespace WebAppTests
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -784,6 +788,9 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -820,6 +827,9 @@ namespace WebAppTests
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnService), new[] {typeof(WopiService) }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -851,6 +861,8 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -885,6 +897,7 @@ namespace WebAppTests
                         typeof(MsSqlStatisticsComponent),
                         typeof(MsSqlClientStoreComponent),
                     }},
+                    {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -914,6 +927,8 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                     }},
+
+                    {typeof(ISnTracer), typeof(SnFileSystemTracer)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName

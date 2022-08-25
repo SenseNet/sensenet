@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -22,6 +23,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Testing;
 using SenseNet.Tests.Core.Implementations;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.Core.Tests
@@ -1040,6 +1042,140 @@ namespace SenseNet.Tests.Core.Tests
 
         }
 
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexProperties()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var allVersionIdsFromDb = Content.All
+                    .DisableAutofilters()
+                    .Where(c => c.InTree("/Root"))
+                    .AsEnumerable()
+                    .Select(c => c.ContentHandler.VersionId)
+                    .OrderBy(x => x)
+                    .ToArray();
+
+                // ACTION
+                var indexProperties = indexingEngine.GetIndexProperties();
+
+                // ASSERT
+                // 1 - check serializability
+                var sb = new StringBuilder();
+                using (var writer = new StringWriter(sb))
+                    JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore })
+                        .Serialize(writer, indexProperties);
+                Assert.IsTrue(sb.Length > 1000);
+
+                // 2 - check versionIds
+                AssertSequenceEqual(allVersionIdsFromDb, indexProperties.VersionIds);
+
+                // 3 - check field existence: indexed fields in contenttypes vs all fields in index
+                var allChoiceSortFieldNames = ContentType.GetContentTypes()
+                    .SelectMany(x => x.FieldSettings)
+                    .Where(x => x is ChoiceFieldSetting)
+                    .Select(x => x.Name+"_sort")
+                    .Distinct()
+                    .ToArray();
+                // get all indexed fields + additional fields + choice _sort fields
+                var allIndexedFields = ContentTypeManager.GetAllFieldNames(false)
+                    .Union(new[] {"_Text", "IsInherited", "IsLastDraft", "IsLastPublic", "IsMajor", "IsPublic", "NodeTimestamp", "VersionTimestamp" })
+                    .Union(allChoiceSortFieldNames)
+                    .OrderBy(x => x)
+                    .ToArray();
+                // get field names from index
+                var fieldsInIndex = indexProperties.FieldInfo
+                    .Select(x => x.Key)
+                    .OrderBy(x => x)
+                    .ToArray();
+                Assert.IsTrue(fieldsInIndex.Length > 100);
+                // only fields occurring in existing content are indexed
+                // (count of available fields is greater than the count of indexed fields).
+                AssertSequenceEqual(Array.Empty<string>() , fieldsInIndex.Except(allIndexedFields).ToArray());
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndex()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+
+                // ACTION
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync(CancellationToken.None);
+
+                // ASSERT
+                // 1 - check serializability
+                var sb = new StringBuilder();
+                using (var writer = new StringWriter(sb))
+                    JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore })
+                        .Serialize(writer, invertedIndex);
+                Assert.IsTrue(sb.Length > 1000);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexByField()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+
+                // ACTION
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync("LoginName", CancellationToken.None);
+
+                // ASSERT
+                var loginNames = Content.All
+                    .Where(c => c.TypeIs("User"))
+                    .AsEnumerable()
+                    .Select(c=>((string)c["LoginName"]).ToLowerInvariant())
+                    .OrderBy(x => x)
+                    .ToArray();
+                var terms = invertedIndex.Keys
+                    .OrderBy(x => x)
+                    .ToArray();
+                AssertSequenceEqual(loginNames, terms);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexDocByDocId()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var content = Content.All.First(c => c.TypeIs("User") && (string)c["LoginName"] == "VirtualADUser");
+
+                // ACTION
+                var invertedIndex = await indexingEngine.GetInvertedIndexAsync("LoginName", CancellationToken.None);
+                var docId = invertedIndex["virtualaduser"].First();
+                var doc = indexingEngine.GetIndexDocumentByDocumentId(docId);
+
+                // ASSERT
+                Assert.AreEqual(content.Id.ToString(), doc["Id"]);
+                Assert.AreEqual(content.ContentHandler.VersionId.ToString(), doc["VersionId"]);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("IR")]
+        public async Task InMemSearch_Core_SaveIndex_GetIndexDocByVersionId()
+        {
+            await Test(async () =>
+            {
+                var indexingEngine = Providers.Instance.SearchEngine.IndexingEngine;
+                var content = Content.All.First(c => c.TypeIs("User") && (string)c["LoginName"] == "VirtualADUser");
+                var versionId = content.ContentHandler.VersionId;
+
+                // ACTION
+                var doc = indexingEngine.GetIndexDocumentByVersionId(versionId);
+
+                // ASSERT
+                Assert.AreEqual(content.Id.ToString(), doc["Id"]);
+                Assert.AreEqual(content.ContentHandler.VersionId.ToString(), doc["VersionId"]);
+
+            }).ConfigureAwait(false);
+        }
+
         /* ============================================================================ */
 
         private void SetPerFieldIndexingInfo(Dictionary<string, IPerFieldIndexingInfo> indexingInfo)
@@ -1124,6 +1260,30 @@ namespace SenseNet.Tests.Core.Tests
                 }
                 public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
                     IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+                public IndexProperties GetIndexProperties()
+                {
+                    throw new NotImplementedException();
+                }
+
+                public Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, string> GetIndexDocumentByVersionId(int versionId)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId)
                 {
                     throw new NotImplementedException();
                 }

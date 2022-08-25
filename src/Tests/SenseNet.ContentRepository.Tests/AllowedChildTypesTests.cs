@@ -289,6 +289,126 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void AllowedChildTypes_Bug1607_Transitive_Page()
+        {
+            const string ctd = @"<ContentType name=""{0}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <AllowedChildTypes>{1}</AllowedChildTypes>
+  <Fields><Field name=""TestCount"" type=""Integer""></Field></Fields>
+</ContentType>";
+
+            Test(() =>
+            {
+                // Create 3 CTDs:		MyTypeA, Page, MyTypeC
+                // AllowChildType:		MyTypeA allows Page
+                // AllowChildType:		Page allows MyTypeC
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(ctd, "MyTypeA", "Page"),
+                    string.Format(ctd, "Page", "MyTypeC"),
+                    string.Format(ctd, "MyTypeC", ""));
+
+                var genericContentType = ContentType.GetByName("GenericContent");
+                var myTypeAContentType = ContentType.GetByName("MyTypeA");
+                var pageContentType = ContentType.GetByName("Page");
+                var myTypeCContentType = ContentType.GetByName("MyTypeC");
+                Assert.AreEqual(genericContentType.Name, myTypeAContentType.ParentTypeName);
+                Assert.AreEqual(genericContentType.Name, pageContentType.ParentTypeName);
+                Assert.AreEqual(genericContentType.Name, myTypeCContentType.ParentTypeName);
+
+                // AllowChildType:		/Root/Content allows MyTypeA
+                var rootContent = Content.Load("/Root/Content");
+                var gc = (GenericContent) rootContent.ContentHandler;
+                gc.SetAllowedChildTypes(new[] {ContentType.GetByName("MyTypeA")});
+                gc.Save();
+
+                // New content:		/Root/Content/MyTypeA-1
+                var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
+                myTypeA1.Save();
+
+                // New content:		/Root/Content/MyTypeA-1/Page-1
+                var page1 = Content.CreateNew("Page", myTypeA1.ContentHandler, "Page-1");
+                page1.Save();
+
+                // ACTION: Try new content:	/Root/Content/MyTypeA-1/Page-1/MyTypeC-1
+                var myTypeC1 = Content.CreateNew("MyTypeC", page1.ContentHandler, "MyTypeC-1");
+                Exception expectedException = null;
+                try
+                {
+                    myTypeC1.Save();
+                }
+                catch (InvalidOperationException e)
+                {
+                    expectedException = e;
+                }
+
+                // ASSERT
+                Assert.IsNotNull(expectedException);
+                Assert.IsTrue(expectedException.Message.Contains("Cannot save the content"));
+                Assert.IsTrue(expectedException.Message.Contains("because its ancestor does not allow the type 'MyTypeC'"));
+                Assert.IsTrue(expectedException.Message.Contains("Ancestor: /Root/Content/MyTypeA-1 (MyTypeA)."));
+                Assert.IsTrue(expectedException.Message.Contains("Allowed types: Page, SystemFolder"));
+            });
+        }
+        [TestMethod]
+        public void AllowedChildTypes_Bug1607_Transitive_Folder()
+        {
+            const string ctd = @"<ContentType name=""{0}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <AllowedChildTypes>{1}</AllowedChildTypes>
+  <Fields><Field name=""TestCount"" type=""Integer""></Field></Fields>
+</ContentType>";
+
+            Test(() =>
+            {
+                // Create 3 CTDs:		MyTypeA, Folder, MyTypeC (Folder is builtin type)
+                // AllowChildType:		MyTypeA allows Folder
+                // AllowChildType:		Folder allows MyTypeC (irrelevant operation)
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(ctd, "MyTypeA", "Folder"),
+                    string.Format(ctd, "MyTypeC", ""));
+
+                var genericContentType = ContentType.GetByName("GenericContent");
+                var myTypeAContentType = ContentType.GetByName("MyTypeA");
+                var folderContentType = ContentType.GetByName("Folder");
+                var myTypeCContentType = ContentType.GetByName("MyTypeC");
+                Assert.AreEqual(genericContentType.Name, myTypeAContentType.ParentTypeName);
+                Assert.AreEqual(genericContentType.Name, folderContentType.ParentTypeName);
+                Assert.AreEqual(genericContentType.Name, myTypeCContentType.ParentTypeName);
+
+                // AllowChildType:		/Root/Content allows MyTypeA
+                var rootContent = Content.Load("/Root/Content");
+                var gc = (GenericContent)rootContent.ContentHandler;
+                gc.SetAllowedChildTypes(new[] { ContentType.GetByName("MyTypeA") });
+                gc.Save();
+
+                // New content:		/Root/Content/MyTypeA-1
+                var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
+                myTypeA1.Save();
+
+                // New content:		/Root/Content/MyTypeA-1/Folder-1
+                var folder1 = Content.CreateNew("Folder", myTypeA1.ContentHandler, "Folder-1");
+                folder1.Save();
+
+                // ACTION: Try new content:	/Root/Content/MyTypeA-1/Folder-1/MyTypeC-1
+                var myTypeC1 = Content.CreateNew("MyTypeC", folder1.ContentHandler, "MyTypeC-1");
+                Exception expectedException = null;
+                try
+                {
+                    myTypeC1.Save();
+                }
+                catch (InvalidOperationException e)
+                {
+                    expectedException = e;
+                }
+
+                // ASSERT
+                Assert.IsNotNull(expectedException);
+                Assert.IsTrue(expectedException.Message.Contains("Cannot save the content"));
+                Assert.IsTrue(expectedException.Message.Contains("because its ancestor does not allow the type 'MyTypeC'"));
+                Assert.IsTrue(expectedException.Message.Contains("Ancestor: /Root/Content/MyTypeA-1 (MyTypeA)."));
+                Assert.IsTrue(expectedException.Message.Contains("Allowed types: Folder, SystemFolder"));
+            });
+        }
+
         /* ---------------------------------------------------------------------------------- */
 
         [TestMethod]
@@ -461,6 +581,24 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void AllowedChildTypes_AdditionalSystemFolder()
+        {
+            Test(() =>
+            {
+                // ACTION
+                var names1 = Repository.ContentTypesFolder.GetAllowedChildTypeNames();
+                var names2 = Node.Load<GenericContent>(Repository.SettingsFolderPath).GetAllowedChildTypeNames();
+                var types1 = Repository.ContentTypesFolder.GetAllowedChildTypes();
+                var types2 = Node.Load<GenericContent>(Repository.SettingsFolderPath).GetAllowedChildTypes();
+
+                // ASSERT
+                Assert.AreEqual("ContentType", string.Join(", ", names1));
+                Assert.AreEqual("Settings, SystemFolder", string.Join(", ", names2));
+                Assert.AreEqual("ContentType", string.Join(", ", types1.Select(x => x.Name)));
+                Assert.AreEqual("Settings, SystemFolder", string.Join(", ", types2.Select(x => x.Name)));
+            });
+        }
 
         /* ================================================================================== */
 

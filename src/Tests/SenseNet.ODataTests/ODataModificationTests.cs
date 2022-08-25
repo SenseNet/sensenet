@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.Security;
+using SenseNet.Services.Wopi;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 
@@ -226,7 +227,12 @@ namespace SenseNet.ODataTests
         public async Task OD_FIX_ModifyWithInvisibleParent_CSrv()
         {
             await ODataTestAsync(
-                builder => { builder.AddAllTestPolicies(); },
+                builder =>
+                {
+                    builder.AddAllTestPolicies();
+                    OperationCenter.Policies["WopiOpenView"] = new WopiOpenViewMethodPolicy();
+                    OperationCenter.Policies["WopiOpenEdit"] = new WopiOpenEditMethodPolicy();
+                },
                 async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");

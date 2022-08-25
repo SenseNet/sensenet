@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
@@ -17,6 +17,17 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "sensenet:Authentication:metadatahost": "http://SnIdentityServer"
+      },
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/odata.svc/Root?metadata=no&$select=Id,Name,Type",
+      "publishAllPorts": true,
+      "useSSL": true,
+      "sslPort": 44362
     }
   }
 }

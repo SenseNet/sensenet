@@ -9,10 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Security.Messaging.RabbitMQ;
+using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
 {
@@ -33,14 +35,21 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
             // [sensenet]: Authentication
+            var authOptions = new AuthenticationOptions();
+            Configuration.GetSection("sensenet:authentication").Bind(authOptions);
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = Configuration["sensenet:authentication:authority"];
+                    options.Authority = authOptions.Authority;
                     options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
+
+                    if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                        options.MetadataAddress =
+                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
 
             //TODO: temp switch, remove this after upgrading to .net5
@@ -85,8 +94,6 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 

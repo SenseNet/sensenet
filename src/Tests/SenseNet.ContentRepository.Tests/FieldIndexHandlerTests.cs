@@ -37,6 +37,13 @@ namespace SenseNet.ContentRepository.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public bool LocalizationEnabled { get; } = false;
+            public bool IsLocalized { get; } = false;
+            public string GetStoredValue()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [TestMethod, TestCategory("IR")]
@@ -360,6 +367,13 @@ namespace SenseNet.ContentRepository.Tests
                 _references = references;
             }
             public IEnumerable<IndexField> GetIndexFields(out string textExtract) { throw new NotImplementedException(); }
+            public bool LocalizationEnabled { get; } = false;
+            public bool IsLocalized { get; } = false;
+            public string GetStoredValue()
+            {
+                throw new NotImplementedException();
+            }
+
             public object GetData()
             {
                 return _references;

@@ -9,6 +9,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Search.Lucene29;
 using SenseNet.Services.Core.Install;
 using Serilog;
 using Installer = SenseNet.Packaging.Installer;
@@ -21,12 +22,13 @@ namespace SnConsoleInstaller
         {
             using var host = CreateHostBuilder(args).Build();
             var logger = host.Services.GetService<ILogger<Installer>>();
+            var searchEngineLogger = host.Services.GetService<ILogger<Lucene29SearchEngine>>();
 
             var builder = new RepositoryBuilder(host.Services)
                 .SetConsole(Console.Out)
                 .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer())
-                .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex")) as RepositoryBuilder;
+                .UseLucene29LocalSearchEngine(searchEngineLogger,
+                    Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex")) as RepositoryBuilder;
 
             new Installer(builder, null, logger)
                 .InstallSenseNet();
@@ -47,13 +49,14 @@ namespace SnConsoleInstaller
 
                     // [sensenet]: add sensenet services
                     services
-                                        .SetSenseNetConfiguration(hb.Configuration)
+                        .SetSenseNetConfiguration(hb.Configuration)
                         .AddLogging(logging =>
                         {
                             logging.AddSerilog(new LoggerConfiguration()
                                 .ReadFrom.Configuration(hb.Configuration)
                                 .CreateLogger());
                         })
+                        .AddSenseNetTracer<SnFileSystemTracer>()
                         .ConfigureConnectionStrings(hb.Configuration)
                         .AddSenseNetMsSqlDataProvider()
                         .AddSenseNetSecurity()

@@ -859,15 +859,15 @@ namespace SenseNet.ContentRepository.Linq
             if (fieldInfo == null)
                 throw new InvalidOperationException("Unknown field: " + field);
 
-            var arg = ConvertValue(field, argument).StringValue;
-            string text;
+            string arg;
             switch (type)
             {
-                case WildcardPosition.AtStart: text = "*" + arg; break;
-                case WildcardPosition.AtEnd: text = arg + "*"; break;
-                case WildcardPosition.AtStartAndEnd: text = string.Concat("*", arg, "*"); break;
+                case WildcardPosition.AtStart: arg = "*" + argument; break;
+                case WildcardPosition.AtEnd: arg = argument + "*"; break;
+                case WildcardPosition.AtStartAndEnd: arg = string.Concat("*", argument, "*"); break;
                 default: throw new SnNotSupportedException("WildcardType is not supported: " + type);
             }
+            var text = ConvertValue(field, arg).StringValue;
             var wq = new SimplePredicate(field, new IndexValue(text));
             _predicates.Push(wq);
         }

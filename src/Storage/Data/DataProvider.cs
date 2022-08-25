@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the allowed maximum of a <see cref="decimal"/> value.
         /// </summary>
-        public virtual decimal DecimalMaxValue { get; } = decimal.MinValue;
+        public virtual decimal DecimalMaxValue { get; } = decimal.MaxValue;
 
         /// <summary>
         /// Restores the dataprovider to the initial state after system start.

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -61,6 +62,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 await _indexManager.StartAsync(consoleWriter, cancellationToken).ConfigureAwait(false);
                 stopIndexing = true;
             }
+
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+
             // recreate
             consoleWriter?.Write("  Cleanup index ... ");
             await _indexManager.ClearIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -87,6 +91,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public async STT.Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken, 
             IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
         {
+            Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+
             if (level == IndexRebuildLevel.DatabaseAndIndex)
             {
                 using (var op2 = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index documents."))
@@ -301,10 +307,23 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     await _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
 
+                    var currentUser = AccessProvider.Current.GetCurrentUser();
+                    var currentUserIsSystem = currentUser.Id == Identifiers.SystemUserId;
+                    if (currentUserIsSystem)
+                        currentUser = AccessProvider.Current.GetOriginalUser();
+
                     //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
-                            .GetAwaiter().GetResult(); });
+                        new ParallelOptions { CancellationToken = cancellationToken },
+                        n =>
+                        {
+                            AccessProvider.Current.SetCurrentUser(currentUser);
+                            if (currentUserIsSystem)
+                                AccessProvider.ChangeToSystemAccount();
+
+                            _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
+                                .GetAwaiter().GetResult();
+                        });
                 }
 
                 await AddTreeAsync(node.Path, node.Id, cancellationToken).ConfigureAwait(false);

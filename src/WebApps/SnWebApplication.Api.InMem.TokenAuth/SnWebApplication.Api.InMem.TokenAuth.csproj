@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>5fc5a875-383a-4d51-ae31-06162f7c97f4</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+    <DockerfileRunArguments>--network sensenet --name SnWebApplication</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.26" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.2.2" />
   </ItemGroup>
@@ -13,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\OpenApi\SenseNet.OpenApi.csproj" />
     <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
     <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
     <ProjectReference Include="..\..\WebHooks\SenseNet.WebHooks.csproj" />

@@ -712,6 +712,274 @@ namespace SenseNet.ContentRepository
             return response;
         }
 
+        // Save Index =========================================================================
+
+        /// <summary>
+        /// Gets summary information about the index.
+        /// Contains the activity status, field info and a versionId list.
+        /// Useful in debugging scenarios.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// A shortened example:
+        /// <code>
+        /// {
+        ///   "IndexingActivityStatus": {
+        ///     "LastActivityId": 194,
+        ///     "Gaps": []
+        ///     },
+        ///   "FieldInfo": {
+        ///     "_Text": 948,
+        ///     "ActionTypeName": 1,
+        ///     /*....*/
+        ///     "Width": 8,
+        ///     "Workspace": 11,
+        ///     "WorkspaceSkin": 1
+        ///   },
+        ///   "VersionIds": [ 1, 2, /*....*/ 157, 158, 163 ]
+        ///}
+        /// </code>
+        /// <para>The properties are:
+        /// - IndexingActivityStatus: information about the progress of the indexing process (local index only).
+        /// - FieldInfo: sorted list of indexed fields. Every item is a key-value pair with the field name and the count of terms.
+        /// - VersionIds: sorted list of all indexed versionIds. Note that the versionId is the primary key of index documents.
+        /// </para>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static IndexProperties GetIndexProperties(Content content)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = engine.GetIndexProperties();
+            return response;
+        }
+
+        /// <summary>
+        /// Shows the whole inverted index in a raw format with some transformations for easier readability.
+        /// WARNING! The index may contain sensitive information.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// <para>
+        /// Note that some index providers do not support this feature because of the size of the index.
+        /// </para>
+        /// <para>
+        /// The response does not appear all at once because it is generated using a streaming technique.
+        /// This may affect browser add-ons (e.g. json validator or formatter, etc.).
+        /// </para>
+        /// An annotated example:
+        /// <code>
+        /// {
+        ///   "ActionTypeName": {          // level-1: field
+        ///     "clientaction":            // level-2: term
+        ///         "0 1 2 3 7 12 19 ..."  // level-3: sorted documentId list as a single string
+        ///   },
+        ///   /* ... */
+        ///   "Description": {
+        ///     /* ... */
+        ///     "browser": "147",
+        ///     "calendarevent": "132",
+        ///     "can": "143 144 147 148 151 152",
+        ///     "case": "143",
+        ///     /* ... */
+        /// </code>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>The whole raw index.</returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static async STT.Task GetWholeInvertedIndex(Content content, HttpContext httpContext)
+        {
+            var httpResponse = httpContext.Response;
+            STT.Task WriteAsync(string text)
+            {
+                return httpResponse.WriteAsync(text, Encoding.UTF8, httpContext.RequestAborted);
+            }
+
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = await engine.GetInvertedIndexAsync(httpContext.RequestAborted);
+            
+            using (var op = SnTrace.System.StartOperation("GetWholeInvertedIndex"))
+            {
+                httpContext.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
+
+                await httpContext.Response.WriteAsync("{");
+                var fieldLines = 0;
+                foreach (var fieldData in response)
+                {
+                    var fieldLine = "  \"" + fieldData.Key + "\": {";
+                    if (fieldLines++ == 0)
+                        await WriteAsync("\n" + fieldLine);
+                    else
+                        await WriteAsync(",\n" + fieldLine);
+
+                    var termLines = 0;
+                    foreach (var termData in fieldData.Value)
+                    {
+                        var termLine = "    \"" +
+                                       termData.Key.Replace("\\", "\\\\")
+                                           .Replace("\"", "\\\"") + "\": \"" +
+                                       string.Join(" ", termData.Value.Select(x => x.ToString())) + "\"";
+                        if (termLines++ == 0)
+                            await WriteAsync("\n" + termLine);
+                        else
+                            await WriteAsync(",\n" + termLine);
+                    }
+                    await WriteAsync("\n  }");
+                }
+                await WriteAsync("\n}");
+
+                op.Successful = true;
+            }
+        }
+
+        /// <summary>
+        /// Shows the inverted index of the requested field in a raw format with some transformations for easier readability.
+        /// WARNING! The index may contain sensitive information.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// A shortened example where the fieldName is "Description":
+        /// <code>
+        /// {
+        ///   /* ... */
+        ///   "browser": "147",
+        ///   "calendarevent": "132",
+        ///   "can": "143 144 147 148 151 152",
+        ///   "case": "143",
+        ///   /* ... */
+        /// </code>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="fieldName">The field name that identifies the requested sub-index.</param>
+        /// <returns>Key-value pairs of the term and a sorted documentId list.</returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static async STT.Task<IDictionary<string, object>> GetInvertedIndex(Content content, HttpContext httpContext, string fieldName)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = await engine.GetInvertedIndexAsync(fieldName, httpContext.RequestAborted);
+            return response.ToDictionary(x => x.Key, x => (object)string.Join(",", x.Value.Select(y => y.ToString())));
+        }
+
+        /// <summary>
+        /// Gets the index document (not-inverted index) of the current version of the requested resource.
+        /// WARNING! The index may contain sensitive information.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// <para>
+        /// The version of the requested resource depends on the logged in user's permissions but can be tailored by the
+        /// general parameter "version".
+        /// This parameter format is ((['V'|'v'])?[majornumber][.][minornumber]([.] [*]+)?)|'lastmajor'|'lastminor'
+        /// Valid examples: V1.0, 2.3, v12.3456, lastmajor, lastminor
+        /// Note that the logged-in user needs enough permission for the requested version that can be
+        /// Open, OpenMinor, RecallOldVersions.
+        /// </para>
+        /// <para>
+        /// The response contains key-value pairs where the key is the field name and the value is a list of ordered term values.
+        /// A shortened example:
+        /// </para>
+        /// <code>
+        /// {
+        ///   /* ... */
+        ///   "CreatedBy": "12",
+        ///   "CreatedById": "12",
+        ///   "CreationDate": "2022-07-20 05:59",
+        ///   "Depth": "3",
+        ///   "Description": "behavior, can, case, customize, different, example, extractor, file, indexing, settings, system, text, types, used, you",
+        ///   "DisplayName": "indexing.settings",
+        ///   "EnableLifespan": "no",
+        ///   /* ... */
+        /// </code>
+        /// Note that the original text cannot be reproduced from the term values in some cases.
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="versionId">Optional versionId if it is different from the versionId of the requested resource.</param>
+        [ODataFunction]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static IDictionary<string, object> GetIndexDocument(Content content, int versionId = 0)
+        {
+            if (versionId == 0)
+                versionId = content.ContentHandler.VersionId;
+
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            IDictionary<string, string> response = null;
+            try
+            {
+                response = engine.GetIndexDocumentByVersionId(versionId);
+            }
+            catch
+            {
+                return new Dictionary<string, object>();
+            }
+
+            if (response == null)
+                return new Dictionary<string, object>();
+
+            return response
+                .OrderBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => (object)x.Value);
+        }
+
+        /// <summary>
+        /// Gets the index document (not-inverted index) of the requested documentId.
+        /// WARNING! The index may contain sensitive information.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// The documentId depends on the index provider and comes from the inverted index
+        /// (see the <see cref="GetInvertedIndex"/> function).
+        /// The response contains key-value pairs where the key is the field name and the value is a list of ordered term values.
+        /// A shortened example:
+        /// <code>
+        /// {
+        ///   /* ... */
+        ///   "CreatedBy": "12",
+        ///   "CreatedById": "12",
+        ///   "CreationDate": "2022-07-20 05:59",
+        ///   "Depth": "3",
+        ///   "Description": "behavior, can, case, customize, different, example, extractor, file, indexing, settings, system, text, types, used, you",
+        ///   "DisplayName": "indexing.settings",
+        ///   "EnableLifespan": "no",
+        ///   /* ... */
+        /// </code>
+        /// Note that the original text cannot be reproduced from the term values in some cases.
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="documentId">The documentId from the inverted index.</param>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static IDictionary<string, object> GetIndexDocumentByDocumentId(Content content, int documentId)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            IDictionary<string, string> response = null;
+            try
+            {
+                response = engine.GetIndexDocumentByDocumentId(documentId);
+            }
+            catch
+            {
+                return new Dictionary<string, object>();
+            }
+
+            if (response == null)
+                return new Dictionary<string, object>();
+
+            return response
+                .OrderBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => (object)x.Value);
+        }
+
         // ======================================================================================
 
         /// <summary>

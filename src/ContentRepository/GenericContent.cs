@@ -560,6 +560,13 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public User CheckedOutTo => this.LockedBy as User;
 
+        public override bool HasProperty(string name)
+        {
+            if (name == "CheckedOutTo")
+                return true;
+            return base.HasProperty(name);
+        }
+
         /// <summary>
         /// Gets a value that is true if the value of the VersioningMode is <see cref="VersioningType.Inherited"/>.
         /// </summary>
@@ -979,10 +986,14 @@ namespace SenseNet.ContentRepository
             if (withSystemFolder)
             {
                 // SystemFolder can be created anywhere if the user has the necessary permissions on the CTD
-                var systemFolderType = ContentType.GetByName(systemFolderName);
-                if (systemFolderType.Security.HasPermission(PermissionType.See))
-                    if (!names.Contains(systemFolderName))
-                        names.Add(systemFolderName);
+                //   and the folder is not /Root/System/Schema/ContentTypes
+                if (!this.Path.Equals(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    var systemFolderType = ContentType.GetByName(systemFolderName);
+                    if (systemFolderType.Security.HasPermission(PermissionType.See))
+                        if (!names.Contains(systemFolderName))
+                            names.Add(systemFolderName);
+                }
             }
 
             return names;
@@ -1039,10 +1050,14 @@ namespace SenseNet.ContentRepository
             }
 
             // SystemFolder can be created anywhere if the user has the necessary permissions on the CTD
-            var systemFolderType = ContentType.GetByName(systemFolderName);
-            if (systemFolderType.Security.HasPermission(PermissionType.See))
-                if (!types.Contains(systemFolderType))
-                    types.Add(systemFolderType);
+            //   and the folder is not /Root/System/Schema/ContentTypes
+            if (!this.Path.Equals(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                var systemFolderType = ContentType.GetByName(systemFolderName);
+                if (systemFolderType.Security.HasPermission(PermissionType.See))
+                    if (!types.Contains(systemFolderType))
+                        types.Add(systemFolderType);
+            }
 
             return types;
         }

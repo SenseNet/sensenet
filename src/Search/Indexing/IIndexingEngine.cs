@@ -101,5 +101,30 @@ namespace SenseNet.Search.Indexing
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken);
+
+        IndexProperties GetIndexProperties();
+        Task<IDictionary<string, IDictionary<string, List<int>>>> GetInvertedIndexAsync(CancellationToken cancel);
+        Task<IDictionary<string, List<int>>> GetInvertedIndexAsync(string fieldName, CancellationToken cancel);
+        IDictionary<string, string> GetIndexDocumentByVersionId(int versionId);
+        IDictionary<string, string> GetIndexDocumentByDocumentId(int documentId);
+    }
+
+    /// <summary>
+    /// Provides aggregated information of the index.
+    /// </summary>
+    public class IndexProperties
+    {
+        /// <summary>
+        /// Gets or sets the current <see cref="IndexingActivityStatus"/>.
+        /// </summary>
+        public IndexingActivityStatus IndexingActivityStatus { get; set; }
+        /// <summary>
+        /// Gets or sets ordered list of all field names and term count of the index.
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, int>> FieldInfo { get; set; }
+        /// <summary>
+        /// Gets or sets ordered list of all VersionIds in the index.
+        /// </summary>
+        public IEnumerable<int> VersionIds { get; set; }
     }
 }

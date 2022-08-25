@@ -442,7 +442,7 @@ namespace SenseNet.WebHooks.Tests
 
                 // custom properties are evaluated
                 Assert.IsTrue(string.Equals(request.GetPostPropertyString("text"), "hello", StringComparison.InvariantCulture));
-                Assert.AreEqual(DateTime.Today, request.GetPostPropertyDate("dateprop"));
+                Assert.AreEqual(DateTime.UtcNow.Date, request.GetPostPropertyDate("dateprop"));
                 Assert.AreEqual(User.Current.Id, request.GetPostPropertyInt("currentuser"));
                 Assert.AreEqual(node.Path, request.GetPostPropertyString("filepath"));
                 Assert.AreEqual(node.Index, request.GetPostPropertyInt("index"));

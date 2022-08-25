@@ -53,6 +53,8 @@ namespace SenseNet.OData.Writers
         /// <inheritdoc />
         protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields)
         {
+            var expansion = GetExpansion();
+
             using (var writer = new StringWriter())
             {
                 WriteStart(writer);
@@ -88,7 +90,10 @@ namespace SenseNet.OData.Writers
                         writer.Write("      <tr><td>");
                         writer.Write(item.Key);
                         writer.Write("</td><td>");
-                        WriteValue(writer, item.Value);
+                        if (expansion.TryGetValue(item.Key, out var exp))
+                            WriteValue(writer, Project(item.Value, exp));
+                        else
+                            WriteValue(writer, item.Value);
                         writer.Write("</td></tr>\n");
                     }
                 }
@@ -104,6 +109,7 @@ namespace SenseNet.OData.Writers
         {
             //var resp = httpContext.Response;
             var colNames = new List<string> { "Nr." };
+            var expansion = GetExpansion();
 
             ODataSimpleMeta simpleMeta;
             ODataFullMeta fullMeta;
@@ -184,7 +190,11 @@ namespace SenseNet.OData.Writers
                         {
                             colIndex = colNames.IndexOf(item.Key);
                             if (colIndex >= 0)
-                                row[colIndex] = item.Value;
+                            {
+                                row[colIndex] = expansion.TryGetValue(item.Key, out var exp)
+                                    ? row[colIndex] = Project(item.Value, exp)
+                                    : row[colIndex] = item.Value;
+                            }
                         }
                         writer.Write("      <tr>\n");
 
@@ -209,6 +219,41 @@ namespace SenseNet.OData.Writers
                 await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
+
+        private object Project(object value, string[] expansion)
+        {
+            if (expansion.Length == 0)
+                return value;
+
+            if (value is ODataEntity entity)
+            {
+                return GetValueInDepth(entity, expansion);
+            }
+            if (value is IEnumerable<ODataEntity> entities)
+            {
+                return entities.Select(x => Project(x, expansion)).ToArray();
+            }
+            return value;
+        }
+        private object GetValueInDepth(ODataEntity entity, string[] expansion, int depth = 0)
+        {
+            var value = entity[expansion[depth]];
+            if (value is ODataEntity subEntity)
+            {
+                ++depth;
+                if (expansion.Length - 1 >= depth)
+                    return GetValueInDepth(subEntity, expansion, depth);
+            }
+            return value;
+        }
+
+        private IDictionary<string, string[]> GetExpansion()
+        {
+            return this.ODataRequest.Select
+                .Select(x => x.Split('/'))
+                .ToDictionary(x => x[0], x => x.Skip(1).ToArray());
+        }
+
         /// <inheritdoc />
         protected override async Task WriteActionsPropertyAsync(HttpContext httpContext, ODataRequest odataRequest, ODataActionItem[] actions, bool raw)
         {

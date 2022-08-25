@@ -8,10 +8,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Search.Lucene29;
+using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.Sql.TokenAuth
 {
@@ -32,14 +36,21 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
             // [sensenet]: Authentication
+            var authOptions = new AuthenticationOptions();
+            Configuration.GetSection("sensenet:authentication").Bind(authOptions);
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = Configuration["sensenet:authentication:authority"];
+                    options.Authority = authOptions.Authority;
                     options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
+
+                    if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                        options.MetadataAddress =
+                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
 
             // [sensenet]: Set options for EFCSecurityDataProvider
@@ -52,9 +63,11 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 .AddSenseNetInstallPackage()
                 .AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
+                    var searchEngineLogger = repositoryBuilder.Services.GetService<ILogger<Lucene29SearchEngine>>();
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
+                        .UseLucene29LocalSearchEngine(searchEngineLogger, 
+                            Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
@@ -73,8 +86,6 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 

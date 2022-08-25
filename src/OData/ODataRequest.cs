@@ -386,6 +386,7 @@ namespace SenseNet.OData
                 else
                 {
                     var newPath = String.Concat("/", String.Join("/", resSegments));
+                    newPath = newPath.Replace("%2F", "/");
                     req.RepositoryPath = newPath;
                 }
 

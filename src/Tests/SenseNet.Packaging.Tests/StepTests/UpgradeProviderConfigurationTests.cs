@@ -23,6 +23,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         public void PrepareTest()
         {
             Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSingleton<DataProvider, InMemoryDataProvider>()
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .BuildServiceProvider());

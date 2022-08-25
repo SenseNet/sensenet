@@ -229,6 +229,7 @@ namespace SenseNet.Tests.Core
                     .AddSenseNetInMemoryProviders()
 
                     //.AddSenseNetWebHooks()
+                    .AddSenseNetWopi()
                     .AddSingleton<ITestingDataProvider, InMemoryTestingDataProvider>()
                 ;
             modifyServices?.Invoke(services);
@@ -254,7 +255,6 @@ namespace SenseNet.Tests.Core
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
-                .UseTracer(new SnDebugViewTracer())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())

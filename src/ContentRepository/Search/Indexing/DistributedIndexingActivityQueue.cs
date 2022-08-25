@@ -977,7 +977,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public bool IsStartup { get; set; }
         /// <summary>
-        /// Gets or sets a value that is true if any error occured in the execution of the indexing activity.
+        /// Gets or sets a message that is not null if any error occured in the execution of the indexing activity.
         /// </summary>
         public string Error { get; set; }
         /// <summary>
@@ -1005,7 +1005,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public TimeSpan ExecTime => FinishedAt - StartedAt;
         /// <summary>
-        /// Gets the full time of the indexing activity.
+        /// Gets the full execution time of the indexing activity.
         /// </summary>
         public TimeSpan FullTime => FinishedAt - ArrivedAt;
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Security.Clients;
@@ -22,6 +24,17 @@ namespace SenseNet.Services.Core.Operations
     {
         public string Type { get; set; }
         public string Value { get; set; }
+    }
+
+    [Serializable]
+    public class MissingDomainException : Exception
+    {
+        public static readonly string DefaultMessage = "Domain should be specified.";
+
+        public MissingDomainException() : base(DefaultMessage) { }
+        public MissingDomainException(string message) : base(message) { }
+        public MissingDomainException(string message, Exception inner) : base(message, inner) { }
+        protected MissingDomainException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
     public static class IdentityOperations
@@ -46,10 +59,12 @@ namespace SenseNet.Services.Core.Operations
         /// }
         /// </code>
         /// </example>
+        /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
+        /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static object ValidateCredentials(Content content, HttpContext context, string userName, string password)
+        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context, string userName, string password)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -65,6 +80,7 @@ namespace SenseNet.Services.Core.Operations
                 if (user == null)
                 {
                     SnTrace.Security.Write($"Could not find a user with the name: {userName}");
+                    CheckDomainPolicy(userName);
                 }
                 else if (!user.Enabled)
                 {
@@ -76,13 +92,13 @@ namespace SenseNet.Services.Core.Operations
                 {
                     if (user.CheckPasswordMatch(password))
                     {
-                        return new
+                        return new CredentialValidationResult
                         {
-                            id = user.Id,
-                            email = user.Email,
-                            username = user.Username,
-                            name = user.Name,
-                            loginName = user.LoginName
+                            Id = user.Id,
+                            Email = user.Email,
+                            Username = user.Username,
+                            Name = user.Name,
+                            LoginName = user.LoginName
                         };
                     }
 
@@ -91,6 +107,40 @@ namespace SenseNet.Services.Core.Operations
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
+        }
+
+        private static void CheckDomainPolicy(string userName)
+        {
+            // return if the domain is specified
+            if (userName.IndexOf('\\') >= 0)
+                return;
+
+            // policy violation if not specified
+            if (IdentityManagement.DomainUsagePolicy == DomainUsagePolicy.MandatoryDomain)
+                throw new MissingDomainException();
+
+            // "default domain" policy is ok 
+            if (IdentityManagement.DomainUsagePolicy != DomainUsagePolicy.NoDomain)
+                return;
+
+            // "no domain" policy: check user occurrence by name in all domains.
+            var users = Content.All.Where(c => c.InTree(Repository.ImsFolder) && c.Name == userName).ToArray();
+            if (users.Length > 1)
+                throw new MissingDomainException();
+        }
+
+        public class CredentialValidationResult
+        {
+            [JsonProperty("id")]
+            public int Id { get; set; }
+            [JsonProperty("email")]
+            public string Email { get; set; }
+            [JsonProperty("username")]
+            public string Username { get; set; }
+            [JsonProperty("name")]
+            public string Name { get; set; }
+            [JsonProperty("loginName")]
+            public string LoginName { get; set; }
         }
 
         /// <summary>Creates an external user who registered using one of the available
