@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Tests.Implementations
@@ -24,6 +26,17 @@ namespace SenseNet.Search.Tests.Implementations
         public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             return _stringResults[query.Querytext];
+        }
+
+        public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+        {
+            return Task.FromResult(ExecuteQuery(query, filter, context));
+        }
+
+        public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+            CancellationToken cancel)
+        {
+            return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
         }
     }
 }

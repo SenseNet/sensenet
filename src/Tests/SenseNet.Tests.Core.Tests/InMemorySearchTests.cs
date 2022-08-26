@@ -1212,6 +1212,17 @@ namespace SenseNet.Tests.Core.Tests
                     _log.Add(query.Querytext);
                     return new QueryResult<string>(strings, strings.Length);
                 }
+
+                public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+                {
+                    return Task.FromResult(ExecuteQuery(query, filter, context));
+                }
+
+                public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+                    CancellationToken cancel)
+                {
+                    return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                }
             }
 
             private class IndexingEngineForNestedQueryTests : IIndexingEngine

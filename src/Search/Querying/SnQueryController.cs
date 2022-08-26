@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
@@ -59,12 +61,23 @@ namespace SenseNet.Search.Querying
         /// </summary>
         public QueryResult<string> ExecuteAndProject(IQueryContext context)
         {
+            return ExecuteAndProjectAsync(context, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
             var query = ApplyVisitors(this);
             //TODO: Part of 'CQL to SQL compiler' for future use.
             return TryExecuteQueryAndProject(query, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
+        }
+        public async Task<QueryResult<string>>ExecuteAndProjectAsync(IQueryContext context, CancellationToken cancel)
+        {
+            var permissionFilter = _permissionFilterFactory.Create(this, context);
+            PrepareQuery(this, context);
+            var query = ApplyVisitors(this);
+            //TODO: Part of 'CQL to SQL compiler' for future use.
+            return await TryExecuteQueryAndProjectAsync(query, permissionFilter, context, cancel)
+                   ?? await context.QueryEngine.ExecuteQueryAndProjectAsync(query, permissionFilter, context, cancel);
         }
 
         /// <summary>
@@ -218,6 +231,17 @@ namespace SenseNet.Search.Querying
             }
         }
         private static QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
+        {
+            try
+            {
+                return context.MetaQueryEngine?.TryExecuteQueryAndProject(query, permissionFilter, context);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        private static Task<QueryResult<string>> TryExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context, CancellationToken cancel)
         {
             try
             {

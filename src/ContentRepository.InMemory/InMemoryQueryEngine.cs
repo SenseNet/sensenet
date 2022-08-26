@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
@@ -64,6 +66,19 @@ namespace SenseNet.ContentRepository.InMemory
 
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
+            return ExecuteQueryAsync(query, filter, context, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
+            IQueryContext context)
+        {
+            return ExecuteQueryAndProjectAsync(query, filter, context, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+        {
             using (var op = SnTrace.Query.StartOperation("InMemoryQueryEngine: ExecuteQuery: {0}", query))
             {
                 _log.AppendLine($"ExecuteQuery: {query}");
@@ -75,12 +90,12 @@ namespace SenseNet.ContentRepository.InMemory
                 var queryResult = new QueryResult<int>(nodeIds, totalCount);
 
                 op.Successful = true;
-                return queryResult;
+                return System.Threading.Tasks.Task.FromResult(queryResult);
             }
         }
 
-        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
-            IQueryContext context)
+        public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+            CancellationToken cancel)
         {
             using (var op = SnTrace.Query.StartOperation("InMemoryQueryEngine: ExecuteQueryAndProject: {0}", query))
             {
@@ -93,9 +108,8 @@ namespace SenseNet.ContentRepository.InMemory
                 var queryResult = new QueryResult<string>(projectedValues, totalCount);
 
                 op.Successful = true;
-                return queryResult;
+                return System.Threading.Tasks.Task.FromResult(queryResult);
             }
-
         }
 
         private readonly StringBuilder _log = new StringBuilder();
