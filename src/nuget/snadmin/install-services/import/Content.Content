@@ -3,7 +3,7 @@
   <ContentType>Workspace</ContentType>
   <ContentName>Content</ContentName>
   <Fields>
-    <AllowedChildTypes>Folder, DocumentLibrary, ImageLibrary, EventList, MemoList, LinkList, TaskList, CustomList, Workspace, SystemFolder</AllowedChildTypes>
+    <AllowedChildTypes>Folder, DocumentLibrary, ImageLibrary, EventList, MemoList, LinkList, TaskList, CustomList, Workspace, SystemFolder, File, Image</AllowedChildTypes>
   </Fields>
   <Permissions>
     <Clear />
