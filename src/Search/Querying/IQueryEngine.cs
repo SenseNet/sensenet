@@ -22,7 +22,7 @@ namespace SenseNet.Search.Querying
         /// - TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
-        [Obsolete("###", true)]
+[Obsolete("###", true)]
         QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context);
         /// <summary>
         /// Executes the query and returns the permitted hit collection.
@@ -40,7 +40,7 @@ namespace SenseNet.Search.Querying
         /// TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
-        [Obsolete("###", true)]
+[Obsolete("###", true)]
         QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
 
         /// <summary>

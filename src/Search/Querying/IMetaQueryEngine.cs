@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.Search.Querying
@@ -21,6 +22,7 @@ namespace SenseNet.Search.Querying
         /// TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
+[Obsolete("###", true)]
         QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context);
         /// <summary>
         /// Returns the permitted hit collection defined in the query.
@@ -38,6 +40,7 @@ namespace SenseNet.Search.Querying
         /// TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
+[Obsolete("###", true)]
         QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
 
         /// <summary>

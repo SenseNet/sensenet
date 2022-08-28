@@ -29,47 +29,71 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
+[Obsolete("###", true)]
         public static QueryResult<int> Query(string queryText, IQueryContext context)
         {
+            return QueryAsync(queryText, context, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously executes a CQL query and returns with a QueryResult&lt;int&gt; instance containing id set and count
+        /// </summary>
+        public static async Task<QueryResult<int>> QueryAsync(string queryText, IQueryContext context, CancellationToken cancel)
+        {
             var query = new CqlParser().Parse(queryText, context);
-            return query.Execute(context);
+            return await query.ExecuteAsync(context, cancel);
         }
 
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
+[Obsolete("###", true)]
         public QueryResult<int> Execute(IQueryContext context)
+        {
+            return ExecuteAsync(context, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously executes the represented query and returns with a QueryResult&lt;int&gt; instance containing id set and count
+        /// </summary>
+        public async Task<QueryResult<int>> ExecuteAsync(IQueryContext context, CancellationToken cancel)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
             var query = ApplyVisitors(this);
             //TODO: Part of 'CQL to SQL compiler' for future use.
-            return TryExecuteQuery(query, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
+            return await TryExecuteQueryAsync(query, permissionFilter, context, cancel) ??
+                   await context.QueryEngine.ExecuteQueryAsync(query, permissionFilter, context, cancel);
         }
 
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
+[Obsolete("###", true)]
         public static QueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
+            return QueryAndProjectAsync(queryText, context, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously executes a CQL query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
+        /// </summary>
+        public static async Task<QueryResult<string>> QueryAndProjectAsync(string queryText, IQueryContext context, CancellationToken cancel)
+        {
             var query = new CqlParser().Parse(queryText, context);
-            return query.ExecuteAndProject(context);
+            return await query.ExecuteAndProjectAsync(context, cancel);
         }
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
+[Obsolete("###", true)]
         public QueryResult<string> ExecuteAndProject(IQueryContext context)
         {
             return ExecuteAndProjectAsync(context, CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
-            var permissionFilter = _permissionFilterFactory.Create(this, context);
-            PrepareQuery(this, context);
-            var query = ApplyVisitors(this);
-            //TODO: Part of 'CQL to SQL compiler' for future use.
-            return TryExecuteQueryAndProject(query, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
         }
+        /// <summary>
+        /// Asynchronously executes the represented query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
+        /// </summary>
         public async Task<QueryResult<string>>ExecuteAndProjectAsync(IQueryContext context, CancellationToken cancel)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
@@ -219,33 +243,27 @@ namespace SenseNet.Search.Querying
             return clause;
         }
 
-        private static QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
+        private static async Task<QueryResult<int>> TryExecuteQueryAsync(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context,
+            CancellationToken cancel)
         {
             try
             {
-                return context.MetaQueryEngine?.TryExecuteQuery(query, permissionFilter, context);
+                if (context.MetaQueryEngine == null)
+                    return null;
+                return await context.MetaQueryEngine.TryExecuteQueryAsync(query, permissionFilter, context, cancel);
             }
             catch
             {
                 return null;
             }
         }
-        private static QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
+        private static async Task<QueryResult<string>> TryExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context, CancellationToken cancel)
         {
             try
             {
-                return context.MetaQueryEngine?.TryExecuteQueryAndProject(query, permissionFilter, context);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        private static Task<QueryResult<string>> TryExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context, CancellationToken cancel)
-        {
-            try
-            {
-                return context.MetaQueryEngine?.TryExecuteQueryAndProject(query, permissionFilter, context);
+                if (context.MetaQueryEngine == null)
+                    return null;
+                return await context.MetaQueryEngine.TryExecuteQueryAndProjectAsync(query, permissionFilter, context, cancel);
             }
             catch
             {
