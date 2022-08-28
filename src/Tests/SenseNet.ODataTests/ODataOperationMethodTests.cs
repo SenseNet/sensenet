@@ -203,7 +203,8 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 var info = AddMethod(typeof(TestOperations).GetMethod("Op2"));
-                Assert.AreEqual("Administrators,Editors,Visitor", ArrayToString(info.Roles, true));
+                Assert.AreEqual("/Root/IMS/BuiltIn/Portal/Administrators,path/Editors,path/Visitor",
+                    ArrayToString(info.Roles, true));
                 Assert.AreEqual("P1,P2,P3", ArrayToString(info.Permissions, true));
                 Assert.AreEqual("Policy1,Policy2,Policy3", ArrayToString(info.Policies, true));
             });
@@ -1379,7 +1380,7 @@ namespace SenseNet.ODataTests
                 var lines = inspector.Log.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
                 Assert.AreEqual(4, lines.Length);
                 Assert.AreEqual("CheckContentType: User ==>, User,Group,OrgUnit", lines[0]);
-                Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[1]);
+                Assert.AreEqual("CheckByRoles: 1, /Root/IMS/BuiltIn/Portal/Administrators,path/Editors", lines[1]);
                 Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[2]);
                 Assert.AreEqual("CheckPolicies: 1, Policy1", lines[3]);
             });
@@ -2637,7 +2638,7 @@ namespace SenseNet.ODataTests
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
                         new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.R.Developers) });
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute("Developers,Administrators")});
+                        new Attribute[] { new ODataAction(), new AllowedRolesAttribute($"{N.R.Administrators},{N.R.Developers}") });
                     var m4 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
                         new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.R.Developers, "UnknownGroup42")});
 
@@ -2659,6 +2660,57 @@ namespace SenseNet.ODataTests
                         Assert.IsFalse(operationNames.Contains("fv1"));
                         Assert.IsTrue(operationNames.Contains("fv2"));
                         Assert.IsFalse(operationNames.Contains("fv3"));
+                    }
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_Authorization_Membership_Admin()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var publicDomain = Node.LoadNode("/Root/IMS/Public");
+                    var user1 = new User(publicDomain) {Name = "User1", Email = "user1@example.com", Enabled = true};
+                    user1.Save();
+                    var publicAdmins = Node.Load<Group>("/Root/IMS/Public/Administrators");
+                    publicAdmins.AddMember(user1);
+                    new SecurityHandler().CreateAclEditor()
+                        .Allow(Repository.ImsFolder.Id, publicAdmins.Id, false, PermissionType.BuiltInPermissionTypes)
+                        .Apply();
+
+                    var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new AllowedRolesAttribute(N.R.Administrators) });
+                    var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new AllowedRolesAttribute(publicAdmins.Path) });
+
+                    using (new CurrentUserBlock(User.Administrator))
+                    {
+                        // ACTION-1
+                        var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        // ASSERT-1
+                        AssertNoError(response);
+                        var entities = GetEntities(response);
+                        var operationNames = entities.Select(x => x.Name).OrderBy(x => x).ToArray();
+                        Assert.IsTrue(operationNames.Contains("fv0"));
+                        Assert.IsFalse(operationNames.Contains("fv1"));
+                    }
+                    using (new CurrentUserBlock(user1))
+                    {
+                        // ACTION-2
+                        var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        // ASSERT-2
+                        AssertNoError(response);
+                        var entities = GetEntities(response);
+                        var operationNames = entities.Select(x => x.Name).OrderBy(x => x).ToArray();
+                        Assert.IsFalse(operationNames.Contains("fv0"));
+                        Assert.IsTrue(operationNames.Contains("fv1"));
                     }
                 }
             });

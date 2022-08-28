@@ -21,7 +21,7 @@ namespace SenseNet.OData
 
         public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario, object state)
         {
-            var actualRoles =  NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
+            var actualRoles =  NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Path).ToArray();
             var inspector = _inspector;
             var stored = storedActions.ToArray();
 

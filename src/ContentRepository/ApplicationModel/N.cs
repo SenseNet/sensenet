@@ -33,11 +33,11 @@ namespace SenseNet.ApplicationModel
         /// </summary>
         public static class R
         {
-            public const string Administrators = "Administrators";
-            public const string Developers = "Developers";
-            public const string Everyone = "Everyone";
-            public const string IdentifiedUsers = "IdentifiedUsers";
-            public const string Visitor = "Visitor";
+            public const string Administrators = "/Root/IMS/BuiltIn/Portal/Administrators";
+            public const string Developers = "/Root/IMS/BuiltIn/Portal/Developers";
+            public const string Everyone = "/Root/IMS/BuiltIn/Portal/Everyone";
+            public const string IdentifiedUsers = "/Root/IMS/BuiltIn/Portal/IdentifiedUsers";
+            public const string Visitor = "/Root/IMS/BuiltIn/Portal/Visitor";
             public const string All = "All";
         }
 
