@@ -29,7 +29,7 @@ namespace SenseNet.ODataTests
 
         [ODataFunction]
         [ContentTypes(N.CT.User, N.CT.Group, "OrgUnit")]
-        [AllowedRoles(N.R.Administrators, "Editors")]
+        [AllowedRoles(N.R.Administrators, "path/Editors")]
         [RequiredPolicies("Policy1")]
         [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
@@ -42,7 +42,7 @@ namespace SenseNet.ODataTests
 
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType, N.CT.File)] // Causes no content type check ("File" is redundant).
-        [AllowedRoles(N.R.Administrators, "Editors", "Editors,Visitor")]
+        [AllowedRoles(N.R.Administrators, "path/Editors", "path/Editors,path/Visitor")]
         [RequiredPolicies("Policy1,Policy2", "Policy2,Policy3")]
         [RequiredPermissions("P1, P2", "P3")]
         public static object[] Op2(Content content,

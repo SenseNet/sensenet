@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -30,14 +31,14 @@ namespace SenseNet.OData
             var userId = User.Current.Id;
             if (User.Current.Id == Identifiers.SystemUserId)
                 return true;
-            if (userId == Identifiers.VisitorUserId && expectedRoles.Contains("Visitor"))
+            if (userId == Identifiers.VisitorUserId && expectedRoles.Contains("/Root/IMS/BuiltIn/Portal/Visitor", StringComparer.InvariantCultureIgnoreCase))
                 return true;
             if (expectedRoles.Contains("All"))
                 return true;
 
             if (actualRoles == null)
-                actualRoles = NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
-            return actualRoles.Intersect(expectedRoles).Any();
+                actualRoles = NodeHead.Get(Providers.Instance.SecurityHandler.GetGroups()).Select(y => y.Path).ToArray();
+            return actualRoles.Intersect(expectedRoles, StringComparer.InvariantCultureIgnoreCase).Any();
         }
 
         public virtual bool CheckByPermissions(Content content, string[] permissions)
