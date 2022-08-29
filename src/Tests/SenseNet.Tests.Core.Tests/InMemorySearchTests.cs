@@ -979,7 +979,8 @@ namespace SenseNet.Tests.Core.Tests
             }, () =>
             {
                 SetPerFieldIndexingInfo(indexingInfo);
-                resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
+                resolved = ContentQuery.ResolveInnerQueriesAsync(qtext, QuerySettings.AdminSettings, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             });
 
             Assert.AreEqual(expected, resolved);

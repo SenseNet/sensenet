@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -562,16 +563,19 @@ namespace SenseNet.OData.Writers
         }
         private IEnumerable<ODataEntity> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {
+            var innerQuerySettings = new QuerySettings
+            {
+                EnableAutofilters = qdef.EnableAutofilters,
+                EnableLifespanFilter = qdef.EnableLifespanFilter,
+                QueryExecutionMode = qdef.QueryExecutionMode,
+                Sort = qdef.Sort
+            };
+
             var queryText = qdef.ContentQuery;
             if (queryText.Contains("}}"))
             {
-                queryText = ContentQuery.ResolveInnerQueries(qdef.ContentQuery, new QuerySettings
-                {
-                    EnableAutofilters = qdef.EnableAutofilters,
-                    EnableLifespanFilter = qdef.EnableLifespanFilter,
-                    QueryExecutionMode = qdef.QueryExecutionMode,
-                    Sort = qdef.Sort
-                });
+                queryText = ContentQuery.ResolveInnerQueriesAsync(qdef.ContentQuery, innerQuerySettings, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
             var cdef = new ChildrenDefinition
@@ -595,7 +599,8 @@ namespace SenseNet.OData.Writers
             if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
                 snQuery.QueryExecutionMode = cdef.QueryExecutionMode;
 
-            var result = snQuery.Execute(new SnQueryContext(null, User.Current.Id));
+            var result = snQuery.ExecuteAsync(new SnQueryContext(null, User.Current.Id), CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             // for optimization purposes this combined condition is examined separately
             if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
             {

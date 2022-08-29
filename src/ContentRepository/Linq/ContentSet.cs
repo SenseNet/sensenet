@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Querying;
@@ -151,7 +152,12 @@ namespace SenseNet.ContentRepository.Linq
                 TraceLog.Append("Query:      ").AppendLine(query.ToString());
                 TraceLog.AppendLine("--------------");
             }
-            var result = this.ExecuteQuery ? query.Execute(SnQueryContext.CreateDefault()) : null;
+
+            var result = this.ExecuteQuery
+                ? query.ExecuteAsync(SnQueryContext.CreateDefault(), CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult()
+                : null;
+
             if (query.CountOnly)
             {
                 if (this.ExecuteQuery)

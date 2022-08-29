@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
@@ -372,6 +374,13 @@ namespace SenseNet.Search
         /// </summary>
         public QueryResult Execute()
         {
+            return ExecuteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Executes the represented query and returns with the QueryResult.
+        /// </summary>
+        public async Task<QueryResult> ExecuteAsync(CancellationToken cancel)
+        {
             var queryText = Text;
 
             if (string.IsNullOrEmpty(queryText))
@@ -392,33 +401,33 @@ namespace SenseNet.Search
             {
                 var query = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
                 if (query.Contains("}}"))
-                    query = RecursiveExecutor.ResolveInnerQueries(query, Settings, userId);
+                    query = await RecursiveExecutor.ResolveInnerQueriesAsync(query, Settings, userId, cancel);
 
-                result = Execute(query, new SnQueryContext(Settings, userId));
+                result = await ExecuteAsync(query, new SnQueryContext(Settings, userId), cancel);
 
                 op.Successful = true;
             }
             return result;
         }
 
-        private static QueryResult Execute(string query, SnQueryContext context)
+        private static async Task<QueryResult> ExecuteAsync(string query, SnQueryContext context, CancellationToken cancel)
         {
             try
             {
-                var snQueryResultresult = SnQuery.Query(query, context);
-                return new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
+                var snQueryResult = await SnQuery.QueryAsync(query, context, cancel);
+                return new QueryResult(snQueryResult.Hits, snQueryResult.TotalCount);
             }
             catch (ParserException ex)
             {
                 throw new InvalidContentQueryException(query, innerException: ex);
             }
         }
-        private static string[] ExecuteAndProject(string query, SnQueryContext context)
+        private static async Task<string[]> ExecuteAndProjectAsync(string query, SnQueryContext context, CancellationToken cancel)
         {
             try
             {
-                var snQueryresult = SnQuery.QueryAndProject(query, context);
-                return snQueryresult.Hits
+                var snQueryResult = await SnQuery.QueryAndProjectAsync(query, context, cancel);
+                return snQueryResult.Hits
                     .Where(s => !string.IsNullOrEmpty(s))
                     .Select(s => EscaperRegex.IsMatch(s) ? string.Concat("'", s, "'") : s)
                     .ToArray();
@@ -429,17 +438,24 @@ namespace SenseNet.Search
             }
         }
 
+[Obsolete("###", true)]
         public static string ResolveInnerQueries(string queryText, QuerySettings querySettings)
         {
-            return RecursiveExecutor.ResolveInnerQueries(queryText, querySettings,
-                AccessProvider.Current.GetCurrentUser().Id);
+            return ResolveInnerQueriesAsync(queryText, querySettings, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public static Task<string> ResolveInnerQueriesAsync(string queryText, QuerySettings querySettings, CancellationToken cancel)
+        {
+            return RecursiveExecutor.ResolveInnerQueriesAsync(queryText, querySettings,
+                AccessProvider.Current.GetCurrentUser().Id, CancellationToken.None);
         }
 
         // ================================================================== Recursive executor class
 
         private static class RecursiveExecutor
         {
-            public static string ResolveInnerQueries(string queryText, QuerySettings querySettings, int userId)
+            public static async Task<string> ResolveInnerQueriesAsync(string queryText, QuerySettings querySettings, int userId,
+                CancellationToken cancel)
             {
                 var src = queryText;
                 var control = GetControlString(src);
@@ -467,7 +483,7 @@ namespace SenseNet.Search
 
                     // execute inner query
                     var subQuery = innerScript.Substring(2, innerScript.Length - 4);
-                    var innerResult = ExecuteAndProject(subQuery, recursiveQueryContext);
+                    var innerResult = await ExecuteAndProjectAsync(subQuery, recursiveQueryContext, cancel);
 
                     // process inner query result
                     switch (innerResult.Length)
