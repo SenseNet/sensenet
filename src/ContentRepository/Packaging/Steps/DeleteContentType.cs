@@ -130,7 +130,8 @@ namespace SenseNet.Packaging.Steps
             {
                 var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree,
                     QuerySettings.AdminSettings, ContentType.GetByName(rootTypeName).Path);
-                var typeSubtreeResult = typeSubtreeQuery.Execute();
+                var typeSubtreeResult = typeSubtreeQuery.ExecuteAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 typeNames.AddRange(typeSubtreeResult.Nodes.Select(n => n.Name));
                 inheritedTypeNames.AddRange(typeNames.Except(rootTypeNames));
             }
@@ -139,7 +140,9 @@ namespace SenseNet.Packaging.Steps
 
             var contentInstancesCount = ContentQuery.CreateQuery(
                                             ContentRepository.SafeQueries.TypeIsCountOnly,
-                                            QuerySettings.AdminSettings, new object[] { rootTypeNames }).Execute().Count
+                                            QuerySettings.AdminSettings, new object[] { rootTypeNames }).ExecuteAsync(CancellationToken.None)
+                                            .ConfigureAwait(false).GetAwaiter().GetResult()
+                                            .Count
                                         -
                                         relatedFolders.ContentTemplates.Select(p => ContentQuery.Query(
                                             ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
@@ -283,7 +286,8 @@ namespace SenseNet.Packaging.Steps
         {
             var result = ContentQuery.CreateQuery(
                     ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, new object[] { contentTypeNames })
-                .Execute();
+                .ExecuteAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
 
             Logger.LogMessage($"Deleting {result.Count} content by matching content type{(contentTypeNames.Length > 1 ? "s" : "")}.");
 

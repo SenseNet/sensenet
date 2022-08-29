@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
 
@@ -2113,7 +2114,8 @@ namespace SenseNet.ContentRepository
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))
                     query.AddClause(text);
-                return query.Execute();
+                return query.ExecuteAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {

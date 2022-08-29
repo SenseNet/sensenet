@@ -71,23 +71,45 @@ namespace SenseNet.Search
         }
 
         /// <summary>
-        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
         /// </summary>
         /// <param name="text">CQL query text.</param>
+        /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
         public static QueryResult Query(string text)
         {
-            return Query(text, null, null);
+            return QueryAsync(text, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         /// <summary>
-        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="QueryResult"/>.</returns>
+        public static Task<QueryResult> QueryAsync(string text, CancellationToken cancel)
+        {
+            return QueryAsync(text, null, cancel, null);
+        }
+        /// <summary>
+        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
         /// </summary>
         /// <param name="text">CQL query text.</param>
         /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
         /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
-        /// <returns></returns>
+        /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
-            return CreateQuery(text, settings, parameters).Execute();
+            return QueryAsync(text, settings, CancellationToken.None, parameters)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="QueryResult"/>.</returns>
+        public static async Task<QueryResult> QueryAsync(string text, QuerySettings settings, CancellationToken cancel, params object[] parameters)
+        {
+            return await CreateQuery(text, settings, parameters).ExecuteAsync(cancel);
         }
 
         /// <summary>
@@ -372,12 +394,13 @@ namespace SenseNet.Search
         /// <summary>
         /// Executes the represented query and returns with the QueryResult.
         /// </summary>
+[Obsolete("###", true)]
         public QueryResult Execute()
         {
             return ExecuteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         /// <summary>
-        /// Executes the represented query and returns with the QueryResult.
+        /// Asynchronously executes the represented query and returns with the QueryResult.
         /// </summary>
         public async Task<QueryResult> ExecuteAsync(CancellationToken cancel)
         {

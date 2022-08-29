@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -1036,7 +1037,8 @@ namespace  SenseNet.ContentRepository.Schema
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))
                     query.AddClause(text);
-                return query.Execute();
+                return query.ExecuteAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {
