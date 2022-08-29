@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using System.Xml.XPath;
 using SenseNet.Configuration;
@@ -391,7 +392,8 @@ namespace SenseNet.ContentRepository.Fields
         }
         private FieldValidationResult ValidateWithQuery(List<Node> list, ContentQuery query)
         {
-            var x = query.Execute();
+            var x = query.ExecuteAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             List<int> idList = x.Identifiers.ToList();
             idList.Sort();
             foreach (Node node in list)

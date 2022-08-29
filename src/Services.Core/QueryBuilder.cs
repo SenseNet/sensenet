@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -34,7 +36,7 @@ namespace SenseNet.Services.Core
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
-        public static string GetMetadata(Content content)
+        public static async Task<string> GetMetadata(Content content, HttpContext httpContext)
         {
             // collects regular fields
             var types1 = new List<type>();
@@ -73,7 +75,8 @@ namespace SenseNet.Services.Core
 
             // collect aspect fields
             var types2 = new List<type>();
-            var aspects = ContentQuery.Query("TypeIs:Aspect .AUTOFILTERS:OFF").Nodes;
+            var result = await ContentQuery.QueryAsync("TypeIs:Aspect .AUTOFILTERS:OFF", httpContext.RequestAborted);
+            var aspects = result.Nodes;
             i = 0;
 
             foreach (Aspect aspect in aspects)

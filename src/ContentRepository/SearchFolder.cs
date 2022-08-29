@@ -2,6 +2,7 @@
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using System.Linq;
+using System.Threading;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
@@ -16,7 +17,9 @@ namespace SenseNet.ContentRepository
         {
             var folder = new SearchFolder
             {
-                Children = query.Execute().Nodes.ToArray()
+                Children = query.ExecuteAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult()
+                    .Nodes.ToArray()
             };
             return folder;
         }

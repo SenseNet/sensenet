@@ -99,7 +99,8 @@ namespace SenseNet.ApplicationModel
 
             if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
-                var result = ContentQuery.Query(SafeQueries.AllDevices);
+                var result = ContentQuery.QueryAsync(SafeQueries.AllDevices, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 devices = result.Nodes.Cast<Device>().ToList();
             }
             else

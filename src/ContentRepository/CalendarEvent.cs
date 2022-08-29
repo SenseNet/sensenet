@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
@@ -118,9 +119,10 @@ namespace SenseNet.ContentRepository
             var regForm = item.GetReference<Node>(REGISTRATIONFORM);
             if (regForm != null)
             {
-                var qResult = ContentQuery.Query("+Type:eventregistrationformitem +ParentId:@0",
+                var qResult = ContentQuery.QueryAsync("+Type:eventregistrationformitem +ParentId:@0",
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
-                    regForm.Id);
+                    CancellationToken.None,
+                    regForm.Id).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var i = 0;
 

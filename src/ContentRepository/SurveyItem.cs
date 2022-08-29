@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Net;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.Search;
 
@@ -106,7 +107,8 @@ namespace SenseNet.ContentRepository
             var searchPath = parent is Survey ? parent.Path : parent.ParentPath;
 
             // Count Survey Items
-            var surveyItemCount = ContentQuery.Query("+Type:surveyitem +InTree:@0 .AUTOFILTERS:OFF .COUNTONLY", null, searchPath).Count;
+            var surveyItemCount = ContentQuery.QueryAsync("+Type:surveyitem +InTree:@0 .AUTOFILTERS:OFF .COUNTONLY", null,
+                CancellationToken.None, searchPath).ConfigureAwait(false).GetAwaiter().GetResult().Count;
 
             // Get children (SurveyItems) count
             String tempName;

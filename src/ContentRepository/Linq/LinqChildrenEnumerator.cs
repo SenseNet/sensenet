@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
@@ -38,11 +39,12 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute(QueryContext);
+                var queryResult = _query.ExecuteAsync(QueryContext, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 if (_isContent)
-                    _result = (IEnumerable<T>)qresult.Hits.Select(Content.Load);
+                    _result = (IEnumerable<T>)queryResult.Hits.Select(Content.Load);
                 else
-                    _result = (IEnumerable<T>)qresult.Hits.Select(Storage.Node.LoadNode);
+                    _result = (IEnumerable<T>)queryResult.Hits.Select(Storage.Node.LoadNode);
                 _resultEnumerator = _result.GetEnumerator();
             }
             return _resultEnumerator.MoveNext();

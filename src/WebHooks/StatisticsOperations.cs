@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -226,8 +227,9 @@ namespace SenseNet.WebHooks
         {
             var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
             var relatedIds =
-                ContentQuery.Query(SafeQueries.TypeIs, QuerySettings.AdminSettings, nameof(WebHookSubscription))
-                    .Identifiers.ToArray();
+                ContentQuery.QueryAsync(SafeQueries.TypeIs, QuerySettings.AdminSettings,
+                        CancellationToken.None, nameof(WebHookSubscription))
+                    .ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToArray();
 
             var records = await dataProvider
                     .LoadUsageListAsync("WebHook", relatedIds, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)

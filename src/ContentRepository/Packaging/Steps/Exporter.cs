@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
@@ -228,7 +229,8 @@ namespace SenseNet.Packaging.Steps
         {
             var query = ContentQuery.CreateQuery(queryText);
             query.AddClause(@"InTree:""" + context.SourceFsPath + @"""", LogicalOperator.And);
-            var result = query.Execute();
+            var result = query.ExecuteAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             var maxCount = result.Count;
             var count = 0;
             foreach (var nodeId in result.Identifiers)

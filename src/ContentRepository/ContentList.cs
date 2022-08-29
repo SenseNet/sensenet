@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
 using System.Diagnostics;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Search;
@@ -857,9 +858,10 @@ namespace SenseNet.ContentRepository
                     using (new SystemAccount())
                     {
                         var fn = this.GetPropertySingleId(fieldSetting.Name);
-                        var result = ContentQuery.Query(SafeQueries.InTree,
+                        var result = ContentQuery.QueryAsync(SafeQueries.InTree,
                             new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
-                            this.Path);
+                            CancellationToken.None,
+                            this.Path).ConfigureAwait(false).GetAwaiter().GetResult();
 
                         foreach (var node in result.Nodes.Where(node => node.HasProperty(fn)).OfType<GenericContent>())
                         {

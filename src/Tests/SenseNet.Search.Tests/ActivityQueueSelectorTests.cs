@@ -133,6 +133,17 @@ namespace SenseNet.Search.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+            {
+                return Task.FromResult(ExecuteQuery(query, filter, context));
+            }
+
+            public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+                CancellationToken cancel)
+            {
+                return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+            }
         }
 
         private class SearchEngineForActivityQueueSelectorTests : ISearchEngine

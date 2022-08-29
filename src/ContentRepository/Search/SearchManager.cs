@@ -88,7 +88,8 @@ namespace SenseNet.ContentRepository.Search
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
-            return ContentQuery.Query(text, settings, parameters);
+            return ContentQuery.QueryAsync(text, settings, CancellationToken.None, parameters)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         public IIndexPopulator GetIndexPopulator()
         {

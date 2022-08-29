@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -121,7 +122,10 @@ namespace SenseNet.ApplicationModel
 
             sbQueryText.Append(" .REVERSESORT:Depth");
 
-            var templateResult = ContentQuery.Query(sbQueryText.ToString(), new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled }).Nodes.ToList();
+            var templateResult = ContentQuery.QueryAsync(sbQueryText.ToString(),
+                    new QuerySettings {EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled},
+                    CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult().Nodes.ToList();
             var templatesNonGlobal = templateResult.Where(ct => !ct.Path.StartsWith(RepositoryStructure.ContentTemplateFolderPath)).ToList();
             var templatesGlobal = templateResult.Where(ct => ct.Path.StartsWith(RepositoryStructure.ContentTemplateFolderPath)).ToList();
 

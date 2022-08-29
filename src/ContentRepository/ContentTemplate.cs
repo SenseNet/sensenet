@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
@@ -61,9 +62,10 @@ namespace SenseNet.ContentRepository
             if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
                 return
-                    ContentQuery.Query(SafeQueries.InFolder,
+                    ContentQuery.QueryAsync(SafeQueries.InFolder,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
-                        path).Nodes.Where(ct => ct is T).Cast<T>();
+                        CancellationToken.None,
+                        path).ConfigureAwait(false).GetAwaiter().GetResult().Nodes.Where(ct => ct is T).Cast<T>();
             }
             else
             {
@@ -229,9 +231,10 @@ namespace SenseNet.ContentRepository
 
             if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
-                return ContentQuery.Query(SafeQueries.InFolderCountOnly,
+                return ContentQuery.QueryAsync(SafeQueries.InFolderCountOnly,
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
-                    templatePath).Count > 0;
+                    CancellationToken.None,
+                    templatePath).ConfigureAwait(false).GetAwaiter().GetResult().Count > 0;
             }
             else
             {
@@ -389,9 +392,10 @@ namespace SenseNet.ContentRepository
 
                 if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
                 {
-                    sourceNodes = ContentQuery.Query(SafeQueries.InTreeOrderByPath,
+                    sourceNodes = ContentQuery.QueryAsync(SafeQueries.InTreeOrderByPath,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
-                        templateRoot.Path).Nodes;
+                        CancellationToken.None,
+                        templateRoot.Path).ConfigureAwait(false).GetAwaiter().GetResult().Nodes;
                 }
                 else
                 {

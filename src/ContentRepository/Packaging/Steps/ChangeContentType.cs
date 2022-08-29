@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -31,7 +32,9 @@ namespace SenseNet.Packaging.Steps
 
             var count = 0;
 
-            foreach (var sourceContent in Search.ContentQuery.Query(ContentQuery).Nodes.Select(n => Content.Create(n)))
+            foreach (var sourceContent in Search.ContentQuery.QueryAsync(ContentQuery, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult()
+                .Nodes.Select(n => Content.Create(n)))
             {
                 try
                 {

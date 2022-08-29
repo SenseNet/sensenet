@@ -1,4 +1,6 @@
-﻿using SenseNet.Search;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.Search;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
@@ -22,5 +24,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             return null; // means: cannot execute
         }
 
+        public Task<QueryResult<int>> TryExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+        {
+            return Task.FromResult((QueryResult<int>) null);
+        }
+
+        public Task<QueryResult<string>> TryExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+            CancellationToken cancel)
+        {
+            return Task.FromResult((QueryResult<string>)null);
+        }
     }
 }

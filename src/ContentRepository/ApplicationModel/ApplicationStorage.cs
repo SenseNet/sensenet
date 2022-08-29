@@ -304,7 +304,8 @@ namespace SenseNet.ApplicationModel
             using (new SystemAccount())
             {
                 //var result = nq.Execute();
-                var result = ContentQuery.Query(SafeQueries.TypeIs, QuerySettings.AdminSettings, typeof(Application).Name);
+                var result = ContentQuery.QueryAsync(SafeQueries.TypeIs, QuerySettings.AdminSettings, CancellationToken.None, typeof(Application).Name)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 appList = result.Nodes.Cast<Application>().ToList();
                 appList.Sort((xa, ya) => xa.Path.CompareTo(ya.Path));
             }

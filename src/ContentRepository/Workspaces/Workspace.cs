@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
@@ -69,7 +70,9 @@ namespace SenseNet.ContentRepository.Workspaces
             var groupFolderPath = RepositoryPath.Combine(this.Path, LocalGroupsFolderName);
 
             var settings = new SenseNet.Search.QuerySettings { EnableAutofilters = FilterStatus.Disabled };
-            var workspaceGroups = SenseNet.Search.ContentQuery.Query(SafeQueries.InTreeAndTypeIs, settings, groupFolderPath, typeof(Group).Name).Nodes;
+            var workspaceGroups = SenseNet.Search.ContentQuery.QueryAsync(SafeQueries.InTreeAndTypeIs, settings,
+                    CancellationToken.None, groupFolderPath, typeof(Group).Name)
+                .ConfigureAwait(false).GetAwaiter().GetResult().Nodes;
 
             foreach (var group in workspaceGroups.OfType<IGroup>())
             {

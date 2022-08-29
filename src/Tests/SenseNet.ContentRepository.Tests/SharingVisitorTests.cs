@@ -9,6 +9,8 @@ using SenseNet.Tests.Core.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Testing;
 
@@ -138,6 +140,18 @@ namespace SenseNet.ContentRepository.Tests
             {
                 return _stringResults[query.Querytext];
             }
+
+            public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+            {
+                return System.Threading.Tasks.Task.FromResult(ExecuteQuery(query, filter, context));
+            }
+
+            public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+                CancellationToken cancel)
+            {
+                return System.Threading.Tasks.Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+            }
+
         }
         #endregion
 

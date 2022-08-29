@@ -979,7 +979,8 @@ namespace SenseNet.Tests.Core.Tests
             }, () =>
             {
                 SetPerFieldIndexingInfo(indexingInfo);
-                resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
+                resolved = ContentQuery.ResolveInnerQueriesAsync(qtext, QuerySettings.AdminSettings, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             });
 
             Assert.AreEqual(expected, resolved);
@@ -1211,6 +1212,17 @@ namespace SenseNet.Tests.Core.Tests
                     var strings = _mockResultsPerQueries[query.Querytext];
                     _log.Add(query.Querytext);
                     return new QueryResult<string>(strings, strings.Length);
+                }
+
+                public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
+                {
+                    return Task.FromResult(ExecuteQuery(query, filter, context));
+                }
+
+                public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
+                    CancellationToken cancel)
+                {
+                    return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
                 }
             }
 
