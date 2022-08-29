@@ -1388,6 +1388,23 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.27", "7.7.27.1", "2021-08-29", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<ServicesComponent>>();
+
+                    #region Content changes
+
+                    var contentFolder = Node.Load<GenericContent>("/Root/Content");
+                    if (contentFolder != null)
+                    {
+                        logger.LogTrace("Adding File and Image as an allowed type on the Content folder.");
+                        contentFolder.AllowChildTypes(new[] { "File", "Image" }, throwOnError: false, save: true);
+                    }
+
+                    #endregion
+                });
         }
 
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
