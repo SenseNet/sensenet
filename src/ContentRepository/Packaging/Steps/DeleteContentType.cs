@@ -139,14 +139,16 @@ namespace SenseNet.Packaging.Steps
             var relatedFolders = GetRelatedFolders(typeNames);
 
             var contentInstancesCount = ContentQuery.CreateQuery(
-                                            ContentRepository.SafeQueries.TypeIsCountOnly,
-                                            QuerySettings.AdminSettings, new object[] { rootTypeNames }).ExecuteAsync(CancellationToken.None)
+                                                ContentRepository.SafeQueries.TypeIsCountOnly,
+                                                QuerySettings.AdminSettings, new object[] {rootTypeNames})
+                                            .ExecuteAsync(CancellationToken.None)
                                             .ConfigureAwait(false).GetAwaiter().GetResult()
                                             .Count
                                         -
-                                        relatedFolders.ContentTemplates.Select(p => ContentQuery.Query(
-                                            ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
-                                            QuerySettings.AdminSettings, p, typeNames).Count).Sum();
+                                        relatedFolders.ContentTemplates.Select(p => ContentQuery.QueryAsync(
+                                                ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
+                                                QuerySettings.AdminSettings, CancellationToken.None, p, typeNames)
+                                            .ConfigureAwait(false).GetAwaiter().GetResult().Count).Sum();
 
             var PDP = Providers.Instance.Services.GetRequiredService<IPackagingDataProvider>();
             var result = new ContentTypeDependencies
@@ -188,8 +190,8 @@ namespace SenseNet.Packaging.Steps
 
         private RelatedSensitiveFolders GetRelatedFolders(List<string> names)
         {
-            var result = ContentQuery.Query(ContentRepository.SafeQueries.TypeIsAndName, QuerySettings.AdminSettings,
-                "Folder", names);
+            var result = ContentQuery.QueryAsync(ContentRepository.SafeQueries.TypeIsAndName, QuerySettings.AdminSettings,
+                CancellationToken.None, "Folder", names).ConfigureAwait(false).GetAwaiter().GetResult();
 
             var apps = new List<string>();
             var temps = new List<string>();

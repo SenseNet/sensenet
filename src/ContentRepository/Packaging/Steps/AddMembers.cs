@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.Packaging.Steps
@@ -28,7 +29,9 @@ namespace SenseNet.Packaging.Steps
 
             var group = Group.StartsWith("/root", StringComparison.InvariantCultureIgnoreCase)
                 ? Node.Load<Group>(Group)
-                : (Group)ContentQuery.Query(Group).Nodes.FirstOrDefault();
+                : (Group)ContentQuery.QueryAsync(Group, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult()
+                    .Nodes.FirstOrDefault();
 
             if (group == null)
             {
@@ -78,7 +81,8 @@ namespace SenseNet.Packaging.Steps
             }
 
             // maybe a content query
-            var queryResult = ContentQuery.Query(src);
+            var queryResult = ContentQuery.QueryAsync(src, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             foreach (var node in queryResult.Nodes)
             {
                 result[node.Id] = node;

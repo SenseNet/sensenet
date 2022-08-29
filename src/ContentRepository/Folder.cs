@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
@@ -94,8 +95,8 @@ namespace SenseNet.ContentRepository
             // become empty, this will throw an exception.
             using (new SystemAccount())
             {
-                var userInSubtree = ContentQuery.Query(SafeQueries.UsersInSubtree,
-                    QuerySettings.AdminSettings, Path).Identifiers.ToArray();
+                var userInSubtree = ContentQuery.QueryAsync(SafeQueries.UsersInSubtree, QuerySettings.AdminSettings,
+                    CancellationToken.None, Path).ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToArray();
 
                 User.AssertEnabledParentGroupMembers(userInSubtree);
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
@@ -140,12 +141,14 @@ namespace SenseNet.ContentRepository
         {
             if (this.Id > 0 && Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
-                if (ContentQuery.Query(SafeQueries.SurveyItemsInFolderCount, null, this.Id)
-                    .Count > 0 && _originalContentListDefinition != this.ContentListDefinition)
+                if (ContentQuery.QueryAsync(SafeQueries.SurveyItemsInFolderCount, null, CancellationToken.None, this.Id)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().Count > 0 &&
+                    _originalContentListDefinition != this.ContentListDefinition)
                 {
                     throw new InvalidOperationException("Cannot modify questions due to existing filled survey(s).");
                 }
             }
+
             base.Save(mode);
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
@@ -46,7 +47,8 @@ namespace SenseNet.ContentRepository
                 if (!Providers.Instance.SearchManager.ContentQueryIsAllowed)
                     return 0;
 
-                QueryResult cq = ContentQuery.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");
+                QueryResult cq = ContentQuery.QueryAsync(SafeQueries.InTreeAndTypeIs, null, CancellationToken.None,
+                    this.Path, "expenseclaimitem").ConfigureAwait(false).GetAwaiter().GetResult();
                 return Convert.ToInt32(cq.Nodes.Sum(elem => (decimal)elem["Amount"]));
             }
         }

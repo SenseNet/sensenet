@@ -928,9 +928,10 @@ namespace SenseNet.ContentRepository
         /// <returns>An IEnumerable&lt;<see cref="Node"/>&gt;</returns>
         protected override IEnumerable<Node> GetReferrers(int top, out int totalCount)
         {
-            var result = ContentQuery.Query("-Id:@0 +(CreatedById:@0 ModifiedById:@0 VersionCreatedById:@0 VersionModifiedById:@0 LockedById:@0)",
+            var result = ContentQuery.QueryAsync("-Id:@0 +(CreatedById:@0 ModifiedById:@0 VersionCreatedById:@0 VersionModifiedById:@0 LockedById:@0)",
                 new QuerySettings { Top = top, EnableAutofilters = FilterStatus.Disabled },
-                this.Id);
+                CancellationToken.None,
+                this.Id).ConfigureAwait(false).GetAwaiter().GetResult();
             totalCount = result.Count;
             return result.Nodes;
         }
@@ -1633,9 +1634,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the total count of contents in the subtree under this Content.
         /// </summary>
-        public override int NodesInTree => ContentQuery.Query(SafeQueries.InTreeCountOnly,
+        public override int NodesInTree => ContentQuery.QueryAsync(SafeQueries.InTreeCountOnly,
             new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
-            this.Path).Count;
+            CancellationToken.None,
+            this.Path).ConfigureAwait(false).GetAwaiter().GetResult().Count;
 
         /// <summary>
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
@@ -1852,7 +1854,8 @@ namespace SenseNet.ContentRepository
 
                 // query all workflows in the system that have this content as their related content
                 var nodes = Providers.Instance.SearchManager.ContentQueryIsAllowed
-                    ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
+                    ? ContentQuery.QueryAsync(SafeQueries.WorkflowsByRelatedContent, null, CancellationToken.None, this.Id)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
                         Providers.Instance.StorageSchema.NodeTypes["Workflow"], false).Nodes;
 

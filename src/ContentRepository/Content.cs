@@ -2550,9 +2550,10 @@ namespace SenseNet.ContentRepository
 
             if (dynamicContentTypes.Length > 0)
             {
-                var results = ContentQuery.Query(SafeQueries.InFolderAndTypeIs,
+                var results = ContentQuery.QueryAsync(SafeQueries.InFolderAndTypeIs,
                     new QuerySettings { EnableAutofilters = FilterStatus.Enabled, QueryExecutionMode = QueryExecutionMode.Quick },
-                    content.Path, dynamicContentTypes);
+                    CancellationToken.None,
+                    content.Path, dynamicContentTypes).ConfigureAwait(false).GetAwaiter().GetResult();
                 foreach (var meta in results.Nodes.Cast<ISupportsDynamicFields>().Select(x => x.GetDynamicFieldMetadata()).Where(x => x != null))
                     names.AddRange(meta.Keys.Where(x => !names.Contains(x)).Distinct());
             }

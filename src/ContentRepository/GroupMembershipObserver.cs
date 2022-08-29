@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Events;
@@ -147,7 +148,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                     return resultIds;
                 }
 
-                return ContentQuery.Query(SafeQueries.SecurityIdentitiesInTree, QuerySettings.AdminSettings, node.Path).Identifiers.ToList();
+                return ContentQuery.QueryAsync(SafeQueries.SecurityIdentitiesInTree, QuerySettings.AdminSettings,
+                    CancellationToken.None, node.Path).ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToList();
             }
         }
 
@@ -157,7 +159,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         private static void CollectSecurityIdentityChildren(NodeHead head, ICollection<int> userIds, ICollection<int> groupIds)
         {
-            foreach (var childHead in ContentQuery.Query(SafeQueries.InFolder, QuerySettings.AdminSettings, head.Path).Identifiers.Select(NodeHead.Get).Where(h => h != null))
+            foreach (var childHead in ContentQuery.QueryAsync(SafeQueries.InFolder, QuerySettings.AdminSettings,
+                 CancellationToken.None, head.Path).ConfigureAwait(false).GetAwaiter().GetResult()
+                 .Identifiers.Select(NodeHead.Get).Where(h => h != null))
             {
                 // in case of identity types: simply add them to the appropriate collection and move on
                 if (childHead.GetNodeType().IsInstaceOfOrDerivedFrom("User"))

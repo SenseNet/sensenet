@@ -75,12 +75,13 @@ namespace SenseNet.Search
         /// </summary>
         /// <param name="text">CQL query text.</param>
         /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
+[Obsolete("###", true)]
         public static QueryResult Query(string text)
         {
             return QueryAsync(text, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         /// <summary>
-        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
+        /// Asynchronously executes the given CQL query and return the <see cref="QueryResult"/>.
         /// </summary>
         /// <param name="text">CQL query text.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="QueryResult"/>.</returns>
@@ -95,13 +96,14 @@ namespace SenseNet.Search
         /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
         /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
         /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
+[Obsolete("###", true)]
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
             return QueryAsync(text, settings, CancellationToken.None, parameters)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
         /// <summary>
-        /// Executes the given CQL query and return the <see cref="QueryResult"/>.
+        /// Asynchronously executes the given CQL query and return the <see cref="QueryResult"/>.
         /// </summary>
         /// <param name="text">CQL query text.</param>
         /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
@@ -394,7 +396,6 @@ namespace SenseNet.Search
         /// <summary>
         /// Executes the represented query and returns with the QueryResult.
         /// </summary>
-[Obsolete("###", true)]
         public QueryResult Execute()
         {
             return ExecuteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

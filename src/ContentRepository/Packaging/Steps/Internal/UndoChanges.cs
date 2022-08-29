@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -46,7 +47,8 @@ namespace SenseNet.Packaging.Steps.Internal
             using (new SystemAccount())
             {
                 Parallel.ForEach(ContentQuery
-                        .Query(SafeQueries.LockedContentByPath, QuerySettings.AdminSettings, typeNameArray, path).Nodes
+                        .QueryAsync(SafeQueries.LockedContentByPath, QuerySettings.AdminSettings, 
+                            CancellationToken.None, typeNameArray, path).ConfigureAwait(false).GetAwaiter().GetResult().Nodes
                         .Where(n => n is GenericContent).Cast<GenericContent>(),
                     new ParallelOptions {MaxDegreeOfParallelism = 10},
                     gc =>

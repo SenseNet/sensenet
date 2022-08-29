@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using System.Collections;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
 using SenseNet.ContentRepository.Search;
@@ -584,9 +585,10 @@ namespace SenseNet.ContentRepository
                 {
                     using (new SystemAccount())
                     {
-                        var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
-                            new QuerySettings {EnableAutofilters = FilterStatus.Disabled},
-                            contextPath, typeof(Settings).Name, this.Name);
+                        var q = ContentQuery.QueryAsync(SafeQueries.InTreeAndTypeIsAndName,
+                                new QuerySettings {EnableAutofilters = FilterStatus.Disabled}, CancellationToken.None,
+                                contextPath, nameof(Settings), this.Name)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
 
                         foreach (var id in q.Identifiers)
                             NodeIdDependency.FireChanged(id);
@@ -653,13 +655,15 @@ namespace SenseNet.ContentRepository
             var globalSettingError = false;
             if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
-                if (ContentQuery.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
+                if (ContentQuery.QueryAsync(SafeQueries.SettingsByNameAndSubtree, null, CancellationToken.None, name, id, rootpath)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().Count > 0)
                     nameError = true;
 
                 // check global settings only if this is a local setting
                 if (!nameError &&
                     !path.StartsWith(SETTINGSCONTAINERPATH + RepositoryPath.PathSeparator, StringComparison.InvariantCulture) &&
-                    ContentQuery.Query(SafeQueries.SettingsGlobalOnly, null, name, SETTINGSCONTAINERPATH).Count > 0)
+                    ContentQuery.QueryAsync(SafeQueries.SettingsGlobalOnly, null, CancellationToken.None, name, SETTINGSCONTAINERPATH)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().Count > 0)
                     globalSettingError = true;
             }
             else

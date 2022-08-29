@@ -161,7 +161,9 @@ namespace SenseNet.ContentRepository
             logger?.LogInformation("Checking the index...");
 
             // execute a query that should return multiple items if the index is not empty
-            var indexDocExist = SystemAccount.Execute(() => ContentQuery.Query(SafeQueries.ContentTypes, QuerySettings.AdminSettings).Count > 10);
+            var indexDocExist = SystemAccount.Execute(() => ContentQuery.QueryAsync(SafeQueries.ContentTypes,
+                QuerySettings.AdminSettings, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult().Count > 10);
+
             if (indexDocExist)
                 return;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.Storage;
@@ -86,7 +87,8 @@ namespace SenseNet.Packaging.Steps
         {
             context.AssertRepositoryStarted();
 
-            var result = Search.ContentQuery.Query(ContentQuery);
+            var result = Search.ContentQuery.QueryAsync(ContentQuery, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
             Logger.LogMessage("Content query result count: ", result.Count);
             return result.Nodes.Select(Content.Create);
         }

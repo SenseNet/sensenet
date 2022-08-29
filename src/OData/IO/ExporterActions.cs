@@ -1,4 +1,6 @@
-﻿using SenseNet.ApplicationModel;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.Search;
 
@@ -14,11 +16,11 @@ namespace SenseNet.OData.IO
         /// <returns>Count of contents.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
-        public static int GetContentCountInTree(Content content, ODataRequest oDataRequest)
+        public static async Task<int> GetContentCountInTree(Content content, ODataRequest oDataRequest, HttpContext httpContext)
         {
             var query = oDataRequest.HasContentQuery ? $"+({oDataRequest.ContentQueryText}) " : string.Empty;
             query += $"+InTree:'{content.Path}' .AUTOFILTERS:OFF .COUNTONLY";
-            var result = ContentQuery.Query(query);
+            var result = await ContentQuery.QueryAsync(query, httpContext.RequestAborted);
             return result.Count;
         }
     }

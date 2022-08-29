@@ -11,6 +11,7 @@ using System.IO;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -323,7 +324,8 @@ namespace SenseNet.ContentRepository
         public static bool AspectExists(string name)
         {
             if (Providers.Instance.SearchManager.ContentQueryIsAllowed)
-                return ContentQuery.Query(SafeQueries.AspectExists, null, name).Count > 0;
+                return ContentQuery.QueryAsync(SafeQueries.AspectExists, null, CancellationToken.None, name)
+                    .ConfigureAwait(false).GetAwaiter().GetResult().Count > 0;
             return LoadAspectByName(name) != null;
         }
 

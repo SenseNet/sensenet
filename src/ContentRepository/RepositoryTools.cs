@@ -1468,7 +1468,10 @@ namespace SenseNet.ContentRepository
         private static void CollectSecurityIdentityChildren(NodeHead head, ICollection<int> userIds, ICollection<int> groupIds)
         {
             // collect physical children (applies for orgunits)
-            foreach (var childHead in ContentQuery.Query(SafeQueries.InFolder, QuerySettings.AdminSettings, head.Path).Identifiers.Select(NodeHead.Get).Where(h => h != null))
+            foreach (var childHead in ContentQuery.QueryAsync(SafeQueries.InFolder, QuerySettings.AdminSettings,
+                             CancellationToken.None, head.Path)
+                         .ConfigureAwait(false).GetAwaiter().GetResult()
+                         .Identifiers.Select(NodeHead.Get).Where(h => h != null))
             {
                 // in case of identity types: simply add them to the appropriate collection and move on
                 if (childHead.GetNodeType().IsInstaceOfOrDerivedFrom("User"))
@@ -1477,7 +1480,7 @@ namespace SenseNet.ContentRepository
                         userIds.Add(childHead.Id);
                 }
                 else if (childHead.GetNodeType().IsInstaceOfOrDerivedFrom("Group") ||
-                    childHead.GetNodeType().IsInstaceOfOrDerivedFrom("OrganizationalUnit"))
+                         childHead.GetNodeType().IsInstaceOfOrDerivedFrom("OrganizationalUnit"))
                 {
                     if (!groupIds.Contains(childHead.Id))
                         groupIds.Add(childHead.Id);

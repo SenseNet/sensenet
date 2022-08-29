@@ -17,6 +17,7 @@ using System.Security.Principal;
 using SenseNet.Search;
 using System.Xml.Serialization;
 using System.IO;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
@@ -466,7 +467,8 @@ namespace SenseNet.ContentRepository
             {
                 if (forceCql)
                 {
-                    var userResult = ContentQuery.Query(SafeQueries.UsersByLoginName, QuerySettings.AdminSettings, domainPath, name);
+                    var userResult = ContentQuery.QueryAsync(SafeQueries.UsersByLoginName, QuerySettings.AdminSettings,
+                        CancellationToken.None, domainPath, name).ConfigureAwait(false).GetAwaiter().GetResult();
                     
                     // non-unique user, do not allow login
                     if (userResult.Count > 1)
@@ -1055,11 +1057,10 @@ namespace SenseNet.ContentRepository
                 // user may not have enough permissions for the whole user tree.
                 using (new SystemAccount())
                 {
-                    var queryResult = ContentQuery.Query(SafeQueries.UserOrGroupByLoginName,
-                        new QuerySettings {EnableAutofilters = FilterStatus.Disabled, Top = 2},
-                        domainPath.TrimEnd('/'), 
-                        Name,
-                        LoginName ?? Name);
+                    var queryResult = ContentQuery.QueryAsync(SafeQueries.UserOrGroupByLoginName,
+                            new QuerySettings {EnableAutofilters = FilterStatus.Disabled, Top = 2},
+                            CancellationToken.None, domainPath.TrimEnd('/'), Name, LoginName ?? Name)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     identifiers = queryResult.Identifiers.ToList();
                 }

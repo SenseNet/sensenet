@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -285,8 +286,8 @@ namespace SenseNet.ContentRepository.Sharing
             if (token.Contains("@"))
             {
                 var userId = SystemAccount.Execute(() =>
-                    ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token).Identifiers
-                        .FirstOrDefault());
+                    ContentQuery.QueryAsync(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, CancellationToken.None, token)
+                        .ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.FirstOrDefault());
 
                 if (userId > 0)
                     return userId;
@@ -629,8 +630,9 @@ namespace SenseNet.ContentRepository.Sharing
             // and add user id and set permissions for this user on the content.
 
             // Collect all content that has been shared with the email of this user.
-            var results = ContentQuery.Query(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
-                QuerySettings.AdminSettings, user.Email);
+            var results = ContentQuery.QueryAsync(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
+                    QuerySettings.AdminSettings, CancellationToken.None, user.Email)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
 
             ProcessContentWithRetry(results.Nodes, gc =>
             {
@@ -678,8 +680,8 @@ namespace SenseNet.ContentRepository.Sharing
             using (new SystemAccount())
             {
                 // collect all content that has been shared with these identities
-                var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
-                    QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
+                var results = ContentQuery.QueryAsync(SharingQueries.ContentBySharedWith, QuerySettings.AdminSettings,
+                    CancellationToken.None, ids.Concat(emails).ToArray()).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 ProcessContentWithRetry(results.Nodes,
                     gc =>
@@ -702,15 +704,15 @@ namespace SenseNet.ContentRepository.Sharing
                 return new int[0];
 
             // collect all content ids that were shared publicly in this subtree
-            var publicSharedIds = ContentQuery.Query(SharingQueries.PubliclySharedInTree, 
-                    QuerySettings.AdminSettings, rootContent.Path).Identifiers.ToArray();
+            var publicSharedIds = ContentQuery.QueryAsync(SharingQueries.PubliclySharedInTree, QuerySettings.AdminSettings,
+                CancellationToken.None, rootContent.Path).ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToArray();
 
             if (!publicSharedIds.Any())
                 return new int[0];
 
             // collect all group ids that will become orphanes
-            return ContentQuery.Query(SharingQueries.SharingGroupsBySharedContent,
-                QuerySettings.AdminSettings, publicSharedIds).Identifiers.ToArray();
+            return ContentQuery.QueryAsync(SharingQueries.SharingGroupsBySharedContent, QuerySettings.AdminSettings,
+                CancellationToken.None, publicSharedIds).ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToArray();
         }
 
         /* ================================================================================== Helper methods */
