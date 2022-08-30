@@ -12,6 +12,19 @@ namespace SenseNet.OData.Operations
 {
     public static class TreeOperations
     {
+        /// <summary>
+        /// Gets a list of ancestor content items of the target content. The list will also contain child elements along
+        /// the way so that a subtree can be built from the list.
+        /// </summary>
+        /// <snCategory>Content Management</snCategory>
+        /// <param name="content"></param>
+        /// <param name="request"></param>
+        /// <param name="rootPath">A root ancestor content. This is where the ancestor list will start.</param>
+        /// <param name="withLeaves">Whether the response should contain child elements that are not folders (default: false).</param>
+        /// <param name="withSystem">Whether the response should contain system content (default: false).</param>
+        /// <returns>A list of parent and child content items between the provided root and the target content.</returns>
+        /// <exception cref="ODataException"></exception>
+        /// <exception cref="ContentNotFoundException"></exception>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]

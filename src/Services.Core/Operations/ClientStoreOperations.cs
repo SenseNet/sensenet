@@ -16,8 +16,10 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Returns external clients related to this repository.
         /// </summary>
+        /// <snCategory>Authentication</snCategory>
         /// <param name="content">The repository content.</param>
         /// <param name="context">The current HttpContext.</param>
+        /// <returns>A result object containing an array of clients.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -34,12 +36,14 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-        /// Returns all secrets related to the provided repository that the current user has permission for.
+        /// Returns clients related to the current repository. Only administrators will get
+        /// all types. Regular users will only get external clients.
         /// </summary>
+        /// <snCategory>Authentication</snCategory>
         /// <param name="content">The root content.</param>
         /// <param name="context">The current HttpContext.</param>
-        /// <param name="repositoryHost">The host of the repository (example.sensenet.cloud).</param>
         /// <remarks>This method is intended for internal server-to-server communication.</remarks>
+        /// <returns>A result object containing an array of clients.</returns>
         [ODataFunction("GetClients")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -58,6 +62,17 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
+        /// <summary>
+        /// Creates a client.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="name">Name of the client.</param>
+        /// <param name="type">Client type. Common types are ExternalClient, ExternalSpa, InternalClient</param>
+        /// <param name="userName">Optional domain and username to register the client to.</param>
+        /// <returns>The newly created client.</returns>
+        /// <exception cref="InvalidOperationException"></exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -105,6 +120,17 @@ namespace SenseNet.Services.Core.Operations
             return client;
         }
 
+        /// <summary>
+        /// Deletes a client.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="clientId">Client identifier.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="SenseNetSecurityException"></exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -131,6 +157,17 @@ namespace SenseNet.Services.Core.Operations
             await clientStore.DeleteClientAsync(clientId, context.RequestAborted).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Creates a secret for the specified client.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="clientId">Client identifier.</param>
+        /// <param name="validTill">Expiration date. Default: maximum date value.</param>
+        /// <returns>The newly created client.</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="SenseNetSecurityException"></exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -154,6 +191,19 @@ namespace SenseNet.Services.Core.Operations
             return secret;
         }
 
+        /// <summary>
+        /// Deletes a secret.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <remarks>It is necessary to provide both the client and secret identifiers for security reasons.</remarks>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="clientId">Client identifier.</param>
+        /// <param name="secretId">Secret identifier.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="SenseNetSecurityException"></exception>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -182,6 +232,16 @@ namespace SenseNet.Services.Core.Operations
             await clientStore.DeleteSecretAsync(clientId, secretId, context.RequestAborted).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Regenerates a secret.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="clientId">Client identifier.</param>
+        /// <param name="secretId">Secret identifier.</param>
+        /// <param name="validTill">Expiration date. Default: maximum date value.</param>
+        /// <returns>The newly generated secret.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]

@@ -215,6 +215,20 @@ namespace SenseNet.Services.Core.Diagnostics
 
     public static class StatisticsController
     {
+        /// <summary>
+        /// Gets a list of HTTP requests received by the repository before the provided time.
+        /// </summary>
+        /// <snCategory>Tools</snCategory>
+        /// <remarks>
+        /// This action was designed to aid a paging client that needs to display only a handful of records on screen.
+        /// Querying for a longer period or for many records may result in a slower response.
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="maxTime">The maximum date boundary of the query. Only records before this date
+        /// will be returned. Default: current time.</param>
+        /// <param name="count">Maximum number of records to load. Default: 10.</param>
+        /// <returns>A list of api usage records.</returns>
         [ODataFunction(operationName: "GetApiUsageList")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -232,6 +246,15 @@ namespace SenseNet.Services.Core.Diagnostics
             return items;
         }
 
+        /// <summary>
+        /// Gets the availability of HTTP request statistics by time window
+        /// and the number of corresponding data points.
+        /// </summary>
+        /// <snCategory>Tools</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
+        /// <returns>An API usage statistical data containing start and end dates and count of records.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -297,6 +320,15 @@ namespace SenseNet.Services.Core.Diagnostics
             }
         }
 
+        /// <summary>
+        /// Gets aggregated HTTP requests statistical data in the provided time window.
+        /// </summary>
+        /// <snCategory>Tools</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
+        /// <param name="time">Start time. Default: now.</param>
+        /// <returns>API usage data containing time window information and a list of aggregated data points.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -315,6 +347,15 @@ namespace SenseNet.Services.Core.Diagnostics
             return new ApiUsageViewModel(dbResult, startTime, endTime, window, resolution).GetViewModel();
         }
 
+        /// <summary>
+        /// Gets aggregated database usage statistical data in the provided time window.
+        /// </summary>
+        /// <snCategory>Tools</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
+        /// <param name="time">Start time. Default: now.</param>
+        /// <returns>Database usage data containing time window information and a list of aggregated data points.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]

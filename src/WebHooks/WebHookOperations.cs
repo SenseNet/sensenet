@@ -13,6 +13,16 @@ namespace SenseNet.WebHooks
 {
     public static class WebHookOperations
     {
+        /// <summary>
+        /// Fires the target webhook on the provided content for testing purposes.
+        /// </summary>
+        /// <snCategory>WebHooks</snCategory>
+        /// <param name="webHookContent"></param>
+        /// <param name="context"></param>
+        /// <param name="path">Target content path.</param>
+        /// <param name="eventType">Event type to simulate. Can be one of the available events: All, Create, Delete, Modify, Approve,
+        /// Reject, Draft, Pending, CheckOut, MoveToTrash, RestoreFromTrash</param>
+        /// <returns>The webhook subscription that was fired.</returns>
         [ODataAction]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators)]
@@ -24,6 +34,16 @@ namespace SenseNet.WebHooks
             return webHookContent;
         }
 
+        ///  <summary>
+        /// Fires the target webhook on the provided content for testing purposes.
+        /// </summary>
+        /// <snCategory>WebHooks</snCategory>
+        /// <param name="webHookContent"></param>
+        /// <param name="context"></param>
+        /// <param name="nodeId">Target content identifier.</param>
+        /// <param name="eventType">Event type to simulate. Can be one of the available events: All, Create, Delete, Modify, Approve,
+        /// Reject, Draft, Pending, CheckOut, MoveToTrash, RestoreFromTrash</param>
+        /// <returns>The webhook subscription that was fired.</returns>
         [ODataAction]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators)]

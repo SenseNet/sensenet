@@ -11,6 +11,43 @@ namespace SenseNet.OData.IO
 {
     public static class ImporterActions
     {
+        /// <summary>
+        /// Imports a content to the content repository. This action is able to import both new and
+        /// existing content items.
+        /// </summary>
+        /// <snCategory>Content Management</snCategory>
+        /// <remarks>
+        /// An example request for importing a new content:
+        /// <code>
+        /// {
+        ///    "path": "/Root/ParentPath",
+        ///    "data": {
+        ///       "ContentType" = "Article",
+        ///       "ContentName" = "MyNewContent",
+        ///       "Fields" = {},
+        ///       "Permissions" = {}
+        ///    }
+        /// }
+        /// </code>
+        /// An example response:
+        /// <code>
+        /// {
+        ///    "path": "/Root/ParentPath",
+        ///    "name": "MyNewContent",
+        ///    "type": "Article",
+        ///    "action": "created",
+        ///    "brokenReferences": [],
+        ///    "retryPermissions": false,
+        ///    "messages": []
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="path">Target path. In case of a new content this is the path of the parent. In case of
+        /// existing content this is the path of the content itself.</param>
+        /// <param name="data">Content metadata (name, type, fields).</param>
+        /// <returns>A result object containing basic metadata of the created or modified content, the action that happened
+        /// and the postponed references or permission settings.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
