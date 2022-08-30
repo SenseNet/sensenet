@@ -196,6 +196,18 @@ namespace SenseNet.Services.Core.Operations
             return Content.Create(user);
         }
 
+        /// <summary>
+        /// Sends change password email to the specified email address.
+        /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
+        /// <remarks>This action can be called only by the users themselves or
+        /// by administrators who have save access on the user.</remarks>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="email">Email address.</param>
+        /// <param name="returnUrl">Return url to be included in the email.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         [ODataAction(OperationName = "SendChangePasswordMail", Icon = "security", DisplayName = "$Action,SendPasswordChange")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
@@ -227,6 +239,18 @@ namespace SenseNet.Services.Core.Operations
             }
         }
 
+        /// <summary>
+        /// Sends change password email to the target user.
+        /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
+        /// <remarks>This action can be called only by the users themselves or
+        /// by administrators who have save access on the user.</remarks>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="returnUrl">Return url to be included in the email.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="SenseNetSecurityException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         [ODataAction(Icon = "security", DisplayName = "$Action,SendPasswordChange")]
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]
@@ -317,6 +341,18 @@ namespace SenseNet.Services.Core.Operations
             }
         }
 
+        /// <summary>
+        /// Changes the password of the target user directly.
+        /// </summary>
+        /// <snCategory>Users and Groups</snCategory>
+        /// <remarks>This action can be called only by the users themselves or
+        /// by administrators who have save access on the user.</remarks>
+        /// <param name="content"></param>
+        /// <param name="password">The new password.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="SenseNetSecurityException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         [ODataAction(Icon = "security", DisplayName = "$Action,PasswordChange")]
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]

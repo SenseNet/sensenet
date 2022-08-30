@@ -22,6 +22,13 @@ namespace SenseNet.Services.Core.Operations
 
     public static class DashboardOperations
     {
+        /// <summary>
+        /// Gets dashboard data about this repository.
+        /// </summary>
+        /// <snCategory>Other</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>Dashboard data or an empty object.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]

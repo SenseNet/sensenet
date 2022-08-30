@@ -10,6 +10,13 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class ApiKeyOperations
     {
+        /// <summary>
+        /// Gets API keys related to the target user.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>An object containing an array of API keys related to the target user.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
@@ -24,6 +31,13 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
+        /// <summary>
+        /// Creates an api key for the target user.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>The newly created API key.</returns>
         [ODataAction]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
@@ -35,6 +49,15 @@ namespace SenseNet.Services.Core.Operations
             return apiKey;
         }
 
+        /// <summary>
+        /// Deletes an API key.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="apiKey">API key identifier.</param>
+        /// <returns>An empty result.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         [ODataAction]
         [ContentTypes(N.CT.User, N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
@@ -47,6 +70,13 @@ namespace SenseNet.Services.Core.Operations
             await akm.DeleteApiKeyAsync(apiKey, context.RequestAborted).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Deletes all api keys.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>An empty result.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
@@ -55,6 +85,13 @@ namespace SenseNet.Services.Core.Operations
             var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
             return akm.DeleteApiKeysAsync(context.RequestAborted);
         }
+        /// <summary>
+        /// Deletes api keys of the target user.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>An empty result.</returns>
         [ODataAction(OperationName = "DeleteApiKeys")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
