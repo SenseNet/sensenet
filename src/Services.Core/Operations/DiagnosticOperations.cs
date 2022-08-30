@@ -118,6 +118,7 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets database usage information about the repository.
         /// </summary>
+        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="force">True if the data should be refreshed from the database. Default: false</param>
