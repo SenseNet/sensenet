@@ -1253,7 +1253,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// DEPRECATED. Checking index integrity online is not supported anymore. Use an offline solution instead.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
+        /// <snCategory>Deprecated</snCategory>
+        /// <param name="recurse">Irrelevant because throws SnNotSupportedException.</param>
+        /// <returns>Throws SnNotSupportedException.</returns>
+        /// <exception cref="SnNotSupportedException"></exception>
         [Obsolete("Use an offline solution instead.")]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
