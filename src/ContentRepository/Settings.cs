@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets data as a <see cref="JObject"/> if it can be parsed, or null.
         /// </summary>
-        protected JObject BinaryAsJObject
+        protected internal JObject BinaryAsJObject
         {
             get
             {

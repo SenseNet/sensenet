@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SenseNet.Configuration;
 using Serilog;
 
 namespace SnWebApplication.Api.Sql.TokenAuth
@@ -14,6 +15,10 @@ namespace SnWebApplication.Api.Sql.TokenAuth
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((_, configuration) =>
+                {
+                    configuration.AddSenseNetSettingsConfiguration();
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()

@@ -13,6 +13,7 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -81,6 +82,13 @@ namespace SenseNet.Configuration
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
             IndexPopulator = services.GetService<IIndexPopulator>();
+
+            //UNDONE: find our service correctly (marker interface?)
+            var conf = services.GetService<IConfiguration>() as ConfigurationRoot;
+            var settingsConf =
+                conf.Providers.LastOrDefault(c => c.GetType().FullName.EndsWith("SettingsConfigurationProvider"));
+
+            SettingsReloaded += (sender, args) => settingsConf.Load();
         }
 
         /// <summary>
@@ -118,6 +126,13 @@ namespace SenseNet.Configuration
         public ISearchManager SearchManager { get; }
         public IIndexManager IndexManager { get; }
         public IIndexPopulator IndexPopulator { get; }
+
+        private event EventHandler SettingsReloaded;
+
+        public void OnSettingsReloaded()
+        {
+            SettingsReloaded?.Invoke(this, EventArgs.Empty);
+        }
 
         /* ========================================================= Need to refactor */
 
