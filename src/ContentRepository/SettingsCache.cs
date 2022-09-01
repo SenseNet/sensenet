@@ -1,6 +1,9 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository
@@ -57,6 +60,33 @@ namespace SenseNet.ContentRepository
                     return Node.Load<T>(sNode.Id);
             }
             return null;
+        }
+
+        internal Settings[] GetSettings()
+        {
+            return Items.Keys.Select(Node.Load<Settings>).ToArray();
+        }
+        protected override void Invalidate()
+        {
+            base.Invalidate();
+
+            Providers.Instance.OnSettingsReloaded();
+        }
+
+        protected override void OnNodeModified(object sender, NodeEventArgs e)
+        {
+            //UNDONE: make sure settings-config invalidation happens
+            // only once but it happens on all web nodes.
+            base.OnNodeModified(sender, e);
+
+            if (e.SourceNode is not Settings)
+                return;
+
+            // invalidate only if the base method did not do it to avoid double reload
+            if (e.OriginalSourcePath == e.SourceNode.Path || !IsSubtreeContaining(e.OriginalSourcePath))
+            {
+                Providers.Instance.OnSettingsReloaded();
+            }
         }
 
         protected override List<TNode> LoadItems()

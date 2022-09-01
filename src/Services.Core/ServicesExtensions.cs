@@ -65,7 +65,10 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
             services.Configure<RepositoryTypeOptions>(options => {});
-            
+
+            // usage: GetService<IOptionsMonitor<PortalSettingsOptions>>
+            services.Configure<PortalSettingsOptions>(configuration.GetSection("sensenet:Portal"));
+
             services.ConfigureConnectionStrings(configuration);
 
             return services;
