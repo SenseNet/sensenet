@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
+using System.Threading;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -33,7 +34,7 @@ namespace SenseNet.Packaging.Steps
                     if (Node.Exists(contextPath))
                     {
                         Logger.LogMessage("Deleting content: " + contextPath);
-                        Node.ForceDelete(contextPath);
+                        Node.ForceDeleteAsync(contextPath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                     }
                     // Displaying a simple message.
                     else

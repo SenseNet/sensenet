@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
@@ -47,7 +48,8 @@ namespace SenseNet.ContentRepository.Sharing
                             {
                                 Parallel.ForEach(sharingGroupIds.Select(Node.LoadNode).Where(n => n != null),
                                     new ParallelOptions { MaxDegreeOfParallelism = 4 },
-                                    group => group.ForceDelete());
+                                    group => group.ForceDeleteAsync(CancellationToken.None)
+                                        .ConfigureAwait(false).GetAwaiter().GetResult());
                             }
                         }
                         catch (System.Exception ex)

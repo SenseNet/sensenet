@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Schema;
@@ -372,15 +373,22 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
         {
-            base.ForceDelete();
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
+            await base.ForceDeleteAsync(cancel);
 
             // AD Sync
-            var ADProvider = DirectoryProvider.Current;
-            if (ADProvider != null)
+            var adProvider = DirectoryProvider.Current;
+            if (adProvider != null)
             {
-                ADProvider.DeleteADObject(this);
+                adProvider.DeleteADObject(this);
             }
         }
 

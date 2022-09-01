@@ -1126,9 +1126,16 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
         {
-            base.ForceDelete();
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
+            await base.ForceDeleteAsync(cancel);
 
             // AD Sync
             var ADProvider = DirectoryProvider.Current;

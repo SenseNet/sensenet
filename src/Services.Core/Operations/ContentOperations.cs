@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -334,6 +335,7 @@ namespace SenseNet.Services.Core.Operations
         /// </code>
         /// </remarks>
         /// <param name="content">The requested resource is irrelevant in this case.</param>
+        /// <param name="httpContext"></param>
         /// <param name="permanent" example="false">True if the content must be deleted permanently.</param>
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
         /// Array of the id or full path of the deletable items.</param>
@@ -342,7 +344,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
-        public static BatchActionResponse DeleteBatch(Content content, bool permanent, object[] paths)
+        public static async STT.Task<BatchActionResponse> DeleteBatch(Content content, HttpContext httpContext, bool permanent, object[] paths)
         {
             // no need to throw an exception if no ids are provided: we simply do not have to delete anything
             if(paths == null || paths.Length == 0)
@@ -365,10 +367,10 @@ namespace SenseNet.Services.Core.Operations
                     switch (node)
                     {
                         case GenericContent gc:
-                            gc.Delete(permanent);
+                            await gc.DeleteAsync(permanent, httpContext.RequestAborted);
                             break;
                         case ContentType ct:
-                            ct.Delete();
+                            await ct.DeleteAsync(httpContext.RequestAborted);
                             break;
                     }
 

@@ -64,7 +64,7 @@ namespace SenseNet.Packaging.Steps
                     targetContent.Save();
 
                     // delete the original
-                    sourceContent.ForceDelete();
+                    sourceContent.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
                     // rename the target
                     targetContent["Name"] = sourceContent.Name;

@@ -1642,25 +1642,43 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public override void Delete()
         {
-            Delete(false);
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
+        /// </summary>
+        public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
+        {
+            return DeleteAsync(false, cancel);
         }
 
         /// <summary>
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
+        [Obsolete("Use async version instead", false)]
         public virtual void Delete(bool bypassTrash)
+        {
+            DeleteAsync(bypassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
+        /// </summary>
+        /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        public virtual async System.Threading.Tasks.Task DeleteAsync(bool bypassTrash, CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Delete: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
                 // let the TrashBin handle the delete operation:
                 // only move the node to the trash or delete it permanently
                 if (bypassTrash)
-                    TrashBin.ForceDelete(this);
+                    await TrashBin.ForceDeleteAsync(this, cancel);
                 else
-                    TrashBin.DeleteNode(this);
+                    await TrashBin.DeleteNodeAsync(this, cancel);
                 op.Successful = true;
             }
         }

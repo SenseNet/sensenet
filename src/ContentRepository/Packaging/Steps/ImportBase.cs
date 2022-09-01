@@ -1008,7 +1008,7 @@ namespace SenseNet.Packaging.Steps
                             if (Node.Exists(rpath))
                             {
                                 Log(ImportLogLevel.Verbose, indent + contentInfo.Name + " : [DELETE]");
-                                Content.DeletePhysical(rpath);
+                                Content.ForceDeleteAsync(rpath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                             }
                             else
                             {
