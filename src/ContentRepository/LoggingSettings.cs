@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using STT=System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace SenseNet.ContentRepository
                 if (onRemote && isFromMe)
                     return STT.Task.CompletedTask;
 
-                SnTraceConfigurator.UpdateCategories();
+                SnTraceConfigurator.UpdateCategoriesBySettings();
 
                 return STT.Task.CompletedTask;
             }
@@ -71,22 +72,32 @@ namespace SenseNet.ContentRepository
         {
             private const string SETTINGS_NAME = "Logging";
             private const string SETTINGS_PREFIX = "Trace.";
-            public static void UpdateCategories()
-            {
-                foreach (var category in SnTrace.Categories)
-                    category.Enabled = Settings.GetValue(SETTINGS_NAME, SETTINGS_PREFIX + category.Name, null, false);
+            private static Dictionary<string, bool> _basicCategories;
 
-                SnLog.WriteInformation("Trace settings were updated.", EventId.RepositoryRuntime,
+            public static void UpdateCategoriesBySettings()
+            {
+                if (_basicCategories == null || _basicCategories.Count == 0)
+                    _basicCategories = SnTrace.Categories.ToDictionary(c => c.Name, c => false);
+
+                foreach (var category in SnTrace.Categories)
+                {
+                    var value = Settings.GetValue<bool?>(SETTINGS_NAME, SETTINGS_PREFIX + category.Name, null);
+                    category.Enabled = value ?? _basicCategories[category.Name];
+                }
+
+                SnLog.WriteInformation("Trace settings were updated (from settings).", EventId.RepositoryRuntime,
                     properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
             }
 
-            public static void UpdateStartupCategories()
+            public static void ConfigureCategories()
             {
                 foreach (var category in SnTrace.Categories)
                     category.Enabled = Tracing.StartupTraceCategories.Contains(category.Name);
 
-                SnLog.WriteInformation("Trace settings were updated (for STARTUP).", EventId.RepositoryRuntime,
+                SnLog.WriteInformation("Trace settings were updated (from configuration).", EventId.RepositoryRuntime,
                     properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
+
+                UpdateBasicCategories();
             }
 
             /// <summary>
@@ -98,17 +109,30 @@ namespace SenseNet.ContentRepository
                 if (categoryNames == null)
                 {
                     SnTrace.DisableAll();
-                    return;
                 }
-
+                else
+                {
+                    // do not switch off any category, only switch ON the listed ones
+                    foreach (var category in SnTrace.Categories.Where(c => categoryNames.Contains(c.Name)))
+                    {
+                        category.Enabled = true;
+                    }
+                }
                 // do not switch off any category, only switch ON the listed ones
                 foreach (var category in SnTrace.Categories.Where(c => categoryNames.Contains(c.Name)))
                 {
                     category.Enabled = true;
                 }
 
-                SnTrace.System.Write("Trace settings were updated. Enabled: {0}", string.Join(", ", SnTrace.Categories
-                    .Where(c => c.Enabled).Select(c => c.Name)));
+                UpdateBasicCategories();
+
+                SnLog.WriteInformation("Trace settings were updated (from assembly).", EventId.RepositoryRuntime,
+                    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
+            }
+
+            private static void UpdateBasicCategories()
+            {
+                _basicCategories = SnTrace.Categories.ToDictionary(c => c.Name, c => c.Enabled);
             }
         }
     }
