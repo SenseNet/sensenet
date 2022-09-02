@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -158,25 +159,39 @@ namespace SenseNet.ContentRepository
         /// <inheritdoc />
         /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
         /// an <see cref="ApplicationException"/> will be thrown.</remarks>
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
+        {
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
+        /// an <see cref="ApplicationException"/> will be thrown.</remarks>
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
         {
             if (!IsPurgeable)
                 throw new ApplicationException("Trashbags cannot be purged before their minimum retention date");
-            base.ForceDelete();
+            await base.ForceDeleteAsync(cancel);
         }
 
         /// <inheritdoc />
+        [Obsolete("Use async version instead", false)]
         public override void Delete()
         {
-            ForceDelete();
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
+        {
+            return ForceDeleteAsync(cancel);
         }
 
-        private void Destroy()
+        private async System.Threading.Tasks.Task DestroyAsync(CancellationToken cancel)
         {
             using (new SystemAccount())
             {
                 this.KeepUntil = DateTime.Today.AddDays(-1);
-                this.ForceDelete();    
+                await this.ForceDeleteAsync(cancel);    
             }
         }
 
@@ -239,7 +254,7 @@ namespace SenseNet.ContentRepository
             {
                 SnLog.WriteException(ex);
 
-                bag.Destroy();
+                bag.DestroyAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 
                 if (ex.Data.Contains("PermissionType") && (string)ex.Data["PermissionType"] == "Delete")
                 {
@@ -252,7 +267,7 @@ namespace SenseNet.ContentRepository
             {
                 SnLog.WriteException(ex);
 
-                bag.Destroy();
+                bag.DestroyAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 throw new InvalidOperationException("Error moving item to the trash", ex);
             }
@@ -308,8 +323,8 @@ namespace SenseNet.ContentRepository
             {
                 if (_resolved)
                     return _originalContent;
-                 _originalContent = Link as GenericContent;
-                 _resolved = true;
+                _originalContent = Link as GenericContent;
+                _resolved = true;
                 return _originalContent;
             }
         }

@@ -285,9 +285,9 @@ namespace SenseNet.OData
                             {
                                 var x = httpContext.Request.Query["permanent"].ToString();
                                 if (x.Equals("true", StringComparison.OrdinalIgnoreCase))
-                                    content.DeletePhysical();
+                                    await content.ForceDeleteAsync(httpContext.RequestAborted);
                                 else
-                                    content.Delete();
+                                    await content.DeleteAsync(httpContext.RequestAborted);
                             }
                         }
 

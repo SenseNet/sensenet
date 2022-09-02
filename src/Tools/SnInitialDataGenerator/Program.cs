@@ -280,7 +280,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                     continue;
                 }
 
-                Node.ForceDelete(skippedPath);
+                Node.ForceDeleteAsync(skippedPath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 Console.WriteLine("    removed: {0}", skippedPath);
             }
         }

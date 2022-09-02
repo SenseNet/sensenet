@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SenseNet.ContentRepository.Storage;
@@ -142,10 +143,16 @@ namespace SenseNet.ContentRepository.Workspaces
         }
 
         /// <inheritdoc />
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
         {
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);
-            base.ForceDelete();
+            await base.ForceDeleteAsync(cancel);
         }
 
         /// <inheritdoc />

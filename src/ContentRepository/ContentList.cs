@@ -489,10 +489,16 @@ namespace SenseNet.ContentRepository
                 MailProvider.Instance.OnListEmailChanged(this);
         }
 
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
         {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);
             base.ForceDelete();
+        }
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
+            Security.Assert(PermissionType.ManageListsAndWorkspaces);
+            await base.ForceDeleteAsync(cancel);
         }
 
         public ContentListType GetContentListType()

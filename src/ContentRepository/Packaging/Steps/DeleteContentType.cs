@@ -94,12 +94,13 @@ namespace SenseNet.Packaging.Steps
                 }
 
                 if (dependencies.InstanceCount > 0)
-                    DeleteInstances(rootTypeNames);
-                DeleteRelatedItems(dependencies);
+                    DeleteInstancesAsync(rootTypeNames, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                DeleteRelatedItemsAsync(dependencies, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 RemoveAllowedTypes(dependencies);
 
                 foreach (var rootTypeName in rootTypeNames)
-                    ContentTypeInstaller.RemoveContentType(rootTypeName);
+                    ContentTypeInstaller.RemoveContentTypeAsync(rootTypeName, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Logger.LogMessage($"The content type{(plural ? "s are" : " is")} successfuly removed.");
             }
@@ -284,7 +285,7 @@ namespace SenseNet.Packaging.Steps
             }
         }
 
-        private void DeleteInstances(string[] contentTypeNames)
+        private async Task DeleteInstancesAsync(string[] contentTypeNames, CancellationToken cancel)
         {
             var result = ContentQuery.CreateQuery(
                     ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, new object[] { contentTypeNames })
@@ -296,30 +297,30 @@ namespace SenseNet.Packaging.Steps
             foreach (var node in result.Nodes)
             {
                 Logger.LogMessage($"    {node.Path}");
-                node.ForceDelete();
+                await node.ForceDeleteAsync(cancel);
             }
         }
-        private void DeleteRelatedItems(ContentTypeDependencies dependencies)
+        private async Task DeleteRelatedItemsAsync(ContentTypeDependencies dependencies, CancellationToken cancel)
         {
             if (dependencies.Applications.Length > 0)
             {
                 Logger.LogMessage("Deleting applications...");
                 foreach (var node in dependencies.Applications.Select(Node.LoadNode).Where(n => n != null))
-                    node.ForceDelete();
+                    await node.ForceDeleteAsync(cancel);
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.ContentTemplates.Length > 0)
             {
                 Logger.LogMessage("Deleting content templates...");
                 foreach (var node in dependencies.ContentTemplates.Select(Node.LoadNode).Where(n => n != null))
-                    node.ForceDelete();
+                    await node.ForceDeleteAsync(cancel);
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.ContentViews.Length > 0)
             {
                 Logger.LogMessage("Deleting content views...");
                 foreach (var node in dependencies.ContentViews.Select(Node.LoadNode).Where(n => n != null))
-                    node.ForceDelete();
+                    await node.ForceDeleteAsync(cancel);
                 Logger.LogMessage("Ok.");
             }
         }

@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
@@ -38,7 +39,7 @@ namespace SenseNet.ContentRepository
             if (cacheFile != null)
             {
                 locked = true;
-                cacheFile.ForceDelete();
+                cacheFile.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 locked = false;
             }
         }
