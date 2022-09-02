@@ -118,11 +118,6 @@ namespace SenseNet.ContentRepository
                         category.Enabled = true;
                     }
                 }
-                // do not switch off any category, only switch ON the listed ones
-                foreach (var category in SnTrace.Categories.Where(c => categoryNames.Contains(c.Name)))
-                {
-                    category.Enabled = true;
-                }
 
                 UpdateBasicCategories();
 
