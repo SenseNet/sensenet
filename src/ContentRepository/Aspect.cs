@@ -396,10 +396,20 @@ namespace SenseNet.ContentRepository
         /// The logged-in user need to have ManageListsAndWorkspaces permission,
         /// otherwise <see cref="SenseNetSecurityException"/> will be thrown.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public override void ForceDelete()
         {
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes this <see cref="Aspect"/> permanently.
+        /// The logged-in user need to have ManageListsAndWorkspaces permission,
+        /// otherwise <see cref="SenseNetSecurityException"/> will be thrown.
+        /// </summary>
+        public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);
-            base.ForceDelete();
+            await base.ForceDeleteAsync(cancel);
         }
 
         // ================================================================================= Generic Property handling

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -1267,7 +1268,8 @@ namespace SenseNet.ContentRepository
                     {
                         // previous email template was of a different type
                         logger.LogTrace("Deleting change password email template... ");
-                        Node.ForceDelete(emailTemplatePath);
+                        Node.ForceDeleteAsync(emailTemplatePath, CancellationToken.None)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
                     }
 
                     logger.LogTrace("Creating email template (with parent structure if necessary)...");

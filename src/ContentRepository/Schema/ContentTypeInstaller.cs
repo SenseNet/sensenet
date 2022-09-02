@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.IO;
+using System.Threading;
 using System.Xml.XPath;
 using SenseNet.Configuration;
 using SenseNet.Tools;
@@ -150,13 +151,25 @@ namespace SenseNet.ContentRepository.Schema
         }
 
 
+        [Obsolete("Use async version instead", false)]
         public static void RemoveContentType(string contentTypeName)
         {
-            RemoveContentType(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName));
+            RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
+        public static System.Threading.Tasks.Task RemoveContentTypeAsync(string contentTypeName, CancellationToken cancel)
+        {
+            return RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), cancel);
+        }
+
+        [Obsolete("Use async version instead", false)]
         public static void RemoveContentType(ContentType contentType)
         {
-            contentType.Delete();
+            RemoveContentTypeAsync(contentType, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public static System.Threading.Tasks.Task RemoveContentTypeAsync(ContentType contentType, CancellationToken cancel)
+        {
+            return contentType.DeleteAsync(cancel);
         }
     }
 }

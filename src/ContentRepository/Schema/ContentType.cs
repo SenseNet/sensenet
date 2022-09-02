@@ -811,7 +811,17 @@ namespace  SenseNet.ContentRepository.Schema
         /// The operation is forbidden if an instance exists of any of these types.
         /// In this case an <see cref="ApplicationException"/> will be thrown.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public override void Delete()
+        {
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes this <see cref="ContentType"/> and the whole subtree physically.
+        /// The operation is forbidden if an instance exists of any of these types.
+        /// In this case an <see cref="ApplicationException"/> will be thrown.
+        /// </summary>
+        public override async System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {
             if (this.Path.StartsWith(Repository.ContentTypesFolderPath))
             {
@@ -828,7 +838,7 @@ namespace  SenseNet.ContentRepository.Schema
 
             DisableObserver(typeof(SharingNodeObserver));
             DisableObserver(typeof(GroupMembershipObserver));
-            base.Delete();
+            await base.DeleteAsync(cancel);
             ContentTypeManager.Reset(); // necessary (Delete)
         }
         private static bool IsDeletable(ContentType contentType, out string message)

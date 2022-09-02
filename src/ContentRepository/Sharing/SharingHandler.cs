@@ -235,7 +235,8 @@ namespace SenseNet.ContentRepository.Sharing
                     {
                         var sharingGroup = Node.LoadNode(sharingData.Identity) as Group;
                         if (sharingGroup?.NodeType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName) ?? false)
-                            sharingGroup.ForceDelete();
+                            sharingGroup.ForceDeleteAsync(CancellationToken.None)
+                                .ConfigureAwait(false).GetAwaiter().GetResult();
                     }
                 }
             }

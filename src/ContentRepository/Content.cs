@@ -1467,10 +1467,7 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        /// <summary>
-        /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
-        /// </summary>
-        /// <param name="contentId">Identifier of the Node that will be deleted.</param>
+        [Obsolete("Use ForceDelete method instead", true)]
         public static void DeletePhysical(int contentId)
         {
             Node.ForceDelete(contentId);
@@ -1478,53 +1475,103 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
-        /// <param name="path">The path of the Node that will be deleted.</param>
+        /// <param name="contentId">Identifier of the Node that will be deleted.</param>
+        public static void ForceDelete(int contentId)
+        {
+            ForceDeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the Node and all of its contents from the database. This operation removes all child nodes too.
+        /// </summary>
+        /// <param name="contentId">Identifier of the Node that will be deleted.</param>
+        public static System.Threading.Tasks.Task ForceDeleteAsync(int contentId, CancellationToken cancel)
+        {
+            return Node.ForceDeleteAsync(contentId, cancel);
+        }
+
+        [Obsolete("Use ForceDelete method instead", true)]
         public static void DeletePhysical(string path)
         {
             Node.ForceDelete(path);
         }
         /// <summary>
-        /// Deletes the represented <see cref="SenseNet.ContentRepository.Storage.Node">Node</see> and all of its contents from the database. This operation removes all child nodes too.
+        /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
-        public void DeletePhysical()
+        /// <param name="path">The path of the Node that will be deleted.</param>
+        public static void ForceDelete(string path)
         {
-            ForceDelete();
+            ForceDeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the Node and all of its contents from the database. This operation removes all child nodes too.
+        /// </summary>
+        /// <param name="path">The path of the Node that will be deleted.</param>
+        public static System.Threading.Tasks.Task ForceDeleteAsync(string path, CancellationToken cancel)
+        {
+            return Node.ForceDeleteAsync(path, cancel);
         }
 
         public static void Delete(int contentId)
         {
-            Node.Delete(contentId);
+            DeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public static System.Threading.Tasks.Task DeleteAsync(int contentId, CancellationToken cancel)
+        {
+            return Node.DeleteAsync(contentId, cancel);
         }
 
         public static void Delete(string path)
         {
-            Node.Delete(path);
+            DeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public static System.Threading.Tasks.Task DeleteAsync(string path, CancellationToken cancel)
+        {
+            return Node.DeleteAsync(path, cancel);
         }
 
+        [Obsolete("Use async version instead", false)]
         public void Delete()
         {
-            this.ContentHandler.Delete();
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
+        {
+            return this.ContentHandler.DeleteAsync(cancel);
         }
 
+        /// <summary>
+        /// Deletes the <see cref="Content"/> permanently.
+        /// </summary>
+        [Obsolete("Use async version instead", false)]
         public void ForceDelete()
         {
-            this.ContentHandler.ForceDelete();
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Asynchronously deletes the <see cref="Node"/> permanently.
+        /// </summary>
+        public System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
+        {
+            return this.ContentHandler.ForceDeleteAsync(cancel);
         }
 
         public void Delete(bool byPassTrash)
         {
+            DeleteAsync(byPassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task DeleteAsync(bool byPassTrash, CancellationToken cancel)
+        {
             if (!byPassTrash)
             {
-                this.ContentHandler.Delete();
+                await this.ContentHandler.DeleteAsync(cancel);
             }
             else
             {
-                // only GenericContent has a byPassTrash functinality
-                var gc = this.ContentHandler as GenericContent;
-                if (gc != null)
-                    gc.Delete(byPassTrash);
+                // only GenericContent has a byPassTrash functionality
+                if (this.ContentHandler is GenericContent gc)
+                    await gc.DeleteAsync(byPassTrash, cancel);
                 else
-                    this.ContentHandler.Delete();
+                    await this.ContentHandler.DeleteAsync(cancel);
             }
         }
 

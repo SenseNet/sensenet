@@ -1186,7 +1186,7 @@ namespace SenseNet.Preview
                     // if the caller wanted to re-create the folder (for cleanup reasons), we need to delete it first
                     previewsSubfolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                     previewsSubfolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
-                    previewsSubfolder.ForceDelete();
+                    previewsSubfolder.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                     previewsSubfolder = null;
                 }
 
@@ -1222,7 +1222,7 @@ namespace SenseNet.Preview
                 var type = previews.NodeType.Name;
 
                 previews.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
-                previews.ForceDelete();
+                previews.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var content = Content.CreateNew(type, parent, name);
                 content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
@@ -1320,7 +1320,7 @@ namespace SenseNet.Preview
                         {
                             // existence check to avoid exceptions
                             if (Node.Exists(previewsPath))
-                                Node.ForceDelete(previewsPath);
+                                Node.ForceDeleteAsync(previewsPath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                         }
                         catch (Exception ex)
                         {

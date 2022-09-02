@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.ContentRepository.Schema;
@@ -142,9 +144,15 @@ namespace SenseNet.ContentRepository
         public override bool IsTrashable => false;
 
         /// <inheritdoc />
+        [Obsolete("Use async version instead", false)]
         public override void Delete()
         {
-            ForceDelete();
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
+        {
+            return ForceDeleteAsync(cancel);
         }
 
         // ====================================================================== GenericContent trash methods
@@ -162,13 +170,26 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Tool method that deletes the given Content depending on the state of the Trash Bin and Content.
+        /// Deletes the given Content depending on the state of the Trash Bin and Content.
         /// The Trash Bin is used if the Trash Bin is active, the value of the content's IsTrashable property is true
         /// and the <see cref="TrashBag"/> of the content is not too big (see <see cref="BagCapacity"/> property).
         /// If any condition is false, the Content will be deleted permanently.
         /// </summary>
         /// <param name="n">The <see cref="GenericContent"/> instance that will be deleted.</param>
+        [Obsolete("Use async version instead", false)]
         public static bool DeleteNode(GenericContent n)
+        {
+            return DeleteNodeAsync(n, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the given Content depending on the state of the Trash Bin and Content.
+        /// The Trash Bin is used if the Trash Bin is active, the value of the content's IsTrashable property is true
+        /// and the <see cref="TrashBag"/> of the content is not too big (see <see cref="BagCapacity"/> property).
+        /// If any condition is false, the Content will be deleted permanently.
+        /// </summary>
+        /// <param name="n">The <see cref="GenericContent"/> instance that will be deleted.</param>
+        /// <param name="cancel">The <see cref="GenericContent"/> instance that will be deleted.</param>
+        public static async Task<bool> DeleteNodeAsync(GenericContent n, CancellationToken cancel)
         {
             if (Instance != null && Instance.IsActive && n.IsTrashable)
             {
@@ -179,7 +200,7 @@ namespace SenseNet.ContentRepository
             }
             else
             {
-                n.ForceDelete();
+                await n.ForceDeleteAsync(cancel);
             }
             return true;
         }
@@ -187,11 +208,15 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Deletes the content permanently. This method is obsolete, use node.ForceDelete instead.
         /// </summary>
-        [Obsolete("Use ForceDelete method on the given instance.")]
+        [Obsolete("Use ForceDelete method on the given instance.", true)]
         public static void ForceDelete(GenericContent n)
         {
+            ForceDeleteAsync(n, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public static async System.Threading.Tasks.Task ForceDeleteAsync(GenericContent n, CancellationToken cancel)
+        {
             SnTrace.Repository.Write("Trashbin: Finally deleting from Repository. NodePath:{0}", n.Path);
-            n.ForceDelete();
+            await n.ForceDeleteAsync(cancel);
         }
 
         // ====================================================================== Purge and Restore
@@ -204,7 +229,7 @@ namespace SenseNet.ContentRepository
         public static void Purge()
         {
             foreach (TrashBag b in Instance.Children.OfType<TrashBag>().Where(n => (n.IsPurgeable && n.Security.HasSubTreePermission(PermissionType.Delete))))
-                b.ForceDelete();
+                b.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -312,7 +337,7 @@ namespace SenseNet.ContentRepository
                 AccessProvider.Current.SetCurrentUser(User.Administrator);
                 
                 trashBag.KeepUntil = DateTime.Today.AddDays(-1);
-                trashBag.ForceDelete();
+                trashBag.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch (SenseNetSecurityException ex)
             {

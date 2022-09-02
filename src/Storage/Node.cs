@@ -4158,63 +4158,81 @@ namespace SenseNet.ContentRepository.Storage
         /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
         /// </summary>
         /// <param name="sourcePath">The path of the <see cref="Node"/> that will be deleted.</param>
-        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
+        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
         public static void DeletePhysical(string sourcePath)
         {
-            var sourceNode = Node.LoadNode(sourcePath);
-            if (sourceNode == null)
-                throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithPath_1, sourcePath));
-            sourceNode.Delete();
+            throw new NotSupportedException();
         }
         /// <summary>
         /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
         /// </summary>
         /// <param name="nodeId">Identifier of the <see cref="Node"/> that will be deleted.</param>
-        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
+        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
         public static void DeletePhysical(int nodeId)
         {
-            var sourceNode = Node.LoadNode(nodeId);
-            if (sourceNode == null)
-                throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithId_1, nodeId));
-            sourceNode.Delete();
+            throw new NotSupportedException();
         }
         /// <summary>
         /// Deletes the <see cref="Node"/> instance and all of its contents. This operation removes the appropriate <see cref="Node"/>s from the database.
         /// </summary>
-        [Obsolete("The DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
+        [Obsolete("The DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
         public virtual void DeletePhysical()
         {
-            Delete();
+            throw new NotSupportedException();
         }
 
         /// <summary>
         /// Deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public static void ForceDelete(string sourcePath)
         {
-            var sourceNode = Node.LoadNode(sourcePath);
+            ForceDeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
+        /// </summary>
+        public static async Task ForceDeleteAsync(string sourcePath, CancellationToken cancel)
+        {
+            var sourceNode = await Node.LoadNodeAsync(sourcePath, cancel);
             if (sourceNode == null)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithPath_1, sourcePath));
-            sourceNode.ForceDelete();
+            await sourceNode.ForceDeleteAsync(cancel);
         }
 
         /// <summary>
         /// Deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public static void ForceDelete(int nodeId)
         {
-            var sourceNode = Node.LoadNode(nodeId);
+            ForceDeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
+        /// </summary>
+        public static async Task ForceDeleteAsync(int nodeId, CancellationToken cancel)
+        {
+            var sourceNode = await Node.LoadNodeAsync(nodeId, cancel);
             if (sourceNode == null)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithId_1, nodeId));
-            sourceNode.ForceDelete();
+            await sourceNode.ForceDeleteAsync(cancel);
         }
 
         /// <summary>
-        /// This method deletes the <see cref="Node"/> permanently.
+        /// Deletes the <see cref="Node"/> permanently.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public virtual void ForceDelete()
         {
-            using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
+            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the <see cref="Node"/> permanently.
+        /// </summary>
+        public virtual async Task ForceDeleteAsync(CancellationToken cancel)
+        {
+            using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDeleteAsync: Id:{0}, Path:{1}", Id, Path))
             {
                 this.Security.AssertSubtree(PermissionType.Delete);
 
@@ -4236,8 +4254,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     var contentListTypesInTree = (this is IContentList)
                         ? new List<ContentListType>(new[] {this.ContentListType})
-                        : DataStore.GetContentListTypesInTreeAsync(this.Path, CancellationToken.None)
-                        .GetAwaiter().GetResult();
+                        : await DataStore.GetContentListTypesInTreeAsync(this.Path, CancellationToken.None);
 
                     var logProps = CollectAllProperties(this.Data);
                     var oldPath = this.Path;
@@ -4250,10 +4267,10 @@ namespace SenseNet.ContentRepository.Storage
                         try
                         {
                             // prevent concurrency problems
-                            using (Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.Path).GetAwaiter().GetResult())
+                            using (await Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.Path))
                             {
                                 // main work
-                                DataStore.DeleteNodeAsync(Data, CancellationToken.None).GetAwaiter().GetResult();
+                                await DataStore.DeleteNodeAsync(Data, CancellationToken.None);
                             }
 
                             // successful
@@ -4265,7 +4282,7 @@ namespace SenseNet.ContentRepository.Storage
                             if (deletingAttempt++ > 3)
                                 // exit if there were too many attempts
                                 throw;
-                            System.Threading.Thread.Sleep(10);
+                            await Task.Delay(10);
                             // getting a newer version.
                             Reload();
                         }
@@ -4273,8 +4290,7 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             if (e.Message.Contains("DELETE statement conflicted with the REFERENCE constraint"))
                             {
-                                int totalCountOfReferrers;
-                                var referrers = GetReferrers(5, out totalCountOfReferrers);
+                                var referrers = GetReferrers(5, out var totalCountOfReferrers);
                                 throw new CannotDeleteReferredContentException(referrers, totalCountOfReferrers);
                             }
                             throw new ApplicationException("You cannot delete this content", e);
@@ -4289,8 +4305,8 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         Providers.Instance.SecurityHandler.DeleteEntity(this.Id);
 
-                    Providers.Instance.SearchManager.GetIndexPopulator()
-                        .DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
+                    await Providers.Instance.SearchManager.GetIndexPopulator()
+                        .DeleteTreeAsync(myPath, this.Id, CancellationToken.None);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -4305,10 +4321,11 @@ namespace SenseNet.ContentRepository.Storage
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// This method deletes the <see cref="Node"/> permanently.
         /// </summary>
-        [Obsolete("Use parameterless ForceDelete method.")]
+        [Obsolete("Use parameterless ForceDelete method.", true)]
         public virtual void ForceDelete(long timestamp)
         {
             ForceDelete();
@@ -4354,23 +4371,39 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the node.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public static void Delete(string sourcePath)
         {
-            var sourceNode = Node.LoadNode(sourcePath);
+            DeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the node.
+        /// </summary>
+        public static async Task DeleteAsync(string sourcePath, CancellationToken cancel)
+        {
+            var sourceNode = await Node.LoadNodeAsync(sourcePath, cancel);
             if (sourceNode == null)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithPath_1, sourcePath));
-            sourceNode.Delete();
+            await sourceNode.DeleteAsync(cancel);
         }
 
         /// <summary>
         /// Deletes the node.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public static void Delete(int nodeId)
         {
-            var sourceNode = Node.LoadNode(nodeId);
+            DeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the node.
+        /// </summary>
+        public static async Task DeleteAsync(int nodeId, CancellationToken cancel)
+        {
+            var sourceNode = await Node.LoadNodeAsync(nodeId, cancel);
             if (sourceNode == null)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.Operations.DeleteFailed_ContentDoesNotExistWithId_1, nodeId));
-            sourceNode.Delete();
+            await sourceNode.DeleteAsync(cancel);
         }
 
         /// <summary>
@@ -4491,9 +4524,17 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the current node.
         /// </summary>
+        [Obsolete("Use async version instead", false)]
         public virtual void Delete()
         {
-            ForceDelete();
+            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously deletes the current node.
+        /// </summary>
+        public virtual Task DeleteAsync(CancellationToken cancel)
+        {
+            return ForceDeleteAsync(cancel);
         }
 
         #endregion

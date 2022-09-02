@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
@@ -85,7 +86,7 @@ namespace SenseNet.Services.Core.Sharing
                 // Invalid sharing group: no related content. Delete the group and move on.
                 SnTrace.Security.Write($"SharingMembershipExtender: Deleting orphaned sharing group {sharingGroup.Id} ({sharingGroup.Path}).");
 
-                sharingGroup.ForceDelete();
+                sharingGroup.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 sharingGroup = null;
             }
 

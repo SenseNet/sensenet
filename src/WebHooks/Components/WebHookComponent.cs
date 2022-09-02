@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Threading;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
@@ -122,7 +123,7 @@ namespace SenseNet.WebHooks
             var webHooks = Node.Load<GenericContent>(WebHooksPath);
             if (webHooks != null && !webHooks.NodeType.IsInstaceOfOrDerivedFrom("ItemList"))
             {
-                webHooks.ForceDelete();
+                webHooks.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
                 webHooks = null;
             }
 
