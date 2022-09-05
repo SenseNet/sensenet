@@ -237,7 +237,11 @@ namespace SenseNet.Extensions.DependencyInjection
             // Old behavior: set a property on the instance that will be used
             // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
-                repoBuilder.TraceCategories = categoryNames;
+            {
+                repoBuilder.TraceCategories = repoBuilder.TraceCategories == null
+                    ? categoryNames
+                    : repoBuilder.TraceCategories.Union(categoryNames).Distinct().ToArray();
+            }
             else
                 throw new NotImplementedException();
 
