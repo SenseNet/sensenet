@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -37,7 +38,9 @@ namespace SenseNet.ContentRepository.Tests
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
 
-        #region Text extracion
+        #region Text extraction
+
+        private static readonly int CountOfDefaultTextEctractorAssigments = 15;
 
         private class CustomTextExtractor : TextExtractor
         {
@@ -59,6 +62,97 @@ namespace SenseNet.ContentRepository.Tests
                     Extraction = reader.ReadToEnd();
                 return Extraction;
             }
+        }
+
+        private static TypeAccessor TextExtractorAcc { get; } = new TypeAccessor(typeof(TextExtractor));
+            Type GetExtractorTypeByFileExt(string fileExt) =>
+                TextExtractorAcc.InvokeStatic("ResolveExtractor", fileExt).GetType();
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_TextExtractors_DefaultSet()
+        {
+            Test2(services => { }, () =>
+            {
+                // ASSERT
+                var extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
+                    IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
+                Assert.AreEqual(CountOfDefaultTextEctractorAssigments, extractors.Count);
+                Assert.AreEqual(GetExtractorTypeByFileExt("contenttype"), typeof(XmlTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("xml"), typeof(XmlTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("doc"), typeof(DocTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("xls"), typeof(XlsTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("xlb"), typeof(XlbTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("msg"), typeof(MsgTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("pdf"), typeof(PdfTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("docx"), typeof(DocxTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("docm"), typeof(DocxTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("xlsx"), typeof(XlsxTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("xlsm"), typeof(XlsxTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("pptx"), typeof(PptxTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("txt"), typeof(PlainTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("settings"), typeof(PlainTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("rtf"), typeof(RtfTextExtractor));
+            });
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_TextExtractors_RegisterAndConfig()
+        {
+            Test2(services =>
+            {
+                services.AddTextExtractor<XmlTextExtractor>("csproj");
+                services.AddTextExtractor<PlainTextExtractor>("log");
+            }, () =>
+            {
+                // ASSERT-1 registered set
+                var extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
+                    IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
+                Assert.AreEqual(CountOfDefaultTextEctractorAssigments + 2, extractors.Count);
+                Assert.AreEqual(GetExtractorTypeByFileExt("csproj"), typeof(XmlTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("log"), typeof(PlainTextExtractor));
+
+                // ACTION: merge settings with service-registration
+                var extractorSettings = @"{TextExtractors: {""testext"": """ + typeof(CustomTextExtractor).FullName + @"""}}";
+                var settingsFile = Settings.GetSettingsByName<IndexingSettings>(IndexingSettings.SettingsName, Repository.RootPath);
+                settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(extractorSettings));
+                settingsFile.Save();
+
+                // ASSERT-2 merged set
+                extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
+                    IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
+                Assert.AreEqual(CountOfDefaultTextEctractorAssigments + 3, extractors.Count);
+                Assert.AreEqual(GetExtractorTypeByFileExt("csproj"), typeof(XmlTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("log"), typeof(PlainTextExtractor));
+                Assert.AreEqual(GetExtractorTypeByFileExt("testext"), typeof(CustomTextExtractor));
+            });
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_TextExtractors_ConfigOverrides()
+        {
+            Test2(services =>
+            {
+                services.AddTextExtractor<PdfTextExtractor>("testext");
+                services.AddTextExtractor<XmlTextExtractor>("testext");
+                services.AddTextExtractor<PlainTextExtractor>("testext"); // winner
+            }, () =>
+            {
+                // ASSERT-1 registered set: last wins
+                var extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
+                    IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
+                Assert.AreEqual(CountOfDefaultTextEctractorAssigments + 1, extractors.Count);
+                Assert.AreEqual(GetExtractorTypeByFileExt("testext"), typeof(PlainTextExtractor));
+
+                // ACTION: merge settings with service-registration
+                var extractorSettings = @"{TextExtractors: {""testext"": """ + typeof(CustomTextExtractor).FullName + @"""}}";
+                var settingsFile = Settings.GetSettingsByName<IndexingSettings>(IndexingSettings.SettingsName, Repository.RootPath);
+                settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(extractorSettings));
+                settingsFile.Save();
+
+                // ASSERT-2 merged set
+                extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
+                    IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
+                Assert.AreEqual(CountOfDefaultTextEctractorAssigments + 1, extractors.Count);
+                Assert.AreEqual(GetExtractorTypeByFileExt("testext"), typeof(CustomTextExtractor));
+            });
         }
 
         [TestMethod, TestCategory("IR")]

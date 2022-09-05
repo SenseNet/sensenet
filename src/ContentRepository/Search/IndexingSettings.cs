@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -78,24 +80,17 @@ namespace SenseNet.Search
         /// </summary>
         private Dictionary<string, ITextExtractor> LoadTextExtractors()
         {
-            var extractors = new Dictionary<string, ITextExtractor>
-                            {
-                                {"contenttype", new XmlTextExtractor()},
-                                {"xml", new XmlTextExtractor()},
-                                {"doc", new DocTextExtractor()},
-                                {"xls", new XlsTextExtractor()},
-                                {"xlb", new XlbTextExtractor()},
-                                {"msg", new MsgTextExtractor()},
-                                {"pdf", new PdfTextExtractor()},
-                                {"docx", new DocxTextExtractor()},
-                                {"docm", new DocxTextExtractor()},
-                                {"xlsx", new XlsxTextExtractor()},
-                                {"xlsm", new XlsxTextExtractor()},
-                                {"pptx", new PptxTextExtractor()},
-                                {"txt", new PlainTextExtractor()},
-                                {"settings", new PlainTextExtractor()},
-                                {"rtf", new RtfTextExtractor()}
-                            };
+            var instances = Providers.Instance.Services.GetServices<ITextExtractor>().Distinct().ToArray();
+            var instancesByType = new Dictionary<Type, ITextExtractor>();
+            // only one instance is relevant
+            foreach (var instance in instances)
+                instancesByType[instance.GetType()] = instance;
+
+            var registration = Providers.Instance.Services.GetServices<TextExtractorRegistration>();
+            var extractors = new Dictionary<string, ITextExtractor>();
+            // only the last item is relevant
+            foreach (var registrationItem in registration)
+                extractors[registrationItem.FileExtension] = instancesByType[registrationItem.TextExtractorType];
 
             // load text extractor settings (they may override the defaults listed above)
             foreach (var field in Content.Fields.Values.Where(field => field.Name.StartsWith(TextExtractorsTextfieldName + ".")))
