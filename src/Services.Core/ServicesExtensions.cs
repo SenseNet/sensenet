@@ -148,6 +148,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
                 .AddSingleton<IIndexingActivityFactory, IndexingActivityFactory>()
 
+                .AddDefaultTextExtractors()
+
                 .AddSingleton<ISnCache, SnMemoryCache>()
                 .AddSingleton<IApplicationCache, ApplicationCache>() //not used?
                 .AddSingleton<IIndexDocumentProvider, IndexDocumentProvider>()

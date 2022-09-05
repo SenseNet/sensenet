@@ -383,6 +383,24 @@ namespace WebAppTests
                     typeof(SnMaintenance),
                 }},
                 {typeof(ISnService), Array.Empty<Type>() },
+                {typeof(ITextExtractor), new[] {
+                    typeof(XmlTextExtractor),
+                    typeof(XmlTextExtractor),
+                    typeof(DocTextExtractor),
+                    typeof(XlsTextExtractor),
+                    typeof(XlbTextExtractor),
+                    typeof(MsgTextExtractor),
+                    typeof(PdfTextExtractor),
+                    typeof(DocxTextExtractor),
+                    typeof(DocxTextExtractor),
+                    typeof(XlsxTextExtractor),
+                    typeof(XlsxTextExtractor),
+                    typeof(PptxTextExtractor),
+                    typeof(PlainTextExtractor),
+                    typeof(PlainTextExtractor),
+                    typeof(RtfTextExtractor),
+                }},
+                {typeof(TextExtractorRegistration), typeof(TextExtractorRegistration) },
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()

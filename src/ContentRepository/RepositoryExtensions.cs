@@ -5,6 +5,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Storage;
@@ -181,6 +182,44 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetTracer<T>(this IServiceCollection services) where T : class, ISnTracer
         {
             return services.AddSingleton<ISnTracer, T>();
+        }
+
+        /// <summary>
+        /// Assigns the provided text extractor type to the given file extension and adds the assignment to the service collection.
+        /// </summary>
+        /// <typeparam name="TImpl">Type of the <see cref="ITextExtractor"/> implementation.</typeparam>
+        /// <param name="services"></param>
+        /// <param name="fileExtension">File extension (e.g. "txt").</param>
+        /// <returns></returns>
+        public static IServiceCollection AddTextExtractor<TImpl>(this IServiceCollection services, string fileExtension) where TImpl : class, ITextExtractor
+        {
+            services.AddSingleton<ITextExtractor, TImpl>();
+            return services.AddSingleton<TextExtractorRegistration>(new TextExtractorRegistration
+            {
+                FileExtension = fileExtension.TrimStart('.'),
+                TextExtractorType = typeof(TImpl)
+            });
+        }
+
+        public static IServiceCollection AddDefaultTextExtractors(this IServiceCollection services)
+        {
+            return services
+                    .AddTextExtractor<XmlTextExtractor>("contenttype")
+                    .AddTextExtractor<XmlTextExtractor>("xml")
+                    .AddTextExtractor<DocTextExtractor>("doc")
+                    .AddTextExtractor<XlsTextExtractor>("xls")
+                    .AddTextExtractor<XlbTextExtractor>("xlb")
+                    .AddTextExtractor<MsgTextExtractor>("msg")
+                    .AddTextExtractor<PdfTextExtractor>("pdf")
+                    .AddTextExtractor<DocxTextExtractor>("docx")
+                    .AddTextExtractor<DocxTextExtractor>("docm")
+                    .AddTextExtractor<XlsxTextExtractor>("xlsx")
+                    .AddTextExtractor<XlsxTextExtractor>("xlsm")
+                    .AddTextExtractor<PptxTextExtractor>("pptx")
+                    .AddTextExtractor<PlainTextExtractor>("txt")
+                    .AddTextExtractor<PlainTextExtractor>("settings")
+                    .AddTextExtractor<RtfTextExtractor>("rtf")
+                ;
         }
     }
 }
