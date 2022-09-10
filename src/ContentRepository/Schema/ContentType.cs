@@ -51,6 +51,7 @@ namespace  SenseNet.ContentRepository.Schema
         private string _extension;
         private string _appInfo;
         private bool? _allowIncrementalNaming;
+        private bool? _isSystemType;
         private bool? _previewEnabled;
         private bool? _indexingEnabled;
 
@@ -200,6 +201,12 @@ namespace  SenseNet.ContentRepository.Schema
                 return ParentType.AllowIncrementalNaming;
             }
         }
+
+        /// <summary>
+        /// Gets a value that specifies whether this ContentType is system type or not.
+        /// This value comes from the ContentTypeDefinition's &lt;System> element and it is not inherited from the parent.
+        /// </summary>
+        public bool IsSystemType => _isSystemType.HasValue && _isSystemType.Value;
 
         /// <summary>
         /// Gets a value that specifies whether this ContentType allows or disallows preview image generation.
@@ -450,6 +457,10 @@ namespace  SenseNet.ContentRepository.Schema
                         break;
                     case "AllowedChildTypes":
                         ParseAllowedChildTypes(subElement, nsres);
+                        break;
+                    case "SystemType":
+                        if (!string.IsNullOrEmpty(subElement.Value) && YES_VALUES.Contains(subElement.Value.Trim().ToLower()))
+                            this._isSystemType = true;
                         break;
                     case "Preview":
                         if (!string.IsNullOrEmpty(subElement.Value) && YES_VALUES.Contains(subElement.Value.Trim().ToLower()))
