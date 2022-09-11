@@ -156,10 +156,21 @@
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
+    <Field name="IsSystemType" type="Boolean">
+      <DisplayName>$Ctd-ContentType,IsSystemType-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,IsSystemType-Description</Description>
+      <Bind property="IsSystemType"/>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
     <Field name="IsSystemContent" type="Boolean">
       <DisplayName>$Ctd-ContentType,IsSystemContent-DisplayName</DisplayName>
       <Description>$Ctd-ContentType,IsSystemContent-Description</Description>
-      <Bind property="IsSystem"></Bind>
+      <Bind property="IsSystem"/>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>

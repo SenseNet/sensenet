@@ -561,6 +561,12 @@
         <data name="TypeIs-Description" xml:space="preserve">
           <value>The type tree of the Node in the Repository.</value>
         </data>
+        <data name="IsSystemType-DisplayName" xml:space="preserve">
+          <value>System Type</value>
+        </data>
+        <data name="IsSystemType-Description" xml:space="preserve">
+          <value>This field is true if the content type is system type.</value>
+        </data>
         <data name="IsSystemContent-DisplayName" xml:space="preserve">
           <value>System Content</value>
         </data>
@@ -679,6 +685,12 @@
         </data>
         <data name="TypeIs-Description" xml:space="preserve">
           <value>Csak belső használatra.</value>
+        </data>
+        <data name="IsSystemType-DisplayName" xml:space="preserve">
+          <value>Rendszer típus</value>
+        </data>
+        <data name="IsSystemType-Description" xml:space="preserve">
+          <value>Akkor igaz, ha ez a tartalom típus egy rendszer-típus.</value>
         </data>
         <data name="IsSystemContent-DisplayName" xml:space="preserve">
           <value>Rendszer elem</value>

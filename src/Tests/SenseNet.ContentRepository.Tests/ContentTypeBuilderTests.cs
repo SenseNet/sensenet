@@ -149,16 +149,19 @@ namespace SenseNet.ContentRepository.Tests
                 ContentTypeInstaller.InstallContentType(string.Format(ctd, ""));
                 var contentType = ContentType.GetByName("SimpleTestContent");
                 Assert.AreEqual(false, contentType.IsSystemType);
+                Assert.AreEqual(false, Content.Load(contentType.Id)["IsSystemType"]);
 
                 // TEST-2: false
                 ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType>false</SystemType>"));
                 contentType = ContentType.GetByName("SimpleTestContent");
                 Assert.AreEqual(false, contentType.IsSystemType);
+                Assert.AreEqual(false, Content.Load(contentType.Id)["IsSystemType"]);
 
                 // TEST-3: true
                 ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType>true</SystemType>"));
                 contentType = ContentType.GetByName("SimpleTestContent");
                 Assert.AreEqual(true, contentType.IsSystemType);
+                Assert.AreEqual(true, Content.Load(contentType.Id)["IsSystemType"]);
 
                 // TEST-4: wrong: empty
                 try
