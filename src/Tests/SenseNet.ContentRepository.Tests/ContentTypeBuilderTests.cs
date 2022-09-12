@@ -122,18 +122,37 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
+                var ct1 = ContentType.GetByName("SimpleTestContent");
+
+                Assert.IsFalse(ct1.IsSystemType);
+
                 var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .DisplayName("Test SimpleTestContent x")
-                    .Description("Test SimpleTestContent Description x");
+                    .Description("Test SimpleTestContent Description x")
+                    .IsSystemType(true);
 
                 cb.Apply();
 
-                var ct1 = ContentType.GetByName("SimpleTestContent");
+                ct1 = ContentType.GetByName("SimpleTestContent");
 
                 Assert.AreEqual("Test SimpleTestContent x", ct1.DisplayName);
                 Assert.AreEqual("Test SimpleTestContent Description x", ct1.Description);
+                Assert.IsTrue(ct1.IsSystemType);
+
+                // --------------- remove values
+
+                cb = new ContentTypeBuilder(null);
+
+                cb.Type("SimpleTestContent")
+                    .IsSystemType(null);
+
+                cb.Apply();
+
+                ct1 = ContentType.GetByName("SimpleTestContent");
+
+                Assert.IsFalse(ct1.IsSystemType);
             });
         }
         [TestMethod]

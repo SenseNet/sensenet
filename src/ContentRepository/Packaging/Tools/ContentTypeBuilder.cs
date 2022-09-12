@@ -17,6 +17,7 @@ namespace SenseNet.Packaging.Tools
     {
         IContentTypeBuilder DisplayName(string value);
         IContentTypeBuilder Description(string value);
+        IContentTypeBuilder IsSystemType(bool? value);
         IContentTypeBuilder Icon(string value);
         //IContentTypeBuilder AddAllowedChildTypes(params string[] typeNames);
         IFieldEditor Field(string name, string type = null);
@@ -49,6 +50,7 @@ namespace SenseNet.Packaging.Tools
         internal string ContentTypeName { get; }
         internal string DisplayNameValue { get; set; }
         internal string DescriptionValue { get; set; }
+        internal string IsSystemTypeValue { get; set; }
         internal string IconValue { get; set; }
         internal string[] AllowedChildTypesToAdd { get; set; }
 
@@ -67,6 +69,13 @@ namespace SenseNet.Packaging.Tools
         public IContentTypeBuilder Description(string value)
         {
             DescriptionValue = value;
+            return this;
+        }
+
+        public IContentTypeBuilder IsSystemType(bool? value)
+        {
+            // Empty means we have to remove the property, null means it was not set.
+            IsSystemTypeValue = !value.HasValue ? string.Empty : value.ToString().ToLower();
             return this;
         }
         public IContentTypeBuilder Icon(string value)
@@ -319,10 +328,22 @@ namespace SenseNet.Packaging.Tools
                 var propertyElement = LoadOrAddChild(xDoc.DocumentElement, propertyName);
                 propertyElement.InnerXml = value;
             }
+            void DeleteProperty(string propertyName)
+            {
+                var propertyElement = LoadChild(xDoc.DocumentElement, propertyName);
+                if (propertyElement != null)
+                    xDoc.DocumentElement?.RemoveChild(propertyElement);
+            }
 
             SetProperty("DisplayName", builder.DisplayNameValue);
             SetProperty("Description", builder.DescriptionValue);
             SetProperty("Icon", builder.IconValue);
+
+            // Empty means we have to remove the property, null means it was not set.
+            if (builder.IsSystemTypeValue == string.Empty)
+                DeleteProperty("SystemType");
+            else if (builder.IsSystemTypeValue != null)
+                SetProperty("SystemType", builder.IsSystemTypeValue);
         }
 
         private void EditField(XmlDocument xDoc, FieldEditor fieldEditor)
@@ -567,7 +588,7 @@ namespace SenseNet.Packaging.Tools
         // it to insert a new xml node to a correct location.
         private static readonly List<string> FieldPropertyOrder = new List<string>(new[]
         {
-            "DisplayName", "Description", "Icon", "Preview", "AppInfo", "Bind", "Indexing", "Configuration"
+            "DisplayName", "Description", "Icon", "SystemType", "Preview", "AppInfo", "Bind", "Indexing", "Configuration"
         });
 
         private static XmlNode LoadOrAddChild(XmlNode parentNode, string name, bool insertIfPossible = true, IDictionary<string, string> attributes = null)
