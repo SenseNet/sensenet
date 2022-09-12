@@ -116,28 +116,91 @@ namespace SenseNet.ContentRepository.Tests
         #endregion
 
         [TestMethod]
-        public void ContentType_Simple_HeaderProperties()
+        public void ContentType_Build_Simple_HeaderProperties()
         {
             Test(() =>
             {
                 ContentTypeInstaller.InstallContentType(CtdSimple);
 
+                var ct1 = ContentType.GetByName("SimpleTestContent");
+
+                Assert.IsFalse(ct1.IsSystemType);
+
                 var cb = new ContentTypeBuilder(null);
 
                 cb.Type("SimpleTestContent")
                     .DisplayName("Test SimpleTestContent x")
-                    .Description("Test SimpleTestContent Description x");
+                    .Description("Test SimpleTestContent Description x")
+                    .IsSystemType(true);
 
                 cb.Apply();
 
-                var ct1 = ContentType.GetByName("SimpleTestContent");
+                ct1 = ContentType.GetByName("SimpleTestContent");
 
                 Assert.AreEqual("Test SimpleTestContent x", ct1.DisplayName);
                 Assert.AreEqual("Test SimpleTestContent Description x", ct1.Description);
+                Assert.IsTrue(ct1.IsSystemType);
+
+                // --------------- remove values
+
+                cb = new ContentTypeBuilder(null);
+
+                cb.Type("SimpleTestContent")
+                    .IsSystemType(null);
+
+                cb.Apply();
+
+                ct1 = ContentType.GetByName("SimpleTestContent");
+
+                Assert.IsFalse(ct1.IsSystemType);
             });
         }
         [TestMethod]
-        public void ContentType_Simple_FieldProperties()
+        public void ContentType_Build_Simple_IsSystemType()
+        {
+            Test(() =>
+            {
+                var ctd = @"<ContentType name=""SimpleTestContent"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  {0}
+</ContentType>";
+
+                // TEST-1: no element
+                ContentTypeInstaller.InstallContentType(string.Format(ctd, ""));
+                var contentType = ContentType.GetByName("SimpleTestContent");
+                Assert.AreEqual(false, contentType.IsSystemType);
+                Assert.AreEqual(false, Content.Load(contentType.Id)["IsSystemType"]);
+
+                // TEST-2: false
+                ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType>false</SystemType>"));
+                contentType = ContentType.GetByName("SimpleTestContent");
+                Assert.AreEqual(false, contentType.IsSystemType);
+                Assert.AreEqual(false, Content.Load(contentType.Id)["IsSystemType"]);
+
+                // TEST-3: true
+                ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType>true</SystemType>"));
+                contentType = ContentType.GetByName("SimpleTestContent");
+                Assert.AreEqual(true, contentType.IsSystemType);
+                Assert.AreEqual(true, Content.Load(contentType.Id)["IsSystemType"]);
+
+                // TEST-4: wrong: empty
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType></SystemType>"));
+                    Assert.Fail("ContentRegistrationException was not thrown.");
+                }
+                catch (ContentRegistrationException) { }
+
+                // TEST-5: wrong: integer
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(string.Format(ctd, "<SystemType>42</SystemType>"));
+                    Assert.Fail("ContentRegistrationException was not thrown.");
+                }
+                catch (ContentRegistrationException e) { }
+            });
+        }
+        [TestMethod]
+        public void ContentType_Build_Simple_FieldProperties()
         {
             Test(() =>
             {
@@ -159,7 +222,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ContentType_Simple_FieldConfiguration()
+        public void ContentType_Build_Simple_FieldConfiguration()
         {
             Test(() =>
             {
@@ -180,7 +243,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void ContentType_Simple_AddField()
+        public void ContentType_Build_Simple_AddField()
         {
             Test(() =>
             {
@@ -201,7 +264,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void ContentType_Simple_RemoveField_Fluent()
+        public void ContentType_Build_Simple_RemoveField_Fluent()
         {
             Test(() =>
             {
@@ -223,7 +286,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ContentType_Simple_RemoveField_Standalone()
+        public void ContentType_Build_Simple_RemoveField_Standalone()
         {
             Test(() =>
             {
@@ -244,7 +307,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ContentType_Complex_RemoveConfig_Empty()
+        public void ContentType_Build_Complex_RemoveConfig_Empty()
         {
             Test(() =>
             {
@@ -273,7 +336,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ContentType_Complex_RemoveProperty()
+        public void ContentType_Build_Complex_RemoveProperty()
         {
             Test(() =>
             {
@@ -301,7 +364,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ContentType_Complex_RemoveConfig()
+        public void ContentType_Build_Complex_RemoveConfig()
         {
             Test(() =>
             {
@@ -328,7 +391,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void ContentType_Complex_FieldConfiguration()
+        public void ContentType_Build_Complex_FieldConfiguration()
         {
             Test(() =>
             {
@@ -369,7 +432,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void ContentType_Complex_InsertFieldProperty()
+        public void ContentType_Build_Complex_InsertFieldProperty()
         {
             Test(() =>
             {
@@ -394,7 +457,7 @@ namespace SenseNet.ContentRepository.Tests
         }
       
         [TestMethod]
-        public void ContentType_ChangeFieldType_LongText()
+        public void ContentType_Build_ChangeFieldType_LongText()
         {
             Content CreateTestContent(string contentTypeName, Node parent)
             {
