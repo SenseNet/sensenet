@@ -86,7 +86,7 @@
     <xs:annotation>
       <xs:documentation>
         Required attributes: @name, @type or @handler.
-        Subelement order: DisplayName, Description, Icon, SystemType, Preview, AppInfo, Bind, Indexing, Configuration
+        Subelement order: DisplayName, Description, Icon, Preview, AppInfo, Bind, Indexing, Configuration
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
