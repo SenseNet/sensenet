@@ -1462,6 +1462,55 @@ namespace SenseNet.ContentRepository
                 });
         }
 
+        #region Patch template
+
+        // =================================================================================================
+        // Template method for a feature patch. When creating a patch for a feature, copy this method,
+        // remove unnecessary parts and uncomment what you need.
+        // =================================================================================================
+
+        //private void Patch_Template_Feature(PatchExecutionContext context)
+        //{
+        //    var logger = context.GetService<ILogger<ServicesComponent>>();
+
+        //    #region Content changes
+        //    #endregion
+
+        //    #region Permission changes
+
+        //    //Providers.Instance.SecurityHandler.CreateAclEditor()
+        //    //    .Allow()
+        //    //    .Apply();
+
+        //    #endregion
+
+        //    #region String resource changes
+
+        //    //var rb = new ResourceBuilder();
+        //    //rb.Apply();
+
+        //    #endregion
+
+        //    #region Settings changes
+        //    #endregion
+
+        //    #region CTD changes
+
+        //    //try
+        //    //{
+        //    //    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+        //    //    cb.Apply();
+        //    //}
+        //    //catch (Exception ex)
+        //    //{
+        //    //    logger.LogWarning(ex, "Error during CTD changes.");
+        //    //}
+
+        //    #endregion
+        //}
+
+        #endregion
+
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))
