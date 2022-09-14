@@ -176,7 +176,7 @@ namespace SenseNet.Packaging.Tools
 
         public IFieldEditor ReadOnly(bool value = true)
         {
-            Configuration.ReadOnly = true;
+            Configuration.ReadOnly = value;
             ConfigurationChanged = true;
             return this;
         }

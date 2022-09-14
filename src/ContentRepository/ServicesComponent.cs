@@ -1391,7 +1391,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.1", "2021-08-29", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.2", "2021-09-14", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1403,6 +1403,59 @@ namespace SenseNet.ContentRepository
                     {
                         logger.LogTrace("Adding File and Image as an allowed type on the Content folder.");
                         contentFolder.AllowChildTypes(new[] { "File", "Image" }, throwOnError: false, save: true);
+                    }
+
+                    #endregion
+
+                    #region String resource changes
+
+                    logger.LogTrace("Adding string resources...");
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesCD.xml")
+                        .Class("Ctd-ContentType")
+                        .Culture("en")
+                        .AddResource("IsSystemType-DisplayName", "System Type")
+                        .AddResource("IsSystemType-Description", "This field is true if the content type is system type.")
+                        .Culture("hu")
+                        .AddResource("IsSystemType-DisplayName", "Rendszer típus")
+                        .AddResource("IsSystemType-Description", "Akkor igaz, ha ez a tartalom típus egy rendszer-típus.");
+
+                    rb.Apply();
+
+                    #endregion
+
+                    #region Settings changes
+
+                    //UNDONE: load Logging settings JSON and set properties to NULL
+                    // See settings changes above for reference.
+                    // Iterate through properties and change FALSE --> NULL if the property exists.
+
+                    #endregion
+
+                    #region CTD changes
+
+                    try
+                    {
+                        var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+
+                        //UNDONE: implement Bind CTD builder method and uncomment the line below
+                        cb.Type("ContentType")
+                            .Field("IsSystemType", "Boolean")
+                            .DisplayName("$Ctd-ContentType,IsSystemType-DisplayName")
+                            .Description("$Ctd-ContentType,IsSystemType-Description")
+                            //.Bind("IsSystemType")
+                            .VisibleBrowse(FieldVisibility.Hide)
+                            .VisibleEdit(FieldVisibility.Hide)
+                            .VisibleNew(FieldVisibility.Hide)
+                            .ReadOnly();
+
+                        cb.Apply();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error during CTD changes.");
                     }
 
                     #endregion
