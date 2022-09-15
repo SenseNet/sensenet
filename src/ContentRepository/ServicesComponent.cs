@@ -1436,34 +1436,35 @@ namespace SenseNet.ContentRepository
                         var setting = Node.Load<Settings>("/Root/System/Settings/Logging.settings");
                         if (setting != null)
                         {
-                            using var bs = setting.Binary.GetStream();
-                            using var reader = new StreamReader(bs);
+                            using var readStream = setting.Binary.GetStream();
+                            using var reader = new StreamReader(readStream);
                             var jText = reader.ReadToEnd();
-                            var dict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, bool?>>>(jText);
-
                             var changed = false;
-                            if (dict != null && dict.TryGetValue("Trace", out var traceSettings))
+                            if (JsonConvert.DeserializeObject(jText) is JObject jRoot)
                             {
-                                var itemsToChange = traceSettings.Where(x => x.Value == false).ToArray();
-                                if (itemsToChange.Length > 0)
+                                if (jRoot["Trace"] is JObject jTrace)
                                 {
-                                    foreach (var item in itemsToChange)
-                                        traceSettings[item.Key] = null;
+                                    var namesToChange = jTrace.Properties()
+                                        .Where(x => x.Value.ToObject<bool?>() == false)
+                                        .Select(x => x.Name)
+                                        .ToArray();
 
-                                    var modifiedJson = JsonConvert.SerializeObject(dict, Formatting.Indented);
+                                    foreach (var name in namesToChange)
+                                        jTrace[name] = null;
+
+                                    var modifiedJson =
+                                        JsonConvert.SerializeObject(jRoot, Newtonsoft.Json.Formatting.Indented);
 
                                     using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
                                     setting.Binary.SetStream(modifiedStream);
                                     setting.Save(SavingMode.KeepVersion);
-
                                     changed = true;
                                 }
                             }
 
-                            if(changed)
-                                logger.LogTrace("Setting values are changed from false to null in Logging settings.");
-                            else
-                                logger.LogTrace("Logging settings was not changed.");
+                            logger.LogTrace(changed
+                                ? "Setting values are changed from false to null in Logging settings."
+                                : "Logging settings was not changed.");
                         }
                     }
                     catch (Exception ex)
