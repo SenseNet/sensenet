@@ -543,6 +543,42 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void ContentTypeBuilder_Binding_NewField()
+        {
+            Test(() =>
+            {
+                var contentTypeName = "EditedContentType";
+                var ctd = $"<ContentType name='{contentTypeName}' parentType='GenericContent'" +
+                          " handler='SenseNet.ContentRepository.GenericContent'" +
+                          @" xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <Fields/>
+</ContentType>
+";
+                var expected = $"<ContentType name='{contentTypeName}' parentType='GenericContent'" +
+                               " handler='SenseNet.ContentRepository.GenericContent'" +
+                               @" xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <Fields>
+    <Field name='ShortText1' type='ShortText'>
+      <Bind property='ShortText2' />
+    </Field>
+  </Fields>
+</ContentType>
+";
+                ContentTypeInstaller.InstallContentType(ctd);
+
+                var cb = new ContentTypeBuilder(null);
+                cb.Type("EditedContentType").Field("ShortText1", "ShortText").Bind("ShortText2");
+                cb.Apply();
+
+                var ct = ContentType.GetByName(contentTypeName);
+
+                var xml = ct.ToXml().Replace("\"", "'");
+
+                Assert.AreEqual(expected.Trim(), xml.Trim());
+            });
+        }
+
         private static void AssertContentTypeXml(string contentTypeName, Action<XmlDocument, XmlNamespaceManager> checkXml)
         {
             var ct = ContentType.GetByName(contentTypeName);
