@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
@@ -1428,9 +1430,46 @@ namespace SenseNet.ContentRepository
 
                     #region Settings changes
 
-                    //UNDONE: load Logging settings JSON and set properties to NULL
-                    // See settings changes above for reference.
-                    // Iterate through properties and change FALSE --> NULL if the property exists.
+                    try
+                    {
+                        // Change Trace values from false to null. The values true will be unchanged.
+                        var setting = Node.Load<Settings>("/Root/System/Settings/Logging.settings");
+                        if (setting != null)
+                        {
+                            using var bs = setting.Binary.GetStream();
+                            using var reader = new StreamReader(bs);
+                            var jText = reader.ReadToEnd();
+                            var dict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, bool?>>>(jText);
+
+                            var changed = false;
+                            if (dict != null && dict.TryGetValue("Trace", out var traceSettings))
+                            {
+                                var itemsToChange = traceSettings.Where(x => x.Value == false).ToArray();
+                                if (itemsToChange.Length > 0)
+                                {
+                                    foreach (var item in itemsToChange)
+                                        traceSettings[item.Key] = null;
+
+                                    var modifiedJson = JsonConvert.SerializeObject(dict, Formatting.Indented);
+
+                                    using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
+                                    setting.Binary.SetStream(modifiedStream);
+                                    setting.Save(SavingMode.KeepVersion);
+
+                                    changed = true;
+                                }
+                            }
+
+                            if(changed)
+                                logger.LogTrace("Setting values are changed from false to null in Logging settings.");
+                            else
+                                logger.LogTrace("Logging settings was not changed.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error loading or modifying Logging settings.");
+                    }
 
                     #endregion
 
@@ -1440,12 +1479,11 @@ namespace SenseNet.ContentRepository
                     {
                         var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
-                        //UNDONE: implement Bind CTD builder method and uncomment the line below
                         cb.Type("ContentType")
                             .Field("IsSystemType", "Boolean")
                             .DisplayName("$Ctd-ContentType,IsSystemType-DisplayName")
                             .Description("$Ctd-ContentType,IsSystemType-Description")
-                            //.Bind("IsSystemType")
+                            .Bind("IsSystemType")
                             .VisibleBrowse(FieldVisibility.Hide)
                             .VisibleEdit(FieldVisibility.Hide)
                             .VisibleNew(FieldVisibility.Hide)
