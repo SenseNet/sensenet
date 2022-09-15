@@ -28,6 +28,7 @@ namespace SenseNet.Packaging.Tools
         IFieldEditor DefaultValue(string value);
         IFieldEditor DisplayName(string value);
         IFieldEditor Description(string value);
+        IFieldEditor Bind(string value);
         IFieldEditor VisibleBrowse(FieldVisibility visibility);
         IFieldEditor VisibleEdit(FieldVisibility visibility);
         IFieldEditor VisibleNew(FieldVisibility visibility);
@@ -114,6 +115,7 @@ namespace SenseNet.Packaging.Tools
     {
         internal string DisplayNameValue { get; set; }
         internal string DescriptionValue { get; set; }
+        internal string BindValue { get; set; }
         internal ConfigurationInfo Configuration { get; } = new ConfigurationInfo();
         internal bool ConfigurationChanged { get; private set; }
 
@@ -145,6 +147,11 @@ namespace SenseNet.Packaging.Tools
         public IFieldEditor Description(string value)
         {
             DescriptionValue = value;
+            return this;
+        }
+        public IFieldEditor Bind(string value)
+        {
+            BindValue = value;
             return this;
         }
 
@@ -359,6 +366,7 @@ namespace SenseNet.Packaging.Tools
 
             SetProperty(fieldElement, "DisplayName", fieldEditor.DisplayNameValue);
             SetProperty(fieldElement, "Description", fieldEditor.DescriptionValue);
+            SetPropertyAsAttribute(fieldElement, "Bind", "property", fieldEditor.BindValue);
 
             if (fieldEditor.ConfigurationChanged)
             {
@@ -430,6 +438,14 @@ namespace SenseNet.Packaging.Tools
 
                 var propertyElement = LoadOrAddChild(parentNode, propertyName);
                 propertyElement.InnerXml = value;
+            }
+            static void SetPropertyAsAttribute(XmlNode parentNode, string elementName, string propertyName, string value)
+            {
+                if (value == null)
+                    return;
+
+                var propertyElement = (XmlElement)LoadOrAddChild(parentNode, elementName);
+                propertyElement.SetAttribute(propertyName, value);
             }
         }
 
