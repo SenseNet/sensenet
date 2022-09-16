@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
@@ -1391,7 +1393,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.1", "2021-08-29", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.2", "2021-09-14", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1406,8 +1408,147 @@ namespace SenseNet.ContentRepository
                     }
 
                     #endregion
+
+                    #region String resource changes
+
+                    logger.LogTrace("Adding string resources...");
+
+                    var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesCD.xml")
+                        .Class("Ctd-ContentType")
+                        .Culture("en")
+                        .AddResource("IsSystemType-DisplayName", "System Type")
+                        .AddResource("IsSystemType-Description", "This field is true if the content type is system type.")
+                        .Culture("hu")
+                        .AddResource("IsSystemType-DisplayName", "Rendszer típus")
+                        .AddResource("IsSystemType-Description", "Akkor igaz, ha ez a tartalom típus egy rendszer-típus.");
+
+                    rb.Apply();
+
+                    #endregion
+
+                    #region Settings changes
+
+                    try
+                    {
+                        // Change Trace values from false to null. The values true will be unchanged.
+                        var setting = Node.Load<Settings>("/Root/System/Settings/Logging.settings");
+                        if (setting != null)
+                        {
+                            using var readStream = setting.Binary.GetStream();
+                            using var reader = new StreamReader(readStream);
+                            var jText = reader.ReadToEnd();
+                            var changed = false;
+                            if (JsonConvert.DeserializeObject(jText) is JObject jRoot)
+                            {
+                                if (jRoot["Trace"] is JObject jTrace)
+                                {
+                                    var namesToChange = jTrace.Properties()
+                                        .Where(x => x.Value.ToObject<bool?>() == false)
+                                        .Select(x => x.Name)
+                                        .ToArray();
+
+                                    foreach (var name in namesToChange)
+                                        jTrace[name] = null;
+
+                                    var modifiedJson =
+                                        JsonConvert.SerializeObject(jRoot, Newtonsoft.Json.Formatting.Indented);
+
+                                    using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
+                                    setting.Binary.SetStream(modifiedStream);
+                                    setting.Save(SavingMode.KeepVersion);
+                                    changed = true;
+                                }
+                            }
+
+                            logger.LogTrace(changed
+                                ? "Setting values are changed from false to null in Logging settings."
+                                : "Logging settings was not changed.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error loading or modifying Logging settings.");
+                    }
+
+                    #endregion
+
+                    #region CTD changes
+
+                    try
+                    {
+                        var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+
+                        cb.Type("ContentType")
+                            .Field("IsSystemType", "Boolean")
+                            .DisplayName("$Ctd-ContentType,IsSystemType-DisplayName")
+                            .Description("$Ctd-ContentType,IsSystemType-Description")
+                            .Bind("IsSystemType")
+                            .VisibleBrowse(FieldVisibility.Hide)
+                            .VisibleEdit(FieldVisibility.Hide)
+                            .VisibleNew(FieldVisibility.Hide)
+                            .ReadOnly();
+
+                        cb.Apply();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error during CTD changes.");
+                    }
+
+                    #endregion
                 });
         }
+
+        #region Patch template
+
+        // =================================================================================================
+        // Template method for a feature patch. When creating a patch for a feature, copy this method,
+        // remove unnecessary parts and uncomment what you need.
+        // =================================================================================================
+
+        //private void Patch_Template_Feature(PatchExecutionContext context)
+        //{
+        //    var logger = context.GetService<ILogger<ServicesComponent>>();
+
+        //    #region Content changes
+        //    #endregion
+
+        //    #region Permission changes
+
+        //    //Providers.Instance.SecurityHandler.CreateAclEditor()
+        //    //    .Allow()
+        //    //    .Apply();
+
+        //    #endregion
+
+        //    #region String resource changes
+
+        //    //var rb = new ResourceBuilder();
+        //    //rb.Apply();
+
+        //    #endregion
+
+        //    #region Settings changes
+        //    #endregion
+
+        //    #region CTD changes
+
+        //    //try
+        //    //{
+        //    //    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+        //    //    cb.Apply();
+        //    //}
+        //    //catch (Exception ex)
+        //    //{
+        //    //    logger.LogWarning(ex, "Error during CTD changes.");
+        //    //}
+
+        //    #endregion
+        //}
+
+        #endregion
 
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
         {
