@@ -102,7 +102,7 @@ namespace SenseNet.ContentRepository.Tests
             public override bool IsContentSupported(Node content)
             {
                 if (content is File file)
-                    return file.ContentListId > 0 && file.IsPreviewEnabled;
+                    return file.ContentListId > 0/* && file.IsPreviewEnabled*/;
                 return false;
             }
 

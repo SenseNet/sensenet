@@ -561,8 +561,25 @@ namespace SenseNet.Preview
             return Providers.Instance.StorageSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
         }
 
+
         // ===================================================================================================== Server-side interface
 
+        /// <summary>
+        /// General method that returns true if the preview can be generated for the given <see cref="Node"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method takes into account the preview switch on the given content and if the feature is "on", calls
+        /// the provider specific <see cref="IsPreviewEnabled"/> method in order to decide, whether the provider can
+        /// generate or not.
+        /// </remarks>
+        public bool IsPreviewEnabled(Node content)
+        {
+            return content.IsPreviewEnabled && IsContentSupported(content);
+        }
+
+        /// <summary>
+        /// Provider specific method that returns true if it can generate preview of the given <see cref="Node"/>.
+        /// </summary>
         public abstract bool IsContentSupported(Node content);
         public abstract string GetPreviewGeneratorTaskName(string contentPath);
         public abstract string GetPreviewGeneratorTaskTitle(string contentPath);
@@ -622,6 +639,7 @@ namespace SenseNet.Preview
             return Providers.Instance.SecurityHandler.HasPermission(previewHead, PermissionType.OpenMinor);
         }
 
+
         public virtual RestrictionType GetRestrictionType(NodeHead nodeHead)
         {
             var securityHandler = Providers.Instance.SecurityHandler;
@@ -651,7 +669,7 @@ namespace SenseNet.Preview
 
         public virtual IEnumerable<Content> GetPreviewImages(Content content)
         {
-            if (content == null || !this.IsContentSupported(content.ContentHandler) || !HasPreviewPermission(NodeHead.Get(content.Id)))
+            if (content == null || !this.IsPreviewEnabled(content.ContentHandler) || !HasPreviewPermission(NodeHead.Get(content.Id)))
                 return new List<Content>();
 
             var pc = (int)content["PageCount"];
@@ -705,7 +723,7 @@ namespace SenseNet.Preview
         /// <param name="content">The content that has preview images.</param>
         public virtual IEnumerable<Content> GetExistingPreviewImages(Content content)
         {
-            if (content == null || !this.IsContentSupported(content.ContentHandler) || !HasPreviewPermission(NodeHead.Get(content.Id)))
+            if (content == null || !this.IsPreviewEnabled(content.ContentHandler) || !HasPreviewPermission(NodeHead.Get(content.Id)))
                 yield break;
 
             var previewPath = RepositoryPath.Combine(content.Path, PREVIEWS_FOLDERNAME, GetPreviewsSubfolderName(content.ContentHandler));
@@ -1368,7 +1386,7 @@ namespace SenseNet.Preview
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
-            if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
+            if (!previewProvider.IsPreviewEnabled(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.NotSupported);
         }
 
@@ -1384,7 +1402,7 @@ namespace SenseNet.Preview
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
-            if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
+            if (!previewProvider.IsPreviewEnabled(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 return;
 
             previewProvider.StartPreviewGenerationInternal(node, priority: priority);
@@ -1815,7 +1833,7 @@ namespace SenseNet.Preview
                 throw new ArgumentNullException("content");
 
             var file = content.ContentHandler as File;
-            if (file == null || !Current.IsContentSupported(file) || !Current.HasPreviewPermission(NodeHead.Get(content.Id)))
+            if (file == null || !Current.IsPreviewEnabled(file) || !Current.HasPreviewPermission(NodeHead.Get(content.Id)))
                 return new CheckPreviewsResponse { PageCount = 0, PreviewCount = 0 };
 
             // the page count is unknown yet or never will be known

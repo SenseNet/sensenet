@@ -1918,7 +1918,7 @@ namespace SenseNet.ContentRepository
 
                 // Workaround: the OnModified event is not fired in case the
                 // content is locked, so we need to copy preview images here.
-                if (DocumentPreviewProvider.Current.IsContentSupported(this))
+                if (DocumentPreviewProvider.Current.IsPreviewEnabled(this))
                     // ReSharper disable once ArrangeStaticMemberQualifier
                     DocumentPreviewProvider.Current.StartCopyingPreviewImages(Node.LoadNode(this.Id, prevVersion), this);
 
