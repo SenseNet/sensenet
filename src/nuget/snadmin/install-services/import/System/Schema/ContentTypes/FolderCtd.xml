@@ -37,5 +37,19 @@
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
+    <Field name="PreviewEnabled" type="Choice">
+      <DisplayName>$Ctd-Folder,PreviewEnabled-DisplayName</DisplayName>
+      <Description>$Ctd-Folder,PreviewEnabled-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Enum type="SenseNet.ContentRepository.PreviewEnabled"/>
+        </Options>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>
