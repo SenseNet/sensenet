@@ -3389,7 +3389,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     attempt++;
 
-                    var deadlockException = SaveNodeDataAttempt(node, settings, populator, originalPath, newPath);
+                    var deadlockException = SaveNodeDataAttemptAsync(node, settings, populator, originalPath, newPath, CancellationToken.None).GetAwaiter().GetResult();
                     if (deadlockException == null)
                         break;
 
@@ -3439,7 +3439,7 @@ namespace SenseNet.ContentRepository.Storage
             else
                 SnTrace.ContentOperation.Write("Node updated. Id:{0}, Path:{1}", data.Id, data.Path);
         }
-        private static Exception SaveNodeDataAttempt(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        private static async Task<Exception> SaveNodeDataAttemptAsync(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath, CancellationToken cancel)
         {
             IndexDocumentData indexDocument = null;
             bool hasBinary = false;
@@ -3482,8 +3482,7 @@ namespace SenseNet.ContentRepository.Storage
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
 
-                    var head = Providers.Instance.DataStore
-                        .SaveNodeAsync(data, settings, CancellationToken.None).GetAwaiter().GetResult();
+                    var head = await Providers.Instance.DataStore.SaveNodeAsync(data, settings, cancel).ConfigureAwait(false);
                     lastMajorVersionId = settings.LastMajorVersionIdAfter;
                     lastMinorVersionId = settings.LastMinorVersionIdAfter;
                     node.RefreshVersionInfo(head);
@@ -3498,9 +3497,9 @@ namespace SenseNet.ContentRepository.Storage
                             // from the current users permissions).
                             using (new SystemAccount())
                             {
-                                var result = Providers.Instance.DataStore
-                                    .SaveIndexDocumentAsync(node, true, isNewNode, CancellationToken.None)
-                                    .GetAwaiter().GetResult();
+                                var result = await Providers.Instance.DataStore
+                                    .SaveIndexDocumentAsync(node, true, isNewNode, cancel)
+                                    .ConfigureAwait(false);
                                 indexDocument = result.IndexDocumentData;
                                 hasBinary = result.HasBinary;
                             }
@@ -3513,17 +3512,15 @@ namespace SenseNet.ContentRepository.Storage
                         if (node.IsIndexingEnabled)
                         {
                             using (new SystemAccount())
-                                populator.CommitPopulateNodeAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
+                                await populator.CommitPopulateNodeAsync(populatorData, indexDocument, cancel).ConfigureAwait(false);
                         }
 
                         if (indexDocument != null && hasBinary)
                         {
                             using (new SystemAccount())
                             {
-                                indexDocument = Providers.Instance.DataStore
-                                    .SaveIndexDocumentAsync(node, indexDocument, CancellationToken.None)
-                                    .GetAwaiter().GetResult();
-                                populator.FinalizeTextExtractingAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
+                                indexDocument = await Providers.Instance.DataStore.SaveIndexDocumentAsync(node, indexDocument, cancel).ConfigureAwait(false);
+                                await populator.FinalizeTextExtractingAsync(populatorData, indexDocument, cancel).ConfigureAwait(false);
                             }
                         }
                         op2.Successful = true;
