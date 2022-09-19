@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Tests
                     }
 
                     // Actions and asserts
-                    Assert.AreEqual(false, IsPreviewStarted(PreviewEnabled.Inherited, PreviewEnabled.Inherited));
+                    Assert.AreEqual(true, IsPreviewStarted(PreviewEnabled.Inherited, PreviewEnabled.Inherited));
                     Assert.AreEqual(false, IsPreviewStarted(PreviewEnabled.Inherited, PreviewEnabled.No));
                     Assert.AreEqual(true, IsPreviewStarted(PreviewEnabled.Inherited, PreviewEnabled.Yes));
 
