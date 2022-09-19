@@ -2796,7 +2796,7 @@ namespace SenseNet.ContentRepository.Storage
             };
         }
 
-        private void SaveCopied(NodeSaveSettings settings) //UNDONE:x: rewrite to async
+        private async Task SaveCopiedAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
@@ -2864,8 +2864,8 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
-                        thisPath, thisPath, CancellationToken.None).GetAwaiter().GetResult();
+                await SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                        thisPath, thisPath, cancel).ConfigureAwait(false);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2955,7 +2955,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (_copying)
             {
-                SaveCopied(settings);
+                SaveCopiedAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
                 if (_data != null)
                     _data.SavingTimer.Stop();
                 return;
