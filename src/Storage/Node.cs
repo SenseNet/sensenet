@@ -2796,7 +2796,7 @@ namespace SenseNet.ContentRepository.Storage
             };
         }
 
-        private void SaveCopied(NodeSaveSettings settings)
+        private void SaveCopied(NodeSaveSettings settings) //UNDONE:x: rewrite to async
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
@@ -2864,7 +2864,8 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), thisPath, thisPath);
+                SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                        thisPath, thisPath, CancellationToken.None).GetAwaiter().GetResult();
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2937,7 +2938,7 @@ namespace SenseNet.ContentRepository.Storage
         /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
         /// </summary>
         /// <param name="settings">Describes the tasks and algorithms for persisting the node.</param>
-        public virtual void Save(NodeSaveSettings settings)
+        public virtual void Save(NodeSaveSettings settings) //UNDONE:x: rewrite to async
         {
             var isNew = this.IsNew;
             var previousSavingState = this.SavingState;
@@ -3114,7 +3115,8 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), originalPath, newPath);
+                        SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                            originalPath, newPath, CancellationToken.None).GetAwaiter().GetResult();
                     }
                     finally
                     {
@@ -3187,7 +3189,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Ends the multistep saving process and makes the Content available for modification.
         /// </summary>
-        public virtual void FinalizeContent()
+        public virtual void FinalizeContent() //UNDONE:x: rewrite to async
         {
             if (SavingState == ContentSavingState.Finalized)
                 throw new InvalidOperationException("Cannot finalize the content " + this.Path);
@@ -3214,7 +3216,8 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                SaveNodeData(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(), Path, Path);
+                SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                    Path, Path, CancellationToken.None).GetAwaiter().GetResult();
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -3373,7 +3376,8 @@ namespace SenseNet.ContentRepository.Storage
         private const int maxDeadlockIterations = 3;
         private const int sleepIfDeadlock = 1000;
 
-        private static void SaveNodeData(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        private static async Task SaveNodeDataAsync(Node node, NodeSaveSettings settings, IIndexPopulator populator,
+            string originalPath, string newPath, CancellationToken cancel)
         {
             var isNewNode = node.Id == 0;
             var isOwnerChanged = node.Data.IsPropertyChanged("OwnerId");
@@ -3389,7 +3393,8 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     attempt++;
 
-                    var deadlockException = SaveNodeDataAttemptAsync(node, settings, populator, originalPath, newPath, CancellationToken.None).GetAwaiter().GetResult();
+                    var deadlockException = await SaveNodeDataAttemptAsync(node, settings, populator, originalPath, newPath, cancel)
+                        .ConfigureAwait(false);
                     if (deadlockException == null)
                         break;
 
