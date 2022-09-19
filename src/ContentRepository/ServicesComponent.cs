@@ -1554,6 +1554,14 @@ namespace SenseNet.ContentRepository
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
 
+            #region Content changes
+
+            var rootNode = Node.Load<PortalRoot>("/Root");
+            rootNode.PreviewEnabled = PreviewEnabled.Yes;
+            rootNode.Save();
+
+            #endregion
+
             #region String resource changes
 
             var rb = new ResourceBuilder();
@@ -1561,10 +1569,10 @@ namespace SenseNet.ContentRepository
                 .Class("Ctd-Folder")
                 .Culture("en")
                 .AddResource("PreviewEnabled-DisplayName", "Preview enabled")
-                .AddResource("PreviewEnabled-Description", "Switch of the preview generation on this subtree. Enables, disables or gets from parent.")
+                .AddResource("PreviewEnabled-Description", "Switch on or off preview generation in this subtree. Can be enabled, disabled or inherited from the parent.")
                 .Culture("hu")
                 .AddResource("PreviewEnabled-DisplayName", "Előnézet engedélyezése")
-                .AddResource("PreviewEnabled-Description", "Az előnézeti képek generálásának kapcsolója ezen a részfán. Be- vagy kikapocsolja, vagy a szülőről veszi.");
+                .AddResource("PreviewEnabled-Description", "Be- vagy kikapcsolja az előnézeti képek generálását ezen a részfán. Engedélyezi, tiltja vagy a szülőről veszi az értéket.");
             rb.Apply();
 
             #endregion

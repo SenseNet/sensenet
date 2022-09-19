@@ -350,11 +350,17 @@
         <data name="Description" xml:space="preserve">
           <value>Use folders to group content.</value>
         </data>
-        <data name="DisplayName-DisplayName" xml:space="preserve">
+		<data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Folder name</value>
         </data>
-        <data name="DisplayName-Description" xml:space="preserve">
+		<data name="DisplayName-Description" xml:space="preserve">
           <value>Display name of the content. You can set any name you prefer without any restrictions.</value>
+        </data>
+		<data name="PreviewEnabled-DisplayName" xml:space="preserve">
+          <value>Preview enabled</value>
+        </data>
+	    <data name="PreviewEnabled-Description" xml:space="preserve">
+          <value>Switch on or off preview generation in this subtree. Can be enabled, disabled or inherited from the parent.</value>
         </data>
       </Language>
       <Language cultureName="hu">
@@ -369,6 +375,12 @@
         </data>
         <data name="DisplayName-Description" xml:space="preserve">
           <value></value>
+        </data>
+		<data name="PreviewEnabled-DisplayName" xml:space="preserve">
+          <value>Előnézet engedélyezése</value>
+        </data>
+	    <data name="PreviewEnabled-Description" xml:space="preserve">
+          <value>Be- vagy kikapcsolja az előnézeti képek generálását ezen a részfán. Engedélyezi, tiltja vagy a szülőről veszi az értéket.</value>
         </data>
       </Language>
     </Languages>
