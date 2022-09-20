@@ -3128,9 +3128,9 @@ namespace SenseNet.ContentRepository.Storage
                     // save
                     TreeLock treeLock = null;
                     if (renamed)
-                        treeLock = Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
+                        treeLock = await Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.ParentPath + "/" + this.Name, originalPath).ConfigureAwait(false);
                     else
-                        Providers.Instance.TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
+                        await Providers.Instance.TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).ConfigureAwait(false);
 
                     try
                     {
