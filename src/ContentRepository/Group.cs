@@ -354,13 +354,20 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertValidMembers();
 
             var originalId = this.Id;
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // AD Sync
             if (_syncObject)

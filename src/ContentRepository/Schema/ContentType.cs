@@ -807,16 +807,23 @@ namespace  SenseNet.ContentRepository.Schema
             base.Save();
             ContentTypeManager.Reset();
         }
+
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// Do not use this method directly from your code.
         /// </summary>
         /// <param name="settings"><see cref="NodeSaveSettings"/> that contains algorithm of the persistence.</param>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
         {
-            this.IsSystem = true;
-            base.Save(settings);
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
         }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            this.IsSystem = true;
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Deletes this <see cref="ContentType"/> and the whole subtree physically.
         /// The operation is forbidden if an instance exists of any of these types.

@@ -467,7 +467,12 @@ namespace SenseNet.ContentRepository
             base.Save(mode);
         }
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (this.IsNew)
                 Providers.Instance.SecurityHandler.Assert(this.ParentId, PermissionType.ManageListsAndWorkspaces);
@@ -483,7 +488,7 @@ namespace SenseNet.ContentRepository
             if (listEmailChanged)
                 SetAllowedChildTypesForEmails();
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             if (listEmailChanged)
                 MailProvider.Instance.OnListEmailChanged(this);

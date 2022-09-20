@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Versioning;
@@ -403,7 +404,7 @@ namespace SenseNet.ContentRepository
             this.LockerUserId = User.Current.Id;
         }
 
-        public void Execute()
+        public void Execute() //UNDONE:x: rewrite to async
         {
             if (this.Node.IsNew)
             {
@@ -424,7 +425,7 @@ namespace SenseNet.ContentRepository
             {
                 try
                 {
-                    Node.Save(this);
+                    Node.SaveAsync(this, CancellationToken.None).GetAwaiter().GetResult();
                     break;
                 }
                 catch (AggregateException ae)

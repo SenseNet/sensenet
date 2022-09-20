@@ -2753,7 +2753,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Stores the modifications of this <see cref="Node"/> instance to the database.
         /// </summary>
-        public virtual void Save()
+        public virtual void Save()//UNDONE:x: rewrite to async
         {
             var settings = new NodeSaveSettings
             {
@@ -2763,7 +2763,7 @@ namespace SenseNet.ContentRepository.Storage
             };
             settings.ExpectedVersionId = settings.CurrentVersionId;
             settings.Validate();
-            this.Save(settings);
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
         }
         private static IDictionary<string, object> CollectAllProperties(NodeData data)
         {
@@ -2900,7 +2900,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             Save(versionRaising, versionStatus, false);
         }
-        internal void Save(VersionRaising versionRaising, VersionStatus versionStatus, bool takingLockOver)
+        internal void Save(VersionRaising versionRaising, VersionStatus versionStatus, bool takingLockOver)//UNDONE:x: rewrite to async
         {
             var settings = new NodeSaveSettings { Node = this, HasApproving = false, TakingLockOver = takingLockOver };
             var curVer = settings.CurrentVersion;
@@ -2929,7 +2929,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
             }
 
-            Save(settings);
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
         }
         #endregion
 
@@ -2938,7 +2938,17 @@ namespace SenseNet.ContentRepository.Storage
         /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
         /// </summary>
         /// <param name="settings">Describes the tasks and algorithms for persisting the node.</param>
-        public virtual void Save(NodeSaveSettings settings) //UNDONE:x: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public virtual void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
+        /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
+        /// </summary>
+        /// <param name="settings">Describes the tasks and algorithms for persisting the node.</param>
+        public virtual async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var isNew = this.IsNew;
             var previousSavingState = this.SavingState;
@@ -2946,7 +2956,7 @@ namespace SenseNet.ContentRepository.Storage
             if (_data != null)
                 _data.SavingTimer.Restart();
 
-            var lockBefore = this.Version == null ? false : this.Version.Status == VersionStatus.Locked;
+            var lockBefore = this.Version != null && this.Version.Status == VersionStatus.Locked;
             if (isNew)
                 CreatingInProgress = true;
             var creating = CreatingInProgress;
@@ -2955,7 +2965,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (_copying)
             {
-                SaveCopiedAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+                await SaveCopiedAsync(settings, cancel).ConfigureAwait(false);
                 if (_data != null)
                     _data.SavingTimer.Stop();
                 return;
@@ -2964,7 +2974,7 @@ namespace SenseNet.ContentRepository.Storage
             // If this is a regular save (like in most cases), saving state will be Finalized. Otherwise 
             // it can be Creating if it is new or Modifying if it already exists. ModifyingLocked state
             // was created to let the finalizing code know that it should not check in the content
-            // at the end of the multistep saving process.
+            // at the end of the multi-step saving process.
             this.SavingState = settings.MultistepSaving
                                    ? (isNew
                                         ? ContentSavingState.Creating
@@ -3004,8 +3014,8 @@ namespace SenseNet.ContentRepository.Storage
             var renamed = originalName.ToLower() != thisName.ToLower();
 
             var msg = renamed
-                ? string.Format("NODE.RENAME Id: {0}): {1} -> {2}, ParentPath: {3}", Id, originalName, thisName, ParentPath)
-                : string.Format("NODE.SAVE Id: {0}, VersionId: {1}, Version: {2}, Name: {3}, ParentPath: {4}", Id, VersionId, Version, thisName, ParentPath);
+                ? $"NODE.RENAME Id: {Id}): {originalName} -> {thisName}, ParentPath: {ParentPath}"
+                : $"NODE.SAVE Id: {Id}, VersionId: {VersionId}, Version: {Version}, Name: {thisName}, ParentPath: {ParentPath}";
             using (var audit = new AuditBlock(new AuditEvent("ContentSaved", 1), msg, new Dictionary<string, object>
             { { "Id", this.Id }, { "Path", this.Path } }))
             {
@@ -3038,10 +3048,8 @@ namespace SenseNet.ContentRepository.Storage
                             var list = this.LoadContentList();
                             if (list != null)
                             {
-                                var ownerWhenVsitor = list.GetReference<Node>("OwnerWhenVisitor");
-                                var adminId = ownerWhenVsitor != null
-                                                ? ownerWhenVsitor.Id
-                                                : Identifiers.AdministratorUserId;
+                                var ownerWhenVisitor = list.GetReference<Node>("OwnerWhenVisitor");
+                                var adminId = ownerWhenVisitor?.Id ?? Identifiers.AdministratorUserId;
 
                                 this.Data.VersionCreatedById = adminId;
                                 this.Data.VersionModifiedById = adminId;
@@ -3057,7 +3065,7 @@ namespace SenseNet.ContentRepository.Storage
                         }
                     }
 
-                    // collect changed field values for logging and info for nodeobservers
+                    // collect changed field values for logging and info for node observers
                     IEnumerable<ChangedData> changedData = null;
                     if (!isNewNode)
                         changedData = this.Data.GetChangedValues();
@@ -3108,15 +3116,15 @@ namespace SenseNet.ContentRepository.Storage
                     // save
                     TreeLock treeLock = null;
                     if (renamed)
-                        treeLock = Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None,this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
+                        treeLock = Providers.Instance.TreeLock.AcquireAsync(CancellationToken.None, this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
                     else
                         Providers.Instance.TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
 
                     try
                     {
-                        this.Data.PreloadTextProperties();
-                        SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
-                            originalPath, newPath, CancellationToken.None).GetAwaiter().GetResult();
+                        await this.Data.PreloadTextPropertiesAsync(cancel).ConfigureAwait(false);
+                        await SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                            originalPath, newPath, cancel).ConfigureAwait(false);
                     }
                     finally
                     {

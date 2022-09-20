@@ -1828,9 +1828,14 @@ namespace SenseNet.ContentRepository
         /// Persist this Content's changes by the given settings.
         /// </summary>
         /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the algorithm of the persistence.</param>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
         {
-            base.Save(settings);
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // if related workflows should be kept alive, update them on a separate thread
             if (_keepWorkflowsAlive)

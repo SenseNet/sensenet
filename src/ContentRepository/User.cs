@@ -658,7 +658,7 @@ namespace SenseNet.ContentRepository
         /// The default template is the "UserProfile" <see cref="ContentTemplate"/>.
         /// </summary>
         /// <param name="template">Optional <see cref="Node"/> parameter of the profile template.</param>
-        public void CreateProfile(Node template = null)
+        public void CreateProfile(Node template = null) //UNDONE:xx: rewrite to async
         {
             if (!IdentityManagement.UserProfilesEnabled)
                 return;
@@ -944,19 +944,22 @@ namespace SenseNet.ContentRepository
 
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the AD modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (_inactivating)
             {
-                AccessTokenVault.DeleteTokensByUser(this.Id);
+                await AccessTokenVault.DeleteTokensByUserAsync(this.Id, cancel).ConfigureAwait(false);
                 _inactivating = false;
             }
 
             // Check uniqueness first
             if (Id == 0 || PropertyNamesForCheckUniqueness.Any(p => IsPropertyChanged(p)))
-                CheckUniqueUser();
+                await CheckUniqueUserAsync(cancel).ConfigureAwait(false);
 
             if (_password != null)
             {
@@ -971,7 +974,7 @@ namespace SenseNet.ContentRepository
             // save current password to the list of old passwords
             this.SaveCurrentPassword();
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // AD Sync
             SynchUser(originalId);
@@ -1031,7 +1034,7 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
-        private void CheckUniqueUser()
+        private async System.Threading.Tasks.Task CheckUniqueUserAsync(CancellationToken cancel)
         {
             var path = Path;
 
@@ -1057,10 +1060,10 @@ namespace SenseNet.ContentRepository
                 // user may not have enough permissions for the whole user tree.
                 using (new SystemAccount())
                 {
-                    var queryResult = ContentQuery.QueryAsync(SafeQueries.UserOrGroupByLoginName,
+                    var queryResult = await ContentQuery.QueryAsync(SafeQueries.UserOrGroupByLoginName,
                             new QuerySettings {EnableAutofilters = FilterStatus.Disabled, Top = 2},
-                            CancellationToken.None, domainPath.TrimEnd('/'), Name, LoginName ?? Name)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                            cancel, domainPath.TrimEnd('/'), Name, LoginName ?? Name)
+                        .ConfigureAwait(false);
 
                     identifiers = queryResult.Identifiers.ToList();
                 }
