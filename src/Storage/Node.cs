@@ -2896,9 +2896,19 @@ namespace SenseNet.ContentRepository.Storage
         /// The generated <see cref="VersionNumber"/> depends on the requested 
         /// <see cref="VersionRaising"/> mode and the given <see cref="VersionStatus"/>.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public void Save(VersionRaising versionRaising, VersionStatus versionStatus)
         {
-            SaveAsync(versionRaising, versionStatus, false, CancellationToken.None).GetAwaiter().GetResult();
+            SaveAsync(versionRaising, versionStatus, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
+        /// The generated <see cref="VersionNumber"/> depends on the requested 
+        /// <see cref="VersionRaising"/> mode and the given <see cref="VersionStatus"/>.
+        /// </summary>
+        public Task SaveAsync(VersionRaising versionRaising, VersionStatus versionStatus, CancellationToken cancel)
+        {
+            return SaveAsync(versionRaising, versionStatus, false, cancel);
         }
 
         internal async Task SaveAsync(VersionRaising versionRaising, VersionStatus versionStatus, bool takingLockOver,
