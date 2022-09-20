@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -568,8 +568,8 @@ namespace SenseNet.Preview
         /// General method that returns true if the preview can be generated for the given <see cref="Node"/>.
         /// </summary>
         /// <remarks>
-        /// This method takes into account the preview switch on the given content and if the feature is "on", calls
-        /// the provider specific <see cref="IsPreviewEnabled"/> method in order to decide, whether the provider can
+        /// This method takes the preview switch on the given content into account and if the feature is "on", calls
+        /// the provider specific <see cref="IsContentSupported"/> method in order to decide, whether the provider can
         /// generate or not.
         /// </remarks>
         public bool IsPreviewEnabled(Node content)
