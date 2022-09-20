@@ -275,7 +275,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 BinaryData.CommitChunk(fileId, token, fullSize);
 
                 file = Node.Load<File>(fileId);
-                file.FinalizeContent();
+                file.FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
 
 
                 // assert

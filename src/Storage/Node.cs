@@ -3187,9 +3187,17 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Ends the multistep saving process and makes the Content available for modification.
+        /// Ends the multi-step saving process and makes the Content available for modification.
         /// </summary>
-        public virtual void FinalizeContent() //UNDONE:x: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public virtual void FinalizeContent()
+        {
+            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously ends the multi-step saving process and makes the Content available for modification.
+        /// </summary>
+        public virtual async Task FinalizeContentAsync(CancellationToken cancel)
         {
             if (SavingState == ContentSavingState.Finalized)
                 throw new InvalidOperationException("Cannot finalize the content " + this.Path);
@@ -3216,8 +3224,8 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
-                    Path, Path, CancellationToken.None).GetAwaiter().GetResult();
+                await SaveNodeDataAsync(this, settings, Providers.Instance.SearchManager.GetIndexPopulator(),
+                    Path, Path, cancel).ConfigureAwait(false);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)

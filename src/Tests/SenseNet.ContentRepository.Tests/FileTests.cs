@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
@@ -34,7 +35,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // this is normal in case of chunk upload, it should not throw an exception
                 file2.Save(SavingMode.StartMultistepSave);
-                file2.FinalizeContent();
+                file2.FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT: Do not throw any exception and file is saved
                 var loaded = Node.Load<File>(file2.Id);

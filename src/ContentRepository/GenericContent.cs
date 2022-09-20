@@ -2045,26 +2045,26 @@ namespace SenseNet.ContentRepository
             Save(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion);
         }
 
-        /// <summary>
-        /// Ends the multistep saving process and makes the Content available for modification.
-        /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public override void FinalizeContent()
         {
-            using (var op = SnTrace.ContentOperation.StartOperation("GC.FinalizeContent: SavingState:{0}, VId:{1}, Path:{2}", this.SavingState, this.VersionId, this.Path))
+            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
+        {
+            using var op = SnTrace.ContentOperation.StartOperation("GC.FinalizeContent: SavingState:{0}, VId:{1}, Path:{2}", this.SavingState, this.VersionId, this.Path);
+            if (this.Locked && (this.SavingState == ContentSavingState.Creating || this.SavingState == ContentSavingState.Modifying))
             {
-                if (this.Locked && (this.SavingState == ContentSavingState.Creating || this.SavingState == ContentSavingState.Modifying))
-                {
-                    var action = SavingAction.Create(this);
-                    action.CheckIn();
-                    action.Execute();
-                }
-                else
-                {
-                    base.FinalizeContent();
-                }
-
-                op.Successful = true;
+                var action = SavingAction.Create(this);
+                action.CheckIn();
+                action.Execute();
             }
+            else
+            {
+                await base.FinalizeContentAsync(cancel).ConfigureAwait(false);
+            }
+
+            op.Successful = true;
         }
 
         /// <summary>

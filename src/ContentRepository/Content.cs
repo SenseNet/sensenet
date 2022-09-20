@@ -1174,11 +1174,19 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Ends the multistep saving process and makes the content available for modification.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public void FinalizeContent()
+        {
+            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously ends the multistep saving process and makes the content available for modification.
+        /// </summary>
+        public async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
         {
             AssertContentType();
 
-            this.ContentHandler.FinalizeContent();
+            await this.ContentHandler.FinalizeContentAsync(cancel).ConfigureAwait(false);
         }
 
         /// <summary>
