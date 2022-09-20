@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -767,7 +768,7 @@ namespace SenseNet.ContentRepository.Storage
             return false;
         }
 
-        private object LoadProperty(PropertyType propertyType)
+        private object LoadProperty(PropertyType propertyType)//UNDONE:x: rewrite to async
         {
             var propId = propertyType.Id;
             lock (_readPropertySync)
@@ -781,7 +782,7 @@ namespace SenseNet.ContentRepository.Storage
             switch (propertyType.DataType)
             {
                 case DataType.Text:
-                    PreloadTextProperties();
+                    PreloadTextPropertiesAsync(CancellationToken.None).GetAwaiter().GetResult();
                     lock (_readPropertySync)
                         return  (dynamicData.TryGetValue(propId, out data)) ? data : null;
                 case DataType.Binary:
@@ -798,8 +799,8 @@ namespace SenseNet.ContentRepository.Storage
             return data;
         }
 
-        /// <summary>Preloads all uncached text properties to avoid more than one database access.</summary>
-        internal void PreloadTextProperties()
+        /// <summary>Loads all uncached text properties to avoid more than one database access.</summary>
+        internal async Task PreloadTextPropertiesAsync(CancellationToken cancel)
         {
             if (Id == 0)
                 return;
@@ -807,17 +808,16 @@ namespace SenseNet.ContentRepository.Storage
             if (!this.IsShared)
             {
                 if (this.SharedData != null)
-                    this.SharedData.PreloadTextProperties();
+                    await this.SharedData.PreloadTextPropertiesAsync(cancel).ConfigureAwait(false);
                 return;
             }
 
-            var notLoadedTextPropertyTypeIds = this.TextPropertyIds.Where(p => !dynamicData.ContainsKey(p)).ToArray();
-            var data = DataStore.LoadTextPropertyValuesAsync(this.VersionId, notLoadedTextPropertyTypeIds, CancellationToken.None)
-                .GetAwaiter().GetResult();
+            var notLoadedTextPropertyTypeIds = TextPropertyIds.Where(p => !dynamicData.ContainsKey(p)).ToArray();
+            var data = await DataStore.LoadTextPropertyValuesAsync(VersionId, notLoadedTextPropertyTypeIds, cancel)
+                .ConfigureAwait(false);
             foreach (var id in notLoadedTextPropertyTypeIds)
             {
-                string value = null;
-                data.TryGetValue(id, out value);
+                data.TryGetValue(id, out var value);
                 dynamicData[id] = value;
             }
         }
