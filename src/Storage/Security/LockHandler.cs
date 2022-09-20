@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Configuration;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -256,7 +257,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                         _node.LastLockUpdate = DateTime.UtcNow;
                         _node.LockTimeout = RepositoryEnvironment.DefaultLockTimeout;
 
-                        _node.Save(VersionRaising.None, VersionStatus.Locked, true);
+                        _node.SaveAsync(VersionRaising.None, VersionStatus.Locked, true, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     }
 
                     SnLog.WriteAudit(AuditEvent.LockTakenOver, auditProperties);

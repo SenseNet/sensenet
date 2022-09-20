@@ -2898,13 +2898,15 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public void Save(VersionRaising versionRaising, VersionStatus versionStatus)
         {
-            Save(versionRaising, versionStatus, false);
+            SaveAsync(versionRaising, versionStatus, false, CancellationToken.None).GetAwaiter().GetResult();
         }
-        internal void Save(VersionRaising versionRaising, VersionStatus versionStatus, bool takingLockOver)//UNDONE:x: rewrite to async
+
+        internal async Task SaveAsync(VersionRaising versionRaising, VersionStatus versionStatus, bool takingLockOver,
+            CancellationToken cancel)
         {
             var settings = new NodeSaveSettings { Node = this, HasApproving = false, TakingLockOver = takingLockOver };
             var curVer = settings.CurrentVersion;
-            var history = NodeHead.Get(this.Id).Versions;
+            var history = (await NodeHead.GetAsync(this.Id, cancel).ConfigureAwait(false)).Versions;
             var biggest = history.OrderBy(v => v.VersionNumber.VersionString).LastOrDefault();
             var biggestVer = biggest == null ? curVer : biggest.VersionNumber;
 
@@ -2929,7 +2931,7 @@ namespace SenseNet.ContentRepository.Storage
                     break;
             }
 
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+            await SaveAsync(settings, cancel).ConfigureAwait(false);
         }
         #endregion
 
