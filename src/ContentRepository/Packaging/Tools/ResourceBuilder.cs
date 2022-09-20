@@ -179,11 +179,15 @@ namespace SenseNet.Packaging.Tools
                 // create resource content if necessary
                 if (resource == null)
                 {
-                    resource = new Resource(Node.LoadNode(RepositoryStructure.ResourceFolderPath))
+                    var resourceRoot = Node.LoadNode(RepositoryStructure.ResourceFolderPath);
+                    if (resourceRoot == null)
                     {
-                        Name = resourceBuilder.ContentName
-                    };
+                        resourceRoot = new SystemFolder(Repository.Root, "Resources")
+                            {Name = RepositoryPath.GetFileName(RepositoryStructure.ResourceFolderPath)};
+                        resourceRoot.Save();
+                    }
 
+                    resource = new Resource(resourceRoot) {Name = resourceBuilder.ContentName};
                     var binData = new BinaryData { FileName = new BinaryFileName(resourceBuilder.ContentName) };
                     binData.SetStream(RepositoryTools.GetStreamFromString(EmptyResource));
 

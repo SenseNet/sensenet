@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -561,8 +561,25 @@ namespace SenseNet.Preview
             return Providers.Instance.StorageSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
         }
 
+
         // ===================================================================================================== Server-side interface
 
+        /// <summary>
+        /// General method that returns true if the preview can be generated for the given <see cref="Node"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method takes the preview switch on the given content into account and if the feature is "on", calls
+        /// the provider specific <see cref="IsContentSupported"/> method in order to decide, whether the provider can
+        /// generate or not.
+        /// </remarks>
+        public bool IsPreviewEnabled(Node content)
+        {
+            return content.IsPreviewEnabled && IsContentSupported(content);
+        }
+
+        /// <summary>
+        /// Provider specific method that returns true if it can generate preview of the given <see cref="Node"/>.
+        /// </summary>
         public abstract bool IsContentSupported(Node content);
         public abstract string GetPreviewGeneratorTaskName(string contentPath);
         public abstract string GetPreviewGeneratorTaskTitle(string contentPath);
@@ -622,6 +639,7 @@ namespace SenseNet.Preview
             return Providers.Instance.SecurityHandler.HasPermission(previewHead, PermissionType.OpenMinor);
         }
 
+
         public virtual RestrictionType GetRestrictionType(NodeHead nodeHead)
         {
             var securityHandler = Providers.Instance.SecurityHandler;
@@ -656,20 +674,23 @@ namespace SenseNet.Preview
 
             var pc = (int)content["PageCount"];
 
-            while (pc == (int)PreviewStatus.InProgress || pc == (int)PreviewStatus.Postponed)
+            if (content.ContentHandler.IsPreviewEnabled)
             {
-                // Create task if it does not exists. Otherwise page count will not be calculated.
-                StartPreviewGenerationInternal(content.ContentHandler, priority: TaskPriority.Immediately);
+                while (pc == (int) PreviewStatus.InProgress || pc == (int) PreviewStatus.Postponed)
+                {
+                    // Create task if it does not exists. Otherwise page count will not be calculated.
+                    StartPreviewGenerationInternal(content.ContentHandler, priority: TaskPriority.Immediately);
 
-                Thread.Sleep(4000);
+                    Thread.Sleep(4000);
 
-                AssertResultIsStillRequired();
+                    AssertResultIsStillRequired();
 
-                content = Content.Load(content.Id);
-                if (content == null)
-                    throw new PreviewNotAvailableException("Content deleted.", -1, 0);
+                    content = Content.Load(content.Id);
+                    if (content == null)
+                        throw new PreviewNotAvailableException("Content deleted.", -1, 0);
 
-                pc = (int)content["PageCount"];
+                    pc = (int) content["PageCount"];
+                }
             }
 
             var previewPath = RepositoryPath.Combine(content.Path, PREVIEWS_FOLDERNAME, GetPreviewsSubfolderName(content.ContentHandler));
@@ -771,7 +792,8 @@ namespace SenseNet.Preview
                 if (img != null)
                     return img;
 
-                StartPreviewGenerationInternal(file, page - 1, TaskPriority.Immediately);
+                if (file.IsPreviewEnabled)
+                    StartPreviewGenerationInternal(file, page - 1, TaskPriority.Immediately);
             }
 
             return null;
@@ -1370,6 +1392,8 @@ namespace SenseNet.Preview
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
             if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.NotSupported);
+            else if (!content.ContentHandler.IsPreviewEnabled)
+                DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.Postponed);
         }
 
         public static void StartPreviewGeneration(Node node, TaskPriority priority = TaskPriority.Normal)
@@ -1384,7 +1408,7 @@ namespace SenseNet.Preview
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
-            if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
+            if (!previewProvider.IsPreviewEnabled(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 return;
 
             previewProvider.StartPreviewGenerationInternal(node, priority: priority);

@@ -1550,6 +1550,59 @@ namespace SenseNet.ContentRepository
 
         #endregion
 
+        private void Patch_PreviewSwitches(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Content changes
+
+            var rootNode = Node.Load<PortalRoot>("/Root");
+            rootNode.PreviewEnabled = PreviewEnabled.Yes;
+            rootNode.Save();
+
+            #endregion
+
+            #region String resource changes
+
+            var rb = new ResourceBuilder();
+            rb.Content("CtdResourcesEF.xml")
+                .Class("Ctd-Folder")
+                .Culture("en")
+                .AddResource("PreviewEnabled-DisplayName", "Preview enabled")
+                .AddResource("PreviewEnabled-Description", "Switch on or off preview generation in this subtree. Can be enabled, disabled or inherited from the parent.")
+                .Culture("hu")
+                .AddResource("PreviewEnabled-DisplayName", "Előnézet engedélyezése")
+                .AddResource("PreviewEnabled-Description", "Be- vagy kikapcsolja az előnézeti képek generálását ezen a részfán. Engedélyezi, tiltja vagy a szülőről veszi az értéket.");
+            rb.Apply();
+
+            #endregion
+
+            #region CTD changes
+
+            try
+            {
+                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+                cb.Type("Folder")
+                    .Field("PreviewEnabled", "Choice")
+                    .DisplayName("$Ctd-Folder,PreviewEnabled-DisplayName")
+                    .Description("$Ctd-Folder,PreviewEnabled-Description")
+                    .VisibleBrowse(FieldVisibility.Hide)
+                    .VisibleEdit(FieldVisibility.Advanced)
+                    .VisibleNew(FieldVisibility.Advanced)
+                    .Configure("AllowMultiple", "false")
+                    .Configure("AllowExtraValue", "false")
+                    .Configure("Options", "<Enum type=\"SenseNet.ContentRepository.PreviewEnabled\"/>");
+                cb.Apply();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during CTD changes.");
+            }
+
+            #endregion
+        }
+
+
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))

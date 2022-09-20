@@ -168,10 +168,16 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets true if the current user has only See permission for this <see cref="Node"/>.
         /// </summary>
         public bool IsHeadOnly { get; private set; }
+
         /// <summary>
         /// Gets true if the current user has only Preview permission for this <see cref="Node"/>.
         /// </summary>
         public bool IsPreviewOnly { get; private set; }
+
+        /// <summary>
+        /// Gets a boolean value that specifies whether the preview of this content is enabled or not.
+        /// </summary>
+        public virtual bool IsPreviewEnabled => Parent?.IsPreviewEnabled ?? false;
 
         /// <summary>
         /// Gets a value that states if indexing is enabled for this content item. By default this is true
