@@ -1255,7 +1255,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        public void SaveExplicitVersion(bool validOnly = true)
+        public void SaveExplicitVersion(bool validOnly = true)//UNDONE:x: rewrite to async
         {
             AssertContentType();
 
@@ -1266,7 +1266,7 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 throw new InvalidOperationException("Only a generic content can be saved with explicit version.");
             else
-                genericContent.SaveExplicitVersion();
+                genericContent.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var template = _contentHandler.Template;
             if (template != null)

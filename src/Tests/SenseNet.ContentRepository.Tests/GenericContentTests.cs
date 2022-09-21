@@ -953,7 +953,7 @@ namespace SenseNet.ContentRepository.Tests
                 var versionCount = 0;
                 content = CreateTestFile(container, save: false);
                 content.Version = new VersionNumber(2, 0);
-                content.SaveExplicitVersion(); // must be called
+                content.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult(); // must be called
                 versionCount++;
                 content.Version = new VersionNumber(2, 1);
                 content.Save();
@@ -978,7 +978,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 //------------------------ modify is allowed
                 content.Version = new VersionNumber(42, 0);
-                content.SaveExplicitVersion();
+                content.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(VersionNumber.Parse("V42.0.A"), content.Version);
                 Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
 

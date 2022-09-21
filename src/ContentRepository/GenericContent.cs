@@ -1766,7 +1766,7 @@ namespace SenseNet.ContentRepository
         {
             if (!IsNew && IsVersionChanged())
             {
-                SaveExplicitVersion();
+                SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (Locked)
             {
@@ -2109,12 +2109,12 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        internal void SaveExplicitVersion()//UNDONE:x: rewrite to async
+        internal async System.Threading.Tasks.Task SaveExplicitVersionAsync(CancellationToken cancel)
         {
             var update = false;
             if (!IsNew)
             {
-                var head = NodeHead.Get(this.Id);
+                var head = await NodeHead.GetAsync(this.Id, cancel).ConfigureAwait(false);
                 if (head != null)
                 {
                     if (this.SavingState != ContentSavingState.Finalized)
@@ -2133,7 +2133,7 @@ namespace SenseNet.ContentRepository
             }
             _savingExplicitVersion = true;
 
-            SaveAsync(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion, CancellationToken.None).GetAwaiter().GetResult();
+            await SaveAsync(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion, cancel).ConfigureAwait(false);
         }
 
         [Obsolete("Use async version instead.", true)]
