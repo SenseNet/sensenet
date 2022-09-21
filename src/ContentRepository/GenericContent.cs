@@ -1770,13 +1770,15 @@ namespace SenseNet.ContentRepository
             }
             else if (Locked)
             {
-                Save(this.IsLatestVersion ? SavingMode.KeepVersion : SavingMode.KeepVersionAndLock);
+                SaveAsync(this.IsLatestVersion ? SavingMode.KeepVersion : SavingMode.KeepVersionAndLock, CancellationToken.None)
+                    .GetAwaiter().GetResult();
             }
             else
             {
-                Save(SavingMode.RaiseVersion);
+                SaveAsync(SavingMode.RaiseVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
+
         private bool _savingExplicitVersion;
         /// <summary>
         /// Persist this Content's changes by the given mode.
@@ -1784,7 +1786,19 @@ namespace SenseNet.ContentRepository
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
         /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
-        public virtual void Save(SavingMode mode)//UNDONE:xx: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public virtual void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously persist this Content's changes by the given mode.
+        /// In derived classes to modify or extend the general persistence mechanism of a content, please
+        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
+        /// </summary>
+        /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        public virtual async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Save: Mode:{0}, VId:{1}, Path:{2}", mode, this.VersionId, this.Path))
             {
@@ -1819,7 +1833,7 @@ namespace SenseNet.ContentRepository
                     }
                 }
 
-                action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 op.Successful = true;
             }
@@ -2119,7 +2133,7 @@ namespace SenseNet.ContentRepository
             }
             _savingExplicitVersion = true;
 
-            Save(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion);
+            SaveAsync(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         [Obsolete("Use async version instead.", true)]

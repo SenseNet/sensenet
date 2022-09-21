@@ -1356,7 +1356,7 @@ namespace SenseNet.ContentRepository
 
                                 using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
                                 setting.Binary.SetStream(modifiedStream);
-                                setting.Save(SavingMode.KeepVersion);
+                                setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                             }
                             else
                             {
@@ -1457,7 +1457,7 @@ namespace SenseNet.ContentRepository
 
                                     using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
                                     setting.Binary.SetStream(modifiedStream);
-                                    setting.Save(SavingMode.KeepVersion);
+                                    setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                     changed = true;
                                 }
                             }

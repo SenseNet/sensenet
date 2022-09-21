@@ -335,11 +335,23 @@ namespace SenseNet.ContentRepository
         /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
         /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
         {
-            Validate();
-            base.Save(mode);
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
         }
+        /// <summary>
+        /// Asynchronously persists the modifications of this Content.
+        /// Do not use this method directly from your code.
+        /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
+        /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
+        /// </summary>
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
+            Validate();
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
+        }
+
         private void Validate()
         {
             if (String.IsNullOrEmpty(this.AspectDefinition))

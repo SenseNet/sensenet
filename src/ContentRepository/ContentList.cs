@@ -459,12 +459,17 @@ namespace SenseNet.ContentRepository
 
         /*================================================================================= Node, IContentList */
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             if (String.IsNullOrEmpty(this.ContentListDefinition))
                 this.ContentListDefinition = DefaultContentListDefinition;
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
         [Obsolete("Use async version instead.", true)]

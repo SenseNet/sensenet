@@ -1105,12 +1105,12 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        public void Save()
+        public void Save()//UNDONE:x: rewrite to async
         {
             Save(true);
         }
 
-        public void Save(bool validOnly)
+        public void Save(bool validOnly)//UNDONE:x: rewrite to async
         {
             if (_contentHandler.Locked)
                 Save(validOnly, SavingMode.KeepVersion);
@@ -1118,7 +1118,7 @@ namespace SenseNet.ContentRepository
                 Save(validOnly, SavingMode.RaiseVersion);
         }
 
-        public void Save(SavingMode mode)
+        public void Save(SavingMode mode)//UNDONE:x: rewrite to async
         {
             Save(true, mode);
         }
@@ -1147,7 +1147,7 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void Save(bool validOnly, SavingMode mode)
+        public void Save(bool validOnly, SavingMode mode)//UNDONE:x: rewrite to async
         {
             AssertContentType();
 
@@ -1155,9 +1155,8 @@ namespace SenseNet.ContentRepository
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
 
-            var genericContent = _contentHandler as GenericContent;
-            if (genericContent != null)
-                genericContent.Save(mode);
+            if (_contentHandler is GenericContent genericContent)
+                genericContent.SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
             else
                 _contentHandler.Save();
 
@@ -1236,7 +1235,7 @@ namespace SenseNet.ContentRepository
         /// After the saving the version of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> will not changed.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void SaveSameVersion(bool validOnly)
+        public void SaveSameVersion(bool validOnly)//UNDONE:x: rewrite to async
         {
             AssertContentType();
 
@@ -1247,7 +1246,7 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Save();
             else
-                genericContent.Save(SavingMode.KeepVersion);
+                genericContent.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
             var template = _contentHandler.Template;
             if (template != null)

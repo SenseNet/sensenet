@@ -57,20 +57,26 @@ namespace SenseNet.ContentRepository
         public CalendarEvent(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected CalendarEvent(NodeToken nt) : base(nt) { }
 
-
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             // Creating registration form if necessary.
             if (GetReferenceCount(REGISTRATIONFORM) == 0 && Convert.ToBoolean(this["RequiresRegistration"]))
             {
                 var regFormFolder = Parent.GetPropertySafely("RegistrationFolder") as NodeList<Node>;
-                var formFolder = regFormFolder != null ? regFormFolder.FirstOrDefault() : null;
+                var formFolder = regFormFolder?.FirstOrDefault();
 
                 if (formFolder != null)
                 {
-                    var formName = String.Format("{0}_{1}", ParentName, this["Name"]);
+                    var formName = $"{ParentName}_{this["Name"]}";
 
-                    if (Content.Load(formFolder.Path + "/" + formName) == null)
+                    var content = await Content.LoadAsync(formFolder.Path + "/" + formName, cancel)
+                        .ConfigureAwait(false);
+                    if (content == null)
                     {
                         var regForm = Content.CreateNew("EventRegistrationForm", formFolder, formName);
 
@@ -92,7 +98,7 @@ namespace SenseNet.ContentRepository
 
                         regForm.Save();
 
-                        AddReference(REGISTRATIONFORM, LoadNode(regForm.Id));
+                        AddReference(REGISTRATIONFORM, await LoadNodeAsync(regForm.Id, cancel).ConfigureAwait(false));
                     }
                 }
             }
@@ -111,7 +117,7 @@ namespace SenseNet.ContentRepository
                 }
             }
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
         private static int GetNumberOfParticipants(Node item)

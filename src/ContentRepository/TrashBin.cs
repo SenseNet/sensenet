@@ -132,11 +132,15 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <inheritdoc />
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
         {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
             AssertTrashBinPath();
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

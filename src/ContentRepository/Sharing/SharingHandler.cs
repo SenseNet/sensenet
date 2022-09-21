@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             // do not reset the item list because we already have it up-todate
             _owner.SetSharingData(Serialize(_items), false);
-            _owner.Save(SavingMode.KeepVersion);
+            _owner.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
             _owner.SetCachedData(SharingItemsCacheKey, _items);
         }
@@ -652,7 +652,7 @@ namespace SenseNet.ContentRepository.Sharing
                 });
 
                 content.SharingData = Serialize(newItems);
-                content.Save(SavingMode.KeepVersion);
+                content.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // set permissions for the user
                 if (changed)
