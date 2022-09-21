@@ -2753,7 +2753,15 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Stores the modifications of this <see cref="Node"/> instance to the database.
         /// </summary>
-        public virtual void Save()//UNDONE:x: rewrite to async
+//[Obsolete("Use async version instead.", true)]
+        public virtual void Save()
+        {
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
+        /// </summary>
+        public virtual async Task SaveAsync(CancellationToken cancel)
         {
             var settings = new NodeSaveSettings
             {
@@ -2763,8 +2771,9 @@ namespace SenseNet.ContentRepository.Storage
             };
             settings.ExpectedVersionId = settings.CurrentVersionId;
             settings.Validate();
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+            await SaveAsync(settings, cancel).ConfigureAwait(false);
         }
+
         private static IDictionary<string, object> CollectAllProperties(NodeData data)
         {
             return data.GetAllValues();
@@ -4082,7 +4091,7 @@ namespace SenseNet.ContentRepository.Storage
                 targetNodePath = RepositoryPath.GetParentPath(targetNodePath);
                 var targetNode = Node.LoadNode(targetNodePath);
                 var copy = sourceNode.MakeCopy(targetNode, newName);
-                copy.Save();
+                copy.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 CopyExplicitPermissionsTo(sourceNode, copy);
                 if (first)
                 {

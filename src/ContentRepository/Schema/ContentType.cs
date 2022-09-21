@@ -765,20 +765,31 @@ namespace  SenseNet.ContentRepository.Schema
         internal void Save(bool withInstall)
         {
             if (withInstall)
-                Save();
+                SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             else
-                base.Save();
+                base.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
+
         /// <summary>
-        /// Persist this Content's changes.
+        /// Persist this ContentType's changes.
         /// The name of the instance and the contained ContentTypeDefinition's name must be the same.
         /// otherwise <see cref="ContentRegistrationException"/> will be thrown.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public override void Save()
+        {
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Persist this ContentType's changes.
+        /// The name of the instance and the contained ContentTypeDefinition's name must be the same.
+        /// otherwise <see cref="ContentRegistrationException"/> will be thrown.
+        /// </summary>
+        public override async System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
         {
             if (!this.Path.StartsWith(Repository.ContentTypesFolderPath))
             {
-                base.Save();
+                await base.SaveAsync(cancel).ConfigureAwait(false);
                 return;
             }
 
@@ -794,7 +805,7 @@ namespace  SenseNet.ContentRepository.Schema
                 long pos = stream.Position;
                 stream.Seek(0, SeekOrigin.Begin);
                 StreamReader reader = new StreamReader(stream);
-                string xml = reader.ReadToEnd();
+                string xml = await reader.ReadToEndAsync();
                 stream.Seek(pos, SeekOrigin.Begin);
                 StringReader sr = new StringReader(xml);
                 XPathDocument xpathDoc = new XPathDocument(sr);
@@ -804,7 +815,7 @@ namespace  SenseNet.ContentRepository.Schema
                     throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_InconsistentContentTypeName, this.Name);
             }
             ContentTypeManager.ApplyChanges(this, false);
-            base.Save();
+            await base.SaveAsync(cancel).ConfigureAwait(false);
             ContentTypeManager.Reset();
         }
 
