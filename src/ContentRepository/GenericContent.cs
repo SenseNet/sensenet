@@ -1762,7 +1762,7 @@ namespace SenseNet.ContentRepository
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
-        public override void Save()
+        public override void Save()//UNDONE:xxx: rewrite to async
         {
             if (!IsNew && IsVersionChanged())
             {
@@ -1784,7 +1784,7 @@ namespace SenseNet.ContentRepository
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
         /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
-        public virtual void Save(SavingMode mode)//UNDONE:xxx: rewrite to async
+        public virtual void Save(SavingMode mode)//UNDONE:xx: rewrite to async
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Save: Mode:{0}, VId:{1}, Path:{2}", mode, this.VersionId, this.Path))
             {

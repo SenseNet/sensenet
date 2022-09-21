@@ -658,7 +658,7 @@ namespace SenseNet.ContentRepository
         /// The default template is the "UserProfile" <see cref="ContentTemplate"/>.
         /// </summary>
         /// <param name="template">Optional <see cref="Node"/> parameter of the profile template.</param>
-        public void CreateProfile(Node template = null) //UNDONE:xx: rewrite to async
+        public void CreateProfile(Node template = null)
         {
             if (!IdentityManagement.UserProfilesEnabled)
                 return;
