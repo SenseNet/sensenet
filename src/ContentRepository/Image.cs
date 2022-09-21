@@ -205,7 +205,7 @@ namespace SenseNet.ContentRepository
             // refresh image width/height than save the content again
             if (MustRefreshDimensions(image, e))
             {
-                image.Save(SavingMode.KeepVersion);
+                image.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         /// <summary>
@@ -247,7 +247,7 @@ namespace SenseNet.ContentRepository
             // refresh image width/height than save the content again
             if (MustRefreshDimensions(image, e))
             {
-                image.Save(SavingMode.KeepVersion);
+                image.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         /// <summary>
@@ -290,7 +290,7 @@ namespace SenseNet.ContentRepository
 
             // refresh image width/height than save the content again
             if (SetDimension(this))
-                this.Save(SavingMode.KeepVersion);
+                await this.SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -890,12 +890,12 @@ namespace SenseNet.ContentRepository
                                 if (fieldSetting is ReferenceFieldSetting)
                                 {
                                     node.ClearReference(fn);
-                                    node.Save(SavingMode.KeepVersion);
+                                    node.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                 }
                                 else if (fieldSetting is LongTextFieldSetting && node[fn] != null)
                                 {
                                     node[fn] = null;
-                                    node.Save(SavingMode.KeepVersion);
+                                    node.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                 }
                             }
                             catch (Exception ex)

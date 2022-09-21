@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.Configuration;
@@ -91,7 +92,7 @@ namespace SenseNet.Packaging.Steps
             using (var resStream = RepositoryTools.GetStreamFromString(xDoc.OuterXml))
             {
                 resource.Binary.SetStream(resStream);
-                resource.Save(SavingMode.KeepVersion);
+                resource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }            
         }
 

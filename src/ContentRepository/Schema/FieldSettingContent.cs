@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Schema
         /// </summary>
         public override void Save(SavingMode mode)
         {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().ge
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Asynchronously saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method

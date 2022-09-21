@@ -575,7 +575,7 @@ namespace SenseNet.ContentRepository
             this.PasswordHash = PasswordHashProvider.EncodePassword(passwordInClearText, this);
 
             using (new SystemAccount())
-                Save(SavingMode.KeepVersion);
+                SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
             return true;
         }
@@ -747,7 +747,7 @@ namespace SenseNet.ContentRepository
                         profile.Save();
 
                         Profile = profile.ContentHandler as UserProfile;
-                        Save(SavingMode.KeepVersion);
+                        SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                         // Give explicit permission for the user on the profile so that
                         // they can access all content items there, not just the ones
@@ -789,7 +789,7 @@ namespace SenseNet.ContentRepository
                     return;
 
                 profile.Name = newName;
-                profile.Save(SavingMode.KeepVersion);
+                profile.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -1000,7 +1000,7 @@ namespace SenseNet.ContentRepository
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
 
-                        base.Save(SavingMode.KeepVersion);
+                        base.SaveAsync(SavingMode.KeepVersion, cancel).GetAwaiter().GetResult();
                     });
                 }
 

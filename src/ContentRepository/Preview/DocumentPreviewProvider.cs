@@ -329,7 +329,7 @@ namespace SenseNet.Preview
                         file.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
                         file.KeepWorkflowsAlive();
-                        file.Save(SavingMode.KeepVersion);
+                        file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                         return file;
                     },
                     (result, iteration, exception) =>
@@ -1759,7 +1759,7 @@ namespace SenseNet.Preview
             previewImage.VersionModifiedBy = realCreatorUser;
             previewImage.Index = DocumentPreviewProvider.Current.GetPreviewImagePageIndex(previewImage);
 
-            previewImage.Save(SavingMode.KeepVersion);
+            previewImage.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>Sets the preview status of the document to In progress

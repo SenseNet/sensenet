@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -229,7 +230,7 @@ namespace SenseNet.Packaging.Tools
             // save the resource content
             using var modifiedStream = RepositoryTools.GetStreamFromString(xDoc.OuterXml);
             resource.Binary.SetStream(modifiedStream);
-            resource.Save(SavingMode.KeepVersion);
+            resource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #region Xml editor methods
