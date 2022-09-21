@@ -262,7 +262,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var chunks = SplitFile(updatedText, chunkSize, out var fullSize);
 
                 file = Node.Load<File>(fileId);
-                file.Save(SavingMode.StartMultistepSave);
+                file.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
                 var token = BinaryData.StartChunk(fileId, fullSize);
 
                 var offset = 0;

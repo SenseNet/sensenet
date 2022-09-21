@@ -200,12 +200,14 @@ namespace SenseNet.WebHooks.Tests
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> Modify
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None)
+                        .GetAwaiter().GetResult();  // --> Modify
 
                     file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
 
                     file.Index = 42;
-                    file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None)
+                        .GetAwaiter().GetResult();  // no event on modification when locked 
 
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
@@ -224,7 +226,7 @@ namespace SenseNet.WebHooks.Tests
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.P    --> Modify,Pending
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> 1.0.P    --> Modify
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // --> 1.0.P    --> Modify
 
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
@@ -247,12 +249,12 @@ namespace SenseNet.WebHooks.Tests
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.A    --> Modify,Approve
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> 2.0.A    --> Modify
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // --> 2.0.A    --> Modify
 
                     file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 3.0.L    --> no event on checkout
 
                     file.Index = 42;
-                    file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // no event on modification when locked 
 
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 3.0.A    --> Modify,Approve
 
@@ -273,7 +275,7 @@ namespace SenseNet.WebHooks.Tests
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
 
                     file.Index = 42;
-                    file.Save(SavingMode.KeepVersion);  // --> Modify
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // --> Modify
 
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
@@ -316,7 +318,7 @@ namespace SenseNet.WebHooks.Tests
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
-                    file.Save(SavingMode.KeepVersion);  // --> Modify
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // --> Modify
 
                     file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.P    --> Modify,Pending
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
@@ -475,7 +477,7 @@ namespace SenseNet.WebHooks.Tests
                 () =>
                 {
                     file.Index = 42;
-                    file.Save(SavingMode.KeepVersion);
+                    file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                     return Task.FromResult((object)file);
                 }, 
                 assertAction,

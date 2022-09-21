@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Tests
                 file2.AllowIncrementalNaming = true;
 
                 // this is normal in case of chunk upload, it should not throw an exception
-                file2.Save(SavingMode.StartMultistepSave);
+                file2.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
                 file2.FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT: Do not throw any exception and file is saved

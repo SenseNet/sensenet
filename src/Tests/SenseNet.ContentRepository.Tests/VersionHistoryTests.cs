@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository.Tests
                 //SnTrace.Test.Write("<?--------------------------------- Versioning: MajorOnly, Approving False");
 
                 //SnTrace.Test.Write("<?--------------------------------- 09 Save");
-                test.Save(SavingMode.KeepVersion);
+                test.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 AssertVersionHistory(test, "V1.0.A", "#8");
 
                 //SnTrace.Test.Write("<?--------------------------------- 10 CheckOut");
@@ -126,7 +126,7 @@ namespace SenseNet.ContentRepository.Tests
                 //SnTrace.Test.Write("<?--------------------------------- Versioning: MajorAndMinor, Approving False");
 
                 //SnTrace.Test.Write("<?--------------------------------- 17 Save");
-                test.Save(SavingMode.KeepVersion);
+                test.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A", "#16");
 
@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A V3.1.D", "#22");
 
                 //SnTrace.Test.Write("<?--------------------------------- 24 Save");
-                test.Save(SavingMode.RaiseVersionAndLock);
+                test.SaveAsync(SavingMode.RaiseVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A V3.1.D V3.2.L", "#23");
 
                 //SnTrace.Test.Write("<?--------------------------------- 25 CheckIn");
@@ -163,7 +163,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A V3.1.D V3.2.D", "#24");
 
                 //SnTrace.Test.Write("<?--------------------------------- 26 Save");
-                test.Save(SavingMode.RaiseVersionAndLock);
+                test.SaveAsync(SavingMode.RaiseVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A V3.1.D V3.2.D V3.3.L", "#25");
 
                 //SnTrace.Test.Write("<?--------------------------------- 27 UndoCheckOut");
@@ -200,7 +200,7 @@ namespace SenseNet.ContentRepository.Tests
                 //SnTrace.Test.Write("<?--------------------------------- Versioning: None, Approving True");
 
                 //SnTrace.Test.Write("<?--------------------------------- 34 Save");
-                test.Save(SavingMode.KeepVersion);
+                test.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 AssertVersionHistory(test, "V1.0.A V2.0.A V3.0.A V3.1.D V3.2.D V3.3.D V3.4.D", "#33");
 
                 //SnTrace.Test.Write("<?--------------------------------- 35 CheckOut");

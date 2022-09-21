@@ -165,7 +165,7 @@ namespace SenseNet.Services.Core.Tests
 }
 ");
                 setting.Binary.SetStream(RepositoryTools.GetStreamFromString(newSettingText));
-                setting.Save(SavingMode.KeepVersion);
+                setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // default settings support localhost and sensenet.com
                 var p = await AssertOriginPrivate("localhost", true);

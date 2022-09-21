@@ -296,7 +296,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var user = Node.Load<User>(userToDisable);
             user.Enabled = false;
-            user.Save(SavingMode.KeepVersion);
+            user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void RemoveUser(string groupPath, string userToRemove)
         {

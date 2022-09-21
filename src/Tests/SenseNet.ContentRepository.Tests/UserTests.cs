@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -303,7 +304,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // try to disable themselves - it should throw an exception
                     user1.Enabled = false;
-                    user1.Save(SavingMode.KeepVersion);
+                    user1.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {

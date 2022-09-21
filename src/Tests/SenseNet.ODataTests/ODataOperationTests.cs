@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -916,7 +917,7 @@ namespace SenseNet.ODataTests
                     Scenario = scenario,
                     Parameters = "string p1, int p2"
                 };
-                tempApp1.Save(SavingMode.KeepVersion);
+                tempApp1.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 return tempApp1;
             }

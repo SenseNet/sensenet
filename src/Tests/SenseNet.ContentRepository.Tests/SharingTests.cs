@@ -899,7 +899,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: change email
                 user.Email = "user3@example.com";
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -910,7 +910,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: clear email
                 user.Email = string.Empty;
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -921,7 +921,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: change to an existing external email
                 user.Email = "user2@example.com";
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -1026,7 +1026,7 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 root.SharingData = SharingHandler.Serialize(items);
-                root.Save(SavingMode.KeepVersion);
+                root.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 items = root.Sharing.Items.ToList();
 
@@ -1266,7 +1266,7 @@ namespace SenseNet.ContentRepository.Tests
                 if (!trash.IsActive)
                 {
                     trash.IsActive = true;
-                    trash.Save(SavingMode.KeepVersion);
+                    trash.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // move to the trash
