@@ -20,6 +20,236 @@ namespace SenseNet.Services.Core.Operations
     public static class ContentOperations
     {
         /// <summary>
+        /// Approves the requested content. The content's version number will be the next major version according to
+        /// the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "Approve", Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save, N.P.Approve)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> ApproveAsync(Content content, HttpContext httpContext)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't approve content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+            await content.ApproveAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            return content;
+        }
+
+        /// <summary>
+        /// Removes the exclusive lock from the requested content and persists the <paramref name="checkInComments"/>
+        /// if there is. The version number is changed according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="checkInComments" example="Very good.">The modifier's comments.</param>
+        /// <exception cref="Exception">An exception will be thrown if the <paramref name="checkInComments"/> is
+        /// missing and the value of the requested content's <c>CheckInCommentsMode</c> is <c>Compulsory</c>.</exception>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "CheckIn", Icon = "checkin", Description = "$Action,CheckIn", DisplayName = "$Action,CheckIn-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
+        public static async STT.Task<Content> CheckInAsync(Content content, HttpContext httpContext, string checkInComments = null)
+        {
+            checkInComments ??= string.Empty;
+
+            if (string.IsNullOrEmpty(checkInComments) && content.CheckInCommentsMode == CheckInCommentsMode.Compulsory)
+                throw new Exception($"Can't check in content '{content.Path}' without checkin comments " +
+                                    "because its CheckInCommentsMode is set to CheckInCommentsMode.Compulsory.");
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't check in content '{content.Path}' because its " +
+                                    "content handler is not a GenericContent. It needs to inherit " +
+                                    "from GenericContent for collaboration feature support.");
+
+            content["CheckInComments"] = checkInComments;
+
+            await content.CheckInAsync(httpContext.RequestAborted).ConfigureAwait(false);
+
+            return content;
+        }
+
+        /// <summary>
+        /// Creates a new version of the requested content and locks it exclusively for the current user.
+        /// The version number is changed according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "CheckOut", Icon = "checkout", Description = "$Action,CheckOut", DisplayName = "$Action,CheckOut-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> CheckOutAsync(Content content, HttpContext httpContext)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't check out content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+            await content.CheckOutAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            return content;
+        }
+
+        /// <summary>
+        /// Publishes the requested content. The version number is changed to the next major version
+        /// according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "Publish", Icon = "publish", Description = "$Action,Publish", DisplayName = "$Action,Publish-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save, N.P.Publish)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> PublishAsync(Content content, HttpContext httpContext)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't publish content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+            await content.PublishAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            return content;
+        }
+
+        /// <summary>
+        /// Rejects the modifications of the requested content and persists the <paramref name="rejectReason"/>
+        /// if there is.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <param name="rejectReason" example="Rewrite please.">The reviewer's comments.</param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "Reject", Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> RejectAsync(Content content, HttpContext httpContext, string rejectReason = null)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't reject content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+
+            rejectReason = rejectReason ?? string.Empty;
+
+            content["RejectReason"] = rejectReason;
+            await content.RejectAsync(httpContext.RequestAborted).ConfigureAwait(false);
+
+            return content;
+        }
+
+        /// <summary>
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for the user who locked the content or an administrator with <c>ForceCheckin</c> permissions.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "UndoCheckOut", Icon = "undocheckout", Description = "$Action,UndoCheckOut", DisplayName = "$Action,UndoCheckOut-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> UndoCheckOutAsync(Content content, HttpContext httpContext)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't undo check out on content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to inherit " +
+                                    "from GenericContent for collaboration feature support.");
+            await content.UndoCheckOutAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            return content;
+        }
+
+        /// <summary>
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for users who have <c>ForceCheckin</c> permission on this content. 
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="httpContext"></param>
+        /// <returns>The modified content.</returns>
+        [ODataAction(OperationName = "ForceUndoCheckOut", Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut", DisplayName = "$Action,ForceUndoCheckout-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
+        public static async STT.Task<Content> ForceUndoCheckOutAsync(Content content, HttpContext httpContext)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't force undo check out on content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+            await content.ForceUndoCheckOutAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            return content;
+        }
+
+        /// <summary>
+        /// Restores an old existing version as the last version according to the content's versioning mode.
+        /// The old version is identified by the <paramref name="version"/> parameter that can be in
+        /// one of the following forms:
+        /// - [major].[minor] e.g. "1.2"
+        /// - V[major].[minor] e.g. "V1.2"
+        /// - [major].[minor].[status] e.g. "1.2.D"
+        /// - V[major].[minor].[status] e.g. "V1.2.D"
+        /// <para>Note that [status] is not required but an incorrect value causes an exception.</para>
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="version">The old version number.</param>
+        /// <returns>The modified content.</returns>
+        /// <exception cref="Exception">Throws if the requested content version is not found.</exception>
+        [ODataAction(Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save, N.P.RecallOldVersion)]
+        public static Content RestoreVersion(Content content, string version)
+        {
+            // Perform checks
+            if (version == null)
+                throw new Exception("Can't restore old version because the version parameter is empty.");
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't restore old version of content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+
+            // Append 'V' if it is not there
+            var versionText = version.StartsWith("V")
+                ? version
+                : string.Concat("V", version);
+
+            // Find old version on the content
+
+            // Try exact match on version string - example input: 1.0.A or V1.0.A
+            var oldVersion = content.Versions.AsEnumerable().SingleOrDefault(n => n.Version.VersionString == versionText) as GenericContent;
+
+            // Try adding status code - example input: 1.0 or V1.0
+            if (oldVersion == null)
+                oldVersion = content.Versions.AsEnumerable().SingleOrDefault(n => n.Version.VersionString == string.Concat(versionText, ".", n.Version.Status.ToString()[0])) as GenericContent;
+
+            // Throw exception if still not found
+            if (oldVersion == null)
+                throw new Exception($"The requested version '{version}' does not exist on content '{content.Path}'.");
+
+            // Restore old version
+            oldVersion.Save();
+
+            // Return actual state of content
+            return Content.Load(content.Id);
+        }
+
+        /// <summary>
         /// Copies one or more items recursively to the given target.
         /// The source items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// <para>Always check the allowed child types set on the chosen target container, because it can result in
@@ -367,10 +597,10 @@ namespace SenseNet.Services.Core.Operations
                     switch (node)
                     {
                         case GenericContent gc:
-                            await gc.DeleteAsync(permanent, httpContext.RequestAborted);
+                            await gc.DeleteAsync(permanent, httpContext.RequestAborted).ConfigureAwait(false);
                             break;
                         case ContentType ct:
-                            await ct.DeleteAsync(httpContext.RequestAborted);
+                            await ct.DeleteAsync(httpContext.RequestAborted).ConfigureAwait(false);
                             break;
                     }
 
@@ -945,7 +1175,7 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception(msg);
             }
 
-            await Content.LoadAsync(originalId, CancellationToken.None);
+            await Content.LoadAsync(originalId, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

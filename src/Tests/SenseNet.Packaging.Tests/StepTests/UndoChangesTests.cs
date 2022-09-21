@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -125,7 +126,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             //TODO: workaround for pinned node.Content issue
             file = Node.Load<File>(file.Id);
-            file.CheckOut();
+            file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return file;
         }
@@ -137,7 +138,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             if (checkout)
             {
                 folder = Node.Load<SystemFolder>(folder.Id);
-                folder.CheckOut();
+                folder.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             return folder;

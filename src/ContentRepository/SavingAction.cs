@@ -404,12 +404,16 @@ namespace SenseNet.ContentRepository
             this.LockerUserId = User.Current.Id;
         }
 
-        public void Execute() //UNDONE:x: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public void Execute()
+        {
+            ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancel)
         {
             if (this.Node.IsNew)
             {
-                var gc = Node.Parent as GenericContent;
-                if (gc != null)
+                if (Node.Parent is GenericContent gc)
                     gc.AssertAllowedChildType(Node);
             }
 
@@ -425,7 +429,7 @@ namespace SenseNet.ContentRepository
             {
                 try
                 {
-                    Node.SaveAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+                    await Node.SaveAsync(this, CancellationToken.None).ConfigureAwait(false);
                     break;
                 }
                 catch (AggregateException ae)

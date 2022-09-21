@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
@@ -57,16 +58,16 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var id = car1.Id;
 
                 // create some versions
-                car1 = Content.Load(id); car1.Publish();
-                car1 = Content.Load(id); car1.CheckOut();
+                car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                car1 = Content.Load(id); car1.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1.CheckIn();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1 = Content.Load(id); car1.Publish();
+                car1.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1 = Content.Load(id); car1.Index++; car1.Save();
                 car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1 = Content.Load(id); car1.Publish();
+                car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                car1 = Content.Load(id); car1.Index++; car1.Save();
+                car1 = Content.Load(id); car1.Index++; car1.Save();
+                car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var versions = car1.Versions.Select(n => n.Version.ToString()).ToArray();
 

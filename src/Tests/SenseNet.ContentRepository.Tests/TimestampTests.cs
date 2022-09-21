@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -67,15 +68,15 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after Save");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
-                content.CheckOut();
+                content.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after CheckOut");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
-                content.UndoCheckOut();
+                content.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after UndoCheckOut");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
-                content.CheckOut();
+                content.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after CheckOut #2");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
@@ -84,11 +85,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after Save #2");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
-                content.CheckIn();
+                content.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after CheckIn");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
-                content.Publish();
+                content.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after Publish");
                 timestamp = content.ContentHandler.NodeTimestamp;
             });

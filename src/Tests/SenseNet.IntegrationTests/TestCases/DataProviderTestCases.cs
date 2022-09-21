@@ -193,7 +193,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 created.Save();
                 var versionIdBefore = created.VersionId;
 
-                created.CheckOut();
+                created.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Update a file but do not save
                 var updated = Node.Load<File>(created.Id);
@@ -256,7 +256,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var expectedLastMinor = createdHead.LastMinorVersionId;
 
                 // Make a new version.
-                created.CheckOut();
+                created.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Modify the new version.
                 var checkedOut = Node.Load<File>(created.Id);
@@ -792,12 +792,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        folderB.CheckOut();
+                        folderB.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                         folderB.Index++;
                         folderB.Save();
-                        folderB.CheckIn();
+                        folderB.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
-                    folderB.Publish();
+                    folderB.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 var allVersinsById = Node.GetVersionNumbers(folderB.Id);
                 var allVersinsByPath = Node.GetVersionNumbers(folderB.Path);
@@ -1403,7 +1403,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var folder1 = CreateFolder(root, "Folder1");
                 var file3 = CreateFile(folder1, "File3", fileContent);
                 var file4 = CreateFile(folder1, "File4", fileContent);
-                file4.CheckOut();
+                file4.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = CreateFolder(folder1, "Folder2");
                 var fileA5 = CreateFile(folder2, "File5", fileContent);
                 var fileA6 = CreateFile(folder2, "File6", fileContent);
@@ -1747,7 +1747,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var childNode = CreateFolder(node, "Folder-2");
                 var version1 = node.Version.ToString();
                 var versionId1 = node.VersionId;
-                node.CheckOut();
+                node.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var versionId2 = node.VersionId;
                 var originalPath = node.Path;
 
@@ -1813,7 +1813,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var node = CreateTestRoot();
                 var child = CreateFolder(node, "Folder-2");
-                child.CheckOut();
+                child.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var nodeCount = await DP.GetNodeCountAsync(node.Path, CancellationToken.None);
                 var versionCount = await DP.GetVersionCountAsync(node.Path, CancellationToken.None);
@@ -2301,7 +2301,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 newNode.Save();
                 var version1 = newNode.Version.ToString();
                 var versionId1 = newNode.VersionId;
-                newNode.CheckOut();
+                newNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var version2 = newNode.Version.ToString();
                 var versionId2 = newNode.VersionId;
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
@@ -2350,7 +2350,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 newNode.Save();
                 var version1 = newNode.Version.ToString();
                 var versionId1 = newNode.VersionId;
-                newNode.CheckOut();
+                newNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var version2 = newNode.Version.ToString();
                 var versionId2 = newNode.VersionId;
                 newNode.Index++;

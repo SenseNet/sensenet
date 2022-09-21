@@ -86,34 +86,34 @@ namespace SenseNet.IntegrationTests.TestCases
                     myFile = new File(myFolder) { Name = "MyFile.txt", Description = "Sample file...." };
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 42)));
                     myFile.Save();
-                    myFile.Publish(); // 1.0.A
+                    myFile.PublishAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.0.A
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 43)));
                     myFile.Save();
-                    myFile.CheckIn(); // 1.1.D
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.1.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 44)));
                     myFile.Save();
-                    myFile.CheckIn(); // 1.2.D
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.2.D
 
-                    myFile.Publish(); // 2.0.A
+                    myFile.PublishAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.0.A
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 45)));
                     myFile.Save();
-                    myFile.CheckIn(); // 2.1.D
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.1.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 46)));
                     myFile.Save();
-                    myFile.CheckIn(); // 2.2.D
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.2.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 47)));
                     myFile.Save();
-                    myFile.CheckIn(); // 2.3.D
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.3.D
                 }
             }
 

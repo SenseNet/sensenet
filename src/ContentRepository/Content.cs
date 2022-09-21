@@ -1302,27 +1302,49 @@ namespace SenseNet.ContentRepository
         /// </list>
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        [Obsolete("Use async version instead.", true)]
         public void Publish()
         {
+            PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously validates and publishes the wrapped <c>ContentHandler</c> if it is a <c>GenericContent</c> otherwise saves it normally.
+        /// </summary>
+        /// <remarks>
+        /// This method executes followings:
+        /// <list type="bullet">
+        ///     <item>
+        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
+        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        ///     </item>
+        ///     <item>
+        ///         If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
+        ///     </item>
+        ///     <item>
+        ///         If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
+        ///         the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
+        ///         <see cref="SenseNet.ContentRepository.GenericContent.Publish">Publish</see> method otherwise saves it normally.
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        public async System.Threading.Tasks.Task PublishAsync(CancellationToken cancel)
+        {
             SaveFields();
 
             var genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
                 _contentHandler.Save();
             else
-                genericContent.Publish();
+                await genericContent.PublishAsync(cancel).ConfigureAwait(false);
         }
+
+        [Obsolete("Use async version instead.", true)]
         public void Approve()
         {
-            SaveFields();
-
-            var genericContent = _contentHandler as GenericContent;
-            if (genericContent == null)
-                _contentHandler.Save();
-            else
-                genericContent.Approve();
+            ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
-        public void Reject()
+        public async System.Threading.Tasks.Task ApproveAsync(CancellationToken cancel)
         {
             SaveFields();
 
@@ -1330,8 +1352,25 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Save();
             else
-                genericContent.Reject();
+                await genericContent.ApproveAsync(cancel).ConfigureAwait(false);
         }
+
+        [Obsolete("Use async version instead.", true)]
+        public void Reject()
+        {
+            RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task RejectAsync(CancellationToken cancel)
+        {
+            SaveFields();
+
+            var genericContent = _contentHandler as GenericContent;
+            if (genericContent == null)
+                _contentHandler.Save();
+            else
+                await genericContent.RejectAsync(cancel).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
         /// 
@@ -1367,7 +1406,47 @@ namespace SenseNet.ContentRepository
         /// </list>
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        [Obsolete("Use async version instead.", true)]
         public void CheckIn()
+        {
+            CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        /// 
+        /// If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
+        /// 
+        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
+        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
+        /// <see cref="SenseNet.ContentRepository.GenericContent.CheckIn">CheckIn</see> method otherwise calls the
+        /// <see cref="SenseNet.ContentRepository.Storage.Node.Lock.Unlock">Unlock</see> method with
+        /// <c><see cref="SenseNet.ContentRepository.Storage.VersionStatus">VersionStatus</see>.Public</c> and 
+        /// <c><see cref="SenseNet.ContentRepository.Storage.VersionRaising">VersionRaising</see>.None</c> parameters.
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// This method executes followings:
+        /// <list type="bullet">
+        ///     <item>
+        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
+        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        ///     </item>
+        ///     <item>
+        ///         If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
+        ///     </item>
+        ///     <item>
+        /// 		If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
+        /// 		the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
+        /// 		<see cref="SenseNet.ContentRepository.GenericContent.CheckIn">CheckIn</see> method otherwise calls the
+        /// 		<see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>'s
+        /// 		<see cref="SenseNet.ContentRepository.Storage.Security.LockHandler.Unlock(VersionStatus, VersionRaising)">Lock.Unlock</see> method with
+        /// 		<c><see cref="SenseNet.ContentRepository.Storage.VersionStatus">VersionStatus</see>.Public</c> and 
+        /// 		<c><see cref="SenseNet.ContentRepository.Storage.VersionRaising">VersionRaising</see>.None</c> parameters.
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        public async System.Threading.Tasks.Task CheckInAsync(CancellationToken cancel)
         {
             SaveFields();
 
@@ -1375,10 +1454,15 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Lock.Unlock(VersionStatus.Approved, VersionRaising.None);
             else
-                genericContent.CheckIn();
+                await genericContent.CheckInAsync(cancel).ConfigureAwait(false);
         }
 
+        [Obsolete("Use async version instead.", true)]
         public void CheckOut()
+        {
+            CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task CheckOutAsync(CancellationToken cancel)
         {
             SaveFields();
 
@@ -1386,10 +1470,15 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Lock.Lock();
             else
-                genericContent.CheckOut();
+                await genericContent.CheckOutAsync(cancel).ConfigureAwait(false);
         }
 
+        [Obsolete("Use async version instead.", true)]
         public void UndoCheckOut()
+        {
+            UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task UndoCheckOutAsync(CancellationToken cancel)
         {
             SaveFields();
 
@@ -1397,10 +1486,15 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Lock.Unlock(VersionStatus.Approved, VersionRaising.None);
             else
-                genericContent.UndoCheckOut();
+                await genericContent.UndoCheckOutAsync(cancel).ConfigureAwait(false);
         }
 
+        [Obsolete("Use async version instead.", true)]
         public void ForceUndoCheckOut()
+        {
+            ForceUndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task ForceUndoCheckOutAsync(CancellationToken cancel)
         {
             if (!SavingAction.HasForceUndoCheckOutRight(this.ContentHandler))
                 throw new Storage.Security.SenseNetSecurityException(this.Path, Storage.Security.PermissionType.ForceCheckin);
@@ -1411,7 +1505,7 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 _contentHandler.Lock.Unlock(VersionStatus.Approved, VersionRaising.None);
             else
-                genericContent.UndoCheckOut();
+                await genericContent.UndoCheckOutAsync(cancel).ConfigureAwait(false);
         }
 
         public void DontSave()

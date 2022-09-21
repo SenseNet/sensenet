@@ -84,7 +84,7 @@ namespace SenseNet.Services.Wopi.Tests
         public void SharedLock_Lock_CheckedOut()
         {
             var node = CreateTestFolder();
-            node.CheckOut();
+            node.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
             var nodeId = node.Id;
             var expectedLockValue = Guid.NewGuid().ToString();
             Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
@@ -539,12 +539,12 @@ namespace SenseNet.Services.Wopi.Tests
                     var user = LoadOrCreateUser(userContentName);
                     var origUser = User.Current;
                     User.Current = user;
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     User.Current = origUser;
                 }
                 else
                 {
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 return this;
             }
@@ -624,7 +624,7 @@ namespace SenseNet.Services.Wopi.Tests
             var lockValue = "LCK_" + Guid.NewGuid();
             SharedLock.Lock(nodeId, lockValue, CancellationToken.None);
 
-            node.CheckOut();
+            node.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.IsTrue(node.Locked);
             Assert.AreEqual(lockValue, SharedLock.GetLock(nodeId, CancellationToken.None));

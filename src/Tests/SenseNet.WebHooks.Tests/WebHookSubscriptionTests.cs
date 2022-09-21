@@ -196,18 +196,18 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.A
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.0.A    --> Modify,Approve
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> Modify
 
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
 
                     file.Index = 42;
                     file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
 
-                    file.CheckIn();     // --> 1.0.A    --> Modify,Approve
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
                     return Task.CompletedTask;
                 },
@@ -220,17 +220,17 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.P
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.0.P    --> Modify,Pending
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.P    --> Modify,Pending
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> 1.0.P    --> Modify
 
-                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+                    file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
-                    file.Reject();      // --> 2.0.R    --> Modify,Reject
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
+                    file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();      // --> 2.0.R    --> Modify,Reject
 
                     return Task.CompletedTask;
                 },
@@ -243,18 +243,18 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.A
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.A    --> Modify,Approve
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.A    --> Modify,Approve
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> 2.0.A    --> Modify
 
-                    file.CheckOut();    // --> 3.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 3.0.L    --> no event on checkout
 
                     file.Index = 42;
                     file.Save(SavingMode.KeepVersion);  // no event on modification when locked 
 
-                    file.CheckIn();     // --> 3.0.A    --> Modify,Approve
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 3.0.A    --> Modify,Approve
 
                     file.Save();        // --> 4.0.A    --> Modify,Approve
 
@@ -269,17 +269,17 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.P
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
 
                     file.Index = 42;
                     file.Save(SavingMode.KeepVersion);  // --> Modify
 
-                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+                    file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOut();    // --> 2.0.L    --> no event on checkout
-                    file.CheckIn();     // --> 2.0.P    --> Modify,Pending
-                    file.Reject();      // --> 2.0.R    --> Modify,Reject
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
+                    file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();      // --> 2.0.R    --> Modify,Reject
                     file.Save();        // --> 3.0.P    --> Modify,Pending
 
                     return Task.CompletedTask;
@@ -293,13 +293,13 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 0.1.D
-                    file.CheckOut();    // --> 0.2.L    --> no event on checkout
-                    file.CheckIn();     // --> 0.2.D    --> Modify,Draft
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
                     file.Save();        // --> 0.3.D    --> Modify,Draft
 
-                    file.Publish();     // --> 1.0.A    --> Modify,Approve
+                    file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
                     return Task.CompletedTask;
                 },
@@ -312,23 +312,23 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 0.1.D
-                    file.CheckOut();    // --> 0.2.L    --> no event on checkout
-                    file.CheckIn();     // --> 0.2.D    --> Modify,Draft
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
                     file.Save(SavingMode.KeepVersion);  // --> Modify
 
-                    file.Publish();     // --> 0.2.P    --> Modify,Pending
-                    file.Approve();     // --> 1.0.A    --> Modify,Approve
+                    file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.P    --> Modify,Pending
+                    file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOut();    // --> 1.1.L    --> no event on checkout
-                    file.CheckIn();     // --> 1.1.D    --> Modify,Draft
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 1.1.L    --> no event on checkout
+                    file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.1.D    --> Modify,Draft
 
                     file.Index = 42;
                     file.Save();        // --> 1.2.D    --> Modify,Draft
 
-                    file.Publish();     // --> 1.2.P    --> Modify,Pending
-                    file.Reject();      // --> 1.2.R    --> Modify,Reject
+                    file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.2.P    --> Modify,Pending
+                    file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();      // --> 1.2.R    --> Modify,Reject
 
                     return Task.CompletedTask;
                 },

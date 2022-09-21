@@ -692,7 +692,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -806,7 +806,7 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -927,7 +927,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
                 SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
 
@@ -1046,7 +1046,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1171,7 +1171,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {

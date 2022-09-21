@@ -1784,7 +1784,7 @@ namespace SenseNet.ContentRepository
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
         /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
-        public virtual void Save(SavingMode mode)
+        public virtual void Save(SavingMode mode)//UNDONE:xxx: rewrite to async
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Save: Mode:{0}, VId:{1}, Path:{2}", mode, this.VersionId, this.Path))
             {
@@ -1819,11 +1819,12 @@ namespace SenseNet.ContentRepository
                     }
                 }
 
-                action.Execute();
+                action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// </summary>
@@ -1912,14 +1913,24 @@ namespace SenseNet.ContentRepository
         /// Enables other users to access it but only for reading.
         /// After this operation the version of the Content is always raised even if the versioning mode is "off".
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void CheckOut()
+        {
+            CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously check this Content out. Enables modifications for the currently logged in user exclusively.
+        /// Enables other users to access it but only for reading.
+        /// After this operation the version of the Content is always raised even if the versioning mode is "off".
+        /// </summary>
+        public virtual async System.Threading.Tasks.Task CheckOutAsync(CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.CheckOut: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
                 var prevVersion = this.Version;
                 var action = SavingAction.Create(this);
                 action.CheckOut();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 // Workaround: the OnModified event is not fired in case the
                 // content is locked, so we need to copy preview images here.
@@ -1930,26 +1941,44 @@ namespace SenseNet.ContentRepository
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// Commits the modifications of the checked out Content and releases the lock.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void CheckIn()
+        {
+            CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously commits the modifications of the checked out Content and releases the lock.
+        /// </summary>
+        public virtual async System.Threading.Tasks.Task CheckInAsync(CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.CheckIn: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
                 var action = SavingAction.Create(this);
                 action.CheckIn();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// Reverts the Content to the state before the user checked it out and reloads it.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void UndoCheckOut()
         {
-            UndoCheckOut(true);
+            UndoCheckOutAsync(true, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously reverts the Content to the state before the user checked it out and reloads it.
+        /// </summary>
+        public virtual System.Threading.Tasks.Task UndoCheckOutAsync(CancellationToken cancel)
+        {
+            return UndoCheckOutAsync(true, cancel);
         }
 
         /// <summary>
@@ -1958,7 +1987,19 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="forceRefresh">Optional boolean value that specifies
         /// whether the Content will be reloaded or not. Default: true.</param>
+        [Obsolete("Use async version instead.", true)]
         public void UndoCheckOut(bool forceRefresh)
+        {
+            UndoCheckOutAsync(forceRefresh, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously reverts the Content to the state before the user checked it out.
+        /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
+        /// </summary>
+        /// <param name="forceRefresh">Optional boolean value that specifies
+        /// whether the Content will be reloaded or not. Default: true.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        public async System.Threading.Tasks.Task UndoCheckOutAsync(bool forceRefresh, CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.UndoCheckOut: forceRefresh:{0}, VId:{1}, Path:{2}", forceRefresh, this.VersionId, this.Path))
             {
@@ -1967,7 +2008,7 @@ namespace SenseNet.ContentRepository
 
                 var action = SavingAction.Create(this);
                 action.UndoCheckOut(forceRefresh);
-                action.Execute();
+                await action.ExecuteAsync(cancel);
 
                 op.Successful = true;
             }
@@ -1978,22 +2019,42 @@ namespace SenseNet.ContentRepository
         /// will be the next public version with Approved state or remains the same but the 
         /// versioning state will be changed to Pending.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void Publish()
+        {
+            PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously publishes the Content. Depending on the versioning workflow, the version
+        /// will be the next public version with Approved state or remains the same but the 
+        /// versioning state will be changed to Pending.
+        /// </summary>
+        public virtual async System.Threading.Tasks.Task PublishAsync(CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Publish: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
                 var action = SavingAction.Create(this);
                 action.Publish();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// Approves the Content. After this action the Content's version number
         /// (depending on the mode) will be raised to the next public version.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void Approve()
+        {
+            ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously approves the Content. After this action the Content's version number
+        /// (depending on the mode) will be raised to the next public version.
+        /// </summary>
+        public virtual async System.Threading.Tasks.Task ApproveAsync(CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Approve: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
@@ -2003,27 +2064,38 @@ namespace SenseNet.ContentRepository
 
                 var action = SavingAction.Create(this);
                 action.Approve();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 op.Successful = true;
             }
         }
+
         /// <summary>
         /// Rejects the approvable Content. After this action the Content's version number
         /// remains the same but the versioning state of the Content will be changed to Rejected.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public virtual void Reject()
+        {
+            RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously rejects the approvable Content. After this action the Content's version number
+        /// remains the same but the versioning state of the Content will be changed to Rejected.
+        /// </summary>
+        public virtual async System.Threading.Tasks.Task RejectAsync(CancellationToken cancel)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Reject: VId:{0}, Path:{1}", this.VersionId, this.Path))
             {
                 var action = SavingAction.Create(this);
                 action.Reject();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
 
                 op.Successful = true;
             }
         }
-        internal void SaveExplicitVersion()
+
+        internal void SaveExplicitVersion()//UNDONE:x: rewrite to async
         {
             var update = false;
             if (!IsNew)
@@ -2062,7 +2134,7 @@ namespace SenseNet.ContentRepository
             {
                 var action = SavingAction.Create(this);
                 action.CheckIn();
-                action.Execute();
+                await action.ExecuteAsync(cancel).ConfigureAwait(false);
             }
             else
             {

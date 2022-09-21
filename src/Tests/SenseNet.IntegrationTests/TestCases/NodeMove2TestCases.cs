@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -55,7 +56,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 AccessProvider.Current.SetCurrentUser(visitor);
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
@@ -83,7 +84,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 lockedNode.Reload();
                 AccessProvider.Current.SetCurrentUser(visitor);
-                lockedNode.UndoCheckOut();
+                lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 AccessProvider.Current.SetCurrentUser(originalUser);
 
                 Assert.IsTrue(expectedExceptionWasThrown, "The expected exception was not thrown.");
@@ -103,14 +104,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 var lockedNode = (GenericContent)LoadNode(testRoot, "Source");
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     MoveNode("Source", "Target", testRoot);
                 }
                 finally
                 {
                     lockedNode = (GenericContent)Node.LoadNode(lockedNode.Id);
                     if (lockedNode.Lock.Locked)
-                        lockedNode.UndoCheckOut();
+                        lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -128,14 +129,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 var lockedNode = (GenericContent)LoadNode(testRoot, "Source/N1/N4");
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     MoveNode("Source", "Target", testRoot, true);
                 }
                 finally
                 {
                     lockedNode = (GenericContent)Node.LoadNode(lockedNode.Id);
                     if (lockedNode.Lock.Locked)
-                        lockedNode.UndoCheckOut();
+                        lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -271,8 +272,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 node = (GenericContent)LoadNode(testRoot, "Source/M1");
                 node.Index++;
                 node.Save();
-                ((GenericContent)LoadNode(testRoot, "Source/M1")).Publish();
-                ((GenericContent)LoadNode(testRoot, "Source/M1")).CheckOut();
+                ((GenericContent)LoadNode(testRoot, "Source/M1")).PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                ((GenericContent)LoadNode(testRoot, "Source/M1")).CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 EnsureNode(testRoot, "Target");
 
                 MoveNode("Source", "Target", testRoot, true);

@@ -228,7 +228,7 @@ namespace SenseNet.Services.Core.Operations
 
                 // checkin only if the content was created or checked out by this process
                 if (uploadedContent.ContentHandler.Locked && mustCheckIn)
-                    uploadedContent.CheckIn();
+                    await uploadedContent.CheckInAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         

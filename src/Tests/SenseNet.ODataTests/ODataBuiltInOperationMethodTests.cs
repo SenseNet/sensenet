@@ -239,7 +239,7 @@ namespace SenseNet.ODataTests
                 {
                     file = new File(CreateTestRoot("TestFiles")) { Name = "File-1" };
                     file.Save();
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 Assert.AreEqual(user.Id, file.LockedById);
