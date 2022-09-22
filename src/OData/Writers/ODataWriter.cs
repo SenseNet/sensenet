@@ -476,8 +476,11 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var response = action is ODataOperationMethodExecutor odataAction
-            ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
+            var odataAction = action as ODataOperationMethodExecutor;
+            var response = odataAction != null
+            ? (odataAction.IsAsync
+                ? await odataAction.ExecuteAsync(content)
+                : action.Execute(content))
             : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
 
             if (response is Content responseAsContent)
@@ -487,7 +490,11 @@ namespace SenseNet.OData.Writers
                 return;
             }
 
-            response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
+            var count = 0;
+            response = odataAction != null && odataAction.Method.Operation.IsAsyncVoid
+                ? null
+                : ProcessOperationResponse(response, odataReq, httpContext, out count);
+
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
