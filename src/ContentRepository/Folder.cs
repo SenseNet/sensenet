@@ -1,15 +1,29 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines constants for enabling preview generation.
+    /// </summary>
+    public enum PreviewEnabled
+    {
+        /// <summary>Preview generation depends on the parent content.</summary>
+        Inherited,
+        /// <summary>Preview generation is disabled.</summary>
+        No,
+        /// <summary>Preview generation is enabled.</summary>
+        Yes
+    }
+
     /// <summary>
     /// A Content handler class for representing a container for child Content items.
     /// </summary>
@@ -58,6 +72,45 @@ namespace SenseNet.ContentRepository
             get { return this.GetChildCount();}
         }
 
+        public override bool IsPreviewEnabled
+        {
+            get
+            {
+                switch (PreviewEnabled)
+                {
+                    case ContentRepository.PreviewEnabled.Inherited:
+                        return Parent?.IsPreviewEnabled ?? false;
+                    case ContentRepository.PreviewEnabled.No:
+                        return false;
+                    case ContentRepository.PreviewEnabled.Yes:
+                        return true;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that stores this content's state: preview is enabled, disabled, or depends on the parent.
+        /// </summary>
+        [RepositoryProperty(nameof(PreviewEnabled), RepositoryDataType.String)]
+        public PreviewEnabled PreviewEnabled
+        {
+            get
+            {
+                var result = PreviewEnabled.Inherited;
+                var enumVal = base.GetProperty<string>(nameof(PreviewEnabled));
+                if (string.IsNullOrEmpty(enumVal))
+                    return result;
+                Enum.TryParse(enumVal, false, out result);
+                return result;
+            }
+            set
+            {
+                this[nameof(PreviewEnabled)] = Enum.GetName(typeof(PreviewEnabled), value);
+            }
+        }
+
         /// <inheritdoc />
         public override object GetProperty(string name)
         {
@@ -65,6 +118,8 @@ namespace SenseNet.ContentRepository
             {
                 case GenericContent.ALLOWEDCHILDTYPES:
                     return this.AllowedChildTypes;
+                case nameof(PreviewEnabled):
+                    return this.PreviewEnabled;
                 default:
                     return base.GetProperty(name);
             }
@@ -76,6 +131,9 @@ namespace SenseNet.ContentRepository
             {
                 case GenericContent.ALLOWEDCHILDTYPES:
                     this.AllowedChildTypes = (IEnumerable<ContentType>)value;
+                    break;
+                case nameof(PreviewEnabled):
+                    this.PreviewEnabled = (PreviewEnabled) value;
                     break;
                 default:
                     base.SetProperty(name, value);

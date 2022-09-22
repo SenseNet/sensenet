@@ -471,7 +471,7 @@ namespace SenseNet.Packaging.Steps
 
                     if (firstImport)
                     {
-                        SetInitialPermissions();
+                        SetInitialStates();
                     }
 
                     Log(ImportLogLevel.Info, "Content import is successfully finished.");
@@ -597,9 +597,15 @@ namespace SenseNet.Packaging.Steps
                 return count > 0;
             }
 
-            private void SetInitialPermissions()
+            private void SetInitialStates()
             {
-                Log(ImportLogLevel.Info, "Set initial permissions...");
+                Log(ImportLogLevel.Info, "Set initial property values ...");
+
+                var rootNode = Node.Load<PortalRoot>(Identifiers.PortalRootId);
+                rootNode.PreviewEnabled = PreviewEnabled.Yes;
+                rootNode.Save();
+
+                Log(ImportLogLevel.Info, "Set initial membership ...");
 
                 // ContentType ids
                 var RootContentId = Identifiers.PortalRootId;
@@ -648,6 +654,8 @@ namespace SenseNet.Packaging.Steps
 
                     Providers.Instance.SecurityHandler.AddMembers(orgUnit.Id, users, groups);
                 }
+
+                Log(ImportLogLevel.Info, "Set initial permissions...");
 
                 // Created for several operations
                 var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
