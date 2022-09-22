@@ -105,10 +105,10 @@ namespace SenseNet.ContentRepository.Tests
                     .BuildServiceProvider();
 
                 var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var file = new File(root) {Name = "TestFile"};
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 142)));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var token = await AccessTokenVault.GetOrAddTokenAsync(1, TimeSpan.FromDays(1), file.Id,
                     WopiMiddleware.AccessTokenFeatureName, CancellationToken.None).ConfigureAwait(false);
@@ -288,8 +288,8 @@ namespace SenseNet.ContentRepository.Tests
                     var parent2 = await Node.LoadNodeAsync("/Root/System", CancellationToken.None);
                     var node1 = new Folder(parent1);
                     var node2 = new Folder(parent2);
-                    node1.Save();
-                    node2.Save();
+                    node1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    node2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // create mock events (nodes are not saved)
                     var event1 = new NodeCreatedEvent(new TestNodeEventArgs(node1, NodeEvent.Created));
@@ -2539,7 +2539,7 @@ namespace SenseNet.ContentRepository.Tests
             for (int i = 0; i < webHooks.Length; i++)
             {
                 webHooks[i] = new WebHookSubscription(container) { Name = $"WebHook{i}" };
-                webHooks[i].Save();
+                webHooks[i].SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             return webHooks;
@@ -2563,7 +2563,7 @@ namespace SenseNet.ContentRepository.Tests
                 for (var i = 0; i < nodes.Length; i++)
                 {
                     nodes[i] = new SystemFolder(Repository.Root) {Name = "Test" + i};
-                    nodes[i].Save();
+                    nodes[i].SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 var denied = nodes[2];
                 using (new SystemAccount())

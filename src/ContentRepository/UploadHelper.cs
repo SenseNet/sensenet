@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
+using System.Threading;
 
 namespace SenseNet.Portal.Handlers
 {
@@ -87,7 +88,7 @@ namespace SenseNet.Portal.Handlers
         public static void ModifyNode(Node node, Stream stream)
         {
             node.SetBinary("Binary", CreateBinaryData(node.Name, stream));
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

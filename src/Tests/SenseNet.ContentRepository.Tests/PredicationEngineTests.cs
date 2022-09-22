@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
@@ -32,7 +33,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 ContentTypeInstaller.InstallContentType(CTD);
-                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("PredicationEngineTestNode", root, "PredicationEngineTestNode1");
                 content.Index = 42;
                 content["DateTime1"] = new DateTime(1234, 5, 6);
@@ -140,7 +141,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 ContentTypeInstaller.InstallContentType(CTD);
-                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("PredicationEngineTestNode", root, "TestNode1");
                 content.Index = 42;
                 content["DateTime1"] = new DateTime(1234, 5, 6);
@@ -174,7 +175,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // CASE 1
                 var prE = new PredicationEngine(Content.Load("/Root/TestRoot"));
@@ -210,7 +211,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 ContentTypeInstaller.InstallContentType(CTD);
-                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("PredicationEngineTestNode", root, "PredicationEngineTestNode1");
                 content.Index = 42;
                 content["Currency1"] = 42.42;
@@ -298,7 +299,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var testNode = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                testNode.Save();
+                testNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 testNode.ForceDelete();
 
                 var testContent = testNode.Content ?? Content.Create(testNode);

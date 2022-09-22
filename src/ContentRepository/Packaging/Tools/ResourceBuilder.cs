@@ -189,7 +189,7 @@ namespace SenseNet.Packaging.Tools
                     binData.SetStream(RepositoryTools.GetStreamFromString(EmptyResource));
 
                     resource.Binary = binData;
-                    resource.Save();
+                    resource.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     //TODO: log!
                     //context.Console.WriteLine("NEW resource content: {0}", resource.Path);

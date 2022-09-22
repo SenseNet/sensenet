@@ -9,7 +9,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
-    public class LockHandler
+    public class LockHandler //UNDONE:x: rewrite all to async
     {
         private Node _node;
 

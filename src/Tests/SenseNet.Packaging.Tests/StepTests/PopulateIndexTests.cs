@@ -43,7 +43,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 // arrange
                 InstallCarContentType();
                 var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var workspace = new Workspace(root)
                 {
@@ -51,7 +51,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                     InheritableVersioningMode = InheritableVersioningType.MajorAndMinor
                 };
                 workspace.AllowChildType("Car");
-                workspace.Save();
+                workspace.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var car1 = Content.CreateNew("Car", workspace, "Car1");
                 car1.Save();

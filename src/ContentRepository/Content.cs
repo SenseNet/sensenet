@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository
     ///     if (content.IsValid)
     ///     {
     ///         //TODO: exception handling if needed
-    ///         content.Save();
+    ///         content.SaveAsync(cancellationToken).GetAwaiter().GetResult();
     ///     }
     ///     else
     ///     {
@@ -1147,7 +1147,7 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void Save(bool validOnly, SavingMode mode)//UNDONE:x: rewrite to async
+        public void Save(bool validOnly, SavingMode mode)//UNDONE:xx: rewrite to async
         {
             AssertContentType();
 
@@ -1158,7 +1158,7 @@ namespace SenseNet.ContentRepository
             if (_contentHandler is GenericContent genericContent)
                 genericContent.SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
             else
-                _contentHandler.Save();
+                _contentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             foreach (string key in _fields.Keys)
                 _fields[key].OnSaveCompleted();
@@ -1244,7 +1244,7 @@ namespace SenseNet.ContentRepository
                 throw InvalidContentExceptionHelper();
             GenericContent genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
-                _contentHandler.Save();
+                _contentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             else
                 genericContent.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
@@ -1333,7 +1333,7 @@ namespace SenseNet.ContentRepository
 
             var genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
-                _contentHandler.Save();
+                await _contentHandler.SaveAsync(cancel).ConfigureAwait(false);
             else
                 await genericContent.PublishAsync(cancel).ConfigureAwait(false);
         }
@@ -1349,7 +1349,7 @@ namespace SenseNet.ContentRepository
 
             var genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
-                _contentHandler.Save();
+                await _contentHandler.SaveAsync(cancel).ConfigureAwait(false);
             else
                 await genericContent.ApproveAsync(cancel).ConfigureAwait(false);
         }
@@ -1365,7 +1365,7 @@ namespace SenseNet.ContentRepository
 
             var genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
-                _contentHandler.Save();
+                await _contentHandler.SaveAsync(cancel).ConfigureAwait(false);
             else
                 await genericContent.RejectAsync(cancel).ConfigureAwait(false);
         }
@@ -2373,6 +2373,10 @@ namespace SenseNet.ContentRepository
             }
 
             public override void Save() { }
+            public override System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
+            {
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
         }
 
         // ============================================================================= ICustomTypeDescriptor

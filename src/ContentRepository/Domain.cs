@@ -1,3 +1,4 @@
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -48,7 +49,7 @@ namespace SenseNet.ContentRepository
                 this["SyncGuid"] = ((System.Guid)guid).ToString();
             this["LastSync"] = System.DateTime.UtcNow;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

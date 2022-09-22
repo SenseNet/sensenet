@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository
 
             this.AddReference(MEMBERS, groupNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository
 
             this.AddReference(MEMBERS, userNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace SenseNet.ContentRepository
 
             this.RemoveReference(MEMBERS, groupNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -341,7 +341,7 @@ namespace SenseNet.ContentRepository
 
             this.RemoveReference(MEMBERS, userNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void AssertSpecialGroup(string msg)
@@ -474,7 +474,7 @@ namespace SenseNet.ContentRepository
 
             // add the provided reference nodes
             group.AddReferences<Node>(MEMBERS, Node.LoadNodes(contentIds));
-            group.Save();
+            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return null;
         }
@@ -503,7 +503,7 @@ namespace SenseNet.ContentRepository
             // remove all the provided referenced nodes
             Node.LoadNodes(contentIds).ForEach(refNode => group.RemoveReference(MEMBERS, refNode));
 
-            group.Save();
+            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return null;
         }
@@ -676,7 +676,7 @@ namespace SenseNet.ContentRepository
             // update object without syncing to AD
             _syncObject = false;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

@@ -22,17 +22,17 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     var testRoot = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var file = new File(testRoot) { Name = "File1" };
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id = file.Id;
 
                     var node1 = Node.LoadNode(id);
                     var node2 = Node.LoadNode(id);
                     node1.Index = 111;
                     node2.Index = 112;
-                    node1.Save();
-                    node2.Save();
+                    node1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    node2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var testRoot = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content = Content.CreateNew("File", testRoot, "File1");
                 var handler = (GenericContent)content.ContentHandler;

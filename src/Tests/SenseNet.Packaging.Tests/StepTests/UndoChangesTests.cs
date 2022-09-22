@@ -122,7 +122,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         private static File CreateFileAndCheckout(Node parent)
         {
             var file = new File(parent) { Name = Guid.NewGuid().ToString() };
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //TODO: workaround for pinned node.Content issue
             file = Node.Load<File>(file.Id);
@@ -133,7 +133,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         private static SystemFolder CretateFolder(Node parent, bool checkout = false)
         {
             var folder = new SystemFolder(parent) { Name = Guid.NewGuid().ToString() };
-            folder.Save();
+            folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             if (checkout)
             {

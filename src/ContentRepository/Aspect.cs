@@ -548,7 +548,7 @@ namespace SenseNet.ContentRepository
             foreach(var fieldInfo in fieldInfos)
                 AddFieldInternal(FieldSetting.Create(fieldInfo, this));
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Removes the specified fields of his instance and saves the modifications.
@@ -556,12 +556,13 @@ namespace SenseNet.ContentRepository
         /// <param name="fieldNames">Array of the field names that will be removed.</param>
         public void RemoveFields(params string[] fieldNames)
         {
-            foreach(var fieldName in fieldNames)
-            for (int i = 0; i < fieldNames.Length; i++)
-                DeleteFieldInternal(fieldName);
+            foreach (var fieldName in fieldNames)
+                for (int i = 0; i < fieldNames.Length; i++)
+                    DeleteFieldInternal(fieldName);
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
+
         /// <summary>
         /// Empties the field collection of this instance and saves it.
         /// </summary>
@@ -569,7 +570,7 @@ namespace SenseNet.ContentRepository
         {
             AspectDefinition = DefaultAspectDefinition;
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void AddFieldInternal(FieldSetting fieldSetting)
         {

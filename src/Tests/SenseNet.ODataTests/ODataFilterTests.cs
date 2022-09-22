@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -115,7 +116,7 @@ namespace SenseNet.ODataTests
                 var list = new ContentList(testRoot) { Name = Guid.NewGuid().ToString() };
                 list.ContentListDefinition = listDef;
                 list.AllowedChildTypes = new ContentType[] { ContentType.GetByName(itemType) };
-                list.Save();
+                list.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // create item
                 var item = Content.CreateNew(itemType, list, Guid.NewGuid().ToString());
@@ -169,11 +170,11 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot();
 
                 var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder1 = new Folder(folder) { Name = "Folder1" };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(folder) { Name = "Folder2" };
-                folder2.Save();
+                folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("Car", folder, null);
                 content.Save();
 
@@ -274,11 +275,11 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot();
 
                 var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder1 = new Folder(folder) { Name = "Folder1" };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(folder) { Name = "Folder2" };
-                folder2.Save();
+                folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content = Content.CreateNew("Car", folder, null);
                 content.Save();

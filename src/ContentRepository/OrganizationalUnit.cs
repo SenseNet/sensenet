@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository
             // update object without syncing to AD
             _syncObject = false;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // =================================================================================== ISecurityContainer members

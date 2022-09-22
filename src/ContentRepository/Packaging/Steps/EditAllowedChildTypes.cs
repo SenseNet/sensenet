@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -74,7 +75,7 @@ namespace SenseNet.Packaging.Steps
             var newChiltTypeNames = GetEditedList( gc.GetAllowedChildTypeNames(), newTypes, oldTypes);
 
             gc.AllowChildTypes(newChiltTypeNames);
-            gc.Save();
+            gc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void ExecuteOnContentType(string contentTypeName, string newTypes, string oldTypes)

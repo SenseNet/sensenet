@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -43,7 +45,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Workspace1.AllowedChildTypes =
                     new[] {"DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace"}
                     .Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -90,7 +92,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Workspace1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -138,7 +140,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Workspace1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -187,7 +189,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Folder1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Folder1.Save();
+                ts.Folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -234,7 +236,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Folder1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Folder1.Save();
+                ts.Folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -277,7 +279,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Folder1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Folder1.Save();
+                ts.Folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var additionalNames = new[] { "Car", "File", "Memo" };
 
@@ -319,7 +321,7 @@ namespace SenseNet.ContentRepository.Tests
                 var rootContent = Content.Load("/Root/Content");
                 var gc = (GenericContent) rootContent.ContentHandler;
                 gc.SetAllowedChildTypes(new[] {ContentType.GetByName("MyTypeA")});
-                gc.Save();
+                gc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // New content:		/Root/Content/MyTypeA-1
                 var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
@@ -378,7 +380,7 @@ namespace SenseNet.ContentRepository.Tests
                 var rootContent = Content.Load("/Root/Content");
                 var gc = (GenericContent)rootContent.ContentHandler;
                 gc.SetAllowedChildTypes(new[] { ContentType.GetByName("MyTypeA") });
-                gc.Save();
+                gc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // New content:		/Root/Content/MyTypeA-1
                 var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
@@ -449,7 +451,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Workspace1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                         .Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesToSet = new[] { "File", "Memo" };
 
@@ -477,7 +479,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // set local type list
                 ts.Workspace1.AllowedChildTypes = setNamesOriginal.Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
 
@@ -515,7 +517,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var content = Content.Create(ts.Workspace1);
-                GenericContent.RemoveAllowedChildTypes(content, additionalNames);
+                var httpContext = new DefaultHttpContext();
+                GenericContent.RemoveAllowedChildTypesAsync(content, httpContext, additionalNames).GetAwaiter().GetResult();
 
                 // ASSERT
                 ts.Workspace1 = Node.Load<Workspace>(ts.Workspace1.Id);
@@ -534,7 +537,7 @@ namespace SenseNet.ContentRepository.Tests
                 ts.Workspace1.AllowedChildTypes =
                     new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
                     .Select(ContentType.GetByName).ToArray();
-                ts.Workspace1.Save();
+                ts.Workspace1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
                 var localNamesBefore = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
@@ -542,7 +545,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 var content = Content.Create(ts.Workspace1);
-                GenericContent.RemoveAllowedChildTypes(content, additionalNames);
+                var httpContext = new DefaultHttpContext();
+                GenericContent.RemoveAllowedChildTypesAsync(content, httpContext, additionalNames).GetAwaiter().GetResult();
 
                 // ASSERT
                 ts.Workspace1 = Node.Load<Workspace>(ts.Workspace1.Id);
@@ -614,16 +618,16 @@ namespace SenseNet.ContentRepository.Tests
             InstallCarContentType();
 
             var sites = new Folder(Repository.Root) { Name = "Sites" };
-            sites.Save();
+            sites.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var site = new Workspace(sites) { Name = "Site1" };
-            site.Save();
+            site.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var workspace = new Workspace(site) { Name = "Workspace1" };
-            workspace.Save();
+            workspace.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var folder = new Folder(workspace) {Name = "Folder1"};
-            folder.Save();
+            folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return new TestStructure {Site1 = site, Workspace1 = workspace, Folder1 = folder};
         }
@@ -638,7 +642,7 @@ namespace SenseNet.ContentRepository.Tests
                     LoginName = "testusr123",
                     Email = "testusr123@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Group.Administrators.AddMember(user);
 

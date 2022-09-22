@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Hosting;
@@ -222,7 +223,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         protected SystemFolder CreateSandbox()
         {
             var sandbox = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
-            sandbox.Save();
+            sandbox.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return sandbox;
         }
         protected T CreateSandbox<T>() where T : GenericContent

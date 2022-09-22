@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var qctx = new SnQueryContext(QuerySettings.Default, User.Current.Id);
 
                 var queries = new[]
@@ -244,7 +244,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 RewritingTest("SharedWith:user1@example.com", "Sharing:Tuser1@example.com");
 
@@ -267,7 +267,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var qA = "SharedWith:user1@example.com";
                 var qB = $"SharedWith:{user.Id}";
@@ -865,7 +865,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // internal user
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false);
@@ -947,7 +947,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
                 root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Public, false); // external user
@@ -1001,12 +1001,12 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var group = new Group(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
                 {
                     Name = "Group-1"
                 };
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // add user sharing the official way
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
@@ -1680,7 +1680,7 @@ namespace SenseNet.ContentRepository.Tests
                 Enabled = true,
                 Email = "user1@example.com"
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var root = CreateTestRoot();
 
@@ -1762,7 +1762,7 @@ namespace SenseNet.ContentRepository.Tests
                 Name = "TestRoot",
                 TrashDisabled = false
             };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 
@@ -1785,7 +1785,7 @@ namespace SenseNet.ContentRepository.Tests
                 Enabled = true,
                 Email = email
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return user;
         }
 

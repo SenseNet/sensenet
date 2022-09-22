@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Tests
         //            {
         //                Name = "TestGroup"
         //            };
-        //            group.Save();
+        //            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         //            user = new User(portal)
         //            {
@@ -71,7 +71,7 @@ namespace SenseNet.ContentRepository.Tests
         //                Email = "mail@example.com",
         //                DisplayName = "User_sensenet393_BugReproduction"
         //            };
-        //            user.Save();
+        //            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         //            Group.Administrators.AddMember(user);
         //            User.Current = user;
@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository.Tests
                             LoginName = "samplesam@example.com",
                             Email = "samplesam@example.com"
                         };
-                        user1.Save();
+                        user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // add permissions for this test user (local Add, but not TakeOwnership) and for Owners (everything)
                         var editor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
@@ -143,7 +143,7 @@ namespace SenseNet.ContentRepository.Tests
                     };
 
                     //ACTION
-                    user2.Save();
+                    user2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     using (new SystemAccount())
                     {
@@ -180,9 +180,9 @@ namespace SenseNet.ContentRepository.Tests
                 var directAdminRoles = adminContent["DirectRoles"];
 
                 var group1 = new Group(OrganizationalUnit.Portal) { Name = "Group-1" };
-                group1.Save();
+                group1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var group2 = new Group(OrganizationalUnit.Portal) { Name = "Group-2" };
-                group2.Save();
+                group2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1: Create user
                 var user = new User(OrganizationalUnit.Portal)
@@ -191,7 +191,7 @@ namespace SenseNet.ContentRepository.Tests
                     Email = "user1@example.com",
                     Enabled = true
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT-1: There are no known roles
                 var content = Content.Create(user);
@@ -252,10 +252,10 @@ namespace SenseNet.ContentRepository.Tests
                     Email = "user1@example.com",
                     Enabled = true
                 };
-                user1.Save();
+                user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var group1 = new Group(OrganizationalUnit.Portal) { Name = "Group-1" };
-                group1.Save();
+                group1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 group1.AddMember(user1);
 
                 var allRolesWithAdmin = ((IEnumerable<Node>) Content.Create(user1)["AllRoles"]).ToArray();
@@ -293,7 +293,7 @@ namespace SenseNet.ContentRepository.Tests
                     Email = "user1@example.com",
                     Enabled = true
                 };
-                user1.Save();
+                user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 
                 var originalUser = AccessProvider.Current.GetOriginalUser();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tests.Core;
@@ -100,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
         protected static GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return node;
         }

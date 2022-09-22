@@ -98,7 +98,7 @@ namespace SenseNet.Packaging.Steps
                 if (!origMemberIds.Contains(member.Id))
                     if (IsUserOrGroup(context, member, ref valid, ref invalid))
                         group.AddReference("Members", member);
-            group.Save();
+            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             context.Console.WriteLine("{0} members are added.", valid);
             if (invalid == 1)
                 context.Console.WriteLine("1 content was skipped because it is not a User or a Group.");

@@ -96,7 +96,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var created = new File(root) { Name = "File1", Index = 42 };
                 created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
-                created.Save();
+                created.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Update a file but do not save
                 var updated = Node.Load<File>(created.Id);
@@ -135,10 +135,10 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var root = CreateTestRoot();
                 var refNode = new Application(root) { Name = "SampleApp" };
-                refNode.Save();
+                refNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var created = new File(root) { Name = "File1", VersioningMode = VersioningType.MajorAndMinor, BrowseApplication = refNode };
                 created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
-                created.Save();
+                created.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Update a file but do not save
                 var updated = Node.Load<File>(created.Id);
@@ -190,7 +190,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var refNode = Node.LoadNode("/Root/(apps)/File/GetPreviewsFolder");
                 var created = new File(root) { Name = "File1", BrowseApplication = refNode };
                 created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
-                created.Save();
+                created.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var versionIdBefore = created.VersionId;
 
                 created.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -246,7 +246,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var root = CreateTestRoot();
                 var created = new File(root) { Name = "File1" };
                 created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
-                created.Save();
+                created.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Memorize final expectations
                 var expectedVersion = created.Version;
@@ -263,7 +263,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var binary = checkedOut.Binary;
                 binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content UPDATED"));
                 checkedOut.Binary = binary;
-                checkedOut.Save();
+                checkedOut.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // PREPARE THE LAST ACTION: simulate UndoCheckOut
                 var modified = Node.Load<File>(created.Id);
@@ -323,7 +323,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     var unused = ContentType.GetByName(contentTypeName); // preload schema
 
                     var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                    root.Save();
+                    root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // ACTION-1 CREATE
                     // Create all kind of dynamic properties
@@ -338,7 +338,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     };
                     node.AddReference("Reference1", Repository.Root);
                     node.AddReference("Reference1", root);
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // ASSERT-1
                     Assert.AreEqual("ShortText value 1", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
@@ -357,7 +357,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     node["Number1"] = 42.099m;
                     node["DateTime1"] = new DateTime(1111, 11, 22);
                     node.RemoveReference("Reference1", Repository.Root);
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // ASSERT-2
                     Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
@@ -371,7 +371,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     node = Node.Load<GenericContent>(node.Id);
                     // Remove existing references
                     node.RemoveReference("Reference1", root);
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // ASSERT-3
                     Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
@@ -395,10 +395,10 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = CreateTestRoot();
-                var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
-                var f2 = new SystemFolder(root) { Name = "F2" }; f2.Save();
-                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
-                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                var f1 = new SystemFolder(root) { Name = "F1" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f2 = new SystemFolder(root) { Name = "F2" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: Rename root
                 root = Node.Load<SystemFolder>(root.Id);
@@ -496,12 +496,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 // Create a small subtree
                 var root = CreateTestRoot();
                 var rootPath = root.Path;
-                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
-                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
-                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
-                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
-                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var target = new SystemFolder(root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: Node.Move(source.Path, target.Path);
                 await callback(source, target);
@@ -531,7 +531,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
 
                 // ACTION-1: Create
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeTimestamp1 = root.NodeTimestamp;
                 var versionTimestamp1 = root.VersionTimestamp;
 
@@ -546,7 +546,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 // ACTION-2: Update
                 root.Index++;
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeTimestamp2 = root.NodeTimestamp;
                 var versionTimestamp2 = root.VersionTimestamp;
 
@@ -578,7 +578,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ACTION-1a: Creation with text that shorter than the magic limit
                 var root = new SystemFolder(Repository.Root)
                 { Name = Guid.NewGuid().ToString(), Description = nearlyLongText };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 // ACTION-1b: Load the node
                 var loaded = (await DP.LoadNodesAsync(new[] { root.VersionId }, CancellationToken.None)).First();
                 var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
@@ -620,7 +620,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     Name = Guid.NewGuid().ToString(),
                     Description = nearlyLongText1
                 };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var cacheKey = DataStore.CreateNodeDataVersionIdCacheKey(root.VersionId);
 
                 // ASSERT-1: text property is in cache
@@ -633,7 +633,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ACTION-2: Update with text that shorter than the magic limit
                 root = Node.Load<SystemFolder>(root.Id);
                 root.Description = nearlyLongText2;
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT-2: text property is in cache
                 cachedNodeData = (NodeData)Cache.Get(cacheKey);
@@ -645,7 +645,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ACTION-3: Update with text that longer than the magic limit
                 root = Node.Load<SystemFolder>(root.Id);
                 root.Description = longText;
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT-3: text property is not in the cache
                 cachedNodeData = (NodeData)Cache.Get(cacheKey);
@@ -673,19 +673,19 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = CreateTestRoot();
-                var site1 = new Workspace(root) { Name = "Site1" }; site1.Save();
-                site1.AllowChildTypes(new[] { "Task" }); site1.Save();
+                var site1 = new Workspace(root) { Name = "Site1" }; site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                site1.AllowChildTypes(new[] { "Task" }); site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 site1 = Node.Load<Workspace>(site1.Id);
-                var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.Save();
-                var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.Save();
-                var folder3 = new Folder(folder1) { Name = "Folder3" }; folder3.Save();
-                var task1 = new ContentRepository.Task(folder3) { Name = "Task1" }; task1.Save();
-                var doclib1 = new ContentList(folder3, "DocumentLibrary") { Name = "Doclib1" }; doclib1.Save();
-                var file1 = new File(doclib1) { Name = "File1" }; file1.Save();
-                var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.Save();
-                var file2 = new File(systemFolder1) { Name = "File2" }; file2.Save();
-                var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.Save();
-                var site2 = new Workspace(root) { Name = "Site2" }; site2.Save();
+                var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var folder3 = new Folder(folder1) { Name = "Folder3" }; folder3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var task1 = new ContentRepository.Task(folder3) { Name = "Task1" }; task1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var doclib1 = new ContentList(folder3, "DocumentLibrary") { Name = "Doclib1" }; doclib1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var file1 = new File(doclib1) { Name = "File1" }; file1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var file2 = new File(systemFolder1) { Name = "File2" }; file2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var site2 = new Workspace(root) { Name = "Site2" }; site2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, CancellationToken.None);
@@ -715,7 +715,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ALIGN-2
                 // Creation
                 var node = new ContentList(root) { Name = "Survey-1" };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-2
                 var result2 = await DP.GetContentListTypesInTreeAsync(root.Path, CancellationToken.None);
@@ -737,15 +737,15 @@ namespace SenseNet.IntegrationTests.TestCases
                 // Create a small subtree
                 var root = CreateTestRoot();
                 var f1 = new SystemFolder(root) { Name = "F1" };
-                f1.Save();
+                f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f2 = new File(root) { Name = "F2" };
                 f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f2.Save();
+                f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f3 = new SystemFolder(f1) { Name = "F3" };
-                f3.Save();
+                f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f4 = new File(root) { Name = "F4" };
                 f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f4.Save();
+                f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.ForceDelete(root.Path);
@@ -765,7 +765,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var folder = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 folder = Node.Load<SystemFolder>(folder.Id);
                 var nodeHeadData = folder.Data.GetNodeHeadData();
                 Node.ForceDelete(folder.Path);
@@ -787,14 +787,14 @@ namespace SenseNet.IntegrationTests.TestCases
                     Name = Guid.NewGuid().ToString(),
                     VersioningMode = VersioningType.MajorAndMinor
                 };
-                folderB.Save();
+                folderB.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 for (int j = 0; j < 3; j++)
                 {
                     for (int i = 0; i < 3; i++)
                     {
                         folderB.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                         folderB.Index++;
-                        folderB.Save();
+                        folderB.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         folderB.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     folderB.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -852,7 +852,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var binary2 = new BinaryData {FileName = "File-1.SecondaryStream", ContentType = "text2/plain2"};
                 binary2.SetStream(RepositoryTools.GetStreamFromString("File secondary content."));
                 file.SetProperty("Binary2", binary2);
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var versionId = file.VersionId;
                 var fileId = file.Binary.FileId;
@@ -900,12 +900,12 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = CreateTestRoot();
-                var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
-                var f2 = new SystemFolder(root) { Name = "F2" }; f2.Save();
-                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
-                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
-                var f5 = new SystemFolder(f3) { Name = "F5" }; f5.Save();
-                var f6 = new SystemFolder(f3) { Name = "F6" }; f6.Save();
+                var f1 = new SystemFolder(root) { Name = "F1" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f2 = new SystemFolder(root) { Name = "F2" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f5 = new SystemFolder(f3) { Name = "F5" }; f5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f6 = new SystemFolder(f3) { Name = "F6" }; f6.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 // Use ExecutionHint.ForceRelationalEngine for a valid dataprovider test case.
@@ -926,7 +926,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = CreateTestRoot();
-                var f1 = new SystemFolder(root) { Name = "folder(42)" }; f1.Save();
+                var f1 = new SystemFolder(root) { Name = "folder(42)" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var newName = ContentNamingProvider.IncrementNameSuffixToLastName("folder(11)", f1.ParentId);
@@ -1000,7 +1000,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 // add a systemFolder to check inheritance in counts
                 var folder = new SystemFolder(Repository.Root) { Name = "Folder-1" };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var actualFolderCount2 = await DP.InstanceCountAsync(new[] { folderTypeTypeId }, CancellationToken.None);
@@ -1032,28 +1032,28 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await IntegrationTestAsync(async () =>
             {
-                var r = new SystemFolder(Repository.Root) { Name = "R" }; r.Save();
-                var ra = new Folder(r) { Name = "A" }; ra.Save();
-                var raf = new Folder(ra) { Name = "F" }; raf.Save();
-                var rafa = new Folder(raf) { Name = "A" }; rafa.Save();
-                var rafb = new Folder(raf) { Name = "B" }; rafb.Save();
-                var ras = new SystemFolder(ra) { Name = "S" }; ras.Save();
-                var rasa = new SystemFolder(ras) { Name = "A" }; rasa.Save();
-                var rasb = new SystemFolder(ras) { Name = "B" }; rasb.Save();
-                var rb = new Folder(r) { Name = "B" }; rb.Save();
-                var rbf = new Folder(rb) { Name = "F" }; rbf.Save();
-                var rbfa = new Folder(rbf) { Name = "A" }; rbfa.Save();
-                var rbfb = new Folder(rbf) { Name = "B" }; rbfb.Save();
-                var rbs = new SystemFolder(rb) { Name = "S" }; rbs.Save();
-                var rbsa = new SystemFolder(rbs) { Name = "A" }; rbsa.Save();
-                var rbsb = new SystemFolder(rbs) { Name = "B" }; rbsb.Save();
-                var rc = new Folder(r) { Name = "C" }; rc.Save();
-                var rcf = new Folder(rc) { Name = "F" }; rcf.Save();
-                var rcfa = new Folder(rcf) { Name = "A" }; rcfa.Save();
-                var rcfb = new Folder(rcf) { Name = "B" }; rcfb.Save();
-                var rcs = new SystemFolder(rc) { Name = "S" }; rcs.Save();
-                var rcsa = new SystemFolder(rcs) { Name = "A" }; rcsa.Save();
-                var rcsb = new SystemFolder(rcs) { Name = "B" }; rcsb.Save();
+                var r = new SystemFolder(Repository.Root) { Name = "R" }; r.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var ra = new Folder(r) { Name = "A" }; ra.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var raf = new Folder(ra) { Name = "F" }; raf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rafa = new Folder(raf) { Name = "A" }; rafa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rafb = new Folder(raf) { Name = "B" }; rafb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var ras = new SystemFolder(ra) { Name = "S" }; ras.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rasa = new SystemFolder(ras) { Name = "A" }; rasa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rasb = new SystemFolder(ras) { Name = "B" }; rasb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rb = new Folder(r) { Name = "B" }; rb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbf = new Folder(rb) { Name = "F" }; rbf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbfa = new Folder(rbf) { Name = "A" }; rbfa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbfb = new Folder(rbf) { Name = "B" }; rbfb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbs = new SystemFolder(rb) { Name = "S" }; rbs.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbsa = new SystemFolder(rbs) { Name = "A" }; rbsa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rbsb = new SystemFolder(rbs) { Name = "B" }; rbsb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rc = new Folder(r) { Name = "C" }; rc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcf = new Folder(rc) { Name = "F" }; rcf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcfa = new Folder(rcf) { Name = "A" }; rcfa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcfb = new Folder(rcf) { Name = "B" }; rcfb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcs = new SystemFolder(rc) { Name = "S" }; rcs.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcsa = new SystemFolder(rcs) { Name = "A" }; rcsa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var rcsb = new SystemFolder(rcs) { Name = "B" }; rcsb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var typeF = StorageSchema.NodeTypes["Folder"].Id;
                 var typeS = StorageSchema.NodeTypes["SystemFolder"].Id;
@@ -1130,49 +1130,49 @@ namespace SenseNet.IntegrationTests.TestCases
                 var unused = ContentType.GetByName(contentType1); // preload schema
 
                 root = new SystemFolder(Repository.Root) {Name = "R"};
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var ra = new GenericContent(root, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                ra.Save();
+                ra.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var raf = new GenericContent(ra, contentType1) {Name = "F"};
-                raf.Save();
+                raf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rafa = new GenericContent(raf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rafa.Save();
+                rafa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rafb = new GenericContent(raf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rafb.Save();
+                rafb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var ras = new GenericContent(ra, contentType2) {Name = "S"};
-                ras.Save();
+                ras.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rasa = new GenericContent(ras, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rasa.Save();
+                rasa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rasb = new GenericContent(ras, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rasb.Save();
+                rasb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rb = new GenericContent(root, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rb.Save();
+                rb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbf = new GenericContent(rb, contentType1) {Name = "F"};
-                rbf.Save();
+                rbf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbfa = new GenericContent(rbf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rbfa.Save();
+                rbfa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbfb = new GenericContent(rbf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rbfb.Save();
+                rbfb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbs = new GenericContent(rb, contentType2) {Name = "S"};
-                rbs.Save();
+                rbs.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbsa = new GenericContent(rbs, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rbsa.Save();
+                rbsa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rbsb = new GenericContent(rbs, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rbsb.Save();
+                rbsb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rc = new GenericContent(root, contentType1) {Name = "C"};
-                rc.Save();
+                rc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcf = new GenericContent(rc, contentType1) {Name = "F"};
-                rcf.Save();
+                rcf.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcfa = new GenericContent(rcf, contentType1) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rcfa.Save();
+                rcfa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcfb = new GenericContent(rcf, contentType1) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rcfb.Save();
+                rcfb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcs = new GenericContent(rc, contentType2) {Name = "S"};
-                rcs.Save();
+                rcs.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcsa = new GenericContent(rcs, contentType2) {Name = "A", ["Int"] = 42, ["Str"] = "str1"};
-                rcsa.Save();
+                rcsa.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var rcsb = new GenericContent(rcs, contentType2) {Name = "B", ["Int"] = 43, ["Str"] = "str2"};
-                rcsb.Save();
+                rcsb.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var type1 = StorageSchema.NodeTypes[contentType1].Id;
                 var type2 = StorageSchema.NodeTypes[contentType2].Id;
@@ -1270,24 +1270,24 @@ namespace SenseNet.IntegrationTests.TestCases
                 var unused = ContentType.GetByName(contentType1); // preload schema
 
                 root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var refs = new GenericContent(root, contentType1) {Name = "Refs"};
-                refs.Save();
+                refs.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var ref1 = new GenericContent(refs, contentType1) {Name = "R1"};
-                ref1.Save();
+                ref1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var ref2 = new GenericContent(refs, contentType2) {Name = "R2"};
-                ref2.Save();
+                ref2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var r1 = new NodeList<Node>(new[] {ref1.Id});
                 var r2 = new NodeList<Node>(new[] {ref2.Id});
                 var n1 = new GenericContent(root, contentType1) {Name = "N1", ["Ref"] = r1};
-                n1.Save();
+                n1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var n2 = new GenericContent(root, contentType1) {Name = "N2", ["Ref"] = r2};
-                n2.Save();
+                n2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var n3 = new GenericContent(root, contentType2) {Name = "N3", ["Ref"] = r1};
-                n3.Save();
+                n3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var n4 = new GenericContent(root, contentType2) {Name = "N4", ["Ref"] = r2};
-                n4.Save();
+                n4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var type1 = StorageSchema.NodeTypes[contentType1].Id;
                 var type2 = StorageSchema.NodeTypes[contentType2].Id;
@@ -1743,7 +1743,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var childNode = CreateFolder(node, "Folder-2");
                 var version1 = node.Version.ToString();
                 var versionId1 = node.VersionId;
@@ -1892,7 +1892,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -1921,7 +1921,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -1950,7 +1950,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -1978,7 +1978,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -2006,7 +2006,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var newNode = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -2108,8 +2108,8 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var root = CreateTestRoot();
-                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var target = new SystemFolder(root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -2132,8 +2132,8 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var root = CreateTestRoot();
-                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var target = new SystemFolder(root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -2155,8 +2155,8 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 var root = CreateTestRoot();
-                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var target = new SystemFolder(root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -2253,7 +2253,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeTimeStampBefore = newNode.NodeTimestamp;
                 var versionTimeStampBefore = newNode.VersionTimestamp;
                 string errorMessage = null;
@@ -2298,7 +2298,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Description-1", Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var version1 = newNode.Version.ToString();
                 var versionId1 = newNode.VersionId;
                 newNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -2347,7 +2347,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var version1 = newNode.Version.ToString();
                 var versionId1 = newNode.VersionId;
                 newNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -2355,7 +2355,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var versionId2 = newNode.VersionId;
                 newNode.Index++;
                 newNode.Description = "Description-MODIFIED";
-                newNode.Save();
+                newNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
                 string errorMessage = null;
 
@@ -2397,13 +2397,13 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var rootName = Guid.NewGuid().ToString();
-                var root = new SystemFolder(Repository.Root) { Name = rootName }; root.Save();
-                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
-                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
-                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
-                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
-                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
-                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                var root = new SystemFolder(Repository.Root) { Name = rootName }; root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var source = new SystemFolder(root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var target = new SystemFolder(root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 string errorMessage = null;
 
                 // ACTION
@@ -2495,17 +2495,17 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString(), Description = "Test root" };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f1 = new SystemFolder(root) { Name = "F1", Description = "Folder-1" };
-                f1.Save();
+                f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f2 = new File(root) { Name = "F2" };
                 f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f2.Save();
+                f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f3 = new SystemFolder(f1) { Name = "F3" };
-                f3.Save();
+                f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f4 = new File(root) { Name = "F4" };
                 f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                f4.Save();
+                f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
                 string errorMessage = null;
@@ -2642,14 +2642,14 @@ namespace SenseNet.IntegrationTests.TestCases
         private SystemFolder CreateFolder(Node parent, string name = null)
         {
             var folder = new SystemFolder(parent) { Name = name ?? Guid.NewGuid().ToString() };
-            folder.Save();
+            folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return folder;
         }
         private File CreateFile(Node parent, string name, string fileContent)
         {
             var file = new File(parent) { Name = name };
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

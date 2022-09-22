@@ -208,13 +208,14 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <param name="version">The old version number.</param>
         /// <returns>The modified content.</returns>
         /// <exception cref="Exception">Throws if the requested content version is not found.</exception>
-        [ODataAction(Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
+        [ODataAction(OperationName = "RestoreVersion", Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.RecallOldVersion)]
-        public static Content RestoreVersion(Content content, string version)
+        public static async STT.Task<Content> RestoreVersion(Content content, HttpContext httpContext, string version)
         {
             // Perform checks
             if (version == null)
@@ -243,10 +244,10 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception($"The requested version '{version}' does not exist on content '{content.Path}'.");
 
             // Restore old version
-            oldVersion.Save();
+            await oldVersion.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
 
             // Return actual state of content
-            return Content.Load(content.Id);
+            return await Content.LoadAsync(content.Id, httpContext.RequestAborted).ConfigureAwait(false);
         }
 
         /// <summary>

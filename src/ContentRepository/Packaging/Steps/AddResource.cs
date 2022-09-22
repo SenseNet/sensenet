@@ -49,7 +49,7 @@ namespace SenseNet.Packaging.Steps
                 binData.SetStream(RepositoryTools.GetStreamFromString(EMPTY_RESOURCE));
 
                 resource.Binary = binData;
-                resource.Save();
+                resource.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 context.Console.WriteLine("NEW resource content: {0}", resource.Path);
             }

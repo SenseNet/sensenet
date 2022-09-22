@@ -399,7 +399,7 @@ namespace SenseNet.Packaging.Steps
                                     newList.Add(ct);
 
                             gc.AllowedChildTypes = newList;
-                            gc.Save();
+                            gc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         }
                     }
                 }

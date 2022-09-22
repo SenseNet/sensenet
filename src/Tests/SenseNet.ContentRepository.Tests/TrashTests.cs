@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -100,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
                 TrashDisabled = false
             };
             if (save)
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 
@@ -119,7 +120,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             if (save)
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

@@ -2753,7 +2753,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Stores the modifications of this <see cref="Node"/> instance to the database.
         /// </summary>
-//[Obsolete("Use async version instead.", true)]
+        [Obsolete("Use async version instead.", true)]
         public virtual void Save()
         {
             SaveAsync(CancellationToken.None).GetAwaiter().GetResult();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -237,9 +238,9 @@ namespace SenseNet.ODataTests
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .BreakInheritance(root.Id, new[] { EntryType.Normal })

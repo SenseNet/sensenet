@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 file.ApprovingMode = ApprovingType.False;
                 file.VersioningMode = VersioningType.None;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = file.Id;
 
                 //-- Thread #1
@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository.Tests
                 var file = CreateTestFile(save: false);
                 file.ApprovingMode = ApprovingType.False;
                 file.VersioningMode = VersioningType.None;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = file.Id;
 
                 //-- Thread #1
@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Tests
                 var file = CreateTestFile(save: false);
                 file.ApprovingMode = ApprovingType.False;
                 file.VersioningMode = VersioningType.None;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = file.Id;
 
                 //-- Thread #1
@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Tests
                     var file = CreateTestFile(save: false, parent: root);
                     file.ApprovingMode = ApprovingType.False;
                     file.VersioningMode = VersioningType.None;
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     files[i] = file;
                     ids[i] = file.Id;
@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.Tests
                     var file = CreateTestFile(root, null, false);
                     file.ApprovingMode = ApprovingType.False;
                     file.VersioningMode = VersioningType.None;
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     return file;
                 }).ToArray();
                 var ids = gcontents.Select(c => c.Id).ToArray();
@@ -201,7 +201,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
             if (save)
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 
@@ -220,7 +220,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             if (save)
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

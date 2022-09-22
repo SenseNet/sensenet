@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Tests
                 var extractorSettings = @"{TextExtractors: {""testext"": """ + typeof(CustomTextExtractor).FullName + @"""}}";
                 var settingsFile = Settings.GetSettingsByName<IndexingSettings>(IndexingSettings.SettingsName, Repository.RootPath);
                 settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(extractorSettings));
-                settingsFile.Save();
+                settingsFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT-2 merged set
                 extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Tests
                 var extractorSettings = @"{TextExtractors: {""testext"": """ + typeof(CustomTextExtractor).FullName + @"""}}";
                 var settingsFile = Settings.GetSettingsByName<IndexingSettings>(IndexingSettings.SettingsName, Repository.RootPath);
                 settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(extractorSettings));
-                settingsFile.Save();
+                settingsFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT-2 merged set
                 extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
@@ -170,13 +170,13 @@ namespace SenseNet.ContentRepository.Tests
                 var extractorSettings = @"{TextExtractors: {""" + ext + @""": """ + typeof(CustomTextExtractor).FullName + @"""}}";
                 var settingsFile = Settings.GetSettingsByName<IndexingSettings>(IndexingSettings.SettingsName, Repository.RootPath);
                 settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(extractorSettings));
-                settingsFile.Save();
+                settingsFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
                     // Create file with the custom filename extension.
                     var testRoot = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var file = new File(testRoot) { Name = "TestFile." + ext };
 
                     // Write some well known words into the file's binary.
@@ -186,7 +186,7 @@ namespace SenseNet.ContentRepository.Tests
                     file.Binary = binaryData;
 
                     // Save the file.
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var fileId = file.Id;
 
                     // Check and reset the custom extractor's log.
@@ -217,7 +217,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     // Remove the hack.
                     settingsFile.Binary.SetStream(RepositoryTools.GetStreamFromString(null));
-                    settingsFile.Save();
+                    settingsFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -228,7 +228,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var testRoot = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Create an xml file
                 var file = new File(testRoot) { Name = "TestFile.xml" };
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.Binary = binaryData;
 
                 // Save the file.
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var fileId = file.Id;
 
                 // Check the index with queries by well known words in the default (_Text) field.
@@ -269,7 +269,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var testRoot = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Create an xml file
                 var file = new File(testRoot) { Name = "TestFile.xml" };
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.Binary = binaryData;
 
                 // Save the file.
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Check the index with queries by well known words in the default (_Text) field.
                 var results = new[]
@@ -307,7 +307,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Indexing_OpenXmlFile() => Test(() =>
         {
             var testRoot = new SystemFolder(Repository.Root) {Name = "TestRoot"};
-            testRoot.Save();
+            testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             // Office file contents: sensenet1234test
             const string fileName = "sensenettest.docx";
@@ -320,7 +320,7 @@ namespace SenseNet.ContentRepository.Tests
                 binaryData.SetStream(fs);
                 file.Binary = binaryData;
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             // Check the index with queries by well known words in the binary
@@ -509,11 +509,11 @@ namespace SenseNet.ContentRepository.Tests
             if (localizationFolder == null)
             {
                 localizationFolder = new SystemFolder(Repository.Root, "Resources") {Name = "Localization"};
-                localizationFolder.Save();
+                localizationFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             var resourceNode = new Resource(localizationFolder) {Name = fileName};
             resourceNode.Binary.SetStream(RepositoryTools.GetStreamFromString(xml));
-            resourceNode.Save();
+            resourceNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             SenseNetResourceManager.Reset();
         }
@@ -937,7 +937,7 @@ namespace SenseNet.ContentRepository.Tests
                         file.Binary.SetStream(RepositoryTools.GetStreamFromString("fileContent"));
 
                         localTracer.Lines.Clear();
-                        file.Save();
+                        file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         Assert.AreEqual(2, GetCountOfTraceMessages(localTracer, file.VersionId));
                     }
                     finally
@@ -957,7 +957,7 @@ namespace SenseNet.ContentRepository.Tests
         private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = "_IndexingTests" };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 

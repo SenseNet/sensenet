@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -36,7 +37,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Content content1, content2;
                 do
@@ -58,7 +59,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 {
                     InstallContentTypes();
                     var testRoot = new SystemFolder(Repository.Root);
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Content content1, content2;
                     do

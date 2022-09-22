@@ -355,7 +355,7 @@ namespace SenseNet.ContentRepository
                 contentList.ContentListDefinition = contentList.ContentListDefinition;
             }
 
-            target.Save();
+            target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             // inherit explicit permissions from template
             using (new SystemAccount())

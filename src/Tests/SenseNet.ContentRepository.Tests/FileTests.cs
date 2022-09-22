@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Tests
                 var file = new File(root) { Name = "test.txt" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString("test file"));
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: create a new file with the same name
                 var expected = "new file content";
@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
                     Binary = {ContentType = "text/plain"}
                 };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum dolor sit amet."));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // check mime type
                 file = Node.Load<File>(file.Id);
@@ -120,12 +120,12 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
                 var file = new File(root) { Name = fileName };
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 if (fileContent != null)
                 {
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // check mime type

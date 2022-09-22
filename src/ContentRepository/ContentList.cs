@@ -728,7 +728,7 @@ namespace SenseNet.ContentRepository
             }
 
             this.ContentListDefinition = doc.OuterXml;
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void AddOrUpdateField(FieldSetting fieldSetting)
@@ -778,7 +778,7 @@ namespace SenseNet.ContentRepository
             }
 
             this.ContentListDefinition = doc.OuterXml;
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void DeleteField(FieldSetting fieldSetting)
@@ -835,7 +835,7 @@ namespace SenseNet.ContentRepository
             if (!saveImmediately)
                 return;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private XmlNode FindFieldXmlNode(string fieldName, out XmlDocument doc)
@@ -959,7 +959,7 @@ namespace SenseNet.ContentRepository
             container = new SystemFolder(this);
             container.Name = WorkflowContainerName;
             using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return container;
         }
 

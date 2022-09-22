@@ -437,10 +437,10 @@ namespace SenseNet.Packaging.Steps
                         var operators = Node.Load<Group>(Identifiers.OperatorsGroupPath);
 
                         admins.AddMember(admin);
-                        admins.Save();
+                        admins.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         operators.AddMember(admins);
-                        operators.Save();
+                        operators.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     // Import resources
@@ -1040,7 +1040,7 @@ namespace SenseNet.Packaging.Steps
                             if (!contentInfo.SetMetadata(content, currentDir, isNewContent, false))
                                 PrintFieldErrors(content, contentInfo.MetaDataPath);
                             if (content.ContentHandler.Id == 0)
-                                content.ContentHandler.Save();
+                                content.ContentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         }
                         catch (Exception e)
                         {

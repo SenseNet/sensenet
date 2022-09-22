@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
@@ -170,12 +171,12 @@ namespace SenseNet.ODataTests
                 list.AllowChildTypes(new[]
                     {ContentType.GetByName("Folder"), ContentType.GetByName("File"), ContentType.GetByName("Car")});
                 list.ContentListDefinition = listDef;
-                listContent.Save();
+                listContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var itemFolder = Content.CreateNew("Folder", listContent.ContentHandler, Guid.NewGuid().ToString());
-                itemFolder.Save();
+                itemFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var itemContent = Content.CreateNew("Car", itemFolder.ContentHandler, Guid.NewGuid().ToString());
-                itemContent.Save();
+                itemContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 CreateTestSite();
 
@@ -224,10 +225,10 @@ namespace SenseNet.ODataTests
                 list.AllowChildTypes(new[]
                     {ContentType.GetByName("Folder"), ContentType.GetByName("File"), ContentType.GetByName("Car")});
                 list.ContentListDefinition = listDef;
-                listContent.Save();
+                listContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var itemFolder = Content.CreateNew("Folder", listContent.ContentHandler, Guid.NewGuid().ToString());
-                itemFolder.Save();
+                itemFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 CreateTestSite();
 
@@ -494,12 +495,12 @@ namespace SenseNet.ODataTests
                 list.Name = "Cars";
                 list.ContentListDefinition = listDef;
                 list.AllowedChildTypes = new ContentType[] { ContentType.GetByName("Car") };
-                list.Save();
+                list.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var car = Content.CreateNew("Car", list, "Car1");
-                car.Save();
+                car.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car = Content.CreateNew("Car", list, "Car2");
-                car.Save();
+                car.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = await ODataGetAsync("/OData.svc" + list.Path, "").ConfigureAwait(false);
 
@@ -531,13 +532,13 @@ namespace SenseNet.ODataTests
                 InstallCarContentType();
 
                 var site = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                site.Save();
+                site.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var folder = Node.Load<Folder>(RepositoryPath.Combine(site.Path, folderName));
                 if (folder == null)
                 {
                     folder = new Folder(site) { Name = folderName };
-                    folder.Save();
+                    folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "asdf" } }).Save();
@@ -591,7 +592,7 @@ namespace SenseNet.ODataTests
                         Enabled = true,
                         Email = $"manager{i}@example.com"
                     };
-                    managers[i].Save();
+                    managers[i].SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 for (int i = 0; i < resources.Length; i++)
                 {
@@ -719,7 +720,7 @@ namespace SenseNet.ODataTests
                 var allowedTypes = workspace.GetAllowedChildTypeNames().ToList();
                 allowedTypes.Add("Car");
                 workspace.AllowChildTypes(allowedTypes);
-                workspace.Save();
+                workspace.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
@@ -730,10 +731,10 @@ namespace SenseNet.ODataTests
       <AspectField name='Field1' type='ShortText' />
     </Fields>
   </AspectDefinition>";
-                aspect1.Save();
+                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var folder = new Folder(testRoot) {Name = Guid.NewGuid().ToString()};
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content1 = Content.CreateNew("Car", folder, "Car1");
                 content1.AddAspects(aspect1);
@@ -769,7 +770,7 @@ namespace SenseNet.ODataTests
             if (aspect == null)
             {
                 aspect = new Aspect(Repository.AspectsFolder) { Name = name };
-                aspect.Save();
+                aspect.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             return aspect;
         }
@@ -1169,22 +1170,22 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                testDomain.Save();
+                testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testUser = new User(testDomain) { Name = "User1" };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testSite = CreateWorkspace();
                 testSite.AllowChildType("Image");
-                testSite.Save();
+                testSite.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
-                testAvatars.Save();
+                testAvatars.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
                 testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
                 testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
-                testAvatar.Save();
+                testAvatar.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // set avatar of User1
                 var userContent = Content.Load(testUser.Id);
@@ -1212,27 +1213,27 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                testDomain.Save();
+                testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testUser = new User(testDomain) { Name = "User1" };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testSite = CreateWorkspace();
                 testSite.AllowChildType("Image");
-                testSite.Save();
+                testSite.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
-                testAvatars.Save();
+                testAvatars.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar1 = new Image(testAvatars) { Name = "user1.jpg" };
                 testAvatar1.Binary = new BinaryData { FileName = "user1.jpg" };
                 testAvatar1.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
-                testAvatar1.Save();
+                testAvatar1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar2 = new Image(testAvatars) { Name = "user2.jpg" };
                 testAvatar2.Binary = new BinaryData { FileName = "user2.jpg" };
                 testAvatar2.Binary.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
-                testAvatar2.Save();
+                testAvatar2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // set avatar of User1
                 var userContent = Content.Load(testUser.Id);
@@ -1261,27 +1262,27 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                testDomain.Save();
+                testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testUser = new User(testDomain) { Name = "User1" };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testSite = CreateWorkspace();
                 testSite.AllowChildType("Image");
-                testSite.Save();
+                testSite.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
-                testAvatars.Save();
+                testAvatars.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar1 = new Image(testAvatars) { Name = "user1.jpg" };
                 testAvatar1.Binary = new BinaryData { FileName = "user1.jpg" };
                 testAvatar1.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
-                testAvatar1.Save();
+                testAvatar1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar2 = new Image(testAvatars) { Name = "user2.jpg" };
                 testAvatar2.Binary = new BinaryData { FileName = "user2.jpg" };
                 testAvatar2.Binary.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
-                testAvatar2.Save();
+                testAvatar2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // set avatar of User1
                 var userContent = Content.Load(testUser.Id);
@@ -1311,22 +1312,22 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                testDomain.Save();
+                testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testUser = new User(testDomain) { Name = "User1" };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testSite = CreateWorkspace();
                 testSite.AllowChildType("Image");
-                testSite.Save();
+                testSite.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
-                testAvatars.Save();
+                testAvatars.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
                 testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
                 testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
-                testAvatar.Save();
+                testAvatar.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var avatarBinaryData = new BinaryData { FileName = "user2.jpg" };
                 avatarBinaryData.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
@@ -1357,22 +1358,22 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                testDomain.Save();
+                testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testUser = new User(testDomain) { Name = "User1" };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testSite = CreateWorkspace();
                 testSite.AllowChildType("Image");
-                testSite.Save();
+                testSite.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
-                testAvatars.Save();
+                testAvatars.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
                 testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
                 testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
-                testAvatar.Save();
+                testAvatar.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var avatarBinaryData = new BinaryData { FileName = "user2.jpg" };
                 avatarBinaryData.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
@@ -1425,7 +1426,7 @@ namespace SenseNet.ODataTests
 
                 ContentTypeInstaller.InstallContentType(ctd);
                 var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Content content;
 
@@ -1511,7 +1512,7 @@ namespace SenseNet.ODataTests
             {
                 var container = Node.LoadNode("/Root/IMS/Public");
                 var user = new User(container) {Name = "user1", Enabled = true, Email = "user1@example.com"};
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ContentTypeInstaller.InstallContentType(
                     @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder1"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
                     @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder2"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
@@ -1702,9 +1703,9 @@ namespace SenseNet.ODataTests
             {
                 var container = Node.LoadNode("/Root/IMS/Public");
                 requesterUser = new User(container) { Name = "requester", Enabled = true, Email = "requester@example.com" };
-                requesterUser.Save();
+                requesterUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 managerUser = new User(container) { Name = "manager", Enabled = true, Email = "manager@example.com" };
-                managerUser.Save();
+                managerUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 workerUser = new User(container) { Name = "worker", Enabled = true, Email = "worker@example.com" };
                 var workerUserContent = Content.Create(workerUser);
                 workerUserContent["Manager"] = managerUser;
@@ -1725,9 +1726,9 @@ namespace SenseNet.ODataTests
                     .Allow(workerUser.Id, requesterUser.Id, false, PermissionType.See)
                     .Apply();
                 contentType1.ModifiedBy = workerUser;
-                contentType1.Save();
+                contentType1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 contentType2.ModifiedBy = workerUser;
-                contentType2.Save();
+                contentType2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 using (new CurrentUserBlock(requesterUser))
                 {
@@ -1884,14 +1885,14 @@ namespace SenseNet.ODataTests
                     Name = aspect1Name,
                     AspectDefinition = aspect1Definition
                 };
-                aspect1.Save();
+                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var field1Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
                 var field2Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
                 var field3Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field3");
 
                 var container = new SystemFolder(testRoot) {Name = Guid.NewGuid().ToString()};
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var today = DateTime.Now;
                 var unused = (new[] {3, 1, 5, 2, 4}).Select(i =>
@@ -2091,15 +2092,15 @@ namespace SenseNet.ODataTests
         public void CreateStructureFor_RightExceptionIfTargetExistsTests(Node testRoot, out string sourcePath, out string targetContainerPath)
         {
             var sourceFolder = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-            sourceFolder.Save();
+            sourceFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var targetFolder = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-            targetFolder.Save();
+            targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var sourceContent = new GenericContent(sourceFolder, "Car") { Name = "DemoContent" };
-            sourceContent.Save();
+            sourceContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var targetContent = new GenericContent(targetFolder, "Car") { Name = sourceContent.Name };
-            targetContent.Save();
+            targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             sourcePath = sourceContent.Path;
             targetContainerPath = targetFolder.Path;
@@ -2117,7 +2118,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(3));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
@@ -2163,7 +2164,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(1));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var resourcePath = ODataMiddleware.GetEntityUrl(users[0].Path);
@@ -2209,7 +2210,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(3));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
@@ -2255,7 +2256,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(3));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var resourcePath = ODataMiddleware.GetEntityUrl(users[1].Path);
@@ -2302,7 +2303,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(1));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION-1
                 var resourcePath = ODataMiddleware.GetEntityUrl(users[0].Path);
@@ -2348,7 +2349,7 @@ namespace SenseNet.ODataTests
                     .Select(x => _factory.CreateUserAndSave("U" + x))
                     .ToArray();
                 group.AddReferences("Members", users.Take(3));
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var resourcePath = ODataMiddleware.GetEntityUrl(group.Path);

@@ -2674,7 +2674,7 @@ namespace SenseNet.ODataTests
                 {
                     var publicDomain = Node.LoadNode("/Root/IMS/Public");
                     var user1 = new User(publicDomain) {Name = "User1", Email = "user1@example.com", Enabled = true};
-                    user1.Save();
+                    user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var publicAdmins = Node.Load<Group>("/Root/IMS/Public/Administrators");
                     publicAdmins.AddMember(user1);
                     new SecurityHandler().CreateAclEditor()
@@ -2749,7 +2749,7 @@ namespace SenseNet.ODataTests
                     var nodes = Enumerable.Range(0, 4).Select(x =>
                     {
                         var folder = new Folder(Repository.Root) {Name = $"Folder{x}"};
-                        folder.Save();
+                        folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         return folder;
                     }).ToArray();
 
@@ -2891,7 +2891,7 @@ namespace SenseNet.ODataTests
                         VersioningMode = VersioningType.MajorAndMinor,
                         ApprovingMode = ApprovingType.True
                     };
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fileContent = Content.Create(file);
 
@@ -2978,7 +2978,7 @@ namespace SenseNet.ODataTests
                 parent.SaveSameVersion();
 
                 var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // delete to the Trash
                 file.Delete();

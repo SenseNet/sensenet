@@ -263,15 +263,15 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "Source");
                 var node = (GenericContent)LoadNode(testRoot, "Source");
                 node.InheritableVersioningMode = ContentRepository.Versioning.InheritableVersioningType.MajorAndMinor;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 EnsureNode(testRoot, "Source/M1");
                 node = (GenericContent)LoadNode(testRoot, "Source/M1");
                 var m1NodeId = node.Id;
                 node.Index++;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 node = (GenericContent)LoadNode(testRoot, "Source/M1");
                 node.Index++;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ((GenericContent)LoadNode(testRoot, "Source/M1")).PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ((GenericContent)LoadNode(testRoot, "Source/M1")).CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 EnsureNode(testRoot, "Target");
@@ -318,7 +318,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ACTION: rename
                 var node = LoadNode(testRoot, "Source");
                 node.Name = Guid.NewGuid().ToString();
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // EXPECTATION: executed without any exception
             });
@@ -568,7 +568,7 @@ namespace SenseNet.IntegrationTests.TestCases
                         InstallCarContentType();
 
                     var testRoot = new SystemFolder(Repository.Root) { Name = "MoveTest" };
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     try
                     {
@@ -716,7 +716,7 @@ namespace SenseNet.IntegrationTests.TestCases
             contentlist.Name = name;
             contentlist.ContentListDefinition = listDef;
             contentlist.AllowChildTypes(new[] { "Folder", "Car" });
-            contentlist.Save();
+            contentlist.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateContentListItem(string parentPath, string name, string typeName)
         {

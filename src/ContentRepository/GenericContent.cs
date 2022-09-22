@@ -20,6 +20,8 @@ using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
 
@@ -1346,7 +1348,7 @@ namespace SenseNet.ContentRepository
                 : newContentTypeList;
 
             if (save)
-                Save();
+                SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private Exception GetCannotAllowContentTypeException()
@@ -1375,6 +1377,7 @@ namespace SenseNet.ContentRepository
 
             return string.Empty;
         }
+
         /// <summary>
         /// Removes the specified Content types from the requested content's AllowedChildTypes collection.
         /// <nodoc>The Content will be saved after the operation.
@@ -1382,11 +1385,13 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction]
+        [ODataAction(OperationName = "RemoveAllowedChildTypes")]
         [AllowedRoles(N.R.Everyone)]
-        public static string RemoveAllowedChildTypes(Content content, string[] contentTypes)
+        public static async Task<string> RemoveAllowedChildTypesAsync(Content content, HttpContext httpContext,
+            string[] contentTypes)
         {
             if (!(content.ContentHandler is GenericContent gc))
                 return string.Empty;
@@ -1402,7 +1407,7 @@ namespace SenseNet.ContentRepository
                 remainingTypes = remainingNames.Select(ContentType.GetByName).ToArray();
 
             gc.AllowedChildTypes = remainingTypes;
-            gc.Save();
+            await gc.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
 
             return string.Empty;
         }
@@ -1762,20 +1767,30 @@ namespace SenseNet.ContentRepository
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
-        public override void Save()//UNDONE:xxx: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public override void Save()
+        {
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously persist this Content's changes.
+        /// In derived classes to modify or extend the general persistence mechanism of a content, please
+        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
+        /// </summary>
+        public override async System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
         {
             if (!IsNew && IsVersionChanged())
             {
-                SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await SaveExplicitVersionAsync(CancellationToken.None).ConfigureAwait(false);
             }
             else if (Locked)
             {
-                SaveAsync(this.IsLatestVersion ? SavingMode.KeepVersion : SavingMode.KeepVersionAndLock, CancellationToken.None)
-                    .GetAwaiter().GetResult();
+                await SaveAsync(this.IsLatestVersion ? SavingMode.KeepVersion : SavingMode.KeepVersionAndLock,
+                        CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
-                SaveAsync(SavingMode.RaiseVersion, CancellationToken.None).GetAwaiter().GetResult();
+                await SaveAsync(SavingMode.RaiseVersion, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -1909,7 +1924,7 @@ namespace SenseNet.ContentRepository
                             continue;
 
                         workflow.SetProperty("RelatedContentTimestamp", newTimeStamp);
-                        workflow.Save();
+                        workflow.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {

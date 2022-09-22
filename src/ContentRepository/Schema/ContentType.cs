@@ -781,7 +781,7 @@ namespace  SenseNet.ContentRepository.Schema
             SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
-        /// Persist this ContentType's changes.
+        /// Asynchronously persist this ContentType's changes.
         /// The name of the instance and the contained ContentTypeDefinition's name must be the same.
         /// otherwise <see cref="ContentRegistrationException"/> will be thrown.
         /// </summary>

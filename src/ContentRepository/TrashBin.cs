@@ -310,7 +310,7 @@ namespace SenseNet.ContentRepository
                     {
                         // there is no other way right now (rename and move cannot be done at the same time)
                         node.Name = newName;
-                        node.Save();
+                        node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (SenseNetSecurityException ex)
                     {

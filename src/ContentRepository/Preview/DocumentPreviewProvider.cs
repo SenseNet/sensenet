@@ -1164,7 +1164,7 @@ namespace SenseNet.Preview
 
                         previewsFolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                         previewsFolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
-                        previewsFolder.Save();
+                        previewsFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (NodeAlreadyExistsException)
                     {
@@ -1197,7 +1197,7 @@ namespace SenseNet.Preview
                         previewsSubfolder = new SystemFolder(previewsFolder) {Name = previewSubfolderName};
                         previewsSubfolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                         previewsSubfolder.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
-                        previewsSubfolder.Save();
+                        previewsSubfolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (NodeAlreadyExistsException)
                     {

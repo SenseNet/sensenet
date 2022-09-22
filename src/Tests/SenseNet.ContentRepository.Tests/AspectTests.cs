@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Fields;
 using SenseNet.OData;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Data;
@@ -42,7 +43,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field1' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                    aspect1.Save();
+                    aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     aspect2 = EnsureAspect("Aspect_HasFieldIfHasAspect_Aspect2");
                     aspect2.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
@@ -50,7 +51,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field2' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                    aspect2.Save();
+                    aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fieldName1 = String.Concat(aspect1.Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
                     var fieldName2 = String.Concat(aspect2.Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
@@ -105,7 +106,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field2' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                aspect.Save();
+                aspect.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsTrue(Providers.Instance.StorageSchema.ContentListTypes.Count == contentListCount, "ContentListType is created.");
                 Assert.IsTrue(Providers.Instance.StorageSchema.PropertyTypes.Count == propertyCount, "PropertyTypes are created.");
@@ -129,7 +130,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field1' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                    aspect1.Save();
+                    aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     aspect2 = EnsureAspect("Aspect2");
                     aspect2.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
@@ -137,7 +138,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field2' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                    aspect2.Save();
+                    aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fieldName1 = String.Concat(aspect1.Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
                     var fieldName2 = String.Concat(aspect2.Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
@@ -206,7 +207,7 @@ namespace SenseNet.ContentRepository.Tests
     <AspectField name='Field1' type='ShortText' />
   </Fields>
 </AspectDefinition>";
-                    aspect1.Save();
+                    aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fieldName1 = String.Concat(aspect1.Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
 
@@ -262,16 +263,16 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var folder1 = new Folder(Repository.AspectsFolder) { Name = Guid.NewGuid().ToString() };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(Repository.AspectsFolder) { Name = Guid.NewGuid().ToString() };
-                folder2.Save();
+                folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var aspect1 = new Aspect(folder1) { Name = Guid.NewGuid().ToString() };
-                aspect1.Save();
+                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var aspect2 = new Aspect(folder2) { Name = aspect1.Name };
                 try
                 {
-                    aspect2.Save();
+                    aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     Assert.Fail("Exception was not thrown");
                 }
                 catch (InvalidOperationException)
@@ -287,7 +288,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var aspectName = Guid.NewGuid().ToString();
                 var aspect1 = new Aspect(Repository.AspectsFolder) { Name = aspectName };
-                aspect1.Save();
+                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(aspect1.Id, Aspect.LoadAspectByName(aspectName).Id, "#1 load newly created aspect by name failed: a different aspect was loaded.");
 
@@ -296,7 +297,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 //create aspect with the same name
                 var aspect2 = new Aspect(Repository.AspectsFolder) { Name = aspectName };
-                aspect2.Save();
+                aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
 
@@ -309,7 +310,7 @@ namespace SenseNet.ContentRepository.Tests
                 var testRoot = CreateTestRoot();
 
                 var folder1 = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var aspect1 = EnsureAspect("Aspect_SameFieldName_Aspect1");
                 aspect1.AddFields(new FieldInfo { Name = "Field1", Type = "ShortText" });
@@ -571,7 +572,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     aspect1 = EnsureAspect("Aspect_ReferenceFields_Aspect1");
                     aspect1.AddFields(fields1.ToArray());
-                    aspect1.Save();
+                    aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fn11 = aspect1.Name + Aspect.ASPECTFIELDSEPARATOR + fields1[0].Name;
                     var fn12 = aspect1.Name + Aspect.ASPECTFIELDSEPARATOR + fields1[1].Name;
@@ -697,7 +698,7 @@ namespace SenseNet.ContentRepository.Tests
         </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect1.Save();
+                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var aspect2 = EnsureAspect(aspect2Name);
                 aspect2.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
     <Fields>
@@ -709,7 +710,7 @@ namespace SenseNet.ContentRepository.Tests
         </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect2.Save();
+                aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var aspect3 = EnsureAspect(aspect3Name);
                 aspect3.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
     <Fields>
@@ -723,7 +724,7 @@ namespace SenseNet.ContentRepository.Tests
 	    </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect3.Save();
+                aspect3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Content content = null;
 
@@ -853,7 +854,7 @@ namespace SenseNet.ContentRepository.Tests
                     "<Fields>{0}</Fields></AspectDefinition>",
                 "\r\n  " + String.Join("\r\n  ", fields.Select(i => String.Format("<AspectField name='{0}' type='{1}' />",
                     i.Key, i.Value))));
-            aspect.Save();
+            aspect.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return aspect;
         }
@@ -864,16 +865,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             var node = new SystemFolder(Repository.Root) { Name = "_AspectTests" };
             if (save)
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
         //private static Site CreateTestSite()
         //{
         //    var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
-        //    sites.Save();
+        //    sites.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         //    var site = new Site(sites) { Name = "TestSite", UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
-        //    site.Save();
+        //    site.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         //    return site;
         //}

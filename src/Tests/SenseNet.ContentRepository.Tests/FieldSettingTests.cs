@@ -11,6 +11,7 @@ using SNC = SenseNet.ContentRepository;
 using System.Xml.XPath;
 using System.Xml;
 using System.Linq;
+using System.Threading;
 using SenseNet.Tests.Core;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Tests.ContentHandlers;
@@ -981,7 +982,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 Folder subFolder = new Folder(testFolder);
                 subFolder.Name = "SubFolder";
-                subFolder.Save();
+                subFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 string subFolderPath = subFolder.Path;
 
                 SNC.Content.CreateNew("ReferredContent", subFolder, "Referred3").Save();
@@ -2110,7 +2111,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
             if (save)
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 

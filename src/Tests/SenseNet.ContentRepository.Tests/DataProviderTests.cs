@@ -169,7 +169,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION
                 try
                 {
-                    testNode.Save();
+                    testNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     Assert.Fail("Teh expected exception was not thrown.");
                 }
                 catch (AggregateException ae)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -299,7 +300,7 @@ namespace SenseNet.ODataTests
             if (ctfGlobal == null)
             {
                 ctfGlobal = new SystemFolder(Node.LoadNode("/Root")) { Name = Repository.ContentTemplatesFolderName };
-                ctfGlobal.Save();
+                ctfGlobal.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             //create content template type folders
@@ -307,7 +308,7 @@ namespace SenseNet.ODataTests
             if (folderGlobalCtCar == null)
             {
                 folderGlobalCtCar = new Folder(ctfGlobal) { Name = "Car" };
-                folderGlobalCtCar.Save();
+                folderGlobalCtCar.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             //create content templates

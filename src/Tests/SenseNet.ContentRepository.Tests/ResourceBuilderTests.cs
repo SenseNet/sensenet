@@ -185,7 +185,7 @@ namespace SenseNet.ContentRepository.Tests
                     return;
 
                 var localizationFolder = new SystemFolder(Repository.Root) { Name = "Localization" };
-                localizationFolder.Save();
+                localizationFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
     }

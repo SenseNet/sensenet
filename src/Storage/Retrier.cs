@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    public class Retrier
+    public class Retrier 
     {
-        public static void Retry(int count, int waitMilliseconds, Type caughtExceptionType, Action callback)
+        public static void Retry(int count, int waitMilliseconds, Type caughtExceptionType, Action callback)//UNDONE:xx: rewrite to async
         {
             var retryCount = count;
             Exception lastException = null;

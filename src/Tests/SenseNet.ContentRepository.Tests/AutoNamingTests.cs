@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
@@ -81,10 +82,10 @@ namespace SenseNet.ContentRepository.Tests
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var root = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // increment check
                 var content1 = Content.CreateNew(ContentType_Car1Name, root, "mycar");
@@ -128,10 +129,10 @@ namespace SenseNet.ContentRepository.Tests
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var root = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // increment check
                 var content1 = Content.CreateNew(ContentType_Car1Name, root, "mycar.xml");
@@ -175,10 +176,10 @@ namespace SenseNet.ContentRepository.Tests
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var root = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content1 = Content.CreateNew(ContentType_Car2Name, root, "ondemand");
                 content1.Save();
@@ -212,7 +213,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content1 = Content.CreateNew(ContentType_Car1Name, testRoot, "changeonsave");
                 content1.Save();
