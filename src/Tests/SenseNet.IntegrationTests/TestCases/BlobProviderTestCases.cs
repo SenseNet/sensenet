@@ -14,6 +14,7 @@ using SenseNet.IntegrationTests.Common;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.Testing;
 using SenseNet.Tests.Core.Implementations;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 using IO = System.IO;
 using STT = System.Threading.Tasks;
 

@@ -25,6 +25,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.TestCases
