@@ -398,7 +398,7 @@ namespace SenseNet.ODataTests
 
             content["Manager"] = manager;
             content["Email"] = "anybody@somewhere.com";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         protected static Workspace CreateWorkspace(string name = null)

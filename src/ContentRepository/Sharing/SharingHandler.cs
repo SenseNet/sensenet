@@ -337,7 +337,7 @@ namespace SenseNet.ContentRepository.Sharing
                     group[Constants.SharingIdsFieldName] = id?.Replace("-", string.Empty);
                     group[Constants.SharedContentFieldName] = _owner;
                     group[Constants.SharingLevelValueFieldName] = level.ToString();
-                    group.Save();
+                    group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }, (i, e) =>
                 {
                     switch (e)
@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Sharing
                 Retrier.Retry(3, 300, () =>
                 {
                     var content = Content.CreateNew(contentTypeName, Node.LoadNode(parentPath), name);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     container = content.ContentHandler;
                 }, (i, ex) =>
                 {

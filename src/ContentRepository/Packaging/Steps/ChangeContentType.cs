@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Steps
                     }
 
                     // save the new content
-                    targetContent.Save();
+                    targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // delete the original
                     sourceContent.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

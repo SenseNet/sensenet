@@ -31,7 +31,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("Car", testRoot, "ORIG");
                 content.DisplayName = "Initial DisplayName";
                 content.Index = 42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 
@@ -120,7 +120,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("Car", testRoot, "ORIG");
                 content.DisplayName = "Initial DisplayName";
                 content.Index = 42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 
@@ -298,7 +298,7 @@ namespace SenseNet.ODataTests
                 content.DisplayName = "vadalma";
                 var defaultMake = (string)content["Make"];
                 content["Make"] = "Not default";
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 

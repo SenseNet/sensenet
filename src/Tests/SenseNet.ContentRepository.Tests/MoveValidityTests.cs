@@ -315,7 +315,7 @@ namespace SenseNet.ContentRepository.Tests
             if (typeName != "SystemFolder" && typeName != "Folder" && typeName != "Page")
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateNode(string parentPath, string name, string typeName)
         {
@@ -325,7 +325,7 @@ namespace SenseNet.ContentRepository.Tests
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             if (content.Fields.ContainsKey("#TestField"))
                 content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private string DecodePath(SystemFolder testRoot, string relativePath)
         {

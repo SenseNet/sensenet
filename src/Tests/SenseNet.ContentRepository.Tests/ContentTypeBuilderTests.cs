@@ -464,7 +464,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var testContent = Content.CreateNew(contentTypeName, parent, Guid.NewGuid().ToString());
                 testContent["LongText1"] = $"{contentTypeName} longtext value";
-                testContent.Save();
+                testContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return testContent;
             }
 

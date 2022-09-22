@@ -147,20 +147,20 @@ namespace SenseNet.ContentRepository.Tests
                     content.AddAspects(aspect1, aspect2);
                     content[fieldName1] = "Value1";
                     content[fieldName2] = "Value2";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id1 = content.Id;
 
                     content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects(aspect1, aspect2);
                     content[fieldName1] = "Value1a";
                     content[fieldName2] = "Value2";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id2 = content.Id;
 
                     content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects(aspect1);
                     content[fieldName1] = "Value1";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id3 = content.Id;
 
                     ContentTypeManager.Reset(); //---- must work with loaded indexing info table
@@ -214,19 +214,19 @@ namespace SenseNet.ContentRepository.Tests
                     var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects(aspect1);
                     content[fieldName1] = "Aspect_Sortable1b";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id1 = content.Id;
 
                     content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects(aspect1);
                     content[fieldName1] = "Aspect_Sortable1c";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id2 = content.Id;
 
                     content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects(aspect1);
                     content[fieldName1] = "Aspect_Sortable1a";
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var id3 = content.Id;
 
                     ContentTypeManager.Reset(); //---- must work with loaded indexing info table
@@ -323,12 +323,12 @@ namespace SenseNet.ContentRepository.Tests
                 var content1 = Content.CreateNew("Car", folder1, Guid.NewGuid().ToString());
                 content1.AddAspects(aspect1);
                 content1[fn1] = "TextValue";
-                content1.Save();
+                content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content2 = Content.CreateNew("Car", folder1, Guid.NewGuid().ToString());
                 content2.AddAspects(aspect2);
                 content2[fn2] = 42;
-                content2.Save();
+                content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var result1 = Content.All.DisableAutofilters().Where(c => (string)c[fn1] == "TextValue").Count();
                 var result2 = Content.All.DisableAutofilters().Where(c => (int)c[fn2] == 42).Count();
@@ -349,7 +349,7 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, "Aspect42");
-                    aspectContent.Save();
+                    aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     aspect = (Aspect)aspectContent.ContentHandler;
 
                     var fieldName1 = String.Concat(aspect.Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
@@ -357,7 +357,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content.AddAspects((Aspect)aspect);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     //var fs1 = new ShortTextFieldSetting { Name = "Field1", ShortName = "ShortText" };
                     //var fs2 = new ShortTextFieldSetting { Name = "Field2", ShortName = "ShortText" };
@@ -422,7 +422,7 @@ namespace SenseNet.ContentRepository.Tests
                     Node.ForceDelete(aspectPath);
 
                 var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, aspectName);
-                aspectContent.Save();
+                aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var aspect = (Aspect)aspectContent.ContentHandler;
                 aspect.AddFields(new FieldInfo
                 {
@@ -434,7 +434,7 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.AddAspects((Aspect)aspect);
                 content[aspectFieldName] = new NodeList<Node>(new[] { 1, 2, 3 });
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 content = Content.Load(content.Id);
 
@@ -460,7 +460,7 @@ namespace SenseNet.ContentRepository.Tests
                     Node.ForceDelete(aspectPath);
 
                 var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, aspectName);
-                aspectContent.Save();
+                aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var aspect = (Aspect)aspectContent.ContentHandler;
                 aspect.AddFields(new FieldInfo
                 {
@@ -472,7 +472,7 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.AddAspects((Aspect)aspect);
                 content[aspectFieldName] = new NodeList<Node>(new[] { 1, 2, 3 });
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //---------------------------------------------------------------
 
@@ -536,7 +536,7 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew("Car", testRoot, null);
                 content.AddAspects(aspect);
                 content["XmlCharTest.TestField"] = fieldvalue;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
 
                 //--------
@@ -582,13 +582,13 @@ namespace SenseNet.ContentRepository.Tests
                     var content1 = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content1.AddAspects(aspect1);
                     content1[fn11] = "Hello world this is a nice summer afternoon!";
-                    content1.Save();
+                    content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var content2 = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     content2.AddAspects(aspect1);
                     content2[fn11] = "Hello world this is a cold winter morning!";
                     content2[fn12] = new List<Node> { content1.ContentHandler };
-                    content2.Save();
+                    content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // Test reference property value after reload
 
@@ -737,7 +737,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(null, content[displayName2Name]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var contentId = content.Id;
 
                     // #2 check reloaded
@@ -761,7 +761,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
                     Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // #5 check with 2 aspects / reloaded
                     content = Content.Load(contentId);
@@ -787,7 +787,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[aspectReferenceFieldName]).Select(n => n.Path)));
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // #8 check with all aspects / reloaded
                     content = Content.Load(contentId);
@@ -828,7 +828,7 @@ namespace SenseNet.ContentRepository.Tests
                 // #1: Adding initial aspects
                 var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.AddAspects(firstAspect, aspect1, aspect2, aspect3);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = content.Id;
 
                 var aspectsTrace1 = String.Join(",", content.ContentHandler.GetReferences("Aspects").Select(n => n.Name));
@@ -885,7 +885,7 @@ namespace SenseNet.ContentRepository.Tests
             if (r.Count > 0)
                 return (Aspect)r.Nodes.First();
             var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, name);
-            aspectContent.Save();
+            aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (Aspect)aspectContent.ContentHandler;
         }
         private string GetJson(object o)

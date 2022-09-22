@@ -401,7 +401,7 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         var content = Content.CreateNew("ChoiceFieldIndexingTestContentType", root, $"Content_{x}");
                         content["Choice_ExplicitValues"] = x;
-                        content.Save();
+                        content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         return content;
                     }).ToArray();
 
@@ -431,7 +431,7 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         var content = Content.CreateNew("ChoiceFieldIndexingTestContentType", root, $"Content_{x}");
                         content["Choice_Enum"] = (int)x;
-                        content.Save();
+                        content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         return content;
                     }).ToArray();
 
@@ -483,7 +483,7 @@ namespace SenseNet.ContentRepository.Tests
                     {
                         var content = Content.CreateNew("ChoiceFieldIndexingTestContentType", root, $"Content_{x}");
                         content["Choice_Enum_Localized"] = (int)x;
-                        content.Save();
+                        content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         return content;
                     }).ToArray();
 
@@ -610,7 +610,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
                 var tc1 = Content.CreateNew("JsonFieldIndexingTestContentType", root, "JC1");
                 tc1["JsonExtrafield1"] = Json1;
-                tc1.Save();
+                tc1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var indexFields = tc1.Fields["JsonExtrafield1"].GetIndexFields(out var textExtract).ToArray();
                 var indexValues = indexFields.Single().StringArrayValue;
@@ -624,7 +624,7 @@ namespace SenseNet.ContentRepository.Tests
                 // create another content with a different json to check querying
                 var tc2 = Content.CreateNew("JsonFieldIndexingTestContentType", root, "JC2");
                 tc2["JsonExtrafield1"] = Json2;
-                tc2.Save();
+                tc2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var query = CreateSafeContentQuery("JsonExtrafield1:String#abc", QuerySettings.AdminSettings).Execute();
 
@@ -675,11 +675,11 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     // "Add" activity (1, 3, 5, 7).
                     var content = Content.CreateNew("SystemFolder", Repository.Root, $"Folder{i}");
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     ids[i] = new Tuple<int, int>(content.Id, content.ContentHandler.VersionId);
                     // "Update" activity (2, 4, 6, 8).
                     content.Index++;
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
 

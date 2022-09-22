@@ -121,7 +121,7 @@ namespace SenseNet.ODataTests
                 // create item
                 var item = Content.CreateNew(itemType, list, Guid.NewGuid().ToString());
                 item["#CustomField"] = fieldValue;
-                item.Save();
+                item.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // check expando field accessibility
                 item = Content.Load(item.Id);
@@ -176,7 +176,7 @@ namespace SenseNet.ODataTests
                 var folder2 = new Folder(folder) { Name = "Folder2" };
                 folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("Car", folder, null);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
@@ -235,7 +235,7 @@ namespace SenseNet.ODataTests
                 {
                     var car = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     car["Make"] = item;
-                    car.Save();
+                    car.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 var response = await ODataGetAsync(
@@ -282,7 +282,7 @@ namespace SenseNet.ODataTests
                 folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content = Content.CreateNew("Car", folder, null);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,

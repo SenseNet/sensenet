@@ -229,7 +229,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
         protected T CreateSandbox<T>() where T : GenericContent
         {
             var sandbox = Content.CreateNew(typeof(T).Name, Repository.Root, Guid.NewGuid().ToString());
-            sandbox.Save();
+            sandbox.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (T)sandbox.ContentHandler;
         }
 

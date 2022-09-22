@@ -290,7 +290,7 @@ namespace SenseNet.ContentRepository
             // don't use admin account here, that should be 
             // done in the calling 'client' code if needed
             var content = Content.CreateNew(typeName, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }
@@ -1025,7 +1025,7 @@ namespace SenseNet.ContentRepository
                         throw new ArgumentException("The parameter cannot be recognized as a User or a Group: " + userOrGroup);
                 }
 
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

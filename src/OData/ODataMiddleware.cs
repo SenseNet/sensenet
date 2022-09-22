@@ -585,7 +585,7 @@ namespace SenseNet.OData
             if (isMultiStepSave)
                 content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
             else
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }
@@ -654,7 +654,7 @@ namespace SenseNet.OData
             if (odataRequest.MultistepSave)
                 await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
             else
-                content.Save();
+                await content.SaveAsync(cancel).ConfigureAwait(false);
         }
 
         /// <summary>

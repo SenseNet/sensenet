@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,7 +52,7 @@ namespace SenseNet.ContentRepository.Tests
                 // create a system folder
                 var sysFolderName = Guid.NewGuid().ToString();
                 var sysFolder = Content.CreateNew("SystemFolder", parent, sysFolderName);
-                sysFolder.Save();
+                sysFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var originalFieldNames = string.Join(",", sysFolder.Fields.Keys);
 
                 // all Folder types should be valid at this point
@@ -82,7 +83,7 @@ namespace SenseNet.ContentRepository.Tests
                 // This should be allowed because the handler is known
                 // and it does not inherit from Folder.
                 var file = Content.CreateNew("File", parent, Guid.NewGuid().ToString());
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
 
@@ -228,14 +229,14 @@ namespace SenseNet.ContentRepository.Tests
             ExpectException(() =>
             {
                 var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }, typeof(SnNotSupportedException));
 
             // try to create a content with a known handler that has an unknown parent
             ExpectException(() =>
             {
                 var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }, typeof(SnNotSupportedException));
         }
         private static void ExpectException(Action action, Type exceptionType)

@@ -308,7 +308,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var content = Content.Create(LoadNode(testRoot, "Source/Child"));
                 content.AddAspects(aspect1);
                 content["CopyMoveTest_Move_WithAspect.Field1"] = "value1";
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = content.Id;
 
                 // remove aspect from cache
@@ -725,7 +725,7 @@ namespace SenseNet.IntegrationTests.TestCases
             if (typeName != "SystemFolder" && typeName != "Folder" && typeName != "Page")
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateNode(string parentPath, string name, string typeName)
         {
@@ -735,7 +735,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             if (content.Fields.ContainsKey("#TestField"))
                 content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private string DecodePath(SystemFolder testRoot, string relativePath)
         {
@@ -752,7 +752,7 @@ namespace SenseNet.IntegrationTests.TestCases
             if (existing != null)
                 return existing;
             var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, name);
-            aspectContent.Save();
+            aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (Aspect)aspectContent.ContentHandler;
         }
 

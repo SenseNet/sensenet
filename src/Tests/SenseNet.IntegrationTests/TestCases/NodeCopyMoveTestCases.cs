@@ -618,14 +618,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 sourceList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {sourceListFields}
 </Fields></ContentListDefinition>";
-                doclib1.Save();
+                doclib1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var doclib2 = Content.CreateNew("DocumentLibrary", sandbox, "DocLib2");
                 var targetList = (ContentList)doclib2.ContentHandler;
                 targetList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {targetListFields}
 </Fields></ContentListDefinition>";
-                doclib2.Save();
+                doclib2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = new File(sourceList) { Name = "File1" };
@@ -1315,7 +1315,7 @@ namespace SenseNet.IntegrationTests.TestCases
             targetList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {listFields}
 </Fields></ContentListDefinition>";
-            doclib.Save();
+            doclib.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return targetList;
         }
 

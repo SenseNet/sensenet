@@ -1227,7 +1227,7 @@ namespace SenseNet.Preview
                 var content = Content.CreateNew(type, parent, name);
                 content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                 content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 return Node.LoadNode(content.Id);
             }

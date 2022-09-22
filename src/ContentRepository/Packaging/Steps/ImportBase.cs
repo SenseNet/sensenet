@@ -448,7 +448,7 @@ namespace SenseNet.Packaging.Steps
                     if (localizationRoot == null)
                     {
                         localizationRoot = Content.CreateNew("Resources", Repository.Root, "Localization");
-                        localizationRoot.Save();
+                        localizationRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     ImportResources(fsPath);
 
@@ -805,7 +805,8 @@ namespace SenseNet.Packaging.Steps
                     if (!Node.Exists(Repository.AspectsFolderPath))
                     {
                         Log(ImportLogLevel.Info, "Creating aspect container (" + Repository.AspectsFolderPath + ")...");
-                        Content.CreateNew(typeof(SystemFolder).Name, Repository.SchemaFolder, "Aspects").Save();
+                        Content.CreateNew(typeof(SystemFolder).Name, Repository.SchemaFolder, "Aspects")
+                            .SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         Log(ImportLogLevel.Info, "  Ok");
                     }
 

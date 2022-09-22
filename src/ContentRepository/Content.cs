@@ -1105,9 +1105,38 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        public void Save()//UNDONE:xx: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public void Save()
         {
             SaveAsync(true, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
+        /// </summary>
+        /// <remarks>
+        /// This method executes followings:
+        /// <list type="bullet">
+        ///     <item>
+        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
+        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        ///     </item>
+        ///     <item>
+        ///         If <c>Content</c> is not valid 
+        ///         throws an <see cref="InvalidContentException">InvalidContentException</see>.
+        ///     </item>
+        ///     <item>
+        ///         Saves the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> into the Sense/Net Content Repository.
+        ///     </item>
+        /// </list>
+        /// 
+        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
+        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> after the saving
+        /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
+        /// </remarks>
+        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        public System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
+        {
+            return SaveAsync(true, CancellationToken.None);
         }
 
         [Obsolete("Use async version instead.", true)]

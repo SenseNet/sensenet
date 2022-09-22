@@ -853,10 +853,10 @@ namespace SenseNet.ContentRepository.Tests.Schema
 				</ContentType>");
 
                 var c = SNC.Content.CreateNew("Folder", testRoot, "RefFieldTests");
-                c.Save();
+                c.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var testFolder = Node.Load<Folder>(c.Id);
-                SNC.Content.CreateNew("ReferredContent", testFolder, "Referred1").Save();
-                SNC.Content.CreateNew("ReferredContent", testFolder, "Referred2").Save();
+                SNC.Content.CreateNew("ReferredContent", testFolder, "Referred1").SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                SNC.Content.CreateNew("ReferredContent", testFolder, "Referred2").SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 SNC.Content referrer;
 
                 //==== one, null, no type, no path, no query
@@ -955,7 +955,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 Assert.IsTrue(referrer.IsValid, "multi, null, type, no path, no query #143");
 
                 //-- create content with restricted type
-                SNC.Content.CreateNew("ValidatedContent", testFolder, "AnotherReferrer").Save();
+                SNC.Content.CreateNew("ValidatedContent", testFolder, "AnotherReferrer").SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 referrer["ReferenceTest"] = testFolder.Children;
                 Assert.IsFalse(referrer.IsValid, "multi, null, type, no path, no query #144");
 
@@ -985,8 +985,8 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 subFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 string subFolderPath = subFolder.Path;
 
-                SNC.Content.CreateNew("ReferredContent", subFolder, "Referred3").Save();
-                SNC.Content.CreateNew("ReferredContent", subFolder, "Referred4").Save();
+                SNC.Content.CreateNew("ReferredContent", subFolder, "Referred3").SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                SNC.Content.CreateNew("ReferredContent", subFolder, "Referred4").SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 ContentTypeInstaller.InstallContentType(@"<?xml version='1.0' encoding='utf-8'?>
 				<ContentType name='ValidatedContent' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' xmlns:q='http://schemas.sensenet.com/SenseNet/ContentRepository/SearchExpression'>

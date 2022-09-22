@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository
 
                         regForm["EmailField"] = !String.IsNullOrEmpty(this["EmailField"].ToString()) ? this["EmailField"] : "mailerservice@example.com";
 
-                        regForm.Save();
+                        await regForm.SaveAsync(cancel).ConfigureAwait(false);
 
                         AddReference(REGISTRATIONFORM, await LoadNodeAsync(regForm.Id, cancel).ConfigureAwait(false));
                     }

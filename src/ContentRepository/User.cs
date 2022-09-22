@@ -678,7 +678,7 @@ namespace SenseNet.ContentRepository
                 {
                     var profilesTarget = Node.LoadNode(GetProfilesTargetPath());
                     var pc = Content.CreateNew(Profiles, profilesTarget, Profiles);
-                    pc.Save();
+                    pc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor.BreakInheritance(pc.Id, new[] {EntryType.Normal})
@@ -713,7 +713,7 @@ namespace SenseNet.ContentRepository
 
                     try
                     {
-                        domain.Save();
+                        domain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         profileDomain = domain.ContentHandler;
                     }
                     catch (NodeAlreadyExistsException)
@@ -744,7 +744,7 @@ namespace SenseNet.ContentRepository
                         profile.ContentHandler.VersionCreatedBy = this;
                         profile.ContentHandler.Owner = this;
                         profile.DisplayName = this.Name;
-                        profile.Save();
+                        profile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         Profile = profile.ContentHandler as UserProfile;
                         SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();

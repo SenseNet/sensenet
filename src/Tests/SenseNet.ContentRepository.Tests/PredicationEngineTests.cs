@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Index = 42;
                 content["DateTime1"] = new DateTime(1234, 5, 6);
                 content["Currency1"] = 42.42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var prE = new PredicationEngine(content);
 
@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Index = 42;
                 content["DateTime1"] = new DateTime(1234, 5, 6);
                 content["Currency1"] = 42.42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // CASE 1
                 var prE = new PredicationEngine(Content.Load("/Root/TestRoot/TestNode1"));
@@ -216,7 +216,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Index = 42;
                 content["Currency1"] = 42.42;
                 content["DateTime1"] = new DateTime(1234, 5, 6);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var prE = new PredicationEngine(content);
 

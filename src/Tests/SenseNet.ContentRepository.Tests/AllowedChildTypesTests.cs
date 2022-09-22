@@ -325,18 +325,18 @@ namespace SenseNet.ContentRepository.Tests
 
                 // New content:		/Root/Content/MyTypeA-1
                 var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
-                myTypeA1.Save();
+                myTypeA1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // New content:		/Root/Content/MyTypeA-1/Page-1
                 var page1 = Content.CreateNew("Page", myTypeA1.ContentHandler, "Page-1");
-                page1.Save();
+                page1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: Try new content:	/Root/Content/MyTypeA-1/Page-1/MyTypeC-1
                 var myTypeC1 = Content.CreateNew("MyTypeC", page1.ContentHandler, "MyTypeC-1");
                 Exception expectedException = null;
                 try
                 {
-                    myTypeC1.Save();
+                    myTypeC1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidOperationException e)
                 {
@@ -384,18 +384,18 @@ namespace SenseNet.ContentRepository.Tests
 
                 // New content:		/Root/Content/MyTypeA-1
                 var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
-                myTypeA1.Save();
+                myTypeA1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // New content:		/Root/Content/MyTypeA-1/Folder-1
                 var folder1 = Content.CreateNew("Folder", myTypeA1.ContentHandler, "Folder-1");
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: Try new content:	/Root/Content/MyTypeA-1/Folder-1/MyTypeC-1
                 var myTypeC1 = Content.CreateNew("MyTypeC", folder1.ContentHandler, "MyTypeC-1");
                 Exception expectedException = null;
                 try
                 {
-                    myTypeC1.Save();
+                    myTypeC1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidOperationException e)
                 {

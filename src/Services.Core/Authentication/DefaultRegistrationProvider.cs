@@ -131,7 +131,7 @@ namespace SenseNet.Services.Core.Authentication
 
             setProperties?.Invoke(user);
 
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken).ConfigureAwait(false);
 

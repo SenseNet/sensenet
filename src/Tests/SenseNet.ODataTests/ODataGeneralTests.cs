@@ -541,15 +541,15 @@ namespace SenseNet.ODataTests
                     folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
-                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "asdf" } }).Save();
-                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "qwer" } }).Save();
-                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "asdf" } }).Save();
-                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "qwer" } }).Save();
+                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "asdf" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "qwer" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "asdf" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", site, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "qwer" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "asdf" } }).Save();
-                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "qwer" } }).Save();
-                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "asdf" } }).Save();
-                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "qwer" } }).Save();
+                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "asdf" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "asdf" }, { "Model", "qwer" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "asdf" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Content.CreateNewAndParse("Car", folder, null, new Dictionary<string, string> { { "Make", "qwer" }, { "Model", "qwer" } }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedQueryGlobal = "asdf AND Type:Car .SORT:Path .AUTOFILTERS:OFF";
                 var expectedGlobal = string.Join(", ", CreateSafeContentQuery(expectedQueryGlobal).Execute().Nodes.Select(n => n.Id.ToString()));
@@ -604,7 +604,7 @@ namespace SenseNet.ODataTests
                     };
                     var content = Content.Create(resources[i]);
                     content["Manager"] = managers[i % 3];
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 var queryText = "Manager:{{Name:Manager1}} .SORT:Name .AUTOFILTERS:OFF";
@@ -739,12 +739,12 @@ namespace SenseNet.ODataTests
                 var content1 = Content.CreateNew("Car", folder, "Car1");
                 content1.AddAspects(aspect1);
                 content1["Aspect1.Field1"] = "asdf";
-                content1.Save();
+                content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content2 = Content.CreateNew("Car", folder, "Car2");
                 content2.AddAspects(aspect1);
                 content2["Aspect1.Field1"] = "qwer";
-                content2.Save();
+                content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response =
                     await ODataGetAsync(
@@ -791,26 +791,26 @@ namespace SenseNet.ODataTests
                 var workspace = CreateWorkspace("Workspace1");
                 var content1 = Content.CreateNew("SystemFolder", workspace, "Content1");
                 content1.Index = 1;
-                content1.Save();
+                content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content2 = Content.CreateNew("SystemFolder", workspace, "Content2");
                 content2.Index = 2;
-                content2.Save();
+                content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content3 = Content.CreateNew("SystemFolder", workspace, "Content3");
                 content3.Index = 3;
-                content3.Save();
+                content3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content4 = Content.CreateNew("SystemFolder", workspace, "Content4");
                 content4.Index = 4;
-                content4.Save();
+                content4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 content2.AddAspects(aspect);
                 content2[aspectFieldName] = "Value2";
-                content2.Save();
+                content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 content3.AddAspects(aspect);
                 content3[aspectFieldName] = "Value3";
-                content3.Save();
+                content3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 content4.AddAspects(aspect);
                 content4[aspectFieldName] = "Value2";
-                content4.Save();
+                content4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataGetAsync(
@@ -955,14 +955,14 @@ namespace SenseNet.ODataTests
                 {
                     var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
                     content.Index = i + 1;
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     nodes[i] = content.ContentHandler;
                 }
 
                 referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
                 var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
                 referrer.References = nodes;
-                referrercontent.Save();
+                referrercontent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -1192,7 +1192,7 @@ namespace SenseNet.ODataTests
                 var avatarContent = Content.Load(testAvatar.Id);
                 var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
                 userContent["Avatar"] = avatarData;
-                userContent.Save();
+                userContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataGetAsync(
@@ -1240,7 +1240,7 @@ namespace SenseNet.ODataTests
                 var avatarContent = Content.Load(testAvatar1.Id);
                 var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
                 userContent["Avatar"] = avatarData;
-                userContent.Save();
+                userContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPatchAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
@@ -1289,7 +1289,7 @@ namespace SenseNet.ODataTests
                 var avatarContent = Content.Load(testAvatar1.Id);
                 var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
                 userContent["Avatar"] = avatarData;
-                userContent.Save();
+                userContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPatchAsync(
@@ -1336,7 +1336,7 @@ namespace SenseNet.ODataTests
                 var userContent = Content.Load(testUser.Id);
                 var avatarData = new ImageField.ImageFieldData(null, null, avatarBinaryData);
                 userContent["Avatar"] = avatarData;
-                userContent.Save();
+                userContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataGetAsync(
@@ -1382,7 +1382,7 @@ namespace SenseNet.ODataTests
                 var userContent = Content.Load(testUser.Id);
                 var avatarData = new ImageField.ImageFieldData(null, null, avatarBinaryData);
                 userContent["Avatar"] = avatarData;
-                userContent.Save();
+                userContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPatchAsync(
@@ -1430,11 +1430,11 @@ namespace SenseNet.ODataTests
 
                 Content content;
 
-                content = Content.CreateNew(contentTypeName, root, "Content-1"); content["CustomIndex"] = 6.0; content.Save();
-                content = Content.CreateNew(contentTypeName, root, "Content-2"); content["CustomIndex"] = 3.0; content.Save();
-                content = Content.CreateNew(contentTypeName, root, "Content-3"); content["CustomIndex"] = 2.0; content.Save();
-                content = Content.CreateNew(contentTypeName, root, "Content-4"); content["CustomIndex"] = 4.0; content.Save();
-                content = Content.CreateNew(contentTypeName, root, "Content-5"); content["CustomIndex"] = 5.0; content.Save();
+                content = Content.CreateNew(contentTypeName, root, "Content-1"); content["CustomIndex"] = 6.0; content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                content = Content.CreateNew(contentTypeName, root, "Content-2"); content["CustomIndex"] = 3.0; content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                content = Content.CreateNew(contentTypeName, root, "Content-3"); content["CustomIndex"] = 2.0; content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                content = Content.CreateNew(contentTypeName, root, "Content-4"); content["CustomIndex"] = 4.0; content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                content = Content.CreateNew(contentTypeName, root, "Content-5"); content["CustomIndex"] = 5.0; content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -1709,7 +1709,7 @@ namespace SenseNet.ODataTests
                 workerUser = new User(container) { Name = "worker", Enabled = true, Email = "worker@example.com" };
                 var workerUserContent = Content.Create(workerUser);
                 workerUserContent["Manager"] = managerUser;
-                workerUserContent.Save();
+                workerUserContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 ContentTypeInstaller.InstallContentType(
                     @"<?xml version=""1.0"" encoding=""utf-8""?><ContentType name=""TestFolder1"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""/>",
@@ -1770,7 +1770,7 @@ namespace SenseNet.ODataTests
                 content["Make"] = "Citroen";
                 content["Model"] = "C100";
                 content["Price"] = 2399999.99;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Reload
                 content = Content.Load(content.Path);
@@ -1802,7 +1802,7 @@ namespace SenseNet.ODataTests
                 content["Make"] = "Citroen";
                 content["Model"] = "C101";
                 content["Price"] = 4399999.99;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Reload
                 content = Content.Load(content.Path);
@@ -1906,7 +1906,7 @@ namespace SenseNet.ODataTests
                     content.CreationDate = today.AddDays(-i);
                     content.ModificationDate = today.AddDays(-i);
 
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     return i;
                 }).ToArray();
 

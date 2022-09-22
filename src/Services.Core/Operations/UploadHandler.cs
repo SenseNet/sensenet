@@ -196,7 +196,7 @@ namespace SenseNet.Services.Core.Operations
                 {
                     var binData = CreateBinaryData(file);
                     uploadedContent[PropertyName] = binData;
-                    uploadedContent.Save();
+                    await uploadedContent.SaveAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -292,7 +292,7 @@ namespace SenseNet.Services.Core.Operations
                             binaryData.Reset();
                             binaryData.SetStream(new MemoryStream());
                         }
-                        emptyFile.Save();
+                        await emptyFile.SaveAsync(cancellationToken).ConfigureAwait(false);
                         return GetJsonFromContent(emptyFile, FormFile);
                     }
 
@@ -337,7 +337,7 @@ namespace SenseNet.Services.Core.Operations
                     binData.SetStream(RepositoryTools.GetStreamFromString(FileText));
 
                     uploadedContent[PropertyName] = binData;
-                    uploadedContent.Save();
+                    await uploadedContent.SaveAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return GetJsonFromContent(uploadedContent, FormFile);

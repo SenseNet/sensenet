@@ -54,19 +54,19 @@ namespace SenseNet.Packaging.Tests.StepTests
                 workspace.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var car1 = Content.CreateNew("Car", workspace, "Car1");
-                car1.Save();
+                car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = car1.Id;
 
                 // create some versions
                 car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1 = Content.Load(id); car1.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
+                car1 = Content.Load(id); car1.Index++; car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
+                car1 = Content.Load(id); car1.Index++; car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                car1 = Content.Load(id); car1.Index++; car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
-                car1 = Content.Load(id); car1.Index++; car1.Save();
+                car1 = Content.Load(id); car1.Index++; car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                car1 = Content.Load(id); car1.Index++; car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 car1 = Content.Load(id); car1.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var versions = car1.Versions.Select(n => n.Version.ToString()).ToArray();

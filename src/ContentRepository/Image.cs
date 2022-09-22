@@ -197,7 +197,7 @@ namespace SenseNet.ContentRepository
                     // set reference
                     var result = imageField.SetThumbnailReference(image);
                     if (result)
-                        content.Save();
+                        content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
             base.OnCreated(sender, e);

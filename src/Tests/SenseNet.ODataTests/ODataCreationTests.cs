@@ -321,7 +321,7 @@ namespace SenseNet.ODataTests
                     var template = Content.CreateNew("Car", folderGlobalCtCar, templateName);
                     template["Make"] = "TestCar" + index;
                     template["Model"] = templateName;
-                    template.Save();
+                    template.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 
@@ -343,14 +343,14 @@ namespace SenseNet.ODataTests
                 {
                     var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
                     content.Index = i + 1;
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     nodes[i] = content.ContentHandler;
                 }
 
                 referrerContent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
                 var referrer = (OData_Filter_ThroughReference_ContentHandler)referrerContent.ContentHandler;
                 referrer.References = nodes;
-                referrerContent.Save();
+                referrerContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
     }

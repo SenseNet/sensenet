@@ -59,12 +59,12 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew("File", testRoot, "File1");
                 var handler = (GenericContent)content.ContentHandler;
                 handler.VersioningMode = VersioningType.MajorAndMinor;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var timestamp = content.ContentHandler.NodeTimestamp;
 
                 content.ContentHandler.Index++;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after Save");
                 timestamp = content.ContentHandler.NodeTimestamp;
 
@@ -81,7 +81,7 @@ namespace SenseNet.ContentRepository.Tests
                 timestamp = content.ContentHandler.NodeTimestamp;
 
                 content.ContentHandler.Index++;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.IsTrue(content.ContentHandler.NodeTimestamp > timestamp, "Timestamp is not greater after Save #2");
                 timestamp = content.ContentHandler.NodeTimestamp;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -265,7 +266,7 @@ namespace SenseNet.Services.Core
 
                 queryContent["Query"] = query;
                 queryContent["UiFilters"] = uiFilters;
-                queryContent.Save(); 
+                queryContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); 
             }
 
             return queryContent;
@@ -288,7 +289,7 @@ namespace SenseNet.Services.Core
                     qc.AllowedChildTypes = new[] { ContentType.GetByName(QueryTypeName) };
                     c["Hidden"] = true;
 
-                    c.Save();
+                    c.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 

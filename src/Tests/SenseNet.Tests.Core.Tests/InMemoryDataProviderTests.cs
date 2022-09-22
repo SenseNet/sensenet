@@ -202,7 +202,7 @@ namespace SenseNet.Tests.Core.Tests
                 content[textFieldName] = textValue;
                 content.ContentHandler.SetReference(referenceFieldName, referenceValue);
                 ((BinaryData)content[binaryFieldName]).SetStream(new IO.MemoryStream(buffer));
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 content = Content.Load(content.Id);

@@ -1619,7 +1619,7 @@ namespace SenseNet.Services.Wopi.Tests
                 return Content.Create(CreateTestFile(parent, name ?? Guid.NewGuid().ToString(), "filecontent"));
 
             var content = Content.CreateNew(contentType, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }

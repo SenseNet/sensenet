@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -58,7 +59,7 @@ namespace SenseNet.ODataTests
                 var root = CreateTestRoot();
 
                 var ws1 = Content.CreateNew("Workspace", root, "ws1");
-                ws1.Save();
+                ws1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var localAllowedBefore = ((Workspace) ws1.ContentHandler).AllowedChildTypes.ToArray();
                 var effectiveAllowedBefore = ((Workspace) ws1.ContentHandler).EffectiveAllowedChildTypes.ToArray();

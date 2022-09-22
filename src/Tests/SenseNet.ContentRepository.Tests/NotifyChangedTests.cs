@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreSame(content, node.Content);
 
                 node.Index = 3;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreSame(content, node.Content);
             });

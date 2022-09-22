@@ -178,11 +178,11 @@ namespace SenseNet.IntegrationTests.TestCases
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" + Guid.NewGuid() };
                 root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car0 = Content.CreateNew("Car", root, "Car0");
-                car0.Save();
+                car0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car1 = Content.CreateNew("Car1", root, "Car1");
-                car1.Save();
+                car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car2 = Content.CreateNew("Car2", root, "Car2");
-                car2.Save();
+                car2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
