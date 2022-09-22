@@ -1105,22 +1105,32 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        public void Save()//UNDONE:x: rewrite to async
+        public void Save()//UNDONE:xx: rewrite to async
         {
-            Save(true);
+            SaveAsync(true, CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        public void Save(bool validOnly)//UNDONE:x: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public void Save(bool validOnly)
+        {
+            SaveAsync(validOnly, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task SaveAsync(bool validOnly, CancellationToken cancel)
         {
             if (_contentHandler.Locked)
-                Save(validOnly, SavingMode.KeepVersion);
+                await SaveAsync(validOnly, SavingMode.KeepVersion, cancel).ConfigureAwait(false);
             else
-                Save(validOnly, SavingMode.RaiseVersion);
+                await SaveAsync(validOnly, SavingMode.RaiseVersion, cancel).ConfigureAwait(false);
         }
 
-        public void Save(SavingMode mode)//UNDONE:x: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public void Save(SavingMode mode)
         {
-            Save(true, mode);
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
+            return SaveAsync(true, mode, cancel);
         }
 
         /// <summary>
@@ -1147,7 +1157,36 @@ namespace SenseNet.ContentRepository
         /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void Save(bool validOnly, SavingMode mode)//UNDONE:xx: rewrite to async
+        [Obsolete("Use async version instead.", true)]
+        public void Save(bool validOnly, SavingMode mode)
+        {
+            SaveAsync(validOnly, mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
+        /// </summary>
+        /// <remarks>
+        /// This method executes followings:
+        /// <list type="bullet">
+        ///     <item>
+        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
+        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        ///     </item>
+        ///     <item>
+        ///         If passed <paramref name="validOnly">validOnly</paramref> parameter is true  and <c>Content</c> is not valid 
+        ///         throws an <see cref="InvalidContentException">InvalidContentException</see>
+        ///     </item>
+        ///     <item>
+        ///         Saves the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> into the Sense/Net Content Repository.
+        ///     </item>
+        /// </list>
+        /// 
+        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
+        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> after the saving
+        /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
+        /// </remarks>
+        /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
+        public async System.Threading.Tasks.Task SaveAsync(bool validOnly, SavingMode mode, CancellationToken cancel)
         {
             AssertContentType();
 
@@ -1156,9 +1195,9 @@ namespace SenseNet.ContentRepository
                 throw InvalidContentExceptionHelper();
 
             if (_contentHandler is GenericContent genericContent)
-                genericContent.SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+                await genericContent.SaveAsync(mode, cancel).ConfigureAwait(false);
             else
-                _contentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await _contentHandler.SaveAsync(cancel).ConfigureAwait(false);
 
             foreach (string key in _fields.Keys)
                 _fields[key].OnSaveCompleted();
@@ -1968,7 +2007,7 @@ namespace SenseNet.ContentRepository
                 else if (context.IsNewContent)
                     this.SaveSameVersion();
                 else
-                    this.Save(context.NeedToValidate);
+                    this.SaveAsync(context.NeedToValidate, CancellationToken.None).GetAwaiter().GetResult();
             }
 
             return true;

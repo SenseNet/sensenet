@@ -263,7 +263,7 @@ namespace SenseNet.Services.Core.Operations
                     // Start the multistep saving process only if it was not started by 
                     // somebody else before (e.g. with an initial POST request through OData).
                     if (mustFinalize)
-                        uploadedContent.Save(SavingMode.StartMultistepSave);
+                        await uploadedContent.SaveAsync(SavingMode.StartMultistepSave, cancellationToken).ConfigureAwait(false);
 
                     chunkToken = BinaryData.StartChunk(uploadedContent.Id, FileLength, PropertyName);
                 }
@@ -376,7 +376,7 @@ namespace SenseNet.Services.Core.Operations
 
                 // we have to create it in a multistep saving state because chunk upload needs that
                 file = Content.CreateNew(contentType, Content.ContentHandler, name);
-                file.Save(SavingMode.StartMultistepSave);
+                await file.SaveAsync(SavingMode.StartMultistepSave, cancellationToken).ConfigureAwait(false);
             }
 
             return StartBlobUpload(file, fullSize, fieldName);
@@ -389,7 +389,7 @@ namespace SenseNet.Services.Core.Operations
         {
             // we have to put the content into a state that enables chunk write operations
             if (content.ContentHandler.SavingState == ContentSavingState.Finalized)
-                content.Save(SavingMode.StartMultistepSave);
+                content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
 
             var token = BinaryData.StartChunk(content.Id, fullSize, fieldName);
 

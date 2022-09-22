@@ -68,7 +68,7 @@ namespace SenseNet.Packaging.Steps
 
                     // rename the target
                     targetContent["Name"] = sourceContent.Name;
-                    targetContent.Save(SavingMode.KeepVersion);
+                    targetContent.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                     count++;
 
