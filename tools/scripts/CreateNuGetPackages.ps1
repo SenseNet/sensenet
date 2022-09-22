@@ -1,6 +1,6 @@
 ﻿$srcPath = [System.IO.Path]::GetFullPath(($PSScriptRoot + '\..\..\src'))
 $installPackagePath = "$srcPath\nuget\content\Admin\tools\install-services.zip"
-$scriptsSourcePath = "$srcPath\Storage\Data\MsSqlClient\Scripts"
+$scriptsSourcePath = "$srcPath\ContentRepository.MsSql\Scripts"
 
 # delete existing packages
 Remove-Item $PSScriptRoot\*.nupkg
