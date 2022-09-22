@@ -1393,7 +1393,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.2", "2021-09-14", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.3", "2021-09-22", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1406,7 +1406,7 @@ namespace SenseNet.ContentRepository
                         logger.LogTrace("Adding File and Image as an allowed type on the Content folder.");
                         contentFolder.AllowChildTypes(new[] { "File", "Image" }, throwOnError: false, save: true);
                     }
-
+                    
                     #endregion
 
                     #region String resource changes
@@ -1423,6 +1423,15 @@ namespace SenseNet.ContentRepository
                         .Culture("hu")
                         .AddResource("IsSystemType-DisplayName", "Rendszer típus")
                         .AddResource("IsSystemType-Description", "Akkor igaz, ha ez a tartalom típus egy rendszer-típus.");
+
+                    rb.Content("CtdResourcesEF.xml")
+                        .Class("Ctd-Folder")
+                        .Culture("en")
+                        .AddResource("PreviewEnabled-DisplayName", "Preview enabled")
+                        .AddResource("PreviewEnabled-Description", "Switch on or off preview generation in this subtree. Can be enabled, disabled or inherited from the parent.")
+                        .Culture("hu")
+                        .AddResource("PreviewEnabled-DisplayName", "Előnézet engedélyezése")
+                        .AddResource("PreviewEnabled-Description", "Be- vagy kikapcsolja az előnézeti képek generálását ezen a részfán. Engedélyezi, tiltja vagy a szülőről veszi az értéket.");
 
                     rb.Apply();
 
@@ -1490,12 +1499,34 @@ namespace SenseNet.ContentRepository
                             .VisibleNew(FieldVisibility.Hide)
                             .ReadOnly();
 
+                        cb.Type("Folder")
+                            .Field("PreviewEnabled", "Choice")
+                            .DisplayName("$Ctd-Folder,PreviewEnabled-DisplayName")
+                            .Description("$Ctd-Folder,PreviewEnabled-Description")
+                            .VisibleBrowse(FieldVisibility.Hide)
+                            .VisibleEdit(FieldVisibility.Advanced)
+                            .VisibleNew(FieldVisibility.Advanced)
+                            .Configure("AllowMultiple", "false")
+                            .Configure("AllowExtraValue", "false")
+                            .Configure("Options", "<Enum type=\"SenseNet.ContentRepository.PreviewEnabled\"/>");
+
                         cb.Apply();
                     }
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, "Error during CTD changes.");
                     }
+
+                    #endregion
+
+                    #region Content changes
+
+                    // set new fields after CTD changes
+                    logger.LogTrace($"Switching ON preview generation by default on Root.");
+                    
+                    var rootNode = Node.Load<PortalRoot>("/Root");
+                    rootNode.PreviewEnabled = PreviewEnabled.Yes;
+                    rootNode.Save();
 
                     #endregion
                 });
@@ -1549,60 +1580,7 @@ namespace SenseNet.ContentRepository
         //}
 
         #endregion
-
-        private void Patch_PreviewSwitches(PatchExecutionContext context)
-        {
-            var logger = context.GetService<ILogger<ServicesComponent>>();
-
-            #region Content changes
-
-            var rootNode = Node.Load<PortalRoot>("/Root");
-            rootNode.PreviewEnabled = PreviewEnabled.Yes;
-            rootNode.Save();
-
-            #endregion
-
-            #region String resource changes
-
-            var rb = new ResourceBuilder();
-            rb.Content("CtdResourcesEF.xml")
-                .Class("Ctd-Folder")
-                .Culture("en")
-                .AddResource("PreviewEnabled-DisplayName", "Preview enabled")
-                .AddResource("PreviewEnabled-Description", "Switch on or off preview generation in this subtree. Can be enabled, disabled or inherited from the parent.")
-                .Culture("hu")
-                .AddResource("PreviewEnabled-DisplayName", "Előnézet engedélyezése")
-                .AddResource("PreviewEnabled-Description", "Be- vagy kikapcsolja az előnézeti képek generálását ezen a részfán. Engedélyezi, tiltja vagy a szülőről veszi az értéket.");
-            rb.Apply();
-
-            #endregion
-
-            #region CTD changes
-
-            try
-            {
-                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
-                cb.Type("Folder")
-                    .Field("PreviewEnabled", "Choice")
-                    .DisplayName("$Ctd-Folder,PreviewEnabled-DisplayName")
-                    .Description("$Ctd-Folder,PreviewEnabled-Description")
-                    .VisibleBrowse(FieldVisibility.Hide)
-                    .VisibleEdit(FieldVisibility.Advanced)
-                    .VisibleNew(FieldVisibility.Advanced)
-                    .Configure("AllowMultiple", "false")
-                    .Configure("AllowExtraValue", "false")
-                    .Configure("Options", "<Enum type=\"SenseNet.ContentRepository.PreviewEnabled\"/>");
-                cb.Apply();
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Error during CTD changes.");
-            }
-
-            #endregion
-        }
-
-
+        
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))
