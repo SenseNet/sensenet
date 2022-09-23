@@ -39,11 +39,18 @@ namespace SenseNet.ContentRepository.Security.ADSync
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             var originalId = this.Id;
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
 
             // AD Sync
             if (_syncObject)
@@ -160,7 +167,7 @@ namespace SenseNet.ContentRepository.Security.ADSync
             // update object without syncing to AD
             _syncObject = false;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     Enabled = true,
                     Email = "user1@example.com",
                 };
-                user1.Save();
+                user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var dataProvider = Providers.Instance.DataProvider;
                 var loader = new DatabaseUsageLoader(dataProvider);
@@ -81,39 +81,39 @@ namespace SenseNet.IntegrationTests.TestCases
                         InheritableVersioningMode = InheritableVersioningType.MajorAndMinor,
                         Version = new VersionNumber(1, 0, VersionStatus.Approved)
                     };
-                    myFolder.Save();
+                    myFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     myFile = new File(myFolder) { Name = "MyFile.txt", Description = "Sample file...." };
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 42)));
-                    myFile.Save();
-                    myFile.Publish(); // 1.0.A
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.PublishAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.0.A
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 43)));
-                    myFile.Save();
-                    myFile.CheckIn(); // 1.1.D
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.1.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 44)));
-                    myFile.Save();
-                    myFile.CheckIn(); // 1.2.D
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 1.2.D
 
-                    myFile.Publish(); // 2.0.A
+                    myFile.PublishAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.0.A
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 45)));
-                    myFile.Save();
-                    myFile.CheckIn(); // 2.1.D
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.1.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 46)));
-                    myFile.Save();
-                    myFile.CheckIn(); // 2.2.D
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.2.D
 
-                    myFile.CheckOut();
+                    myFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     myFile.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 47)));
-                    myFile.Save();
-                    myFile.CheckIn(); // 2.3.D
+                    myFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    myFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult(); // 2.3.D
                 }
             }
 
@@ -123,7 +123,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 VersioningMode = VersioningType.None,
                 InheritableVersioningMode = InheritableVersioningType.None
             };
-            previewRoot.Save();
+            previewRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             CreateSamplePreviewImages(previewRoot, "V1.0.A");
             CreateSamplePreviewImages(previewRoot, "V1.1.D");
@@ -135,23 +135,23 @@ namespace SenseNet.IntegrationTests.TestCases
         private void CreateSamplePreviewImages(SystemFolder root, string version)
         {
             var imgContainer = new SystemFolder(root) { Name = version };
-            imgContainer.Save();
+            imgContainer.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var img = new Image(imgContainer, "PreviewImage") { Name = "thumbnail1.png" };
             img.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 144)));
-            img.Save();
+            img.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             img = new Image(imgContainer, "PreviewImage") { Name = "preview1.png" };
             img.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 145)));
-            img.Save();
+            img.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             img = new Image(imgContainer, "PreviewImage") { Name = "thumbnail2.png" };
             img.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 146)));
-            img.Save();
+            img.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             img = new Image(imgContainer, "PreviewImage") { Name = "preview2.png" };
             img.Binary.SetStream(RepositoryTools.GetStreamFromString(new string('-', 147)));
-            img.Save();
+            img.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
     }

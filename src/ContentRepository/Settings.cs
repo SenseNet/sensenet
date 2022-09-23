@@ -553,24 +553,28 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <inheritdoc />
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertSettings();
 
             if (_dynamicFieldsChanged && BinaryAsJObject != null)
             {
                 // If this is a JSON settings file and the dynamic metadata changed, save the JSON binary according to the changes
-                JsonDynamicFieldHelper.SaveToStream(BinaryAsJObject, stream =>
+                await JsonDynamicFieldHelper.SaveToStreamAsync(BinaryAsJObject, async (stream, c) =>
                 {
                     this.Binary.SetStream(stream);
-                    base.Save(settings);
+                    await base.SaveAsync(settings, c);
                     _dynamicFieldsChanged = false;
-                });
+                }, cancel);
             }
             else
             {
-                base.Save(settings);
+                await base.SaveAsync(settings, cancel).ConfigureAwait(false);
             }
 
             // Find all settings that inherit from this setting and remove their cached data.
@@ -585,10 +589,10 @@ namespace SenseNet.ContentRepository
                 {
                     using (new SystemAccount())
                     {
-                        var q = ContentQuery.QueryAsync(SafeQueries.InTreeAndTypeIsAndName,
-                                new QuerySettings {EnableAutofilters = FilterStatus.Disabled}, CancellationToken.None,
+                        var q = await ContentQuery.QueryAsync(SafeQueries.InTreeAndTypeIsAndName,
+                                new QuerySettings { EnableAutofilters = FilterStatus.Disabled }, cancel,
                                 contextPath, nameof(Settings), this.Name)
-                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                            .ConfigureAwait(false);
 
                         foreach (var id in q.Identifiers)
                             NodeIdDependency.FireChanged(id);

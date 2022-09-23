@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -417,9 +418,9 @@ namespace SenseNet.ContentRepository.Tests
                 binaryData.SetStream(RepositoryTools.GetStreamFromString("Stream data."));
 
                 var folder = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var file = new File(folder) { Name = "file1.txt", Binary = binaryData };
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.Load(file.Id);
 
                 var contentName = content.Name;

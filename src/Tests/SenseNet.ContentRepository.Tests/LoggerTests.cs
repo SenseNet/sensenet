@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -74,13 +75,13 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // operations for a "content created" audit event
                 var folder = new SystemFolder(Repository.Root) {Name = "Folder1"};
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folderId = folder.Id;
 
                 // operations for a "content modified" audit event
                 folder = Node.Load<SystemFolder>(folderId);
                 folder.Index++;
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // operations for a "content deleted" audit event
                 folder = Node.Load<SystemFolder>(folderId);

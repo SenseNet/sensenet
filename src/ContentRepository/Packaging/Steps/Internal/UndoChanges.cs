@@ -60,7 +60,7 @@ namespace SenseNet.Packaging.Steps.Internal
                             Retrier.Retry(3, 1000, typeof(Exception), () =>
                             {
                                 var tgc = Node.Load<GenericContent>(gc.Id);
-                                tgc.UndoCheckOut();
+                                tgc.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                             });
                         }
                         catch (Exception ex)

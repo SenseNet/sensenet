@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository
                         app2["Scenario"] = "ContextMenu";
                         app2["Icon"] = "edit";
                         app2["RequiredPermissions"] = "See;Open;OpenMinor;Save";
-                        app2.Save();
+                        app2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // set app permissions
                         var developersGroupId = NodeHead.Get("/Root/IMS/BuiltIn/Portal/Developers")?.Id ?? 0;
@@ -535,7 +535,7 @@ namespace SenseNet.ContentRepository
                         publicAdmin["Enabled"] = true;
                         publicAdmin["FullName"] = "PublicAdmin";
                         publicAdmin["LoginName"] = "PublicAdmin";
-                        publicAdmin.Save();
+                        publicAdmin.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     #endregion
@@ -1356,7 +1356,7 @@ namespace SenseNet.ContentRepository
 
                                 using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
                                 setting.Binary.SetStream(modifiedStream);
-                                setting.Save(SavingMode.KeepVersion);
+                                setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                             }
                             else
                             {
@@ -1466,7 +1466,7 @@ namespace SenseNet.ContentRepository
 
                                     using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
                                     setting.Binary.SetStream(modifiedStream);
-                                    setting.Save(SavingMode.KeepVersion);
+                                    setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                     changed = true;
                                 }
                             }
@@ -1526,7 +1526,7 @@ namespace SenseNet.ContentRepository
                     
                     var rootNode = Node.Load<PortalRoot>("/Root");
                     rootNode.PreviewEnabled = PreviewEnabled.Yes;
-                    rootNode.Save();
+                    rootNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -1602,7 +1602,7 @@ namespace SenseNet.ContentRepository
             settings["GlobalOnly"] = true;
             settings["Binary"] = UploadHelper.CreateBinaryData(contentName, stream);
             settings["Description"] = description;
-            settings.Save();
+            settings.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             logger.LogTrace($"Settings {contentName} was created.");
         }

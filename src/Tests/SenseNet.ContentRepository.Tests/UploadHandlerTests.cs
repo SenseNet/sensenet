@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var root = Content.Load("/Root/Content");
                 var parent = Content.CreateNew("DocumentLibrary", root.ContentHandler, "DocLib");
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 UploadTextFile(null, parent, "Test.txt", false);
 
@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Tests
                 var firstText = "First content.";
                 var root = Content.Load("/Root/Content");
                 var parent = Content.CreateNew("DocumentLibrary", root.ContentHandler, "DocLib");
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 UploadTextFile(firstText, parent, "Test.txt", false);
 
@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
                 var modifiedText = "Modified content.";
                 var root = Content.Load("/Root/Content");
                 var parent = Content.CreateNew("DocumentLibrary", root.ContentHandler, "DocLib");
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 UploadTextFile(null, parent, "Test.txt", false);
                 UploadTextFile(modifiedText, parent, "Test.txt", true);
@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository.Tests
                 var firstText = "First content.";
                 var root = Content.Load("/Root/Content");
                 var parent = Content.CreateNew("DocumentLibrary", root.ContentHandler, "DocLib");
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 UploadTextFile(firstText, parent, "Test.txt", false);
                 UploadTextFile(null, parent, "Test.txt", true);
@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Tests
                 var modifiedText = "Modified content.";
                 var root = Content.Load("/Root/Content");
                 var parent = Content.CreateNew("DocumentLibrary", root.ContentHandler, "DocLib");
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 UploadTextFile(firstText, parent, "Test.txt", false);
                 UploadTextFile(modifiedText, parent, "Test.txt", true);

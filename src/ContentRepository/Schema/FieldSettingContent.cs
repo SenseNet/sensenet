@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools;
@@ -158,7 +159,17 @@ namespace SenseNet.ContentRepository.Schema
         /// </summary>
         public override void Save(SavingMode mode)
         {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method
+        /// does not call the base Save implementation, no standalone field setting content is saved into the
+        /// Content Repository.
+        /// </summary>
+        public override System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
             SaveFieldSetting();
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
         /// <summary>

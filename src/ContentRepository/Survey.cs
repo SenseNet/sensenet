@@ -137,7 +137,12 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================= Overrides
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             if (this.Id > 0 && Providers.Instance.SearchManager.ContentQueryIsAllowed)
             {
@@ -149,7 +154,7 @@ namespace SenseNet.ContentRepository
                 }
             }
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
         protected override void OnLoaded(object sender, Storage.Events.NodeEventArgs e)

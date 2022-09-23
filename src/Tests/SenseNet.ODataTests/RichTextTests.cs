@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -40,7 +41,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
                 content["RichText2"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 string queryString;
                 switch (projectorName)
@@ -94,7 +95,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
                 content["RichText2"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 string queryString;
                 switch (projectorName)
@@ -173,7 +174,7 @@ namespace SenseNet.ODataTests
 
                 var content = Content.CreateNew("ContentType1", testRoot, "Content1");
                 content["RichText1"] = new RichTextFieldValue { Text = textValue, Editor = editorValue };
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPutAsync(

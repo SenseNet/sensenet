@@ -55,7 +55,7 @@ namespace SenseNet.Tests.Core.Tests
                     DisplayName = "Node 1"
                 };
 
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 node = Node.Load<SystemFolder>(node.Id);
 
@@ -85,7 +85,7 @@ namespace SenseNet.Tests.Core.Tests
 
                 // ACTION
                 admin.FullName = testValue;
-                admin.Save();
+                admin.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 admin = Node.Load<User>(Identifiers.AdministratorUserId);
@@ -111,7 +111,7 @@ namespace SenseNet.Tests.Core.Tests
 
                     // ACTION
                     admin.SetProperty(propertyName, testValue);
-                    admin.Save();
+                    admin.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // ASSERT
                     admin = Node.Load<User>(Identifiers.AdministratorUserId);
@@ -191,7 +191,7 @@ namespace SenseNet.Tests.Core.Tests
 ");
 
                 var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var content = Content.CreateNew("DataTestNode", root, Guid.NewGuid().ToString());
@@ -202,7 +202,7 @@ namespace SenseNet.Tests.Core.Tests
                 content[textFieldName] = textValue;
                 content.ContentHandler.SetReference(referenceFieldName, referenceValue);
                 ((BinaryData)content[binaryFieldName]).SetStream(new IO.MemoryStream(buffer));
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 content = Content.Load(content.Id);
@@ -234,7 +234,7 @@ namespace SenseNet.Tests.Core.Tests
                 var file = new File(root) {Name = "File1.txt"};
                 file.Binary.ContentType = "application/octet-stream";
                 //file.Binary.FileName = "File1.txt";
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var chunks = new[]
                 {
@@ -281,7 +281,7 @@ namespace SenseNet.Tests.Core.Tests
         private SystemFolder CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
     }

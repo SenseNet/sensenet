@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -20,10 +21,10 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                                 sandbox.AllowChildType("File", save: true);
-                sandbox.Save();
+                sandbox.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var target = new Folder(sandbox) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sandbox, "File1", expectedFileContent);
@@ -44,10 +45,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ALIGN
                 sandbox.AllowChildType("File", save: true);
                 var target = new Folder(sandbox) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var _ = CreateFile(source, "File1", expectedFileContent);
 
@@ -102,7 +103,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -165,7 +166,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -196,10 +197,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
                 testFile.SetProperty("#Int_0", 42);
-                testFile.Save();
+                testFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var target = new Folder(sourceList) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Copy(testFile.Path, target.Path);
@@ -227,14 +228,14 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
                 testFile.SetProperty("#Int_0", 42);
-                testFile.Save();
+                testFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var target = new Folder(sourceList) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Copy(source.Path, target.Path);
@@ -304,7 +305,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -342,7 +343,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
@@ -381,10 +382,10 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -434,7 +435,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
@@ -462,7 +463,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Copy(sourceList.Path, targetFolder.Path);
@@ -475,7 +476,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
@@ -485,7 +486,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Copy(source.Path, targetFolder.Path);
@@ -618,20 +619,20 @@ namespace SenseNet.IntegrationTests.TestCases
                 sourceList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {sourceListFields}
 </Fields></ContentListDefinition>";
-                doclib1.Save();
+                doclib1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var doclib2 = Content.CreateNew("DocumentLibrary", sandbox, "DocLib2");
                 var targetList = (ContentList)doclib2.ContentHandler;
                 targetList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {targetListFields}
 </Fields></ContentListDefinition>";
-                doclib2.Save();
+                doclib2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = new File(sourceList) { Name = "File1" };
                 testFile.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
                 setSourceProperties(testFile);
-                testFile.Save();
+                testFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Copy(testFile.Path, targetList.Path);
@@ -665,7 +666,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new Folder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -688,7 +689,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -710,12 +711,12 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var sourceFolder = new SystemFolder(sandbox) { Name = "Source" };
-                sourceFolder.Save();
+                sourceFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 CreateStructureForMovingSystemContentTests(sourceFolder);
 
                 var targetFolder = new Folder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -738,7 +739,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -763,7 +764,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ALIGN
                 sandbox.AllowChildType("File", save: true);
                 var target = new Folder(sandbox) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sandbox, "File1", expectedFileContent);
@@ -783,10 +784,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ALIGN
                 sandbox.AllowChildType("File", save: true);
                 var target = new Folder(sandbox) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -835,7 +836,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -890,7 +891,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -917,10 +918,10 @@ namespace SenseNet.IntegrationTests.TestCases
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
                 testFile.SetProperty("#Int_0", 42);
-                testFile.Save();
+                testFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var target = new Folder(sourceList) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Move(testFile.Path, target.Path);
@@ -943,14 +944,14 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField1' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
                 testFile.SetProperty("#Int_0", 42);
-                testFile.Save();
+                testFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var target = new Folder(sourceList) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Move(source.Path, target.Path);
@@ -1012,7 +1013,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -1047,7 +1048,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(sourceList, "File1", expectedFileContent);
@@ -1083,10 +1084,10 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var source = new Folder(sourceList) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var expectedFileContent = "FileContent";
                 var testFile = CreateFile(source, "File1", expectedFileContent);
 
@@ -1133,7 +1134,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
@@ -1161,7 +1162,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Move(sourceList.Path, targetFolder.Path);
@@ -1174,7 +1175,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var source = new Folder(sandbox) { Name = "Source" };
-                source.Save();
+                source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var sourceList = CreateContentList(source, "DocLib1",
                     "<ContentListField name='#ListField1' type='ShortText'/>" +
                     "<ContentListField name='#ListField2' type='Integer'/>");
@@ -1184,7 +1185,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     "<ContentListField name='#ListField2' type='Integer'/>");
 
                 var targetFolder = new Folder(targetList) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Node.Move(source.Path, targetFolder.Path);
@@ -1201,7 +1202,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new Folder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -1224,7 +1225,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -1246,12 +1247,12 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // ALIGN
                 var sourceFolder = new SystemFolder(sandbox) { Name = "Source" };
-                sourceFolder.Save();
+                sourceFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 CreateStructureForMovingSystemContentTests(sourceFolder);
 
                 var targetFolder = new Folder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -1274,7 +1275,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 CreateStructureForMovingSystemContentTests(sandbox);
 
                 var targetFolder = new SystemFolder(sandbox) { Name = "Target" };
-                targetFolder.Save();
+                targetFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var targetPath = targetFolder.Path;
 
                 // ACTION
@@ -1292,11 +1293,11 @@ namespace SenseNet.IntegrationTests.TestCases
 
         private void CreateStructureForMovingSystemContentTests(Node sandbox)
         {
-            var f1 = new Folder(sandbox) { Name = "F1" }; f1.Save();
-            var sf1 = new SystemFolder(f1) { Name = "SF1" }; sf1.Save();
-            var leaf1 = new Folder(sf1) { Name = "Leaf1" }; leaf1.Save();
-            var f2 = new Folder(f1) { Name = "F2" }; f2.Save();
-            var leaf2 = new Folder(f2) { Name = "Leaf2" }; leaf2.Save();
+            var f1 = new Folder(sandbox) { Name = "F1" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var sf1 = new SystemFolder(f1) { Name = "SF1" }; sf1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var leaf1 = new Folder(sf1) { Name = "Leaf1" }; leaf1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var f2 = new Folder(f1) { Name = "F2" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var leaf2 = new Folder(f2) { Name = "Leaf2" }; leaf2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /* ==================================================================================== TOOLS */
@@ -1305,7 +1306,7 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             var file = new File(parent) { Name = "File1" };
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
         private ContentList CreateContentList(Node parent, string name, string listFields)
@@ -1315,7 +1316,7 @@ namespace SenseNet.IntegrationTests.TestCases
             targetList.ContentListDefinition = $@"<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'><Fields>
 {listFields}
 </Fields></ContentListDefinition>";
-            doclib.Save();
+            doclib.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return targetList;
         }
 

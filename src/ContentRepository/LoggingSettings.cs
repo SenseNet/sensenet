@@ -25,10 +25,14 @@ namespace SenseNet.ContentRepository
 
         private const string TRACESETTINGS_UPDATED_KEY = "TraceUpdated";
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
         {
-            base.Save(settings);
-
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async STT.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
             UpdateCategories();
         }
 

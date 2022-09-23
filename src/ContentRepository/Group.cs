@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository
 
             this.AddReference(MEMBERS, groupNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository
 
             this.AddReference(MEMBERS, userNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace SenseNet.ContentRepository
 
             this.RemoveReference(MEMBERS, groupNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -341,7 +341,7 @@ namespace SenseNet.ContentRepository
 
             this.RemoveReference(MEMBERS, userNode);
 
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void AssertSpecialGroup(string msg)
@@ -354,13 +354,20 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertValidMembers();
 
             var originalId = this.Id;
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // AD Sync
             if (_syncObject)
@@ -467,7 +474,7 @@ namespace SenseNet.ContentRepository
 
             // add the provided reference nodes
             group.AddReferences<Node>(MEMBERS, Node.LoadNodes(contentIds));
-            group.Save();
+            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return null;
         }
@@ -496,7 +503,7 @@ namespace SenseNet.ContentRepository
             // remove all the provided referenced nodes
             Node.LoadNodes(contentIds).ForEach(refNode => group.RemoveReference(MEMBERS, refNode));
 
-            group.Save();
+            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return null;
         }
@@ -669,7 +676,7 @@ namespace SenseNet.ContentRepository
             // update object without syncing to AD
             _syncObject = false;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

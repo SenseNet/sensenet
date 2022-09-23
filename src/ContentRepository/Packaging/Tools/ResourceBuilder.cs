@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -184,7 +185,7 @@ namespace SenseNet.Packaging.Tools
                     {
                         resourceRoot = new SystemFolder(Repository.Root, "Resources")
                             {Name = RepositoryPath.GetFileName(RepositoryStructure.ResourceFolderPath)};
-                        resourceRoot.Save();
+                        resourceRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     resource = new Resource(resourceRoot) {Name = resourceBuilder.ContentName};
@@ -192,7 +193,7 @@ namespace SenseNet.Packaging.Tools
                     binData.SetStream(RepositoryTools.GetStreamFromString(EmptyResource));
 
                     resource.Binary = binData;
-                    resource.Save();
+                    resource.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     //TODO: log!
                     //context.Console.WriteLine("NEW resource content: {0}", resource.Path);
@@ -233,7 +234,7 @@ namespace SenseNet.Packaging.Tools
             // save the resource content
             using var modifiedStream = RepositoryTools.GetStreamFromString(xDoc.OuterXml);
             resource.Binary.SetStream(modifiedStream);
-            resource.Save(SavingMode.KeepVersion);
+            resource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #region Xml editor methods

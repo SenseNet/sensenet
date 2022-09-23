@@ -118,7 +118,7 @@ namespace SenseNet.ContentRepository
 
                         cached.SetCachedData(CacheKey, databaseUsage);
                         cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
-                        cached.Save(SavingMode.KeepVersion);
+                        cached.SaveAsync(SavingMode.KeepVersion, cancel).GetAwaiter().GetResult();
 
                         _logger.LogTrace($"DatabaseUsage.cache has been saved. Iteration: {iteration}");
                     });

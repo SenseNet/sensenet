@@ -238,8 +238,8 @@ namespace SenseNet.ODataTests
                 using (new CurrentUserBlock(user))
                 {
                     file = new File(CreateTestRoot("TestFiles")) { Name = "File-1" };
-                    file.Save();
-                    file.CheckOut();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 Assert.AreEqual(user.Id, file.LockedById);
@@ -265,7 +265,7 @@ namespace SenseNet.ODataTests
                 using (new CurrentUserBlock(User.Administrator))
                 {
                     file = new File(CreateTestRoot("TestFiles")) { Name = Guid.NewGuid().ToString() };
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     Assert.AreEqual(Identifiers.AdministratorUserId, file.OwnerId);
                 }
 
@@ -633,7 +633,7 @@ namespace SenseNet.ODataTests
                 Enabled = true,
                 Email = email
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return user;
         }
 
@@ -650,12 +650,12 @@ namespace SenseNet.ODataTests
                 if (fileContainer == null)
                 {
                     fileContainer = new SystemFolder(Repository.Root) { Name = "TestFiles" };
-                    fileContainer.Save();
+                    fileContainer.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 TheFile = new File(fileContainer) { Name = fileName ?? Guid.NewGuid().ToString() };
                 TheFile.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                TheFile.Save();
+                TheFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             public void Dispose()

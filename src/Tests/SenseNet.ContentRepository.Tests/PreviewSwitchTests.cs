@@ -34,19 +34,19 @@ namespace SenseNet.ContentRepository.Tests
                     var contentFolder = Node.LoadNode("/Root/Content");
 
                     var docLib = Content.CreateNew("DocumentLibrary", contentFolder, "DocLib").ContentHandler;
-                    docLib.Save();
+                    docLib.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var folder1 = new Folder(docLib) {Name = "Folder1"};
-                    folder1.Save();
+                    folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var folder2 = new Folder(folder1) { Name = "Folder2" };
-                    folder2.Save();
+                    folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var file = new File(folder2) { Name = RepositoryTools.GetRandomString(8) + ".txt" };
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     bool IsPreviewStarted(PreviewEnabled level1, PreviewEnabled level2)
                     {
-                        folder1.PreviewEnabled = level1; folder1.Save();
-                        folder2.PreviewEnabled = level2; folder2.Save();
+                        folder1.PreviewEnabled = level1; folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                        folder2.PreviewEnabled = level2; folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         DocumentPreviewProvider.StartPreviewGeneration(file);
                         System.Threading.Tasks.Task.Delay(1).Wait();
@@ -133,13 +133,13 @@ namespace SenseNet.ContentRepository.Tests
                 if (fileContainer == null)
                 {
                     var containerContent = Content.CreateNew("DocumentLibrary", Node.LoadNode("/Root/Content"), "TestFiles");
-                    containerContent.Save();
+                    containerContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     fileContainer = containerContent.ContentHandler;
                 }
 
                 TheFile = new File(fileContainer) { Name = fileName ?? RepositoryTools.GetRandomString(8) + ".txt" };
                 TheFile.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                TheFile.Save();
+                TheFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             public void Dispose()

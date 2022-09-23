@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -33,7 +34,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var root = new Folder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 try
                 {
                     var x = Node.LoadNode(root.Id);
@@ -50,7 +51,7 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 try
                 {
                     var x = Node.LoadNode(root.Id);
@@ -67,9 +68,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder = new Folder(root) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 try
                 {
                     var x = Node.LoadNode(folder.Id);
@@ -87,10 +88,10 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new Folder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new Folder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
                 var targetName = target.Name;
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -164,10 +165,10 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new SystemFolder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new SystemFolder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
                 var targetName = target.Name;
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -241,10 +242,10 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new Folder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new SystemFolder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
                 var targetName = target.Name;
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -318,10 +319,10 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new SystemFolder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new Folder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
                 var targetName = target.Name;
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -396,9 +397,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new Folder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new Folder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -472,9 +473,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new SystemFolder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new SystemFolder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -548,9 +549,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new Folder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new SystemFolder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -624,9 +625,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new SystemFolder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new Folder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var nodeIds = CreateSourceStructure(srcParent);
                 Node f1, f2, s3, f4, s5, f6, f7, f8, f9, f10, f11, f12;
                 try
@@ -702,9 +703,9 @@ namespace SenseNet.IntegrationTests.TestCases
             IntegrationTest(() =>
             {
                 var srcParent = new Folder(Repository.Root) { Name = "Source-" + Guid.NewGuid() };
-                srcParent.Save();
+                srcParent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target = new Folder(Repository.Root) { Name = "Target-" + Guid.NewGuid() };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 if (ContentType.GetByName(nameof(TestSystemFolder)) == null)
                     ContentTypeInstaller.InstallContentType(TestSystemFolder.ContentTypeDefinition);
@@ -784,26 +785,26 @@ namespace SenseNet.IntegrationTests.TestCases
         private Dictionary<string, int> CreateSourceStructure(Folder srcParent)
         {
             var ids = new Dictionary<string, int>();
-            var f1 = new Folder(srcParent) { Name = "F1", Description = "SystemFlagTest" }; f1.Save(); ids.Add(f1.Name, f1.Id);
+            var f1 = new Folder(srcParent) { Name = "F1", Description = "SystemFlagTest" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f1.Name, f1.Id);
             {
-                var f2 = new Folder(f1) { Name = "F2", Description = "SystemFlagTest" }; f2.Save(); ids.Add(f2.Name, f2.Id);
+                var f2 = new Folder(f1) { Name = "F2", Description = "SystemFlagTest" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f2.Name, f2.Id);
                 {
-                    var s5 = new SystemFolder(f2) { Name = "S5", Description = "SystemFlagTest" }; s5.Save(); ids.Add(s5.Name, s5.Id);
+                    var s5 = new SystemFolder(f2) { Name = "S5", Description = "SystemFlagTest" }; s5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(s5.Name, s5.Id);
                     {
-                        var f11 = new Folder(s5) { Name = "F11", Description = "SystemFlagTest" }; f11.Save(); ids.Add(f11.Name, f11.Id);
-                        var f12 = new Folder(s5) { Name = "F12", Description = "SystemFlagTest" }; f12.Save(); ids.Add(f12.Name, f12.Id);
+                        var f11 = new Folder(s5) { Name = "F11", Description = "SystemFlagTest" }; f11.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f11.Name, f11.Id);
+                        var f12 = new Folder(s5) { Name = "F12", Description = "SystemFlagTest" }; f12.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f12.Name, f12.Id);
                     }
-                    var f6 = new Folder(f2) { Name = "F6", Description = "SystemFlagTest" }; f6.Save(); ids.Add(f6.Name, f6.Id);
+                    var f6 = new Folder(f2) { Name = "F6", Description = "SystemFlagTest" }; f6.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f6.Name, f6.Id);
                 }
-                var s3 = new SystemFolder(f1) { Name = "S3", Description = "SystemFlagTest" }; s3.Save(); ids.Add(s3.Name, s3.Id);
+                var s3 = new SystemFolder(f1) { Name = "S3", Description = "SystemFlagTest" }; s3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(s3.Name, s3.Id);
                 {
-                    var f7 = new Folder(s3) { Name = "F7", Description = "SystemFlagTest" }; f7.Save(); ids.Add(f7.Name, f7.Id);
-                    var f8 = new Folder(s3) { Name = "F8", Description = "SystemFlagTest" }; f8.Save(); ids.Add(f8.Name, f8.Id);
+                    var f7 = new Folder(s3) { Name = "F7", Description = "SystemFlagTest" }; f7.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f7.Name, f7.Id);
+                    var f8 = new Folder(s3) { Name = "F8", Description = "SystemFlagTest" }; f8.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f8.Name, f8.Id);
                 }
-                var f4 = new Folder(f1) { Name = "F4", Description = "SystemFlagTest" }; f4.Save(); ids.Add(f4.Name, f4.Id);
+                var f4 = new Folder(f1) { Name = "F4", Description = "SystemFlagTest" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f4.Name, f4.Id);
                 {
-                    var f9 = new Folder(f4) { Name = "F9", Description = "SystemFlagTest" }; f9.Save(); ids.Add(f9.Name, f9.Id);
-                    var f10 = new Folder(f4) { Name = "F10", Description = "SystemFlagTest" }; f10.Save(); ids.Add(f10.Name, f10.Id);
+                    var f9 = new Folder(f4) { Name = "F9", Description = "SystemFlagTest" }; f9.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f9.Name, f9.Id);
+                    var f10 = new Folder(f4) { Name = "F10", Description = "SystemFlagTest" }; f10.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f10.Name, f10.Id);
                 }
             }
 
@@ -812,27 +813,27 @@ namespace SenseNet.IntegrationTests.TestCases
         private Dictionary<string, int> CreateSourceStructure2(Folder srcParent)
         {
             var ids = new Dictionary<string, int>();
-            var f1 = new Folder(srcParent) { Name = "F1", Description = "SystemFlagTest" }; f1.Save(); ids.Add(f1.Name, f1.Id);
+            var f1 = new Folder(srcParent) { Name = "F1", Description = "SystemFlagTest" }; f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f1.Name, f1.Id);
             {
-                var f2 = new Folder(f1) { Name = "F2", Description = "SystemFlagTest" }; f2.Save(); ids.Add(f2.Name, f2.Id);
+                var f2 = new Folder(f1) { Name = "F2", Description = "SystemFlagTest" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f2.Name, f2.Id);
                 {
                     f2.AllowChildType(nameof(TestSystemFolder), true, save: true);
-                    var s5 = new TestSystemFolder(f2) { Name = "S5", Description = "SystemFlagTest" }; s5.Save(); ids.Add(s5.Name, s5.Id);
+                    var s5 = new TestSystemFolder(f2) { Name = "S5", Description = "SystemFlagTest" }; s5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(s5.Name, s5.Id);
                     {
-                        var f11 = new Folder(s5) { Name = "F11", Description = "SystemFlagTest" }; f11.Save(); ids.Add(f11.Name, f11.Id);
-                        var f12 = new Folder(s5) { Name = "F12", Description = "SystemFlagTest" }; f12.Save(); ids.Add(f12.Name, f12.Id);
+                        var f11 = new Folder(s5) { Name = "F11", Description = "SystemFlagTest" }; f11.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f11.Name, f11.Id);
+                        var f12 = new Folder(s5) { Name = "F12", Description = "SystemFlagTest" }; f12.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f12.Name, f12.Id);
                     }
-                    var f6 = new Folder(f2) { Name = "F6", Description = "SystemFlagTest" }; f6.Save(); ids.Add(f6.Name, f6.Id);
+                    var f6 = new Folder(f2) { Name = "F6", Description = "SystemFlagTest" }; f6.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f6.Name, f6.Id);
                 }
-                var s3 = new TestSystemFolder(f1) { Name = "S3", Description = "SystemFlagTest" }; s3.Save(); ids.Add(s3.Name, s3.Id);
+                var s3 = new TestSystemFolder(f1) { Name = "S3", Description = "SystemFlagTest" }; s3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(s3.Name, s3.Id);
                 {
-                    var f7 = new Folder(s3) { Name = "F7", Description = "SystemFlagTest" }; f7.Save(); ids.Add(f7.Name, f7.Id);
-                    var f8 = new Folder(s3) { Name = "F8", Description = "SystemFlagTest" }; f8.Save(); ids.Add(f8.Name, f8.Id);
+                    var f7 = new Folder(s3) { Name = "F7", Description = "SystemFlagTest" }; f7.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f7.Name, f7.Id);
+                    var f8 = new Folder(s3) { Name = "F8", Description = "SystemFlagTest" }; f8.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f8.Name, f8.Id);
                 }
-                var f4 = new Folder(f1) { Name = "F4", Description = "SystemFlagTest" }; f4.Save(); ids.Add(f4.Name, f4.Id);
+                var f4 = new Folder(f1) { Name = "F4", Description = "SystemFlagTest" }; f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f4.Name, f4.Id);
                 {
-                    var f9 = new Folder(f4) { Name = "F9", Description = "SystemFlagTest" }; f9.Save(); ids.Add(f9.Name, f9.Id);
-                    var f10 = new Folder(f4) { Name = "F10", Description = "SystemFlagTest" }; f10.Save(); ids.Add(f10.Name, f10.Id);
+                    var f9 = new Folder(f4) { Name = "F9", Description = "SystemFlagTest" }; f9.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f9.Name, f9.Id);
+                    var f10 = new Folder(f4) { Name = "F10", Description = "SystemFlagTest" }; f10.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f10.Name, f10.Id);
                 }
             }
 

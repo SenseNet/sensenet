@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -55,7 +56,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 AccessProvider.Current.SetCurrentUser(visitor);
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
@@ -83,7 +84,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 lockedNode.Reload();
                 AccessProvider.Current.SetCurrentUser(visitor);
-                lockedNode.UndoCheckOut();
+                lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 AccessProvider.Current.SetCurrentUser(originalUser);
 
                 Assert.IsTrue(expectedExceptionWasThrown, "The expected exception was not thrown.");
@@ -103,14 +104,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 var lockedNode = (GenericContent)LoadNode(testRoot, "Source");
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     MoveNode("Source", "Target", testRoot);
                 }
                 finally
                 {
                     lockedNode = (GenericContent)Node.LoadNode(lockedNode.Id);
                     if (lockedNode.Lock.Locked)
-                        lockedNode.UndoCheckOut();
+                        lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -128,14 +129,14 @@ namespace SenseNet.IntegrationTests.TestCases
                 var lockedNode = (GenericContent)LoadNode(testRoot, "Source/N1/N4");
                 try
                 {
-                    lockedNode.CheckOut();
+                    lockedNode.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     MoveNode("Source", "Target", testRoot, true);
                 }
                 finally
                 {
                     lockedNode = (GenericContent)Node.LoadNode(lockedNode.Id);
                     if (lockedNode.Lock.Locked)
-                        lockedNode.UndoCheckOut();
+                        lockedNode.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -262,17 +263,17 @@ namespace SenseNet.IntegrationTests.TestCases
                 EnsureNode(testRoot, "Source");
                 var node = (GenericContent)LoadNode(testRoot, "Source");
                 node.InheritableVersioningMode = ContentRepository.Versioning.InheritableVersioningType.MajorAndMinor;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 EnsureNode(testRoot, "Source/M1");
                 node = (GenericContent)LoadNode(testRoot, "Source/M1");
                 var m1NodeId = node.Id;
                 node.Index++;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 node = (GenericContent)LoadNode(testRoot, "Source/M1");
                 node.Index++;
-                node.Save();
-                ((GenericContent)LoadNode(testRoot, "Source/M1")).Publish();
-                ((GenericContent)LoadNode(testRoot, "Source/M1")).CheckOut();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                ((GenericContent)LoadNode(testRoot, "Source/M1")).PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                ((GenericContent)LoadNode(testRoot, "Source/M1")).CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 EnsureNode(testRoot, "Target");
 
                 MoveNode("Source", "Target", testRoot, true);
@@ -307,7 +308,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var content = Content.Create(LoadNode(testRoot, "Source/Child"));
                 content.AddAspects(aspect1);
                 content["CopyMoveTest_Move_WithAspect.Field1"] = "value1";
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var contentId = content.Id;
 
                 // remove aspect from cache
@@ -317,7 +318,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // ACTION: rename
                 var node = LoadNode(testRoot, "Source");
                 node.Name = Guid.NewGuid().ToString();
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // EXPECTATION: executed without any exception
             });
@@ -567,7 +568,7 @@ namespace SenseNet.IntegrationTests.TestCases
                         InstallCarContentType();
 
                     var testRoot = new SystemFolder(Repository.Root) { Name = "MoveTest" };
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     try
                     {
@@ -715,7 +716,7 @@ namespace SenseNet.IntegrationTests.TestCases
             contentlist.Name = name;
             contentlist.ContentListDefinition = listDef;
             contentlist.AllowChildTypes(new[] { "Folder", "Car" });
-            contentlist.Save();
+            contentlist.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateContentListItem(string parentPath, string name, string typeName)
         {
@@ -724,7 +725,7 @@ namespace SenseNet.IntegrationTests.TestCases
             if (typeName != "SystemFolder" && typeName != "Folder" && typeName != "Page")
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateNode(string parentPath, string name, string typeName)
         {
@@ -734,7 +735,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             if (content.Fields.ContainsKey("#TestField"))
                 content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private string DecodePath(SystemFolder testRoot, string relativePath)
         {
@@ -751,7 +752,7 @@ namespace SenseNet.IntegrationTests.TestCases
             if (existing != null)
                 return existing;
             var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, name);
-            aspectContent.Save();
+            aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (Aspect)aspectContent.ContentHandler;
         }
 

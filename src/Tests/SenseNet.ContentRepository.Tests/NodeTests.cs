@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Tests
                     Name = "Group1",
                     Members = new[] { u2, u3 }
                 };
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(u3.Id, u1.Id, false, PermissionType.See)
@@ -140,7 +140,7 @@ namespace SenseNet.ContentRepository.Tests
                     // Set new membership
                     var loadedUser = Node.Load<User>(u4.Id);
                     loadedGroup.Members = new[] { u4 };
-                    loadedGroup.Save();
+                    loadedGroup.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // ASSERT
@@ -158,11 +158,11 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
                 var u1 = CreateUser("U1");
                 var target0 = new Folder(root) { Name = "folder1" };
-                target0.Save();
+                target0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var target1 = new Folder(root) { Name = "folder2" };
-                target1.Save();
+                target1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var link = new ContentLink(root) { Name = "Link1", Link = target0 };
-                link.Save();
+                link.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(target1.Id, u1.Id, false, PermissionType.See)
@@ -193,7 +193,7 @@ namespace SenseNet.ContentRepository.Tests
                     // Set new target
                     var loadedTarget = Node.LoadNode(target1.Id);
                     loadedLink.Link = loadedTarget;
-                    loadedLink.Save();
+                    loadedLink.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // ASSERT
@@ -241,7 +241,7 @@ namespace SenseNet.ContentRepository.Tests
         private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = "_GroupTests" };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
         private User CreateUser(string name)
@@ -252,7 +252,7 @@ namespace SenseNet.ContentRepository.Tests
                 Email = $"{name}@example.com",
                 Enabled = true
             };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
     }

@@ -49,9 +49,14 @@ namespace SenseNet.ApplicationModel
             return false;
         }
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
         {
-            base.Save(settings);
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
             DeviceManager.Reset();
         }
 

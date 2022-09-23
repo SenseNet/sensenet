@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -28,17 +29,21 @@ namespace SenseNet.ContentRepository.Security.ADSync
 
         // ================================================================================= Overrides
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var settingsObject = DeserializeToJObject(this.Binary.GetStream());
             if (settingsObject != null)
             {
                 ReplaceOrEncodePasswords(settingsObject);
-
                 this.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsObject.ToString()));
             }
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
         }
 
         protected override void OnLoaded(object sender, NodeEventArgs e)

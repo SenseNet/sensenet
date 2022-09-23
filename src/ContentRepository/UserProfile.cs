@@ -1,4 +1,6 @@
-﻿using SenseNet.ContentRepository.Schema;
+﻿using System;
+using System.Threading;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
@@ -60,19 +62,23 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <inheritdoc />
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var thisUser = this.User;
             if (thisUser != null) // skip when importing
             {
-                this.VersionCreatedBy = thisUser;
-                this.VersionModifiedBy = thisUser;
-                this.CreatedBy = thisUser;
-                this.ModifiedBy = thisUser;
-                this.Owner = thisUser;
+                VersionCreatedBy = thisUser;
+                VersionModifiedBy = thisUser;
+                CreatedBy = thisUser;
+                ModifiedBy = thisUser;
+                Owner = thisUser;
             }
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
         }
     }
 }

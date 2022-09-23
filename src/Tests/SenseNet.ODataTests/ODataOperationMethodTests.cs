@@ -2674,7 +2674,7 @@ namespace SenseNet.ODataTests
                 {
                     var publicDomain = Node.LoadNode("/Root/IMS/Public");
                     var user1 = new User(publicDomain) {Name = "User1", Email = "user1@example.com", Enabled = true};
-                    user1.Save();
+                    user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var publicAdmins = Node.Load<Group>("/Root/IMS/Public/Administrators");
                     publicAdmins.AddMember(user1);
                     new SecurityHandler().CreateAclEditor()
@@ -2749,7 +2749,7 @@ namespace SenseNet.ODataTests
                     var nodes = Enumerable.Range(0, 4).Select(x =>
                     {
                         var folder = new Folder(Repository.Root) {Name = $"Folder{x}"};
-                        folder.Save();
+                        folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         return folder;
                     }).ToArray();
 
@@ -2891,7 +2891,7 @@ namespace SenseNet.ODataTests
                         VersioningMode = VersioningType.MajorAndMinor,
                         ApprovingMode = ApprovingType.True
                     };
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var fileContent = Content.Create(file);
 
@@ -2907,24 +2907,24 @@ namespace SenseNet.ODataTests
                         // V0.1.D
                         AssertActions(fileContent, new[] { "checkout", "publish" });
 
-                        file.CheckOut();
+                        file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // V0.2.L
                         AssertActions(fileContent, new[] { "checkin", "undocheckout", "publish" });
 
-                        file.CheckIn();
-                        file.Publish();
+                        file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
+                        file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // V0.2.P
                         AssertActions(fileContent, new[] { "approve", "reject", "checkout" });
 
-                        file.Reject();
+                        file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // V0.2.R
                         AssertActions(fileContent, new[] { "checkout", "publish" });
 
-                        file.Publish();
-                        file.Approve();
+                        file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                        file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         // V1.0.A
                         AssertActions(fileContent, new[] { "checkout" });
@@ -2978,7 +2978,7 @@ namespace SenseNet.ODataTests
                 parent.SaveSameVersion();
 
                 var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // delete to the Trash
                 file.Delete();

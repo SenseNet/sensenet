@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using  SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Events;
@@ -54,22 +55,29 @@ namespace SenseNet.ContentRepository
 	    [Obsolete("This property and content field will be removed in the future.")]
         public long FullSize => -1;
 
-	    // ================================================================================= Overrides
+		// ================================================================================= Overrides
 
-        /// <inheritdoc />
-        /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
+		/// <inheritdoc />
+		/// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
+		[Obsolete("Use async version instead.", true)]
 	    public override void Save(NodeSaveSettings settings)
 	    {
+			SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+	    }
+		/// <inheritdoc />
+        /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
             // check new content here for speedup reasons
 	        if (IsNew)
 	        {
 	            AssertExecutableType(this);
 	            SetBinaryData(this);
 	        }
-	        base.Save(settings);
-	    }
+	        await base.SaveAsync(settings, cancel).ConfigureAwait(false);
+        }
 
-	    /// <summary>
+        /// <summary>
 	    /// Overrides the base class behavior. Triggers the validation of the executable file's type-consistency.
 	    /// For example after renaming a file to have a .cshtml extension, it must be an "ExecutableFile" or a derived type.
 	    /// Do not use this method directly from your code.

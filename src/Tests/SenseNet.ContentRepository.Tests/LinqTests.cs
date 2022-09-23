@@ -420,7 +420,7 @@ namespace SenseNet.ContentRepository.Tests
                 /**/ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var mother1 = Content.CreateNew("RefTestNode", root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(mother1);
@@ -438,7 +438,7 @@ namespace SenseNet.ContentRepository.Tests
                 /**/ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 //var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                //root.Save();
+                //root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var node = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(node);
 
@@ -484,7 +484,7 @@ namespace SenseNet.ContentRepository.Tests
         //    if (folder == null)
         //    {
         //        folder = new Folder(TestRoot) { Name = folderName };
-        //        folder.Save();
+        //        folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         //        for (int i = 0; i < 4; i++)
         //        {
         //            var content = Content.CreateNew("Car", folder, "Car" + i);
@@ -947,7 +947,7 @@ Id:<42 .QUICK";
                     Name = aspectName,
                     AspectDefinition = aspectDefinition
                 };
-                aspect.Save();
+                aspect.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual($"{aspectName}.{ fieldName}:{ fieldValue}",
                 GetQueryString(Content.All.OfType<Content>().Where(c => (string)c[$"{aspectName}.{fieldName}"] == fieldValue)));
@@ -1331,7 +1331,7 @@ Id:<42 .QUICK";
         //    var user = new User(User.Administrator.Parent);
         //    user.Name = "testuser129";
         //    user.Email = email;
-        //    user.Save();
+        //    user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
         //    Assert.IsTrue(result != null);
@@ -1451,7 +1451,7 @@ Id:<42 .QUICK";
         //    if (aspect == null)
         //    {
         //        aspect = new Aspect(Repository.AspectsFolder) { Name = aspectName };
-        //        aspect.Save();
+        //        aspect.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         //    }
 
 
@@ -1468,9 +1468,9 @@ Id:<42 .QUICK";
         //public void Linq_Bug_ChildrenBatchLoadInsteadOfOneByOne()
         //{
         //    var folderNode = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString() };
-        //    folderNode.Save();
+        //    folderNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         //    for (int i = 0; i < 10; i++)
-        //        (new SystemFolder(folderNode) { Name = Guid.NewGuid().ToString() }).Save();
+        //        (new SystemFolder(folderNode) { Name = Guid.NewGuid().ToString() }).SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         //    ContentRepository.Storage.Caching.Dependency.PathDependency.FireChanged(folderNode.Path);
         //    var content = Content.Load(folderNode.Id);
 
@@ -1590,7 +1590,7 @@ Id:<42 .QUICK";
         {
             foreach (var observer in NodeObserver.GetObserverTypes())
                 node.DisableObserver(observer);
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void InvalidOperationTest(Action action)

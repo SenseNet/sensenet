@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Events;
 
 
@@ -196,7 +197,7 @@ namespace SenseNet.ContentRepository
                     // set reference
                     var result = imageField.SetThumbnailReference(image);
                     if (result)
-                        content.Save();
+                        content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
             base.OnCreated(sender, e);
@@ -204,7 +205,7 @@ namespace SenseNet.ContentRepository
             // refresh image width/height than save the content again
             if (MustRefreshDimensions(image, e))
             {
-                image.Save(SavingMode.KeepVersion);
+                image.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         /// <summary>
@@ -246,7 +247,7 @@ namespace SenseNet.ContentRepository
             // refresh image width/height than save the content again
             if (MustRefreshDimensions(image, e))
             {
-                image.Save(SavingMode.KeepVersion);
+                image.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         /// <summary>
@@ -274,7 +275,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <inheritdoc />
+        [Obsolete("Use async version instead.", true)]
         public override void FinalizeContent()
         {
             base.FinalizeContent();
@@ -282,6 +283,14 @@ namespace SenseNet.ContentRepository
             // refresh image width/height than save the content again
             if (SetDimension(this))
                 this.Save(SavingMode.KeepVersion);
+        }
+        public override async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
+        {
+            await base.FinalizeContentAsync(cancel).ConfigureAwait(false);
+
+            // refresh image width/height than save the content again
+            if (SetDimension(this))
+                await this.SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

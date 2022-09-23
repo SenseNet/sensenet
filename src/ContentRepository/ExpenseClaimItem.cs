@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
@@ -48,7 +49,7 @@ namespace SenseNet.ContentRepository
                 ec.Version.Status != VersionStatus.Pending)
                 return;
 
-            ec.Save();
+            ec.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

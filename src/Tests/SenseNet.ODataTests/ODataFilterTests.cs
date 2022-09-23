@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -115,12 +116,12 @@ namespace SenseNet.ODataTests
                 var list = new ContentList(testRoot) { Name = Guid.NewGuid().ToString() };
                 list.ContentListDefinition = listDef;
                 list.AllowedChildTypes = new ContentType[] { ContentType.GetByName(itemType) };
-                list.Save();
+                list.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // create item
                 var item = Content.CreateNew(itemType, list, Guid.NewGuid().ToString());
                 item["#CustomField"] = fieldValue;
-                item.Save();
+                item.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // check expando field accessibility
                 item = Content.Load(item.Id);
@@ -169,13 +170,13 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot();
 
                 var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder1 = new Folder(folder) { Name = "Folder1" };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(folder) { Name = "Folder2" };
-                folder2.Save();
+                folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var content = Content.CreateNew("Car", folder, null);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
@@ -234,7 +235,7 @@ namespace SenseNet.ODataTests
                 {
                     var car = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                     car["Make"] = item;
-                    car.Save();
+                    car.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 var response = await ODataGetAsync(
@@ -274,14 +275,14 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot();
 
                 var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder1 = new Folder(folder) { Name = "Folder1" };
-                folder1.Save();
+                folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(folder) { Name = "Folder2" };
-                folder2.Save();
+                folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content = Content.CreateNew("Car", folder, null);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,

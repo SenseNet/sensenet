@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
@@ -68,7 +69,7 @@ namespace SenseNet.OData.IO
             if (targetContent != null)
             {
                 ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
-                targetContent.Save();
+                targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 action = "updated";
             }
             else

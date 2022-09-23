@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -104,7 +105,7 @@ namespace SenseNet.Services.Core.Tests
 
                 var user1 = Node.LoadNode(nodeId);
                 user1.Index++;
-                user1.Save();
+                user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsNull(Cache.Get(key1));
                 Assert.IsNull(Cache.Get(key2));
@@ -198,7 +199,7 @@ namespace SenseNet.Services.Core.Tests
                 Email = "very-public"+ loginName + "@example.com",
                 Enabled = true
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return user.Id;
         }
@@ -216,7 +217,7 @@ namespace SenseNet.Services.Core.Tests
             Test(() =>
             {
                 if (defaultDomain != BuiltIn)
-                    new Domain(Repository.ImsFolder) {Name = defaultDomain}.Save();
+                    new Domain(Repository.ImsFolder) {Name = defaultDomain}.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 using (new Swindler<DomainUsagePolicy>(domainUsagePolicy,
                            () => IdentityManagement.DomainUsagePolicy,

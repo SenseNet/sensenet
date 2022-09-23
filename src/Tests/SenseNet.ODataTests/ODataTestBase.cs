@@ -389,7 +389,7 @@ namespace SenseNet.ODataTests
                     Enabled = true,
                     Email = "manager0@example.com"
                 };
-                manager.Save();
+                manager.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
@@ -398,7 +398,7 @@ namespace SenseNet.ODataTests
 
             content["Manager"] = manager;
             content["Email"] = "anybody@somewhere.com";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         protected static Workspace CreateWorkspace(string name = null)
@@ -407,11 +407,11 @@ namespace SenseNet.ODataTests
             if (workspaces == null)
             {
                 workspaces = new Folder(Repository.Root) { Name = "Workspaces" };
-                workspaces.Save();
+                workspaces.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             var workspace = new Workspace(workspaces) { Name = name ?? Guid.NewGuid().ToString() };
-            workspace.Save();
+            workspace.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return workspace;
         }
@@ -426,7 +426,7 @@ namespace SenseNet.ODataTests
                 Name = name ?? Guid.NewGuid().ToString(),
                 TrashDisabled = trashDisabled
             };
-            systemFolder.Save();
+            systemFolder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return systemFolder;
         }
 

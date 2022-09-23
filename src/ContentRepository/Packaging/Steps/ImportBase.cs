@@ -437,10 +437,10 @@ namespace SenseNet.Packaging.Steps
                         var operators = Node.Load<Group>(Identifiers.OperatorsGroupPath);
 
                         admins.AddMember(admin);
-                        admins.Save();
+                        admins.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         operators.AddMember(admins);
-                        operators.Save();
+                        operators.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     // Import resources
@@ -448,7 +448,7 @@ namespace SenseNet.Packaging.Steps
                     if (localizationRoot == null)
                     {
                         localizationRoot = Content.CreateNew("Resources", Repository.Root, "Localization");
-                        localizationRoot.Save();
+                        localizationRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     ImportResources(fsPath);
 
@@ -603,7 +603,7 @@ namespace SenseNet.Packaging.Steps
 
                 var rootNode = Node.Load<PortalRoot>(Identifiers.PortalRootId);
                 rootNode.PreviewEnabled = PreviewEnabled.Yes;
-                rootNode.Save();
+                rootNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Log(ImportLogLevel.Info, "Set initial membership ...");
 
@@ -813,7 +813,8 @@ namespace SenseNet.Packaging.Steps
                     if (!Node.Exists(Repository.AspectsFolderPath))
                     {
                         Log(ImportLogLevel.Info, "Creating aspect container (" + Repository.AspectsFolderPath + ")...");
-                        Content.CreateNew(typeof(SystemFolder).Name, Repository.SchemaFolder, "Aspects").Save();
+                        Content.CreateNew(typeof(SystemFolder).Name, Repository.SchemaFolder, "Aspects")
+                            .SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         Log(ImportLogLevel.Info, "  Ok");
                     }
 
@@ -1048,7 +1049,7 @@ namespace SenseNet.Packaging.Steps
                             if (!contentInfo.SetMetadata(content, currentDir, isNewContent, false))
                                 PrintFieldErrors(content, contentInfo.MetaDataPath);
                             if (content.ContentHandler.Id == 0)
-                                content.ContentHandler.Save();
+                                content.ContentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         }
                         catch (Exception e)
                         {

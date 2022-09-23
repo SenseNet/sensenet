@@ -165,7 +165,7 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 var gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id1 = content.Id;
 
                 // TESTS
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var qctx = new SnQueryContext(QuerySettings.Default, User.Current.Id);
 
                 var queries = new[]
@@ -244,7 +244,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 RewritingTest("SharedWith:user1@example.com", "Sharing:Tuser1@example.com");
 
@@ -267,7 +267,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var qA = "SharedWith:user1@example.com";
                 var qB = $"SharedWith:{user.Id}";
@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var user = CreateUser("abc1@example.com");
 
@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var user = CreateUser("abc1@example.com");
                 var importData1 = @"<Sharing>
@@ -507,7 +507,7 @@ namespace SenseNet.ContentRepository.Tests
                     xDoc.LoadXml(importData1);
 
                     content.Fields["Sharing"].Import(xDoc.DocumentElement);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // this is to simulate postponed sharing permission setting during import
                     content.Sharing.UpdatePermissions();
@@ -555,7 +555,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var importData1 = @"<Fields><Sharing>
 [
@@ -655,13 +655,13 @@ namespace SenseNet.ContentRepository.Tests
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 var gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd[0], sd[1] });
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id1 = content.Id;
 
                 content = Content.CreateNew(nameof(GenericContent), root, "Document-2");
                 gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd[2], sd[3] });
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id2 = content.Id;
 
                 //SaveIndex(@"D:\_index");
@@ -722,7 +722,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -743,7 +743,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -764,7 +764,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -785,7 +785,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -865,7 +865,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // internal user
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false);
@@ -899,7 +899,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: change email
                 user.Email = "user3@example.com";
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -910,7 +910,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: clear email
                 user.Email = string.Empty;
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -921,7 +921,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: change to an existing external email
                 user.Email = "user2@example.com";
-                user.Save(SavingMode.KeepVersion);
+                user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -947,7 +947,7 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
                 root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Public, false); // external user
@@ -1001,12 +1001,12 @@ namespace SenseNet.ContentRepository.Tests
                     Enabled = true,
                     Email = "user1@example.com"
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var group = new Group(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
                 {
                     Name = "Group-1"
                 };
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // add user sharing the official way
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
@@ -1026,7 +1026,7 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 root.SharingData = SharingHandler.Serialize(items);
-                root.Save(SavingMode.KeepVersion);
+                root.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 items = root.Sharing.Items.ToList();
 
@@ -1059,7 +1059,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -1128,7 +1128,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -1154,7 +1154,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -1184,7 +1184,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
 
@@ -1209,7 +1209,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
@@ -1243,7 +1243,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var gc = (GenericContent)content.ContentHandler;
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
@@ -1266,7 +1266,7 @@ namespace SenseNet.ContentRepository.Tests
                 if (!trash.IsActive)
                 {
                     trash.IsActive = true;
-                    trash.Save(SavingMode.KeepVersion);
+                    trash.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // move to the trash
@@ -1545,7 +1545,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var user1 = CreateUser("abc1@example.com");
                 var user2 = CreateUser("abc2@example.com");
@@ -1620,7 +1620,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
                 var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Authenticated);
@@ -1680,12 +1680,12 @@ namespace SenseNet.ContentRepository.Tests
                 Enabled = true,
                 Email = "user1@example.com"
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var root = CreateTestRoot();
 
             var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             gc = (GenericContent)content.ContentHandler;
         }
 
@@ -1762,7 +1762,7 @@ namespace SenseNet.ContentRepository.Tests
                 Name = "TestRoot",
                 TrashDisabled = false
             };
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 
@@ -1785,7 +1785,7 @@ namespace SenseNet.ContentRepository.Tests
                 Enabled = true,
                 Email = email
             };
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return user;
         }
 

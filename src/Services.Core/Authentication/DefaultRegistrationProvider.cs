@@ -96,7 +96,7 @@ namespace SenseNet.Services.Core.Authentication
 
             try
             {
-                await SaveImageAsync(user, image).ConfigureAwait(false);
+                await SaveImageAsync(user, image, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -131,7 +131,7 @@ namespace SenseNet.Services.Core.Authentication
 
             setProperties?.Invoke(user);
 
-            user.Save();
+            user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken).ConfigureAwait(false);
 
@@ -173,10 +173,10 @@ namespace SenseNet.Services.Core.Authentication
             }
         }
 
-        private async Task SaveImageAsync(User user, string imageUrl)
+        private async Task SaveImageAsync(User user, string imageUrl, CancellationToken cancel)
         {
             using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(imageUrl).ConfigureAwait(false);
+            using var response = await httpClient.GetAsync(imageUrl, cancel).ConfigureAwait(false);
 
             // Determine the image type based on the response header. The url
             // is not enough because in many cases it does not contain an extension.
@@ -194,7 +194,7 @@ namespace SenseNet.Services.Core.Authentication
 
             var bd = UploadHelper.CreateBinaryData("avatar." + contentType, stream);
             user.SetBinary("ImageData", bd);
-            user.Save(SavingMode.KeepVersion);
+            await user.SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
         }
 
         private User GetUserByEmail(string email)

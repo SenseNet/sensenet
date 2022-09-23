@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -100,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
                         Name = "MyType1",
                         Binary = binaryData
                     };
-                    contentType.Save();
+                    contentType.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Assert.Fail("The expected exception was not thrown.");
                 }
@@ -193,7 +194,7 @@ namespace SenseNet.ContentRepository.Tests
                         Name = "MyType1",
                         Binary = binaryData
                     };
-                    contentType.Save();
+                    contentType.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Assert.Fail("The expected exception was not thrown.");
                 }
@@ -286,7 +287,7 @@ namespace SenseNet.ContentRepository.Tests
                         Name = "MyType1",
                         Binary = binaryData
                     };
-                    contentType.Save();
+                    contentType.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Assert.Fail("The expected exception was not thrown.");
                 }

@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Tests.Core;
 using System;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.Security;
 
@@ -89,7 +90,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = versioning;
                 file.ApprovingMode = approving;
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(expectedVersion, file.Version.ToString());
 
@@ -105,7 +106,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var parent = CreateTestRoot();
                 parent.InheritableVersioningMode = parentVersioning;
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = CreateTestFile(parent);
 
@@ -115,7 +116,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.Inherited;
                 file.ApprovingMode = approving;
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(expectedVersion, file.Version.ToString());
 
                 var file1 = Node.Load<File>(file.Id);
@@ -130,7 +131,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var parent = CreateTestRoot();
                 parent.InheritableApprovingMode = parentApproving;
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = CreateTestFile(parent);
 
@@ -139,7 +140,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = versioning;
                 file.ApprovingMode = ApprovingType.Inherited;
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(expectedVersion, file.Version.ToString());
 
                 var file1 = Node.Load<File>(file.Id);
@@ -162,7 +163,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -179,7 +180,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -196,7 +197,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -213,7 +214,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -230,7 +231,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -247,7 +248,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.Index = 42;
-                file.Save(SavingMode.KeepVersion);
+                file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
@@ -262,7 +263,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var file = CreateTestFile(save: false);
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(User.Current.Id, file.LockedById);
             });
         }
@@ -275,14 +276,14 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                 var fileId = file.Id;
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V1.0.L", file.Version.ToString());
                 Assert.AreEqual(1, file.Versions.Count());
 
-                file.CheckIn();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
@@ -298,20 +299,20 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                 var fileId = file.Id;
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V0.1.L", file.Version.ToString());
                 Assert.AreEqual(1, file.Versions.Count());
 
-                file.CheckIn();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V0.1.D", file.Version.ToString());
                 Assert.AreEqual(1, file.Versions.Count());
 
-                file.Publish();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V0.1.P", file.Version.ToString());
@@ -327,14 +328,14 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                 var fileId = file.Id;
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V0.1.L", file.Version.ToString(), "Version number is not correct after locked save.");
                 Assert.AreEqual(1, file.Versions.Count(), "Version count is not correct after locked save.");
 
-                file.CheckIn();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V0.1.D", file.Version.ToString(), "Version number is not correct after checkin.");
@@ -348,8 +349,8 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var file = CreateTestFile(save: false);
-                file.Save(SavingMode.KeepVersionAndLock);
-                file.UndoCheckOut();
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
 
@@ -364,7 +365,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
             });
@@ -378,7 +379,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
             });
@@ -392,7 +393,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.L", file.Version.ToString());
             });
@@ -406,7 +407,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
             });
@@ -420,7 +421,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
             });
@@ -434,7 +435,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.L", file.Version.ToString());
             });
@@ -449,7 +450,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 using (new SystemAccount())
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual(User.LoggedInUser.Id, file.LockedById);
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
@@ -467,8 +468,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -483,8 +484,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.A", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -499,8 +500,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.D", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -515,8 +516,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.P", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -531,8 +532,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.P", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -547,8 +548,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.D", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -566,8 +567,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -582,8 +583,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -598,8 +599,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -614,8 +615,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -630,8 +631,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -646,8 +647,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.UndoCheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -666,8 +667,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -680,8 +681,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -693,8 +694,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.A", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -710,8 +711,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -724,8 +725,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -737,8 +738,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.CheckOut();
-                file.Publish();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.P", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -757,8 +758,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -771,8 +772,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -785,9 +786,9 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Publish();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -799,8 +800,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
@@ -815,8 +816,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.A", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -831,9 +832,9 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Publish();
-                file.Approve();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.A", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -852,8 +853,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -866,8 +867,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -880,9 +881,9 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.False;
 
-                file.Save();
-                file.Publish();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -894,8 +895,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.None;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.R", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -910,8 +911,8 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorOnly;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.R", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -926,9 +927,9 @@ namespace SenseNet.ContentRepository.Tests
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.ApprovingMode = ApprovingType.True;
 
-                file.Save();
-                file.Publish();
-                file.Reject();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V1.1.R", file.Version.ToString());
                 Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
@@ -944,7 +945,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var container = CreateTestRoot();
                 container.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content = CreateTestFile(container);
                 Assert.AreEqual(VersionNumber.Parse("V0.1.D"), content.Version);
@@ -952,22 +953,22 @@ namespace SenseNet.ContentRepository.Tests
                 var versionCount = 0;
                 content = CreateTestFile(container, save: false);
                 content.Version = new VersionNumber(2, 0);
-                content.SaveExplicitVersion(); // must be called
+                content.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult(); // must be called
                 versionCount++;
                 content.Version = new VersionNumber(2, 1);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
                 content.Version = new VersionNumber(2, 2);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
                 content.Version = new VersionNumber(3, 0);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
                 content.Version = new VersionNumber(6, 3);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
                 content.Version = new VersionNumber(42, 0);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
 
                 var expected = "V2.0.A, V2.1.D, V2.2.D, V3.0.A, V6.3.D, V42.0.A";
@@ -977,13 +978,13 @@ namespace SenseNet.ContentRepository.Tests
 
                 //------------------------ modify is allowed
                 content.Version = new VersionNumber(42, 0);
-                content.SaveExplicitVersion();
+                content.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(VersionNumber.Parse("V42.0.A"), content.Version);
                 Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
 
                 //------------------------ modify is allowed (but version will be 42.1.D)
                 content.Version = new VersionNumber(42, 0);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 versionCount++;
                 Assert.AreEqual(VersionNumber.Parse("V42.1.D"), content.Version);
                 Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
@@ -993,7 +994,7 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     content.Version = new VersionNumber(41, 0);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentActionException)
                 {
@@ -1005,7 +1006,7 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     content.Version = new VersionNumber(45, 0);
-                    content.Save(SavingMode.KeepVersion);
+                    content.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentActionException)
                 {
@@ -1023,7 +1024,7 @@ namespace SenseNet.ContentRepository.Tests
                 var container = CreateTestRoot();
                 container.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
                 container.InheritableApprovingMode = ApprovingType.True;
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = CreateTestFile(container);
                 Assert.AreEqual(VersionNumber.Parse("V0.1.D"), file.Version);
@@ -1031,11 +1032,11 @@ namespace SenseNet.ContentRepository.Tests
                 var thrown = false;
 
                 // cannot save explicit version if the content is locked
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 file.Version = new VersionNumber(42, 0);
                 try
                 {
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentActionException)
                 {
@@ -1045,11 +1046,11 @@ namespace SenseNet.ContentRepository.Tests
 
                 // cannot save explicit version if the content is in "pending for approval" state
                 thrown = false;
-                file.Publish();
+                file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
                 file.Version = new VersionNumber(42, 0);
                 try
                 {
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentActionException)
                 {
@@ -1060,11 +1061,11 @@ namespace SenseNet.ContentRepository.Tests
                 // cannot save explicit version if the content is in "rejected" state
                 thrown = false;
                 file = Node.Load<File>(file.Id);
-                file.Reject();
+                file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
                 file.Version = new VersionNumber(42, 0);
                 try
                 {
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentActionException)
                 {
@@ -1092,7 +1093,7 @@ namespace SenseNet.ContentRepository.Tests
                         Email = "UserFor_GC_ElevatedSaveWithLock_CheckedOutByAnotherUser@example.com",
                         Enabled = true
                     };
-                    testUser.Save();
+                    testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     testUser = Node.Load<User>(testUser.Id);
                 }
 
@@ -1115,14 +1116,14 @@ namespace SenseNet.ContentRepository.Tests
 
                         //============ Orig user modifies and locks the file
                         testFile.Index++;
-                        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+                        testFile.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult(); //(must work properly)
 
                         //============ Orig user makes free the file
-                        testFile.CheckIn();
+                        testFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         //============ Test user locks the file
                         User.Current = testUser;
-                        testFile.CheckOut();
+                        testFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         //============ Test user tries to lock the file
                         User.Current = origUser;
@@ -1132,7 +1133,7 @@ namespace SenseNet.ContentRepository.Tests
                         //============ System user always can save
                         modifierIdBefore = testFile.ModifiedById;
                         using (new SystemAccount())
-                            testFile.Save(SavingMode.KeepVersion);
+                            testFile.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                         modifierIdAfter = testFile.ModifiedById;
                     }
                     finally
@@ -1141,7 +1142,7 @@ namespace SenseNet.ContentRepository.Tests
                         if (testFile.Locked)
                         {
                             User.Current = testFile.LockedBy;
-                            testFile.CheckIn();
+                            testFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
                         }
                     }
                 }
@@ -1169,7 +1170,7 @@ namespace SenseNet.ContentRepository.Tests
                     Email = "UserFor_GC_SaveWithLock_Exception@example.com",
                     Enabled = true
                 };
-                testUser.Save();
+                testUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 testUser = Node.Load<User>(testUser.Id);
                 File testFile = null;
                 var origUser = User.Current;
@@ -1183,14 +1184,14 @@ namespace SenseNet.ContentRepository.Tests
 
                 //============ Orig user modifies and locks the file
                 testFile.Index++;
-                testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+                testFile.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult(); //(must work properly)
 
                 //============ Orig user makes free thr file
-                testFile.CheckIn();
+                testFile.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //============ Test user locks the file
                 User.Current = testUser;
-                testFile.CheckOut();
+                testFile.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //============ Administrator tries to lock the file
                 User.Current = User.Administrator;
@@ -1198,7 +1199,7 @@ namespace SenseNet.ContentRepository.Tests
                 testFile.Index++;
                 try
                 {
-                    testFile.Save(SavingMode.KeepVersionAndLock);
+                    testFile.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                     //============ forbidden code branch
                     Assert.Fail("InvalidContentActionException was not thrown");
@@ -1211,7 +1212,7 @@ namespace SenseNet.ContentRepository.Tests
                 User.Current = origUser;
                 testFile = Node.Load<File>(testFile.Id);
                 testFile.Index++;
-                testFile.Save(SavingMode.KeepVersionAndLock);
+                testFile.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
             });
         }
 
@@ -1229,20 +1230,20 @@ namespace SenseNet.ContentRepository.Tests
 
                 var file = CreateTestFile(save: false);
                 file.VersioningMode = VersioningType.MajorAndMinor;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var versionId = file.VersionId;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //lock by the current user
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var lockedVersion = file.Version;
 
                 //restore original content
                 file = (File) Node.LoadNodeByVersionId(versionId);
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsTrue(file.Locked, "File is not locked after restore.");
                 Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
@@ -1263,20 +1264,20 @@ namespace SenseNet.ContentRepository.Tests
 
                 var file = CreateTestFile(save: false);
                 file.VersioningMode = VersioningType.MajorAndMinor;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var versionId = file.VersionId;
 
-                file.CheckOut();
-                file.CheckIn();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //lock by the current user
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var lockedVersion = file.Version;
 
                 //restore original content
                 file = (File)Node.LoadNodeByVersionId(versionId);
-                file.Save(SavingMode.KeepVersionAndLock);
+                file.SaveAsync(SavingMode.KeepVersionAndLock, CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsTrue(file.Locked, "File is not locked after restore.");
                 Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
@@ -1299,23 +1300,23 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 // action 2
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
 
                 // action 3
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
 
                 // action 4
                 file.Index++;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.AreEqual("V2.0.L", file.Version.ToString());
 
                 // action 5
-                file.CheckIn();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
@@ -1333,28 +1334,28 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var container = CreateTestRoot(save: false);
                 container.InheritableVersioningMode = InheritableVersioningType.None;
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = CreateTestFile(container, save: false);
                 var stream = RepositoryTools.GetStreamFromString("asdf qwer yxcv");
                 var binaryData = new BinaryData { ContentType = "text/plain", FileName = "1.txt", Size = stream.Length };
                 binaryData.SetStream(stream);
                 file.SetBinary("Binary", binaryData);
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var fileId = file.Id;
 
                 // operation
 
                 file = Node.Load<File>(fileId);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 file = Node.Load<File>(fileId);
-                file.CheckIn();
+                file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // assertion
 
@@ -1375,7 +1376,7 @@ namespace SenseNet.ContentRepository.Tests
             //var folderContent = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
             //var folder = (Folder)folderContent.ContentHandler;
             //folder.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
-            //folder.Save();
+            //folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //var fileContent = Content.CreateNew("File", folder, null);
             //var file = (File)fileContent.ContentHandler;
@@ -1385,21 +1386,21 @@ namespace SenseNet.ContentRepository.Tests
             //binaryData.SetStream(stream);
 
             //file.SetBinary("Binary", binaryData);
-            //file.Save();
+            //file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //var fileId = file.Id;
 
             ////--------------------------------------------- operating
 
             //file = Node.Load<File>(fileId);
-            //file.CheckOut();
+            //file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //file = Node.Load<File>(fileId);
             //file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
-            //file.Save();
+            //file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //file = Node.Load<File>(fileId);
-            //file.CheckIn();
+            //file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //file = Node.Load<File>(fileId);
             //var s = RepositoryTools.GetStreamString(file.Binary.GetStream());
@@ -1417,7 +1418,7 @@ namespace SenseNet.ContentRepository.Tests
             //var folderContent = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
             //var folder = (Folder)folderContent.ContentHandler;
             //folder.InheritableVersioningMode = InheritableVersioningType.None;
-            //folder.Save();
+            //folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //var fileContent = Content.CreateNew("File", folder, null);
             //var file = (File)fileContent.ContentHandler;
@@ -1427,7 +1428,7 @@ namespace SenseNet.ContentRepository.Tests
             //binaryData.SetStream(stream2);
 
             //file.SetBinary("Binary", binaryData);
-            //file.Save();
+            //file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //var fileId = file.Id;
 
@@ -1435,7 +1436,7 @@ namespace SenseNet.ContentRepository.Tests
 
             //var node = Node.LoadNode(fileId);
             //var gc = node as GenericContent;
-            //gc.CheckOut();
+            //gc.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //// save
             //var node2 = Node.LoadNode(fileId);
@@ -1449,7 +1450,7 @@ namespace SenseNet.ContentRepository.Tests
 
             //        ((BinaryData)node2["Binary"]).SetStream(stream);
 
-            //        node2.Save();
+            //        node2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             //    }
             //}
 
@@ -1490,7 +1491,7 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.IsTrue(test.Version.Status == VersionStatus.Draft, "#4 status is not correct");
             //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#5 saving state is incorrect."));
 
-            //test.CheckOut();
+            //test.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             //vn = test.Version;
 
@@ -1519,7 +1520,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
             if (save)
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
 
@@ -1538,7 +1539,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             if(save)
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

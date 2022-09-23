@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             // do not reset the item list because we already have it up-todate
             _owner.SetSharingData(Serialize(_items), false);
-            _owner.Save(SavingMode.KeepVersion);
+            _owner.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
             _owner.SetCachedData(SharingItemsCacheKey, _items);
         }
@@ -337,7 +337,7 @@ namespace SenseNet.ContentRepository.Sharing
                     group[Constants.SharingIdsFieldName] = id?.Replace("-", string.Empty);
                     group[Constants.SharedContentFieldName] = _owner;
                     group[Constants.SharingLevelValueFieldName] = level.ToString();
-                    group.Save();
+                    group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }, (i, e) =>
                 {
                     switch (e)
@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Sharing
                 Retrier.Retry(3, 300, () =>
                 {
                     var content = Content.CreateNew(contentTypeName, Node.LoadNode(parentPath), name);
-                    content.Save();
+                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     container = content.ContentHandler;
                 }, (i, ex) =>
                 {
@@ -652,7 +652,7 @@ namespace SenseNet.ContentRepository.Sharing
                 });
 
                 content.SharingData = Serialize(newItems);
-                content.Save(SavingMode.KeepVersion);
+                content.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 // set permissions for the user
                 if (changed)

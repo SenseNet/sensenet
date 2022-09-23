@@ -155,7 +155,7 @@ namespace SenseNet.WebHooks
                                      Name = resourceContentName
                                  };
                 whResource.Binary = UploadHelper.CreateBinaryData(resourceContentName, resourceStream);
-                whResource.Save(SavingMode.KeepVersion);
+                whResource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         private static void InstallCtd(string ctdFileName)

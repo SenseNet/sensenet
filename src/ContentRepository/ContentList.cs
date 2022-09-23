@@ -459,15 +459,25 @@ namespace SenseNet.ContentRepository
 
         /*================================================================================= Node, IContentList */
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             if (String.IsNullOrEmpty(this.ContentListDefinition))
                 this.ContentListDefinition = DefaultContentListDefinition;
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (this.IsNew)
                 Providers.Instance.SecurityHandler.Assert(this.ParentId, PermissionType.ManageListsAndWorkspaces);
@@ -483,7 +493,7 @@ namespace SenseNet.ContentRepository
             if (listEmailChanged)
                 SetAllowedChildTypesForEmails();
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             if (listEmailChanged)
                 MailProvider.Instance.OnListEmailChanged(this);
@@ -718,7 +728,7 @@ namespace SenseNet.ContentRepository
             }
 
             this.ContentListDefinition = doc.OuterXml;
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void AddOrUpdateField(FieldSetting fieldSetting)
@@ -768,7 +778,7 @@ namespace SenseNet.ContentRepository
             }
 
             this.ContentListDefinition = doc.OuterXml;
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void DeleteField(FieldSetting fieldSetting)
@@ -825,7 +835,7 @@ namespace SenseNet.ContentRepository
             if (!saveImmediately)
                 return;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private XmlNode FindFieldXmlNode(string fieldName, out XmlDocument doc)
@@ -880,12 +890,12 @@ namespace SenseNet.ContentRepository
                                 if (fieldSetting is ReferenceFieldSetting)
                                 {
                                     node.ClearReference(fn);
-                                    node.Save(SavingMode.KeepVersion);
+                                    node.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                 }
                                 else if (fieldSetting is LongTextFieldSetting && node[fn] != null)
                                 {
                                     node[fn] = null;
-                                    node.Save(SavingMode.KeepVersion);
+                                    node.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                                 }
                             }
                             catch (Exception ex)
@@ -949,7 +959,7 @@ namespace SenseNet.ContentRepository
             container = new SystemFolder(this);
             container.Name = WorkflowContainerName;
             using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
-                container.Save();
+                container.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return container;
         }
 

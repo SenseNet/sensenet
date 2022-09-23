@@ -575,7 +575,7 @@ namespace SenseNet.ContentRepository
             this.PasswordHash = PasswordHashProvider.EncodePassword(passwordInClearText, this);
 
             using (new SystemAccount())
-                Save(SavingMode.KeepVersion);
+                SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
             return true;
         }
@@ -678,7 +678,7 @@ namespace SenseNet.ContentRepository
                 {
                     var profilesTarget = Node.LoadNode(GetProfilesTargetPath());
                     var pc = Content.CreateNew(Profiles, profilesTarget, Profiles);
-                    pc.Save();
+                    pc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
                     aclEditor.BreakInheritance(pc.Id, new[] {EntryType.Normal})
@@ -713,7 +713,7 @@ namespace SenseNet.ContentRepository
 
                     try
                     {
-                        domain.Save();
+                        domain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                         profileDomain = domain.ContentHandler;
                     }
                     catch (NodeAlreadyExistsException)
@@ -744,10 +744,10 @@ namespace SenseNet.ContentRepository
                         profile.ContentHandler.VersionCreatedBy = this;
                         profile.ContentHandler.Owner = this;
                         profile.DisplayName = this.Name;
-                        profile.Save();
+                        profile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         Profile = profile.ContentHandler as UserProfile;
-                        Save(SavingMode.KeepVersion);
+                        SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                         // Give explicit permission for the user on the profile so that
                         // they can access all content items there, not just the ones
@@ -789,7 +789,7 @@ namespace SenseNet.ContentRepository
                     return;
 
                 profile.Name = newName;
-                profile.Save(SavingMode.KeepVersion);
+                profile.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -944,19 +944,22 @@ namespace SenseNet.ContentRepository
 
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the AD modifications via the current <see cref="DirectoryProvider"/>.</remarks>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (_inactivating)
             {
-                AccessTokenVault.DeleteTokensByUser(this.Id);
+                await AccessTokenVault.DeleteTokensByUserAsync(this.Id, cancel).ConfigureAwait(false);
                 _inactivating = false;
             }
 
             // Check uniqueness first
             if (Id == 0 || PropertyNamesForCheckUniqueness.Any(p => IsPropertyChanged(p)))
-                CheckUniqueUser();
+                await CheckUniqueUserAsync(cancel).ConfigureAwait(false);
 
             if (_password != null)
             {
@@ -971,7 +974,7 @@ namespace SenseNet.ContentRepository
             // save current password to the list of old passwords
             this.SaveCurrentPassword();
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // AD Sync
             SynchUser(originalId);
@@ -997,7 +1000,7 @@ namespace SenseNet.ContentRepository
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
 
-                        base.Save(SavingMode.KeepVersion);
+                        base.SaveAsync(SavingMode.KeepVersion, cancel).GetAwaiter().GetResult();
                     });
                 }
 
@@ -1031,7 +1034,7 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
-        private void CheckUniqueUser()
+        private async System.Threading.Tasks.Task CheckUniqueUserAsync(CancellationToken cancel)
         {
             var path = Path;
 
@@ -1057,10 +1060,10 @@ namespace SenseNet.ContentRepository
                 // user may not have enough permissions for the whole user tree.
                 using (new SystemAccount())
                 {
-                    var queryResult = ContentQuery.QueryAsync(SafeQueries.UserOrGroupByLoginName,
+                    var queryResult = await ContentQuery.QueryAsync(SafeQueries.UserOrGroupByLoginName,
                             new QuerySettings {EnableAutofilters = FilterStatus.Disabled, Top = 2},
-                            CancellationToken.None, domainPath.TrimEnd('/'), Name, LoginName ?? Name)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                            cancel, domainPath.TrimEnd('/'), Name, LoginName ?? Name)
+                        .ConfigureAwait(false);
 
                     identifiers = queryResult.Identifiers.ToList();
                 }
@@ -1327,7 +1330,7 @@ namespace SenseNet.ContentRepository
             // update object without syncing to AD
             _syncObject = false;
 
-            this.Save();
+            this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // =================================================================================== Generic Property handlers

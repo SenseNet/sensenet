@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository;
+﻿using System.Threading;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Tests.Core
@@ -8,7 +9,7 @@ namespace SenseNet.Tests.Core
         public User CreateUserAndSave(string name)
         {
             var node = CreateUser(name);
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
         public User CreateUser(string name)

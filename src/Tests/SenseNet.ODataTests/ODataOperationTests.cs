@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -406,13 +407,13 @@ namespace SenseNet.ODataTests
                 if (apps == null)
                 {
                     apps = new SystemFolder(Repository.Root) {Name = "(apps)"};
-                    apps.Save();
+                    apps.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 var appRoot = Node.Load<GenericContent>("/Root/(apps)/GenericContent");
                 if (appRoot == null)
                 {
                     appRoot = new Folder(Repository.Root) { Name = "GenericContent" };
-                    appRoot.Save();
+                    appRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 //appRoot.AllowChildType(ContentType.GetByName("GenericODataApplication"), true);
@@ -425,7 +426,7 @@ namespace SenseNet.ODataTests
                     MethodName = "Function2",
                     Parameters = "string param1, string param2"
                 };
-                app.Save();
+                app.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPostAsync(
@@ -916,7 +917,7 @@ namespace SenseNet.ODataTests
                     Scenario = scenario,
                     Parameters = "string p1, int p2"
                 };
-                tempApp1.Save(SavingMode.KeepVersion);
+                tempApp1.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 return tempApp1;
             }

@@ -1,4 +1,6 @@
-﻿using SenseNet.ContentRepository.Schema;
+﻿using System;
+using System.Threading;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
@@ -11,11 +13,15 @@ namespace SenseNet.ContentRepository
         protected Book(NodeToken nt) : base(nt) { }
 
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
         {
-
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
             this["Genre"] = ParentName;
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
     }
 }

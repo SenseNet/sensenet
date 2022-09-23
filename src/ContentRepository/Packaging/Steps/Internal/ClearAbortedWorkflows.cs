@@ -28,7 +28,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 foreach (var item in result.Nodes)
                 {
                     item["WorkflowInstanceGuid"] = WorkflowInstanceClearedGuid;
-                    item.Save();
+                    item.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 if (result.Count < 1)

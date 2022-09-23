@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -30,7 +31,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("Car", testRoot, "ORIG");
                 content.DisplayName = "Initial DisplayName";
                 content.Index = 42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 
@@ -119,7 +120,7 @@ namespace SenseNet.ODataTests
                 var content = Content.CreateNew("Car", testRoot, "ORIG");
                 content.DisplayName = "Initial DisplayName";
                 content.Index = 42;
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 
@@ -237,9 +238,9 @@ namespace SenseNet.ODataTests
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .BreakInheritance(root.Id, new[] { EntryType.Normal })
@@ -297,7 +298,7 @@ namespace SenseNet.ODataTests
                 content.DisplayName = "vadalma";
                 var defaultMake = (string)content["Make"];
                 content["Make"] = "Not default";
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var id = content.Id;
                 var path = content.Path;
 
