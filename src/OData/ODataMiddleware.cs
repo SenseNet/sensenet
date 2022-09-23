@@ -526,7 +526,7 @@ namespace SenseNet.OData
                 : Content.Load(path);
         }
 
-        private Content CreateNewContent(JObject model, ODataRequest odataRequest)//UNDONE:x: rewrite to async
+        private Content CreateNewContent(JObject model, ODataRequest odataRequest) //UNDONE:x: rewrite to async (CRUD save)
         {
             var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
@@ -539,7 +539,7 @@ namespace SenseNet.OData
         }
         public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)//UNDONE:x: rewrite to async
+            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames) //UNDONE:x: rewrite to async (CRUD save)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 

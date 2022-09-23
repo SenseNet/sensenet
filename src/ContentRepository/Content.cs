@@ -1303,7 +1303,7 @@ namespace SenseNet.ContentRepository
         /// After the saving the version of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> will not changed.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void SaveSameVersion(bool validOnly)//UNDONE:x: rewrite to async
+        public void SaveSameVersion(bool validOnly) //UNDONE:x: rewrite to async (CRUD save)
         {
             AssertContentType();
 
@@ -1323,7 +1323,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        public void SaveExplicitVersion(bool validOnly = true)//UNDONE:x: rewrite to async
+        public void SaveExplicitVersion(bool validOnly = true) //UNDONE:x: rewrite to async (CRUD save)
         {
             AssertContentType();
 

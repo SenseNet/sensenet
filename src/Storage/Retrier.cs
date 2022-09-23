@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class Retrier 
     {
-        public static void Retry(int count, int waitMilliseconds, Type caughtExceptionType, Action callback)//UNDONE:xx: rewrite to async
+        public static void Retry(int count, int waitMilliseconds, Type caughtExceptionType, Action callback) //UNDONE:xx: rewrite to async (CRUD save)
         {
             var retryCount = count;
             Exception lastException = null;

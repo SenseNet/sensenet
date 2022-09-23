@@ -768,7 +768,7 @@ namespace SenseNet.ContentRepository.Storage
             return false;
         }
 
-        private object LoadProperty(PropertyType propertyType)//UNDONE:x: rewrite to async
+        private object LoadProperty(PropertyType propertyType) //UNDONE:x: rewrite to async (CRUD save)
         {
             var propId = propertyType.Id;
             lock (_readPropertySync)
