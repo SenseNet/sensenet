@@ -603,7 +603,7 @@ namespace SenseNet.Packaging.Steps
 
                 var rootNode = Node.Load<PortalRoot>(Identifiers.PortalRootId);
                 rootNode.PreviewEnabled = PreviewEnabled.Yes;
-                rootNode.Save();
+                rootNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Log(ImportLogLevel.Info, "Set initial membership ...");
 

@@ -185,7 +185,7 @@ namespace SenseNet.Packaging.Tools
                     {
                         resourceRoot = new SystemFolder(Repository.Root, "Resources")
                             {Name = RepositoryPath.GetFileName(RepositoryStructure.ResourceFolderPath)};
-                        resourceRoot.Save();
+                        resourceRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     resource = new Resource(resourceRoot) {Name = resourceBuilder.ContentName};

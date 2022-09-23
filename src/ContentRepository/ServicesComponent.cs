@@ -1526,7 +1526,7 @@ namespace SenseNet.ContentRepository
                     
                     var rootNode = Node.Load<PortalRoot>("/Root");
                     rootNode.PreviewEnabled = PreviewEnabled.Yes;
-                    rootNode.Save();
+                    rootNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
