@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -78,7 +79,7 @@ namespace SenseNet.Tests.Core
         public static Node CreateChild(this Node parent, string name, string typeName)
         {
             var content = Content.CreateNew(typeName, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return content.ContentHandler;
         }
 
@@ -90,7 +91,7 @@ namespace SenseNet.Tests.Core
         public static T CreateChild<T>(this Node parent, string name) where T : Node
         {
             var content = Content.CreateNew(typeof(T).Name, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (T)content.ContentHandler;
         }
     }

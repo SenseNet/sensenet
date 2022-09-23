@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Configuration;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
-    public class LockHandler
+    public class LockHandler //UNDONE:x: rewrite all to async (CRUD save)
     {
         private Node _node;
 
@@ -130,7 +131,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     _node.LastLockUpdate = DateTime.UtcNow;
                     _node.LockTimeout = timeout;
 
-                    _node.Save(versionRaising, VersionStatus.Locked);
+                    _node.SaveAsync(versionRaising, VersionStatus.Locked, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -166,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 {
                     _node.LastLockUpdate = DateTime.UtcNow;
                     _node.LockTimeout = timeout;
-                    _node.Save(versionRaising, VersionStatus.Locked);
+                    _node.SaveAsync(versionRaising, VersionStatus.Locked, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -197,7 +198,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     _node.LockDate = new DateTime(1800, 1, 1);
                     _node.LastLockUpdate = new DateTime(1800, 1, 1);
                     _node.LockType = 0;
-                    _node.Save(versionRaising, versionStatus);
+                    _node.SaveAsync(versionRaising, versionStatus, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -256,7 +257,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                         _node.LastLockUpdate = DateTime.UtcNow;
                         _node.LockTimeout = RepositoryEnvironment.DefaultLockTimeout;
 
-                        _node.Save(VersionRaising.None, VersionStatus.Locked, true);
+                        _node.SaveAsync(VersionRaising.None, VersionStatus.Locked, true, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     }
 
                     SnLog.WriteAudit(AuditEvent.LockTakenOver, auditProperties);

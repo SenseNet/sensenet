@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -217,7 +218,7 @@ namespace SenseNet.OData
                             }
 
                             ResetContent(content);
-                            UpdateContent(content, model, odataRequest);
+                            await UpdateContentAsync(content, model, odataRequest, httpContext.RequestAborted).ConfigureAwait(false);
                             await odataWriter.WriteSingleContentAsync(content, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
@@ -241,7 +242,7 @@ namespace SenseNet.OData
                                 return;
                             }
 
-                            UpdateContent(content, model, odataRequest);
+                            await UpdateContentAsync(content, model, odataRequest, httpContext.RequestAborted).ConfigureAwait(false);
                             await odataWriter.WriteSingleContentAsync(content, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
@@ -525,7 +526,7 @@ namespace SenseNet.OData
                 : Content.Load(path);
         }
 
-        private Content CreateNewContent(JObject model, ODataRequest odataRequest)
+        private Content CreateNewContent(JObject model, ODataRequest odataRequest) //UNDONE:x: rewrite to async (CRUD save)
         {
             var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
@@ -538,7 +539,7 @@ namespace SenseNet.OData
         }
         public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
+            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames) //UNDONE:x: rewrite to async (CRUD save)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
@@ -582,9 +583,9 @@ namespace SenseNet.OData
             UpdateFields(content, model, skipBrokenReferences, out brokenReferenceFieldNames);
 
             if (isMultiStepSave)
-                content.Save(SavingMode.StartMultistepSave);
+                content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
             else
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }
@@ -645,15 +646,17 @@ namespace SenseNet.OData
                 content.AddAspects(aspects);
             }
         }
-        private void UpdateContent(Content content, JObject model, ODataRequest odataRequest)
+
+        private async Task UpdateContentAsync(Content content, JObject model, ODataRequest odataRequest, CancellationToken cancel)
         {
             UpdateFields(content, model, false, out _);
 
             if (odataRequest.MultistepSave)
-                content.Save(SavingMode.StartMultistepSave);
+                await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
             else
-                content.Save();
+                await content.SaveAsync(cancel).ConfigureAwait(false);
         }
+
         /// <summary>
         /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
         /// The <see cref="Content"/> will not be saved.

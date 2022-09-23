@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -200,7 +201,7 @@ namespace SenseNet.ContentRepository.Tests
                         InstallCarContentType();
 
                     var testRoot = new SystemFolder(Repository.Root) { Name = "MoveTest" };
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     try
                     {
@@ -305,7 +306,7 @@ namespace SenseNet.ContentRepository.Tests
             contentlist.Name = name;
             contentlist.ContentListDefinition = listDef;
             contentlist.AllowChildTypes(new[] { "Folder", "Car" });
-            contentlist.Save();
+            contentlist.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateContentListItem(string parentPath, string name, string typeName)
         {
@@ -314,7 +315,7 @@ namespace SenseNet.ContentRepository.Tests
             if (typeName != "SystemFolder" && typeName != "Folder" && typeName != "Page")
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void CreateNode(string parentPath, string name, string typeName)
         {
@@ -324,7 +325,7 @@ namespace SenseNet.ContentRepository.Tests
                 ((GenericContent)content.ContentHandler).AllowChildTypes(new[] { "Folder", "ContentList", "Car" });
             if (content.Fields.ContainsKey("#TestField"))
                 content["#TestField"] = "TestValue";
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private string DecodePath(SystemFolder testRoot, string relativePath)
         {

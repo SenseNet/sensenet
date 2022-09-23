@@ -4,7 +4,9 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Security;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ApplicationModel
 {
@@ -415,8 +417,12 @@ namespace SenseNet.ApplicationModel
             }
         }
 
-
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var appParent = Parent as Application;
 
@@ -425,7 +431,7 @@ namespace SenseNet.ApplicationModel
             if (this.AppName != appName)
                 this.SetProperty(APPNAME, appName);
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
         }
 
         // ================================================================== Action framework

@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Tests
             }, () =>
             {
                 var node = new SystemFolder(Repository.Root) { Name = "TestFolder" };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {
@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var node = new SystemFolder(Repository.Root) { Name = "TestFolder" };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 node.ForceDelete();
             });
@@ -296,7 +296,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var user = Node.Load<User>(userToDisable);
             user.Enabled = false;
-            user.Save(SavingMode.KeepVersion);
+            user.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void RemoveUser(string groupPath, string userToRemove)
         {
@@ -331,18 +331,18 @@ namespace SenseNet.ContentRepository.Tests
             var publicDomain = Node.LoadNode("/Root/IMS/Public");
 
             var group1 = new Group(publicDomain) { Name = "group1" };
-            group1.Save();
+            group1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var group2 = new Group(publicDomain) { Name = "group2" };
-            group2.Save();
+            group2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var group3 = new Group(publicDomain) { Name = "group3" };
-            group3.Save();
+            group3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var group5 = new Group(publicDomain) { Name = "group5" };
-            group5.Save();
+            group5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var group6 = new Group(publicDomain) { Name = "group6" };
-            group6.Save();
+            group6.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var org = new OrganizationalUnit(publicDomain) { Name = "TestOrg" };
-            org.Save();
+            org.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             static User CreateUser(Node parent, string name)
             {
@@ -352,7 +352,7 @@ namespace SenseNet.ContentRepository.Tests
                     Email = name + "@example.com",
                     Enabled = true
                 };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return user;
             }
 

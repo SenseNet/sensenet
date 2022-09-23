@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
@@ -20,7 +21,7 @@ namespace SenseNet.ODataTests
 
                 var name = "Content1";
                 var content = Content.CreateNew("Car", testRoot, name);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var repoPath = $"{testRoot.Path}/{name}";
                 var resource = $"/OData.svc/{testRoot.Path}('{name}')";
 
@@ -43,7 +44,7 @@ namespace SenseNet.ODataTests
 
                 var name = "Content1";
                 var content = Content.CreateNew("Car", testRoot, name);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var repoPath = $"{testRoot.Path}/{name}";
                 var resource = $"/OData.svc/{testRoot.Path}('{name}')";
 
@@ -66,7 +67,7 @@ namespace SenseNet.ODataTests
 
                 var name = "Content1";
                 var content = Content.CreateNew("Car", testRoot, name);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var repoPath = $"{testRoot.Path}/{name}";
                 var resource = $"/OData.svc/{repoPath}')";
 
@@ -119,7 +120,7 @@ namespace SenseNet.ODataTests
 
                 var name = "Content1";
                 var content = Content.CreateNew("Car", testRoot, name);
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var repoPath = $"{testRoot.Path}/{name}";
                 var resource = $"/OData.svc/content({content.Id})";
 
@@ -168,7 +169,7 @@ namespace SenseNet.ODataTests
             var testRoot = CreateTestRoot("ODataTestRoot");
             var name = "Content1";
             var content = Content.CreateNew("File", testRoot, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var repoPath = $"{testRoot.Path}/{name}";
             var resource = $"/OData.svc/{testRoot.Path}('{name}')/Delete";
 

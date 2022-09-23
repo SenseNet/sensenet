@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
@@ -221,7 +222,7 @@ namespace SenseNet.ODataTests
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var resourcePath = ODataMiddleware.GetEntityUrl(content.Path);
 
                 // ACTION
@@ -249,12 +250,12 @@ namespace SenseNet.ODataTests
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var content = Content.CreateNew("Folder", testRoot, "Folder1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folderPath = ODataMiddleware.GetEntityUrl(content.Path);
                 var folderRepoPath = content.Path;
                 var folderId = content.Id;
                 content = Content.CreateNew("Car", content.ContentHandler, "Car1");
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var carRepoPath = content.Path;
 
                 // ACTION
@@ -286,7 +287,7 @@ namespace SenseNet.ODataTests
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
+                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var resourcePath = ODataMiddleware.GetEntityUrl(content.Path);
 
                 // ACTION 1: Break

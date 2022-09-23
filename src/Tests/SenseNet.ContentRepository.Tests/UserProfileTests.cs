@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -46,7 +47,7 @@ namespace SenseNet.ContentRepository.Tests
                            () => IdentityManagement.UserProfilesEnabled,
                            v => IdentityManagement.UserProfilesEnabled = v))
                 {
-                    user1.Save();
+                    user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // check if all items in the newly created profile subtree have the user as their Owner
@@ -69,7 +70,7 @@ namespace SenseNet.ContentRepository.Tests
                 // create a test file as an admin
                 var folder = Node.LoadNode(RepositoryPath.Combine(user1.ProfilePath, "DocLib/f1"));
                 var file = new File(folder);
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // the user should see the file but cannot delete it
                 Assert.IsTrue(file.OwnerId == Identifiers.AdministratorUserId);

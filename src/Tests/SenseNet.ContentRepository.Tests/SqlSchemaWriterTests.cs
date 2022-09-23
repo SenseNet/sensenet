@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using System.Reflection;
+using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Testing;
@@ -786,7 +787,7 @@ GO
             content["Text3"] = midString;
             content["Text4"] = longString;
 
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return content;
         }
     }

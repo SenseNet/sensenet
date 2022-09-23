@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
@@ -100,7 +101,7 @@ namespace SenseNet.ODataTests
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
                 var itNode = new SystemFolder(contentNode) {Name = "IT"};
-                itNode.Save();
+                itNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var permissionData = new List<string>
                 {
@@ -161,7 +162,7 @@ namespace SenseNet.ODataTests
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
                 var itNode = new SystemFolder(contentNode) { Name = "IT" };
-                itNode.Save();
+                itNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var permissionData = new List<string>
                 {
@@ -234,9 +235,9 @@ namespace SenseNet.ODataTests
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
                 //var itNode = new SystemFolder(contentNode) { Name = "IT" };
-                //itNode.Save();
+                //itNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var user = new User(User.Administrator.Parent) { Name = "U1", Email = "u1@example.com", Enabled = true };
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var permissionData = new List<string>
                 {
@@ -310,9 +311,9 @@ namespace SenseNet.ODataTests
                 // ARRANGE
                 var contentNode = Node.LoadNode("/Root/Content");
                 //var itNode = new SystemFolder(contentNode) { Name = "IT" };
-                //itNode.Save();
+                //itNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var user = new User(User.Administrator.Parent) {Name = "U1", Email = "u1@example.com", Enabled = true};
-                user.Save();
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var permissionData = new List<string>
                 {

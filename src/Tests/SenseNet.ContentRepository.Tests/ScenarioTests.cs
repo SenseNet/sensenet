@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
@@ -48,7 +49,7 @@ namespace SenseNet.ContentRepository.Tests
                 var tempAppContent = RepositoryTools.CreateStructure(appPath, "Application") ?? Content.Load(appPath);
                 var tempApp = (Application)tempAppContent.ContentHandler;
                 tempApp.Scenario = "SC1,SC2";
-                tempApp.Save(SavingMode.KeepVersion);
+                tempApp.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                 try
                 {

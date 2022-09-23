@@ -53,7 +53,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
 
                 // action
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // assert
                 var dbFiles = BlobStoragePlatform.LoadDbFiles(file.VersionId);
@@ -159,7 +159,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var fileId = file.Id;
                 var blobProviderBefore = file.Binary.BlobProvider;
                 var fileRowIdBefore = file.Binary.FileId;
@@ -168,7 +168,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(updatedContent));
 
                 // action
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // assert
                 var blobProviderAfter = file.Binary.BlobProvider;
@@ -256,13 +256,13 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var fileId = file.Id;
 
                 var chunks = SplitFile(updatedText, chunkSize, out var fullSize);
 
                 file = Node.Load<File>(fileId);
-                file.Save(SavingMode.StartMultistepSave);
+                file.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
                 var token = BinaryData.StartChunk(fileId, fullSize);
 
                 var offset = 0;
@@ -275,7 +275,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 BinaryData.CommitChunk(fileId, token, fullSize);
 
                 file = Node.Load<File>(fileId);
-                file.FinalizeContent();
+                file.FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
 
 
                 // assert
@@ -328,13 +328,13 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var fileId = file.Id;
 
                 file = Node.Load<File>(fileId);
                 // action
                 file.Binary = null;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // assert
                 var dbFiles = BlobStoragePlatform.LoadDbFiles(file.VersionId);
@@ -404,11 +404,11 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var testRoot = CreateTestRoot();
                 var target = new SystemFolder(testRoot) { Name = "Target" };
-                target.Save();
+                target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // action
                 file.CopyTo(target);
@@ -421,7 +421,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 // action 2
                 copy.Binary.SetStream(RepositoryTools.GetStreamFromString(updatedText));
-                copy.Save();
+                copy.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // assert 2
                 Assert.AreNotEqual(file.Binary.FileId, copy.Binary.FileId);
@@ -498,7 +498,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var versionId = file.VersionId;
                 var binaryPropertyId = file.Binary.Id;
                 var fileId = file.Binary.FileId;
@@ -560,7 +560,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 var file = new File(testRoot) { Name = "File1.file" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var fileId = file.Binary.FileId;
                 // memorize blob storage context for further check
                 var ctx = BlobStorage.GetBlobStorageContextAsync(file.Binary.FileId, false,
@@ -662,22 +662,22 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var f1 = new SystemFolder(root) { Name = "F1" };
-                f1.Save();
+                f1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 for (int i = 0; i < 5; i++)
                 {
                     var f2 = new File(root) { Name = $"F2-{i}" };
                     f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                    f2.Save();
+                    f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 var f3 = new SystemFolder(f1) { Name = "F3" };
-                f3.Save();
+                f3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 for (int i = 0; i < 5; i++)
                 {
                     var f4 = new File(root) { Name = $"F4-{i}" };
                     f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
-                    f4.Save();
+                    f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // ACTION
@@ -828,7 +828,7 @@ namespace SenseNet.IntegrationTests.TestCases
         protected Node CreateTestRoot()
         {
             var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-            root.Save();
+            root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return root;
         }
 

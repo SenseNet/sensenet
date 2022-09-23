@@ -273,7 +273,7 @@ namespace SenseNet.ContentRepository
                 {
                     var parent = Node.LoadNode(RepositoryPath.GetParentPath(AspectsFolderPath));
                     folder = new Folder(parent) { Name = AspectsFolderName };
-                    folder.Save();
+                    folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 return folder;
             }

@@ -76,16 +76,16 @@ namespace SenseNet.Services.Core.Operations
         /// makes the content available for modifications.</summary>
         /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
-        /// <param name="context"></param>
+        /// <param name="httpContext"></param>
         /// <returns>An empty result.</returns>
         [ODataAction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
-        public static string FinalizeContent(Content content, HttpContext context)
+        public static async Task<string> FinalizeContent(Content content, HttpContext httpContext)
         {
-            var handler = new UploadHandler(content, context);
-            return handler.FinalizeContent(content);
+            var handler = new UploadHandler(content, httpContext);
+            return await handler.FinalizeContentAsync(content, httpContext.RequestAborted).ConfigureAwait(false);
         }
 
         /// <summary>

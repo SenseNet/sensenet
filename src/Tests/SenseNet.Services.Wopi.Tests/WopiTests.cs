@@ -692,7 +692,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -806,7 +806,7 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -927,7 +927,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
                 SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
 
@@ -1046,7 +1046,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1171,7 +1171,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
-                file.CheckOut();
+                file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1364,7 +1364,7 @@ namespace SenseNet.Services.Wopi.Tests
                 var binaryAcc = new ObjectAccessor(file.Binary);
                 binaryAcc.SetProperty("Size", size3GB);
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 file = Node.Load<File>(file.Id);
                 // check prerequisit
                 Assert.AreEqual(size3GB, file.Binary.Size);
@@ -1596,12 +1596,12 @@ namespace SenseNet.Services.Wopi.Tests
             if (sites == null)
             {
                 sites = new Folder(Repository.Root) {Name = "Sites"};
-                sites.Save();
+                sites.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             var site = new Workspace(sites) { Name = TestSiteName };
             site.AllowChildType("File");
-            site.Save();
+            site.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return site;
         }
@@ -1610,7 +1610,7 @@ namespace SenseNet.Services.Wopi.Tests
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             file.Binary.ContentType = mimeType;
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent ?? Guid.NewGuid().ToString()));
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
         private Content CreateTestContent(string contentType, Node parent, string name = null)
@@ -1619,7 +1619,7 @@ namespace SenseNet.Services.Wopi.Tests
                 return Content.Create(CreateTestFile(parent, name ?? Guid.NewGuid().ToString(), "filecontent"));
 
             var content = Content.CreateNew(contentType, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }

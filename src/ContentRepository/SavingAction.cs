@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Versioning;
@@ -403,12 +404,16 @@ namespace SenseNet.ContentRepository
             this.LockerUserId = User.Current.Id;
         }
 
+        [Obsolete("Use async version instead.", true)]
         public void Execute()
+        {
+            ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public async System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancel)
         {
             if (this.Node.IsNew)
             {
-                var gc = Node.Parent as GenericContent;
-                if (gc != null)
+                if (Node.Parent is GenericContent gc)
                     gc.AssertAllowedChildType(Node);
             }
 
@@ -424,7 +429,7 @@ namespace SenseNet.ContentRepository
             {
                 try
                 {
-                    Node.Save(this);
+                    await Node.SaveAsync(this, CancellationToken.None).ConfigureAwait(false);
                     break;
                 }
                 catch (AggregateException ae)

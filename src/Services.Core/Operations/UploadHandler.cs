@@ -186,7 +186,7 @@ namespace SenseNet.Services.Core.Operations
 
                         SetPreviewGenerationPriority(uploadedContent);
 
-                        uploadedContent.FinalizeContent();
+                        await uploadedContent.FinalizeContentAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -196,7 +196,7 @@ namespace SenseNet.Services.Core.Operations
                 {
                     var binData = CreateBinaryData(file);
                     uploadedContent[PropertyName] = binData;
-                    uploadedContent.Save();
+                    await uploadedContent.SaveAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -223,12 +223,12 @@ namespace SenseNet.Services.Core.Operations
                     BinaryData.CommitChunk(uploadedContent.Id, chunkToken, chunkData.Length, PropertyName, CreateBinaryData(file, false));
 
                     if (mustFinalize && uploadedContent.ContentHandler.SavingState != ContentSavingState.Finalized)
-                        uploadedContent.FinalizeContent();
+                        await uploadedContent.FinalizeContentAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 // checkin only if the content was created or checked out by this process
                 if (uploadedContent.ContentHandler.Locked && mustCheckIn)
-                    uploadedContent.CheckIn();
+                    await uploadedContent.CheckInAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         
@@ -263,7 +263,7 @@ namespace SenseNet.Services.Core.Operations
                     // Start the multistep saving process only if it was not started by 
                     // somebody else before (e.g. with an initial POST request through OData).
                     if (mustFinalize)
-                        uploadedContent.Save(SavingMode.StartMultistepSave);
+                        await uploadedContent.SaveAsync(SavingMode.StartMultistepSave, cancellationToken).ConfigureAwait(false);
 
                     chunkToken = BinaryData.StartChunk(uploadedContent.Id, FileLength, PropertyName);
                 }
@@ -292,7 +292,7 @@ namespace SenseNet.Services.Core.Operations
                             binaryData.Reset();
                             binaryData.SetStream(new MemoryStream());
                         }
-                        emptyFile.Save();
+                        await emptyFile.SaveAsync(cancellationToken).ConfigureAwait(false);
                         return GetJsonFromContent(emptyFile, FormFile);
                     }
 
@@ -337,19 +337,25 @@ namespace SenseNet.Services.Core.Operations
                     binData.SetStream(RepositoryTools.GetStreamFromString(FileText));
 
                     uploadedContent[PropertyName] = binData;
-                    uploadedContent.Save();
+                    await uploadedContent.SaveAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return GetJsonFromContent(uploadedContent, FormFile);
             }
         }
 
+
+        [Obsolete("Use async version instead.", true)]
         public string FinalizeContent(Content content)
         {
             SetPreviewGenerationPriority(content);
-
             content.FinalizeContent();
-
+            return string.Empty;
+        }
+        public async Task<string> FinalizeContentAsync(Content content, CancellationToken cancel)
+        {
+            SetPreviewGenerationPriority(content);
+            await content.FinalizeContentAsync(cancel).ConfigureAwait(false);
             return string.Empty;
         }
 
@@ -370,7 +376,7 @@ namespace SenseNet.Services.Core.Operations
 
                 // we have to create it in a multistep saving state because chunk upload needs that
                 file = Content.CreateNew(contentType, Content.ContentHandler, name);
-                file.Save(SavingMode.StartMultistepSave);
+                await file.SaveAsync(SavingMode.StartMultistepSave, cancellationToken).ConfigureAwait(false);
             }
 
             return StartBlobUpload(file, fullSize, fieldName);
@@ -383,7 +389,7 @@ namespace SenseNet.Services.Core.Operations
         {
             // we have to put the content into a state that enables chunk write operations
             if (content.ContentHandler.SavingState == ContentSavingState.Finalized)
-                content.Save(SavingMode.StartMultistepSave);
+                content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
 
             var token = BinaryData.StartChunk(content.Id, fullSize, fieldName);
 
@@ -408,7 +414,7 @@ namespace SenseNet.Services.Core.Operations
 
             // reload the content to have a fresh object after commit chunk
             var content = await Content.LoadAsync(Content.Id, cancellationToken).ConfigureAwait(false);
-            return FinalizeContent(content);
+            return await FinalizeContentAsync(content, cancellationToken).ConfigureAwait(false);
         }
 
         public string GetBinaryToken(string fieldName = null)

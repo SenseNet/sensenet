@@ -296,12 +296,12 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
                     node.Index++;
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
 
@@ -318,7 +318,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
         [TestMethod]
@@ -332,12 +332,12 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
                     node.Index++;
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
         [TestMethod]
@@ -354,7 +354,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
@@ -373,7 +373,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     node.Delete();
 
                     trashBag = (TrashBag)Node.Load<TrashBin>("/Root/Trash").Children.First();
@@ -393,7 +393,7 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                    node.Save();
+                    node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
@@ -411,8 +411,8 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    source = new SystemFolder(Repository.Root) { Name = "Source" }; source.Save();
-                    target = new SystemFolder(Repository.Root) { Name = "Target" }; target.Save();
+                    source = new SystemFolder(Repository.Root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target = new SystemFolder(Repository.Root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
@@ -432,8 +432,8 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    source = new SystemFolder(Repository.Root) { Name = "Source" }; source.Save();
-                    target = new SystemFolder(Repository.Root) { Name = "Target" }; target.Save();
+                    source = new SystemFolder(Repository.Root) { Name = "Source" }; source.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target = new SystemFolder(Repository.Root) { Name = "Target" }; target.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {
@@ -450,7 +450,7 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    node = new SystemFolder(Repository.Root) { Name = "Source" }; node.Save();
+                    node = new SystemFolder(Repository.Root) { Name = "Source" }; node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 },
                 () =>
                 {

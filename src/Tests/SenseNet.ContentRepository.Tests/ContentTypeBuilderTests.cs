@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Fields;
@@ -463,7 +464,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var testContent = Content.CreateNew(contentTypeName, parent, Guid.NewGuid().ToString());
                 testContent["LongText1"] = $"{contentTypeName} longtext value";
-                testContent.Save();
+                testContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return testContent;
             }
 
@@ -491,7 +492,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // create text content and fill the field
                 var parent = new SystemFolder(Repository.Root);
-                parent.Save();
+                parent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testContent1 = CreateTestContent(CtdTextEditorName, parent);
                 var testContent2 = CreateTestContent(CtdTextEditorSiblingName, parent);

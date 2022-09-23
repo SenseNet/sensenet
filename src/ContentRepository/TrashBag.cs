@@ -233,7 +233,7 @@ namespace SenseNet.ContentRepository
                               Link = node,
                               Owner = node.Owner
                           };
-                bag.Save();
+                bag.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 CopyPermissions(node, bag);
 

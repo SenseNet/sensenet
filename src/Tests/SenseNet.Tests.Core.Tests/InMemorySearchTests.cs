@@ -49,7 +49,7 @@ namespace SenseNet.Tests.Core.Tests
                 };
 
                 // ACTION
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload the newly created.
                 node = Node.Load<SystemFolder>(node.Id);
@@ -111,14 +111,14 @@ namespace SenseNet.Tests.Core.Tests
                     Index = 42
                 };
 
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 // reload the newly created.
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // ACTION
                 node.DisplayName = "Node 2";
                 node.Index = 43;
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload the updated.
                 node = Node.Load<SystemFolder>(node.Id);
@@ -187,7 +187,7 @@ namespace SenseNet.Tests.Core.Tests
                     Index = 42
                 };
 
-                node1.Save();
+                node1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // create node#2 under the root.
                 node2 = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
@@ -197,7 +197,7 @@ namespace SenseNet.Tests.Core.Tests
                     Index = 43
                 };
 
-                node2.Save();
+                node2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload.
                 node1 = Node.Load<SystemFolder>(node1.Id);
@@ -269,17 +269,17 @@ namespace SenseNet.Tests.Core.Tests
             {
                 // create initial structure.
                 var root = Node.LoadNode(Identifiers.PortalRootId);
-                node1 = new SystemFolder(root) {Name = "Node1"};  node1.Save();
-                node2 = new SystemFolder(node1) {Name = "Node2"}; node2.Save();
-                node3 = new SystemFolder(node2) {Name = "Node3"}; node3.Save();
-                node4 = new SystemFolder(node1) {Name = "Node4"}; node4.Save();
-                node5 = new SystemFolder(root) {Name = "Node5"};  node5.Save();
-                node6 = new SystemFolder(node5) {Name = "Node6"}; node6.Save();
+                node1 = new SystemFolder(root) {Name = "Node1"};  node1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                node2 = new SystemFolder(node1) {Name = "Node2"}; node2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                node3 = new SystemFolder(node2) {Name = "Node3"}; node3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                node4 = new SystemFolder(node1) {Name = "Node4"}; node4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                node5 = new SystemFolder(root) {Name = "Node5"};  node5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                node6 = new SystemFolder(node5) {Name = "Node6"}; node6.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 node1 = Node.LoadNode(node1.Id);
                 node1.Name = "Node1Renamed";
-                node1.Save();
+                node1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload the newly created.
                 nodes = new[]
@@ -405,7 +405,7 @@ namespace SenseNet.Tests.Core.Tests
                     Index = 42
                 };
 
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 Providers.Instance.IndexManager.AddTextExtract(node.VersionId, additionalText);
@@ -508,7 +508,7 @@ namespace SenseNet.Tests.Core.Tests
                     Index = 42
                 };
 
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var qresult = ContentQuery.Query(SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
@@ -534,7 +534,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) {Name = name, Index = index};
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 
@@ -582,7 +582,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, DisplayName = displayName, Index = index };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 
@@ -620,7 +620,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 
@@ -658,7 +658,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 
@@ -697,7 +697,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
             var executeQuery = new Func<string, string>((query) =>
@@ -741,7 +741,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, int, Node>((parent, index) =>
             {
                 var node = new SystemFolder(parent) { Name = $"Nn{index}", Index = index };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
             var executeQuery = new Func<string, string>((query) =>
@@ -798,7 +798,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, Index = index };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 
@@ -838,7 +838,7 @@ namespace SenseNet.Tests.Core.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, Index = index };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return node;
             });
 

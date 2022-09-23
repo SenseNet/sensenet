@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.ContentRepository;
@@ -70,7 +71,7 @@ namespace SenseNet.Packaging.Steps
             else
                 content[Field] = sb.ToString();
 
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void ExecuteOnFile(ExecutionContext context)
         {

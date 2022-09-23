@@ -61,14 +61,14 @@ namespace SenseNet.Packaging.Steps
                     }
 
                     // save the new content
-                    targetContent.Save();
+                    targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // delete the original
                     sourceContent.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
                     // rename the target
                     targetContent["Name"] = sourceContent.Name;
-                    targetContent.Save(SavingMode.KeepVersion);
+                    targetContent.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
 
                     count++;
 

@@ -290,7 +290,7 @@ namespace SenseNet.ContentRepository
             // don't use admin account here, that should be 
             // done in the calling 'client' code if needed
             var content = Content.CreateNew(typeName, parent, name);
-            content.Save();
+            content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }
@@ -992,10 +992,10 @@ namespace SenseNet.ContentRepository
         /// <param name="userOrGroup">Path or id of the desired owner.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
         /// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
-        [ODataAction]
+        [ODataAction(OperationName = "TakeOwnership")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
-        public static void TakeOwnership(Content content, string userOrGroup)
+        public static async System.Threading.Tasks.Task TakeOwnershipAsync(Content content, HttpContext httpContext, string userOrGroup)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
@@ -1025,7 +1025,7 @@ namespace SenseNet.ContentRepository
                         throw new ArgumentException("The parameter cannot be recognized as a User or a Group: " + userOrGroup);
                 }
 
-                content.Save();
+                await content.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
             }
         }
 

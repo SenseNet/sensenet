@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
@@ -22,7 +23,7 @@ namespace SenseNet.ContentRepository.Tests
                 var file = new File(root) { Name = "test.txt" };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString("test file"));
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION: create a new file with the same name
                 var expected = "new file content";
@@ -33,8 +34,8 @@ namespace SenseNet.ContentRepository.Tests
                 file2.AllowIncrementalNaming = true;
 
                 // this is normal in case of chunk upload, it should not throw an exception
-                file2.Save(SavingMode.StartMultistepSave);
-                file2.FinalizeContent();
+                file2.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
+                file2.FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT: Do not throw any exception and file is saved
                 var loaded = Node.Load<File>(file2.Id);
@@ -100,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
                     Binary = {ContentType = "text/plain"}
                 };
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum dolor sit amet."));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // check mime type
                 file = Node.Load<File>(file.Id);
@@ -119,12 +120,12 @@ namespace SenseNet.ContentRepository.Tests
                 var root = CreateTestRoot();
                 var file = new File(root) { Name = fileName };
 
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 if (fileContent != null)
                 {
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 // check mime type

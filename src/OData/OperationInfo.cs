@@ -23,6 +23,7 @@ namespace SenseNet.OData
 
         public MethodBase Method { get; }
         public bool IsAsync { get; }
+        public bool IsAsyncVoid { get; }
 
         public string[] RequiredParameterNames { get; set; }
         public Type[] RequiredParameterTypes { get; set; }
@@ -50,7 +51,8 @@ namespace SenseNet.OData
             Attributes = attributes;
 
             ParseAttributes(attributes);
-            IsAsync = ParseSynchronicity(method);
+            IsAsync = ParseSynchronicity(method, out var isAsyncVoid);
+            IsAsyncVoid = isAsyncVoid;
         }
 
         private void ParseAttributes(Attribute[] attributes)
@@ -122,13 +124,16 @@ namespace SenseNet.OData
             return type.Name;
         }
 
-        private bool ParseSynchronicity(MethodBase methodBase)
+        private bool ParseSynchronicity(MethodBase methodBase, out bool isAsyncVoid)
         {
+            isAsyncVoid = false;
+
             if (!(methodBase is MethodInfo method))
                 return false;
 
-            return method.ReturnType == typeof(Task) ||
-                   method.ReturnType.BaseType == typeof(Task);
+            isAsyncVoid = method.ReturnType == typeof(Task);
+
+            return isAsyncVoid || method.ReturnType.BaseType == typeof(Task);
         }
     }
 }

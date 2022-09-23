@@ -343,7 +343,7 @@ namespace SenseNet.ApplicationModel
                         // STARTUP user that cannot be used to save any content.
                         AccessProvider.Current.SetCurrentUser(User.Administrator);
 
-                        node.Save(SavingMode.KeepVersion);
+                        node.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                         appName = node.AppName;
                     }
                     finally

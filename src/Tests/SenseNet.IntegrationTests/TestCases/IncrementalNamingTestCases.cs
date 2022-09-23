@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -36,7 +37,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 InstallContentTypes();
                 var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
+                testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Content content1, content2;
                 do
@@ -44,8 +45,8 @@ namespace SenseNet.IntegrationTests.TestCases
                     content1 = Content.CreateNew(ContentType_IncrementalNamingAllowedName, testRoot, null);
                     content2 = Content.CreateNew(ContentType_IncrementalNamingAllowedName, testRoot, null);
                 } while (content1.Name != content2.Name);
-                content1.Save();
-                content2.Save();
+                content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
 
         }
@@ -58,7 +59,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 {
                     InstallContentTypes();
                     var testRoot = new SystemFolder(Repository.Root);
-                    testRoot.Save();
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Content content1, content2;
                     do
@@ -66,8 +67,8 @@ namespace SenseNet.IntegrationTests.TestCases
                         content1 = Content.CreateNew(ContentType_IncrementalNamingDisallowedName, testRoot, null);
                         content2 = Content.CreateNew(ContentType_IncrementalNamingDisallowedName, testRoot, null);
                     } while (content1.Name != content2.Name);
-                    content1.Save();
-                    content2.Save();
+                    content1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    content2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (NodeAlreadyExistsException)
                 {

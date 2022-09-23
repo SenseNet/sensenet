@@ -220,7 +220,12 @@ namespace SenseNet.ContentRepository
         }
         #endregion
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
+        {
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             // Checking for duplicated options
             var doc = new XmlDocument();
@@ -250,7 +255,7 @@ namespace SenseNet.ContentRepository
                 values.Add(descandant.Attribute("value").Value);
             }
 
-            base.Save(mode);
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
     }
 }

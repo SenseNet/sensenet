@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
@@ -16,6 +17,7 @@ using SenseNet.Packaging;
 using SenseNet.Packaging.Steps;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
+using ExecutionContext = SenseNet.Packaging.ExecutionContext;
 using Logger = SenseNet.IntegrationTests.Infrastructure.Logger;
 using Task = System.Threading.Tasks.Task;
 
@@ -174,13 +176,13 @@ namespace SenseNet.IntegrationTests.TestCases
                     string.Format(contentTypeTemplate, "Car1"),
                     string.Format(contentTypeTemplate, "Car2"));
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" + Guid.NewGuid() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car0 = Content.CreateNew("Car", root, "Car0");
-                car0.Save();
+                car0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car1 = Content.CreateNew("Car1", root, "Car1");
-                car1.Save();
+                car1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var car2 = Content.CreateNew("Car2", root, "Car2");
-                car2.Save();
+                car2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
@@ -225,7 +227,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     string.Format(contentTypeTemplate, "Garage1", "GenericContent", "Car,Folder"),
                     string.Format(contentTypeTemplate, "Garage2", "GenericContent", "Folder,Car2"));
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" + Guid.NewGuid() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
@@ -331,7 +333,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var w = new Workspace(parent) { Name = name };
                 w.AllowedChildTypes = new ContentType[0];
                 w.AllowChildTypes(allowedChildTypes);
-                w.Save();
+                w.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return w;
             }
 
@@ -347,7 +349,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     string.Format(contentTypeTemplate, "Car1"),
                     string.Format(contentTypeTemplate, "Car2"));
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" + Guid.NewGuid() };
-                root.Save();
+                root.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var w1 = CreateWorkspace(root, "W1", new[] { "Car1", "Folder" });
                 var w2 = CreateWorkspace(root, "W2", new[] { "Car", "Folder", "Car2", "File" });

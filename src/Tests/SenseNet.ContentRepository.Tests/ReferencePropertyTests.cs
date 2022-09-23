@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tests.Core;
@@ -23,13 +24,13 @@ namespace SenseNet.ContentRepository.Tests
                 var user1 = _factory.CreateUserAndSave("U1");
                 var user2 = _factory.CreateUserAndSave("U2");
                 group.AddReferences("Members", new[] {user1});
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 user1.ForceDelete();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);
                 group.Members = new[] { user2 };
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 group = Node.Load<Group>(group.Id);
@@ -50,7 +51,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user1 = _factory.CreateUserAndSave("U1");
                 var user2 = _factory.CreateUserAndSave("U2");
                 group.AddReferences("Members", new[] { user1 });
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 user1.ForceDelete();
 
                 // ACTION
@@ -77,13 +78,13 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = _factory.CreateUserAndSave("U2");
                 var user3 = _factory.CreateUserAndSave("U3");
                 group.AddReferences("Members", new[] { user1, user2, user3 });
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 user2.ForceDelete();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);
                 group.RemoveReference("Members",user3);
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 group = Node.Load<Group>(group.Id);
@@ -105,7 +106,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = _factory.CreateUserAndSave("U2");
                 var user3 = _factory.CreateUserAndSave("U3");
                 group.AddReferences("Members", new[] { user1, user2, user3 });
-                group.Save();
+                group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 user2.ForceDelete();
 
                 // ACTION

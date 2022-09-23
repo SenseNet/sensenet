@@ -196,7 +196,7 @@ namespace SenseNet.Search.Tests
 
                 var nodeName = "Indexing_Distributed";
                 var node = new SystemFolder(Repository.Root) {Name = nodeName};
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual("DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n",
                     searchEngine.GetIndexingLog());
             });
@@ -219,7 +219,7 @@ namespace SenseNet.Search.Tests
                 
                 var nodeName = "Indexing_Centralized";
                 var node = new SystemFolder(Repository.Root) { Name = nodeName };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual("CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
             });
         }
@@ -249,7 +249,7 @@ namespace SenseNet.Search.Tests
                 // create a valid version
                 var nodeName = "Indexing_Centralized_InMemory_ExecuteUnprocessed";
                 var node = new SystemFolder(Repository.Root) { Name = nodeName };
-                node.Save();
+                node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 nodeId = node.Id;
                 versionId = node.VersionId;
                 path = node.Path;

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Schema;
 using Newtonsoft.Json.Linq;
-using System.Collections;
+using System.Threading;
 using Newtonsoft.Json;
-using SenseNet.ContentRepository.Storage;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Json
 {
@@ -180,6 +178,7 @@ namespace SenseNet.ContentRepository.Json
             return token;
         }
 
+        [Obsolete("Use async version instead.", false)]
         public static void SaveToStream(JObject jObject, Action<System.IO.Stream> beforeDispose)
         {
             if (beforeDispose == null)
@@ -195,6 +194,24 @@ namespace SenseNet.ContentRepository.Json
                 stream.Seek(0, System.IO.SeekOrigin.Begin);
 
                 beforeDispose(stream);
+            }
+        }
+        public static async STT.Task SaveToStreamAsync(JObject jObject,
+            Func<System.IO.Stream, CancellationToken, STT.Task> beforeDispose, CancellationToken cancel)
+        {
+            if (beforeDispose == null)
+                throw new ArgumentNullException(nameof(beforeDispose));
+
+            using (var stream = new System.IO.MemoryStream())
+            using (var streamWriter = new System.IO.StreamWriter(stream))
+            using (var jsonWriter = new JsonTextWriter(streamWriter))
+            {
+                jsonWriter.Formatting = Newtonsoft.Json.Formatting.Indented;
+                await jObject.WriteToAsync(jsonWriter, cancel, new JsonDynamicFieldHelper.SaneNumberConverter());
+                await jsonWriter.FlushAsync(cancel);
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                await beforeDispose(stream, cancel);
             }
         }
     }

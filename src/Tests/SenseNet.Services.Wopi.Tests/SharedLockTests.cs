@@ -84,7 +84,7 @@ namespace SenseNet.Services.Wopi.Tests
         public void SharedLock_Lock_CheckedOut()
         {
             var node = CreateTestFolder();
-            node.CheckOut();
+            node.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
             var nodeId = node.Id;
             var expectedLockValue = Guid.NewGuid().ToString();
             Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
@@ -513,7 +513,7 @@ namespace SenseNet.Services.Wopi.Tests
                     var folder = CreateFolder();
                     var file = new File(folder) { Name = Guid.NewGuid().ToString() };
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString(OriginalFileContent));
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     _testFileId = file.Id;
                 }
                 return Node.Load<File>(_testFileId);
@@ -522,7 +522,7 @@ namespace SenseNet.Services.Wopi.Tests
             public Folder CreateFolder()
             {
                 var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return folder;
             }
 
@@ -539,12 +539,12 @@ namespace SenseNet.Services.Wopi.Tests
                     var user = LoadOrCreateUser(userContentName);
                     var origUser = User.Current;
                     User.Current = user;
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                     User.Current = origUser;
                 }
                 else
                 {
-                    file.CheckOut();
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 return this;
             }
@@ -554,10 +554,10 @@ namespace SenseNet.Services.Wopi.Tests
                 if (user == null)
                 {
                     var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
-                    testDomain.Save();
+                    testDomain.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     user = new User(testDomain) { Name = "User1" };
-                    user.Save();
+                    user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Group.Administrators.AddMember(user);
                 }
@@ -574,14 +574,14 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var file = LoadTestFile();
                 file.Index = index;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return this;
             }
             public OperationContext UpdateFileContent(string newContent)
             {
                 var file = LoadTestFile();
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(newContent));
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return this;
             }
             public OperationContext WopiSave(string lockValue, string newContent)
@@ -603,7 +603,7 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var file = LoadTestFile();
                 file.Name = newName;
-                file.Save();
+                file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return this;
             }
 
@@ -624,7 +624,7 @@ namespace SenseNet.Services.Wopi.Tests
             var lockValue = "LCK_" + Guid.NewGuid();
             SharedLock.Lock(nodeId, lockValue, CancellationToken.None);
 
-            node.CheckOut();
+            node.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.IsTrue(node.Locked);
             Assert.AreEqual(lockValue, SharedLock.GetLock(nodeId, CancellationToken.None));
@@ -652,7 +652,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             // ACTION
             node.Name = Guid.NewGuid().ToString();
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]
@@ -733,14 +733,14 @@ namespace SenseNet.Services.Wopi.Tests
         private SystemFolder CreateTestFolder()
         {
             var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-            folder.Save();
+            folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return folder;
         }
         private File CreateTestFile(Node parent, string fileContent)
         {
             var file = new File(parent) { Name = Guid.NewGuid().ToString() };
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

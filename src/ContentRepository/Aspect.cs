@@ -335,11 +335,23 @@ namespace SenseNet.ContentRepository
         /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
         /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
         /// </summary>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(SavingMode mode)
         {
-            Validate();
-            base.Save(mode);
+            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
         }
+        /// <summary>
+        /// Asynchronously persists the modifications of this Content.
+        /// Do not use this method directly from your code.
+        /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
+        /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
+        /// </summary>
+        public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
+        {
+            Validate();
+            await base.SaveAsync(mode, cancel).ConfigureAwait(false);
+        }
+
         private void Validate()
         {
             if (String.IsNullOrEmpty(this.AspectDefinition))
@@ -360,13 +372,25 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static object _saveSync = new object();
+        private static SemaphoreSlim _saveSync = new SemaphoreSlim(1, 1);
+
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// Do not use this method directly from your code.
         /// </summary>
         /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the persistence algorithm.</param>
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Asynchronously persist this Content's changes by the given settings.
+        /// Do not use this method directly from your code.
+        /// </summary>
+        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the persistence algorithm.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (this.IsNew)
                 this.Parent.Security.Assert(PermissionType.ManageListsAndWorkspaces);
@@ -375,19 +399,27 @@ namespace SenseNet.ContentRepository
 
             if (this.Id > 0)
             {
-                base.Save(settings);
+                await base.SaveAsync(settings, cancel).ConfigureAwait(false);
                 return;
             }
 
+
             Aspect existingAspect = null;
-            lock (_saveSync)
+
+            await _saveSync.WaitAsync(cancel);
+            try
             {
                 if ((existingAspect = LoadAspectByName(this.Name)) == null)
                 {
-                    base.Save(settings);
+                    await base.SaveAsync(settings, cancel).ConfigureAwait(false);
                     return;
                 }
             }
+            finally
+            {
+                _saveSync.Release();
+            }
+
             throw new InvalidOperationException(String.Concat("Cannot create new Aspect because another Aspect exists with same name: ", existingAspect.Path));
         }
 
@@ -516,7 +548,7 @@ namespace SenseNet.ContentRepository
             foreach(var fieldInfo in fieldInfos)
                 AddFieldInternal(FieldSetting.Create(fieldInfo, this));
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Removes the specified fields of his instance and saves the modifications.
@@ -524,12 +556,13 @@ namespace SenseNet.ContentRepository
         /// <param name="fieldNames">Array of the field names that will be removed.</param>
         public void RemoveFields(params string[] fieldNames)
         {
-            foreach(var fieldName in fieldNames)
-            for (int i = 0; i < fieldNames.Length; i++)
-                DeleteFieldInternal(fieldName);
+            foreach (var fieldName in fieldNames)
+                for (int i = 0; i < fieldNames.Length; i++)
+                    DeleteFieldInternal(fieldName);
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
+
         /// <summary>
         /// Empties the field collection of this instance and saves it.
         /// </summary>
@@ -537,7 +570,7 @@ namespace SenseNet.ContentRepository
         {
             AspectDefinition = DefaultAspectDefinition;
             Build();
-            Save();
+            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private void AddFieldInternal(FieldSetting fieldSetting)
         {

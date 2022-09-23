@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -11,6 +12,7 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
+using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable InconsistentNaming
 namespace SenseNet.WebHooks
@@ -320,7 +322,12 @@ namespace SenseNet.WebHooks
             { HeadersPropertyName, false }
         };
 
+        [Obsolete("Use async version instead.", true)]
         public override void Save(NodeSaveSettings settings)
+        {
+            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public override async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             // validate payload
             if (!string.IsNullOrWhiteSpace(Payload))
@@ -345,7 +352,7 @@ namespace SenseNet.WebHooks
                 }
             }
 
-            base.Save(settings);
+            await base.SaveAsync(settings, cancel).ConfigureAwait(false);
         }
 
         protected override void OnLoaded(object sender, NodeEventArgs e)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -29,7 +30,7 @@ namespace SenseNet.ContentRepository.Tests
                     var testRootHead = NodeHead.Get(testRoot.Id);
                     var file = new File(testRoot) { Name = "file" };
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                    file.Save();
+                    file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var fileHead = NodeHead.Get(file.Id);
                     var binaryData = file.Binary;
 
@@ -341,14 +342,14 @@ namespace SenseNet.ContentRepository.Tests
         {
             var node = simpleFolder ? new Folder(parent) : new SystemFolder(parent);
             node.Name = Guid.NewGuid().ToString();
-            node.Save();
+            node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return node;
         }
         private Node CreateTestFile(Node parent)
         {
             var file = new File(parent) { Name = Guid.NewGuid().ToString() };
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(Guid.NewGuid().ToString()));
-            file.Save();
+            file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return file;
         }
 

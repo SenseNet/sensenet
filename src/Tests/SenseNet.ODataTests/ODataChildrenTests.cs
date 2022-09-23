@@ -53,21 +53,21 @@ namespace SenseNet.ODataTests
             if (testRoot != null)
                 return;
             testRoot = new Folder(Repository.Root) { Name = "WSRoot" };
-            testRoot.Save();
+            testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var testFolder1 = new Workspace(testRoot) { Name = "Workspace1" };
-            testFolder1.Save();
+            testFolder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var folder0 = new Folder(testFolder1) { Name = "F0" };
-            folder0.Save();
+            folder0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var folder00 = new Folder(folder0) { Name = "F00" };
-            folder00.Save();
+            folder00.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var folder000 = new Folder(folder00) { Name = "F000" };
-            folder000.Save();
+            folder000.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var systemFolder01 = new SystemFolder(folder0) { Name = "SF01" };
-            systemFolder01.Save();
+            systemFolder01.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var systemFolder1 = new SystemFolder(testFolder1) { Name = "SF1" };
-            systemFolder1.Save();
+            systemFolder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             var folder10 = new Folder(systemFolder1) { Name = "F10" };
-            folder10.Save();
+            folder10.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #endregion
@@ -361,7 +361,7 @@ namespace SenseNet.ODataTests
             };
             settings.Binary.ContentType = "application/octet-stream";
             settings.Binary.SetStream(new MemoryStream(buffer));
-            settings.Save();
+            settings.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void WriteTextFileSettings(string settingsJson)
@@ -371,7 +371,7 @@ namespace SenseNet.ODataTests
                 Name = "TextFiles.settings"
             };
             settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsJson));
-            settings.Save();
+            settings.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private Dictionary<string, string> GetTextContents()
         {

@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository
             cacheFile.Name = appTypeName;
             cacheFile.Binary.SetStream(RepositoryTools.GetStreamFromString(BuildCacheData(appTypeName)));
             cacheFile.Binary.FileName = "AppCacheFile";
-            cacheFile.Save();
+            cacheFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             cacheFile = Node.Load<ApplicationCacheFile>(cacheFile.Id);
             return cacheFile;
         }
@@ -85,7 +85,7 @@ namespace SenseNet.ContentRepository
                 return node;
             var folder = new SystemFolder(Repository.SystemFolder);
             folder.Name = PersistentAppCacheFolderName;
-            folder.Save();
+            folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return folder;
         }
         private string BuildCacheData(string appTypeName)
