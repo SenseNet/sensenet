@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Tests.Core")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.IntegrationTests.MsSql")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests.Common")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.IntegrationTests")]
