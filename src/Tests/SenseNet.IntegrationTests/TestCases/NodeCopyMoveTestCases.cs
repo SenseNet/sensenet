@@ -7,6 +7,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.IntegrationTests.Infrastructure;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.IntegrationTests.TestCases
 {
