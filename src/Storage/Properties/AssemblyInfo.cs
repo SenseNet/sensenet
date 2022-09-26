@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Tests.Core.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ODataTests")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.IntegrationTests.MsSql")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.InMemory")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests.Common")]
