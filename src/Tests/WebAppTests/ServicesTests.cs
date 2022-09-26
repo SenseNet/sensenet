@@ -37,6 +37,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.IntegrationTests.MsSql.Infrastructure;
+using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
