@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <RootNamespace>SenseNet</RootNamespace>
     <AssemblyName>SenseNet.Abstractions</AssemblyName>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>kavics,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
