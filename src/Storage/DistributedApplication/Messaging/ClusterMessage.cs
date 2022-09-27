@@ -15,7 +15,7 @@ namespace SenseNet.Communication.Messaging
             this.SenderInfo = sender;
         }
 
-		public ClusterMemberInfo SenderInfo { get; internal set; }
+		public ClusterMemberInfo SenderInfo { get; set; }
 
         public Task SendAsync(CancellationToken cancellationToken)
         {
