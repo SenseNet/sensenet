@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
@@ -68,6 +69,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         [NonSerialized]
         private bool _isUnprocessedActivity;
         /// <inheritdoc cref="IIndexingActivity.IsUnprocessedActivity"/>
+        [JsonIgnore]
         public bool IsUnprocessedActivity
         {
             get => _isUnprocessedActivity;
@@ -79,6 +81,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// <summary>
         /// Gets or sets a value that is true if the activity is received from a messaging channel.
         /// </summary>
+        [JsonIgnore]
         public bool FromReceiver
         {
             get => _fromReceiver;
@@ -90,6 +93,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// <summary>
         /// Gets or sets a value that is true if the activity is loaded from the database.
         /// </summary>
+        [JsonIgnore]
         public bool FromDatabase
         {
             get => _fromDatabase;
@@ -98,6 +102,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private bool _executed;
+        [JsonIgnore]
         internal bool Executed
         {
             get => _executed;
@@ -156,6 +161,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         [NonSerialized]
         private IndexingActivityBase _attachedActivity;
 
+        [JsonIgnore]
         internal IndexingActivityBase AttachedActivity
         {
             get => _attachedActivity;
@@ -221,6 +227,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// Gets the indexing activities that block this instance.
         /// Used when the current indexing engine uses local index.
         /// </summary>
+        [JsonIgnore]
         public List<IndexingActivityBase> WaitingFor => _waitingFor;
 
         [NonSerialized]
@@ -229,6 +236,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// Gets the indexing activities that are blocked by this instance.
         /// Used when the current indexing engine uses local index.
         /// </summary>
+        [JsonIgnore]
         public List<IndexingActivityBase> WaitingForMe => _waitingForMe;
 
 

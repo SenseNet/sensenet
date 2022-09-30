@@ -26,17 +26,25 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
         }
 
         private readonly Dictionary<string, Type> _knownMessageTypes;
+        private readonly JsonSerializerSettings _serializationSettings;
 
-        public SnMessageFormatter(ClusterMessageTypes knownMessageTypes)
+        public SnMessageFormatter(ClusterMessageTypes knownMessageTypes, IEnumerable<JsonConverter> jsonConverters)
         {
             _knownMessageTypes = knownMessageTypes.ToDictionary(x => x.FullName, x => x);
+            _serializationSettings = new JsonSerializerSettings
+            {
+                Converters = jsonConverters.ToList(),
+                NullValueHandling = NullValueHandling.Ignore,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                Formatting = Formatting.Indented
+            };
         }
 
         public ClusterMessage Deserialize(Stream data)
         {
             using var reader = new StreamReader(data);
             var text = reader.ReadToEnd();
-            var envelope = JsonConvert.DeserializeObject(text) as JObject;
+            var envelope = JsonConvert.DeserializeObject(text, _serializationSettings) as JObject;
             if (envelope == null)
                 throw new InvalidDataException("Deserialization error.");
 
@@ -51,7 +59,7 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
             if (msg == null)
                 throw new InvalidDataException("Message not found");
 
-            var message = msg.ToObject(type);
+            var message = msg.ToObject(type, JsonSerializer.Create(_serializationSettings));
             if (message == null)
                 throw new InvalidDataException($"Conversion to {typeName} is failed.");
 
@@ -65,7 +73,7 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
         public Stream Serialize(ClusterMessage message)
         {
             var envelope = new Envelope {Type = message.GetType().FullName, Msg = message};
-            var text = JsonConvert.SerializeObject(envelope);
+            var text = JsonConvert.SerializeObject(envelope, _serializationSettings);
             var stream = GetStreamFromString(text);
             return stream;
         }

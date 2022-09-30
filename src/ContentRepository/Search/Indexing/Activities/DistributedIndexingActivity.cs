@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Newtonsoft.Json;
 using STT=System.Threading.Tasks;
 using Nito.AsyncEx;
 using SenseNet.Communication.Messaging;
@@ -17,6 +18,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
+        [JsonIgnore]
         protected IndexManager IndexManager => (IndexManager)Providers.Instance.IndexManager;
 
         /// <summary>

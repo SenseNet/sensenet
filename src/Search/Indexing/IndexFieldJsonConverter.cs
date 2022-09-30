@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SenseNet.Search.Indexing
 {
@@ -76,7 +77,104 @@ namespace SenseNet.Search.Indexing
             bool hasExistingValue,
             JsonSerializer serializer)
         {
+            string name = null;
+            IndexValueType type = IndexValueType.String;
+            object value = null;
+            var stringValues = new List<string>();
+            var intValues = new List<int>();
+            IndexingMode mode = IndexingMode.Default;
+            IndexStoringMode store = IndexStoringMode.Default;
+            IndexTermVector termVector = IndexTermVector.Default;
+            string currentProperty = null;
+
+            void SetProperty(object pvalue)
+            {
+                switch (currentProperty)
+                {
+                    case "Name": name = (string)pvalue; return;
+                    case "Type": type = ParseEnum<IndexValueType>(pvalue); return;
+                    case "Mode": mode = ParseEnum<IndexingMode>(pvalue); return;
+                    case "Store": store = ParseEnum<IndexStoringMode>(pvalue); return;
+                    case "TermVector": termVector = ParseEnum<IndexTermVector>(pvalue); return;
+                    case "Value":
+                        if(type == IndexValueType.IntArray)
+                            intValues.Add(Convert.ToInt32(pvalue));
+                        else if (type == IndexValueType.StringArray)
+                            stringValues.Add((string) pvalue);
+                        else
+                            value = pvalue;
+                        return;
+                }
+            }
+
+            //Debug.WriteLine($">>{reader.TokenType}:{reader.ValueType?.Name ?? ""}:{reader.Value}");
+            while (reader.Read())
+            {
+                //Debug.WriteLine($"{reader.TokenType}:{reader.ValueType?.Name ?? ""}:{reader.Value}");
+                switch (reader.TokenType)
+                {
+                    default:
+                        throw new ArgumentOutOfRangeException();
+
+                    case JsonToken.None:
+                    case JsonToken.Comment:
+                    case JsonToken.Raw:
+                    case JsonToken.StartConstructor:
+                    case JsonToken.EndConstructor:
+                    case JsonToken.StartArray:
+                    case JsonToken.EndArray:
+                        break;
+
+                    case JsonToken.StartObject: break;
+                    case JsonToken.PropertyName: currentProperty = (string)reader.Value; break;
+                    case JsonToken.Integer: SetProperty(reader.Value); break;
+                    case JsonToken.Float: SetProperty(reader.Value); break;
+                    case JsonToken.String: SetProperty(reader.Value); break;
+                    case JsonToken.Boolean: SetProperty(reader.Value); break;
+                    case JsonToken.Null: SetProperty(reader.Value); break;
+                    case JsonToken.Undefined: SetProperty(reader.Value); break;
+                    case JsonToken.Date: SetProperty(reader.Value); break;
+                    case JsonToken.Bytes: SetProperty(reader.Value); break;
+                    case JsonToken.EndObject:
+                        return CreateIndexField(name, type, value, stringValues, intValues, mode, store, termVector);
+                }
+            }
             throw new NotImplementedException();
+        }
+
+        public TEnum ParseEnum<TEnum>(object valueOrName) where TEnum : System.Enum
+        {
+            if (valueOrName is string stringValue)
+                return (TEnum)Enum.Parse(typeof(TEnum), stringValue);
+            return (TEnum) Enum.ToObject(typeof(TEnum), valueOrName);
+        }
+
+        private IndexField CreateIndexField(string name, IndexValueType type, object value, List<string> strings, List<int> integers,
+            IndexingMode mode, IndexStoringMode store, IndexTermVector termVector)
+        {
+            switch (type)
+            {
+                case IndexValueType.String:
+                    return new IndexField(name, (string) value, mode, store, termVector);
+                case IndexValueType.StringArray:
+                    return new IndexField(name, strings.ToArray(), mode, store, termVector);
+                case IndexValueType.Bool:
+                    return new IndexField(name, Convert.ToBoolean(value), mode, store, termVector);
+                case IndexValueType.Int:
+                    return new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
+                case IndexValueType.IntArray:
+                    return new IndexField(name, integers.ToArray(), mode, store, termVector);
+                case IndexValueType.Long:
+                    return new IndexField(name, Convert.ToInt64(value), mode, store, termVector);
+                case IndexValueType.Float:
+                    return new IndexField(name, Convert.ToSingle(value), mode, store, termVector);
+                case IndexValueType.Double:
+                    return new IndexField(name, Convert.ToDouble(value), mode, store, termVector);
+                case IndexValueType.DateTime:
+                    return new IndexField(name, Convert.ToDateTime(value), mode, store, termVector);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
         }
     }
 }
