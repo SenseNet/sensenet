@@ -186,9 +186,10 @@ namespace WebAppTests
             {
                 var result = new Dictionary<Type, ServiceDescriptor>();
 
-                var engine = GetFieldValue(serviceProvider, "_engine");
-                var callSiteFactory = GetPropertyValue(engine, "CallSiteFactory");
+                // Skipped step in .NET6: var engine = GetFieldValue(serviceProvider, "_engine");
+                var callSiteFactory = GetPropertyValue(serviceProvider, "CallSiteFactory");
                 var descriptorLookup = GetFieldValue(callSiteFactory, "_descriptorLookup");
+
                 if (descriptorLookup is IDictionary dictionary)
                 {
                     foreach (DictionaryEntry entry in dictionary)
