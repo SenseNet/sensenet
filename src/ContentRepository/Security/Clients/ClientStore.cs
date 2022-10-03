@@ -214,8 +214,9 @@ namespace SenseNet.ContentRepository.Security.Clients
 
             try
             {
-                // We do not generate a client for admin ui by default because it would
-                // interfere with the default client.
+                // internal tools
+                await EnsureClientAsync(ClientType.AdminUi)
+                    .ConfigureAwait(false);
 
                 // internal tools
                 await EnsureClientAsync(ClientType.InternalClient, _options.DefaultClientUserInternal)

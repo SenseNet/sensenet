@@ -30,6 +30,7 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
             List<SnIdentityServerClient> clients;
             try
             {
+                // only admin ui clients are loaded, other types are not needed by this feature
                 clients = clientStore.GetClientsByAuthorityAsync(authority).GetAwaiter().GetResult()
                     .Where(c => c.Type.HasFlag(ClientType.AdminUi))
                     .Select(c => new SnIdentityServerClient
@@ -37,6 +38,9 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
                         ClientType = ClientAdminUi,
                         ClientId = c.ClientId
                     }).ToList();
+
+                logger.LogTrace("Clients loaded from storage: " +
+                                $"{string.Join(", ", clients.Select(c => c.ClientId + $" ({c.ClientType})"))}");
             }
             catch (Exception e)
             {
@@ -50,18 +54,12 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
             // add default clients only if their type is missing
             if (clients.All(c => c.ClientType != ClientAdminUi))
             {
+                logger.LogTrace($"AdminUI client type not found in the storage, adding the default client.");
+
                 clients.Add(new SnIdentityServerClient
                 {
                     ClientType = ClientAdminUi,
                     ClientId = ClientAdminUi
-                });
-            }
-            if (clients.All(c => c.ClientType != ClientTool))
-            {
-                clients.Add(new SnIdentityServerClient
-                {
-                    ClientType = ClientTool,
-                    ClientId = ClientTool
                 });
             }
 
@@ -69,7 +67,7 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
             {
                 // duplicate client types will overwrite older values silently
                 if (_parameters.ContainsKey(client.ClientType))
-                    SnTrace.System.Write($"DefaultSnClientRequestParametersProvider: client type {client.ClientType} is " +
+                    logger.LogTrace($"DefaultSnClientRequestParametersProvider: client type {client.ClientType} is " +
                                          $"already registered, the new value ({client.ClientId} will overwrite it.)");
 
                 _parameters[client.ClientType] = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
