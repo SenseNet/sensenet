@@ -467,7 +467,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void Messaging_Serialization_WhenSaveNode_AnotherSide()
+        public void Messaging_Serialization_WhenSaveNode_OnAnotherNlbNode()
         {
             Test2(services =>
             {
@@ -480,6 +480,7 @@ namespace SenseNet.ContentRepository.Tests
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
             }, () =>
             {
+                // ALIGN (simulates the receiver in the nlb cluster)
                 var payload = @"{
   ""Type"": ""SenseNet.ContentRepository.Search.Indexing.Activities.AddDocumentActivity"",
   ""Msg"": {
@@ -874,6 +875,7 @@ namespace SenseNet.ContentRepository.Tests
                 STT.Task.Delay(10).GetAwaiter().GetResult();
                 var nodeId = 1390; // see payload.Msg.NodeId
                 var versionId = 403; // see payload.Msg.VersionId
+                Assert.IsNull(Node.LoadNodeAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult());
                 var hitId = CreateSafeContentQuery("+Name:TestFolder1 +Index:42 .AUTOFILTERS:OFF")
                     .ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult().Identifiers.FirstOrDefault();
                 Assert.AreEqual(nodeId, hitId);
