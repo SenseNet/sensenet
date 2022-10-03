@@ -466,5 +466,426 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(addDocActivity);
             });
         }
+        [TestMethod]
+        public void Messaging_Serialization_WhenSaveNode_AnotherSide()
+        {
+            Test2(services =>
+            {
+                services
+                    .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] { new IndexFieldJsonConverter() })
+                    .AddSingleton(ClusterMemberInfo.Current)
+                    .AddSingleton(new ClusterMessageTypes
+                        { Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)) })
+                    .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
+                    .AddSingleton<IClusterChannel, TestClusterChannel>();
+            }, () =>
+            {
+                var payload = @"{
+  ""Type"": ""SenseNet.ContentRepository.Search.Indexing.Activities.AddDocumentActivity"",
+  ""Msg"": {
+    ""Versioning"": {
+      ""LastPublicVersionId"": 403,
+      ""LastDraftVersionId"": 403,
+      ""Delete"": [],
+      ""Reindex"": []
+    },
+    ""Id"": 1,
+    ""ActivityType"": 1,
+    ""CreationDate"": ""0001-01-01T00:00:00Z"",
+    ""RunningState"": 0,
+    ""NodeId"": 1390,
+    ""VersionId"": 403,
+    ""Path"": ""/root/testfolder1"",
+    ""VersionTimestamp"": 1269,
+    ""Extension"": ""{\""LastPublicVersionId\"":403,\""LastDraftVersionId\"":403,\""Delete\"":[],\""Reindex\"":[]}"",
+    ""IndexDocumentData"": {
+      ""IndexDocument"": [
+        {
+          ""Name"": ""DisplayName"",
+          ""Type"": ""String"",
+          ""Value"": ""testfolder1""
+        },
+        {
+          ""Name"": ""Description"",
+          ""Type"": ""String"",
+          ""Value"": """"
+        },
+        {
+          ""Name"": ""Version"",
+          ""Type"": ""String"",
+          ""Store"": ""Yes"",
+          ""Value"": ""v1.0.a""
+        },
+        {
+          ""Name"": ""TrashDisabled"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""PreviewEnabled"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""PreviewEnabled_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""Id"",
+          ""Type"": ""Int"",
+          ""Store"": ""Yes"",
+          ""Value"": 1390
+        },
+        {
+          ""Name"": ""OwnerId"",
+          ""Type"": ""Int"",
+          ""Store"": ""Yes"",
+          ""Value"": 1
+        },
+        {
+          ""Name"": ""Owner"",
+          ""Type"": ""IntArray"",
+          ""Value"": [1]
+        },
+        {
+          ""Name"": ""VersionId"",
+          ""Type"": ""Int"",
+          ""Store"": ""Yes"",
+          ""Value"": 403
+        },
+        {
+          ""Name"": ""Type"",
+          ""Type"": ""String"",
+          ""Store"": ""Yes"",
+          ""Value"": ""systemfolder""
+        },
+        {
+          ""Name"": ""TypeIs"",
+          ""Type"": ""StringArray"",
+          ""Store"": ""No"",
+          ""Value"": [""genericcontent"",""folder"",""systemfolder""]
+        },
+        {
+          ""Name"": ""Icon"",
+          ""Type"": ""String"",
+          ""Value"": ""systemfolder""
+        },
+        {
+          ""Name"": ""CreatedById"",
+          ""Type"": ""Int"",
+          ""Store"": ""Yes"",
+          ""Value"": 1
+        },
+        {
+          ""Name"": ""ModifiedById"",
+          ""Type"": ""Int"",
+          ""Store"": ""Yes"",
+          ""Value"": 1
+        },
+        {
+          ""Name"": ""IsFolder"",
+          ""Type"": ""Bool"",
+          ""Value"": true
+        },
+        {
+          ""Name"": ""Hidden"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""Index"",
+          ""Type"": ""Int"",
+          ""Value"": 42
+        },
+        {
+          ""Name"": ""EnableLifespan"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""ValidFrom"",
+          ""Type"": ""DateTime"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""ValidTill"",
+          ""Type"": ""DateTime"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""AllowedChildTypes"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""""]
+        },
+        {
+          ""Name"": ""EffectiveAllowedChildTypes"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""ContentType"",""GenericContent"",""Application"",""ApplicationOverride"",""ClientApplication"",""GenericODataApplication"",""WebServiceApplication"",""ContentLink"",""EmailTemplate"",""FieldSettingContent"",""BinaryFieldSetting"",""DateTimeFieldSetting"",""HyperLinkFieldSetting"",""IntegerFieldSetting"",""NullFieldSetting"",""NumberFieldSetting"",""CurrencyFieldSetting"",""ReferenceFieldSetting"",""TextFieldSetting"",""LongTextFieldSetting"",""ShortTextFieldSetting"",""ChoiceFieldSetting"",""PermissionChoiceFieldSetting"",""YesNoFieldSetting"",""PasswordFieldSetting"",""XmlFieldSetting"",""File"",""ExecutableFile"",""Image"",""PreviewImage"",""Settings"",""IndexingSettings"",""LoggingSettings"",""SystemFile"",""Resource"",""Folder"",""ContentList"",""Aspect"",""ItemList"",""CustomList"",""EventList"",""LinkList"",""MemoList"",""TaskList"",""Library"",""DocumentLibrary"",""ImageLibrary"",""Device"",""Domain"",""Domains"",""Email"",""OrganizationalUnit"",""PortalRoot"",""ProfileDomain"",""Profiles"",""RuntimeContentContainer"",""Sites"",""SmartFolder"",""SystemFolder"",""Resources"",""TrashBag"",""Workspace"",""TrashBin"",""UserProfile"",""Group"",""SharingGroup"",""ListItem"",""CalendarEvent"",""CustomListItem"",""Link"",""Memo"",""Task"",""Query"",""User""]
+        },
+        {
+          ""Name"": ""VersioningMode"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""VersioningMode_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""InheritableVersioningMode"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""InheritableVersioningMode_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""CreatedBy"",
+          ""Type"": ""IntArray"",
+          ""Value"": [1]
+        },
+        {
+          ""Name"": ""VersionCreatedBy"",
+          ""Type"": ""IntArray"",
+          ""Value"": [1]
+        },
+        {
+          ""Name"": ""CreationDate"",
+          ""Type"": ""DateTime"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""VersionCreationDate"",
+          ""Type"": ""DateTime"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""ModifiedBy"",
+          ""Type"": ""IntArray"",
+          ""Value"": [1]
+        },
+        {
+          ""Name"": ""VersionModifiedBy"",
+          ""Type"": ""IntArray"",
+          ""Value"": [1]
+        },
+        {
+          ""Name"": ""ModificationDate"",
+          ""Type"": ""DateTime"",
+          ""Store"": ""Yes"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""VersionModificationDate"",
+          ""Type"": ""DateTime"",
+          ""Value"": ""2022-10-03T05:22:00Z""
+        },
+        {
+          ""Name"": ""ApprovingMode"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""ApprovingMode_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""InheritableApprovingMode"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""InheritableApprovingMode_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""Locked"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""CheckedOutTo"",
+          ""Type"": ""String"",
+          ""Value"": ""null""
+        },
+        {
+          ""Name"": ""SavingState"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""$0""]
+        },
+        {
+          ""Name"": ""SavingState_sort"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""TermVector"": ""No"",
+          ""Value"": ""$0""
+        },
+        {
+          ""Name"": ""ExtensionData"",
+          ""Type"": ""String"",
+          ""Value"": """"
+        },
+        {
+          ""Name"": ""BrowseApplication"",
+          ""Type"": ""String"",
+          ""Value"": ""null""
+        },
+        {
+          ""Name"": ""Approvable"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""IsTaggable"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""IsRateable"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""RateStr"",
+          ""Type"": ""String"",
+          ""Value"": """"
+        },
+        {
+          ""Name"": ""RateAvg"",
+          ""Type"": ""Double"",
+          ""Value"": 0.0
+        },
+        {
+          ""Name"": ""RateCount"",
+          ""Type"": ""Int"",
+          ""Value"": 0
+        },
+        {
+          ""Name"": ""Rate"",
+          ""Type"": ""String"",
+          ""Value"": ""sensenet.contentrepository.fields.votedata""
+        },
+        {
+          ""Name"": ""Publishable"",
+          ""Type"": ""Bool"",
+          ""Value"": false
+        },
+        {
+          ""Name"": ""CheckInComments"",
+          ""Type"": ""String"",
+          ""Value"": """"
+        },
+        {
+          ""Name"": ""RejectReason"",
+          ""Type"": ""String"",
+          ""Value"": """"
+        },
+        {
+          ""Name"": ""Workspace"",
+          ""Type"": ""String"",
+          ""Store"": ""Yes"",
+          ""Value"": ""null""
+        },
+        {
+          ""Name"": ""Sharing"",
+          ""Type"": ""StringArray"",
+          ""Value"": [""""]
+        },
+        {
+          ""Name"": ""IsInherited"",
+          ""Type"": ""Bool"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""Yes"",
+          ""Value"": true
+        },
+        {
+          ""Name"": ""IsMajor"",
+          ""Type"": ""Bool"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""Yes"",
+          ""Value"": true
+        },
+        {
+          ""Name"": ""IsPublic"",
+          ""Type"": ""Bool"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""Yes"",
+          ""Value"": true
+        },
+        {
+          ""Name"": ""_Text"",
+          ""Type"": ""String"",
+          ""Mode"": ""Analyzed"",
+          ""Store"": ""No"",
+          ""Value"": ""testfolder1\r\nv1.0.a\r\n1390\r\n1\r\n403\r\nsystemfolder\r\nsystemfolder\r\n1\r\n1\r\n42\r\n0\r\n0\r\nsensenet.contentrepository.fields.votedata\r\n""
+        }
+      ],
+      ""IndexDocumentSize"": 7341,
+      ""NodeTypeId"": 5,
+      ""VersionId"": 403,
+      ""NodeId"": 1390,
+      ""Path"": ""/Root/TestFolder1"",
+      ""ParentId"": 2,
+      ""IsSystem"": true,
+      ""IsLastDraft"": true,
+      ""IsLastPublic"": true,
+      ""NodeTimestamp"": 3807,
+      ""VersionTimestamp"": 1269
+    },
+    ""SenderInfo"": {
+      ""InstanceID"": ""150bf279-9c69-4796-b58f-843fac327251"",
+      ""Machine"": ""169.254.144.229"",
+      ""NeedToRecover"": true,
+      ""IsMe"": true
+    }
+  }
+}";
+                var stream = RepositoryTools.GetStreamFromString(payload);
+                var formatter = Providers.Instance.Services.GetRequiredService<IClusterMessageFormatter>();
+                var message = formatter.Deserialize(stream);
+                var action = (DistributedAction) message;
+
+                // ACTION
+                action.DoActionAsync(true, false, CancellationToken.None).GetAwaiter().GetResult();
+
+                // ASSERT (node does not exist but the received activity is executed)
+                STT.Task.Delay(10).GetAwaiter().GetResult();
+                var nodeId = 1390; // see payload.Msg.NodeId
+                var versionId = 403; // see payload.Msg.VersionId
+                var hitId = CreateSafeContentQuery("+Name:TestFolder1 +Index:42 .AUTOFILTERS:OFF")
+                    .ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult().Identifiers.FirstOrDefault();
+                Assert.AreEqual(nodeId, hitId);
+
+                var indexDocFields = Providers.Instance.SearchEngine.IndexingEngine
+                    .GetIndexDocumentByVersionId(versionId);
+                Assert.AreEqual("testfolder1", indexDocFields["DisplayName"]);
+                Assert.AreEqual("systemfolder", indexDocFields["Type"]);
+                Assert.AreEqual("/root/testfolder1", indexDocFields["Path"]);
+                Assert.AreEqual("2", indexDocFields["ParentId"]);
+                Assert.AreEqual("yes", indexDocFields["IsSystemContent"]);
+            });
+        }
     }
 }
