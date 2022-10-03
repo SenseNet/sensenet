@@ -35,6 +35,9 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ClusterMessageTests : TestBase
     {
+        // Note that the UnknownMessageType is not tested here because it is only a placeholder for error handling and
+        // is not designed for serializing and sending away.
+
         private class TestIndexManager : IndexManager
         {
             public TestIndexManager() : base(null, null, null) { }
@@ -77,10 +80,13 @@ namespace SenseNet.ContentRepository.Tests
 
         private async STT.Task SerializationTest<T>(T message, Action<T> assertion) where T : ClusterMessage
         {
+            var types = new List<Type>(TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)));
+            types.Add(typeof(TreeCache<Settings>.TreeCacheInvalidatorDistributedAction<Settings>));
+
             var services = new ServiceCollection()
                 .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddSingleton(new ClusterMessageTypes {Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage))})
+                .AddSingleton(new ClusterMessageTypes {Types = types })
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .AddSingleton<IIndexManager, TestIndexManager>()
@@ -354,11 +360,16 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(42, received.Id);
             });
         }
+        [TestMethod]
+        public async STT.Task Messaging_Serialization_TreeCache()
+        {
+            var activity = new TreeCache<Settings>.TreeCacheInvalidatorDistributedAction<Settings>();
 
-        //UnknownMessageType
-
-        //TreeCache<Settings>.TreeCacheInvalidatorDistributedAction<Settings>()
-
+            await SerializationTest<TreeCache<Settings>.TreeCacheInvalidatorDistributedAction<Settings>>(activity, activity =>
+            {
+                Assert.IsNotNull(activity);
+            });
+        }
 
         [TestMethod]
         public void Messaging_Serialization_IndexDocument()
