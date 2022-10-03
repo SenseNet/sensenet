@@ -15,6 +15,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
@@ -34,10 +35,20 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ClusterMessageTests : TestBase
     {
+        private class TestIndexManager : IndexManager
+        {
+            public TestIndexManager() : base(null, null, null) { }
+            public override IndexDocument CompleteIndexDocument(IndexDocumentData docData)
+            {
+                return docData.IndexDocument;
+            }
+        }
+
         #region private class TestClusterChannel
         private class TestClusterChannel : ClusterChannel
         {
             public ClusterMessage ReceivedMessage { get; private set; }
+            public List<ClusterMessage> ReceivedMessages { get; } = new();
 
             public TestClusterChannel(IClusterMessageFormatter formatter, ClusterMemberInfo clusterMemberInfo)
                 : base(formatter, clusterMemberInfo) { }
@@ -55,6 +66,7 @@ namespace SenseNet.ContentRepository.Tests
                 var baseAcc = new TypeAccessor(typeof(ClusterChannel));
                 var incomingMessages = (List<ClusterMessage>)baseAcc.GetStaticField("_incomingMessages");
                 ReceivedMessage = incomingMessages.FirstOrDefault();
+                ReceivedMessages.Add(ReceivedMessage);
                 incomingMessages.Clear();
             }
 
@@ -71,6 +83,7 @@ namespace SenseNet.ContentRepository.Tests
                 .AddSingleton(new ClusterMessageTypes {Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage))})
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
+                .AddSingleton<IIndexManager, TestIndexManager>()
                 .BuildServiceProvider();
             Providers.Instance = new Providers(services);
 
@@ -217,10 +230,25 @@ namespace SenseNet.ContentRepository.Tests
                 Extension = "{\"LastPublicVersionId\":159,\"LastDraftVersionId\":159,\"Delete\":[],\"Reindex\":[]}",
             };
             activity.SetDocument(indexDocument);
+            activity.IndexDocumentData = new IndexDocumentData(indexDocument, null)
+            {
+                NodeTypeId = 42,
+                VersionId = 44,
+                NodeId = 43,
+                ParentId = 45,
+                Path = "/Root/Path1",
+                IsSystem = true,
+                IsLastDraft = true,
+                IsLastPublic = true,
+                NodeTimestamp = 43434343,
+                VersionTimestamp = 42424242,
+            };
+
 
             await SerializationTest<AddDocumentActivity>(activity, received =>
             {
                 Assert.AreEqual(42, received.Id);
+                Assert.IsNotNull(received.IndexDocumentData);
                 Assert.AreEqual(123, received.Document.Fields["Integer1"].IntegerValue);
             });
         }
@@ -242,10 +270,25 @@ namespace SenseNet.ContentRepository.Tests
                 Extension = "{\"LastPublicVersionId\":159,\"LastDraftVersionId\":159,\"Delete\":[],\"Reindex\":[]}",
             };
             activity.SetDocument(indexDocument);
+            activity.IndexDocumentData = new IndexDocumentData(indexDocument, null)
+            {
+                NodeTypeId = 42,
+                VersionId = 44,
+                NodeId = 43,
+                ParentId = 45,
+                Path = "/Root/Path1",
+                IsSystem = true,
+                IsLastDraft = true,
+                IsLastPublic = true,
+                NodeTimestamp = 43434343,
+                VersionTimestamp = 42424242,
+            };
+
 
             await SerializationTest<UpdateDocumentActivity>(activity, received =>
             {
                 Assert.AreEqual(42, received.Id);
+                Assert.IsNotNull(received.IndexDocumentData);
                 Assert.AreEqual(123, received.Document.Fields["Integer1"].IntegerValue);
             });
         }
@@ -361,7 +404,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("ok", message);
             }
         }
-
         private string CompareIndexFields(IndexField expected, IndexField actual)
         {
             if (expected.Name != actual.Name)
@@ -397,6 +439,32 @@ namespace SenseNet.ContentRepository.Tests
             if (expected.ValueAsString != actual.ValueAsString)
                 return $"ValueAsString: {expected.ValueAsString} != {actual.ValueAsString}";
             return "ok";
+        }
+
+        [TestMethod]
+        public void Messaging_Serialization_WhenSaveNode()
+        {
+            Test2(services =>
+            {
+                services
+                    .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
+                    .AddSingleton(ClusterMemberInfo.Current)
+                    .AddSingleton(new ClusterMessageTypes
+                        {Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage))})
+                    .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
+                    .AddSingleton<IClusterChannel, TestClusterChannel>();
+            }, () =>
+            {
+                var folder = new SystemFolder(Repository.Root) {Name = "TestFolder1", Index = 42};
+
+                // ACTION
+                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                var channel = (TestClusterChannel)Providers.Instance.Services.GetRequiredService<IClusterChannel>();
+                var receivedMessages = channel.ReceivedMessages;
+                var addDocActivity = receivedMessages.FirstOrDefault(x => x is AddDocumentActivity);
+                Assert.IsNotNull(addDocActivity);
+            });
         }
     }
 }

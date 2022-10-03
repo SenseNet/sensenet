@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
@@ -32,6 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets the serialized index document. If this instance is initialized with an
         /// IndexDocument instance or invalidated, the serialization will be executed.
         /// </summary>
+        [JsonIgnore]
         public string SerializedIndexDocument
         {
             get

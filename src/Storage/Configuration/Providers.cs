@@ -81,6 +81,10 @@ namespace SenseNet.Configuration
             SearchManager = services.GetService<ISearchManager>();
             IndexManager = services.GetService<IIndexManager>();
             IndexPopulator = services.GetService<IIndexPopulator>();
+
+            var x = services.GetService<IClusterChannel>();
+            if (x != null)
+                ClusterChannelProvider = x;
         }
 
         /// <summary>

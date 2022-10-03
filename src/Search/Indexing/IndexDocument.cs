@@ -40,6 +40,7 @@ namespace SenseNet.Search.Indexing
     public class IndexDocument : ICollection<IndexField>
     {
         #region private class FieldDictionary : IDictionary<string, IndexField>
+        [Serializable]
         private class FieldDictionary : IDictionary<string, IndexField>
         {
             private readonly Action _invalidate;

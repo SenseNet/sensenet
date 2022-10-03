@@ -54,6 +54,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         private bool _documentIsCreated;
 
         private IndexDocument _document;
+        [JsonIgnore]
         public IndexDocument Document
         {
             get
