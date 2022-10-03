@@ -422,13 +422,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             return activity;
         }
-        private async STT.Task CreateActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task CreateActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
-            await ExecuteActivityAsync(CreateActivity(type, path, nodeId, versionId, versionTimestamp, versioningInfo, indexDocumentData), cancellationToken);
+            return ExecuteActivityAsync(CreateActivity(type, path, nodeId, versionId, versionTimestamp, versioningInfo, indexDocumentData), cancellationToken);
         }
-        private async STT.Task CreateTreeActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
+        private STT.Task CreateTreeActivityAndExecuteAsync(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData, CancellationToken cancellationToken)
         {
-            await ExecuteActivityAsync(CreateTreeActivity(type, path, nodeId, indexDocumentData), cancellationToken);
+            return ExecuteActivityAsync(CreateTreeActivity(type, path, nodeId, indexDocumentData), cancellationToken);
         }
         private async STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {

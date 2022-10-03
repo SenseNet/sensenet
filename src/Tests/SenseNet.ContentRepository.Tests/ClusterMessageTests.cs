@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Testing;
@@ -38,6 +39,7 @@ namespace SenseNet.ContentRepository.Tests
         // Note that the UnknownMessageType is not tested here because it is only a placeholder for error handling and
         // is not designed for serializing and sending away.
 
+        #region private class TestIndexManager
         private class TestIndexManager : IndexManager
         {
             public TestIndexManager() : base(null, null, null) { }
@@ -46,7 +48,7 @@ namespace SenseNet.ContentRepository.Tests
                 return docData.IndexDocument;
             }
         }
-
+        #endregion
         #region private class TestClusterChannel
         private class TestClusterChannel : ClusterChannel
         {
@@ -77,6 +79,10 @@ namespace SenseNet.ContentRepository.Tests
             public override STT.Task RestartAllChannelsAsync(CancellationToken cancellationToken) => STT.Task.CompletedTask;
         }
         #endregion
+
+        /*******************************************************************************/
+        /*                Message serialization-deserialization tests                  */
+        /*******************************************************************************/
 
         private async STT.Task SerializationTest<T>(T message, Action<T> assertion) where T : ClusterMessage
         {
@@ -371,6 +377,10 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        /*******************************************************************************/
+        /*             IndexDocument serialization-deserialization tests               */
+        /*******************************************************************************/
+
         [TestMethod]
         public void Messaging_Serialization_IndexDocument()
         {
@@ -451,6 +461,10 @@ namespace SenseNet.ContentRepository.Tests
                 return $"ValueAsString: {expected.ValueAsString} != {actual.ValueAsString}";
             return "ok";
         }
+
+        /*******************************************************************************/
+        /*          NLB simulation and serialization-deserialization tests             */
+        /*******************************************************************************/
 
         [TestMethod]
         public void Messaging_Serialization_WhenSaveNode()

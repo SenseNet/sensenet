@@ -66,12 +66,6 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 }
                 return _document;
             }
-            set
-            {
-                // callers: tests and json deserialization
-                _document = value;
-                _documentIsCreated = true;
-            }
         }
 
         public VersioningInfo Versioning { get; set; }
