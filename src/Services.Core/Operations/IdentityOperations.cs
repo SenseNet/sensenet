@@ -73,18 +73,22 @@ namespace SenseNet.Services.Core.Operations
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
 
+            var logger = context.RequestServices.GetRequiredService<ILogger<CredentialValidationResult>>();
+
+            logger.LogTrace($"Validating credentials of {userName}");
+
             // check user in elevated mode, because this is a system operation
             using (new SystemAccount())
             {
                 var user = User.Load(userName);
                 if (user == null)
                 {
-                    SnTrace.Security.Write($"Could not find a user with the name: {userName}");
+                    logger.LogTrace($"Could not find a user with the name: {userName}");
                     CheckDomainPolicy(userName);
                 }
                 else if (!user.Enabled)
                 {
-                    SnTrace.Security.Write($"User {userName} is disabled, not allowed to log in.");
+                    logger.LogTrace($"User {userName} is disabled, not allowed to log in.");
                     user = null;
                 }
 
@@ -92,6 +96,8 @@ namespace SenseNet.Services.Core.Operations
                 {
                     if (user.CheckPasswordMatch(password))
                     {
+                        logger.LogTrace($"Password validation success for {userName}");
+
                         return new CredentialValidationResult
                         {
                             Id = user.Id,
@@ -102,7 +108,7 @@ namespace SenseNet.Services.Core.Operations
                         };
                     }
 
-                    SnTrace.Security.Write($"Password match failed for user: {userName}");
+                    logger.LogTrace($"Password match failed for user: {userName}");
                 }
             }
 
