@@ -467,9 +467,9 @@ namespace SenseNet.ContentRepository.Tests
         /*******************************************************************************/
 
         [TestMethod]
-        public void Messaging_Serialization_WhenSaveNode()
+        public async STT.Task Messaging_Serialization_WhenSaveNode()
         {
-            Test2(services =>
+            await Test2(services =>
             {
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
@@ -478,23 +478,23 @@ namespace SenseNet.ContentRepository.Tests
                         {Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage))})
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
-            }, () =>
+            }, async () =>
             {
                 var folder = new SystemFolder(Repository.Root) {Name = "TestFolder1", Index = 42};
 
                 // ACTION
-                folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await folder.SaveAsync(CancellationToken.None).ConfigureAwait(false);
 
                 var channel = (TestClusterChannel)Providers.Instance.Services.GetRequiredService<IClusterChannel>();
                 var receivedMessages = channel.ReceivedMessages;
                 var addDocActivity = receivedMessages.FirstOrDefault(x => x is AddDocumentActivity);
                 Assert.IsNotNull(addDocActivity);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
-        public void Messaging_Serialization_WhenSaveNode_OnAnotherNlbNode()
+        public async STT.Task Messaging_Serialization_WhenSaveNode_OnAnotherNlbNode()
         {
-            Test2(services =>
+            await Test2(services =>
             {
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] { new IndexFieldJsonConverter() })
@@ -503,7 +503,7 @@ namespace SenseNet.ContentRepository.Tests
                         { Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)) })
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
-            }, () =>
+            }, async () =>
             {
                 // ALIGN (simulates the receiver in the nlb cluster)
                 var payload = @"{
@@ -894,15 +894,15 @@ namespace SenseNet.ContentRepository.Tests
                 var action = (DistributedAction) message;
 
                 // ACTION
-                action.DoActionAsync(true, false, CancellationToken.None).GetAwaiter().GetResult();
+                await action.DoActionAsync(true, false, CancellationToken.None).ConfigureAwait(false);
 
                 // ASSERT (node does not exist but the received activity is executed)
-                STT.Task.Delay(10).GetAwaiter().GetResult();
+                await STT.Task.Delay(10).ConfigureAwait(false);
                 var nodeId = 1390; // see payload.Msg.NodeId
                 var versionId = 403; // see payload.Msg.VersionId
-                Assert.IsNull(Node.LoadNodeAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult());
-                var hitId = CreateSafeContentQuery("+Name:TestFolder1 +Index:42 .AUTOFILTERS:OFF")
-                    .ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult().Identifiers.FirstOrDefault();
+                Assert.IsNull(await Node.LoadNodeAsync(nodeId, CancellationToken.None).ConfigureAwait(false));
+                var hitId = (await CreateSafeContentQuery("+Name:TestFolder1 +Index:42 .AUTOFILTERS:OFF")
+                    .ExecuteAsync(CancellationToken.None).ConfigureAwait(false)).Identifiers.FirstOrDefault();
                 Assert.AreEqual(nodeId, hitId);
 
                 var indexDocFields = Providers.Instance.SearchEngine.IndexingEngine
@@ -912,7 +912,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("/root/testfolder1", indexDocFields["Path"]);
                 Assert.AreEqual("2", indexDocFields["ParentId"]);
                 Assert.AreEqual("yes", indexDocFields["IsSystemContent"]);
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

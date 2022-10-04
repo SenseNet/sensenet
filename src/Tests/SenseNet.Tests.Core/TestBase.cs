@@ -210,6 +210,51 @@ namespace SenseNet.Tests.Core
             }
         }
 
+        protected STT.Task Test2(Action<IServiceCollection> initializeServices, Func<STT.Task> callback)
+        {
+            return Test2(false, initializeServices, callback);
+        }
+        protected STT.Task Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Func<STT.Task> callback)
+        {
+            return ExecuteTest2(useCurrentUser, initializeServices, null, callback);
+        }
+        protected STT.Task Test2(Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            return Test2(false, initializeServices, initialize, callback);
+        }
+        protected STT.Task Test2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            return ExecuteTest2(useCurrentUser, initializeServices, initialize, callback);
+        }
+        private async STT.Task ExecuteTest2(bool useCurrentUser, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTest(initializeServices);
+            initialize?.Invoke(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
+
+            using (Repository.Start(builder))
+            {
+                PrepareRepository();
+
+                User.Current = User.Administrator;
+                if (useCurrentUser)
+                    await callback();
+                else
+                    using (new SystemAccount())
+                        await callback();
+            }
+
+            OnAfterRepositoryShutdown();
+        }
+
         protected virtual IServiceProvider CreateServiceProviderForTest(Action<IConfigurationBuilder> modifyConfig = null,
             Action<IServiceCollection> modifyServices = null)
         {
