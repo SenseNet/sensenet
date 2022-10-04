@@ -15,6 +15,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
@@ -86,19 +87,16 @@ namespace SenseNet.ContentRepository.Tests
 
         private async STT.Task SerializationTest<T>(T message, Action<T> assertion) where T : ClusterMessage
         {
-            var types = new List<Type>(TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)));
-            types.Add(typeof(TreeCache<Settings>.TreeCacheInvalidatorDistributedAction<Settings>));
-
             var services = new ServiceCollection()
                 .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddSingleton(new ClusterMessageTypes {Types = types })
+                .AddClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .AddSingleton<IIndexManager, TestIndexManager>()
                 .BuildServiceProvider();
             Providers.Instance = new Providers(services);
-
+            
             var channel = (TestClusterChannel)services.GetRequiredService<IClusterChannel>();
 
             // ACTION
@@ -120,7 +118,7 @@ namespace SenseNet.ContentRepository.Tests
             ClusterMemberInfo.Current = new ClusterMemberInfo {ClusterID = "Cluster1"};
             var services = new ServiceCollection()
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddSingleton(new ClusterMessageTypes { Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)) })
+                .AddClusterMessageTypes()
                 //.AddSingleton<IClusterMessage, MyClMsg>()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
@@ -160,7 +158,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var services = new ServiceCollection()
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddSingleton(new ClusterMessageTypes { Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)) })
+                .AddClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .BuildServiceProvider();
@@ -474,8 +472,7 @@ namespace SenseNet.ContentRepository.Tests
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                     .AddSingleton(ClusterMemberInfo.Current)
-                    .AddSingleton(new ClusterMessageTypes
-                        {Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage))})
+                    .AddClusterMessageTypes()
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
             }, async () =>
@@ -499,8 +496,7 @@ namespace SenseNet.ContentRepository.Tests
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] { new IndexFieldJsonConverter() })
                     .AddSingleton(ClusterMemberInfo.Current)
-                    .AddSingleton(new ClusterMessageTypes
-                        { Types = TypeResolver.GetTypesByBaseType(typeof(ClusterMessage)) })
+                    .AddClusterMessageTypes()
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
             }, async () =>

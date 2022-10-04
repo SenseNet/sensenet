@@ -7,14 +7,36 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SenseNet.Storage.DistributedApplication.Messaging
 {
-    public class ClusterMessageTypes : IEnumerable<Type>
+    //public class ClusterMessageTypes : IEnumerable<Type>
+    //{
+    //    public IEnumerable<Type> Types { get; set; }
+    //    public IEnumerator<Type> GetEnumerator() => Types.GetEnumerator();
+    //    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    //}
+    public class ClusterMessageType
     {
-        public IEnumerable<Type> Types { get; set; }
-        public IEnumerator<Type> GetEnumerator() => Types.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public Type MessageType;
+        public ClusterMessageType(Type messageType)
+        {
+            MessageType = messageType;
+        }
+    }
+    public static class SnMessageFormatterExtensions
+    {
+        public static IServiceCollection AddClusterMessageType<T>(this IServiceCollection services) where T : ClusterMessage
+        {
+            return services.AddSingleton<ClusterMessageType>(new ClusterMessageType(typeof(T)));
+        }
+        public static IServiceCollection AddClusterMessageTypes(this IServiceCollection services, params Type[] types)
+        {
+            foreach (var type in types)
+                services.AddSingleton<ClusterMessageType>(new ClusterMessageType(type));
+            return services;
+        }
     }
 
     public class SnMessageFormatter : IClusterMessageFormatter
@@ -28,9 +50,10 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
         private readonly Dictionary<string, Type> _knownMessageTypes;
         private readonly JsonSerializerSettings _serializationSettings;
 
-        public SnMessageFormatter(ClusterMessageTypes knownMessageTypes, IEnumerable<JsonConverter> jsonConverters)
+        public SnMessageFormatter(IEnumerable<ClusterMessageType> knownMessageTypes, IEnumerable<JsonConverter> jsonConverters)
         {
-            _knownMessageTypes = knownMessageTypes.ToDictionary(x => x.FullName, x => x);
+            _knownMessageTypes = knownMessageTypes
+                .ToDictionary(x => x.MessageType.FullName, x => x.MessageType);
             _serializationSettings = new JsonSerializerSettings
             {
                 Converters = jsonConverters.ToList(),
