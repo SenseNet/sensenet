@@ -53,7 +53,9 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
         public SnMessageFormatter(IEnumerable<ClusterMessageType> knownMessageTypes, IEnumerable<JsonConverter> jsonConverters)
         {
             _knownMessageTypes = knownMessageTypes
-                .ToDictionary(x => x.MessageType.FullName, x => x.MessageType);
+                .Select(x=>x.MessageType)
+                .Distinct()
+                .ToDictionary(x => x.FullName, x => x);
             _serializationSettings = new JsonSerializerSettings
             {
                 Converters = jsonConverters.ToList(),
