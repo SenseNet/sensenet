@@ -107,10 +107,8 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            //Debug.WriteLine($">>{reader.TokenType}:{reader.ValueType?.Name ?? ""}:{reader.Value}");
             while (reader.Read())
             {
-                //Debug.WriteLine($"{reader.TokenType}:{reader.ValueType?.Name ?? ""}:{reader.Value}");
                 switch (reader.TokenType)
                 {
                     default:

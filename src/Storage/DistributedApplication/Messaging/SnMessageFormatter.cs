@@ -11,12 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace SenseNet.Storage.DistributedApplication.Messaging
 {
-    //public class ClusterMessageTypes : IEnumerable<Type>
-    //{
-    //    public IEnumerable<Type> Types { get; set; }
-    //    public IEnumerator<Type> GetEnumerator() => Types.GetEnumerator();
-    //    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    //}
     public class ClusterMessageType
     {
         public Type MessageType;
