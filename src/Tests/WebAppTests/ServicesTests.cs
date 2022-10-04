@@ -65,6 +65,7 @@ using SenseNet.Services.Wopi;
 using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
+using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
@@ -404,6 +405,11 @@ namespace WebAppTests
                     typeof(RtfTextExtractor),
                 }},
                 {typeof(TextExtractorRegistration), typeof(TextExtractorRegistration) },
+
+                {typeof(IClusterMessageFormatter), typeof(SnMessageFormatter)},
+                {typeof(ClusterMemberInfo), typeof(ClusterMemberInfo)},
+                {typeof(IClusterChannel), typeof(VoidChannel)},
+                {typeof(ClusterMessageType), typeof(ClusterMessageType)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()

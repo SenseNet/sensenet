@@ -31,6 +31,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
+using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
@@ -148,6 +149,11 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
                 .AddSingleton<IIndexingActivityFactory, IndexingActivityFactory>()
 
+                .AddSingleton(ClusterMemberInfo.Current)
+                .AddClusterMessageTypes()
+                .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
+                .AddSingleton<IClusterChannel, VoidChannel>()
+
                 .AddDefaultTextExtractors()
 
                 .AddSingleton<ISnCache, SnMemoryCache>()
@@ -184,10 +190,6 @@ namespace SenseNet.Extensions.DependencyInjection
             var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
             if (cmi != null)
                 ClusterMemberInfo.Current = cmi;
-
-            var ccp = provider.GetService<IClusterChannel>();
-            if (ccp != null)
-                Providers.Instance.ClusterChannelProvider = ccp;
 
             var csp = provider.GetService<ICryptoServiceProvider>();
             if (csp != null)

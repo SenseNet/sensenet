@@ -82,9 +82,7 @@ namespace SenseNet.Configuration
             IndexManager = services.GetService<IIndexManager>();
             IndexPopulator = services.GetService<IIndexPopulator>();
 
-            var x = services.GetService<IClusterChannel>();
-            if (x != null)
-                ClusterChannelProvider = x;
+            ClusterChannelProvider = services.GetService<IClusterChannel>();
         }
 
         /// <summary>
@@ -237,7 +235,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        public virtual IClusterChannel ClusterChannelProvider { get; set; } = new VoidChannel(new BinaryMessageFormatter(), ClusterMemberInfo.Current);
+        public IClusterChannel ClusterChannelProvider { get; set; }
 
         #region NodeObservers
         private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
