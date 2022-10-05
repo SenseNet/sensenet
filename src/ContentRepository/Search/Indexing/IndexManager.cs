@@ -387,7 +387,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return data == null ? null : CompleteIndexDocument(data);
         }
 
-        public IndexDocument CompleteIndexDocument(IndexDocumentData docData)
+        public virtual IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
             var doc = docData?.IndexDocument;
 

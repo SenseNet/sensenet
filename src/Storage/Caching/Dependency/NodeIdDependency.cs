@@ -14,9 +14,15 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
     {
         #region private class FireChangedDistributedAction
         [Serializable]
-        private class FireChangedDistributedAction : DistributedAction
+        public class FireChangedDistributedAction : DistributedAction
         {
-            private readonly int _nodeId;
+            private int _nodeId;
+
+            public int NodeId
+            {
+                get => _nodeId;
+                set => _nodeId = value;
+            }
 
             public FireChangedDistributedAction(int nodeId)
             {

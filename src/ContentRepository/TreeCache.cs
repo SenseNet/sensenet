@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository
         }
 
         [Serializable]
-        private class TreeCacheInvalidatorDistributedAction<Q> : DistributedAction where Q : Node
+        public class TreeCacheInvalidatorDistributedAction<Q> : DistributedAction where Q : Node
         {
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {

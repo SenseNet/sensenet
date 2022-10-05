@@ -37,9 +37,10 @@ namespace SenseNet.Search.Indexing
     /// Represents a collection of index fields.
     /// </summary>
     [Serializable]
-    public class IndexDocument : IEnumerable<IndexField>
+    public class IndexDocument : ICollection<IndexField>
     {
         #region private class FieldDictionary : IDictionary<string, IndexField>
+        [Serializable]
         private class FieldDictionary : IDictionary<string, IndexField>
         {
             private readonly Action _invalidate;
@@ -156,6 +157,7 @@ namespace SenseNet.Search.Indexing
 
         private readonly FieldDictionary _fields;
 
+        [JsonIgnore]
         public IDictionary<string, IndexField> Fields => _fields;
 
         public IndexDocument()
@@ -488,5 +490,32 @@ namespace SenseNet.Search.Indexing
             }
             return _serializedIndexDocument;
         }
+
+        // Additional ICollection<> implementations
+
+        public void Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool Contains(IndexField item)
+        {
+            if (item == null)
+                return false;
+            return _fields.ContainsKey(item.Name);
+        }
+
+        public void CopyTo(IndexField[] array, int arrayIndex)
+        {
+            _fields.Values.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(IndexField item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public int Count => _fields.Count;
+        public bool IsReadOnly => false;
     }
 }

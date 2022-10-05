@@ -65,6 +65,7 @@ using SenseNet.Services.Wopi;
 using SenseNet.Storage;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
+using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
@@ -186,9 +187,10 @@ namespace WebAppTests
             {
                 var result = new Dictionary<Type, ServiceDescriptor>();
 
-                var engine = GetFieldValue(serviceProvider, "_engine");
-                var callSiteFactory = GetPropertyValue(engine, "CallSiteFactory");
+                // Skipped step in .NET6: var engine = GetFieldValue(serviceProvider, "_engine");
+                var callSiteFactory = GetPropertyValue(serviceProvider, "CallSiteFactory");
                 var descriptorLookup = GetFieldValue(callSiteFactory, "_descriptorLookup");
+
                 if (descriptorLookup is IDictionary dictionary)
                 {
                     foreach (DictionaryEntry entry in dictionary)
@@ -403,6 +405,11 @@ namespace WebAppTests
                     typeof(RtfTextExtractor),
                 }},
                 {typeof(TextExtractorRegistration), typeof(TextExtractorRegistration) },
+
+                {typeof(IClusterMessageFormatter), typeof(SnMessageFormatter)},
+                {typeof(ClusterMemberInfo), typeof(ClusterMemberInfo)},
+                {typeof(IClusterChannel), typeof(VoidChannel)},
+                {typeof(ClusterMessageType), typeof(ClusterMessageType)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()

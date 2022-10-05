@@ -2482,7 +2482,9 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(6, operations3.Length);
 
                     // ASSERT-4 OpIds
-                    Assert.AreEqual("op()|op(a)|op(a,x)|op(b,c)|op(d,e,x)|op(p,q,x,y)", ids1);
+                    var ids = string.Join("|", new[] { "op()", "op(a)", "op(a,x)", "op(b,c)", "op(d,e,x)", "op(p,q,x,y)"}
+                        .OrderBy(x => x));
+                    Assert.AreEqual(ids, ids1);
                     Assert.AreEqual(ids1, ids2);
                     Assert.AreEqual(ids1, ids3);
                 }

@@ -88,7 +88,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region Distributed Action child class
         [Serializable]
-        internal class NodeTypeManagerRestartDistributedAction : SenseNet.Communication.Messaging.DistributedAction
+        public class NodeTypeManagerRestartDistributedAction : SenseNet.Communication.Messaging.DistributedAction
         {
             public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
