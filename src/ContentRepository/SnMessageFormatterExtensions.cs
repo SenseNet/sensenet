@@ -1,19 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search.Indexing.Activities;
-using SenseNet.Storage.DistributedApplication.Messaging;
-using SenseNet.ContentRepository.i18n;
 using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 
-namespace SenseNet.ContentRepository
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class SnMessageFormatterExtensions
     {
-        public static IServiceCollection AddClusterMessageTypes(this IServiceCollection services)
+        public static IServiceCollection AddDefaultClusterMessageTypes(this IServiceCollection services)
         {
             return services
                     // caching

@@ -150,7 +150,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IIndexingActivityFactory, IndexingActivityFactory>()
 
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddClusterMessageTypes()
+                .AddDefaultClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, VoidChannel>()
 

@@ -19,19 +19,6 @@ namespace SenseNet.Storage.DistributedApplication.Messaging
             MessageType = messageType;
         }
     }
-    public static class SnMessageFormatterExtensions
-    {
-        public static IServiceCollection AddClusterMessageType<T>(this IServiceCollection services) where T : ClusterMessage
-        {
-            return services.AddSingleton<ClusterMessageType>(new ClusterMessageType(typeof(T)));
-        }
-        public static IServiceCollection AddClusterMessageTypes(this IServiceCollection services, params Type[] types)
-        {
-            foreach (var type in types)
-                services.AddSingleton<ClusterMessageType>(new ClusterMessageType(type));
-            return services;
-        }
-    }
 
     public class SnMessageFormatter : IClusterMessageFormatter
     {

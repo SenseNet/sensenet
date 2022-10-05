@@ -2,20 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using MailKit;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
@@ -23,12 +17,11 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
-using SenseNet.Tools;
 using static SenseNet.ContentRepository.Schema.ContentTypeManager;
 using STT = System.Threading.Tasks;
 
@@ -90,7 +83,7 @@ namespace SenseNet.ContentRepository.Tests
             var services = new ServiceCollection()
                 .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddClusterMessageTypes()
+                .AddDefaultClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .AddSingleton<IIndexManager, TestIndexManager>()
@@ -118,8 +111,7 @@ namespace SenseNet.ContentRepository.Tests
             ClusterMemberInfo.Current = new ClusterMemberInfo {ClusterID = "Cluster1"};
             var services = new ServiceCollection()
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddClusterMessageTypes()
-                //.AddSingleton<IClusterMessage, MyClMsg>()
+                .AddDefaultClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .BuildServiceProvider();
@@ -158,7 +150,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var services = new ServiceCollection()
                 .AddSingleton(ClusterMemberInfo.Current)
-                .AddClusterMessageTypes()
+                .AddDefaultClusterMessageTypes()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .BuildServiceProvider();
@@ -472,7 +464,7 @@ namespace SenseNet.ContentRepository.Tests
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                     .AddSingleton(ClusterMemberInfo.Current)
-                    .AddClusterMessageTypes()
+                    .AddDefaultClusterMessageTypes()
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
             }, async () =>
@@ -496,7 +488,7 @@ namespace SenseNet.ContentRepository.Tests
                 services
                     .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] { new IndexFieldJsonConverter() })
                     .AddSingleton(ClusterMemberInfo.Current)
-                    .AddClusterMessageTypes()
+                    .AddDefaultClusterMessageTypes()
                     .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                     .AddSingleton<IClusterChannel, TestClusterChannel>();
             }, async () =>
