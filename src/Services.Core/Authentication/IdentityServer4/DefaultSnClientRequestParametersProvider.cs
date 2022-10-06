@@ -62,6 +62,16 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
                     ClientId = ClientAdminUi
                 });
             }
+            if (clients.All(c => c.ClientType != ClientTool))
+            {
+                // Add the default tool client because the .Net client library tries to
+                // download the authority info using this client type.
+                clients.Add(new SnIdentityServerClient
+                {
+                    ClientType = ClientTool,
+                    ClientId = ClientTool
+                });
+            }
 
             foreach (var client in clients)
             {
