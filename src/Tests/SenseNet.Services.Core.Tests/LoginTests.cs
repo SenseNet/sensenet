@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -22,9 +23,9 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod]
         public void Login_NoDomain_BuiltIn_Admin_Ok()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("admin", "admin");
+                var result = ValidateCredentials("admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -32,29 +33,29 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod, ExpectedException(typeof(MissingDomainException))]
         public void Login_NoDomain_BuiltIn_Admin_Err_WithAdminInPublic()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
                 CreateUserInPublicDomain("Admin", "verypublicadmin");
-                var result = ValidateCredentials("admin", "verypublicadmin");
+                var result = ValidateCredentials("admin", "verypublicadmin", services);
             });
         }
 
         [TestMethod]
         public void Login_NoDomain_BuiltIn_PublicAdmin_Ok_WithAdminInPublic()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
                 CreateUserInPublicDomain("Admin", "verypublicadmin");
-                var result = ValidateCredentials("public\\admin", "verypublicadmin");
+                var result = ValidateCredentials("public\\admin", "verypublicadmin", services);
             });
         }
 
         [TestMethod]
         public void Login_NoDomain_BuiltIn_BuiltInAdmin_Ok()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("builtin\\admin", "admin");
+                var result = ValidateCredentials("builtin\\admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -62,26 +63,26 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_NoDomain_BuiltIn_Domain1Admin_Err()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("domain1\\admin", "admin");
+                var result = ValidateCredentials("domain1\\admin", "admin", services);
             });
         }
 
         [TestMethod]
         public void Login_NoDomain_BuiltIn_User1_Ok_WithUser1InPublic()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
                 CreateUserInPublicDomain("User1", "user1");
-                var result = ValidateCredentials("user1", "user1");
+                var result = ValidateCredentials("user1", "user1", services);
             });
         }
 
         [TestMethod]
         public void Login_NoDomain_DoubleCache()
         {
-            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
             {
                 var nodeId = CreateUserInPublicDomain("User1", "user1");
 
@@ -93,12 +94,12 @@ namespace SenseNet.Services.Core.Tests
                 Assert.IsNull(Cache.Get(key1));
                 Assert.IsNull(Cache.Get(key2));
 
-                ValidateCredentials("user1", "user1");
+                ValidateCredentials("user1", "user1", services);
 
                 Assert.IsNotNull(Cache.Get(key1));
                 Assert.IsNull(Cache.Get(key2));
 
-                ValidateCredentials("public\\user1", "user1");
+                ValidateCredentials("public\\user1", "user1", services);
 
                 Assert.IsNotNull(Cache.Get(key1));
                 Assert.IsNotNull(Cache.Get(key2));
@@ -115,9 +116,9 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod]
         public void Login_DefaultDomain_BuiltIn_Admin_Ok()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("admin", "admin");
+                var result = ValidateCredentials("admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -125,9 +126,9 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod]
         public void Login_DefaultDomain_BuiltIn_BuiltInAdmin_Ok()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("builtin\\admin", "admin");
+                var result = ValidateCredentials("builtin\\admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -135,27 +136,27 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_DefaultDomain_BuiltIn_Domain1Admin_Err()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("domain1\\admin", "admin");
+                var result = ValidateCredentials("domain1\\admin", "admin", services);
             });
         }
 
         [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_DefaultDomain_Domain1_Admin_Err()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", (services) =>
             {
-                var result = ValidateCredentials("admin", "admin");
+                var result = ValidateCredentials("admin", "admin", services);
             });
         }
 
         [TestMethod]
         public void Login_DefaultDomain_Domain1_BuiltInAdmin_Ok()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", (services) =>
             {
-                var result = ValidateCredentials("builtin\\admin", "admin");
+                var result = ValidateCredentials("builtin\\admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -163,27 +164,27 @@ namespace SenseNet.Services.Core.Tests
         [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_DefaultDomain_Domain1_Domain1Admin_Err()
         {
-            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", () =>
+            LoginTest(DomainUsagePolicy.DefaultDomain, "Domain1", (services) =>
             {
-                var result = ValidateCredentials("domain1\\admin", "admin");
+                var result = ValidateCredentials("domain1\\admin", "admin", services);
             });
         }
 
         [TestMethod, ExpectedException(typeof(MissingDomainException))]
         public void Login_MandatoryDomain_BuiltIn_Admin_Err()
         {
-            LoginTest(DomainUsagePolicy.MandatoryDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.MandatoryDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("admin", "admin");
+                var result = ValidateCredentials("admin", "admin", services);
             });
         }
 
         [TestMethod]
         public void Login_MandatoryDomain_BuiltIn_BuiltInAdmin_Ok()
         {
-            LoginTest(DomainUsagePolicy.MandatoryDomain, BuiltIn, () =>
+            LoginTest(DomainUsagePolicy.MandatoryDomain, BuiltIn, (services) =>
             {
-                var result = ValidateCredentials("builtin\\admin", "admin");
+                var result = ValidateCredentials("builtin\\admin", "admin", services);
                 Assert.AreEqual("BuiltIn\\Admin", result.Username);
             });
         }
@@ -203,18 +204,28 @@ namespace SenseNet.Services.Core.Tests
 
             return user.Id;
         }
-        private IdentityOperations.CredentialValidationResult ValidateCredentials(string userName, string password)
+        private IdentityOperations.CredentialValidationResult ValidateCredentials(string userName, string password, IServiceProvider services)
         {
             return IdentityOperations.ValidateCredentials(
                 Content.Create(Repository.Root),
-                new DefaultHttpContext(),
+                new DefaultHttpContext()
+                {
+                    RequestServices = services ?? new ServiceCollection().BuildServiceProvider()
+                },
                 userName,
                 password);
         }
 
-        private void LoginTest(DomainUsagePolicy domainUsagePolicy, string defaultDomain, Action callback)
+        private void LoginTest(DomainUsagePolicy domainUsagePolicy, string defaultDomain, Action<IServiceProvider> callback)
         {
-            Test(() =>
+            IServiceProvider services = null;
+
+            Test2(sc => { sc.AddLogging(); },
+                repoBuilder =>
+                {
+                    services = repoBuilder.Services;
+                },
+                () =>
             {
                 if (defaultDomain != BuiltIn)
                     new Domain(Repository.ImsFolder) {Name = defaultDomain}.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -226,7 +237,7 @@ namespace SenseNet.Services.Core.Tests
                            () => IdentityManagement.DefaultDomain,
                            (domain => IdentityManagement.DefaultDomain = domain)))
                 {
-                    callback();
+                    callback(services);
                 }
             });
         }
