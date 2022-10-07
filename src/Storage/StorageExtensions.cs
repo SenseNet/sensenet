@@ -4,6 +4,7 @@ using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Storage.DistributedApplication.Messaging;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -84,7 +85,7 @@ namespace SenseNet.Extensions.DependencyInjection
             Action<ClusterMemberInfo> configure = null) where T: class, IClusterChannel
         {
             services
-                .AddSingleton<IClusterMessageFormatter, BinaryMessageFormatter>()
+                .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, T>()
                 .AddSenseNetBackgroundService<ClusterChannelMonitor>()
                 .Configure<ClusterMemberInfo>(cmi => { configure?.Invoke(cmi); });

@@ -713,7 +713,6 @@ namespace WebAppTests
                     {typeof(IQueryEngine), typeof(Lucene29CentralizedQueryEngine)},
                     {typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
                     {typeof(ISearchServiceClient), typeof(GrpcServiceClient)},
-                    {typeof(IClusterMessageFormatter), typeof(BinaryMessageFormatter)},
                     {typeof(IClusterChannel), typeof(SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider)},
 
                     {typeof(IWebHookClient), typeof(HttpWebHookClient)},
@@ -755,7 +754,6 @@ namespace WebAppTests
                     {typeof(IQueryEngine), typeof(Lucene29CentralizedQueryEngine)},
                     {typeof(ISearchEngine), typeof(Lucene29SearchEngine)},
                     {typeof(ISearchServiceClient), typeof(GrpcServiceClient)},
-                    {typeof(IClusterMessageFormatter), typeof(BinaryMessageFormatter)},
                     {typeof(IClusterChannel), typeof(SenseNet.Messaging.RabbitMQ.RabbitMQMessageProvider)},
 
                     {typeof(IWebHookClient), typeof(HttpWebHookClient)},
