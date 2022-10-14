@@ -6,10 +6,10 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
+using SenseNet.Security.Messaging;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
@@ -1158,7 +1158,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
             var messageProvider = Providers.Instance.SecurityMessageProvider;
-
+            var securityMessageFormatter = services?.GetService<ISecurityMessageFormatter>();
             var missingEntityHandler = services?.GetService<IMissingEntityHandler>() ??
                 new SnMissingEntityHandler();
 
@@ -1173,9 +1173,10 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ?? new MessagingOptions();
 
-            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider, missingEntityHandler, 
-                securityConfig, messagingOptions);
-            securitySystem.Start();
+            var securitySystem = new SecuritySystem(securityDataProvider, messageProvider,
+                securityMessageFormatter, missingEntityHandler, 
+                Options.Create(securityConfig), Options.Create(messagingOptions));
+            securitySystem.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             _securityContextFactory = isWebContext 
                 ? (ISecurityContextFactory)new DynamicSecurityContextFactory(securitySystem) 
