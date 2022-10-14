@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <Version>2.4.12.3</Version>
+    <Version>2.4.12.4</Version>
     <AssemblyName>SenseNet.Search</AssemblyName>
     <RootNamespace>SenseNet.Search</RootNamespace>
     <Company>Sense/Net Inc.</Company>
