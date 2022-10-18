@@ -11,7 +11,8 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             return services
                 .AddDefaultStatisticalDataProvider()
-                .AddStatisticalDataCollector<StatisticalDataCollector>()
+                //.AddStatisticalDataCollector<StatisticalDataCollector>()
+                .AddDefaultStatisticalDataCollector()
                 .AddTransient<WebTransferRegistrator>()
                 .AddStatisticalDataAggregator<WebTransferStatisticalDataAggregator>()
                 .AddStatisticalDataAggregator<DatabaseUsageStatisticalDataAggregator>()

@@ -120,8 +120,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
-                .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
-                .AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
+                //.AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
+                //.AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
                 //.AddSingleton<IMaintenanceTask, ReindexBinariesTask>()
 
                 .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))
