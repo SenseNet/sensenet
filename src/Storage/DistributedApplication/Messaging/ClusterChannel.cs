@@ -206,7 +206,19 @@ namespace SenseNet.Communication.Messaging
         }
         protected internal virtual void OnMessageReceived(Stream messageBody)
         {
-            ClusterMessage message = m_formatter.Deserialize(messageBody);
+            ClusterMessage message = null;
+            try
+            {
+                message = m_formatter.Deserialize(messageBody);
+            }
+            catch (Exception e)
+            {
+                var msg = "An error occured during deserializing a message. " + e.Message;
+                SnTrace.Messaging.WriteError(msg);
+                SnLog.WriteException(e);
+                return;
+            }
+
             SnTrace.Messaging.Write("Received a '{0}' message.", message.GetType().FullName);
 
             lock (MessageListSwitchSync)
