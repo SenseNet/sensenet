@@ -206,16 +206,16 @@ namespace SenseNet.Communication.Messaging
         }
         protected internal virtual void OnMessageReceived(Stream messageBody)
         {
-            ClusterMessage message = null;
+            ClusterMessage message;
+
             try
             {
                 message = m_formatter.Deserialize(messageBody);
             }
             catch (Exception e)
             {
-                var msg = "An error occured during deserializing a message. " + e.Message;
-                SnTrace.Messaging.WriteError(msg);
-                SnLog.WriteException(e);
+                var msg = "An error occurred during deserializing a message. " + e.Message;
+                SnLog.WriteException(e, msg);
                 return;
             }
 
