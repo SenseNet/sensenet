@@ -64,6 +64,7 @@ namespace SenseNet.ContentRepository
         internal static RepositoryVersionInfo Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
+            // Disable once sensenet rule SnAsyncAwait3
             try
             {
                 var t1 = storage.LoadInstalledComponentsAsync(cancellationToken);

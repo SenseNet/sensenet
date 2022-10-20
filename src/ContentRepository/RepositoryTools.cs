@@ -798,11 +798,12 @@ namespace SenseNet.ContentRepository
             var httpResponse = httpContext.Response;
             STT.Task WriteAsync(string text)
             {
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 return httpResponse.WriteAsync(text, Encoding.UTF8, httpContext.RequestAborted);
             }
 
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
-            var response = await engine.GetInvertedIndexAsync(httpContext.RequestAborted);
+            var response = await engine.GetInvertedIndexAsync(httpContext.RequestAborted).ConfigureAwait(false);
             
             using (var op = SnTrace.System.StartOperation("GetWholeInvertedIndex"))
             {

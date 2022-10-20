@@ -70,7 +70,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     await reader.ReadAsync(cancel).ConfigureAwait(false);
                     remainingTasks = reader.GetInt32(0);
 
-                    return Task.FromResult(0);
+                    return 0;
                 }).GetAwaiter().GetResult();
             }
 

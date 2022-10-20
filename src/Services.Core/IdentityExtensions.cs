@@ -137,6 +137,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 User.Current = user ?? User.DefaultUser;
 
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 if (next != null)
                     await next();
             });
@@ -189,6 +190,7 @@ namespace SenseNet.Extensions.DependencyInjection
                         context.Request.Headers[IdentityConstants.HeaderAuthorization] = authCookie;
                 }
 
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 if (next != null)
                     await next();
             });
@@ -242,6 +244,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     context.Response.Cookies.Delete(IdentityConstants.JwtCookieName);
                 }
 
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 if (next != null)
                     await next();
             });

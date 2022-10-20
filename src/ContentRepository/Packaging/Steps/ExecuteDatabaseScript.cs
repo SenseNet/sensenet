@@ -152,7 +152,7 @@ namespace SenseNet.Packaging.Steps
                                 }
                             }
                         } while (await reader.NextResultAsync(cancel).ConfigureAwait(false));
-                        return Task.FromResult(0);
+                        return 0;
                     }).GetAwaiter().GetResult();
                 }
             }

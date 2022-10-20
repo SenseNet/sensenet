@@ -49,9 +49,11 @@ namespace SenseNet.Events
         public Task FireNodeObserverEventAsync(INodeObserverEvent snEvent, List<Type> disabledNodeObservers)
         {
             // Call observers but do not wait
+            // Disable once sensenet rule SnAsyncAwait3
             var nodeObserverTask = CallNodeObserversAsync(snEvent, disabledNodeObservers);
 
             // Call forward to work with more event processor
+            // Disable once sensenet rule SnAsyncAwait3
             var task = FireEventAsync(snEvent, nodeObserverTask);
             return task;
         }
@@ -68,6 +70,7 @@ namespace SenseNet.Events
                 syncTasks.Add(nodeObserverTask);
 
             // If the event is IAuditLogEvent, call async, memorize it, and do not wait.
+            // Disable once sensenet rule SnAsyncAwait3
             if (snEvent is IAuditLogEvent auditLogEvent)
                 if(AuditLogEventProcessor != null)
                     syncTasks.Add(AuditLogEventProcessor.ProcessEventAsync(auditLogEvent, cancel));
@@ -75,11 +78,12 @@ namespace SenseNet.Events
             if (!(snEvent is IInternalEvent))
             {
                 // Persists the event
-                await SaveEventAsync(snEvent);
+                await SaveEventAsync(snEvent).ConfigureAwait(false);
 
                 // Call all async processors and forget them
                 foreach (var processor in AsyncEventProcessors)
                     #pragma warning disable 4014
+                    // Disable once sensenet rule SnAsyncAwait3
                     processor.ProcessEventAsync(snEvent, cancel);
                     #pragma warning restore 4014
             }
@@ -93,6 +97,7 @@ namespace SenseNet.Events
             if (!IsFeatureEnabled(1))
                 return false;
 
+            // Disable once sensenet rule SnAsyncAwait3
             var tasks = Providers.Instance.NodeObservers
                 .Where(x => !disabledNodeObservers?.Contains(x.GetType()) ?? true)
                 .Select(x => FireCancellableNodeObserverEventAsync(snEvent, x))
@@ -108,6 +113,7 @@ namespace SenseNet.Events
             if (!IsFeatureEnabled(2))
                 return;
 
+            // Disable once sensenet rule SnAsyncAwait3
             var tasks = Providers.Instance.NodeObservers
                 .Where(x => !disabledNodeObservers?.Contains(x.GetType()) ?? true)
                 .Select(x => FireNodeObserverEventAsync(snEvent, x))

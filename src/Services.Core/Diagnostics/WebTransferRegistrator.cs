@@ -72,6 +72,7 @@ namespace SenseNet.Services.Core.Diagnostics
             data.ResponseLength = responseLength +
                                   GetHeadersLength(httpContext.Response.Headers);
 
+            // Disable once sensenet rule SnAsyncAwait3 (discussion required)
             _dataCollector.RegisterWebTransfer(data, httpContext.RequestAborted);
         }
     }

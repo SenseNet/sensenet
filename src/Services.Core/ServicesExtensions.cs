@@ -250,6 +250,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 }
 
                 /* -------------- */
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 if (next != null)
                     await next();
             });

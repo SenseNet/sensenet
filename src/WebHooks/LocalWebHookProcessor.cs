@@ -70,6 +70,7 @@ namespace SenseNet.WebHooks
             var eventArgs = snEvent.NodeEventArgs as NodeEventArgs;
             var previousVersion = eventArgs.GetPreviousVersion();
 
+            // Disable once sensenet rule SnAsyncAwait3
             var sendingTasks = subscriptions
                 .Select(si => _webHookClient.SendAsync(
                 si.Subscription.Url,

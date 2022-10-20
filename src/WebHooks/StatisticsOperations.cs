@@ -236,10 +236,8 @@ namespace SenseNet.WebHooks
           DateTime? maxTime = null, int count = 10)
         {
             var dataProvider = httpContext.RequestServices.GetRequiredService<IStatisticalDataProvider>();
-            var relatedIds =
-                ContentQuery.QueryAsync(SafeQueries.TypeIs, QuerySettings.AdminSettings,
-                        CancellationToken.None, nameof(WebHookSubscription))
-                    .ConfigureAwait(false).GetAwaiter().GetResult().Identifiers.ToArray();
+            var relatedIds = (await ContentQuery.QueryAsync(SafeQueries.TypeIs, QuerySettings.AdminSettings, CancellationToken.None, nameof(WebHookSubscription))
+                .ConfigureAwait(false)).Identifiers.ToArray();
 
             var records = await dataProvider
                     .LoadUsageListAsync("WebHook", relatedIds, maxTime ?? DateTime.UtcNow, count, httpContext.RequestAborted)

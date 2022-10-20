@@ -402,16 +402,19 @@ namespace SenseNet.ContentRepository.InMemory
         {
             await STT.Task.WhenAll
             (
+                // Disable once sensenet rule SnAsyncAwait3
                 commitUserDataWriter == null
                     ? STT.Task.CompletedTask
                     : STT.Task.Run(() => { WriteObject(_activityStatus, commitUserDataWriter); }),
+                // Disable once sensenet rule SnAsyncAwait3
                 invertedIndexWriter == null
                     ? STT.Task.CompletedTask
                     : STT.Task.Run(() => { WriteObject(GetInvertedIndex(), invertedIndexWriter); }),
+                // Disable once sensenet rule SnAsyncAwait3
                 decodedDocumentWriter == null
                     ? STT.Task.CompletedTask
                     : STT.Task.Run(() => { WriteObject(GetDecodedIndexDocs(), decodedDocumentWriter); })
-            );
+            ).ConfigureAwait(false);
         }
         private void WriteObject(object obj, TextWriter writer)
         {

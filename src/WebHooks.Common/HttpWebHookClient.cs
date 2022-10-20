@@ -90,6 +90,7 @@ namespace SenseNet.WebHooks
                 statData.ResponseStatusCode = (int)response.StatusCode;
                 statData.ResponseTime = DateTime.UtcNow;
 #pragma warning disable 4014
+                // Disable once sensenet rule SnAsyncAwait3
                 _statCollector?.RegisterWebHook(statData, cancel);
 #pragma warning restore 4014
 

@@ -1863,6 +1863,7 @@ namespace SenseNet.ContentRepository.InMemory
                         blobProviderName = blobProvider.GetType().FullName;
                         blobProviderData =
                             BlobStorageContext.SerializeBlobProviderData(blobStorageContext.BlobProviderData);
+                        // Disable once sensenet rule SnAsyncAwait3 (discussion required)
                         blobProvider.WriteAsync(blobStorageContext, 0, buffer, CancellationToken.None);
                     }
 

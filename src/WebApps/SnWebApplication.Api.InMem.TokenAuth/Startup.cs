@@ -98,6 +98,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
 
                 endpoints.MapGet("/", async context =>
                 {
+                    // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                     await context.Response.WriteAsync("sensenet is listening. Visit https://sensenet.com for " +
                                                       "more information on how to call the REST API.");
                 });

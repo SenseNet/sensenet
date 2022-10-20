@@ -41,6 +41,7 @@ namespace SenseNet.BackgroundOperations
             while (!stoppingToken.IsCancellationRequested)
             {
                 // start tasks, but do not wait for them to finish
+                // Disable once sensenet rule SnAsyncAwait3
                 var _ = _maintenanceTasks
                     .Where(mt => IsTaskExecutable(mt.WaitingSeconds))
                     .Select(mt => mt.ExecuteAsync(stoppingToken)).ToArray();
@@ -53,7 +54,7 @@ namespace SenseNet.BackgroundOperations
                     _currentCycle = 0;
 
                 // wait one cycle
-                await Task.Delay(TimerInterval * 1000, stoppingToken);
+                await Task.Delay(TimerInterval * 1000, stoppingToken).ConfigureAwait(false);
             }
 
             _logger?.LogDebug("SnMaintenance background task is stopping.");

@@ -344,7 +344,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                     cancel.ThrowIfCancellationRequested();
                     result.Add(reader.GetString(0), reader.GetString(1));
                 }
-                return STT.Task.FromResult(0);
+                return 0;
             }).GetAwaiter().GetResult();
 
             return result;

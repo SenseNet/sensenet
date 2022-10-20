@@ -383,6 +383,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     await CleanupFilesSetFlagImmediatelyAsync(cancellationToken);
 #pragma warning disable 4014
                     // This call is not awaited because of shorter response time.
+                    // Disable once sensenet rule SnAsyncAwait3
                     CleanupAllFilesAsync(cancellationToken).ConfigureAwait(false);
 #pragma warning restore 4014
                     break;

@@ -1869,6 +1869,7 @@ namespace SenseNet.ContentRepository
 
             // if related workflows should be kept alive, update them on a separate thread
             if (_keepWorkflowsAlive)
+                // Disable once sensenet rule SnAsyncAwait3 (discussion required)
                 System.Threading.Tasks.Task.Run(() => UpdateRelatedWorkflows());
 
             if(_content != null)

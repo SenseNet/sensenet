@@ -84,6 +84,7 @@ namespace SnWebApplication.Api.Sql.Admin
             app.Use(async (context, next) =>
             {
                 User.Current = User.Administrator;
+                // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                 if (next != null)
                     await next();
             });
@@ -107,6 +108,7 @@ namespace SnWebApplication.Api.Sql.Admin
 
                 endpoints.MapGet("/", async context =>
                 {
+                    // Disable once sensenet rule SnAsyncAwait3 (Analyzer bug)
                     await context.Response.WriteAsync("sensenet is listening. Visit https://sensenet.com for " +
                                                       "more information on how to call the REST API.");
                 });

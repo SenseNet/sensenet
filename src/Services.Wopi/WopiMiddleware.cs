@@ -358,7 +358,7 @@ namespace SenseNet.Services.Wopi
 
             targetFile.Binary.FileName = targetName;
             targetFile.Binary.SetStream(wopiRequest.RequestStream);
-            targetFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); //TODO:WOPI: ProcessPutRelativeFileRequest shared lock?
+            await targetFile.SaveAsync(CancellationToken.None).ConfigureAwait(false); //TODO:WOPI: ProcessPutRelativeFileRequest shared lock?
 
             var url = "__notimplemented__"; //TODO:WOPI: ProcessPutRelativeFileRequest Generate correct URL
             return new PutRelativeFileResponse

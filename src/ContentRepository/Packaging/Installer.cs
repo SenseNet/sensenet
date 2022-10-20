@@ -182,6 +182,7 @@ namespace SenseNet.Packaging
             Import(packageFolder, targetPath);
 
             // cleanup, but do not wait for the result
+            // Disable once sensenet rule SnAsyncAwait3 (discussion required)
             Task.Run(() =>
                 Retrier.RetryAsync(5, 3000, () =>
                 {

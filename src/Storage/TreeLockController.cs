@@ -56,6 +56,7 @@ namespace SenseNet.ContentRepository.Storage
 
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", string.Join(", ", paths));
 
+            // Disable once sensenet rule SnAsyncAwait3
             var lockTasks = paths.Select(p => _dataStore.AcquireTreeLockAsync(p, cancellationToken));
             var lockIds = await Task.WhenAll(lockTasks).ConfigureAwait(false);
 

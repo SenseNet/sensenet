@@ -54,6 +54,7 @@ namespace SenseNet.ContentRepository
 
                 // update flags on all connected servers
                 // (no need to wait for this method)
+                // Disable once sensenet rule SnAsyncAwait3
                 _ = new UpdateCategoriesDistributedAction().ExecuteAsync(CancellationToken.None);
             }
         }

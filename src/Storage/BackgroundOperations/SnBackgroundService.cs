@@ -19,6 +19,7 @@ namespace SenseNet.BackgroundOperations
         public virtual Task StartAsync(CancellationToken cancellationToken)
         {
             // Store the task we're executing
+            // Disable once sensenet rule SnAsyncAwait3
             _executingTask = ExecuteAsync(_stoppingCts.Token);
 
             // If the task is completed then return it,
@@ -48,8 +49,8 @@ namespace SenseNet.BackgroundOperations
             finally
             {
                 // Wait until the task completes or the stop token triggers
-                await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite,
-                    cancellationToken));
+                // Disable once sensenet rule SnAsyncAwait3
+                await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite, cancellationToken)).ConfigureAwait(false);
             }
         }
         

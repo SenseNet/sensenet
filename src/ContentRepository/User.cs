@@ -1000,6 +1000,7 @@ namespace SenseNet.ContentRepository
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
                         this.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
 
+                        // Disable once sensenet rule SnAsyncAwait5 (Retrier bug)
                         base.SaveAsync(SavingMode.KeepVersion, cancel).GetAwaiter().GetResult();
                     });
                 }
@@ -1138,7 +1139,7 @@ namespace SenseNet.ContentRepository
         /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
         {
-            await base.ForceDeleteAsync(cancel);
+            await base.ForceDeleteAsync(cancel).ConfigureAwait(false);
 
             // AD Sync
             var ADProvider = DirectoryProvider.Current;

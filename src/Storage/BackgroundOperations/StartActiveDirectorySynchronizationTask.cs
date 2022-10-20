@@ -62,6 +62,7 @@ namespace SenseNet.BackgroundOperations
             // Fire and forget: we do not need the result of the register operation.
             // (we have to start a task here instead of calling RegisterTaskAsync 
             // directly because the asp.net sync context callback would fail)
+            // Disable once sensenet rule SnAsyncAwait3 (discussion required)
             Task.Run(() => _taskManager.RegisterTaskAsync(requestData, cancellationToken), cancellationToken);
 
             return Task.CompletedTask;

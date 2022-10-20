@@ -118,6 +118,7 @@ namespace SenseNet.ContentRepository
 
                         cached.SetCachedData(CacheKey, databaseUsage);
                         cached.Binary.SetStream(RepositoryTools.GetStreamFromString(serialized));
+                        // Disable once sensenet rule SnAsyncAwait5 (false positive)
                         cached.SaveAsync(SavingMode.KeepVersion, cancel).GetAwaiter().GetResult();
 
                         _logger.LogTrace($"DatabaseUsage.cache has been saved. Iteration: {iteration}");

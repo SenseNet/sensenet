@@ -26,6 +26,7 @@ namespace SenseNet.ContentRepository.Storage
             public static LockGuard Create(string key, string operationId, ExclusiveBlockConfiguration config)
             {
                 var guard = new LockGuard(key, operationId, config);
+                // Disable once sensenet rule SnAsyncAwait3 (discussion required)
                 Task.Run(() => guard.StartAsync());
                 return guard;
             }

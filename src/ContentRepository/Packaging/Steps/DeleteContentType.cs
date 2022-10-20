@@ -287,17 +287,16 @@ namespace SenseNet.Packaging.Steps
 
         private async Task DeleteInstancesAsync(string[] contentTypeNames, CancellationToken cancel)
         {
-            var result = ContentQuery.CreateQuery(
-                    ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, new object[] { contentTypeNames })
-                .ExecuteAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = await ContentQuery.CreateQuery(
+                ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, new object[] { contentTypeNames })
+                    .ExecuteAsync(CancellationToken.None).ConfigureAwait(false);
 
             Logger.LogMessage($"Deleting {result.Count} content by matching content type{(contentTypeNames.Length > 1 ? "s" : "")}.");
 
             foreach (var node in result.Nodes)
             {
                 Logger.LogMessage($"    {node.Path}");
-                await node.ForceDeleteAsync(cancel);
+                await node.ForceDeleteAsync(cancel).ConfigureAwait(false);
             }
         }
         private async Task DeleteRelatedItemsAsync(ContentTypeDependencies dependencies, CancellationToken cancel)

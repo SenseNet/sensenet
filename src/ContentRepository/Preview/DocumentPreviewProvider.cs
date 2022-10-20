@@ -1475,6 +1475,7 @@ namespace SenseNet.Preview
                 // Fire and forget: we do not need the result of the register operation.
                 // (we have to start a task here instead of calling RegisterTaskAsync 
                 // directly because the asp.net sync context callback would fail)
+                // Disable once sensenet rule SnAsyncAwait3 (discussion required)
                 System.Threading.Tasks.Task.Run(() => TaskManager.RegisterTaskAsync(requestData, CancellationToken.None));
             }
         }

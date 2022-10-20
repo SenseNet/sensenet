@@ -110,13 +110,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                         //TODO: [async] make this parallel async (TPL DataFlow)
                         Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
-                            n =>
+                            async n =>
                             {
                                 foreach (var node in n.LoadVersions())
                                 {
                                     SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                                    _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken)
-                                        .GetAwaiter().GetResult();
+                                    await _dataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
                                     OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
                             });
@@ -315,14 +314,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
                         new ParallelOptions { CancellationToken = cancellationToken },
-                        n =>
+                        async n =>
                         {
                             AccessProvider.Current.SetCurrentUser(currentUser);
                             if (currentUserIsSystem)
                                 AccessProvider.ChangeToSystemAccount();
 
-                            _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
-                                .GetAwaiter().GetResult();
+                            await _dataStore.SaveIndexDocumentAsync(n, false, false, CancellationToken.None)
+                                .ConfigureAwait(false);
                         });
                 }
 
