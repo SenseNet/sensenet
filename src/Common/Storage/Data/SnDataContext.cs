@@ -22,6 +22,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionWrapper Transaction => _transaction;
         public CancellationToken CancellationToken => _cancellationToken;
 
+        private static int _connectionCount;
+        private string ContextId { get; } = Guid.NewGuid().ToString();
+
         /// <summary>
         /// Used only test purposes.
         /// </summary>
@@ -45,6 +48,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 _transaction.Rollback();
             _connection?.Dispose();
             IsDisposed = true;
+            Interlocked.Decrement(ref _connectionCount);
+            SnTrace.Database.Write($"SnDataContext connection CLOSED {ContextId} === COUNT: {_connectionCount}");
         }
 
         public abstract DbConnection CreateConnection();
@@ -78,6 +83,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 _connection = CreateConnection();
                 _connection.Open();
+
+                Interlocked.Increment(ref _connectionCount);
+                SnTrace.Database.Write($"SnDataContext connection OPEN {ContextId} === COUNT: {_connectionCount}");
             }
             return _connection;
         }
