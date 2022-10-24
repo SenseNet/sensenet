@@ -16,9 +16,11 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.Portal.ApplicationModel;
 using SenseNet.Search;
+using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
@@ -105,6 +107,15 @@ namespace SenseNet.ODataTests
         public static Task<string> Function4StringAsync(Content content, string input)
         {
             return Task.FromResult(input);
+        }
+
+        [ODataFunction]
+        public static object Function5Error(Content content, string exceptionType)
+        {
+            if(exceptionType == "AccessDeniedException")
+                throw new AccessDeniedException("msg",
+                    content.Path, content.Id, User.Current, new[] {PermissionType.Custom01});
+            return null;
         }
 
         /* ============================================================= METHOD BASED OPERATION TESTS */
@@ -440,6 +451,28 @@ namespace SenseNet.ODataTests
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_Error_AccessDeniedException()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')/Function5Error",
+                    "?exceptionType=" + nameof(AccessDeniedException)).ConfigureAwait(false);
+
+                // ASSERT
+                Assert.IsTrue(response.Result.Length > 0, "Result is empty.");
+                var error = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.Forbidden, error.Code);
+                Assert.AreEqual("AccessDeniedException", error.ExceptionType);
+                Assert.IsTrue(error.StackTrace.Contains(nameof(Function5Error)),
+                    "Stacktrace does not contain the source function name.");
+                Assert.IsTrue(error.StackTrace.Contains(nameof(ODataOperationTests)),
+                    "Stacktrace does not contain the source class name.");
             }).ConfigureAwait(false);
         }
 

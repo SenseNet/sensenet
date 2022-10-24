@@ -724,49 +724,29 @@ namespace SenseNet.OData
         public static object Invoke(OperationCallingContext context)
         {
             var parameters = PrepareInvoke(context);
-
-            try
-            {
-                return context.Operation.Method.Invoke(null, parameters);
-            }
-            catch (TargetInvocationException e)
-            {
-                if (e.InnerException == null)
-                    throw;
-                throw e.InnerException;
-            }
+            return context.Operation.Method.Invoke(null, parameters);
         }
 
         public static async Task<object> InvokeAsync(OperationCallingContext context)
         {
             var parameters = PrepareInvoke(context);
 
-            try
+            var invokeResult = context.Operation.Method.Invoke(null, parameters);
+            var invokeResultType = invokeResult.GetType();
+
+            var awaitable = (Task)invokeResult;
+            await awaitable;
+
+            if (invokeResultType.IsGenericType)
             {
-                var invokeResult = context.Operation.Method.Invoke(null, parameters);
-                var invokeResultType = invokeResult.GetType();
-
-                var awaitable = (Task)invokeResult;
-                await awaitable;
-
-                if (invokeResultType.IsGenericType)
-                {
-                    // It is impossible to convert to the target type (Task<??>) so getting result with reflection. 
-                    var resultProperty = invokeResultType.GetProperty("Result");
-                    var result = resultProperty?.GetValue(awaitable);
-                    return result;
-                }
-
-                // Non-generic Task have no result.
-                return null;
-
+                // It is impossible to convert to the target type (Task<??>) so getting result with reflection. 
+                var resultProperty = invokeResultType.GetProperty("Result");
+                var result = resultProperty?.GetValue(awaitable);
+                return result;
             }
-            catch (TargetInvocationException e)
-            {
-                if (e.InnerException == null)
-                    throw;
-                throw e.InnerException;
-            }
+
+            // Non-generic Task have no result.
+            return null;
         }
 
         private static object[] PrepareInvoke(OperationCallingContext context)
