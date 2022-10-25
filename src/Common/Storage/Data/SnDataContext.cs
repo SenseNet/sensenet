@@ -44,12 +44,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual void Dispose()
         {
+            var disposed = IsDisposed;
             if (_transaction?.Status == TransactionStatus.Active)
                 _transaction.Rollback();
             _connection?.Dispose();
             IsDisposed = true;
-            Interlocked.Decrement(ref _connectionCount);
-            SnTrace.Database.Write($"SnDataContext connection CLOSED {ContextId} === COUNT: {_connectionCount}");
+            if (!disposed)
+            {
+                Interlocked.Decrement(ref _connectionCount);
+                SnTrace.Database.Write($"SnDataContext connection CLOSED {ContextId} === COUNT: {_connectionCount}");
+            }
         }
 
         public abstract DbConnection CreateConnection();
