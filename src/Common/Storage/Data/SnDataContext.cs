@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -25,6 +26,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static int _connectionCount;
         private string ContextId { get; } = Guid.NewGuid().ToString();
 
+        public static ConcurrentDictionary<string, string>
+            OpenConnections = new ConcurrentDictionary<string, string>();
+
         /// <summary>
         /// Used only test purposes.
         /// </summary>
@@ -45,14 +49,31 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual void Dispose()
         {
             var disposed = IsDisposed;
+            var closeConnection = (_connection?.State ?? ConnectionState.Closed) == ConnectionState.Open;
             if (_transaction?.Status == TransactionStatus.Active)
                 _transaction.Rollback();
             _connection?.Dispose();
             IsDisposed = true;
             if (!disposed)
             {
-                Interlocked.Decrement(ref _connectionCount);
-                SnTrace.Database.Write($"SnDataContext connection CLOSED {ContextId} === COUNT: {_connectionCount}");
+                if (closeConnection)
+                {
+                    Interlocked.Decrement(ref _connectionCount);
+                    SnTrace.Database.Write($"SnDataContext TMP connection CLOSED {ContextId} === COUNT: {_connectionCount}");
+                }
+                else
+                {
+                    if (OpenConnections.TryGetValue(ContextId, out var st))
+                    {
+                        SnLog.WriteInformation($"SnDataContext TMP DISPOSED WITHOUT CONNECTION {ContextId} === COUNT: {_connectionCount} {st}");
+                    }
+                    else
+                    {
+                        SnTrace.Database.Write($"SnDataContext TMP DISPOSED WITHOUT CONNECTION {ContextId} === COUNT: {_connectionCount}");
+                    }
+                }
+
+                OpenConnections.TryRemove(ContextId, out _);
             }
         }
 
@@ -89,7 +110,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 _connection.Open();
 
                 Interlocked.Increment(ref _connectionCount);
-                SnTrace.Database.Write($"SnDataContext connection OPEN {ContextId} === COUNT: {_connectionCount}");
+                SnTrace.Database.Write($"SnDataContext TMP connection OPEN {ContextId} === COUNT: {_connectionCount}");
+                OpenConnections[ContextId] = Environment.StackTrace;
             }
             return _connection;
         }
@@ -185,6 +207,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 catch (Exception e)
                 {
                     SnTrace.WriteError(e.ToString());
+                    LogOpenConnections();
                     throw;
                 }
             }
@@ -194,6 +217,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             const int maxLength = 80;
             return $"{this.GetType().Name}.{name}: {(script.Length < maxLength ? script : script.Substring(0, maxLength))}";
+        }
+
+        private void LogOpenConnections()
+        {
+            SnLog.WriteWarning($"SnDataContext TMP contextid {ContextId} === COUNT: {_connectionCount}" +
+                               $"STUCKSTACK: {string.Join(" STUCKSTACK ", OpenConnections.Values)}");
         }
     }
 }
