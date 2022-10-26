@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -220,7 +221,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     // if we do not recognize the error, throw it immediately
-                    if (i == 1 || !(ex is InvalidOperationException && ex.Message.Contains("connection from the pool")))
+                    if (i == 1 || !RetriableException(ex))
                         throw ex;
 
                     // continue the cycle
@@ -229,6 +230,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 return readerResult;
             }
+        }
+
+        private static bool RetriableException(Exception ex)
+        {
+            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
+                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
         }
 
         protected string GetOperationMessage(string name, string script)
