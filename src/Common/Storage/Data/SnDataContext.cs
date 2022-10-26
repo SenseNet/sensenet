@@ -131,23 +131,48 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
             {
-                using (var cmd = CreateCommand())
+                var nonQueryResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
-                    cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                    cmd.CommandText = script;
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Transaction = _transaction?.Transaction;
+                    using (var cmd = CreateCommand())
+                    {
+                        cmd.Connection = OpenConnection();
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                        cmd.CommandText = script;
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Transaction = _transaction?.Transaction;
 
-                    setParams?.Invoke(cmd);
+                        setParams?.Invoke(cmd);
 
-                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
+                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                        var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    op.Successful = true;
-                    return result;
-                }
+                        op.Successful = true;
+                        return result;
+                    }
+                }, (res, i, ex) =>
+                {
+                    if (ex == null)
+                    {
+                        return true;
+                    }
+
+                    // last iteration
+                    if (i == 1)
+                    {
+                        SnTrace.WriteError(ex.ToString());
+                        LogOpenConnections();
+                    }
+
+                    // if we do not recognize the error, throw it immediately
+                    if (i == 1 || !RetriableException(ex))
+                        throw ex;
+
+                    // continue the cycle
+                    return false;
+                });
+
+                return nonQueryResult;
             }
         }
 
@@ -155,23 +180,49 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
             {
-                using (var cmd = CreateCommand())
+                var scalarResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
-                    cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                    cmd.CommandText = script;
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Transaction = _transaction?.Transaction;
+                    using (var cmd = CreateCommand())
+                    {
+                        cmd.Connection = OpenConnection();
+                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                        cmd.CommandText = script;
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Transaction = _transaction?.Transaction;
 
-                    setParams?.Invoke(cmd);
+                        setParams?.Invoke(cmd);
 
-                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
+                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                        var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    op.Successful = true;
-                    return result;
-                }
+                        op.Successful = true;
+                        return result;
+                    }
+                }, (res, i, ex) =>
+                {
+                    if (ex == null)
+                    {
+                        return true;
+                    }
+
+                    // last iteration
+                    if (i == 1)
+                    {
+                        SnTrace.WriteError(ex.ToString());
+                        LogOpenConnections();
+                    }
+
+                    // if we do not recognize the error, throw it immediately
+                    if (i == 1 || !RetriableException(ex))
+                        throw ex;
+
+                    // continue the cycle
+                    return false;
+                });
+
+                return scalarResult;
+                
             }
         }
 
