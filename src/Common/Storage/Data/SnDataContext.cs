@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 using IsolationLevel = System.Data.IsolationLevel;
 
 // ReSharper disable once CheckNamespace
@@ -182,7 +183,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
             {
-                try
+                var readerResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
                     using (var cmd = CreateCommand())
                     {
@@ -203,13 +204,30 @@ namespace SenseNet.ContentRepository.Storage.Data
                             return result;
                         }
                     }
-                }
-                catch (Exception e)
+                }, (res, i, ex) =>
                 {
-                    SnTrace.WriteError(e.ToString());
-                    LogOpenConnections();
-                    throw;
-                }
+                    if (ex == null)
+                    {
+                        //_logger.LogTrace("Successfully connected to the newly created database.");
+                        return true;
+                    }
+                    
+                    // last iteration
+                    if (i == 1)
+                    {
+                        SnTrace.WriteError(ex.ToString());
+                        LogOpenConnections();
+                    }
+
+                    // if we do not recognize the error, throw it immediately
+                    if (i == 1 || !(ex is InvalidOperationException && ex.Message.Contains("connection from the pool")))
+                        throw ex;
+
+                    // continue the cycle
+                    return false;
+                });
+
+                return readerResult;
             }
         }
 
