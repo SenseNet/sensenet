@@ -537,7 +537,10 @@ namespace SenseNet.OData
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
-            var parent = Node.Load<GenericContent>(parentPath);
+            var parent = Tools.Retrier.Retry(5, 2000,
+                () => Node.Load<GenericContent>(parentPath),
+                (node, _, _) => node != null);
+
             if (parent == null)
                 throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
 
