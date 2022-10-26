@@ -285,9 +285,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private static bool RetriableException(Exception ex)
         {
-            return (ex is InvalidOperationException && 
-                    (ex.Message.Contains("connection from the pool") ||
-                     ex.Message.Contains("BeginExecuteReader requires an open and available Connection."))) ||
+            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
                    (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
         }
 

@@ -1494,19 +1494,41 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken)
         {
-            using (var ctx = CreateDataContext(cancellationToken))
-            {
-                var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
+            return await Tools.Retrier.RetryAsync(10, 1000, async () =>
                 {
-                    cmd.Parameters.AddRange(new[]
+                    using var ctx = CreateDataContext(cancellationToken);
+                    var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
                     {
-                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
-                        ctx.CreateParameter("@IndexDocument", DbType.String, int.MaxValue, indexDoc),
-                    });
-                }).ConfigureAwait(false);
-                return ConvertTimestampToInt64(result);
-            }
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                            ctx.CreateParameter("@IndexDocument", DbType.String, int.MaxValue, indexDoc),
+                        });
+                    }).ConfigureAwait(false);
+                    return ConvertTimestampToInt64(result);
+                },
+                (result, i, ex) =>
+                {
+                    if (ex == null)
+                        return true;
+
+                    // if we do not recognize the error, throw it immediately
+                    if (i == 1 || !RetriableException(ex))
+                        throw ex;
+
+                    // continue the cycle
+                    return false;
+                });
         }
+
+        private static bool RetriableException(Exception ex)
+        {
+            return (ex is InvalidOperationException &&
+                    (ex.Message.Contains("connection from the pool") ||
+                     ex.Message.Contains("BeginExecuteReader requires an open and available Connection."))) ||
+                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
+        }
+
         protected abstract string SaveIndexDocumentScript { get; }
 
         public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
