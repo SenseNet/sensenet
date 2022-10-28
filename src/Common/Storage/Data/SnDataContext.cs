@@ -50,7 +50,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual void Dispose()
         {
-            SnTrace.Database.Write($"SnDataContext.Dispose: _connection: {_connection?.State.ToString() ?? "null"}, _transaction: {_transaction?.Status.ToString() ?? "null"}, IsDisposed: {IsDisposed}");
+            if (IsDisposed || _transaction?.Status != TransactionStatus.Active ||
+                _connection?.State != ConnectionState.Open)
+            {
+                SnTrace.Database.Write($"SnDataContext.Dispose:" +
+                                       $" _connection: {_connection?.State.ToString() ?? "null"}," +
+                                       $" _transaction: {_transaction?.Status.ToString() ?? "null"}," +
+                                       $" IsDisposed: {IsDisposed}," +
+                                       $" StackTrace: {Environment.StackTrace}");
+            }
 
             var disposed = IsDisposed;
             var closeConnection = (_connection?.State ?? ConnectionState.Closed) == ConnectionState.Open;
