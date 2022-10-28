@@ -117,6 +117,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected DbConnection OpenConnection()
         {
+            if (_connection?.State == ConnectionState.Closed)
+            {
+                _connection.Dispose();
+                _connection = null;
+            }
             if (_connection == null)
             {
                 _connection = CreateConnection();
