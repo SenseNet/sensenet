@@ -318,5 +318,28 @@ namespace SenseNet.ContentRepository.Storage.Data
             SnLog.WriteWarning($"SnDataContext TMP contextid {ContextId} === COUNT: {_connectionCount}" +
                                $"STUCKSTACK: {string.Join(" STUCKSTACK ", OpenConnections.Values)}");
         }
+
+        public static Task<T> RetryAsync<T>(Func<Task<T>> action)
+        {
+            return Retrier.RetryAsync(30, 1000, action,
+                (result, i, ex) =>
+                {
+                    if (ex == null)
+                        return true;
+
+                    // if we do not recognize the error, throw it immediately
+                    if (!RetriableException(ex))
+                        throw ex;
+
+                    if (i == 1)
+                    {
+                        SnLog.WriteException(ex, $"Data layer error: {ex.Message}. Retry cycle ended.");
+                        throw new InvalidOperationException("Data layer timeout occurred.", ex);
+                    }
+
+                    // continue the cycle
+                    return false;
+                });
+        }
     }
 }
