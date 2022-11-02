@@ -50,15 +50,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual void Dispose()
         {
-            if (IsDisposed || _connection?.State != ConnectionState.Open ||
-                (_transaction != null && _transaction.Status != TransactionStatus.Committed))
-            {
-                SnTrace.Database.Write($"SnDataContext.Dispose:" +
+            //if (IsDisposed || _connection?.State != ConnectionState.Open ||
+            //    (_transaction != null && _transaction.Status != TransactionStatus.Committed))
+            //{
+                SnTrace.Database.Write($"SnDataContext #{ContextId}: DISPOSE" +
                                        $" _connection: {_connection?.State.ToString() ?? "null"}," +
                                        $" _transaction: {_transaction?.Status.ToString() ?? "null"}," +
-                                       $" IsDisposed: {IsDisposed}," +
-                                       $" StackTrace: {Environment.StackTrace}");
-            }
+                                       $" IsDisposed: {IsDisposed}," /*+
+                                       $" StackTrace: {Environment.StackTrace}"*/);
+            //}
 
             var disposed = IsDisposed;
             var closeConnection = (_connection?.State ?? ConnectionState.Closed) == ConnectionState.Open;
@@ -72,17 +72,17 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (closeConnection)
                 {
                     Interlocked.Decrement(ref _connectionCount);
-                    SnTrace.Database.Write($"SnDataContext TMP connection CLOSED {ContextId} === COUNT: {_connectionCount}");
+                    SnTrace.Database.Write($"SnDataContext #{ContextId}: connection closed === COUNT: {_connectionCount}");
                 }
                 else
                 {
                     if (OpenConnections.TryGetValue(ContextId, out var st))
                     {
-                        SnLog.WriteInformation($"SnDataContext TMP DISPOSED WITHOUT CONNECTION {ContextId} === COUNT: {_connectionCount} {st}");
+                        SnLog.WriteInformation($"SnDataContext #{ContextId}: DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount} STACK: {st}");
                     }
                     else
                     {
-                        SnTrace.Database.Write($"SnDataContext TMP DISPOSED WITHOUT CONNECTION {ContextId} === COUNT: {_connectionCount}");
+                        SnTrace.Database.Write($"SnDataContext #{ContextId} DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount}");
                     }
                 }
 
@@ -121,6 +121,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 _connection.Dispose();
                 _connection = null;
+                SnTrace.Database.Write($"SnDataContext #{ContextId}: previous connection was forcibly disposed === COUNT: {_connectionCount}");
             }
             if (_connection == null)
             {
@@ -128,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 _connection.Open();
 
                 Interlocked.Increment(ref _connectionCount);
-                SnTrace.Database.Write($"SnDataContext TMP connection OPEN {ContextId} === COUNT: {_connectionCount}");
+                SnTrace.Database.Write($"SnDataContext #{ContextId}: open connection === COUNT: {_connectionCount}");
                 OpenConnections[ContextId] = Environment.StackTrace;
             }
             return _connection;
@@ -137,6 +138,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
             TimeSpan timeout = default)
         {
+            SnTrace.Database.Write($"SnDataContext #{ContextId} BeginTransaction.");
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
                            ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
