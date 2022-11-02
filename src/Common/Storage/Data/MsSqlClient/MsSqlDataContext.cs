@@ -137,22 +137,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         cancellationToken = Transaction.CancellationToken;
                     }
 
+                    cmd.Connection = (SqlConnection)OpenConnection();
                     cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
-                    setParams?.Invoke(cmd);
-                    int result;
-                    try
-                    {
-                        cmd.Connection = (SqlConnection) OpenConnection();
-                        cmd.Transaction = transaction;
-                        result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        cmd.Connection?.Close();
-                    }
+                    cmd.Transaction = transaction;
 
+                    setParams?.Invoke(cmd);
+
+                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -174,22 +167,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         cancellationToken = Transaction.CancellationToken;
                     }
 
+                    cmd.Connection = (SqlConnection)OpenConnection();
                     cmd.CommandTimeout = DataOptions.DbCommandTimeout;
                     cmd.CommandText = script;
                     cmd.CommandType = CommandType.Text;
-                    setParams?.Invoke(cmd);
-                    object result;
-                    try
-                    {
-                        cmd.Connection = (SqlConnection) OpenConnection();
-                        cmd.Transaction = transaction;
-                        result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        cmd.Connection?.Close();
-                    }
+                    cmd.Transaction = transaction;
 
+                    setParams?.Invoke(cmd);
+
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
