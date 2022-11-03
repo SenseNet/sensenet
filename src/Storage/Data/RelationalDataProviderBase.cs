@@ -1022,8 +1022,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
-            using (var ctx = CreateDataContext(cancellationToken))
+            return await SnDataContext.RetryAsync(async () =>
             {
+                using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
@@ -1034,15 +1035,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
         }
         protected abstract string LoadNodeHeadByPathScript { get; }
 
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
-            using (var ctx = CreateDataContext(cancellationToken))
+            return await SnDataContext.RetryAsync(async () =>
             {
+                using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
@@ -1053,7 +1055,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
         }
         protected abstract string LoadNodeHeadByIdScript { get; }
 
