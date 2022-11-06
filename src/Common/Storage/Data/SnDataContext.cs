@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected DbConnection OpenConnection()
         {
-            if (_connection?.State == ConnectionState.Closed)
+            if (_connection?.State == ConnectionState.Closed || _connection?.State == ConnectionState.Broken)
             {
                 _connection.Dispose();
                 _connection = null;
@@ -138,10 +138,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
             TimeSpan timeout = default)
         {
-            SnTrace.Database.Write($"SnDataContext #{ContextId} BeginTransaction.");
-            var transaction = OpenConnection().BeginTransaction(isolationLevel);
-            _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
+            _transaction = RetryAsync(() =>
+            {
+                SnTrace.Database.Write($"SnDataContext #{ContextId} BeginTransaction.");
+                var transaction = OpenConnection().BeginTransaction(isolationLevel);
+                var wrappedTransaction = WrapTransaction(transaction, _cancellationToken, timeout)
+                               ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
+                return Task.FromResult(wrappedTransaction);
+
+            }).GetAwaiter().GetResult();
+            
             return _transaction;
         }
 
@@ -317,6 +323,29 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             SnLog.WriteWarning($"SnDataContext TMP contextid {ContextId} === COUNT: {_connectionCount}" +
                                $"STUCKSTACK: {string.Join(" STUCKSTACK ", OpenConnections.Values)}");
+        }
+
+        public static Task<T> RetryAsync<T>(Func<Task<T>> action)
+        {
+            return Retrier.RetryAsync(30, 1000, action,
+                (result, i, ex) =>
+                {
+                    if (ex == null)
+                        return true;
+
+                    // if we do not recognize the error, throw it immediately
+                    if (!RetriableException(ex))
+                        throw ex;
+
+                    if (i == 1)
+                    {
+                        SnLog.WriteException(ex, $"Data layer error: {ex.Message}. Retry cycle ended.");
+                        throw new InvalidOperationException("Data layer timeout occurred.", ex);
+                    }
+
+                    // continue the cycle
+                    return false;
+                });
         }
     }
 }

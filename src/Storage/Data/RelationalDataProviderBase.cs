@@ -1022,8 +1022,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
-            using (var ctx = CreateDataContext(cancellationToken))
+            return await SnDataContext.RetryAsync(async () =>
             {
+                using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
@@ -1034,15 +1035,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
         }
         protected abstract string LoadNodeHeadByPathScript { get; }
 
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
-            using (var ctx = CreateDataContext(cancellationToken))
+            return await SnDataContext.RetryAsync(async () =>
             {
+                using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
@@ -1053,7 +1055,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
         }
         protected abstract string LoadNodeHeadByIdScript { get; }
 
@@ -1494,7 +1496,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken)
         {
-            return await Tools.Retrier.RetryAsync(10, 1000, async () =>
+            return await SnDataContext.RetryAsync(async () =>
                 {
                     using var ctx = CreateDataContext(cancellationToken);
                     var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
@@ -1506,29 +1508,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
                     }).ConfigureAwait(false);
                     return ConvertTimestampToInt64(result);
-                },
-                (result, i, ex) =>
-                {
-                    if (ex == null)
-                        return true;
-
-                    // if we do not recognize the error, throw it immediately
-                    if (i == 1 || !RetriableException(ex))
-                        throw ex;
-
-                    // continue the cycle
-                    return false;
                 });
         }
-
-        private static bool RetriableException(Exception ex)
-        {
-            return (ex is InvalidOperationException &&
-                    (ex.Message.Contains("connection from the pool") ||
-                     ex.Message.Contains("BeginExecuteReader requires an open and available Connection."))) ||
-                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
-        }
-
+        
         protected abstract string SaveIndexDocumentScript { get; }
 
         public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
