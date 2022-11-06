@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Security;
 
 namespace SenseNet.OData.IO
@@ -58,30 +59,33 @@ namespace SenseNet.OData.IO
             var imported = new ImportedContent(jData);
             var name = imported.Name;
             var type = imported.Type;
-
-            JObject model = imported.Fields;
-            model.Remove("Name");
-
-            string action;
-            List<string> brokenReferences;
-            var messages = new List<string>();
-            var targetContent = Content.Load(path);
-            if (targetContent != null)
+            using (var op = SnTrace.ContentOperation.StartOperation($"Import: {path}, {type}, {name}"))
             {
-                ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
-                targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                action = "updated";
-            }
-            else
-            {
-                var parentPath = RepositoryPath.GetParentPath(path);
-                targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name, null, false, model, true, out brokenReferences);
-                action = "created";
-            }
+                JObject model = imported.Fields;
+                model.Remove("Name");
 
-            SetPermissions(targetContent, imported.Permissions, messages, out var retryPermissions);
+                string action;
+                List<string> brokenReferences;
+                var messages = new List<string>();
+                var targetContent = Content.Load(path);
+                if (targetContent != null)
+                {
+                    ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
+                    targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    action = "updated";
+                }
+                else
+                {
+                    var parentPath = RepositoryPath.GetParentPath(path);
+                    targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name, null, false, model, true, out brokenReferences);
+                    action = "created";
+                }
 
-            return new {path, name, type, action, brokenReferences, retryPermissions, messages };
+                SetPermissions(targetContent, imported.Permissions, messages, out var retryPermissions);
+
+                op.Successful = true;
+                return new { path, name, type, action, brokenReferences, retryPermissions, messages };
+            }
         }
 
         private static void SetPermissions(Content content, PermissionModel permissions, List<string> messages, out bool hasUnkownIdentity)
