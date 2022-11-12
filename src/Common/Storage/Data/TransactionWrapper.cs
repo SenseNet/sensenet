@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public virtual void Commit()
         {
-            using (var op = SnTrace.Database.StartOperation("Transaction.Rollback" + Status))
+            using (var op = SnTrace.Database.StartOperation("Transaction.Commit " + Status))
             {
                 Transaction.Commit();
                 Status = TransactionStatus.Committed;
@@ -61,7 +61,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public virtual void Rollback()
         {
-            using (var op = SnTrace.Database.StartOperation("Transaction.Rollback" + Status))
+            using (var op = SnTrace.Database.StartOperation("Transaction.Rollback " + Status))
             {
                 Transaction.Rollback();
                 Status = TransactionStatus.Aborted;
