@@ -38,7 +38,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="coverlet.collector" Version="1.2.0" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.7.1" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.7.3" />
   </ItemGroup>
 
   <ItemGroup>

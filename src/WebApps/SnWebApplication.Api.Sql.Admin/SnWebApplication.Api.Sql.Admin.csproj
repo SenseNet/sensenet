@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
     <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.7.3" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.3.5" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.3.11" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
   </ItemGroup>
