@@ -3,6 +3,7 @@ using System.Data;
 using System.Threading;
 using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable once CheckNamespace
@@ -29,6 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async STT.Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").ConfigureAwait(false);
         }
@@ -56,6 +58,7 @@ SELECT @Result
 ";
 
             string existingLock;
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -88,6 +91,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -124,6 +128,7 @@ IF @Result = @OldLock
 SELECT @Result
 ";
             string existingLock;
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -152,6 +157,7 @@ SELECT @Result
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
@@ -177,6 +183,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -204,6 +211,7 @@ SELECT @Result
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(sql, cmd =>
             {

@@ -14,6 +14,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -103,6 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
+            using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
             return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
             {
@@ -200,6 +202,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
             cancellationToken.ThrowIfCancellationRequested();
+            using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
             return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                 async (reader, cancel) =>
@@ -321,6 +324,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     _logger.LogTrace("Trying to connect to the new database...");
 
+                    using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
                     using var ctx = CreateDataContext(cancellationToken);
                     await ctx.ExecuteNonQueryAsync("SELECT TOP (1) [Name] FROM sys.tables").ConfigureAwait(false);
                 }, (i, ex) =>
@@ -463,6 +467,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 var script = sqlReader.Script;
 
+                using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
                 using var ctx = CreateDataContext(cancellationToken);
                 await ctx.ExecuteNonQueryAsync(script);
             }

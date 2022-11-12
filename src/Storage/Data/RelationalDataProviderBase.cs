@@ -50,6 +50,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -212,6 +213,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
@@ -233,6 +235,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.String, int.MaxValue, item.Value));
             }
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
         }
@@ -247,6 +250,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -361,6 +365,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected async Task UpdateSubTreePathAsync(string originalPath, string path, SnDataContext ctx)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -384,6 +389,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
             }
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteReaderAsync(ManageLastVersionsScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -429,6 +435,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
@@ -450,6 +457,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.String, int.MaxValue, item.Value));
             }
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
         }
@@ -464,6 +472,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -602,6 +611,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -675,6 +685,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken)
         {
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodesScript, cmd =>
@@ -886,6 +897,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -926,6 +938,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -976,6 +989,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(LoadTextPropertyValuesScript, string.Join(", ",
                 Enumerable.Range(0, propertiesToLoad.Length).Select(i => propParamPrefix + i)));
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
@@ -1006,6 +1020,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
@@ -1024,6 +1039,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await SnDataContext.RetryAsync(async () =>
             {
+                using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
                 using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
@@ -1042,6 +1058,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             return await SnDataContext.RetryAsync(async () =>
             {
                 using var ctx = CreateDataContext(cancellationToken);
@@ -1062,6 +1079,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByVersionIdScript, cmd =>
@@ -1082,6 +1100,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
         {
             var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
@@ -1105,6 +1124,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
@@ -1133,6 +1153,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path,
             CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
@@ -1187,6 +1208,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var pathList = paths.ToList();
             List<NodeHead> heads;
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 string sql;
@@ -1247,6 +1269,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(InstanceCountScript,
                 string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return (int)await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -1260,6 +1283,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 return await ctx.ExecuteReaderAsync(
                     GetChildrenIdentfiersScript,
@@ -1293,6 +1317,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
             var referencePropertyId = referenceProperty.Id;
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 string sql;
@@ -1337,6 +1362,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 return await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
                     {
@@ -1361,6 +1387,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
@@ -1393,6 +1420,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(AcquireTreeLockScript,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -1416,6 +1444,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(IsTreeLockedScript,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -1431,6 +1460,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             var sql = string.Format(ReleaseTreeLockScript,
                 string.Join(", ", Enumerable.Range(0, lockIds.Length).Select(i => "@Id" + i)));
 
@@ -1449,6 +1479,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadAllTreeLocksScript, async (reader, cancel) =>
@@ -1468,6 +1499,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
@@ -1496,6 +1528,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             return await SnDataContext.RetryAsync(async () =>
                 {
                     using var ctx = CreateDataContext(cancellationToken);
@@ -1515,6 +1548,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
@@ -1553,6 +1587,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = excludedNodeTypes.Any()
                 ? string.Format(LoadIndexDocumentCollectionBlockByPathAndTypeScript, string.Join(", ", excludedNodeTypes))
                 : LoadIndexDocumentCollectionBlockByPathScript;
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(CancellationToken.None))
             {
                 try
@@ -1614,6 +1649,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNotIndexedNodeIdsScript, cmd =>
@@ -1643,6 +1679,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript).ConfigureAwait(false);
@@ -1654,6 +1691,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(DeleteRestorePointsScript).ConfigureAwait(false);
         }
@@ -1662,6 +1700,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetCurrentIndexingActivityStatusScript,
@@ -1690,6 +1729,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             IndexingActivityStatusRestoreResult result;
 
             var gaps = string.Join(",", status.Gaps.Select(x => x.ToString()));
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var rawResult = await ctx.ExecuteScalarAsync(RestoreIndexingActivityStatusScript, cmd =>
@@ -1711,6 +1751,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexingActivitiesPageScript,
@@ -1732,6 +1773,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript,
@@ -1759,6 +1801,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (waitingActivityIds != null && waitingActivityIds.Length > 0)
                 waitingActivityIdParam = string.Join(",", waitingActivityIds.Select(x => x.ToString()));
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(
@@ -1820,6 +1863,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task RegisterIndexingActivityAsync(IIndexingActivity activity,
             CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 activity.CreationDate = DateTime.UtcNow;
@@ -1846,6 +1890,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
             CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
                 {
@@ -1861,6 +1906,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds,
             CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
             {
@@ -1875,6 +1921,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript).ConfigureAwait(false);
         }
@@ -1882,6 +1929,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript).ConfigureAwait(false);
         }
@@ -1971,6 +2019,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadSchemaScript, async (reader, cancel) =>
@@ -2057,6 +2106,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
         {
             var lockToken = Guid.NewGuid().ToString();
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
@@ -2081,6 +2131,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
@@ -2102,6 +2153,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 var unused = await ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
@@ -2133,6 +2185,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadLastAuditEventsScript, cmd =>
@@ -2174,6 +2227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
             CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return (string)await ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
@@ -2193,6 +2247,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken)
         {
             RepositoryPath.CheckValidPath(path);
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
@@ -2209,6 +2264,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
@@ -2223,6 +2279,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
@@ -2240,6 +2297,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadEntityTreeScript, async (reader, cancel) =>
@@ -2272,6 +2330,7 @@ SELECT CASE WHEN EXISTS (
 THEN CAST(1 AS BIT)
 ELSE CAST(0 AS BIT) END";
 
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using var ctx = CreateDataContext(cancellationToken);
 
             try
@@ -2301,6 +2360,7 @@ ELSE CAST(0 AS BIT) END";
             Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________")) { op.Successful = true; }
             using (var ctx = CreateDataContext(cancellation))
             {
                 await ctx.ExecuteReaderAsync(LoadDatabaseUsageScript, async (reader, cancel) =>

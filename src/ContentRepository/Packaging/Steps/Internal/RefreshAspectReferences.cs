@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 // ReSharper disable once ArrangeThisQualifier
 
 // ReSharper disable once CheckNamespace
@@ -26,10 +27,12 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
+            using var op = SnTrace.Database.StartOperation("RefreshAspectReferences: Execute: {0}",
+                SnTraceTools.Truncate(Script));
+
             //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(context.ConnectionStrings.Repository,
-                       DataOptions.GetLegacyConfiguration(),
-                       CancellationToken.None))
+                       DataOptions.GetLegacyConfiguration(), CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(Script, async (reader, cancel) =>
                 {
@@ -56,6 +59,8 @@ WHERE RelType = 'Aspects' and TargetId in
             Logger.LogMessage(count < 1
                 ? "No content was found with aspect reference field."
                 : $"Aspect references were updated on {count} content.");
+
+            op.Successful = true;
         }
         private void Operate(int id)
         {

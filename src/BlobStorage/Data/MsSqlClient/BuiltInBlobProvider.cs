@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable AccessToModifiedClosure
 
@@ -96,6 +97,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
@@ -122,6 +124,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: ________")) { op.Successful = true; }
             await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -175,6 +178,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         public byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
@@ -206,6 +210,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>

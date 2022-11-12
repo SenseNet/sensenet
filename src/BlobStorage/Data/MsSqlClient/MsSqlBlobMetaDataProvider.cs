@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure
 
@@ -59,6 +60,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql = ClearStreamByFileIdScript + sql;
 
             cancellationToken.ThrowIfCancellationRequested();
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
@@ -122,6 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!isNewNode)
                 dataContext.NeedToCleanupFiles = true;
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             await sqlCtx.ExecuteReaderAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -170,6 +173,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             value.Id = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -227,6 +231,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = blobProvider is IBuiltInBlobProvider
                 ? UpdateBinaryPropertyScript
                 : UpdateBinaryPropertyNewFilerowScript;
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             var fileId = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -285,6 +290,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             await sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -300,6 +306,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             await sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
             {
                 var idsParam = string.Join(",", versionIds.Select(x => x.ToString()));
@@ -312,6 +319,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             return await sqlCtx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -378,6 +386,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             return await sqlCtx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -441,6 +450,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
+                using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
                 using (var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
                 {
                     using (var transaction = dctx.BeginTransaction())
@@ -495,6 +505,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             try
             {
+                using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
                 using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
@@ -539,6 +550,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         }
         private async Task CleanupFilesSetDeleteFlagAsync(string script, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 using (var transaction = ctx.BeginTransaction())
@@ -558,6 +570,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: ________")) { op.Successful = true; }
             using (var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken))
             {
                 return await dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>

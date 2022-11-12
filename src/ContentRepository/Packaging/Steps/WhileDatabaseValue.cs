@@ -5,6 +5,7 @@ using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -30,21 +31,26 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script, string connectionString)
         {
-            //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
-            {
-                try
-                {
-                    var result = ctx.ExecuteScalarAsync(script).GetAwaiter().GetResult();
+            using var op = SnTrace.Database.StartOperation("WhileDatabaseValue: ExecuteSql: {0}",
+                SnTraceTools.Truncate(script));
 
-                    if (result == null || Convert.IsDBNull(result))
-                        return false;
-                    return ConvertToBool(result);
-                }
-                catch (Exception ex)
+            //TODO: [DIREF] get options from DI through constructor
+            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
+            try
+            {
+                var result = ctx.ExecuteScalarAsync(script).GetAwaiter().GetResult();
+
+                if (result == null || Convert.IsDBNull(result))
                 {
-                    throw new PackagingException("Error during SQL script execution. " + ex);
+                    op.Successful = true;
+                    return false;
                 }
+                op.Successful = true;
+                return ConvertToBool(result);
+            }
+            catch (Exception ex)
+            {
+                throw new PackagingException("Error during SQL script execution. " + ex);
             }
         }
 

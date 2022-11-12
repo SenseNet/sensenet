@@ -37,11 +37,13 @@ namespace SenseNet.Packaging.Steps.Internal
 
         internal void InstallTables(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
         }
         internal void StartBackgroundTasks(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
         }
@@ -55,6 +57,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             var result = new List<int>();
             int remainingTasks = 0;
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
             {
                 ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
@@ -79,6 +82,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         internal void FinishTask(int versionId, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                 {
@@ -90,6 +94,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                 {
@@ -100,6 +105,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public List<int> GetAllNodeIds(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
             {
                 return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
@@ -114,6 +120,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public void DropTables(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
         }
@@ -122,6 +129,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             try
             {
+                using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
                 using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
@@ -142,6 +150,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public DateTime LoadTimeLimit(CancellationToken cancellationToken)
         {
+            using (var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
             {
                 var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();

@@ -2,6 +2,7 @@
 using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Storage.Data.MsSqlClient;
 
@@ -25,8 +26,12 @@ namespace SenseNet.ContentRepository.Components
 
                     try
                     {
+                        using var op = SnTrace.Database.StartOperation("MsSqlStatisticsComponent: " +
+                            "Install MS SQL data provider extension for the statistical data handling feature (v1.0.0). " +
+                            "Script name: MsSqlStatisticalDataProvider.CreationScript");
                         using var ctx = dataProvider.CreateDataContext(CancellationToken.None);
                         ctx.ExecuteNonQueryAsync(MsSqlStatisticalDataProvider.CreationScript).GetAwaiter().GetResult();
+                        op.Successful = true;
                     }
                     catch (Exception ex)
                     {

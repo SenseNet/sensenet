@@ -39,6 +39,7 @@ INSERT INTO StatisticalData
 ";
         public async Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(WriteDataScript, cmd =>
@@ -88,6 +89,7 @@ ORDER BY CreationTime DESC
             }
 
             var records = new List<IStatisticalDataRecord>();
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(sql, cmd =>
@@ -118,6 +120,7 @@ ORDER BY Date
             CancellationToken cancellation)
         {
             var aggregations = new List<Aggregation>();
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(LoadAggregatedUsageScript, cmd =>
@@ -152,6 +155,7 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
         public async Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
         {
             var result = new DateTime?[4];
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, cmd =>
@@ -188,6 +192,7 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
         public async Task<DateTime?[]> LoadLastAggregationTimesByResolutionsAsync(CancellationToken cancel)
         {
             var result = new DateTime?[4];
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(LoadLastAggregationTimesByResolutionsScript, async (reader, cancel) => {
@@ -213,6 +218,7 @@ ORDER BY CreationTime
             Action<IStatisticalDataRecord> aggregatorCallback,
             CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteReaderAsync(EnumerateDataScript, cmd =>
@@ -248,6 +254,7 @@ END CATCH
 ";
         public async Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(WriteAggregationScript, cmd =>
@@ -268,6 +275,7 @@ DELETE FROM StatisticalData WHERE DataType = @DataType AND CreationTime < @Reten
 ";
         public async Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(CleanupRecordsScript, cmd =>
@@ -287,6 +295,7 @@ DELETE FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 
         public async Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
             CancellationToken cancellation)
         {
+            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
             using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
             {
                 await ctx.ExecuteNonQueryAsync(CleanupAggregationsScript, cmd =>

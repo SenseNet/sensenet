@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository.Components
@@ -21,12 +22,16 @@ namespace SenseNet.ContentRepository.Components
                     if (!(Providers.Instance.DataProvider is RelationalDataProviderBase dataProvider))
                         throw new InvalidOperationException("Cannot install MsSqlClientStoreComponent because it is " +
                                                             $"incompatible with Data provider {Providers.Instance.DataProvider.GetType().FullName}.");
-                    
+
                     try
                     {
+                        using var op = SnTrace.Database.StartOperation("MsSqlClientStoreComponent: " +
+                            "Install MS SQL implementation of Client store (v1.0.0). " +
+                            "Script name: MsSqlClientStoreDataProvider.DropAndCreateTablesSql.");
                         using var ctx = dataProvider.CreateDataContext(CancellationToken.None);
                         ctx.ExecuteNonQueryAsync(MsSqlClientStoreDataProvider.DropAndCreateTablesSql)
                             .GetAwaiter().GetResult();
+                        op.Successful = true;
                     }
                     catch (Exception ex)
                     {

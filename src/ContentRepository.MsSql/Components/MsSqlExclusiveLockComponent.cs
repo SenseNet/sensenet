@@ -3,6 +3,7 @@ using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository.Components
@@ -25,8 +26,12 @@ namespace SenseNet.ContentRepository.Components
 
                     try
                     {
+                        using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockComponent: " +
+                            "Install MS SQL data provider extension for the Exclusive lock feature (v1.0.0). " +
+                            "Script name: MsSqlExclusiveLockDataProvider.CreationScript.");
                         using var ctx = dataProvider.CreateDataContext(CancellationToken.None);
                         ctx.ExecuteNonQueryAsync(MsSqlExclusiveLockDataProvider.CreationScript).GetAwaiter().GetResult();
+                        op.Successful = true;
                     }
                     catch (Exception ex)
                     {
