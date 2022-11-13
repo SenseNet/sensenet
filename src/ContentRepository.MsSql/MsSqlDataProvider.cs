@@ -56,6 +56,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
+                "QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, name: {3})",
+                SnTraceTools.ConvertToString(nodeTypeIds), SnTraceTools.ConvertToString(pathStart), orderByPath, name);
+
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
             var first = true;
 
@@ -104,19 +108,21 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
+
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
-            return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
+            var result = await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
-                var result = new List<int>();
+                var items = new List<int>();
                 while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                 {
                     cancel.ThrowIfCancellationRequested();
-                    result.Add(reader.GetSafeInt32(0));
+                    items.Add(reader.GetSafeInt32(0));
                 }
-                return (IEnumerable<int>)result;
+                return (IEnumerable<int>)items;
             }).ConfigureAwait(false);
+            op.Successful = true;
+            return result;
         }
 
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
