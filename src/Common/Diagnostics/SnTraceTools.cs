@@ -13,12 +13,16 @@ namespace SenseNet.Diagnostics
 
         public static string ConvertToString(IEnumerable<int> items)
         {
+            if (items == null)
+                return null;
             var set = items.Take(33).Select(x=>x.ToString()).ToArray();
             var text = string.Join(", ", set.Take(32));
             return set.Length > 32 ? $"[{text}, ...]" : $"[{text}]";
         }
         public static string ConvertToString(IEnumerable<string> items)
         {
+            if (items == null)
+                return null;
             var set = items.Take(11).ToArray();
             var text = string.Join(", ", set.Take(10));
             return set.Length > 10 ? $"[{text}, ...]" : $"[{text}]";

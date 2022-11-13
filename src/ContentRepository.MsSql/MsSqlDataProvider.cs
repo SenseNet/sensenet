@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -128,6 +129,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
+                "QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, properties: [{3}])",
+                SnTraceTools.ConvertToString(nodeTypeIds), pathStart, orderByPath,
+                SnTraceTools.ConvertToString(properties?
+                    .Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")));
+
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
             var typeCount = nodeTypeIds?.Length ?? 0;
             var onlyNodes = true;
@@ -208,8 +215,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
-            return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
+            var result = await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                 async (reader, cancel) =>
                 {
@@ -222,6 +228,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
                     return result;
                 }).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
         private (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value) GetPropertyMappingForQuery(QueryPropertyData property)
         {
@@ -319,6 +328,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         
         public override async STT.Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: InstallDatabaseAsync().");
+
             if (!string.IsNullOrEmpty(_dbInstallerOptions.DatabaseName))
             {
                 _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.DatabaseName}.");
@@ -330,7 +341,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     _logger.LogTrace("Trying to connect to the new database...");
 
-                    using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
                     using var ctx = CreateDataContext(cancellationToken);
                     await ctx.ExecuteNonQueryAsync("SELECT TOP (1) [Name] FROM sys.tables").ConfigureAwait(false);
                 }, (i, ex) =>
@@ -362,6 +372,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await ExecuteEmbeddedNonQueryScriptAsync(
                     "SenseNet.ContentRepository.MsSql.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
                 .ConfigureAwait(false);
+
+            op.Successful = true;
         }
 
         /* =============================================================================================== Tools */
@@ -463,6 +475,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>A Task that represents the asynchronous operation.</returns>
         private async STT.Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
+                "ExecuteEmbeddedNonQueryScript(scriptName: {0})", scriptName);
+
             using var stream = GetType().Assembly.GetManifestResourceStream(scriptName);
             if (stream == null)
                 throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
@@ -473,10 +488,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 var script = sqlReader.Script;
 
-                using (var op = SnTrace.Database.StartOperation("MsSqlDataProvider: ________")) { op.Successful = true; }
                 using var ctx = CreateDataContext(cancellationToken);
                 await ctx.ExecuteNonQueryAsync(script);
             }
+
+            op.Successful = true;
         }
     }
 }
