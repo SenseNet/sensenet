@@ -30,9 +30,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async STT.Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: DeleteAllSharedLocks()");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
@@ -57,25 +58,25 @@ END
 SELECT @Result
 ";
 
-            string existingLock;
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: " +
+                "CreateSharedLock(contentId: {0}, lock: {1})", contentId, @lock);
+
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@Lock", DbType.String, @lock),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
+                    ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                    ctx.CreateParameter("@Lock", DbType.String, @lock),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
 
-                existingLock = result == DBNull.Value ? null : (string)result;
-            }
-
+            var existingLock = result == DBNull.Value ? null : (string)result;
             if (existingLock != null)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
+
+            op.Successful = true;
         }
 
         public async STT.Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
@@ -90,27 +91,25 @@ IF @Result = @Lock
 	UPDATE [dbo].[SharedLocks] SET [CreationDate] = GETUTCDATE() WHERE [SharedLockId] = @Id
 SELECT @Result
 ";
-            string existingLock;
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: " +
+                "RefreshSharedLock(contentId: {0}, lock: {1})", contentId, @lock);
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@Lock", DbType.String, @lock),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
+                    ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                    ctx.CreateParameter("@Lock", DbType.String, @lock),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
 
-                existingLock = result == DBNull.Value ? null : (string)result;
-            }
-
+            var existingLock = result == DBNull.Value ? null : (string)result;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
+            op.Successful = true;
 
             return existingLock;
         }
@@ -127,28 +126,26 @@ IF @Result = @OldLock
 	UPDATE [dbo].[SharedLocks] SET [Lock] = @NewLock, [CreationDate] = GETUTCDATE() WHERE [SharedLockId] = @Id
 SELECT @Result
 ";
-            string existingLock;
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: " +
+                "ModifySharedLock(contentId: {0}, lock: {1}, newLock: {2})", contentId, @lock, newLock);
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@OldLock", DbType.String, @lock),
-                        ctx.CreateParameter("@NewLock", DbType.String, newLock),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
+                    ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                    ctx.CreateParameter("@OldLock", DbType.String, @lock),
+                    ctx.CreateParameter("@NewLock", DbType.String, newLock),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
 
-                existingLock = result == DBNull.Value ? null : (string)result;
-            }
-
+            var existingLock = result == DBNull.Value ? null : (string)result;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
+            op.Successful = true;
 
             return existingLock;
         }
@@ -157,7 +154,8 @@ SELECT @Result
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: " +
+                "GetSharedLock(contentId: {0})", contentId);
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
@@ -167,6 +165,7 @@ SELECT @Result
                     ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                 });
             }).ConfigureAwait(false);
+            op.Successful = true;
             return result == DBNull.Value ? null : (string)result;
         }
 
@@ -182,27 +181,25 @@ IF @Result = @Lock
 	DELETE FROM [dbo].[SharedLocks] WHERE [SharedLockId] = @Id
 SELECT @Result
 ";
-            string existingLock;
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: " +
+                "DeleteSharedLock(contentId: {0}, lock: {1})", contentId, @lock);
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@Lock", DbType.String, @lock),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
+                    ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                    ctx.CreateParameter("@Lock", DbType.String, @lock),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
 
-                existingLock = result == DBNull.Value ? null : (string)result;
-            }
-
+            var existingLock = result == DBNull.Value ? null : (string)result;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
+            op.Successful = true;
 
             return existingLock;
         }
@@ -211,7 +208,7 @@ SELECT @Result
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
-            using (var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: ________")) { op.Successful = true; }
+            using var op = SnTrace.Database.StartOperation("MsSqlSharedLockDataProvider: CleanupSharedLocks()");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(sql, cmd =>
             {
@@ -220,6 +217,7 @@ SELECT @Result
                     ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
                 });
             }).ConfigureAwait(false);
+            op.Successful = true;
         }
     }
 }
