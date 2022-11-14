@@ -39,30 +39,30 @@ INSERT INTO StatisticalData
 ";
         public async Task WriteDataAsync(IStatisticalDataRecord data, CancellationToken cancellation)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "WriteData: DataType: {0}", data.DataType);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            await ctx.ExecuteNonQueryAsync(WriteDataScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(WriteDataScript, cmd =>
+                var now = DateTime.UtcNow;
+                cmd.Parameters.AddRange(new[]
                 {
-                    var now = DateTime.UtcNow;
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  data.DataType),
-                        ctx.CreateParameter("@WrittenTime", SqlDbType.DateTime2, now),
-                        ctx.CreateParameter("@CreationTime", SqlDbType.DateTime2, data.CreationTime ?? now),
-                        ctx.CreateParameter("@Duration", SqlDbType.BigInt, (object)data.Duration?.Ticks ?? DBNull.Value),
-                        ctx.CreateParameter("@RequestLength", SqlDbType.BigInt, (object)data.RequestLength ?? DBNull.Value),
-                        ctx.CreateParameter("@ResponseLength", SqlDbType.BigInt, (object)data.ResponseLength ?? DBNull.Value),
-                        ctx.CreateParameter("@ResponseStatusCode", SqlDbType.Int, (object)data.ResponseStatusCode ?? DBNull.Value),
-                        ctx.CreateParameter("@Url", SqlDbType.NVarChar, 1000, (object)data.Url ?? DBNull.Value),
-                        ctx.CreateParameter("@TargetId", SqlDbType.Int, (object)data.TargetId ?? DBNull.Value),
-                        ctx.CreateParameter("@ContentId", SqlDbType.Int, (object)data.ContentId ?? DBNull.Value),
-                        ctx.CreateParameter("@EventName", SqlDbType.NVarChar, 50, (object)data.EventName ?? DBNull.Value),
-                        ctx.CreateParameter("@ErrorMessage", SqlDbType.NVarChar, 500, (object)data.ErrorMessage ?? DBNull.Value),
-                        ctx.CreateParameter("@GeneralData", SqlDbType.NVarChar, (object)data.GeneralData ?? DBNull.Value),
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  data.DataType),
+                    ctx.CreateParameter("@WrittenTime", SqlDbType.DateTime2, now),
+                    ctx.CreateParameter("@CreationTime", SqlDbType.DateTime2, data.CreationTime ?? now),
+                    ctx.CreateParameter("@Duration", SqlDbType.BigInt, (object)data.Duration?.Ticks ?? DBNull.Value),
+                    ctx.CreateParameter("@RequestLength", SqlDbType.BigInt, (object)data.RequestLength ?? DBNull.Value),
+                    ctx.CreateParameter("@ResponseLength", SqlDbType.BigInt, (object)data.ResponseLength ?? DBNull.Value),
+                    ctx.CreateParameter("@ResponseStatusCode", SqlDbType.Int, (object)data.ResponseStatusCode ?? DBNull.Value),
+                    ctx.CreateParameter("@Url", SqlDbType.NVarChar, 1000, (object)data.Url ?? DBNull.Value),
+                    ctx.CreateParameter("@TargetId", SqlDbType.Int, (object)data.TargetId ?? DBNull.Value),
+                    ctx.CreateParameter("@ContentId", SqlDbType.Int, (object)data.ContentId ?? DBNull.Value),
+                    ctx.CreateParameter("@EventName", SqlDbType.NVarChar, 50, (object)data.EventName ?? DBNull.Value),
+                    ctx.CreateParameter("@ErrorMessage", SqlDbType.NVarChar, 500, (object)data.ErrorMessage ?? DBNull.Value),
+                    ctx.CreateParameter("@GeneralData", SqlDbType.NVarChar, (object)data.GeneralData ?? DBNull.Value),
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         private static readonly string LoadUsageListScript = @"-- MsSqlStatisticalDataProvider.LoadUsageList
@@ -77,36 +77,31 @@ ORDER BY CreationTime DESC
 ";
         public async Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancellation)
         {
-            string sql;
-            if (relatedTargetIds == null || relatedTargetIds.Length == 0)
-            {
-                sql = LoadUsageListScript;
-            }
-            else
-            {
-                var ids = string.Join(", ", relatedTargetIds.Select(x => x.ToString()));
-                sql = string.Format(LoadUsageListByTargetIdsScript, ids);
-            }
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "LoadUsageList(dataType: {0}, relatedTargetIds: {1}, endTimeExclusive: {2:yyyy-MM-dd HH:mm:ss.fffff}, count: {3})",
+                dataType, SnTraceTools.ConvertToString(relatedTargetIds), endTimeExclusive, count);
 
+            var sql = relatedTargetIds == null || relatedTargetIds.Length == 0
+                ? LoadUsageListScript
+                : string.Format(LoadUsageListByTargetIdsScript,
+                    string.Join(", ", relatedTargetIds.Select(x => x.ToString())));
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
             var records = new List<IStatisticalDataRecord>();
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            await ctx.ExecuteReaderAsync(sql, cmd =>
             {
-                await ctx.ExecuteReaderAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@Take", DbType.Int32, count),
-                        ctx.CreateParameter("@DataType", DbType.String, dataType),
-                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
-                    });
-                }, async (reader, cancel) =>
-                {
-                    while (await reader.ReadAsync(cancel))
-                        records.Add(GetStatisticalDataRecordFromReader(reader));
-                    return true;
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@Take", DbType.Int32, count),
+                    ctx.CreateParameter("@DataType", DbType.String, dataType),
+                    ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                });
+            }, async (reader, cancel) =>
+            {
+                while (await reader.ReadAsync(cancel))
+                    records.Add(GetStatisticalDataRecordFromReader(reader));
+                return true;
+            }).ConfigureAwait(false);
+            op.Successful = true;
 
             return records;
         }
@@ -119,25 +114,28 @@ ORDER BY Date
         public async Task<IEnumerable<Aggregation>> LoadAggregatedUsageAsync(string dataType, TimeResolution resolution, DateTime startTime, DateTime endTimeExclusive,
             CancellationToken cancellation)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "LoadAggregatedUsage(dataType: {0}, resolution: {1}, startTime: {2:yyyy-MM-dd HH:mm:ss.fffff}, endTimeExclusive: {3:yyyy-MM-dd HH:mm:ss.fffff})",
+                dataType, resolution, startTime, endTimeExclusive);
+
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
             var aggregations = new List<Aggregation>();
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            await ctx.ExecuteReaderAsync(LoadAggregatedUsageScript, cmd =>
             {
-                await ctx.ExecuteReaderAsync(LoadAggregatedUsageScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", DbType.String, dataType),
-                        ctx.CreateParameter("@Resolution", DbType.String, resolution.ToString()),
-                        ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
-                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
-                    });
-                }, async (reader, cancel) => {
-                    while (await reader.ReadAsync(cancel))
-                        aggregations.Add(GetAggregationFromReader(reader));
-                    return true;
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", DbType.String, dataType),
+                    ctx.CreateParameter("@Resolution", DbType.String, resolution.ToString()),
+                    ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
+                    ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                });
+            }, async (reader, cancel) => {
+                while (await reader.ReadAsync(cancel))
+                    aggregations.Add(GetAggregationFromReader(reader));
+                return true;
+            }).ConfigureAwait(false);
+            op.Successful = true;
+
             return aggregations;
         }
 
@@ -154,27 +152,29 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
 ";
         public async Task<DateTime?[]> LoadFirstAggregationTimesByResolutionsAsync(string dataType, CancellationToken cancellation)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "LoadFirstAggregationTimesByResolutions(dataType: {0})", dataType);
+
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
             var result = new DateTime?[4];
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, cmd =>
             {
-                await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", DbType.String, dataType),
-                    });
-                }, async (reader, cancel) => {
-                    if (await reader.ReadAsync(cancel))
-                    {
-                        result[0] = reader.GetDateTimeUtcOrNull("Minute");
-                        result[1] = reader.GetDateTimeUtcOrNull("Hour");
-                        result[2] = reader.GetDateTimeUtcOrNull("Day");
-                        result[3] = reader.GetDateTimeUtcOrNull("Month");
-                    }
-                    return true;
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", DbType.String, dataType),
+                });
+            }, async (reader, cancel) => {
+                if (await reader.ReadAsync(cancel))
+                {
+                    result[0] = reader.GetDateTimeUtcOrNull("Minute");
+                    result[1] = reader.GetDateTimeUtcOrNull("Hour");
+                    result[2] = reader.GetDateTimeUtcOrNull("Day");
+                    result[3] = reader.GetDateTimeUtcOrNull("Month");
+                }
+                return true;
+            }).ConfigureAwait(false);
+            op.Successful = true;
+
             return result.ToArray();
         }
 
@@ -191,21 +191,23 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
 ";
         public async Task<DateTime?[]> LoadLastAggregationTimesByResolutionsAsync(CancellationToken cancel)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "LoadLastAggregationTimesByResolutions()");
+
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancel);
             var result = new DateTime?[4];
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
-            {
-                await ctx.ExecuteReaderAsync(LoadLastAggregationTimesByResolutionsScript, async (reader, cancel) => {
-                    if (await reader.ReadAsync(cancel))
-                    {
-                        result[0] = reader.GetDateTimeUtcOrNull("Minute");
-                        result[1] = reader.GetDateTimeUtcOrNull("Hour");
-                        result[2] = reader.GetDateTimeUtcOrNull("Day");
-                        result[3] = reader.GetDateTimeUtcOrNull("Month");
-                    }
-                    return true;
-                }).ConfigureAwait(false);
-            }
+            await ctx.ExecuteReaderAsync(LoadLastAggregationTimesByResolutionsScript, async (reader, cancel) => {
+                if (await reader.ReadAsync(cancel))
+                {
+                    result[0] = reader.GetDateTimeUtcOrNull("Minute");
+                    result[1] = reader.GetDateTimeUtcOrNull("Hour");
+                    result[2] = reader.GetDateTimeUtcOrNull("Day");
+                    result[3] = reader.GetDateTimeUtcOrNull("Month");
+                }
+                return true;
+            }).ConfigureAwait(false);
+            op.Successful = true;
+
             return result.ToArray();
         }
 
@@ -218,29 +220,30 @@ ORDER BY CreationTime
             Action<IStatisticalDataRecord> aggregatorCallback,
             CancellationToken cancellation)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "EnumerateData(dataType: {0}, startTime: {1:yyyy-MM-dd HH:mm:ss.fffff}, endTimeExclusive: {2:yyyy-MM-dd HH:mm:ss.fffff})",
+                dataType, startTime, endTimeExclusive);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            await ctx.ExecuteReaderAsync(EnumerateDataScript, cmd =>
             {
-                await ctx.ExecuteReaderAsync(EnumerateDataScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", DbType.String, dataType),
-                        ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
-                        ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
-                    });
-                }, async (reader, cancel) =>
+                    ctx.CreateParameter("@DataType", DbType.String, dataType),
+                    ctx.CreateParameter("@StartTime", DbType.DateTime2, startTime),
+                    ctx.CreateParameter("@EndTimeExclusive", DbType.DateTime2, endTimeExclusive),
+                });
+            }, async (reader, cancel) =>
+            {
+                while (await reader.ReadAsync(cancel))
                 {
-                    while (await reader.ReadAsync(cancel))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        var item = GetStatisticalDataRecordFromReader(reader);
-                        aggregatorCallback(item);
-                    }
+                    cancel.ThrowIfCancellationRequested();
+                    var item = GetStatisticalDataRecordFromReader(reader);
+                    aggregatorCallback(item);
+                }
 
-                    return true;
-                }).ConfigureAwait(false);
-            }
+                return true;
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         private static readonly string WriteAggregationScript = @"-- MsSqlStatisticalDataProvider.WriteAggregation
@@ -254,20 +257,22 @@ END CATCH
 ";
         public async Task WriteAggregationAsync(Aggregation aggregation, CancellationToken cancellation)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "WriteAggregation: DataType: {0}, Resolution: {1}, Date: {2:yyyy-MM-dd HH:mm:ss.fffff})",
+                aggregation.DataType, aggregation.Resolution, aggregation.Date);
+
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            await ctx.ExecuteNonQueryAsync(WriteAggregationScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(WriteAggregationScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", DbType.String, aggregation.DataType),
-                        ctx.CreateParameter("@Resolution", DbType.String, aggregation.Resolution.ToString()),
-                        ctx.CreateParameter("@Date", DbType.DateTime2, aggregation.Date),
-                        ctx.CreateParameter("@Data", DbType.String, (object)aggregation.Data ?? DBNull.Value),
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", DbType.String, aggregation.DataType),
+                    ctx.CreateParameter("@Resolution", DbType.String, aggregation.Resolution.ToString()),
+                    ctx.CreateParameter("@Date", DbType.DateTime2, aggregation.Date),
+                    ctx.CreateParameter("@Data", DbType.String, (object)aggregation.Data ?? DBNull.Value),
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         private static readonly string CleanupRecordsScript = @"-- MsSqlStatisticalDataProvider.CleanupRecords
@@ -275,18 +280,19 @@ DELETE FROM StatisticalData WHERE DataType = @DataType AND CreationTime < @Reten
 ";
         public async Task CleanupRecordsAsync(string dataType, DateTime retentionTime, CancellationToken cancellation)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "CleanupRecords(dataType: {0}, retentionTime: {1:yyyy-MM-dd HH:mm:ss.fffff})",
+                dataType, retentionTime);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            await ctx.ExecuteNonQueryAsync(CleanupRecordsScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(CleanupRecordsScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  dataType),
-                        ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", SqlDbType.NVarChar, 50,  dataType),
+                    ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         private static readonly string CleanupAggregationsScript = @"-- MsSqlStatisticalDataProvider.CleanupAggregations
@@ -295,19 +301,20 @@ DELETE FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 
         public async Task CleanupAggregationsAsync(string dataType, TimeResolution resolution, DateTime retentionTime,
             CancellationToken cancellation)
         {
-            using (var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: ________")) { op.Successful = true; }
-            using (var ctx = new MsSqlDataContext(ConnectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
+                "CleanupAggregations(dataType: {0}, resolution: {1}, retentionTime: {2:yyyy-MM-dd HH:mm:ss.fffff})", 
+                dataType, resolution, retentionTime);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            await ctx.ExecuteNonQueryAsync(CleanupAggregationsScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(CleanupAggregationsScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@DataType", DbType.String,  dataType),
-                        ctx.CreateParameter("@Resolution", DbType.AnsiString,  resolution.ToString()),
-                        ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@DataType", DbType.String,  dataType),
+                    ctx.CreateParameter("@Resolution", DbType.AnsiString,  resolution.ToString()),
+                    ctx.CreateParameter("@RetentionTime", SqlDbType.DateTime2, retentionTime),
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /* ====================================================================================================== */

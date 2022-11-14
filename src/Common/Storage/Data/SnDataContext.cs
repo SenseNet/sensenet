@@ -53,11 +53,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             //if (IsDisposed || _connection?.State != ConnectionState.Open ||
             //    (_transaction != null && _transaction.Status != TransactionStatus.Committed))
             //{
-                SnTrace.Database.Write($"SnDataContext #{ContextId}: DISPOSE" +
-                                       $" _connection: {_connection?.State.ToString() ?? "null"}," +
-                                       $" _transaction: {_transaction?.Status.ToString() ?? "null"}," +
-                                       $" IsDisposed: {IsDisposed}," /*+
-                                       $" StackTrace: {Environment.StackTrace}"*/);
+//SnTrace.Database.Write($"SnDataContext #{ContextId}: DISPOSE" +
+//                       $" _connection: {_connection?.State.ToString() ?? "null"}," +
+//                       $" _transaction: {_transaction?.Status.ToString() ?? "null"}," +
+//                       $" IsDisposed: {IsDisposed}," /*+
+//                       $" StackTrace: {Environment.StackTrace}"*/);
             //}
 
             var disposed = IsDisposed;
@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (closeConnection)
                 {
                     Interlocked.Decrement(ref _connectionCount);
-                    SnTrace.Database.Write($"SnDataContext #{ContextId}: connection closed === COUNT: {_connectionCount}");
+//SnTrace.Database.Write($"SnDataContext #{ContextId}: connection closed === COUNT: {_connectionCount}");
                 }
                 else
                 {
@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
                     else
                     {
-                        SnTrace.Database.Write($"SnDataContext #{ContextId} DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount}");
+//SnTrace.Database.Write($"SnDataContext #{ContextId} DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount}");
                     }
                 }
 
@@ -121,7 +121,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 _connection.Dispose();
                 _connection = null;
-                SnTrace.Database.Write($"SnDataContext #{ContextId}: previous connection was forcibly disposed === COUNT: {_connectionCount}");
+//SnTrace.Database.Write($"SnDataContext #{ContextId}: previous connection was forcibly disposed === COUNT: {_connectionCount}");
             }
             if (_connection == null)
             {
@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 _connection.Open();
 
                 Interlocked.Increment(ref _connectionCount);
-                SnTrace.Database.Write($"SnDataContext #{ContextId}: open connection === COUNT: {_connectionCount}");
+//SnTrace.Database.Write($"SnDataContext #{ContextId}: open connection === COUNT: {_connectionCount}");
                 OpenConnections[ContextId] = Environment.StackTrace;
             }
             return _connection;
@@ -153,8 +153,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
-            {
+            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
+            //{
                 var nonQueryResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
                     using (var cmd = CreateCommand())
@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        op.Successful = true;
+            //            op.Successful = true;
                         return result;
                     }
                 }, (res, i, ex) =>
@@ -197,13 +197,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 });
 
                 return nonQueryResult;
-            }
+            //}
         }
 
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
-            {
+            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
+            //{
                 var scalarResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
                     using (var cmd = CreateCommand())
@@ -220,7 +220,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        op.Successful = true;
+            //            op.Successful = true;
                         return result;
                     }
                 }, (res, i, ex) =>
@@ -247,7 +247,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 return scalarResult;
                 
-            }
+            //}
         }
 
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, CancellationToken, Task<T>> callback)
@@ -257,8 +257,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
-            {
+            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
+            //{
                 var readerResult = await Retrier.RetryAsync(10, 1000, async () =>
                 {
                     using (var cmd = CreateCommand())
@@ -276,7 +276,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
-                            op.Successful = true;
+            //                op.Successful = true;
                             return result;
                         }
                     }
@@ -304,7 +304,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 });
 
                 return readerResult;
-            }
+            //}
         }
 
         private static bool RetriableException(Exception ex)
