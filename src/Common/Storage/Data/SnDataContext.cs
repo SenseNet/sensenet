@@ -25,12 +25,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionWrapper Transaction => _transaction;
         public CancellationToken CancellationToken => _cancellationToken;
 
-        private static int _connectionCount;
-        private string ContextId { get; } = Guid.NewGuid().ToString();
-
-        public static ConcurrentDictionary<string, string>
-            OpenConnections = new ConcurrentDictionary<string, string>();
-
         /// <summary>
         /// Used only test purposes.
         /// </summary>
@@ -50,44 +44,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual void Dispose()
         {
-            //if (IsDisposed || _connection?.State != ConnectionState.Open ||
-            //    (_transaction != null && _transaction.Status != TransactionStatus.Committed))
-            //{
-//SnTrace.Database.Write($"SnDataContext #{ContextId}: DISPOSE" +
-//                       $" _connection: {_connection?.State.ToString() ?? "null"}," +
-//                       $" _transaction: {_transaction?.Status.ToString() ?? "null"}," +
-//                       $" IsDisposed: {IsDisposed}," /*+
-//                       $" StackTrace: {Environment.StackTrace}"*/);
-            //}
-
-            var disposed = IsDisposed;
-            var closeConnection = (_connection?.State ?? ConnectionState.Closed) == ConnectionState.Open;
             if (_transaction?.Status == TransactionStatus.Active)
                 _transaction.Rollback();
-            _connection?.Close();
             _connection?.Dispose();
             IsDisposed = true;
-            if (!disposed)
-            {
-                if (closeConnection)
-                {
-                    Interlocked.Decrement(ref _connectionCount);
-//SnTrace.Database.Write($"SnDataContext #{ContextId}: connection closed === COUNT: {_connectionCount}");
-                }
-                else
-                {
-                    if (OpenConnections.TryGetValue(ContextId, out var st))
-                    {
-                        SnLog.WriteInformation($"SnDataContext #{ContextId}: DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount} STACK: {st}");
-                    }
-                    else
-                    {
-//SnTrace.Database.Write($"SnDataContext #{ContextId} DISPOSED WITHOUT CONNECTION === COUNT: {_connectionCount}");
-                    }
-                }
-
-                OpenConnections.TryRemove(ContextId, out _);
-            }
         }
 
         public abstract DbConnection CreateConnection();
@@ -121,16 +81,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 _connection.Dispose();
                 _connection = null;
-//SnTrace.Database.Write($"SnDataContext #{ContextId}: previous connection was forcibly disposed === COUNT: {_connectionCount}");
             }
             if (_connection == null)
             {
                 _connection = CreateConnection();
                 _connection.Open();
-
-                Interlocked.Increment(ref _connectionCount);
-//SnTrace.Database.Write($"SnDataContext #{ContextId}: open connection === COUNT: {_connectionCount}");
-                OpenConnections[ContextId] = Environment.StackTrace;
             }
             return _connection;
         }
@@ -140,7 +95,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             _transaction = RetryAsync(() =>
             {
-                SnTrace.Database.Write($"SnDataContext #{ContextId} BeginTransaction.");
+                SnTrace.Database.Write($"SnDataContext: BeginTransaction.");
                 var transaction = OpenConnection().BeginTransaction(isolationLevel);
                 var wrappedTransaction = WrapTransaction(transaction, _cancellationToken, timeout)
                                ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
@@ -153,158 +108,142 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
-            //{
-                var nonQueryResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var nonQueryResult = await Retrier.RetryAsync(10, 1000, async () =>
+            {
+                using (var cmd = CreateCommand())
                 {
-                    using (var cmd = CreateCommand())
-                    {
-                        cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                        cmd.CommandText = script;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Transaction = _transaction?.Transaction;
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
 
-                        setParams?.Invoke(cmd);
+                    setParams?.Invoke(cmd);
 
-                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                        cancellationToken.ThrowIfCancellationRequested();
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            //            op.Successful = true;
-                        return result;
-                    }
-                }, (res, i, ex) =>
+                    return result;
+                }
+            }, (res, i, ex) =>
+            {
+                if (ex == null)
                 {
-                    if (ex == null)
-                    {
-                        return true;
-                    }
+                    return true;
+                }
 
-                    // last iteration
-                    if (i == 1)
-                    {
-                        SnTrace.WriteError(ex.ToString());
-                        LogOpenConnections();
-                    }
+                // last iteration
+                if (i == 1)
+                {
+                    SnTrace.WriteError(ex.ToString());
+                }
 
-                    // if we do not recognize the error, throw it immediately
-                    if (i == 1 || !RetriableException(ex))
-                        throw ex;
+                // if we do not recognize the error, throw it immediately
+                if (i == 1 || !RetriableException(ex))
+                    throw ex;
 
-                    // continue the cycle
-                    return false;
-                });
+                // continue the cycle
+                return false;
+            });
 
-                return nonQueryResult;
-            //}
+            return nonQueryResult;
         }
 
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
-            //{
-                var scalarResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var scalarResult = await Retrier.RetryAsync(10, 1000, async () =>
+            {
+                using (var cmd = CreateCommand())
                 {
-                    using (var cmd = CreateCommand())
-                    {
-                        cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                        cmd.CommandText = script;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Transaction = _transaction?.Transaction;
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
 
-                        setParams?.Invoke(cmd);
+                    setParams?.Invoke(cmd);
 
-                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                        cancellationToken.ThrowIfCancellationRequested();
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            //            op.Successful = true;
-                        return result;
-                    }
-                }, (res, i, ex) =>
+                    return result;
+                }
+            }, (res, i, ex) =>
+            {
+                if (ex == null)
                 {
-                    if (ex == null)
-                    {
-                        return true;
-                    }
+                    return true;
+                }
 
-                    // last iteration
-                    if (i == 1)
-                    {
-                        SnTrace.WriteError(ex.ToString());
-                        LogOpenConnections();
-                    }
+                // last iteration
+                if (i == 1)
+                {
+                    SnTrace.WriteError(ex.ToString());
+                }
 
-                    // if we do not recognize the error, throw it immediately
-                    if (i == 1 || !RetriableException(ex))
-                        throw ex;
+                // if we do not recognize the error, throw it immediately
+                if (i == 1 || !RetriableException(ex))
+                    throw ex;
 
-                    // continue the cycle
-                    return false;
-                });
+                // continue the cycle
+                return false;
+            });
 
-                return scalarResult;
-                
-            //}
+            return scalarResult;
         }
 
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, CancellationToken, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
         }
+
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            //using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
-            //{
-                var readerResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var readerResult = await Retrier.RetryAsync(10, 1000, async () =>
+            {
+                using (var cmd = CreateCommand())
                 {
-                    using (var cmd = CreateCommand())
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
+
+                    setParams?.Invoke(cmd);
+
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    using (var reader = (DbDataReader) await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                        cmd.CommandText = script;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Transaction = _transaction?.Transaction;
-
-                        setParams?.Invoke(cmd);
-
-                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
-            //                op.Successful = true;
-                            return result;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
+                        return result;
                     }
-                }, (res, i, ex) =>
+                }
+            }, (res, i, ex) =>
+            {
+                if (ex == null)
                 {
-                    if (ex == null)
-                    {
-                        //_logger.LogTrace("Successfully connected to the newly created database.");
-                        return true;
-                    }
-                    
-                    // last iteration
-                    if (i == 1)
-                    {
-                        SnTrace.WriteError(ex.ToString());
-                        LogOpenConnections();
-                    }
+                    return true;
+                }
 
-                    // if we do not recognize the error, throw it immediately
-                    if (i == 1 || !RetriableException(ex))
-                        throw ex;
+                // last iteration
+                if (i == 1)
+                {
+                    SnTrace.WriteError(ex.ToString());
+                }
 
-                    // continue the cycle
-                    return false;
-                });
+                // if we do not recognize the error, throw it immediately
+                if (i == 1 || !RetriableException(ex))
+                    throw ex;
 
-                return readerResult;
-            //}
+                // continue the cycle
+                return false;
+            });
+
+            return readerResult;
         }
 
         private static bool RetriableException(Exception ex)
@@ -317,12 +256,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             const int maxLength = 80;
             return $"{this.GetType().Name}.{name}: {(script.Length < maxLength ? script : script.Substring(0, maxLength))}";
-        }
-
-        private void LogOpenConnections()
-        {
-            SnLog.WriteWarning($"SnDataContext TMP contextid {ContextId} === COUNT: {_connectionCount}" +
-                               $"STUCKSTACK: {string.Join(" STUCKSTACK ", OpenConnections.Values)}");
         }
 
         public static Task<T> RetryAsync<T>(Func<Task<T>> action)
