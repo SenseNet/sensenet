@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Tests
 
             public override void Close()
             {
-                throw new NotImplementedException();
+                // do nothing
             }
 
             public override void ChangeDatabase(string databaseName)
