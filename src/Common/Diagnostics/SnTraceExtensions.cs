@@ -7,21 +7,25 @@ namespace SenseNet.Diagnostics
 {
     public static class SnTraceExtensions
     {
-        public static string ToTrace(this string text, int maxLength = 100)
+        public static SnTrace.Operation StartOperation(this SnTrace.SnTraceCategory traceCategory, Func<string> getMessage)
         {
-            return text.Length < maxLength ? text : text.Substring(0, maxLength);
+            return traceCategory.StartOperation(traceCategory.Enabled ? getMessage() : string.Empty);
         }
-        public static string ToTrace(this IEnumerable<int> items, int maxCount = 32)
+        public static void Write(this SnTrace.SnTraceCategory traceCategory, Func<string> getMessage)
         {
-            var set = items.Take(maxCount + 1).Select(x => x.ToString()).ToArray();
-            var text = string.Join(", ", set.Take(maxCount));
-            return set.Length > 32 ? $"[{text}, ...]" : $"[{text}]";
+            traceCategory.Write(traceCategory.Enabled ? getMessage() : string.Empty);
         }
-        public static string ToTrace(this IEnumerable<string> items, int maxCount = 10)
-        {
-            var set = items.Take(maxCount + 1).ToArray();
-            var text = string.Join(", ", set.Take(maxCount));
-            return set.Length > 10 ? $"[{text}, ...]" : $"[{text}]";
-        }
+
+        public static string ToTrace(this string text, int maxLength = 100) =>
+            text.Length < maxLength ? text : text.Substring(0, maxLength);
+
+        public static string ToTrace(this IEnumerable<int> items, int maxCount = 32) =>
+            Format(items.Take(maxCount + 1).Select(x => x.ToString()).ToArray(), maxCount);
+
+        public static string ToTrace(this IEnumerable<string> items, int maxCount = 10) =>
+            Format(items.Take(maxCount + 1).ToArray(), maxCount);
+
+        private static string Format(string[] set, int maxCount) =>
+            $"[{string.Join(", ", set.Take(maxCount))}{(set.Length > maxCount ? ", ...]" : "]")}";
     }
 }

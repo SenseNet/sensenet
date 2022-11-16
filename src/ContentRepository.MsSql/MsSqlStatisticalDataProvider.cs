@@ -77,9 +77,9 @@ ORDER BY CreationTime DESC
 ";
         public async Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancellation)
         {
-            using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
-                "LoadUsageList(dataType: {0}, relatedTargetIds: {1}, endTimeExclusive: {2:yyyy-MM-dd HH:mm:ss.fffff}, count: {3})",
-                dataType, relatedTargetIds.ToTrace(), endTimeExclusive, count);
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlStatisticalDataProvider: " +
+                $"LoadUsageList(dataType: {dataType}, relatedTargetIds: {relatedTargetIds.ToTrace()}, " +
+                $"endTimeExclusive: {endTimeExclusive:yyyy-MM-dd HH:mm:ss.fffff}, count: {count})");
 
             var sql = relatedTargetIds == null || relatedTargetIds.Length == 0
                 ? LoadUsageListScript

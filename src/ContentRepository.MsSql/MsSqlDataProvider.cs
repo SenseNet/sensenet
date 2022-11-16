@@ -57,9 +57,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken)
         {
-            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
-                "QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, name: {3})",
-                nodeTypeIds.ToTrace(), pathStart.ToTrace(), orderByPath, name);
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlDataProvider: " +
+                $"QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds: {nodeTypeIds.ToTrace()}, " +
+                $"pathStart: {pathStart.ToTrace()}, orderByPath: {orderByPath}, name: {name})");
 
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
             var first = true;
@@ -129,10 +129,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
-            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
-                "QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, properties: {3})",
-                nodeTypeIds.ToTrace(), pathStart, orderByPath,
-                (properties?.Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")).ToTrace());
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlDataProvider: " +
+                $"QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {nodeTypeIds.ToTrace()}, pathStart: {pathStart}, " +
+                $"orderByPath: {orderByPath}, " +
+                $"properties: {(properties?.Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")).ToTrace()})");
 
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
             var typeCount = nodeTypeIds?.Length ?? 0;

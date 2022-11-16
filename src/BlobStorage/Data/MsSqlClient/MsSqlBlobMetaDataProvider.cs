@@ -584,8 +584,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         }
         private async Task CleanupFilesSetDeleteFlagAsync(string script, CancellationToken cancellationToken)
         {
-            using var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: CleanupFilesSetDeleteFlag: " +
-                "script: {0}", script.ToTrace());
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlBlobMetaDataProvider: " +
+                $"CleanupFilesSetDeleteFlag: script: {script.ToTrace()}");
 
             using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
             using var transaction = ctx.BeginTransaction();

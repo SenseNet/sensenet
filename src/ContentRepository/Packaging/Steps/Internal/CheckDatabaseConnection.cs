@@ -73,8 +73,8 @@ END
             var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings)
                                    ?? context.ConnectionStrings.Repository;
 
-            using var op = SnTrace.Database.StartOperation("CheckDatabaseConnection: ExecuteSql: {0}",
-                script.ToTrace());
+            using var op = SnTrace.Database.StartOperation(() => "CheckDatabaseConnection: " +
+                $"ExecuteSql: {script.ToTrace()}");
 
             //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
