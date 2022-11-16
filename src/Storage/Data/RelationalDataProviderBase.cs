@@ -55,7 +55,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
-                // Warning: do not convert to "using declaration"
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using var transaction = ctx.BeginTransaction();
@@ -270,7 +270,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var needToCleanupFiles = false;
-                // Warning: do not convert to "using declaration"
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using var transaction = ctx.BeginTransaction();
@@ -508,13 +508,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             string originalPath = null)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "CopyAndUpdateNode: NodeId: {}, PreviousVersionId: {}, DestinationVersionId: {}, Version: {}, Path: {}",
+                "CopyAndUpdateNode: NodeId: {0}, PreviousVersionId: {1}, DestinationVersionId: {2}, Version: {3}, Path: {4}",
                 nodeHeadData.NodeId, versionData.VersionId, expectedVersionId, versionData.Version, nodeHeadData.Path);
 
             try
             {
                 var needToCleanupFiles = false;
-                // Warning: do not convert to "using declaration"
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using var transaction = ctx.BeginTransaction();
@@ -657,13 +657,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                     nodeHeadData.NodeId, nodeHeadData.NodeTypeId, nodeHeadData.ParentNodeId, nodeHeadData.Name,
                     nodeHeadData.Path, nodeHeadData.SavingState);
 
-                using var ctx = CreateDataContext(cancellationToken);
-                using var transaction = ctx.BeginTransaction();
-                // Update Node
-                var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                bool needToCleanupFiles;
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
+                using (var ctx = CreateDataContext(cancellationToken))
                 {
-                    cmd.Parameters.AddRange(new[]
+                    using var transaction = ctx.BeginTransaction();
+                    // Update Node
+                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                     {
+                        cmd.Parameters.AddRange(new[]
+                        {
                         #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
                         ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
                         ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
@@ -694,16 +697,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
                         ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                         #endregion
-                    });
-                }).ConfigureAwait(false);
-                nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                        });
+                    }).ConfigureAwait(false);
+                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
-                // Delete unnecessary versions and update last versions
-                await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
+                    // Delete unnecessary versions and update last versions
+                    await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
-                transaction.Commit();
+                    transaction.Commit();
+                    needToCleanupFiles = ctx.NeedToCleanupFiles;
+                }
 
-                if (ctx.NeedToCleanupFiles)
+                if (needToCleanupFiles)
                     await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
 
                 op.Successful = true;
@@ -944,19 +949,22 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                     "DeleteNode: NodeId: {0}, Path: {1}, partitionSize: {2}", nodeHeadData.NodeId, nodeHeadData.Path, partitionSize);
 
-                using var ctx = CreateDataContext(cancellationToken);
-                using var transaction = ctx.BeginTransaction();
-                await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
+                using (var ctx = CreateDataContext(cancellationToken))
                 {
-                    cmd.Parameters.AddRange(new[]
+                    using var transaction = ctx.BeginTransaction();
+                    await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
                     {
-                        ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                        ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
-                        ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
 
-                    });
-                }).ConfigureAwait(false);
-                transaction.Commit();
+                        });
+                    }).ConfigureAwait(false);
+                    transaction.Commit();
+                }
 
                 await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
 
@@ -986,22 +994,25 @@ namespace SenseNet.ContentRepository.Storage.Data
                     "MoveNodeAsync: SourceId: {0}, TargetId: {1}, SourcePath: {2}",
                     sourceNodeHeadData.NodeId, targetNodeId, sourceNodeHeadData.Path);
 
-                using var ctx = CreateDataContext(cancellationToken);
-                using var transaction = ctx.BeginTransaction();
-                var result = await ctx.ExecuteScalarAsync(MoveNodeScript, cmd =>
+                // Warning: do not convert to "using declaration" to make sure the DataContext will be disposed immediately
+                using (var ctx = CreateDataContext(cancellationToken))
                 {
-                    cmd.Parameters.AddRange(new[]
+                    using var transaction = ctx.BeginTransaction();
+                    var result = await ctx.ExecuteScalarAsync(MoveNodeScript, cmd =>
                     {
-                        ctx.CreateParameter("@SourceNodeId", DbType.Int32, sourceNodeHeadData.NodeId),
-                        ctx.CreateParameter("@TargetNodeId", DbType.Int32, targetNodeId),
-                        ctx.CreateParameter("@SourceTimestamp", DbType.Binary,
-                            ConvertInt64ToTimestamp(sourceNodeHeadData.Timestamp)),
-                    });
-                }).ConfigureAwait(false);
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@SourceNodeId", DbType.Int32, sourceNodeHeadData.NodeId),
+                            ctx.CreateParameter("@TargetNodeId", DbType.Int32, targetNodeId),
+                            ctx.CreateParameter("@SourceTimestamp", DbType.Binary,
+                                ConvertInt64ToTimestamp(sourceNodeHeadData.Timestamp)),
+                        });
+                    }).ConfigureAwait(false);
 
-                transaction.Commit();
+                    transaction.Commit();
 
-                sourceNodeHeadData.Timestamp = ConvertTimestampToInt64(result);
+                    sourceNodeHeadData.Timestamp = ConvertTimestampToInt64(result);
+                }
 
                 await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
 
