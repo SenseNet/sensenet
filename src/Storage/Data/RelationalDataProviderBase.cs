@@ -208,7 +208,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string InsertNodeAndVersionScript { get; }
         protected virtual async Task InsertReferencePropertiesAsync(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
         {
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "InsertReferenceProperties(versionId: {0}, referenceProperties: {1})", versionId, referenceProperties?.ToTrace());
 
             var parameters = new List<DbParameter> {ctx.CreateParameter("@VersionId", DbType.Int32, versionId)};
             var sqlBuilder = new StringBuilder(InsertReferencePropertiesHeadScript);
@@ -232,7 +233,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string InsertReferencePropertiesScript { get; }
         protected virtual async Task InsertLongTextPropertiesAsync(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
         {
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "InsertLongTextProperties(versionId: {0}, longTextProperties: {1})", versionId, longTextProperties.ToTrace());
 
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -449,7 +451,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string ManageLastVersionsScript { get; }
         protected virtual async Task UpdateReferencePropertiesAsync(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
         {
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "UpdateReferenceProperties(versionId: {0}, referenceProperties: {1})", versionId, referenceProperties.ToTrace());
 
             var parameters = new List<DbParameter> { ctx.CreateParameter("@VersionId", DbType.Int32, versionId) };
             var sqlBuilder = new StringBuilder(UpdateReferencePropertiesHeadScript);
@@ -473,7 +476,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateReferencePropertiesScript { get; }
         protected virtual async Task UpdateLongTextPropertiesAsync(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
         {
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "UpdateLongTextProperties(versionId: {0},longTextProperties: {1})", 
+                versionId, longTextProperties?.ToTrace());
 
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -493,6 +498,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             op.Successful = true;
         }
+        
         protected abstract string UpdateLongtextPropertiesHeadScript { get; }
         protected abstract string UpdateLongtextPropertiesScript { get; }
 
@@ -501,7 +507,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             IEnumerable<int> versionIdsToDelete, CancellationToken cancellationToken, int expectedVersionId = 0,
             string originalPath = null)
         {
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "CopyAndUpdateNode: NodeId: {}, PreviousVersionId: {}, DestinationVersionId: {}, Version: {}, Path: {}",
+                nodeHeadData.NodeId, versionData.VersionId, expectedVersionId, versionData.Version, nodeHeadData.Path);
 
             try
             {
@@ -974,7 +982,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+                using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                    "MoveNodeAsync: SourceId: {0}, TargetId: {1}, SourcePath: {2}",
+                    sourceNodeHeadData.NodeId, targetNodeId, sourceNodeHeadData.Path);
 
                 using var ctx = CreateDataContext(cancellationToken);
                 using var transaction = ctx.BeginTransaction();
@@ -1271,9 +1281,12 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken)
         {
             var pathList = paths.ToList();
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "LoadNodeHeadsFromPredefinedSubTrees(resolveAll, resolveChildren, paths)",
+                resolveAll, resolveChildren, SnTraceTools.ConvertToString(pathList));
+
             List<NodeHead> heads;
             string sql;
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
             using var ctx = CreateDataContext(cancellationToken);
             if (resolveAll)
             {
@@ -1386,7 +1399,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
             var referencePropertyId = referenceProperty.Id;
 
-            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: ________");
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                "QueryNodesByReferenceAndTypeAsync(referenceName: {0}, referredNodeId: {1}, nodeTypeIds: {2})",
+                referenceName, referredNodeId, SnTraceTools.ConvertToString(nodeTypeIds));
 
             using var ctx = CreateDataContext(cancellationToken);
             string sql;
