@@ -79,7 +79,7 @@ ORDER BY CreationTime DESC
         {
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "LoadUsageList(dataType: {0}, relatedTargetIds: {1}, endTimeExclusive: {2:yyyy-MM-dd HH:mm:ss.fffff}, count: {3})",
-                dataType, SnTraceTools.ConvertToString(relatedTargetIds), endTimeExclusive, count);
+                dataType, relatedTargetIds.ToTrace(), endTimeExclusive, count);
 
             var sql = relatedTargetIds == null || relatedTargetIds.Length == 0
                 ? LoadUsageListScript

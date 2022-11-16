@@ -32,7 +32,7 @@ namespace SenseNet.Packaging.Steps
         internal static bool ExecuteSql(string script, string connectionString)
         {
             using var op = SnTrace.Database.StartOperation("WhileDatabaseValue: ExecuteSql: {0}",
-                SnTraceTools.Truncate(script));
+                script.ToTrace());
 
             //TODO: [DIREF] get options from DI through constructor
             using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);

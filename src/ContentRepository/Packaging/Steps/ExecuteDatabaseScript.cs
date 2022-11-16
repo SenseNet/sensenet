@@ -128,7 +128,7 @@ namespace SenseNet.Packaging.Steps
                 var sb = new StringBuilder();
 
                 using var op = SnTrace.Database.StartOperation("ExecuteDatabaseScript: iteration: {0}, script: {1}",
-                    iteration++, SnTraceTools.Truncate(script));
+                    iteration++, script.ToTrace());
                 //TODO: [DIREF] get options from DI through constructor
                 using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
                 ctx.ExecuteReaderAsync(script, async (reader, cancel) =>

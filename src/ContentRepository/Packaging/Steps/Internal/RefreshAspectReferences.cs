@@ -28,7 +28,7 @@ WHERE RelType = 'Aspects' and TargetId in
             var count = 0;
 
             using var op = SnTrace.Database.StartOperation("RefreshAspectReferences: Execute: {0}",
-                SnTraceTools.Truncate(Script));
+                Script.ToTrace());
 
             //TODO: [DIREF] get options from DI through constructor
             using (var ctx = new MsSqlDataContext(context.ConnectionStrings.Repository,

@@ -405,7 +405,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "ManageLastVersions: NodeId: {0}, VersionIdsToDelete: {1}",
-                nodeHeadData.NodeId, SnTraceTools.ConvertToString(versionIds));
+                nodeHeadData.NodeId, versionIds.ToTrace());
 
             var versionIdsParam = (object)DBNull.Value;
             if (versionIds.Length > 0)
@@ -726,7 +726,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "LoadNodes(versionIds: {0})", SnTraceTools.ConvertToString(versionIds));
+                "LoadNodes(versionIds: {0})", versionIds.ToTrace());
 
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
             using var ctx = CreateDataContext(cancellationToken);
@@ -1032,7 +1032,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadTextPropertyValues(versionId: {0}, propertiesToLoad: {1})",
-                versionId, SnTraceTools.ConvertToString(propertiesToLoad));
+                versionId, propertiesToLoad.ToTrace());
 
             var propParamPrefix = "@Prop";
             var sql = string.Format(LoadTextPropertyValuesScript, string.Join(", ",
@@ -1166,7 +1166,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var nodeIdArray = nodeIds as int[] ?? nodeIds.ToArray();
             var ids = string.Join(",", nodeIdArray.Select(x => x.ToString()));
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "LoadNodeHeads(nodeIds: {0})", SnTraceTools.ConvertToString(nodeIdArray));
+                "LoadNodeHeads(nodeIds: {0})", nodeIdArray.ToTrace());
 
             using var ctx = CreateDataContext(cancellationToken);
             IEnumerable<NodeHead> result = await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
@@ -1283,7 +1283,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var pathList = paths.ToList();
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadNodeHeadsFromPredefinedSubTrees(resolveAll, resolveChildren, paths)",
-                resolveAll, resolveChildren, SnTraceTools.ConvertToString(pathList));
+                resolveAll, resolveChildren, pathList.ToTrace());
 
             List<NodeHead> heads;
             string sql;
@@ -1344,7 +1344,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "InstanceCount(nodeTypeIds: {0})", SnTraceTools.ConvertToString(nodeTypeIds));
+                "InstanceCount(nodeTypeIds: {0})", nodeTypeIds.ToTrace());
 
             var sql = string.Format(InstanceCountScript,
                 string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
@@ -1401,7 +1401,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "QueryNodesByReferenceAndTypeAsync(referenceName: {0}, referredNodeId: {1}, nodeTypeIds: {2})",
-                referenceName, referredNodeId, SnTraceTools.ConvertToString(nodeTypeIds));
+                referenceName, referredNodeId, nodeTypeIds.ToTrace());
 
             using var ctx = CreateDataContext(cancellationToken);
             string sql;
@@ -1653,7 +1653,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var versionIdArray = versionIds as int[] ?? versionIds.ToArray();
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "LoadIndexDocuments(versionIds: {0})", SnTraceTools.ConvertToString(versionIdArray));
+                "LoadIndexDocuments(versionIds: {0})", versionIdArray.ToTrace());
 
             using var ctx = CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
@@ -1693,7 +1693,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadNextIndexDocumentBlock(offset: {0}, blockSize: {1}, path: {2}, excludedNodeTypes: {3})",
-                offset, blockSize, path, SnTraceTools.ConvertToString(excludedNodeTypes));
+                offset, blockSize, path, excludedNodeTypes.ToTrace());
 
             var sql = excludedNodeTypes.Any()
                 ? string.Format(LoadIndexDocumentCollectionBlockByPathAndTypeScript, string.Join(", ", excludedNodeTypes))
@@ -1891,7 +1891,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadIndexingActivities(gaps: {0}, executingUnprocessedActivities: {1})",
-                SnTraceTools.ConvertToString(gaps), executingUnprocessedActivities);
+                gaps.ToTrace(), executingUnprocessedActivities);
 
             using var ctx = CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript, cmd =>
@@ -1916,7 +1916,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadExecutableIndexingActivities(maxCount: {0}, runningTimeoutInSeconds: {1}, waitingActivityIds: {2})",
-                maxCount, runningTimeoutInSeconds, SnTraceTools.ConvertToString(waitingActivityIds));
+                maxCount, runningTimeoutInSeconds, waitingActivityIds.ToTrace());
 
             string waitingActivityIdParam = null;
             if (waitingActivityIds != null && waitingActivityIds.Length > 0)
@@ -2019,7 +2019,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
-                "RefreshIndexingActivityLockTime(waitingIds: {0})", SnTraceTools.ConvertToString(waitingIds));
+                "RefreshIndexingActivityLockTime(waitingIds: {0})", waitingIds.ToTrace());
 
             using var ctx = CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>

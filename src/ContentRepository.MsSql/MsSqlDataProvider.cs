@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
                 "QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, name: {3})",
-                SnTraceTools.ConvertToString(nodeTypeIds), SnTraceTools.ConvertToString(pathStart), orderByPath, name);
+                nodeTypeIds.ToTrace(), pathStart.ToTrace(), orderByPath, name);
 
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
             var first = true;
@@ -130,10 +130,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
-                "QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, properties: [{3}])",
-                SnTraceTools.ConvertToString(nodeTypeIds), pathStart, orderByPath,
-                SnTraceTools.ConvertToString(properties?
-                    .Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")));
+                "QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {0}, pathStart: {1}, orderByPath: {2}, properties: {3})",
+                nodeTypeIds.ToTrace(), pathStart, orderByPath,
+                (properties?.Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")).ToTrace());
 
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
             var typeCount = nodeTypeIds?.Length ?? 0;

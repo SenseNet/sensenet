@@ -40,7 +40,7 @@ namespace SenseNet.Packaging.Steps
         private bool ExecuteSql(string script, ExecutionContext context)
         {
             using var op = SnTrace.Database.StartOperation("IfDatabaseValue: ExecuteSql: {0}",
-                SnTraceTools.Truncate(script));
+                script.ToTrace());
             var result = Execute(script, context);
             op.Successful = true;
             return result;
