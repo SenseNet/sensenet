@@ -258,7 +258,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         // wait and start processing loaded activities in the meantime
                         _activityQueue.WaitIfOverloaded(true);
 
-                        SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
+                        SnTrace.IndexQueue.Write("IAQ: Startup: activity arrived from db: A{0}.", loadedActivity.Id);
 
                         _activityHistory.Arrive(loadedActivity);
                         ArrivalQueue.Enqueue(loadedActivity);
@@ -275,7 +275,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         // wait and start processing loaded activities in the meantime
                         _activityQueue.WaitIfOverloaded(true);
 
-                        SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
+                        SnTrace.IndexQueue.Write("IAQ: Startup: activity arrived from db: A{0}.", loadedActivity.Id);
 
                         _activityHistory.Arrive(loadedActivity);
                         ArrivalQueue.Enqueue(loadedActivity);
@@ -348,7 +348,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             public void EnqueueActivity(IndexingActivityBase activity)
             {
 
-                SnTrace.IndexQueue.Write("IAQ: A{0} arrived{1}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
+                SnTrace.IndexQueue.Write("IAQ: activity arrived{1}: A{0}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
 
                 _activityHistory.Arrive(activity);
 
@@ -361,7 +361,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         {
                             sameActivity.Attach(activity);
 
-                            SnTrace.IndexQueue.Write("IAQ: A{0} attached to another one in the queue", activity.Id);
+                            SnTrace.IndexQueue.Write("IAQ: activity attached to another one in the queue: A{0}", activity.Id);
 
                             return;
                         }
@@ -396,7 +396,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             ArrivalQueue.Enqueue(loadedActivity);
                             _lastQueued = loadedActivity.Id;
 
-                            SnTrace.IndexQueue.Write("IAQ: A{0} enqueued from db.", loadedActivity.Id);
+                            SnTrace.IndexQueue.Write("IAQ: activity enqueued from db: A{0}.", loadedActivity.Id);
 
                             _dependencyManager.ActivityEnqueued();
                         }
@@ -404,7 +404,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     ArrivalQueue.Enqueue(activity);
                     _lastQueued = activity.Id;
 
-                    SnTrace.IndexQueue.Write("IAQ: A{0} enqueued.", activity.Id);
+                    SnTrace.IndexQueue.Write("IAQ: activity enqueued: A{0}.", activity.Id);
 
                     _dependencyManager.ActivityEnqueued();
                 }
@@ -417,7 +417,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         return null;
                     var activity = ArrivalQueue.Dequeue();
 
-                    SnTrace.IndexQueue.Write("IAQ: A{0} dequeued.", activity.Id);
+                    SnTrace.IndexQueue.Write("IAQ: activity dequeued: A{0}.", activity.Id);
 
                     return activity;
                 }
@@ -524,7 +524,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         {
                             newerActivity.WaitFor(olderActivity);
 
-                            SnTrace.IndexQueue.Write("IAQ: A{0} depends from A{1}", newerActivity.Id, olderActivity.Id);
+                            SnTrace.IndexQueue.Write("IAQ: set dependency: A{0} depends from A{1}", newerActivity.Id, olderActivity.Id);
 
                             _activityHistory.Wait(newerActivity);
                         }
@@ -591,7 +591,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         sameActivity.Attach(activity);
 
-                        SnTrace.IndexQueue.Write("IAQ: A{0} attached to another in the waiting set.", activity.Id);
+                        SnTrace.IndexQueue.Write("IAQ: activity attached to another in the waiting set: A{0}.", activity.Id);
 
                         return;
                     }
@@ -599,7 +599,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 activity.Finish(); // release blocked thread
                 _activityHistory.Finish(activity.Id);
 
-                SnTrace.IndexQueue.Write("IAQ: A{0} ignored: finished but not executed.", activity.Id);
+                SnTrace.IndexQueue.Write("IAQ: activity finished but not executed: A{0}.", activity.Id);
 
             }
 
@@ -682,7 +682,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             public void Execute(IndexingActivityBase activity)
             {
-                using (var op = SnTrace.Index.StartOperation("IAQ: A{0} EXECUTION.", activity.Id))
+                using (var op = SnTrace.Index.StartOperation("IAQ: EXECUTION: A{0}.", activity.Id))
                 {
                     _activityHistory.Start(activity.Id);
                     try
@@ -693,7 +693,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     catch (Exception e)
                     {
                         SnLog.WriteException(e, $"Indexing activity execution error. Activity: #{activity.Id} ({activity.ActivityType})");
-                        SnTrace.Index.WriteError("IAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
+                        SnTrace.Index.WriteError("IAQ: EXECUTION ERROR: A{0}: {1}", activity.Id, e);
                         _activityHistory.Error(activity.Id, e);
                     }
                     finally
@@ -1182,7 +1182,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         return;
                     }
                 }
-                SnTrace.IndexQueue.Write("IAQ: A{0} DOES NOT FOUND IN HISTORY. Cannot start.", activityId);
+                SnTrace.IndexQueue.Write("IAQ: Missing from history: A{0}. Cannot start.", activityId);
             }
         }
         internal void Finish(int activityId)
@@ -1198,7 +1198,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
                 }
             }
-            SnTrace.IndexQueue.Write("IAQ: A{0} DOES NOT FOUND IN HISTORY. Cannot stop.", activityId);
+            SnTrace.IndexQueue.Write("IAQ: Missing from history: A{0}. Cannot stop.", activityId);
         }
         internal void Error(int activityId, Exception e)
         {
@@ -1214,7 +1214,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            SnTrace.IndexQueue.Write("IAQ: A{0} DOES NOT FOUND IN HISTORY. Cannot register an error.", activityId);
+            SnTrace.IndexQueue.Write("IAQ: Missing from history: A{0}. Cannot register an error.", activityId);
         }
     }
 }

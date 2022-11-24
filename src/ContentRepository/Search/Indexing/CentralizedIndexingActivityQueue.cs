@@ -326,7 +326,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private void Execute(IIndexingActivity activity)
         {
             var act = (IndexingActivityBase)activity;
-            using (var op = SnTrace.Index.StartOperation("CIAQ: A{0} EXECUTION.", act.Id))
+            using (var op = SnTrace.Index.StartOperation("CIAQ: EXECUTION: A{0}.", act.Id))
             {
                 try
                 {

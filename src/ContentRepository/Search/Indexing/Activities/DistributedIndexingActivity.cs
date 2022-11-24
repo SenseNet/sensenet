@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
             var indexingActivity = this as IndexingActivityBase;
 
-            SnTrace.IndexQueue.Write("IAQ: A{0} blocks the T{1}", indexingActivity?.Id, _waitingThreadId);
+            SnTrace.IndexQueue.Write("IAQ: activity blocks the T{1}: A{0}", indexingActivity?.Id, _waitingThreadId);
 
             if (Debugger.IsAttached)
             {
