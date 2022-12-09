@@ -1393,7 +1393,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.3", "2021-09-22", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.4", "2021-12-09", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
