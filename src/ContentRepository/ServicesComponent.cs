@@ -1415,6 +1415,17 @@ namespace SenseNet.ContentRepository
 
                     var rb = new ResourceBuilder();
 
+                    rb.Content("CtdResourcesAB.xml")
+                        .Class("Ctd")
+                        .Culture("en")
+                        .AddResource("Enum-Folder-PreviewEnabled-Inherited", "Inherited")
+                        .AddResource("Enum-Folder-PreviewEnabled-No", "No")
+                        .AddResource("Enum-Folder-PreviewEnabled-Yes", "Yes")
+                        .Culture("hu")
+                        .AddResource("Enum-Folder-PreviewEnabled-Inherited", "Örökölt")
+                        .AddResource("Enum-Folder-PreviewEnabled-No", "Nem")
+                        .AddResource("Enum-Folder-PreviewEnabled-Yes", "Igen");
+
                     rb.Content("CtdResourcesCD.xml")
                         .Class("Ctd-ContentType")
                         .Culture("en")
