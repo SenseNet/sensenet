@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -16,6 +15,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -28,13 +28,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private IOptions<ConnectionStringOptions> ConnectionStrings { get; }
         private IDataInstaller DataInstaller { get; }
         private readonly ILogger _logger;
+        private readonly IRetrier _retrier;
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
             IOptions<MsSqlDatabaseInstallationOptions> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
-            IDataInstaller dataInstaller,
-            ILogger<MsSqlDataProvider> logger)
+            IDataInstaller dataInstaller, ILogger<MsSqlDataProvider> logger, IRetrier retrier)
         {
             DataInstaller = dataInstaller ?? throw new ArgumentNullException(nameof(dataInstaller));
             DataOptions = dataOptions.Value;
@@ -42,11 +42,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _databaseInstaller = databaseInstaller;
             ConnectionStrings = connectionOptions;
             _logger = logger;
+            _retrier = retrier;
         }
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            return new MsSqlDataContext(ConnectionStrings.Value.Repository, DataOptions, token);
+            return new MsSqlDataContext(ConnectionStrings.Value.Repository, DataOptions, _retrier, token);
         }
         /* =========================================================================================== Platform specific implementations */
 

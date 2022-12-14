@@ -21,8 +21,6 @@ using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
 using SenseNet.TaskManagement.Core;
@@ -83,6 +81,7 @@ namespace SenseNet.Configuration
             IndexPopulator = services.GetService<IIndexPopulator>();
 
             ClusterChannelProvider = services.GetService<IClusterChannel>();
+            Retrier = services.GetService<IRetrier>();
         }
 
         /// <summary>
@@ -121,6 +120,8 @@ namespace SenseNet.Configuration
         public IIndexManager IndexManager { get; }
         public IIndexPopulator IndexPopulator { get; }
 
+        public IRetrier Retrier { get; }
+
         /* ========================================================= Need to refactor */
 
         public IEventLogger EventLogger { get; set; }
@@ -155,7 +156,7 @@ namespace SenseNet.Configuration
 
             // add default internal blob provider
             BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
-                Options.Create(connectionStrings)));
+                Options.Create(connectionStrings), Retrier));
         }
 
         public void InitializeBlobProviders(ConnectionStringOptions connectionStrings)
@@ -164,30 +165,23 @@ namespace SenseNet.Configuration
             if (!BlobProviders.Values.Any(bp => bp is IBuiltInBlobProvider))
             {
                 BlobProviders.AddProvider(new BuiltInBlobProvider(Options.Create(DataOptions.GetLegacyConfiguration()),
-                    Options.Create(connectionStrings)));
+                    Options.Create(connectionStrings), Retrier));
             }
 
-            if (BlobProviderSelector == null)
-            {
-                BlobProviderSelector = new BuiltInBlobProviderSelector(BlobProviders,
-                    null, Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
-            }
+            BlobProviderSelector ??= new BuiltInBlobProviderSelector(BlobProviders,
+                null, Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
 
-            if (BlobMetaDataProvider == null)
-                BlobMetaDataProvider = new MsSqlBlobMetaDataProvider(BlobProviders,
-                    Options.Create(DataOptions.GetLegacyConfiguration()),
-                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
-                    Options.Create(connectionStrings));
+            BlobMetaDataProvider ??= new MsSqlBlobMetaDataProvider(BlobProviders,
+                Options.Create(DataOptions.GetLegacyConfiguration()),
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()),
+                Options.Create(connectionStrings), Retrier);
 
             // assemble the main api instance if necessary (for tests)
-            if (BlobStorage == null)
-            {
-                BlobStorage = new ContentRepository.Storage.Data.BlobStorage(
-                    BlobProviders,
-                    BlobProviderSelector,
-                    BlobMetaDataProvider,
-                    Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
-            }
+            BlobStorage ??= new ContentRepository.Storage.Data.BlobStorage(
+                BlobProviders,
+                BlobProviderSelector,
+                BlobMetaDataProvider,
+                Options.Create(BlobStorageOptions.GetLegacyConfiguration()));
 
             BlobStorage.Initialize();
         }

@@ -21,6 +21,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
+using SenseNet.Tools;
 
 namespace SenseNet.IntegrationTests.MsSql.Platforms
 {
@@ -70,9 +71,10 @@ namespace SenseNet.IntegrationTests.MsSql.Platforms
 
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connectionStringOptions,
                 dbInstallerOptions,
-                new MsSqlDatabaseInstaller(dbInstallerOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
-                new MsSqlDataInstaller(connectionStringOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
-                NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
+                new MsSqlDatabaseInstaller(dbInstallerOptions, NullLogger<MsSqlDatabaseInstaller>.Instance),
+                new MsSqlDataInstaller(connectionStringOptions, NullLogger<MsSqlDataInstaller>.Instance),
+                NullLogger<MsSqlDataProvider>.Instance,
+                new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance));
         }
 
         public override ISearchEngine GetSearchEngine()
@@ -81,7 +83,7 @@ namespace SenseNet.IntegrationTests.MsSql.Platforms
             var indexingEngine = new Lucene29LocalIndexingEngine(null);
             var x = indexingEngine.LuceneSearchManager.IndexDirectory.CurrentDirectory;
             return new Lucene29SearchEngine(indexingEngine, new Lucene29LocalQueryEngine(),
-                NullLoggerFactory.Instance.CreateLogger<Lucene29SearchEngine>());
+                NullLogger<Lucene29SearchEngine>.Instance);
         }
 
         /* ============================================================== */

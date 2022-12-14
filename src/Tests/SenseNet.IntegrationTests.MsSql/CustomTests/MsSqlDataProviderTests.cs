@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
+using SenseNet.Tools;
 
 namespace SenseNet.IntegrationTests.MsSql.CustomTests
 {
@@ -42,9 +40,10 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             return new MsSqlDataProvider(Options.Create(DataOptions.GetLegacyConfiguration()), connOptions,
                 dbInstallerOptions,
                 new MsSqlDatabaseInstaller(dbInstallerOptions,
-                    NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
-                new MsSqlDataInstaller(connOptions, NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
-                NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>());
+                    NullLogger<MsSqlDatabaseInstaller>.Instance),
+                new MsSqlDataInstaller(connOptions, NullLogger<MsSqlDataInstaller>.Instance),
+                NullLogger<MsSqlDataProvider>.Instance,
+                new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance));
         }
 
         [TestMethod]

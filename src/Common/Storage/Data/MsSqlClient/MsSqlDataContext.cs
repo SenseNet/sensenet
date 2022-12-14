@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -14,8 +15,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public string ConnectionString { get; }
 
-        public MsSqlDataContext(string connectionString, DataOptions options, CancellationToken cancel)
-            : base(options, cancel)
+        public MsSqlDataContext(string connectionString, DataOptions options, IRetrier retrier, CancellationToken cancel)
+            : base(options, retrier, cancel)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Data;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable AccessToModifiedClosure
 
@@ -28,6 +28,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
+        private readonly IRetrier _retrier;
+
         protected DataOptions DataOptions { get; }
         // Do not make readonly this field because tests write her.
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
@@ -39,8 +41,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         // Ideally blob provider instances should not need a backreference to BlobStorage.
         public IBlobStorage BlobStorage { get; set; }
 
-        public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
+        public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions, IRetrier retrier)
         {
+            _retrier = retrier;
             DataOptions = options?.Value ?? new DataOptions();
             _connectionString = connectionOptions?.Value.Repository;
         }
@@ -101,7 +104,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                     stream.Read(buffer, 0, bufferSize);
                 }
 
-                using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
+                using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, CancellationToken.None))
                 {
                     ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                     {
@@ -189,7 +192,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         {
             using var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
                 "ReadRandom: FileId: {0}, offset: {1}, count: {2}", context.FileId, offset, count);
-            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None);
+            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, CancellationToken.None);
             var result = (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -224,7 +227,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
             using var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
                 "WriteAsync: FileId: {0}, VersionId: {1}, PropertyTypeId: {2}, offset: {3}, buffer length: {4}",
                 context.FileId, context.VersionId, context.PropertyTypeId, offset, buffer.Length);
-            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, cancellationToken);
             await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]

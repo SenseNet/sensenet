@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DataModel.Usage;
+using SenseNet.Tools;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -35,6 +36,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
+        private IRetrier Retrier => Providers.Instance.Retrier;
 
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
@@ -1100,7 +1102,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadNodeHead(path: {0})", path);
 
-            var result = await SnDataContext.RetryAsync(async () =>
+            var result = await RetryAsync(async () =>
             {
                 using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
@@ -1113,7 +1115,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
             op.Successful = true;
 
             return result;
@@ -1126,7 +1128,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadNodeHead(nodeId: {0})", nodeId);
 
-            var result = await SnDataContext.RetryAsync(async () =>
+            var result = await RetryAsync(async () =>
             {
                 using var ctx = CreateDataContext(cancellationToken);
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
@@ -1139,7 +1141,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return null;
                     return GetNodeHeadFromReader(reader);
                 }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
             op.Successful = true;
 
             return result;
@@ -1638,7 +1640,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "SaveIndexDocument: versionId: {0}, indexDoc.Length: {1}", versionId, indexDoc.Length);
 
-            var result = await SnDataContext.RetryAsync(async () =>
+            var result = await RetryAsync(async () =>
             {
                 using var ctx = CreateDataContext(cancellationToken);
                 var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
@@ -1650,7 +1652,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     });
                 }).ConfigureAwait(false);
                 return ConvertTimestampToInt64(result);
-            });
+            }, cancellationToken);
             op.Successful = true;
 
             return result;
@@ -2659,5 +2661,32 @@ ELSE CAST(0 AS BIT) END";
 
         protected abstract long ConvertTimestampToInt64(object timestamp);
         protected abstract object ConvertInt64ToTimestamp(long timestamp);
+
+        protected Task RetryAsync(Func<Task> action, CancellationToken cancel)
+        {
+            return RetryAsync<object>(async () =>
+            {
+                await action().ConfigureAwait(false);
+                return null;
+            }, cancel);
+        }
+        protected Task<T> RetryAsync<T>(Func<Task<T>> action, CancellationToken cancel)
+        {
+            return Retrier.RetryAsync(action,
+                shouldRetryOnError: (ex, _) => ShouldRetryOnError(ex),
+                onAfterLastIteration: (_, ex, i) =>
+                {
+                    SnTrace.Database.WriteError($"Data layer error: {ex.Message}. Retry cycle ended after {i} iterations.");
+                    throw new InvalidOperationException("Data layer timeout occurred.", ex);
+                },
+                cancel: cancel);
+        }
+
+        protected virtual bool ShouldRetryOnError(Exception ex)
+        {
+            //TODO: generalize the expression by relying on error codes instead of hardcoded message texts
+            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
+                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
+        }
     }
 }

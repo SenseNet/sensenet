@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
@@ -14,6 +15,7 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         private readonly DataOptions _dataOptions;
         private readonly ConnectionStringOptions _connectionStrings;
+        private readonly IRetrier _retrier;
 
         private SnTrace.SnTraceCategory __tracer;
         internal SnTrace.SnTraceCategory Tracer
@@ -29,23 +31,24 @@ namespace SenseNet.Packaging.Steps.Internal
             }
         }
 
-        public ReindexBinariesDataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings)
+        public ReindexBinariesDataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings, IRetrier retrier)
         {
             _dataOptions = dataOptions;
             _connectionStrings = connectionStrings;
+            _retrier = retrier;
         }
 
         internal void InstallTables(CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: InstallTables()");
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             op.Successful = true;
         }
         internal void StartBackgroundTasks(CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: StartBackgroundTasks()");
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             op.Successful = true;
         }
@@ -61,7 +64,7 @@ namespace SenseNet.Packaging.Steps.Internal
             var remainingTasks = 0;
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
                 "AssignTasks(taskCount: {0}, timeoutInMinutes: {1})", taskCount, timeoutInMinutes);
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
             {
                 cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
@@ -86,7 +89,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
                 "FinishTask(versionId: {0})", versionId);
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
             {
                 cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -100,7 +103,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
                 "CreateTempTask(versionId: {0}, rank: {1})", versionId, rank);
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
             {
                 cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -113,7 +116,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: GetAllNodeIds()");
 
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             var result = ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
             {
                 var dbResult = new List<int>();
@@ -129,7 +132,7 @@ namespace SenseNet.Packaging.Steps.Internal
         public void DropTables(CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: DropTables()");
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             op.Successful = true;
         }
@@ -139,7 +142,7 @@ namespace SenseNet.Packaging.Steps.Internal
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: CheckFeature()");
             try
             {
-                using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+                using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
                 var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                 op.Successful = true;
                 return Convert.ToInt32(result) != 0;
@@ -163,7 +166,7 @@ namespace SenseNet.Packaging.Steps.Internal
         public DateTime LoadTimeLimit(CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: LoadTimeLimit()");
-            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
             var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
             var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
             Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));

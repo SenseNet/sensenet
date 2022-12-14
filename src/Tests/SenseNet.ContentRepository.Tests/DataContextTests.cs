@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
-            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, cancellationToken)
+            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, null, cancellationToken)
             {
                 // do nothing
             }
@@ -142,7 +142,7 @@ namespace SenseNet.ContentRepository.Tests
         public void DC_MSSQL_Construction_ConnectionString()
         {
             var connectionString = "ConnectionString1";
-            var dataContext = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
+            var dataContext = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), null, CancellationToken.None);
             Assert.AreEqual(connectionString, dataContext.ConnectionString);
         }
         [TestMethod]

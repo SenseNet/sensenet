@@ -10,16 +10,19 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.Storage.Data.MsSqlClient
 {
     public class MsSqlStatisticalDataProvider : IStatisticalDataProvider
     {
+        private readonly IRetrier _retrier;
         protected DataOptions DataOptions { get; }
         private string ConnectionString { get; }
 
-        public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
+        public MsSqlStatisticalDataProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions, IRetrier retrier)
         {
+            _retrier = retrier;
             DataOptions = options?.Value ?? new DataOptions();
 
             if (connectionOptions == null)
@@ -41,7 +44,7 @@ INSERT INTO StatisticalData
         {
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "WriteData: DataType: {0}", data.DataType);
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             await ctx.ExecuteNonQueryAsync(WriteDataScript, cmd =>
             {
                 var now = DateTime.UtcNow;
@@ -78,14 +81,14 @@ ORDER BY CreationTime DESC
         public async Task<IEnumerable<IStatisticalDataRecord>> LoadUsageListAsync(string dataType, int[] relatedTargetIds, DateTime endTimeExclusive, int count, CancellationToken cancellation)
         {
             using var op = SnTrace.Database.StartOperation(() => "MsSqlStatisticalDataProvider: " +
-                $"LoadUsageList(dataType: {dataType}, relatedTargetIds: {relatedTargetIds.ToTrace()}, " +
+                $"LoadUsageList(dataType: {dataType}, relatedTargetIds: {relatedTargetIds?.ToTrace()}, " +
                 $"endTimeExclusive: {endTimeExclusive:yyyy-MM-dd HH:mm:ss.fffff}, count: {count})");
 
             var sql = relatedTargetIds == null || relatedTargetIds.Length == 0
                 ? LoadUsageListScript
                 : string.Format(LoadUsageListByTargetIdsScript,
                     string.Join(", ", relatedTargetIds.Select(x => x.ToString())));
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             var records = new List<IStatisticalDataRecord>();
             await ctx.ExecuteReaderAsync(sql, cmd =>
             {
@@ -118,7 +121,7 @@ ORDER BY Date
                 "LoadAggregatedUsage(dataType: {0}, resolution: {1}, startTime: {2:yyyy-MM-dd HH:mm:ss.fffff}, endTimeExclusive: {3:yyyy-MM-dd HH:mm:ss.fffff})",
                 dataType, resolution, startTime, endTimeExclusive);
 
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             var aggregations = new List<Aggregation>();
             await ctx.ExecuteReaderAsync(LoadAggregatedUsageScript, cmd =>
             {
@@ -155,7 +158,7 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "LoadFirstAggregationTimesByResolutions(dataType: {0})", dataType);
 
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             var result = new DateTime?[4];
             await ctx.ExecuteReaderAsync(LoadFirstAggregationTimesByResolutionsScript, cmd =>
             {
@@ -194,7 +197,7 @@ SELECT  @Minute [Minute], @Hour [Hour], @Day [Day], @Month [Month]
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "LoadLastAggregationTimesByResolutions()");
 
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancel);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancel);
             var result = new DateTime?[4];
             await ctx.ExecuteReaderAsync(LoadLastAggregationTimesByResolutionsScript, async (reader, cancel) => {
                 if (await reader.ReadAsync(cancel))
@@ -223,7 +226,7 @@ ORDER BY CreationTime
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "EnumerateData(dataType: {0}, startTime: {1:yyyy-MM-dd HH:mm:ss.fffff}, endTimeExclusive: {2:yyyy-MM-dd HH:mm:ss.fffff})",
                 dataType, startTime, endTimeExclusive);
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             await ctx.ExecuteReaderAsync(EnumerateDataScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -261,7 +264,7 @@ END CATCH
                 "WriteAggregation: DataType: {0}, Resolution: {1}, Date: {2:yyyy-MM-dd HH:mm:ss.fffff})",
                 aggregation.DataType, aggregation.Resolution, aggregation.Date);
 
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             await ctx.ExecuteNonQueryAsync(WriteAggregationScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -283,7 +286,7 @@ DELETE FROM StatisticalData WHERE DataType = @DataType AND CreationTime < @Reten
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "CleanupRecords(dataType: {0}, retentionTime: {1:yyyy-MM-dd HH:mm:ss.fffff})",
                 dataType, retentionTime);
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             await ctx.ExecuteNonQueryAsync(CleanupRecordsScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -304,7 +307,7 @@ DELETE FROM StatisticalAggregations WHERE DataType = @DataType AND Resolution = 
             using var op = SnTrace.Database.StartOperation("MsSqlStatisticalDataProvider: " +
                 "CleanupAggregations(dataType: {0}, resolution: {1}, retentionTime: {2:yyyy-MM-dd HH:mm:ss.fffff})", 
                 dataType, resolution, retentionTime);
-            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, cancellation);
+            using var ctx = new MsSqlDataContext(ConnectionString, DataOptions, _retrier, cancellation);
             await ctx.ExecuteNonQueryAsync(CleanupAggregationsScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]

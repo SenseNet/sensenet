@@ -20,14 +20,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
+        private readonly IRetrier _retrier;
         private DataOptions DataOptions { get; }
         private BlobStorageOptions BlobStorageOptions { get; }
         private IBlobProviderStore Providers { get; }
         private ConnectionStringOptions ConnectionStrings { get; }
 
         public MsSqlBlobMetaDataProvider(IBlobProviderStore providers, IOptions<DataOptions> dataOptions,
-            IOptions<BlobStorageOptions> blobStorageOptions, IOptions<ConnectionStringOptions> connectionOptions)
+            IOptions<BlobStorageOptions> blobStorageOptions, IOptions<ConnectionStringOptions> connectionOptions, IRetrier retrier)
         {
+            _retrier = retrier;
             Providers = providers;
             DataOptions = dataOptions?.Value ?? new DataOptions();
             BlobStorageOptions = blobStorageOptions?.Value ?? new BlobStorageOptions();
@@ -65,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 "GetBlobStorageContext(fileId: {0}, clearStream: {1}, versionId: {2}, propertyTypeId: {3})",
                 fileId, clearStream, versionId, propertyTypeId);
 
-            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
             var result = await ctx.ExecuteReaderAsync(sql, cmd =>
             {
                 cmd.Parameters.Add(ctx.CreateParameter("@FileId", DbType.Int32, fileId));
@@ -409,7 +411,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
             return await LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx).ConfigureAwait(false);
         }
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
@@ -489,7 +491,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
-                using var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+                using var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
                 using var transaction = dctx.BeginTransaction();
                 var result = await dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                 {
@@ -543,7 +545,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 using var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: CommitChunk: " +
                     "versionId: {0}, propertyTypeId: {1}, fileId: {2}, fullSize: {3}, contentType: {4}, fileName: {5}",
                     versionId, propertyTypeId, fileId, fullSize, source?.ContentType ?? "<null>", source?.FileName ?? "<null>");
-                using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+                using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
                 using var transaction = ctx.BeginTransaction();
                 await ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
                 {
@@ -587,7 +589,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             using var op = SnTrace.Database.StartOperation(() => "MsSqlBlobMetaDataProvider: " +
                 $"CleanupFilesSetDeleteFlag: script: {script.ToTrace()}");
 
-            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
             using var transaction = ctx.BeginTransaction();
             try
             {
@@ -605,7 +607,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public async Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: CleanupFiles()");
-            using var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, cancellationToken);
+            using var dctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancellationToken);
             var result = await dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>
             {
                 try

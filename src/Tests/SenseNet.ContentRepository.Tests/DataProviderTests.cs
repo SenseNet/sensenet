@@ -291,7 +291,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
-            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, cancellationToken)
+            public TestDataContext(DataOptions options, CancellationToken cancellationToken) : base(options, null, cancellationToken)
             {
                 
             }

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -29,13 +28,14 @@ namespace SenseNet.Packaging.Steps
             return ExecuteSql(Query, context.ConnectionStrings.Repository);
         }
 
-        internal static bool ExecuteSql(string script, string connectionString)
+        internal bool ExecuteSql(string script, string connectionString)
         {
             using var op = SnTrace.Database.StartOperation("WhileDatabaseValue: " +
                 $"ExecuteSql: {script.ToTrace()}");
 
             //TODO: [DIREF] get options from DI through constructor
-            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
+            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(),
+                GetService<IRetrier>(), CancellationToken.None);
             try
             {
                 var result = ctx.ExecuteScalarAsync(script).GetAwaiter().GetResult();

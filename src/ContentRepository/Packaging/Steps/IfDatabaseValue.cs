@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -58,7 +58,8 @@ namespace SenseNet.Packaging.Steps
                                    ?? context.ConnectionStrings.Repository;
 
             //TODO: [DIREF] get options from DI through constructor
-            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None);
+            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(),
+                GetService<IRetrier>(), CancellationToken.None);
 
             object result;
             try

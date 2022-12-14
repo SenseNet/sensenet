@@ -71,6 +71,7 @@ using SenseNet.TaskManagement.Core;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
+using SenseNet.Tools;
 using SenseNet.Tools.Diagnostics;
 using SenseNet.Tools.SnInitialDataGenerator;
 using SenseNet.WebHooks;
@@ -410,6 +411,9 @@ namespace WebAppTests
                 {typeof(ClusterMemberInfo), typeof(ClusterMemberInfo)},
                 {typeof(IClusterChannel), typeof(VoidChannel)},
                 {typeof(ClusterMessageType), typeof(ClusterMessageType)},
+                {typeof(IRetrier), typeof(DefaultRetrier)},
+                {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
+                {typeof(DistributedMessageType), typeof(DistributedMessageType)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()

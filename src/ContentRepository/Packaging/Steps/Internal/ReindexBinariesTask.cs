@@ -5,11 +5,13 @@ using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps.Internal;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Packaging.Steps.Internal
 {
     internal class ReindexBinariesTask : IMaintenanceTask
     {
+        private readonly IRetrier _retrier;
         private readonly ConnectionStringOptions _connectionStrings;
         private bool? _enabled;
         private DateTime _timeLimit;
@@ -31,14 +33,15 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
             }
         }
 
-        public ReindexBinariesTask(IOptions<ConnectionStringOptions> connectionOptions)
+        public ReindexBinariesTask(IOptions<ConnectionStringOptions> connectionOptions, IRetrier retrier)
         {
+            _retrier = retrier;
             _connectionStrings = connectionOptions.Value;
         }
 
         public System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            var dataHandler = new ReindexBinariesDataHandler(new DataOptions(), _connectionStrings);
+            var dataHandler = new ReindexBinariesDataHandler(new DataOptions(), _connectionStrings, _retrier);
             var taskHandler = new ReindexBinariesTaskManager(dataHandler);
 
             if (_enabled == null)

@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
@@ -18,6 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         private DbConnection _connection;
         private TransactionWrapper _transaction;
+        private readonly IRetrier _retrier;
         private readonly CancellationToken _cancellationToken;
         protected DataOptions DataOptions { get; }
 
@@ -33,11 +35,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public bool NeedToCleanupFiles { get; set; }
 
         [Obsolete("Use the constructor that expects data options instead.", true)]
-        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
+        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), 
+            new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance), cancellationToken)
         {
         }
-        protected SnDataContext(DataOptions options, CancellationToken cancel = default)
+        protected SnDataContext(DataOptions options, IRetrier retrier, CancellationToken cancel = default)
         {
+            _retrier = retrier ?? new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance);
             _cancellationToken = cancel;
             DataOptions = options ?? new DataOptions();
         }
@@ -101,14 +105,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                                ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
                 return Task.FromResult(wrappedTransaction);
 
-            }).GetAwaiter().GetResult();
+            }, CancellationToken.None).GetAwaiter().GetResult();
             
             return _transaction;
         }
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            var nonQueryResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var nonQueryResult = await RetryAsync(async () =>
             {
                 using (var cmd = CreateCommand())
                 {
@@ -126,33 +130,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     return result;
                 }
-            }, (res, i, ex) =>
-            {
-                if (ex == null)
-                {
-                    return true;
-                }
-
-                // last iteration
-                if (i == 1)
-                {
-                    SnTrace.WriteError(ex.ToString());
-                }
-
-                // if we do not recognize the error, throw it immediately
-                if (i == 1 || !RetriableException(ex))
-                    throw ex;
-
-                // continue the cycle
-                return false;
-            });
+            }, _transaction?.CancellationToken ?? _cancellationToken);
 
             return nonQueryResult;
         }
 
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            var scalarResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var scalarResult = await RetryAsync(async () =>
             {
                 using (var cmd = CreateCommand())
                 {
@@ -170,26 +155,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     return result;
                 }
-            }, (res, i, ex) =>
-            {
-                if (ex == null)
-                {
-                    return true;
-                }
-
-                // last iteration
-                if (i == 1)
-                {
-                    SnTrace.WriteError(ex.ToString());
-                }
-
-                // if we do not recognize the error, throw it immediately
-                if (i == 1 || !RetriableException(ex))
-                    throw ex;
-
-                // continue the cycle
-                return false;
-            });
+            }, _transaction?.CancellationToken ?? _cancellationToken);
 
             return scalarResult;
         }
@@ -202,7 +168,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            var readerResult = await Retrier.RetryAsync(10, 1000, async () =>
+            var readerResult = await RetryAsync(async () =>
             {
                 using (var cmd = CreateCommand())
                 {
@@ -215,39 +181,21 @@ namespace SenseNet.ContentRepository.Storage.Data
                     setParams?.Invoke(cmd);
 
                     var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    using (var reader = (DbDataReader) await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                    using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
                         return result;
                     }
                 }
-            }, (res, i, ex) =>
-            {
-                if (ex == null)
-                {
-                    return true;
-                }
-
-                // last iteration
-                if (i == 1)
-                {
-                    SnTrace.WriteError(ex.ToString());
-                }
-
-                // if we do not recognize the error, throw it immediately
-                if (i == 1 || !RetriableException(ex))
-                    throw ex;
-
-                // continue the cycle
-                return false;
-            });
+            }, _transaction?.CancellationToken ?? _cancellationToken);
 
             return readerResult;
         }
 
-        private static bool RetriableException(Exception ex)
+        internal static bool ShouldRetryOnError(Exception ex)
         {
+            //TODO: generalize the expression by relying on error codes instead of hardcoded message texts
             return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
                    (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
         }
@@ -257,28 +205,26 @@ namespace SenseNet.ContentRepository.Storage.Data
             const int maxLength = 80;
             return $"{this.GetType().Name}.{name}: {(script.Length < maxLength ? script : script.Substring(0, maxLength))}";
         }
-
-        public static Task<T> RetryAsync<T>(Func<Task<T>> action)
+        
+        public Task RetryAsync(Func<Task> action, CancellationToken cancel)
         {
-            return Retrier.RetryAsync(30, 1000, action,
-                (result, i, ex) =>
+            return RetryAsync<object>(async () =>
+            {
+                await action().ConfigureAwait(false);
+                return null;
+            }, cancel);
+        }
+        public Task<T> RetryAsync<T>(Func<Task<T>> action, CancellationToken cancel)
+        {
+            return _retrier.RetryAsync(action,
+                shouldRetryOnError: (ex, _) => ShouldRetryOnError(ex),
+                onAfterLastIteration: (_, ex, i) =>
                 {
-                    if (ex == null)
-                        return true;
-
-                    // if we do not recognize the error, throw it immediately
-                    if (!RetriableException(ex))
-                        throw ex;
-
-                    if (i == 1)
-                    {
-                        SnLog.WriteException(ex, $"Data layer error: {ex.Message}. Retry cycle ended.");
-                        throw new InvalidOperationException("Data layer timeout occurred.", ex);
-                    }
-
-                    // continue the cycle
-                    return false;
-                });
+                    SnTrace.Database.WriteError(
+                        $"Data layer error: {ex.Message}. Retry cycle ended after {i} iterations.");
+                    throw new InvalidOperationException("Data layer timeout occurred.", ex);
+                },
+                cancel: cancel);
         }
     }
 }
