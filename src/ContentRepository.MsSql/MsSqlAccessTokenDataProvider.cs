@@ -4,6 +4,7 @@ using System.Data;
 using System.Threading;
 using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable CheckNamespace
 
@@ -36,10 +37,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             if (_accessTokenValueCollationName == null)
             {
+                using var op = SnTrace.Database.StartOperation(
+                    "MsSqlAccessTokenDataProvider: GetAccessTokenValueCollationName()");
                 using var ctx = _mainProvider.CreateDataContext(cancellationToken);
                 var result = await ctx.ExecuteScalarAsync(sql).ConfigureAwait(false);
                 var originalCollation = Convert.ToString(result);
                 _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
+                op.Successful = true;
             }
 
             return _accessTokenValueCollationName;
@@ -61,8 +65,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async STT.Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: DeleteAllAccessTokens()");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens").ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken)
@@ -72,8 +78,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                                "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
                                "SELECT @@IDENTITY";
 
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: SaveAccessToken: " +
+                "UserId: {0}, ContentId: {1}, Feature: {2}, " +
+                "CreationDate: {3:yyyy-MM-dd HH:mm:ss.fffff}, ExpirationDate: {4:yyyy-MM-dd HH:mm:ss.fffff}",
+                token?.UserId, token?.ContentId, token?.Feature, token?.CreationDate, token?.ExpirationDate);
 
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -86,15 +96,17 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     ctx.CreateParameter("@ExpirationDate", DbType.DateTime2, token.ExpirationDate)
                 });
             }).ConfigureAwait(false);
-
             token.Id = Convert.ToInt32(result);
+            op.Successful = true;
         }
 
         public async STT.Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken)
         {
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "LoadAccessTokenById(accessTokenId: {0})", accessTokenId);
 
-            return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
                 async (reader, cancel) =>
                 {
@@ -103,6 +115,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         ? GetAccessTokenFromReader(reader)
                         : null;
                 }).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
 
         public async STT.Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken)
@@ -112,9 +127,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
                       (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "LoadAccessToken(tokenValue: {0}, contentId: {1}, feature: {2})", tokenValue, contentId, feature);
 
-            return await ctx.ExecuteReaderAsync(sql,
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteReaderAsync(sql,
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
                 async (reader, cancel) =>
                 {
@@ -123,6 +140,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         ? GetAccessTokenFromReader(reader)
                         : null;
                 }).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
 
         public async STT.Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken)
@@ -130,9 +150,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             const string sql = "SELECT * FROM [dbo].[AccessTokens] " +
                                "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()";
 
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "LoadAccessTokens(userId: {0})", userId);
 
-            return await ctx.ExecuteReaderAsync(sql,
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteReaderAsync(sql,
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
                 async (reader, cancel) =>
                 {
@@ -144,6 +166,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     return tokens.ToArray();
                 }
             ).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
 
         public async STT.Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken)
@@ -154,8 +179,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       " WHERE [Value] = @Value " +
                       $" COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)} AND [ExpirationDate] > GETUTCDATE()";
 
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "UpdateAccessToken(tokenValue: {0}, newExpirationDate: {1:yyyy-MM-dd HH:mm:ss.fffff})", tokenValue, newExpirationDate);
 
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -164,9 +191,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     ctx.CreateParameter("@NewExpirationDate", DbType.DateTime2, newExpirationDate)
                 });
             }).ConfigureAwait(false);
-
             if (result == null || result == DBNull.Value)
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
+
+            op.Successful = true;
         }
 
         public async STT.Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken)
@@ -174,30 +202,42 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = "DELETE FROM [dbo].[AccessTokens] " +
                       $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)}";
 
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "DeleteAccessToken(tokenValue: {0})", tokenValue);
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(sql,
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "DeleteAccessTokensByUser(userId: {0})", userId);
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "DeleteAccessTokensByContent(contentId: {0})", contentId);
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task DeleteAccessTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
+                "DeleteAccessTokens(userId: {0}, contentId: {1}, feature: {2})", userId, contentId, feature);
             if (userId == 0 && contentId == 0 && string.IsNullOrEmpty(feature))
             {
                 await DeleteAllAccessTokensAsync(cancellationToken).ConfigureAwait(false);
+                op.Successful = true;
                 return;
             }
 
@@ -218,6 +258,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     if (!string.IsNullOrEmpty(feature))
                         cmd.Parameters.Add(ctx.CreateParameter("@Feature", DbType.String, feature));
                 }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         private static string AddExpressions(string sqlA, string sqlB)
@@ -229,8 +270,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             const string sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
 
+            using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: CleanupAccessTokens().");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(sql).ConfigureAwait(false);
+            op.Successful = true;
         }
     }
 }

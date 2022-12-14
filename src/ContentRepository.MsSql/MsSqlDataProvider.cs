@@ -14,6 +14,8 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -26,13 +28,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private IOptions<ConnectionStringOptions> ConnectionStrings { get; }
         private IDataInstaller DataInstaller { get; }
         private readonly ILogger _logger;
+        private readonly IRetrier _retrier;
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
             IOptions<MsSqlDatabaseInstallationOptions> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
-            IDataInstaller dataInstaller,
-            ILogger<MsSqlDataProvider> logger)
+            IDataInstaller dataInstaller, ILogger<MsSqlDataProvider> logger, IRetrier retrier)
         {
             DataInstaller = dataInstaller ?? throw new ArgumentNullException(nameof(dataInstaller));
             DataOptions = dataOptions.Value;
@@ -40,11 +42,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _databaseInstaller = databaseInstaller;
             ConnectionStrings = connectionOptions;
             _logger = logger;
+            _retrier = retrier;
         }
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
-            return new MsSqlDataContext(ConnectionStrings.Value.Repository, DataOptions, token);
+            return new MsSqlDataContext(ConnectionStrings.Value.Repository, DataOptions, _retrier, token);
         }
         /* =========================================================================================== Platform specific implementations */
 
@@ -55,6 +58,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlDataProvider: " +
+                $"QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds: {nodeTypeIds.ToTrace()}, " +
+                $"pathStart: {pathStart.ToTrace()}, orderByPath: {orderByPath}, name: {name})");
+
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
             var first = true;
 
@@ -103,23 +110,31 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
+
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
-            return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
+            var result = await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
-                var result = new List<int>();
+                var items = new List<int>();
                 while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                 {
                     cancel.ThrowIfCancellationRequested();
-                    result.Add(reader.GetSafeInt32(0));
+                    items.Add(reader.GetSafeInt32(0));
                 }
-                return (IEnumerable<int>)result;
+                return (IEnumerable<int>)items;
             }).ConfigureAwait(false);
+            op.Successful = true;
+            return result;
         }
 
         public override async STT.Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation(() => "MsSqlDataProvider: " +
+                $"QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds: {nodeTypeIds.ToTrace()}, pathStart: {pathStart}, " +
+                $"orderByPath: {orderByPath}, " +
+                $"properties: {(properties?.Select(p => $"{p.PropertyName}|{p.QueryOperator}|{p.Value}")).ToTrace()})");
+
             using var ctx = (MsSqlDataContext)CreateDataContext(cancellationToken);
             var typeCount = nodeTypeIds?.Length ?? 0;
             var onlyNodes = true;
@@ -200,7 +215,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
             cancellationToken.ThrowIfCancellationRequested();
-            return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
+            var result = await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                 async (reader, cancel) =>
                 {
@@ -213,6 +228,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     }
                     return result;
                 }).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
         private (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value) GetPropertyMappingForQuery(QueryPropertyData property)
         {
@@ -310,6 +328,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         
         public override async STT.Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: InstallDatabaseAsync().");
+
             if (!string.IsNullOrEmpty(_dbInstallerOptions.DatabaseName))
             {
                 _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.DatabaseName}.");
@@ -352,6 +372,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await ExecuteEmbeddedNonQueryScriptAsync(
                     "SenseNet.ContentRepository.MsSql.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
                 .ConfigureAwait(false);
+
+            op.Successful = true;
         }
 
         /* =============================================================================================== Tools */
@@ -453,6 +475,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>A Task that represents the asynchronous operation.</returns>
         private async STT.Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: " +
+                "ExecuteEmbeddedNonQueryScript(scriptName: {0})", scriptName);
+
             using var stream = GetType().Assembly.GetManifestResourceStream(scriptName);
             if (stream == null)
                 throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
@@ -466,6 +491,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 using var ctx = CreateDataContext(cancellationToken);
                 await ctx.ExecuteNonQueryAsync(script);
             }
+
+            op.Successful = true;
         }
     }
 }

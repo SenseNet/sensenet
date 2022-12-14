@@ -8,6 +8,7 @@ using Tasks=System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 // ReSharper disable ConvertToUsingDeclaration
 // ReSharper disable AccessToDisposedClosure
 
@@ -94,14 +95,18 @@ SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHE
         /// <inheritdoc/>
         public async Tasks.Task<Client[]> LoadClientsByRepositoryAsync(string repositoryHost, CancellationToken cancellation)
         {
-            using (var ctx = DataProvider.CreateDataContext(cancellation))
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "LoadClientsByRepository(repositoryHost: {0})", repositoryHost);
+
+            using var ctx = DataProvider.CreateDataContext(cancellation);
+            var result = await ctx.ExecuteReaderAsync(LoadClientsByRepositorySql, cmd =>
             {
-                return await ctx.ExecuteReaderAsync(LoadClientsByRepositorySql, cmd =>
-                {
-                    cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
-                },
-                async (reader, cancel) => await GetClientsFromReader(reader, cancel)).ConfigureAwait(false);
-            }
+                cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
+            },
+            async (reader, cancel) => await GetClientsFromReader(reader, cancel)).ConfigureAwait(false);
+            op.Successful = true;
+
+            return result;
         }
 
 
@@ -113,14 +118,18 @@ SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHE
         /// <inheritdoc/>
         public async Tasks.Task<Client[]> LoadClientsByAuthorityAsync(string authority, CancellationToken cancellation)
         {
-            using (var ctx = DataProvider.CreateDataContext(cancellation))
-            {
-                return await ctx.ExecuteReaderAsync(LoadClientsByAuthority, cmd =>
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "LoadClientsByAuthority(authority: {0})", authority);
+
+            using var ctx = DataProvider.CreateDataContext(cancellation);
+            var result = await ctx.ExecuteReaderAsync(LoadClientsByAuthority, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Authority", DbType.String, 450, authority));
                 },
                 async (reader, cancel) => await GetClientsFromReader(reader, cancel)).ConfigureAwait(false);
-            }
+            op.Successful = true;
+
+            return result;
         }
 
 
@@ -183,35 +192,37 @@ DELETE FROM [ClientSecrets] WHERE [ClientId] = @ClientId
         /// <inheritdoc/>
         public async Tasks.Task SaveClientAsync(Client client, CancellationToken cancellation)
         {
-            using (var ctx = ((RelationalDataProviderBase)Providers.Instance.DataProvider).CreateDataContext(cancellation))
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "SaveClient: ClientId/Name: {0}, Repository: {1}, UserName: {2}, Authority: {3}, Type: {4}({5})",
+                client?.ClientId, client?.Repository, client?.UserName,
+                client?.Authority, client?.Type, (int)(client?.Type ?? 0));
+
+            using var ctx = ((RelationalDataProviderBase)Providers.Instance.DataProvider).CreateDataContext(cancellation);
+            using var transaction = ctx.BeginTransaction();
+            // UPSERT CLIENT
+            await ctx.ExecuteNonQueryAsync(UpsertClientSql, cmd =>
             {
-                using (var transaction = ctx.BeginTransaction())
-                {
-                    // UPSERT CLIENT
-                    await ctx.ExecuteNonQueryAsync(UpsertClientSql, cmd =>
-                    {
-                        cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, client.ClientId));
-                        cmd.Parameters.Add(ctx.CreateParameter("@Name", DbType.String, 450, client.Name ?? client.ClientId));
-                        cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, client.Repository));
-                        cmd.Parameters.Add(ctx.CreateParameter("@UserName", DbType.String, 450,
-                            (object) client.UserName ?? DBNull.Value));
-                        cmd.Parameters.Add(ctx.CreateParameter("@Authority", DbType.String, 450, client.Authority));
-                        cmd.Parameters.Add(ctx.CreateParameter("@Type", DbType.Int32, (int)client.Type));
-                    }).ConfigureAwait(false);
+                cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, client.ClientId));
+                cmd.Parameters.Add(ctx.CreateParameter("@Name", DbType.String, 450, client.Name ?? client.ClientId));
+                cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, client.Repository));
+                cmd.Parameters.Add(ctx.CreateParameter("@UserName", DbType.String, 450,
+                    (object) client.UserName ?? DBNull.Value));
+                cmd.Parameters.Add(ctx.CreateParameter("@Authority", DbType.String, 450, client.Authority));
+                cmd.Parameters.Add(ctx.CreateParameter("@Type", DbType.Int32, (int)client.Type));
+            }).ConfigureAwait(false);
 
-                    // DELETE ALL RELATED SECRETS
-                    await ctx.ExecuteNonQueryAsync(DeleteSecretSql, cmd =>
-                    {
-                        cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, client.ClientId));
-                    }).ConfigureAwait(false);
+            // DELETE ALL RELATED SECRETS
+            await ctx.ExecuteNonQueryAsync(DeleteSecretSql, cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, client.ClientId));
+            }).ConfigureAwait(false);
 
-                    // INSERT SECRETS
-                    foreach (var secret in client.Secrets)
-                        await SaveSecretAsync(client.ClientId, secret, false, (MsSqlDataContext)ctx);
+            // INSERT SECRETS
+            foreach (var secret in client.Secrets)
+                await SaveSecretAsync(client.ClientId, secret, false, (MsSqlDataContext)ctx);
 
-                    transaction.Commit();
-                }
-            }
+            transaction.Commit();
+            op.Successful = true;
         }
         
         /// <inheritdoc/>
@@ -234,6 +245,11 @@ INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTi
 INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTill])
                       VALUES( @Id,  @ClientId,  @Value,  @CreationDate,  @ValidTill)
 ";
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "SaveSecret: ClientId: {0}, Id: {1}, Value: {2}," +
+                " CreationDate: {3:yyyy-MM-dd HH:mm:ss.fffff}, ValidTill: {4:yyyy-MM-dd HH:mm:ss.fffff}",
+                clientId, secret?.Id, secret?.Value, secret?.CreationDate, secret?.ValidTill);
+
             await ctx.ExecuteNonQueryAsync(sql, cmd =>
             {
                 cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
@@ -242,6 +258,8 @@ INSERT INTO [ClientSecrets] ([Id], [ClientId], [Value], [CreationDate], [ValidTi
                 cmd.Parameters.Add(ctx.CreateParameter("@CreationDate", DbType.DateTime2, secret.CreationDate));
                 cmd.Parameters.Add(ctx.CreateParameter("@ValidTill", DbType.DateTime2, secret.ValidTill));
             }).ConfigureAwait(false);
+
+            op.Successful = true;
         }
 
         /* =============================================================================================== DELETE */
@@ -252,26 +270,26 @@ DELETE FROM [ClientApps] WHERE [ClientId] = @ClientId
         /// <inheritdoc/>
         public async Tasks.Task DeleteClientAsync(string clientId, CancellationToken cancellation)
         {
-            using (var ctx = DataProvider.CreateDataContext(cancellation))
-            {
-                using (var transaction = ctx.BeginTransaction())
-                {
-                    // DELETE ALL RELATED SECRETS
-                    await ctx.ExecuteNonQueryAsync(DeleteSecretSql,
-                        cmd =>
-                    {
-                        cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
-                    }).ConfigureAwait(false);
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "DeleteClient(clientId: {0})", clientId);
 
-                    await ctx.ExecuteNonQueryAsync(DeleteClientSql,
-                        cmd =>
-                    {
-                        cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
-                    }).ConfigureAwait(false);
-                    
-                    transaction.Commit();
-                }
-            }
+            using var ctx = DataProvider.CreateDataContext(cancellation);
+            using var transaction = ctx.BeginTransaction();
+            // DELETE ALL RELATED SECRETS
+            await ctx.ExecuteNonQueryAsync(DeleteSecretSql,
+                cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
+                }).ConfigureAwait(false);
+
+            await ctx.ExecuteNonQueryAsync(DeleteClientSql,
+                cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
+                }).ConfigureAwait(false);
+            transaction.Commit();
+
+            op.Successful = true;
         }
 
 
@@ -283,26 +301,26 @@ DELETE FROM [ClientApps] WHERE [Repository] = @Repository
         /// <inheritdoc/>
         public async Tasks.Task DeleteClientByRepositoryHostAsync(string repositoryHost, CancellationToken cancellation)
         {
-            using (var ctx = DataProvider.CreateDataContext(cancellation))
-            {
-                using (var transaction = ctx.BeginTransaction())
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "DeleteClientByRepositoryHost(repositoryHost: {0})", repositoryHost);
+
+            using var ctx = DataProvider.CreateDataContext(cancellation);
+            using var transaction = ctx.BeginTransaction();
+            // DELETE ALL RELATED SECRETS
+            await ctx.ExecuteNonQueryAsync(DeleteSecretByHostSql,
+                cmd =>
                 {
-                    // DELETE ALL RELATED SECRETS
-                    await ctx.ExecuteNonQueryAsync(DeleteSecretByHostSql,
-                        cmd =>
-                        {
-                            cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
-                        }).ConfigureAwait(false);
+                    cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
+                }).ConfigureAwait(false);
 
-                    await ctx.ExecuteNonQueryAsync(DeleteClientByHostSql,
-                        cmd =>
-                        {
-                            cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
-                        }).ConfigureAwait(false);
+            await ctx.ExecuteNonQueryAsync(DeleteClientByHostSql,
+                cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
+                }).ConfigureAwait(false);
+            transaction.Commit();
 
-                    transaction.Commit();
-                }
-            }
+            op.Successful = true;
         }
 
         private static readonly string DeleteSecret = @"-- MsSqlClientStoreDataProvider.DeleteSecret (secrets)
@@ -311,14 +329,15 @@ DELETE FROM ClientSecrets WHERE [ClientId] = @ClientId AND [Id] = @SecretId";
         /// <inheritdoc/>
         public async Tasks.Task DeleteSecretAsync(string clientId, string secretId, CancellationToken cancellation)
         {
-            using (var ctx = DataProvider.CreateDataContext(cancellation))
+            using var op = SnTrace.Database.StartOperation("MsSqlClientStoreDataProvider: " +
+                "DeleteSecret(clientId: {0}, secretId: {1})", clientId, secretId);
+            using var ctx = DataProvider.CreateDataContext(cancellation);
+            await ctx.ExecuteNonQueryAsync(DeleteSecret, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(DeleteSecret, cmd =>
-                {
-                    cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
-                    cmd.Parameters.Add(ctx.CreateParameter("@SecretId", DbType.AnsiString, 50, secretId));
-                }).ConfigureAwait(false);
-            }
+                cmd.Parameters.Add(ctx.CreateParameter("@ClientId", DbType.AnsiString, 50, clientId));
+                cmd.Parameters.Add(ctx.CreateParameter("@SecretId", DbType.AnsiString, 50, secretId));
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
     }
 }

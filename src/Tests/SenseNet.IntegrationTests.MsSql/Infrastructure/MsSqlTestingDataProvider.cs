@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -18,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tests.Core.Implementations;
+using SenseNet.Tools;
 
 namespace SenseNet.IntegrationTests.MsSql.Infrastructure
 {
@@ -560,12 +560,12 @@ DELETE FROM StatisticalAggregations
                 Repository = connectionString
             }), Options.Create(new MsSqlDatabaseInstallationOptions()), 
                 new MsSqlDatabaseInstaller(Options.Create(new MsSqlDatabaseInstallationOptions()),
-                    NullLoggerFactory.Instance.CreateLogger<MsSqlDatabaseInstaller>()),
+                    NullLogger<MsSqlDatabaseInstaller>.Instance),
                 new MsSqlDataInstaller(Options.Create(new ConnectionStringOptions
             {
                 Repository = connectionString
-            }), NullLoggerFactory.Instance.CreateLogger<MsSqlDataInstaller>()),
-                NullLoggerFactory.Instance.CreateLogger<MsSqlDataProvider>())
+            }), NullLogger<MsSqlDataInstaller>.Instance), NullLogger<MsSqlDataProvider>.Instance,
+                new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance))
             {
                 _connectionString = connectionString;
             }
@@ -577,7 +577,9 @@ DELETE FROM StatisticalAggregations
         private class MsSqlCannotCommitDataContext : MsSqlDataContext
         {
             public MsSqlCannotCommitDataContext(string connectionString, DataOptions options, CancellationToken cancellationToken)
-                : base(connectionString, options, cancellationToken)
+                : base(connectionString, options,
+                    new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance),
+                    cancellationToken)
             {
 
             }

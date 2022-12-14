@@ -87,6 +87,10 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.ConfigureSenseNet(configuration)
                 .AddSenseNetILogger()
+                .AddSenseNetRetrier(options =>
+                {
+                    configuration.GetSection("sensenet:Retrier").Bind(options);
+                })
                 .AddSenseNetBlobStorage()
                 .AddSenseNetPasswordHashProvider()
                 .AddPasswordHashProviderForMigration<Sha256PasswordHashProviderWithoutSalt>()

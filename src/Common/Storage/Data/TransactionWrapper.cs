@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Transactions;
+using SenseNet.Diagnostics;
 using IsolationLevel = System.Data.IsolationLevel;
 
 // ReSharper disable once CheckNamespace
@@ -43,17 +44,29 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public virtual void Dispose()
         {
-            Transaction.Dispose();
+            using (var op = SnTrace.Database.StartOperation("Transaction.Dispose " + Status))
+            {
+                Transaction.Dispose();
+                op.Successful = true;
+            }
         }
         public virtual void Commit()
         {
-            Transaction.Commit();
-            Status = TransactionStatus.Committed;
+            using (var op = SnTrace.Database.StartOperation("Transaction.Commit " + Status))
+            {
+                Transaction.Commit();
+                Status = TransactionStatus.Committed;
+                op.Successful = true;
+            }
         }
         public virtual void Rollback()
         {
-            Transaction.Rollback();
-            Status = TransactionStatus.Aborted;
+            using (var op = SnTrace.Database.StartOperation("Transaction.Rollback " + Status))
+            {
+                Transaction.Rollback();
+                Status = TransactionStatus.Aborted;
+                op.Successful = true;
+            }
         }
     }
 }

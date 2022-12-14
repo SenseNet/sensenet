@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -38,6 +39,14 @@ namespace SenseNet.Packaging.Steps
 
         private bool ExecuteSql(string script, ExecutionContext context)
         {
+            using var op = SnTrace.Database.StartOperation(() => "IfDatabaseValue: " +
+                $"ExecuteSql: script: {script.ToTrace()}");
+            var result = Execute(script, context);
+            op.Successful = true;
+            return result;
+        }
+        private bool Execute(string script, ExecutionContext context)
+        {
             var connectionInfo = new ConnectionInfo
             {
                 DataSource = (string)context.ResolveVariable(DataSource),
@@ -49,48 +58,52 @@ namespace SenseNet.Packaging.Steps
                                    ?? context.ConnectionStrings.Repository;
 
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(),
+                GetService<IRetrier>(), CancellationToken.None);
+
+            object result;
+            try
             {
-                object result;
-                try
-                {
-                    result = ctx.ExecuteScalarAsync(script).GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    throw new PackagingException("Error during SQL script execution. " + ex);
-                }
+                result = ctx.ExecuteScalarAsync(script).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                throw new PackagingException("Error during SQL script execution. " + ex);
+            }
 
-                if (result == null || Convert.IsDBNull(result))
-                    return false;
+            if (result == null || Convert.IsDBNull(result))
+                return false;
 
-                if (result is bool @bool)
+            switch (result)
+            {
+                case bool @bool:
                     return @bool;
-                if (result is byte @bybte)
-                    return @bybte > 0;
-                if (result is decimal @decimal)
+                case byte @byte:
+                    return @byte > 0;
+                case decimal @decimal:
                     return @decimal > 0;
-                if (result is double @double)
+                case double @double:
                     return @double > 0;
-                if (result is float @float)
+                case float @float:
                     return @float > 0;
-                if (result is int @int)
+                case int @int:
                     return @int > 0;
-                if (result is long @long)
+                case long @long:
                     return @long > 0;
-                if (result is sbyte @sbyte)
+                case sbyte @sbyte:
                     return @sbyte > 0;
-                if (result is short @short)
+                case short @short:
                     return @short > 0;
-                if (result is uint @uint)
+                case uint @uint:
                     return @uint > 0;
-                if (result is ulong @ulong)
+                case ulong @ulong:
                     return @ulong > 0;
-                if (result is ushort @ushort)
+                case ushort @ushort:
                     return @ushort > 0;
-                if (result is string @string)
+                case string @string:
                     return !string.IsNullOrEmpty(@string);
             }
+
             return false;
         }
     }

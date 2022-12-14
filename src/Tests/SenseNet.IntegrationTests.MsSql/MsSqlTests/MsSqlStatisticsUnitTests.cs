@@ -17,7 +17,7 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         #region MsSql specific infrastructure
         private void ResetDatabase(RepositoryBuilder builder)
         {
-            using (var ctx = new MsSqlDataContext(Platform.RepositoryConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(Platform.RepositoryConnectionString, DataOptions.GetLegacyConfiguration(), null, CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(MsSqlStatisticalDataProvider.DropScript).GetAwaiter().GetResult();
                 ctx.ExecuteNonQueryAsync(MsSqlStatisticalDataProvider.CreationScript).GetAwaiter().GetResult();

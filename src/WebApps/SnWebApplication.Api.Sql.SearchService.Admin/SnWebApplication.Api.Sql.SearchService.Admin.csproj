@@ -8,10 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
-    <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.1.1" />
+    <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.1.4" />
     <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="0.0.9.3" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.3.3" />
-    <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.2.1.2" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.4" />
+    <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.2.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
   </ItemGroup>

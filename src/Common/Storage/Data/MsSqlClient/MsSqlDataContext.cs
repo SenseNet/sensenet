@@ -2,11 +2,11 @@
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -15,8 +15,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public string ConnectionString { get; }
 
-        public MsSqlDataContext(string connectionString, DataOptions options, CancellationToken cancel)
-            : base(options, cancel)
+        public MsSqlDataContext(string connectionString, DataOptions options, IRetrier retrier, CancellationToken cancel)
+            : base(options, retrier, cancel)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
@@ -126,107 +126,98 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<SqlCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
+            using (var cmd = CreateSqlCommand())
             {
-                using (var cmd = CreateSqlCommand())
+                SqlTransaction transaction = null;
+                var cancellationToken = CancellationToken;
+                if (Transaction != null)
                 {
-                    SqlTransaction transaction = null;
-                    var cancellationToken = CancellationToken;
-                    if (Transaction != null)
-                    {
-                        transaction = (SqlTransaction) Transaction.Transaction;
-                        cancellationToken = Transaction.CancellationToken;
-                    }
-
-                    cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                    cmd.CommandText = script;
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Transaction = transaction;
-
-                    setParams?.Invoke(cmd);
-
-                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    op.Successful = true;
-                    return result;
+                    transaction = (SqlTransaction) Transaction.Transaction;
+                    cancellationToken = Transaction.CancellationToken;
                 }
+
+                cmd.Connection = (SqlConnection) OpenConnection();
+                cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                cmd.CommandText = script;
+                cmd.CommandType = CommandType.Text;
+                cmd.Transaction = transaction;
+
+                setParams?.Invoke(cmd);
+
+                var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return result;
             }
         }
+
         public async Task<object> ExecuteScalarAsync(string script, Action<SqlCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
+            using (var cmd = CreateSqlCommand())
             {
-                using (var cmd = CreateSqlCommand())
+                SqlTransaction transaction = null;
+                var cancellationToken = CancellationToken;
+                if (Transaction != null)
                 {
-                    SqlTransaction transaction = null;
-                    var cancellationToken = CancellationToken;
-                    if (Transaction != null)
-                    {
-                        transaction = (SqlTransaction) Transaction.Transaction;
-                        cancellationToken = Transaction.CancellationToken;
-                    }
-
-                    cmd.Connection = (SqlConnection) OpenConnection();
-                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                    cmd.CommandText = script;
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Transaction = transaction;
-
-                    setParams?.Invoke(cmd);
-
-                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    op.Successful = true;
-                    return result;
+                    transaction = (SqlTransaction) Transaction.Transaction;
+                    cancellationToken = Transaction.CancellationToken;
                 }
+
+                cmd.Connection = (SqlConnection) OpenConnection();
+                cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                cmd.CommandText = script;
+                cmd.CommandType = CommandType.Text;
+                cmd.Transaction = transaction;
+
+                setParams?.Invoke(cmd);
+
+                var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return result;
             }
         }
+
         public Task<T> ExecuteReaderAsync<T>(string script, Func<SqlDataReader, CancellationToken, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
         }
+
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<SqlCommand> setParams,
             Func<SqlDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
+            try
             {
-                try
+                using (var cmd = CreateSqlCommand())
                 {
-                    using (var cmd = CreateSqlCommand())
+                    SqlTransaction transaction = null;
+                    var cancellationToken = CancellationToken;
+                    if (Transaction != null)
                     {
-                        SqlTransaction transaction = null;
-                        var cancellationToken = CancellationToken;
-                        if (Transaction != null)
-                        {
-                            transaction = (SqlTransaction)Transaction.Transaction;
-                            cancellationToken = Transaction.CancellationToken;
-                        }
+                        transaction = (SqlTransaction) Transaction.Transaction;
+                        cancellationToken = Transaction.CancellationToken;
+                    }
 
-                        cmd.Connection = (SqlConnection)OpenConnection();
-                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                        cmd.CommandText = script;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Transaction = transaction;
+                    cmd.Connection = (SqlConnection) OpenConnection();
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = transaction;
 
-                        setParams?.Invoke(cmd);
+                    setParams?.Invoke(cmd);
 
-                        using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
-                            op.Successful = true;
-                            return result;
-                        }
+                    using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
+                        return result;
                     }
                 }
-                catch (Exception e)
-                {
-                    SnTrace.WriteError(e.ToString());
-                    throw;
-                }
+            }
+            catch (Exception e)
+            {
+                SnTrace.WriteError(e.ToString());
+                throw;
             }
         }
     }

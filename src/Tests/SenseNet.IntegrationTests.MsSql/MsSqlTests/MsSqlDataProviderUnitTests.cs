@@ -3,6 +3,8 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
@@ -10,6 +12,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.TestCases;
+using SenseNet.Tools;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
@@ -22,7 +25,8 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         private MsSqlDataContext CreateDataContext(CancellationToken cancellation)
         {
             var connectionString = Platform.AppConfig.GetConnectionString("SnCrMsSql");
-            return new MsSqlDataContext(connectionString, new DataOptions(), cancellation);
+            return new MsSqlDataContext(connectionString, new DataOptions(), 
+                new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance), cancellation);
         }
         private async Task<int[]> GetReferencesFromDbAsync(int versionId, int propertyTypeId, CancellationToken cancellation)
         {

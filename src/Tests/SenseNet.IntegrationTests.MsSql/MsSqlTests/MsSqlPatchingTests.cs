@@ -28,7 +28,7 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
             var loggerAcc = new TypeAccessor(typeof(SenseNet.Packaging.Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            using (var ctx = new MsSqlDataContext(Platform.RepositoryConnectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(Platform.RepositoryConnectionString, DataOptions.GetLegacyConfiguration(), null, CancellationToken.None))
             {
                 DropPackagesTable(ctx);
                 InstallPackagesTable(ctx);

@@ -29,6 +29,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
+using System.Net.Http;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
 // ReSharper disable ArrangeThisQualifier
@@ -79,14 +80,14 @@ namespace SenseNet.OData
 
         private readonly RequestDelegate _next;
         private readonly IConfiguration _appConfig;
-        private readonly HttpRequestOptions _requestOptions;
+        private readonly SenseNet.Services.Core.Configuration.HttpRequestOptions _requestOptions;
 
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next, IConfiguration config, IOptions<HttpRequestOptions> requestOptions)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config, IOptions<SenseNet.Services.Core.Configuration.HttpRequestOptions> requestOptions)
         {
             _next = next;
             _appConfig = config;
-            _requestOptions = requestOptions?.Value ?? new HttpRequestOptions();
+            _requestOptions = requestOptions?.Value ?? new SenseNet.Services.Core.Configuration.HttpRequestOptions();
         }
 
         public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
@@ -295,80 +296,73 @@ namespace SenseNet.OData
                         break;
                 }
             }
-            catch (ContentNotFoundException e)
-            {
-                var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
-            catch (ODataException e)
-            {
-                if (e.HttpStatusCode == 500)
-                    SnLog.WriteException(e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, e)
-                    .ConfigureAwait(false);
-            }
-            catch (AccessDeniedException e)
-            {
-                var oe = new ODataException(ODataExceptionCode.Forbidden, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                var oe = new ODataException(ODataExceptionCode.Unauthorized, e);
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
-            catch (SenseNetSecurityException e)
-            {
-                // In case of a visitor we should not expose the information that this content actually exists. We return
-                // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
-                // really does not exist. But do this only if the visitor really does not have permission for the
-                // requested content (because security exception could be thrown by an action or something else too).
-                if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
-                {
-                    var head = NodeHead.Get(odataRequest.RepositoryPath);
-                    if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
-                    {
-                        ContentNotFound(httpContext);
-                        return;
-                    }
-                }
-
-                var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
-
-                SnLog.WriteException(oe);
-
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
-            catch (InvalidContentActionException ex)
-            {
-                var oe = new ODataException(ODataExceptionCode.NotSpecified, ex);
-                if (ex.Reason != InvalidContentActionReason.NotSpecified)
-                    oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
-
-                // it is unnecessary to log this exception as this is not a real error
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
-            catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
-            {
-                var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
-
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
-                    .ConfigureAwait(false);
-            }
             catch (Exception ex)
             {
-                var oe = new ODataException(ODataExceptionCode.NotSpecified, ex);
-
-                SnLog.WriteException(oe);
-
+                var oe = HandleException(ex, odataRequest, httpContext);
+                if (oe == null)
+                    return;
                 await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
                     .ConfigureAwait(false);
             }
+        }
+
+        private ODataException HandleException(Exception e, ODataRequest odataRequest, HttpContext httpContext)
+        {
+            switch (e)
+            {
+                case TargetInvocationException targetInvocationException:
+                    return targetInvocationException.InnerException == null
+                        ? new ODataException(ODataExceptionCode.NotSpecified, targetInvocationException)
+                        : HandleException(targetInvocationException.InnerException, odataRequest, httpContext);
+                case ODataException oDataException:
+                {
+                    if (oDataException.HttpStatusCode == 500)
+                        SnLog.WriteException(e);
+                    return oDataException;
+                }
+                case ContentNotFoundException _:
+                    return new ODataException(ODataExceptionCode.ResourceNotFound, e);
+                case AccessDeniedException _:
+                    return new ODataException(ODataExceptionCode.Forbidden, e);
+                case UnauthorizedAccessException _:
+                    return new ODataException(ODataExceptionCode.Unauthorized, e);
+                case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
+                    return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
+                case SenseNetSecurityException _:
+                {
+                    // In case of a visitor we should not expose the information that this content actually exists. We return
+                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
+                    // really does not exist. But do this only if the visitor really does not have permission for the
+                    // requested content (because security exception could be thrown by an action or something else too).
+                    if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
+                    {
+                        var head = NodeHead.Get(odataRequest.RepositoryPath);
+                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
+                        {
+                            ContentNotFound(httpContext);
+                            return null;
+                        }
+                    }
+
+                    var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
+                    SnLog.WriteException(oe);
+                    return oe;
+                }
+                case InvalidContentActionException invalidContentActionException:
+                {
+                    var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
+                    if (invalidContentActionException.Reason != InvalidContentActionReason.NotSpecified)
+                        oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), invalidContentActionException.Reason);
+
+                    // it is unnecessary to log this exception as this is not a real error
+                    return oe;
+                }
+            }
+
+            // General error handling
+            var generalError = new ODataException(ODataExceptionCode.NotSpecified, e);
+            SnLog.WriteException(generalError);
+            return generalError;
         }
 
         /* =================================================================================== */
@@ -543,7 +537,10 @@ namespace SenseNet.OData
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
-            var parent = Node.Load<GenericContent>(parentPath);
+            var parent = Tools.Retrier.Retry(5, 2000,
+                () => Node.Load<GenericContent>(parentPath),
+                (node, _, _) => node != null);
+
             if (parent == null)
                 throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
 

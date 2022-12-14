@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
+using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable AccessToModifiedClosure
 
@@ -26,6 +28,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public class BuiltInBlobProvider : IBuiltInBlobProvider
     {
+        private readonly IRetrier _retrier;
+
         protected DataOptions DataOptions { get; }
         // Do not make readonly this field because tests write her.
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
@@ -37,8 +41,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         // Ideally blob provider instances should not need a backreference to BlobStorage.
         public IBlobStorage BlobStorage { get; set; }
 
-        public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions)
+        public BuiltInBlobProvider(IOptions<DataOptions> options, IOptions<ConnectionStringOptions> connectionOptions, IRetrier retrier)
         {
+            _retrier = retrier;
             DataOptions = options?.Value ?? new DataOptions();
             _connectionString = connectionOptions?.Value.Repository;
         }
@@ -88,24 +93,29 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             // binary values bigger than [Int32.MaxValue].
             var bufferSize = Convert.ToInt32(stream.Length);
 
-            var buffer = new byte[bufferSize];
-            if (bufferSize > 0)
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
+                "UpdateStream: FileId: {0}, length: {1}.", context.FileId, bufferSize))
             {
-                // Read bytes from the source
-                stream.Seek(0, SeekOrigin.Begin);
-                stream.Read(buffer, 0, bufferSize);
-            }
-
-            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
-            {
-                ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+                var buffer = new byte[bufferSize];
+                if (bufferSize > 0)
                 {
-                    cmd.Parameters.AddRange(new[]
+                    // Read bytes from the source
+                    stream.Seek(0, SeekOrigin.Begin);
+                    stream.Read(buffer, 0, bufferSize);
+                }
+
+                using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, CancellationToken.None))
+                {
+                    ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                     {
-                        ctx.CreateParameter("@Id", SqlDbType.Int, context.FileId),
-                        ctx.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
-                    });
-                }).GetAwaiter().GetResult();
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@Id", SqlDbType.Int, context.FileId),
+                            ctx.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
+                        });
+                    }).GetAwaiter().GetResult();
+                }
+                op.Successful = true;
             }
         }
         public static async Task UpdateStreamAsync(BlobStorageContext context, Stream stream, MsSqlDataContext dataContext)
@@ -114,22 +124,27 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             // binary values bigger than [Int32.MaxValue].
             var bufferSize = Convert.ToInt32(stream.Length);
 
-            var buffer = new byte[bufferSize];
-            if (bufferSize > 0)
+            using (var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
+                "UpdateStreamAsync: FileId: {0}, length: {1}.", context.FileId, bufferSize))
             {
-                // Read bytes from the source
-                stream.Seek(0, SeekOrigin.Begin);
-                stream.Read(buffer, 0, bufferSize);
-            }
-
-            await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
-            {
-                cmd.Parameters.AddRange(new[]
+                var buffer = new byte[bufferSize];
+                if (bufferSize > 0)
                 {
-                    dataContext.CreateParameter("@Id", SqlDbType.Int, context.FileId),
-                    dataContext.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
-                });
-            }).ConfigureAwait(false);
+                    // Read bytes from the source
+                    stream.Seek(0, SeekOrigin.Begin);
+                    stream.Read(buffer, 0, bufferSize);
+                }
+
+                await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        dataContext.CreateParameter("@Id", SqlDbType.Int, context.FileId),
+                        dataContext.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
+                    });
+                }).ConfigureAwait(false);
+                op.Successful = true;
+            }
         }
 
         /// <inheritdoc />
@@ -175,18 +190,21 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         public byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, CancellationToken.None))
+            using var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
+                "ReadRandom: FileId: {0}, offset: {1}, count: {2}", context.FileId, offset, count);
+            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, CancellationToken.None);
+            var result = (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
             {
-                return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
-                        ctx.CreateParameter("@Position", SqlDbType.BigInt, offset + 1),
-                        ctx.CreateParameter("@Count", SqlDbType.Int, count),
-                    });
-                }).GetAwaiter().GetResult();
-            }
+                    ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
+                    ctx.CreateParameter("@Position", SqlDbType.BigInt, offset + 1),
+                    ctx.CreateParameter("@Count", SqlDbType.Int, count),
+                });
+            }).GetAwaiter().GetResult();
+            op.Successful = true;
+
+            return result;
         }
 
         #region UpdateStreamWriteChunkScript
@@ -206,20 +224,22 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionString, DataOptions, cancellationToken))
+            using var op = SnTrace.Database.StartOperation("BuiltInBlobProvider: " +
+                "WriteAsync: FileId: {0}, VersionId: {1}, PropertyTypeId: {2}, offset: {3}, buffer length: {4}",
+                context.FileId, context.VersionId, context.PropertyTypeId, offset, buffer.Length);
+            using var ctx = new MsSqlDataContext(_connectionString, DataOptions, _retrier, cancellationToken);
+            await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
-                        ctx.CreateParameter("@VersionId", SqlDbType.Int, context.VersionId),
-                        ctx.CreateParameter("@PropertyTypeId", SqlDbType.Int, context.PropertyTypeId),
-                        ctx.CreateParameter("@Data", SqlDbType.VarBinary, buffer),
-                        ctx.CreateParameter("@Offset", SqlDbType.BigInt, offset),
-                    });
-                }).ConfigureAwait(false);
-            }
+                    ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
+                    ctx.CreateParameter("@VersionId", SqlDbType.Int, context.VersionId),
+                    ctx.CreateParameter("@PropertyTypeId", SqlDbType.Int, context.PropertyTypeId),
+                    ctx.CreateParameter("@Data", SqlDbType.VarBinary, buffer),
+                    ctx.CreateParameter("@Offset", SqlDbType.BigInt, offset),
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /// <summary>

@@ -851,25 +851,19 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                // MembershipExtenderRecursionGuard: this pattern helps to avoid infinity recursion.
                 if (_membershipExtension == null || _membershipExtension == MembershipExtension.Placeholder)
                 {
                     var called = GetCachedData(MembershipExtensionCallingKey) != null;
                     if (called)
-                    {
-                        SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
                         return MembershipExtension.Placeholder;
-                    }
 
-                    using (var op = SnTrace.Security.StartOperation("MembershipExtenderRecursionGuard activation. Path: {0}", Path))
-                    {
-                        SetCachedData(MembershipExtensionCallingKey, true);
+                    SetCachedData(MembershipExtensionCallingKey, true);
 
-                        // this method calls the setter of this property, filling the member variable
-                        MembershipExtenderBase.Extend(this);
+                    // this method calls the setter of this property, filling the member variable
+                    MembershipExtenderBase.Extend(this);
 
-                        SetCachedData(MembershipExtensionCallingKey, null);
-                        op.Successful = true;
-                    }
+                    SetCachedData(MembershipExtensionCallingKey, null);
                 }
 
                 return _membershipExtension;

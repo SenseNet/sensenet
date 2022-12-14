@@ -38,7 +38,7 @@ namespace SenseNet.IntegrationTests.MsSql.Platforms
             string blobProviderData = null;
             byte[] buffer = null;
 
-            using (var ctx = new MsSqlDataContext(RepositoryConnectionString, new DataOptions(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(RepositoryConnectionString, new DataOptions(), null, CancellationToken.None))
             {
                 var script = "SELECT BlobProvider, BlobProviderData, [Stream] FROM Files WHERE FileId = @FileId";
                 var _ = await ctx.ExecuteReaderAsync(script, cmd =>

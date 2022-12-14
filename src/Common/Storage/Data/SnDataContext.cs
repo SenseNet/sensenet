@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 using IsolationLevel = System.Data.IsolationLevel;
 
 // ReSharper disable once CheckNamespace
@@ -15,6 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         private DbConnection _connection;
         private TransactionWrapper _transaction;
+        private readonly IRetrier _retrier;
         private readonly CancellationToken _cancellationToken;
         protected DataOptions DataOptions { get; }
 
@@ -30,11 +35,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public bool NeedToCleanupFiles { get; set; }
 
         [Obsolete("Use the constructor that expects data options instead.", true)]
-        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), cancellationToken)
+        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), 
+            new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance), cancellationToken)
         {
         }
-        protected SnDataContext(DataOptions options, CancellationToken cancel = default)
+        protected SnDataContext(DataOptions options, IRetrier retrier, CancellationToken cancel = default)
         {
+            _retrier = retrier ?? new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance);
             _cancellationToken = cancel;
             DataOptions = options ?? new DataOptions();
         }
@@ -74,6 +81,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected DbConnection OpenConnection()
         {
+            if (_connection?.State == ConnectionState.Closed || _connection?.State == ConnectionState.Broken)
+            {
+                _connection.Dispose();
+                _connection = null;
+            }
             if (_connection == null)
             {
                 _connection = CreateConnection();
@@ -85,15 +97,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
             TimeSpan timeout = default)
         {
-            var transaction = OpenConnection().BeginTransaction(isolationLevel);
-            _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
+            _transaction = RetryAsync(() =>
+            {
+                SnTrace.Database.Write($"SnDataContext: BeginTransaction.");
+                var transaction = OpenConnection().BeginTransaction(isolationLevel);
+                var wrappedTransaction = WrapTransaction(transaction, _cancellationToken, timeout)
+                               ?? new TransactionWrapper(transaction, DataOptions, timeout, _cancellationToken);
+                return Task.FromResult(wrappedTransaction);
+
+            }, CancellationToken.None).GetAwaiter().GetResult();
+            
             return _transaction;
         }
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
+            var nonQueryResult = await RetryAsync(async () =>
             {
                 using (var cmd = CreateCommand())
                 {
@@ -109,15 +128,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    op.Successful = true;
                     return result;
                 }
-            }
+            }, _transaction?.CancellationToken ?? _cancellationToken);
+
+            return nonQueryResult;
         }
 
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
+            var scalarResult = await RetryAsync(async () =>
             {
                 using (var cmd = CreateCommand())
                 {
@@ -133,55 +153,78 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    op.Successful = true;
                     return result;
                 }
-            }
+            }, _transaction?.CancellationToken ?? _cancellationToken);
+
+            return scalarResult;
         }
 
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, CancellationToken, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
         }
+
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
+            var readerResult = await RetryAsync(async () =>
             {
-                try
+                using (var cmd = CreateCommand())
                 {
-                    using (var cmd = CreateCommand())
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = DataOptions.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
+
+                    setParams?.Invoke(cmd);
+
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        cmd.Connection = OpenConnection();
-                        cmd.CommandTimeout = DataOptions.DbCommandTimeout;
-                        cmd.CommandText = script;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Transaction = _transaction?.Transaction;
-
-                        setParams?.Invoke(cmd);
-
-                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
-                            op.Successful = true;
-                            return result;
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
+                        return result;
                     }
                 }
-                catch (Exception e)
-                {
-                    SnTrace.WriteError(e.ToString());
-                    throw;
-                }
-            }
+            }, _transaction?.CancellationToken ?? _cancellationToken);
+
+            return readerResult;
+        }
+
+        internal static bool ShouldRetryOnError(Exception ex)
+        {
+            //TODO: generalize the expression by relying on error codes instead of hardcoded message texts
+            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
+                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
         }
 
         protected string GetOperationMessage(string name, string script)
         {
             const int maxLength = 80;
             return $"{this.GetType().Name}.{name}: {(script.Length < maxLength ? script : script.Substring(0, maxLength))}";
+        }
+        
+        public Task RetryAsync(Func<Task> action, CancellationToken cancel)
+        {
+            return RetryAsync<object>(async () =>
+            {
+                await action().ConfigureAwait(false);
+                return null;
+            }, cancel);
+        }
+        public Task<T> RetryAsync<T>(Func<Task<T>> action, CancellationToken cancel)
+        {
+            return _retrier.RetryAsync(action,
+                shouldRetryOnError: (ex, _) => ShouldRetryOnError(ex),
+                onAfterLastIteration: (_, ex, i) =>
+                {
+                    SnTrace.Database.WriteError(
+                        $"Data layer error: {ex.Message}. Retry cycle ended after {i} iterations.");
+                    throw new InvalidOperationException("Data layer timeout occurred.", ex);
+                },
+                cancel: cancel);
         }
     }
 }

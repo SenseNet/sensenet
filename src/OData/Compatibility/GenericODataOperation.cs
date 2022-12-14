@@ -92,17 +92,7 @@ namespace SenseNet.ApplicationModel
             p[0] = content;
             Array.Copy(parameters, 0, p, 1, parameters.Length);
 
-            try
-            {
-                return _method.Invoke(null, p);
-            }
-            catch (TargetInvocationException ex)
-            {
-                if (ex.InnerException != null)
-                    throw ex.InnerException;
-
-                throw;
-            }
+            return _method.Invoke(null, p);
         }
     }
 }

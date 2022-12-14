@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
@@ -14,6 +15,7 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         private readonly DataOptions _dataOptions;
         private readonly ConnectionStringOptions _connectionStrings;
+        private readonly IRetrier _retrier;
 
         private SnTrace.SnTraceCategory __tracer;
         internal SnTrace.SnTraceCategory Tracer
@@ -29,21 +31,26 @@ namespace SenseNet.Packaging.Steps.Internal
             }
         }
 
-        public ReindexBinariesDataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings)
+        public ReindexBinariesDataHandler(DataOptions dataOptions, ConnectionStringOptions connectionStrings, IRetrier retrier)
         {
             _dataOptions = dataOptions;
             _connectionStrings = connectionStrings;
+            _retrier = retrier;
         }
 
         internal void InstallTables(CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: InstallTables()");
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
+            op.Successful = true;
         }
         internal void StartBackgroundTasks(CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: StartBackgroundTasks()");
+            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken))
                 ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
+            op.Successful = true;
         }
 
         internal class AssignedTaskResult
@@ -54,101 +61,117 @@ namespace SenseNet.Packaging.Steps.Internal
         internal AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
         {
             var result = new List<int>();
-            int remainingTasks = 0;
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            var remainingTasks = 0;
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
+                "AssignTasks(taskCount: {0}, timeoutInMinutes: {1})", taskCount, timeoutInMinutes);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
             {
-                ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
-                {
-                    cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
-                    cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
-                }, async (reader, cancel) =>
-                {
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                        result.Add(reader.GetInt32(0));
-                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
+                cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
+            }, async (reader, cancel) =>
+            {
+                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    result.Add(reader.GetInt32(0));
+                await reader.NextResultAsync(cancel).ConfigureAwait(false);
 
-                    await reader.ReadAsync(cancel).ConfigureAwait(false);
-                    remainingTasks = reader.GetInt32(0);
+                await reader.ReadAsync(cancel).ConfigureAwait(false);
+                remainingTasks = reader.GetInt32(0);
 
-                    return Task.FromResult(0);
-                }).GetAwaiter().GetResult();
-            }
+                return Task.FromResult(0);
+            }).GetAwaiter().GetResult();
+            op.Successful = true;
 
             return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
         }
 
         internal void FinishTask(int versionId, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
-                ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
-                {
-                    cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                }).GetAwaiter().GetResult();
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
+                "FinishTask(versionId: {0})", versionId);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+            {
+                cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+            }).GetAwaiter().GetResult();
+            op.Successful = true;
         }
 
         /* ========================================================================================= */
 
         public void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
-                ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
-                {
-                    cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                    cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
-                }).GetAwaiter().GetResult();
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: " +
+                "CreateTempTask(versionId: {0}, rank: {1})", versionId, rank);
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+            {
+                cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
+            }).GetAwaiter().GetResult();
+            op.Successful = true;
         }
 
         public List<int> GetAllNodeIds(CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: GetAllNodeIds()");
+
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            var result = ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
             {
-                return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
-                {
-                    var result = new List<int>();
-                    while (reader.Read())
-                        result.Add(reader.GetInt32(0));
-                    return Task.FromResult(result);
-                }).GetAwaiter().GetResult();
-            }
+                var dbResult = new List<int>();
+                while (reader.Read())
+                    dbResult.Add(reader.GetInt32(0));
+                return Task.FromResult(dbResult);
+            }).GetAwaiter().GetResult();
+            op.Successful = true;
+
+            return result;
         }
 
         public void DropTables(CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
-                ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: DropTables()");
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
+            op.Successful = true;
         }
 
         public bool CheckFeature(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: CheckFeature()");
             try
             {
-                using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
-                {
-                    var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
-                    return Convert.ToInt32(result) != 0;
-                }
+                using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+                var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
+                op.Successful = true;
+                return Convert.ToInt32(result) != 0;
             }
             catch (AggregateException ae)
             {
                 if (ae.InnerException is NotSupportedException)
+                {
+                    op.Successful = true;
                     return false;
+                }
                 throw;
             }
             catch (NotSupportedException)
             {
+                op.Successful = true;
                 return false;
             }
         }
 
         public DateTime LoadTimeLimit(CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, cancellationToken))
-            {
-                var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
-                var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
-                Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
-                return timeLimit;
-            }
+            using var op = SnTrace.Database.StartOperation("ReindexBinariesDataHandler: LoadTimeLimit()");
+            using var ctx = new MsSqlDataContext(_connectionStrings.Repository, _dataOptions, _retrier, cancellationToken);
+            var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
+            var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
+            Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
+            op.Successful = true;
+            return timeLimit;
         }
 
         #region private static class SqlScripts

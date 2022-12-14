@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.Packaging.Steps.Internal
 {
@@ -72,8 +73,12 @@ END
             var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo, context.ConnectionStrings)
                                    ?? context.ConnectionStrings.Repository;
 
+            using var op = SnTrace.Database.StartOperation(() => "CheckDatabaseConnection: " +
+                $"ExecuteSql: {script.ToTrace()}");
+
             //TODO: [DIREF] get options from DI through constructor
-            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(), CancellationToken.None))
+            using (var ctx = new MsSqlDataContext(connectionString, DataOptions.GetLegacyConfiguration(),
+                       GetService<IRetrier>(), CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                 {
@@ -90,6 +95,7 @@ END
                     return Task.FromResult(0);
                 }).GetAwaiter().GetResult();
             }
+            op.Successful = true;
         }
     }
 }

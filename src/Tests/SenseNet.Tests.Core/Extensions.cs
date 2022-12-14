@@ -23,8 +23,9 @@ namespace SenseNet.Tests.Core
         }
         private static void StartTestPrivate(TestContext testContext, bool reusesRepository)
         {
+SnTrace.Database.Enabled = true;
             testContext.Properties["ReusesRepository"] = reusesRepository;
-            using (new Swindler<bool>(false, () => SnTrace.Event.Enabled, x => SnTrace.Event.Enabled = x))
+//using (new Swindler<bool>(false, () => SnTrace.Event.Enabled, x => SnTrace.Event.Enabled = x))
             using (new Swindler<bool>(true, () => SnTrace.Test.Enabled, x => SnTrace.Test.Enabled = x))
                 testContext.Properties["SnTrace.Operation"] =
                     SnTrace.Test.StartOperation($"TESTMETHOD: {testContext.FullyQualifiedTestClassName}.{testContext.TestName}" );

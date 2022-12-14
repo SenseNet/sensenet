@@ -5,6 +5,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 // ReSharper disable CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
@@ -41,7 +42,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             Tracer.Write("Phase-0: Initializing.");
 
-            _dataHandler = new ReindexBinariesDataHandler(DataOptions.GetLegacyConfiguration(), context.ConnectionStrings);
+            _dataHandler = new ReindexBinariesDataHandler(DataOptions.GetLegacyConfiguration(), context.ConnectionStrings, GetService<IRetrier>());
             _dataHandler.InstallTables(_cancel);
 
             using (var op = Tracer.StartOperation("Phase-1: Reindex metadata."))

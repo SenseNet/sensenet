@@ -22,7 +22,10 @@ namespace SenseNet.Extensions.DependencyInjection
             
             services.AddSenseNetBlobProvider<BuiltInBlobProvider>();
             services.AddSingleton<IBlobProviderSelector, BuiltInBlobProviderSelector>();
-            
+
+            services.AddLogging();
+            services.AddSenseNetRetrier();
+
             // default implementation is MS SQL
             services.AddSenseNetBlobStorageMetaDataProvider<MsSqlBlobMetaDataProvider>();
 

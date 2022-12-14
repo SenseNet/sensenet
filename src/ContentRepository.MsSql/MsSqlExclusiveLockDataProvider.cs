@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using STT=System.Threading.Tasks;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 
 // ReSharper disable ConvertToUsingDeclaration
 
@@ -44,101 +45,102 @@ WHERE [Name] = @Name AND [OperationId] IS NOT NULL AND [TimeLimit] > GETUTCDATE(
         public async STT.Task<bool> AcquireAsync(string key, string operationId, DateTime timeLimit,
             CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: AcquireAsync {key} #{operationId}");
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: " +
+                "Acquire(key: {0}, operationId: {1}, timeLimit: {2:yyyy-MM-dd HH:mm:ss.fffff})", key, operationId, timeLimit);
+
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(AcquireScript, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(AcquireScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        // ReSharper disable thrice AccessToDisposedClosure
-                        ctx.CreateParameter("@Name", DbType.String, key),
-                        ctx.CreateParameter("@OperationId", DbType.String, operationId),
-                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
-                    });
-                }).ConfigureAwait(false);
-                Trace.WriteLine($"SnTrace: DATA:  END: AcquireAsync: {key} #{operationId} " +
-                                $"{(result == null ? "[null]" : "ACQUIRED " + result)}");
-                return result != DBNull.Value && result != null;
-            }
+                    // ReSharper disable thrice AccessToDisposedClosure
+                    ctx.CreateParameter("@Name", DbType.String, key),
+                    ctx.CreateParameter("@OperationId", DbType.String, operationId),
+                    ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                });
+            }).ConfigureAwait(false);
+            SnTrace.Database.Write($"MsSqlExclusiveLockDataProvider: Acquire result: {{0}}", result == null ? "[null]" : "ACQUIRED " + result);
+            op.Successful = true;
+
+            return result != DBNull.Value && result != null;
         }
 
         /// <inheritdoc/>
         public async STT.Task RefreshAsync(string key, string operationId, DateTime newTimeLimit,
             CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: RefreshAsync {key} #{operationId}");
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteNonQueryAsync(RefreshScript,
-                    cmd =>
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: " +
+                "Refresh(key: {0}, operationId: {1}, newTimeLimit: {2:yyyy-MM-dd HH:mm:ss.fffff})",
+                key, operationId, newTimeLimit);
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync(RefreshScript,
+                cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
                     {
-                        cmd.Parameters.AddRange(new[]
-                        {
-                            ctx.CreateParameter("@Name", DbType.String, key),
-                            ctx.CreateParameter("@TimeLimit", DbType.DateTime2, newTimeLimit)
-                        });
-                    }).ConfigureAwait(false);
-            }
-            Trace.WriteLine($"SnTrace: DATA:  END: RefreshAsync {key} #{operationId}");
+                        ctx.CreateParameter("@Name", DbType.String, key),
+                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, newTimeLimit)
+                    });
+                }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /// <inheritdoc/>
         public async STT.Task ReleaseAsync(string key, string operationId, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: ReleaseAsync {key} #{operationId}");
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: " +
+                "Refresh(key: {0}, operationId: {1}", key, operationId);
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteNonQueryAsync(ReleaseScript, cmd =>
             {
-                await ctx.ExecuteNonQueryAsync(ReleaseScript,
-                    cmd =>
-                    {
-                        cmd.Parameters.AddRange(new[]
-                        {
-                            ctx.CreateParameter("@Name", DbType.String, key)
-                        });
-                    }).ConfigureAwait(false);
-            }
-            Trace.WriteLine($"SnTrace: DATA:  END: ReleaseAsync {key} #{operationId}");
+                cmd.Parameters.AddRange(new[]
+                {
+                    ctx.CreateParameter("@Name", DbType.String, key)
+                });
+            }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /// <inheritdoc/>
         public async STT.Task<bool> IsLockedAsync(string key, string operationId, CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: IsLockedAsync {key} #{operationId}");
-            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
-            {
-                var result = await ctx.ExecuteScalarAsync(IsLockedScript,
-                    cmd =>
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: " +
+                "IsLocked(key: {0}, operationId: {1}", key, operationId);
+            using var ctx = MainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(IsLockedScript,
+                cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
                     {
-                        cmd.Parameters.AddRange(new[]
-                        {
-                            ctx.CreateParameter("@Name", DbType.String, key)
-                        });
-                    }).ConfigureAwait(false);
+                        ctx.CreateParameter("@Name", DbType.String, key)
+                    });
+                }).ConfigureAwait(false);
 
-                Trace.WriteLine($"SnTrace: DATA:  END: IsLockedAsync {key} #{operationId}: {(result == null || result == DBNull.Value ? "[null]" : "LOCKED")}");
-                return result != DBNull.Value && result != null;
-            }
+            SnTrace.Database.Write("MsSqlExclusiveLockDataProvider: IsLocked result: {0}",
+                result == null || result == DBNull.Value ? "[null]" : "LOCKED");
+            op.Successful = true;
+            return result != DBNull.Value && result != null;
         }
 
         /// <inheritdoc/>
         public async STT.Task<bool> IsFeatureAvailable(CancellationToken cancellationToken)
         {
-            Trace.WriteLine($"SnTrace: DATA: START: IsFeatureAvailable");
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: IsFeatureAvailable()");
             using var ctx = MainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(
-                "IF OBJECT_ID('ExclusiveLocks', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0")
+                    "IF OBJECT_ID('ExclusiveLocks', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0")
                 .ConfigureAwait(false);
-
-            Trace.WriteLine($"SnTrace: DATA:  END: IsFeatureAvailable");
+            op.Successful = true;
             return 1 == (result == DBNull.Value ? 0 : (int)result);
         }
 
         /// <inheritdoc/>
         public async STT.Task ReleaseAllAsync(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlExclusiveLockDataProvider: ReleaseAll()");
             using var ctx = MainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("DELETE FROM ExclusiveLocks").ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /* ====================================================================================== INSTALLATION SCRIPTS */

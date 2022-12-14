@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using STT=System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Diagnostics;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -46,38 +47,38 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
-                    async (reader, cancel) =>
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: LoadInstalledComponents()");
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteReaderAsync(InstalledComponentsScript,
+                async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+
+                        var component = new ComponentInfo
                         {
-                            cancel.ThrowIfCancellationRequested();
+                            ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                            Version = DecodePackageVersion(
+                                reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                            Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                            Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
+                            ExecutionResult = ExecutionResult.Successful
+                        };
 
-                            var component = new ComponentInfo
-                            {
-                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
-                                Version = DecodePackageVersion(
-                                    reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
-                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
-                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
-                                ExecutionResult = ExecutionResult.Successful
-                            };
+                        components[component.ComponentId] = component;
+                        if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
+                            == nameof(PackageType.Install))
+                            descriptions[component.ComponentId] = component.Description;
+                    }
 
-                            components[component.ComponentId] = component;
-                            if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
-                                == nameof(PackageType.Install))
-                                descriptions[component.ComponentId] = component.Description;
-                        }
-
-                        return true;
-                    }).ConfigureAwait(false);
-            }
+                    return true;
+                }).ConfigureAwait(false);
 
             foreach (var item in descriptions)
                 components[item.Key].Description = item.Value;
+            op.Successful = true;
 
             return components.Values.ToArray();
         }
@@ -99,43 +100,43 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
             var components = new Dictionary<string, ComponentInfo>();
             var descriptions = new Dictionary<string, string>();
 
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
-            {
-                await ctx.ExecuteReaderAsync(IncompleteComponentsScript,
-                    async (reader, cancel) =>
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: LoadIncompleteComponents()");
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            await ctx.ExecuteReaderAsync(IncompleteComponentsScript,
+                async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+
+                        var src = reader.GetSafeString(reader.GetOrdinal("ExecutionResult"));
+                        var executionResult = src == null
+                            ? ExecutionResult.Unfinished
+                            : (ExecutionResult) Enum.Parse(typeof(ExecutionResult), src);
+
+                        var component = new ComponentInfo
                         {
-                            cancel.ThrowIfCancellationRequested();
+                            ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                            Version = DecodePackageVersion(
+                                reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                            Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                            Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
+                            ExecutionResult = executionResult
+                        };
 
-                            var src = reader.GetSafeString(reader.GetOrdinal("ExecutionResult"));
-                            var executionResult = src == null
-                                ? ExecutionResult.Unfinished
-                                : (ExecutionResult) Enum.Parse(typeof(ExecutionResult), src);
+                        components[component.ComponentId] = component;
+                        if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
+                            == nameof(PackageType.Install))
+                            descriptions[component.ComponentId] = component.Description;
+                    }
 
-                            var component = new ComponentInfo
-                            {
-                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
-                                Version = DecodePackageVersion(
-                                    reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
-                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
-                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest")),
-                                ExecutionResult = executionResult
-                            };
-
-                            components[component.ComponentId] = component;
-                            if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
-                                == nameof(PackageType.Install))
-                                descriptions[component.ComponentId] = component.Description;
-                        }
-
-                        return true;
-                    }).ConfigureAwait(false);
-            }
+                    return true;
+                }).ConfigureAwait(false);
 
             foreach (var item in descriptions)
                 components[item.Key].Description = item.Value;
+            op.Successful = true;
 
             return components.Values.ToArray();
         }
@@ -144,6 +145,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         {
             var packages = new List<Package>();
 
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: LoadInstalledPackages()");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                 async (reader, cancel) =>
@@ -174,6 +176,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
 
                     return true;
                 }).ConfigureAwait(false);
+            op.Successful = true;
 
             return packages;
         }
@@ -186,8 +189,11 @@ SELECT @@IDENTITY";
         #endregion
         public async STT.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
         {
-            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: " +
+                "SavePackage: ComponentId: {0}, ComponentVersion: {1}, ExecutionResult: {2}",
+                package.ComponentId, package.ComponentVersion, package.ExecutionResult);
 
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -211,6 +217,7 @@ SELECT @@IDENTITY";
             }).ConfigureAwait(false);
 
             package.Id = Convert.ToInt32(result);
+            op.Successful = true;
         }
 
         #region SQL UpdatePackageScript
@@ -228,6 +235,10 @@ WHERE Id = @Id
         #endregion
         public async STT.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: " +
+                "UpdatePackage: ComponentId: {0}, ComponentVersion: {1}, ExecutionResult: {2}",
+                package.ComponentId, package.ComponentVersion, package.ExecutionResult);
+
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
             {
@@ -251,6 +262,7 @@ WHERE Id = @Id
                             : (object) EncodePackageVersion(package.ComponentVersion))
                 });
             }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         #region SQL PackageExistenceScript
@@ -261,21 +273,20 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         public async STT.Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version
             , CancellationToken cancellationToken)
         {
-            int count;
-            using (var ctx = _mainProvider.CreateDataContext(cancellationToken))
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: " +
+                "IsPackageExist(componentId: {0}, packageType: {1}, version: {2})", componentId, packageType, version);
+            using var ctx = _mainProvider.CreateDataContext(cancellationToken);
+            var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
             {
-                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50, (object)componentId ?? DBNull.Value),
-                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, packageType.ToString()),
-                        ctx.CreateParameter("@Version", DbType.AnsiString, 50, EncodePackageVersion(version))
-                    });
-                }).ConfigureAwait(false);
-
-                count = (int)result;
-            }
+                    ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50, (object)componentId ?? DBNull.Value),
+                    ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, packageType.ToString()),
+                    ctx.CreateParameter("@Version", DbType.AnsiString, 50, EncodePackageVersion(version))
+                });
+            }).ConfigureAwait(false);
+            var count = (int)result;
+            op.Successful = true;
 
             return count > 0;
         }
@@ -285,15 +296,20 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: " +
+                "DeletePackage: Id: {0}", package.Id);
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); }).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         public async STT.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: DeleteAllPackages()");
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages").ConfigureAwait(false);
+            op.Successful = true;
         }
 
         #region SQL LoadManifestScript
@@ -301,6 +317,9 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         #endregion
         public async STT.Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
         {
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider: " +
+                "LoadManifest: Id: {0}", package.Id);
+
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
             {
@@ -309,8 +328,9 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
                     ctx.CreateParameter("@Id", DbType.Int32, package.Id)
                 });
             }).ConfigureAwait(false);
-
             package.Manifest = (string)(result == DBNull.Value ? null : result);
+
+            op.Successful = true;
         }
 
         /* =============================================================================== Methods for Steps */
@@ -334,6 +354,9 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 " + whereClausePart + @"
 )
 ";
+            using var op = SnTrace.Database.StartOperation("MsSqlPackagingDataProvider:" +
+                " GetContentPathsWhereTheyAreAllowedChildren()");
+
             //TODO: [DIREF] get options from DI through constructor
             using var ctx = _mainProvider.CreateDataContext(CancellationToken.None);
             var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
@@ -346,6 +369,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                 }
                 return STT.Task.FromResult(0);
             }).GetAwaiter().GetResult();
+            op.Successful = true;
 
             return result;
         }
