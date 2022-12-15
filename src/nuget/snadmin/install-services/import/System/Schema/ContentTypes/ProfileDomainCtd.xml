@@ -6,6 +6,7 @@
   <AllowedChildTypes>
     UserProfile
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="Name" type="ShortText">
       <Configuration>

@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-ItemList,DisplayName</DisplayName>
   <Description>$Ctd-ItemList,Description</Description>
   <Icon>ContentList</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="Name" type="ShortText">
       <Configuration>

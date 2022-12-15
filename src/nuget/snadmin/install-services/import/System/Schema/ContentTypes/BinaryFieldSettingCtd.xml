@@ -2,5 +2,6 @@
 <ContentType name='BinaryFieldSetting' parentType='FieldSettingContent' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-BinaryFieldSetting,DisplayName</DisplayName>
   <Icon>FieldSetting</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>

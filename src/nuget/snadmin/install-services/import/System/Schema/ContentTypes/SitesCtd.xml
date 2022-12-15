@@ -6,5 +6,6 @@
   <AllowedChildTypes>
     Site
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

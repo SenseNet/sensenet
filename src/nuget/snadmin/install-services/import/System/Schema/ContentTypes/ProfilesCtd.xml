@@ -6,5 +6,6 @@
   <AllowedChildTypes>
     ProfileDomain
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

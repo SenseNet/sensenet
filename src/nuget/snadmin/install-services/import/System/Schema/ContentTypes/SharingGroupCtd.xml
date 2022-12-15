@@ -2,6 +2,7 @@
 <ContentType name="SharingGroup" parentType="Group" handler="SenseNet.ContentRepository.Group" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>SharingGroup</DisplayName>
   <Icon>Group</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="SharingIds" type="LongText">
       <Indexing>

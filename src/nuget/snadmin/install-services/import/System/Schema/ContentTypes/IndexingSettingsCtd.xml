@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-IndexingSettings,DisplayName</DisplayName>
   <Description>$Ctd-IndexingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="TextExtractorInstances" type="TextExtractors">
       <DisplayName>$Ctd-IndexingSettings,TextExtractorInstances-DisplayName</DisplayName>

@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-ListItem,DisplayName</DisplayName>
   <Description>$Ctd-ListItem,Description</Description>
   <Icon>FormItem</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="Name" type="ShortText">
       <Configuration>

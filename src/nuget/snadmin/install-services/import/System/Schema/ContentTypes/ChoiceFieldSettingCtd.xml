@@ -2,5 +2,6 @@
 <ContentType name='ChoiceFieldSetting' parentType='ShortTextFieldSetting' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-ChoiceFieldSetting,DisplayName</DisplayName>
   <Icon>addchoicefield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>
