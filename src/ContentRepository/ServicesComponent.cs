@@ -1393,7 +1393,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.4", "2021-12-14", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.5", "2021-12-14", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1414,6 +1414,17 @@ namespace SenseNet.ContentRepository
                     logger.LogTrace("Adding string resources...");
 
                     var rb = new ResourceBuilder();
+
+                    rb.Content("CtdResourcesAB.xml")
+                        .Class("Ctd")
+                        .Culture("en")
+                        .AddResource("Enum-Folder-PreviewEnabled-Inherited", "Inherited")
+                        .AddResource("Enum-Folder-PreviewEnabled-No", "No")
+                        .AddResource("Enum-Folder-PreviewEnabled-Yes", "Yes")
+                        .Culture("hu")
+                        .AddResource("Enum-Folder-PreviewEnabled-Inherited", "Örökölt")
+                        .AddResource("Enum-Folder-PreviewEnabled-No", "Nem")
+                        .AddResource("Enum-Folder-PreviewEnabled-Yes", "Igen");
 
                     rb.Content("CtdResourcesCD.xml")
                         .Class("Ctd-ContentType")

@@ -31,6 +31,15 @@
         <data name="Enum-Application-IncludeBackUrl-False" xml:space="preserve">
           <value>False</value>
         </data>
+        <data name="Enum-Folder-PreviewEnabled-Inherited" xml:space="preserve">
+          <value>Inherited</value>
+        </data>
+        <data name="Enum-Folder-PreviewEnabled-No" xml:space="preserve">
+          <value>No</value>
+        </data>
+        <data name="Enum-Folder-PreviewEnabled-Yes" xml:space="preserve">
+          <value>Yes</value>
+        </data>
         <data name="Enum-FieldSettingContent-DisplayChoices-DropDown" xml:space="preserve">
           <value>DropDown</value>
         </data>
@@ -149,6 +158,15 @@
         </data>
         <data name="Enum-Application-IncludeBackUrl-False" xml:space="preserve">
           <value>Nem</value>
+        </data>
+        <data name="Enum-Folder-PreviewEnabled-Inherited" xml:space="preserve">
+          <value>Örökölt</value>
+        </data>
+        <data name="Enum-Folder-PreviewEnabled-No" xml:space="preserve">
+          <value>Nem</value>
+        </data>
+        <data name="Enum-Folder-PreviewEnabled-Yes" xml:space="preserve">
+          <value>Igen</value>
         </data>
         <data name="Enum-FieldSettingContent-DisplayChoices-DropDown" xml:space="preserve">
           <value>Lenyíló menü</value>
