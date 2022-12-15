@@ -1393,7 +1393,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.3", "2021-09-22", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.27.4", "2021-12-14", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1510,12 +1510,28 @@ namespace SenseNet.ContentRepository
                             .Configure("AllowExtraValue", "false")
                             .Configure("Options", "<Enum type=\"SenseNet.ContentRepository.PreviewEnabled\"/>");
 
+                        // System ContentTypes
+                        foreach (var ctd in new[]
+                                 {
+                                     "BinaryFieldSetting", "ChoiceFieldSetting", "CurrencyFieldSetting", "DateTimeFieldSetting",
+                                     "Domains", "ExecutableFile", "FieldSettingContent", "GenericContent", "HyperLinkFieldSetting",
+                                     "IndexingSettings", "IntegerFieldSetting", "ItemList", "Library", "ListItem", "LoggingSettings",
+                                     "LongTextFieldSetting", "NullFieldSetting", "NumberFieldSetting", "PasswordFieldSetting",
+                                     "PermissionChoiceFieldSetting", "PortalRoot", "PreviewImage", "ProfileDomain", "Profiles",
+                                     "ReferenceFieldSetting", "Resources", "RuntimeContentContainer", "SharingGroup",
+                                     "ShortTextFieldSetting", "Sites", "SystemFile", "TextFieldSetting", "TrashBag", "TrashBin",
+                                     "UserProfile", "WebServiceApplication", "XmlFieldSetting", "YesNoFieldSetting"
+                                 })
+                            cb.Type(ctd).IsSystemType(true);
+
                         cb.Apply();
                     }
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, "Error during CTD changes.");
                     }
+
+
 
                     #endregion
 
