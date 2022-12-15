@@ -5,6 +5,7 @@
   <Icon>Image</Icon>
   <AllowIncrementalNaming>false</AllowIncrementalNaming>
   <AllowIndexing>false</AllowIndexing>
+  <SystemType>true</SystemType>
   <Fields>
   </Fields>
 </ContentType>

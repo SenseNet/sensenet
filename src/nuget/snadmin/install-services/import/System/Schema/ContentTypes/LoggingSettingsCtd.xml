@@ -2,5 +2,6 @@
   <DisplayName>$Ctd-LoggingSettings,DisplayName</DisplayName>
   <Description>$Ctd-LoggingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

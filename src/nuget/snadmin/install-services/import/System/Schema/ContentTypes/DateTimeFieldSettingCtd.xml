@@ -2,5 +2,6 @@
 <ContentType name="DateTimeFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-DateTimeFieldSetting,DisplayName</DisplayName>
   <Icon>adddatetimefield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>

@@ -6,5 +6,6 @@
   <AllowedChildTypes>
     Resource
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

@@ -2,5 +2,6 @@
 <ContentType name="YesNoFieldSetting" parentType="ChoiceFieldSetting" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-YesNoFieldSetting,DisplayName</DisplayName>
   <Icon>addyesnofield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>

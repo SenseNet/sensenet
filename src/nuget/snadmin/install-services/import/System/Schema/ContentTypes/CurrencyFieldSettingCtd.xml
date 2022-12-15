@@ -2,5 +2,6 @@
 <ContentType name="CurrencyFieldSetting" parentType="NumberFieldSetting" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-CurrencyFieldSetting,DisplayName</DisplayName>
   <Icon>addcurrencyfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>

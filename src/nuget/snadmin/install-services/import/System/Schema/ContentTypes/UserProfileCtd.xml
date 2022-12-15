@@ -6,6 +6,7 @@
   <AllowedChildTypes>
     Blog,DocumentLibrary,EventList,MemoList,LinkList,TaskList,ImageLibrary,Posts,CustomList
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name="IsWallContainer" type="Boolean">
       <Configuration>
