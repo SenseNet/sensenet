@@ -4,8 +4,8 @@
   <Description>$Ctd-PreviewImage,Description</Description>
   <Icon>Image</Icon>
   <AllowIncrementalNaming>false</AllowIncrementalNaming>
-  <AllowIndexing>false</AllowIndexing>
   <SystemType>true</SystemType>
+  <AllowIndexing>false</AllowIndexing>
   <Fields>
   </Fields>
 </ContentType>
