@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1393,7 +1392,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.27", "7.7.27.5", "2021-12-14", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.27", "7.7.28", "2021-12-16", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<ServicesComponent>>();
@@ -1456,6 +1455,8 @@ namespace SenseNet.ContentRepository
                         var setting = Node.Load<Settings>("/Root/System/Settings/Logging.settings");
                         if (setting != null)
                         {
+                            logger.LogTrace("Updating logging settings...");
+
                             using var readStream = setting.Binary.GetStream();
                             using var reader = new StreamReader(readStream);
                             var jText = reader.ReadToEnd();
@@ -1498,6 +1499,8 @@ namespace SenseNet.ContentRepository
 
                     try
                     {
+                        logger.LogTrace("Updating CTDs...");
+
                         var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
                         cb.Type("ContentType")
@@ -1541,8 +1544,6 @@ namespace SenseNet.ContentRepository
                     {
                         logger.LogWarning(ex, "Error during CTD changes.");
                     }
-
-
 
                     #endregion
 

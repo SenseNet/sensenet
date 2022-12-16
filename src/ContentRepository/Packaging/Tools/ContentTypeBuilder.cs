@@ -312,7 +312,7 @@ namespace SenseNet.Packaging.Tools
 
                 foreach (var fieldEditor in ctdBuilder.FieldEditors)
                 {
-                    EditField(ctdXml, fieldEditor);
+                    EditField(ctdXml, fieldEditor, ctdBuilder);
                 }
 
                 // apply changes
@@ -332,14 +332,20 @@ namespace SenseNet.Packaging.Tools
                 if (value == null) 
                     return;
 
+                _logger.LogTrace($"Setting property {propertyName} of content type {builder.ContentTypeName} " +
+                                 $"to {value.Substring(0, Math.Min(value.Length, 50))}");
+
                 var propertyElement = LoadOrAddChild(xDoc.DocumentElement, propertyName);
                 propertyElement.InnerXml = value;
             }
             void DeleteProperty(string propertyName)
             {
                 var propertyElement = LoadChild(xDoc.DocumentElement, propertyName);
-                if (propertyElement != null)
-                    xDoc.DocumentElement?.RemoveChild(propertyElement);
+                if (propertyElement == null) 
+                    return;
+
+                _logger.LogTrace($"Deleting property {propertyName} of content type {builder.ContentTypeName}");
+                xDoc.DocumentElement?.RemoveChild(propertyElement);
             }
 
             SetProperty("DisplayName", builder.DisplayNameValue);
@@ -353,16 +359,19 @@ namespace SenseNet.Packaging.Tools
                 SetProperty("SystemType", builder.IsSystemTypeValue);
         }
 
-        private void EditField(XmlDocument xDoc, FieldEditor fieldEditor)
+        private void EditField(XmlDocument xDoc, FieldEditor fieldEditor, CtdBuilder ctdBuilder)
         {
             // if we should delete the field, do not throw an error if the xml node is missing
             var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName, fieldEditor.Type, !fieldEditor.DeleteField);
 
             if (fieldEditor.DeleteField)
             {
+                _logger.LogTrace($"Deleting field {fieldEditor.FieldName} of content type {ctdBuilder.ContentTypeName}");
                 fieldElement?.ParentNode?.RemoveChild(fieldElement);
                 return;
             }
+
+            _logger.LogTrace($"Editing field {fieldEditor.FieldName} of content type {ctdBuilder.ContentTypeName}");
 
             SetProperty(fieldElement, "DisplayName", fieldEditor.DisplayNameValue);
             SetProperty(fieldElement, "Description", fieldEditor.DescriptionValue);
@@ -604,7 +613,8 @@ namespace SenseNet.Packaging.Tools
         // it to insert a new xml node to a correct location.
         private static readonly List<string> FieldPropertyOrder = new List<string>(new[]
         {
-            "DisplayName", "Description", "Icon", "SystemType", "Preview", "AppInfo", "Bind", "Indexing", "Configuration"
+            "DisplayName", "Description", "Icon", "AllowedChildTypes", "Preview", "AllowIncrementalNaming", "SystemType", 
+            "AppInfo", "Bind", "Indexing", "Configuration"
         });
 
         private static XmlNode LoadOrAddChild(XmlNode parentNode, string name, bool insertIfPossible = true, IDictionary<string, string> attributes = null)
