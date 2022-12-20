@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>true</IsPackable>
-    <Version>1.1.8</Version>
+    <Version>1.1.9</Version>
     <Authors>kavics,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -38,7 +38,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="coverlet.collector" Version="1.2.0" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.8" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.9" />
   </ItemGroup>
 
   <ItemGroup>
