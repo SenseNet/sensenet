@@ -493,7 +493,7 @@ namespace SenseNet.Portal.Virtualization
             var delayingRequestsNecessary = requestsCurrentlyDelayed;
 
             // check if we need to switch off/on delaying
-            var incomingMessageCount = DistributedApplication.ClusterChannel.IncomingMessageCount;
+            var incomingMessageCount = SenseNet.Configuration.Providers.Instance.ClusterChannelProvider.IncomingMessageCount;
             if (!requestsCurrentlyDelayed && incomingMessageCount > Configuration.Messaging.DelayRequestsOnHighMessageCountUpperLimit)
             {
                 delayingRequestsNecessary = true;

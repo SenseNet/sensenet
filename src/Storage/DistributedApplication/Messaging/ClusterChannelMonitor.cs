@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using Timer = System.Timers.Timer;
 
@@ -23,7 +24,7 @@ namespace SenseNet.Communication.Messaging
 
         public bool Start()
         {
-            ContentRepository.DistributedApplication.ClusterChannel.MessageReceived += ClusterChannel_MessageReceived;
+            Providers.Instance.ClusterChannelProvider.MessageReceived += ClusterChannel_MessageReceived;
             _pingTimer = new Timer { Enabled = true, Interval = Configuration.Messaging.ClusterChannelMonitorInterval * 1000 };
             _pingTimer.Elapsed += PingTimer_Elapsed;
             _pongTimer = new Timer { Enabled = false, Interval = Configuration.Messaging.ClusterChannelMonitorTimeout * 1000 };
@@ -39,7 +40,7 @@ namespace SenseNet.Communication.Messaging
         /// </summary>
         public void Shutdown()
         {
-            ContentRepository.DistributedApplication.ClusterChannel.MessageReceived -= new MessageReceivedEventHandler(ClusterChannel_MessageReceived);
+            Providers.Instance.ClusterChannelProvider.MessageReceived -= new MessageReceivedEventHandler(ClusterChannel_MessageReceived);
 
             _pingTimer.Elapsed -= PingTimer_Elapsed;
             _pingTimer.Stop();
@@ -50,19 +51,19 @@ namespace SenseNet.Communication.Messaging
             _pongTimer.Dispose();
 
             Debug.WriteLine(
-                $"ClusterChannelMonitor> Shutdown ({ContentRepository.DistributedApplication.ClusterChannel.ReceiverName}): ");
+                $"ClusterChannelMonitor> Shutdown ({Providers.Instance.ClusterChannelProvider.ReceiverName}): ");
         }
 
         private void PingTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
             {
-                if (!ContentRepository.DistributedApplication.ClusterChannel.AllowMessageProcessing)
+                if (!Providers.Instance.ClusterChannelProvider.AllowMessageProcessing)
                     return;
 
                 RecoverChannels();
 
-                var receiverName=ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
+                var receiverName=Providers.Instance.ClusterChannelProvider.ReceiverName;
 
                 _currentResponses = new List<string>();
                 _pongTimer.Enabled = true;
@@ -116,7 +117,7 @@ namespace SenseNet.Communication.Messaging
         private readonly string[] MessagingLoggingCategory = {"Messaging"};
         private void ChannelStarted(string[] startedChannels)
         {
-            var receiverName = ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
+            var receiverName = Providers.Instance.ClusterChannelProvider.ReceiverName;
 
             var allStartedChannels = _channels.Where(c => startedChannels.Contains(c.Name)).ToArray();
             var brandNewChannels = allStartedChannels.Where(c => !c.Repairing).ToArray();
@@ -157,7 +158,7 @@ namespace SenseNet.Communication.Messaging
         }
         private void ChannelStopped(string[] stoppedChannels)
         {
-            var receiverName = ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
+            var receiverName = Providers.Instance.ClusterChannelProvider.ReceiverName;
 
             var allStoppedChannels = _channels.Where(c => stoppedChannels.Contains(c.Name)).ToArray();
             var brokenChannels = allStoppedChannels.Where(c => c.NeedToRecover).ToArray();
@@ -194,7 +195,7 @@ namespace SenseNet.Communication.Messaging
 
         private void ClusterChannel_MessageReceived(object sender, MessageReceivedEventArgs args)
         {
-            var receiverName = ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
+            var receiverName = Providers.Instance.ClusterChannelProvider.ReceiverName;
 
             var message = args.Message;
 
@@ -216,7 +217,7 @@ namespace SenseNet.Communication.Messaging
         }
         private void ProcessPingMessage(PingMessage message)
         {
-            var receiverName = ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
+            var receiverName = Providers.Instance.ClusterChannelProvider.ReceiverName;
 
             var senderName = message.SenderInfo.ClusterMemberID;
             var channel = _channels.FirstOrDefault(c => c.Name == senderName);
@@ -224,9 +225,9 @@ namespace SenseNet.Communication.Messaging
                 return;
 
             channel.NeedToRecover = message.SenderInfo.NeedToRecover;
-            if (channel.Name == ContentRepository.DistributedApplication.ClusterChannel.ReceiverName)
+            if (channel.Name == receiverName)
                 channel.Running = true;
-            if (message.NotResponsiveChannels.Contains(ContentRepository.DistributedApplication.ClusterChannel.ReceiverName))
+            if (message.NotResponsiveChannels.Contains(receiverName))
             {
                 RestartAllChannelsAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
@@ -247,13 +248,13 @@ namespace SenseNet.Communication.Messaging
 
         private void InitializeRecoverer()
         {
-            var clusterChannel = ContentRepository.DistributedApplication.ClusterChannel;
+            var clusterChannel = Providers.Instance.ClusterChannelProvider;
 
             var queues = new List<string>(); 
             queues.Add(clusterChannel.ReceiverName);
             queues.AddRange(clusterChannel.SenderNames);
             _channels = queues.Select(x => new WorkingChannel { Name = GetChannelName(x), NeedToRecover = false }).ToList();
-            Debug.WriteLine("ClusterChannelMonitor> Initialized (" + ContentRepository.DistributedApplication.ClusterChannel.ReceiverName + ")");
+            Debug.WriteLine("ClusterChannelMonitor> Initialized (" + clusterChannel.ReceiverName + ")");
         }
         private string GetChannelName(string configName)
         {
@@ -279,7 +280,7 @@ namespace SenseNet.Communication.Messaging
 
         private static Task RestartAllChannelsAsync(CancellationToken cancellationToken)
         {
-            var cc = ContentRepository.DistributedApplication.ClusterChannel;
+            var cc = Providers.Instance.ClusterChannelProvider;
 
             return cc.RestartingAllChannels ? Task.CompletedTask : cc.RestartAllChannelsAsync(cancellationToken);
         }

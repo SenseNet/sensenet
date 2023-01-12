@@ -171,9 +171,9 @@ namespace SenseNet.Packaging
 
                 // we need to shut down messaging, because the line above uses it
                 if (!executionContext.Test)
-                    DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    Providers.Instance.ClusterChannelProvider.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else
-                    Diagnostics.SnTrace.Test.Write("DistributedApplication.ClusterChannel.ShutDown SKIPPED because it is a test context.");
+                    SnTrace.Test.Write("Providers.Instance.ClusterChannelProvider.ShutDown SKIPPED because it is a test context.");
             }
             if (!successful && !executionContext.Terminated)
                 throw new ApplicationException(String.Format(SR.Errors.PhaseFinishedWithError_1, phaseException.Message), phaseException);
