@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository;
+using SenseNet.Configuration;
 
 namespace SenseNet.Communication.Messaging
 {
@@ -19,7 +19,7 @@ namespace SenseNet.Communication.Messaging
 
         public Task SendAsync(CancellationToken cancellationToken)
         {
-            return DistributedApplication.ClusterChannel.SendAsync(this, cancellationToken);
+            return Providers.Instance.ClusterChannelProvider.SendAsync(this, cancellationToken);
         }
 
         protected TimeSpan _messageLifeTime;

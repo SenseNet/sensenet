@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Communication.Messaging
@@ -57,7 +57,7 @@ namespace SenseNet.Communication.Messaging
         {
             try
             {
-                await DistributedApplication.ClusterChannel.SendAsync(this, cancellationToken).ConfigureAwait(false);
+                await Providers.Instance.ClusterChannelProvider.SendAsync(this, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exc) // logged
             {
