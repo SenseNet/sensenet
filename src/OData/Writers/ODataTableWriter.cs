@@ -53,50 +53,57 @@ namespace SenseNet.OData.Writers
         /// <inheritdoc />
         protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataRequest odataRequest, ODataEntity fields)
         {
-            var expansion = GetExpansion();
-
             using (var writer = new StringWriter())
             {
                 WriteStart(writer);
 
                 writer.Write("      <tr><td>Name</td><td>Value</td></tr>\n");
 
-                foreach (var item in fields.OrderBy(x => x.Key))
+                if (!odataRequest.HasSelect)
                 {
-                    if (item.Key == "__metadata")
+                    foreach (var item in fields.OrderBy(x => x.Key))
                     {
-                        if (item.Value is ODataSimpleMeta simpleMeta)
+                        if (item.Key == "__metadata")
                         {
-                            writer.Write("      <tr><td>__metadata.Uri</td><td>");
-                            writer.Write(simpleMeta.Uri);
+                            WriteMetadataRows(item.Value, writer);
+                        }
+                        else
+                        {
+                            writer.Write("      <tr><td>");
+                            writer.Write(item.Key);
+                            writer.Write("</td><td>");
+                            WriteValue(writer, item.Value);
                             writer.Write("</td></tr>\n");
-                            writer.Write("      <tr><td>__metadata.Type</td><td>");
-                            writer.Write(simpleMeta.Type);
-                            writer.Write("</td></tr>\n");
-
-                            if (simpleMeta is ODataFullMeta fullMeta)
-                            {
-                                writer.Write("      <tr><td>__metadata.Actions</td><td>");
-                                WriteValue(writer, fullMeta.Actions.Where(x => !x.Forbidden).Select(x => x.Name));
-                                writer.Write("</td></tr>\n");
-                                writer.Write("      <tr><td>__metadata.Functions</td><td>");
-                                WriteValue(writer, fullMeta.Functions.Where(x => !x.Forbidden).Select(x => x.Name));
-                                writer.Write("</td></tr>\n");
-                            }
                         }
                     }
-                    else
+                }
+                else
+                {
+                    var metaDataField = fields
+                        .Where(x => x.Key == "__metadata")
+                        .Select(x => x.Value)
+                        .FirstOrDefault();
+                    if(metaDataField != null)
+                        WriteMetadataRows(metaDataField, writer);
+
+                    foreach (var rowName in odataRequest.Select)
                     {
                         writer.Write("      <tr><td>");
-                        writer.Write(item.Key);
+                        writer.Write(rowName);
                         writer.Write("</td><td>");
-                        if (expansion.TryGetValue(item.Key, out var exp))
-                            WriteValue(writer, Project(item.Value, exp));
+                        if (rowName.Contains('/'))
+                        {
+                            var expansion = rowName.Split('/');
+                            WriteValue(writer, Project(fields[expansion[0]], expansion.Skip(1).ToArray()));
+                        }
                         else
-                            WriteValue(writer, item.Value);
+                        {
+                            WriteValue(writer, fields[rowName]);
+                        }
                         writer.Write("</td></tr>\n");
                     }
                 }
+
                 WriteEnd(writer);
 
                 var resp = httpContext.Response;
@@ -104,12 +111,33 @@ namespace SenseNet.OData.Writers
                 await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext, odataRequest);
             }
         }
+        private void WriteMetadataRows(object metaDataField, StringWriter writer)
+        {
+            if (metaDataField is ODataSimpleMeta simpleMeta)
+            {
+                writer.Write("      <tr><td>__metadata.Uri</td><td>");
+                writer.Write(simpleMeta.Uri);
+                writer.Write("</td></tr>\n");
+                writer.Write("      <tr><td>__metadata.Type</td><td>");
+                writer.Write(simpleMeta.Type);
+                writer.Write("</td></tr>\n");
+
+                if (simpleMeta is ODataFullMeta fullMeta)
+                {
+                    writer.Write("      <tr><td>__metadata.Actions</td><td>");
+                    WriteValue(writer, fullMeta.Actions.Where(x => !x.Forbidden).Select(x => x.Name));
+                    writer.Write("</td></tr>\n");
+                    writer.Write("      <tr><td>__metadata.Functions</td><td>");
+                    WriteValue(writer, fullMeta.Functions.Where(x => !x.Forbidden).Select(x => x.Name));
+                    writer.Write("</td></tr>\n");
+                }
+            }
+        }
         /// <inheritdoc />
         protected override async Task WriteMultipleContentAsync(HttpContext httpContext, ODataRequest odataRequest, IEnumerable<ODataEntity> contents, int count)
         {
             //var resp = httpContext.Response;
             var colNames = new List<string> { "Nr." };
-            var expansion = GetExpansion();
 
             ODataSimpleMeta simpleMeta;
             ODataFullMeta fullMeta;
@@ -134,11 +162,18 @@ namespace SenseNet.OData.Writers
                 }
             }
 
-            if (contentArray != null)
-                foreach (var content in contentArray)
-                    foreach (var item in content)
-                        if (!colNames.Contains(item.Key) && item.Key != "__metadata")
-                            colNames.Add(item.Key);
+            if (odataRequest.HasSelect)
+            {
+                colNames.AddRange(odataRequest.Select);
+            }
+            else
+            {
+                if (contentArray != null)
+                    foreach (var content in contentArray)
+                        foreach (var item in content)
+                            if (!colNames.Contains(item.Key) && item.Key != "__metadata")
+                                colNames.Add(item.Key);
+            }
 
             using (var writer = new StringWriter())
             {
@@ -186,16 +221,22 @@ namespace SenseNet.OData.Writers
                             }
                         }
 
-                        foreach (var item in content)
+                        for (int i = 1; i < colNames.Count; i++)
                         {
-                            colIndex = colNames.IndexOf(item.Key);
-                            if (colIndex >= 0)
+                            var colName = colNames[i];
+                            if (colName.StartsWith("__metadata."))
+                                continue;
+                            if (colName.Contains('/'))
                             {
-                                row[colIndex] = expansion.TryGetValue(item.Key, out var exp)
-                                    ? row[colIndex] = Project(item.Value, exp)
-                                    : row[colIndex] = item.Value;
+                                var expansion = colName.Split('/');
+                                row[i] = Project(content[expansion[0]], expansion.Skip(1).ToArray());
+                            }
+                            else
+                            {
+                                row[i] = content[colName];
                             }
                         }
+
                         writer.Write("      <tr>\n");
 
                         for (var i = 0; i < row.Length; i++)
@@ -245,13 +286,6 @@ namespace SenseNet.OData.Writers
                     return GetValueInDepth(subEntity, expansion, depth);
             }
             return value;
-        }
-
-        private IDictionary<string, string[]> GetExpansion()
-        {
-            return this.ODataRequest.Select
-                .Select(x => x.Split('/'))
-                .ToDictionary(x => x[0], x => x.Skip(1).ToArray());
         }
 
         /// <inheritdoc />
