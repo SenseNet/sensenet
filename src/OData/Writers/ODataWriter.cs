@@ -323,6 +323,7 @@ namespace SenseNet.OData.Writers
             {
                 await WriteChildrenCollectionAsync(path, httpContext, req)
                     .ConfigureAwait(false);
+                return;
             }
 
             if (content.Fields.TryGetValue(propertyName, out var field))
