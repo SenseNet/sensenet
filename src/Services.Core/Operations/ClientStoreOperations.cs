@@ -22,7 +22,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>A result object containing an array of clients.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<object> GetClientsForRepository(Content content, HttpContext context)
         {
             var clientStore = context.RequestServices.GetRequiredService<IClientManager>();
@@ -46,7 +46,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>A result object containing an array of clients.</returns>
         [ODataFunction("GetClients")]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<object> GetClients(Content content, HttpContext context)
         {
             // Only administrators are allowed to get all types of clients. Regular

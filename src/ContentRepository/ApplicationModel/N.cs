@@ -34,6 +34,7 @@ namespace SenseNet.ApplicationModel
         public static class R
         {
             public const string Administrators = "/Root/IMS/BuiltIn/Portal/Administrators";
+            public const string PublicAdministrators = "/Root/IMS/Public/Administrators";
             public const string Developers = "/Root/IMS/BuiltIn/Portal/Developers";
             public const string Everyone = "/Root/IMS/BuiltIn/Portal/Everyone";
             public const string IdentifiedUsers = "/Root/IMS/BuiltIn/Portal/IdentifiedUsers";

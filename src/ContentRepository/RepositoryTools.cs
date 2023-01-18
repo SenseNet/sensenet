@@ -331,7 +331,7 @@ namespace SenseNet.ContentRepository
         /// <param name="root"></param>
         /// <returns>A dictionary where the ContentType name is the key and a path list is the value.</returns>
         [ODataFunction]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
         {
             var result = new Dictionary<string, List<string>>();
@@ -454,7 +454,7 @@ namespace SenseNet.ContentRepository
         /// <param name="root"></param>
         /// <returns>Path list.</returns>
         [ODataFunction]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
             var result = new List<string>();
@@ -749,7 +749,7 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IndexProperties GetIndexProperties(Content content)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
@@ -792,7 +792,7 @@ namespace SenseNet.ContentRepository
         /// <returns>The whole raw index.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async STT.Task GetWholeInvertedIndex(Content content, HttpContext httpContext)
         {
             var httpResponse = httpContext.Response;
@@ -861,7 +861,7 @@ namespace SenseNet.ContentRepository
         /// <returns>Key-value pairs of the term and a sorted documentId list.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async STT.Task<IDictionary<string, object>> GetInvertedIndex(Content content, HttpContext httpContext, string fieldName)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
@@ -905,7 +905,7 @@ namespace SenseNet.ContentRepository
         /// <param name="versionId">Optional versionId if it is different from the versionId of the requested resource.</param>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IDictionary<string, object> GetIndexDocument(Content content, int versionId = 0)
         {
             if (versionId == 0)
@@ -958,7 +958,7 @@ namespace SenseNet.ContentRepository
         /// <param name="documentId">The documentId from the inverted index.</param>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IDictionary<string, object> GetIndexDocumentByDocumentId(Content content, int documentId)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
@@ -1148,7 +1148,7 @@ namespace SenseNet.ContentRepository
         /// <returns>A <see cref="SenseNet.Security.Messaging.SecurityActivityHistory"/> instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static SenseNet.Security.Messaging.SecurityActivityHistory GetRecentSecurityActivities(Content content)
         {
             return Providers.Instance.SecurityHandler.SecurityContext.GetRecentActivities();
@@ -1204,7 +1204,7 @@ namespace SenseNet.ContentRepository
         /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
             return ((IndexManager)Providers.Instance.IndexManager).DistributedIndexingActivityQueue.GetIndexingActivityHistory();

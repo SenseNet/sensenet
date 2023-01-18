@@ -149,7 +149,7 @@ namespace SenseNet.ContentRepository
             /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
-            [AllowedRoles(N.R.Administrators, N.R.Developers)]
+            [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             [RequiredPermissions(N.P.Save)]
             public static void RebuildIndex(Content content, bool recursive, IndexRebuildLevel rebuildLevel)
             {
@@ -162,7 +162,7 @@ namespace SenseNet.ContentRepository
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
-            [AllowedRoles(N.R.Administrators, N.R.Developers)]
+            [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static void RebuildIndexSubtree(Content content)
             {
                 content.RebuildIndex(true, IndexRebuildLevel.DatabaseAndIndex);
@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
-            [AllowedRoles(N.R.Administrators, N.R.Developers)]
+            [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static void RefreshIndexSubtree(Content content)
             {
                 content.RebuildIndex(true, IndexRebuildLevel.IndexOnly);
@@ -190,7 +190,7 @@ namespace SenseNet.ContentRepository
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
             [ContentTypes(N.CT.PortalRoot)]
-            [AllowedRoles(N.R.Administrators, N.R.Developers)]
+            [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static async System.Threading.Tasks.Task RefreshIndexAndCleanActivities(Content content, HttpContext context)
             {
                 var logger = context.RequestServices.GetService<ILogger<Content>>();

@@ -52,7 +52,7 @@ namespace SenseNet.OData.IO
         /// and the postponed references or permission settings.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static object Import(Content content, string path, object data)
         {
             var jData = data as JObject;

@@ -79,7 +79,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>An empty result.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeys(Content content, HttpContext context)
         {
             var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
@@ -94,7 +94,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>An empty result.</returns>
         [ODataAction(OperationName = "DeleteApiKeys")]
         [ContentTypes(N.CT.User)]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeysByUser(Content content, HttpContext context)
         {
             var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
