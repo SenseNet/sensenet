@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
@@ -25,7 +22,7 @@ namespace SenseNet.WebHooks
         /// <returns>The webhook subscription that was fired.</returns>
         [ODataAction]
         [ContentTypes("WebHookSubscription")]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<Content> FireWebHook(Content webHookContent, HttpContext context, string path, WebHookEventType eventType)
         {
             await FireWebHook(context, (WebHookSubscription) webHookContent.ContentHandler, Node.LoadNode(path),
@@ -46,7 +43,7 @@ namespace SenseNet.WebHooks
         /// <returns>The webhook subscription that was fired.</returns>
         [ODataAction]
         [ContentTypes("WebHookSubscription")]
-        [AllowedRoles(N.R.Administrators)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<Content> FireWebHook(Content webHookContent, HttpContext context, int nodeId, WebHookEventType eventType)
         {
             await FireWebHook(context, (WebHookSubscription)webHookContent.ContentHandler, Node.LoadNode(nodeId),

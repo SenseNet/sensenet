@@ -231,7 +231,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <returns>A list of api usage records.</returns>
         [ODataFunction(operationName: "GetApiUsageList")]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<ApiUsageListItemViewModel>> GetApiUsageList(Content content, HttpContext httpContext,
           DateTime? maxTime = null, int count = 10)
         {
@@ -257,7 +257,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <returns>An API usage statistical data containing start and end dates and count of records.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Task<object> GetApiUsagePeriods(Content content, HttpContext httpContext,
             TimeWindow? timeWindow = null)
         {
@@ -331,7 +331,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <returns>API usage data containing time window information and a list of aggregated data points.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GetApiUsagePeriod(Content content, HttpContext httpContext,
             TimeWindow? timeWindow = null, DateTime? time = null)
         {
@@ -358,7 +358,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <returns>Database usage data containing time window information and a list of aggregated data points.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GeDatabaseUsagePeriod(Content content, HttpContext httpContext,
             TimeWindow? timeWindow = null, DateTime? time = null)
         {

@@ -231,7 +231,7 @@ namespace SenseNet.WebHooks
         /// <returns>A list of webhook usage records.</returns>
         [ODataFunction(operationName: "GetWebHookUsageList")]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetAllWebHookUsageList(Content content, HttpContext httpContext,
           DateTime? maxTime = null, int count = 10)
         {
@@ -262,7 +262,7 @@ namespace SenseNet.WebHooks
         /// <returns>A list of webhook usage records.</returns>
         [ODataFunction]
         [ContentTypes("WebHookSubscription")]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
             DateTime? maxTime = null, int count = 10)
         {
@@ -289,7 +289,7 @@ namespace SenseNet.WebHooks
         /// <returns>A webhook statistical data containing start and end dates and count of records.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Task<object> GetWebHookUsagePeriods(Content content, HttpContext httpContext,
             TimeWindow? timeWindow = null)
         {
@@ -363,7 +363,7 @@ namespace SenseNet.WebHooks
         /// <returns>WebHook data containing time window information and a list of aggregated data points.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GetWebHookUsagePeriod(Content content, HttpContext httpContext,
             TimeWindow? timeWindow = null, DateTime? time = null)
         {

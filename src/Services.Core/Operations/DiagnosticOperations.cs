@@ -79,7 +79,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>A <see cref="RepositoryVersionView"/> instance containing releases, packages, components, assemblies.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<RepositoryVersionView> GetVersionInfo(Content content, HttpContext httpContext)
         {
             var componentStore = httpContext.RequestServices.GetService<ILatestComponentStore>();
@@ -126,7 +126,7 @@ namespace SenseNet.Services.Core.Operations
         /// and version count information.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<DatabaseUsage> GetDatabaseUsage(Content content, HttpContext httpContext, bool force = false)
         {
             var dbUsageHandler = httpContext.RequestServices.GetService<IDatabaseUsageHandler>();
