@@ -690,7 +690,7 @@ namespace SenseNet.Services.Wopi.Tests
                     Providers.Instance.SecurityHandler.CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 

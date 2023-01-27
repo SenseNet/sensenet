@@ -1110,7 +1110,7 @@ namespace SenseNet.ContentRepository.Tests
                         Providers.Instance.SecurityHandler.CreateAclEditor()
                             .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
                             .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
-                            .Apply();
+                            .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                         Assert.IsTrue(testFile.Security.HasPermission((IUser)testUser, PermissionType.Save));
 
@@ -1180,7 +1180,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
                     .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //============ Orig user modifies and locks the file
                 testFile.Index++;
@@ -1222,9 +1222,9 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 Providers.Instance.SecurityHandler.CreateAclEditor()
-                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.AddNew,
-                                                                                   PermissionType.RecallOldVersion)
-                    .Apply();
+                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false,
+                        PermissionType.AddNew, PermissionType.RecallOldVersion)
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 User.Current = User.Administrator;
 
