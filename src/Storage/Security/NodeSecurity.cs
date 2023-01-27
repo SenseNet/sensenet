@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -246,7 +247,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             {
                 _securityHandler.CreateAclEditor()
                     .RemoveExplicitEntries(_node.Id)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return;
             }
             if (aclEditor.EntryType != EntryType.Normal)
@@ -356,7 +357,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     }
                 }
             }
-            aclEditor.Apply();
+            aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private Exception ImportPermissionExceptionHelper(string message, string metadataPath, Exception innerException)
         {

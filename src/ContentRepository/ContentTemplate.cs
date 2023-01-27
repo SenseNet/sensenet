@@ -368,7 +368,7 @@ namespace SenseNet.ContentRepository
                     foreach (var ace in entries)
                         aclEdit.SetEntry(target.Id, ace, true);
 
-                    aclEdit.Apply();
+                    aclEdit.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 
@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository
                         }
                     }
                 }
-                aclEditor.Apply();
+                aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

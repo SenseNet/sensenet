@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Diagnostics;
@@ -169,6 +171,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the created content. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("CreateSecurityEntity id:{0}, parent:{1}, owner:{2}", contentId, parentId, ownerId))
@@ -178,10 +181,29 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Creates a new entity in the security component that represents a content in the repository. 
+        /// If the entity already exists in the security db, creation is skipped.
+        /// Parent content must exist.
+        /// </summary>
+        /// <param name="contentId">Id of the created content. Cannot be 0.</param>
+        /// <param name="parentId">Id of the parent content. Cannot be 0.</param>
+        /// <param name="ownerId">Id of the content's owner identity.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task CreateSecurityEntityAsync(int contentId, int parentId, int ownerId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"CreateSecurityEntity id:{contentId}, parent:{parentId}, owner:{ownerId}");
+            await base.CreateSecurityEntityAsync(contentId, parentId, ownerId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Rewrites the owner of the content.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void ModifyEntityOwner(int contentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("ModifyEntityOwner id:{0}, owner:{1}", contentId, ownerId))
@@ -191,10 +213,26 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Rewrites the owner of the content.
+        /// </summary>
+        /// <param name="contentId">Id of the content. Cannot be 0.</param>
+        /// <param name="ownerId">Id of the content's owner identity.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task ModifyEntityOwnerAsync(int contentId, int ownerId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"ModifyEntityOwner id:{contentId}, owner:{ownerId}");
+            await base.ModifyEntityOwnerAsync(contentId, ownerId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Deletes the entity and it's whole subtree including the related ACLs in the 
         /// security component after a content was deleted in the repository.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void DeleteEntity(int contentId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteEntity id:{0}", contentId))
@@ -204,11 +242,26 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Deletes the entity and it's whole subtree including the related ACLs in the 
+        /// security component after a content was deleted in the repository.
+        /// </summary>
+        /// <param name="contentId">Id of the content. Cannot be 0.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task DeleteEntityAsync(int contentId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => $"DeleteEntity id:{contentId}");
+            await base.DeleteEntityAsync(contentId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Moves the entity and its whole subtree including the related ACLs in the 
         /// security component after a content was moved in the repository.
         /// </summary>
         /// <param name="sourceId">Id of the source content. Cannot be 0.</param>
         /// <param name="targetId">Id of the target content that will contain the source. Cannot be 0.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void MoveEntity(int sourceId, int targetId)
         {
             using (var op = SnTrace.Security.StartOperation("MoveEntity sourceId:{0}, targetId:{1}", sourceId, targetId))
@@ -217,6 +270,22 @@ namespace SenseNet.ContentRepository.Storage.Security
                 op.Successful = true;
             }
         }
+        /// <summary>
+        /// Moves the entity and its whole subtree including the related ACLs in the 
+        /// security component after a content was moved in the repository.
+        /// </summary>
+        /// <param name="sourceId">Id of the source content. Cannot be 0.</param>
+        /// <param name="targetId">Id of the target content that will contain the source. Cannot be 0.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task MoveEntityAsync(int sourceId, int targetId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"MoveEntity sourceId:{sourceId}, targetId:{targetId}");
+            await base.MoveEntityAsync(sourceId, targetId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
         /// <summary>
         /// Returns false if the content inherits the permissions from it's parent.
         /// </summary>
@@ -371,12 +440,57 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void AddMembersToSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             using (var op = SnTrace.Security.StartOperation("AddMembersToSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
-                groupId, string.Join(",", userMembers ?? new int[0]), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
+                       groupId, string.Join(",", userMembers ?? new int[0]), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
             {
                 base.AddMembersToSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
+                op.Successful = true;
+            }
+        }
+        /// <summary>
+        /// Adds different kinds of members to a group in one step.
+        /// Non-existing groups or member groups will be created.
+        /// If all the parameters are null or empty, nothing will happen.
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
+        /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
+        /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
+        /// group or groups are already known when this method is called. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task AddMembersToSecurityGroupAsync(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, CancellationToken cancel, IEnumerable<int> parentGroups = null)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                "AddMembersToSecurityGroup: " +
+                $"groupId:{groupId}, " +
+                $"userMembers:[{string.Join(",", userMembers ?? Array.Empty<int>())}], " +
+                $"groupMembers:[{string.Join(",", groupMembers ?? Array.Empty<int>())}], " +
+                $"parentGroups:[{string.Join(",", parentGroups ?? Array.Empty<int>())}]");
+            await base.AddMembersToSecurityGroupAsync(groupId, userMembers, groupMembers, cancel, parentGroups).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
+        /// Removes multiple kinds of members from a group in one step.
+        /// Non-existing groups or member groups will be skipped.
+        /// If all the parameters are null or empty, nothing will happen.
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
+        /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
+        /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public override void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        {
+            var users = userMembers as int[] ?? userMembers.ToArray();
+            using (var op = SnTrace.Security.StartOperation("RemoveMembersFromSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
+                groupId, string.Join(",", users), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
+            {
+                base.RemoveMembersFromSecurityGroup(groupId, users, groupMembers, parentGroups);
                 op.Successful = true;
             }
         }
@@ -389,15 +503,20 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
-        public override void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task RemoveMembersFromSecurityGroupAsync(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, CancellationToken cancel, IEnumerable<int> parentGroups = null)
         {
             var users = userMembers as int[] ?? userMembers.ToArray();
-            using (var op = SnTrace.Security.StartOperation("RemoveMembersFromSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
-                groupId, string.Join(",", users), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
-            {
-                base.RemoveMembersFromSecurityGroup(groupId, users, groupMembers, parentGroups);
-                op.Successful = true;
-            }
+            using var op = SnTrace.Security.StartOperation(()=>
+                "RemoveMembersFromSecurityGroup: " +
+                $"groupId:{groupId}, " +
+                $"userMembers:[{string.Join(",", users)}], " +
+                $"groupMembers:[{string.Join(",", groupMembers ?? Array.Empty<int>())}], " +
+                $"parentGroups:[{string.Join(",", parentGroups ?? Array.Empty<int>())}]");
+            await base.RemoveMembersFromSecurityGroupAsync(groupId, users, groupMembers, cancel, parentGroups)
+                .ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /// <summary>
@@ -406,6 +525,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void AddGroupsToSecurityGroup(int groupId, IEnumerable<int> groupMembers)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupsToSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
@@ -415,16 +535,69 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Add one or more group members to a group. If the main group or any member is unknown it will be created.
+        /// This method is a shortcut for AddMembersToSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task AddGroupsToSecurityGroupAsync(int groupId, IEnumerable<int> groupMembers, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => 
+                    "AddGroupsToSecurityGroup: " +
+                    $"groupId:{groupId}, " +
+                    $"groupMembers:[{string.Join(",", groupMembers ?? Array.Empty<int>())}]");
+            await base.AddGroupsToSecurityGroupAsync(groupId, groupMembers, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Add a group as a member of one or more parent groups. If the main group or any parent is unknown it will be created.
         /// This method is a shortcut for AddMembersToSecurityGroup(...).
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void AddGroupToSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupToSecurityGroups: groupId:{0}, parentGroups:[{1}]", groupId, string.Join(",", string.Join(",", parentGroups ?? new int[0]))))
             {
                 base.AddGroupToSecurityGroups(groupId, parentGroups);
+                op.Successful = true;
+            }
+        }
+        /// <summary>
+        /// Add a group as a member of one or more parent groups. If the main group or any parent is unknown it will be created.
+        /// This method is a shortcut for AddMembersToSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
+        /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task AddGroupToSecurityGroupsAsync(int groupId, IEnumerable<int> parentGroups, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => 
+                "AddGroupToSecurityGroups: " +
+                $"groupId:{groupId}, " +
+                $"parentGroups:[{string.Join(",", string.Join(",", parentGroups ?? new int[0]))}]");
+            await base.AddGroupToSecurityGroupsAsync(groupId, parentGroups, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
+        /// Removes one or more group members from a group in one step.
+        /// Non-existing group or member groups will be skipped.
+        /// This method is a shortcut for RemoveMembersFromSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public override void RemoveGroupsFromSecurityGroup(int groupId, IEnumerable<int> groupMembers)
+        {
+            using (var op = SnTrace.Security.StartOperation("RemoveGroupsFromSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
+            {
+                base.RemoveGroupsFromSecurityGroup(groupId, groupMembers);
                 op.Successful = true;
             }
         }
@@ -435,14 +608,18 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
-        public override void RemoveGroupsFromSecurityGroup(int groupId, IEnumerable<int> groupMembers)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task RemoveGroupsFromSecurityGroupAsync(int groupId, IEnumerable<int> groupMembers, CancellationToken cancel)
         {
-            using (var op = SnTrace.Security.StartOperation("RemoveGroupsFromSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
-            {
-                base.RemoveGroupsFromSecurityGroup(groupId, groupMembers);
-                op.Successful = true;
-            }
+            using var op = SnTrace.Security.StartOperation(() => 
+                "RemoveGroupsFromSecurityGroup: " +
+                $"groupId:{groupId}, " +
+                $"groupMembers:[{string.Join(",", groupMembers ?? Array.Empty<int>())}]");
+            await base.RemoveGroupsFromSecurityGroupAsync(groupId, groupMembers, cancel).ConfigureAwait(false);
+            op.Successful = true;
         }
+
         /// <summary>
         /// Removes a group from one or more parent groups
         /// Non-existing group or parent groups will be skipped.
@@ -450,11 +627,49 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void RemoveGroupFromSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveGroupFromSecurityGroups: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", parentGroups ?? new int[0])))
             {
                 base.RemoveGroupFromSecurityGroups(groupId, parentGroups);
+                op.Successful = true;
+            }
+        }
+
+        /// <summary>
+        /// Removes a group from one or more parent groups
+        /// Non-existing group or parent groups will be skipped.
+        /// This method is a shortcut for RemoveMembersFromSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
+        /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task RemoveGroupFromSecurityGroupsAsync(int groupId, IEnumerable<int> parentGroups,
+            CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                "RemoveGroupFromSecurityGroups: " +
+                $"groupId:{groupId}, " +
+                $"groupMembers:[{string.Join(",", parentGroups ?? Array.Empty<int>())}]");
+            await base.RemoveGroupFromSecurityGroupsAsync(groupId, parentGroups, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
+        /// Adds one or more users to a group in one step.
+        /// Non-existing group will be created.
+        /// This method is a shortcut for AddMembersToSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public override void AddUsersToSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        {
+            using (var op = SnTrace.Security.StartOperation("AddUsersToSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
+            {
+                base.AddUsersToSecurityGroup(groupId, userMembers);
                 op.Successful = true;
             }
         }
@@ -465,20 +680,23 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        public override void AddUsersToSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task AddUsersToSecurityGroupAsync(int groupId, IEnumerable<int> userMembers, CancellationToken cancel)
         {
-            using (var op = SnTrace.Security.StartOperation("AddUsersToSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
-            {
-                base.AddUsersToSecurityGroup(groupId, userMembers);
-                op.Successful = true;
-            }
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"AddUsersToSecurityGroup: groupId:{groupId}, userMembers:[{string.Join(",", userMembers ?? Array.Empty<int>())}]");
+            await base.AddUsersToSecurityGroupAsync(groupId, userMembers, cancel).ConfigureAwait(false);
+            op.Successful = true;
         }
+
         /// <summary>
         /// Add a user to one or more groups in one step.
         /// Non-existing groups will be created.
         /// </summary>
         /// <param name="userId">Identifier of the the user member that will be added. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void AddUserToSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddUserToSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
@@ -488,16 +706,65 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Add a user to one or more groups in one step.
+        /// Non-existing groups will be created.
+        /// </summary>
+        /// <param name="userId">Identifier of the the user member that will be added. Cannot be 0.</param>
+        /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task AddUserToSecurityGroupsAsync(int userId, IEnumerable<int> parentGroups, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"AddUserToSecurityGroups: userId:{userId}, parentGroups:[{string.Join(",", parentGroups ?? Array.Empty<int>())}]");
+            await base.AddUserToSecurityGroupsAsync(userId, parentGroups, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Removes a user from one or more groups in one step.
         /// Non-existing group or member will be skipped.
         /// </summary>
         /// <param name="userId">Identifier of the user the will be removed. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void RemoveUserFromSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveUserFromSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
             {
                 base.RemoveUserFromSecurityGroups(userId, parentGroups);
+                op.Successful = true;
+            }
+        }
+        /// <summary>
+        /// Removes a user from one or more groups in one step.
+        /// Non-existing group or member will be skipped.
+        /// </summary>
+        /// <param name="userId">Identifier of the user the will be removed. Cannot be 0.</param>
+        /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task RemoveUserFromSecurityGroupsAsync(int userId, IEnumerable<int> parentGroups, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"RemoveUserFromSecurityGroups: userId:{userId}, parentGroups:[{string.Join(",", parentGroups ?? Array.Empty<int>())}]");
+            await base.RemoveUserFromSecurityGroupsAsync(userId, parentGroups, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
+        /// Removes one or more users from a group in one step.
+        /// Non-existing group or member will be skipped.
+        /// This method is a shortcut for RemoveMembersFromSecurityGroup(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public override void RemoveUsersFromSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        {
+            using (var op = SnTrace.Security.StartOperation("RemoveUsersFromSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
+            {
+                base.RemoveUsersFromSecurityGroup(groupId, userMembers);
                 op.Successful = true;
             }
         }
@@ -508,18 +775,20 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        public override void RemoveUsersFromSecurityGroup(int groupId, IEnumerable<int> userMembers)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task RemoveUsersFromSecurityGroupAsync(int groupId, IEnumerable<int> userMembers, CancellationToken cancel)
         {
-            using (var op = SnTrace.Security.StartOperation("RemoveUsersFromSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
-            {
-                base.RemoveUsersFromSecurityGroup(groupId, userMembers);
-                op.Successful = true;
-            }
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"RemoveUsersFromSecurityGroup: groupId:{groupId}, userMembers:[{string.Join(",", userMembers ?? Array.Empty<int>())}]");
+            await base.RemoveUsersFromSecurityGroupAsync(groupId, userMembers, cancel).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /// <summary>
         /// Deletes the specified group and its relations including related security entries.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void DeleteSecurityGroup(int groupId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteSecurityGroup: id:{0}", groupId))
@@ -529,8 +798,22 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Deletes the specified group and its relations including related security entries.
+        /// </summary>
+        /// <param name="groupId">The Id of the group to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task DeleteSecurityGroupAsync(int groupId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => $"DeleteSecurityGroup: id:{groupId}");
+            await base.DeleteSecurityGroupAsync(groupId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+        
+        /// <summary>
         /// Deletes the user from the system by removing all memberships and security entries related to this user.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void DeleteUser(int userId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteUser: id:{0}", userId))
@@ -540,8 +823,22 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Deletes the user from the system by removing all memberships and security entries related to this user.
+        /// </summary>
+        /// <param name="userId">The Id of the user to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task DeleteUserAsync(int userId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => $"DeleteUser: id:{userId}");
+            await base.DeleteUserAsync(userId, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Deletes the specified group or user and its relations including related security entries.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void DeleteIdentity(int id)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteIdentity: id:{0}", id))
@@ -551,15 +848,41 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
         /// <summary>
+        /// Deletes the specified group or user and its relations including related security entries.
+        /// </summary>
+        /// <param name="id">The Id of the identity to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task DeleteIdentityAsync(int id, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() => "DeleteIdentity: id:{id}");
+            await base.DeleteIdentityAsync(id, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
+        /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public override void DeleteIdentities(IEnumerable<int> ids)
         {
-            using (var op = SnTrace.Security.StartOperation("DeleteIdentities: ids:[{0}]", string.Join(",", ids ?? new int[0])))
-            {
-                base.DeleteIdentities(ids);
-                op.Successful = true;
-            }
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"DeleteIdentities: ids:[{string.Join(",", ids ?? Array.Empty<int>())}]");
+            base.DeleteIdentities(ids);
+            op.Successful = true;
+        }
+        /// <summary>
+        /// Deletes the specified groups or users and their relations including related security entries.
+        /// </summary>
+        /// <param name="ids">Set of identity Ids to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task DeleteIdentitiesAsync(IEnumerable<int> ids, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"DeleteIdentities: ids:[{string.Join(",", ids ?? Array.Empty<int>())}]");
+            await base.DeleteIdentitiesAsync(ids, cancel).ConfigureAwait(false);
+            op.Successful = true;
         }
 
         /***************** Debug info ***************/

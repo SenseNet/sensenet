@@ -665,7 +665,7 @@ namespace SenseNet.Packaging.Steps
 
                 // Apply changes because later we want to break inheritance on child nodes and that requires that
                 // the permissions we want to copy already exist on parents. This cannot be done in one round.
-                aclEd.Apply();
+                aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Break the permission inheritance on several content
                 aclEd.BreakInheritance(SystemFolderContentTypeId, new[] { EntryType.Normal })
@@ -766,7 +766,7 @@ namespace SenseNet.Packaging.Steps
                 }
 
                 // Apply all changes
-                aclEd.Apply();
+                aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             public void ImportContentTypeDefinitionsAndAspects(string ctdPath, string aspectsPath)

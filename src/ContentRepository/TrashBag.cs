@@ -243,7 +243,7 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(bag.Id, node.OwnerId, false, PermissionType.Delete, PermissionType.AddNew)
                     .Allow(bag.Id, currentUserId, true, PermissionType.Delete, PermissionType.AddNew)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             try

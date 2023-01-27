@@ -4098,7 +4098,7 @@ namespace SenseNet.ContentRepository.Storage
                 var targetNode = Node.LoadNode(targetNodePath);
                 var copy = sourceNode.MakeCopy(targetNode, newName);
                 copy.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                CopyExplicitPermissionsTo(sourceNode, copy);
+                CopyExplicitPermissionsToAsync(sourceNode, copy, CancellationToken.None).GetAwaiter().GetResult();
                 if (first)
                 {
                     copyOfSource = copy;
@@ -4109,7 +4109,7 @@ namespace SenseNet.ContentRepository.Storage
             return copyOfSource;
         }
 
-        private void CopyExplicitPermissionsTo(Node sourceNode, Node targetNode)
+        private async Task CopyExplicitPermissionsToAsync(Node sourceNode, Node targetNode, CancellationToken cancel)
         {
             AccessProvider.ChangeToSystemAccount();
             try
@@ -4121,7 +4121,7 @@ namespace SenseNet.ContentRepository.Storage
                 var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
                 foreach (var entry in entriesToCopy)
                     aclEd.Set(targetNode.Id, entry.IdentityId, entry.LocalOnly, entry.AllowBits, entry.DenyBits);
-                aclEd.Apply();
+                await aclEd.ApplyAsync(cancel).ConfigureAwait(false);
 
                 if (!targetNode.IsInherited)
                     targetNode.Security.RemoveBreakInheritance();

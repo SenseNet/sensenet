@@ -88,9 +88,10 @@ namespace SenseNet.ContentRepository.Storage.Security
                     }
 
                     if (data == null)
-                        ed.Apply();
+                        ed.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     else
-                        ed.Apply(ParseInitialPermissions(ed.Context, data.Permissions));
+                        ed.ApplyAsync(ParseInitialPermissions(ed.Context, data.Permissions), CancellationToken.None)
+                            .GetAwaiter().GetResult();
                 }
 
                 op.Successful = true;
@@ -105,7 +106,8 @@ namespace SenseNet.ContentRepository.Storage.Security
             var entityTreeNodes = _dataStore.LoadEntityTreeAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             foreach (var entityTreeNode in entityTreeNodes)
-                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
+                securityContext.CreateSecurityEntityAsync(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId,
+                    CancellationToken.None).GetAwaiter().GetResult();
         }
 
         internal static IEnumerable<PermissionAction> ParseInitialPermissions(SnSecurityContext context, IList<string> permissionData)

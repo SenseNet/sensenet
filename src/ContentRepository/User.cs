@@ -687,7 +687,7 @@ namespace SenseNet.ContentRepository
                         // ReSharper disable once CoVariantArrayConversion
                         .Allow(pc.Id, Identifiers.OwnersGroupId, false, PermissionType.PermissionTypes)
                         .Allow(pc.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     profiles = pc.ContentHandler;
                 }
@@ -754,7 +754,7 @@ namespace SenseNet.ContentRepository
                         // they created and own.
                         Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                             .Allow(profile.Id, this.Id, false, PermissionType.Open)
-                            .Apply();
+                            .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {

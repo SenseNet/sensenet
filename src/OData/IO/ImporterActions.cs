@@ -116,7 +116,8 @@ namespace SenseNet.OData.IO
 
                 SetPermissions(aclEditor, content.Id, identity.Id, entryModel.LocalOnly, entryModel.Permissions, messages);
             }
-            aclEditor.Apply();
+            aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+
         }
 
         private static void SetPermissions(AclEditor aclEditor, int contentId, int identityId, bool localOnly,

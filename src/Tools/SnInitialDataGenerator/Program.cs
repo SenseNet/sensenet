@@ -110,7 +110,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                             false, PermissionType.BuiltInPermissionTypes)
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId,
                             false, PermissionType.BuiltInPermissionTypes)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Use the path-blacklist
                 Console.WriteLine("Remove unnecessary subtrees ({0}):", arguments.SkippedPathArray.Length);

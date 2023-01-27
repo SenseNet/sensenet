@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
@@ -676,6 +677,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="throwIfNodeNotFound">If true and the requested content does not exist,
         /// a ContentNotFoundException will be thrown.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void CreateSecurityEntity(int contentId, bool throwIfNodeNotFound = false)
         {
             var nodeHead = NodeHead.Get(contentId);
@@ -688,15 +690,64 @@ namespace SenseNet.ContentRepository.Storage.Security
             CreateSecurityEntity(nodeHead.Id, nodeHead.ParentId, nodeHead.OwnerId);
         }
         /// <summary>
+        /// Loads the content by the passed id and creates the security entity by the properties of the loaded content.
+        /// </summary>
+        /// <param name="contentId">Id of the content.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="throwIfNodeNotFound">If true and the requested content does not exist,
+        /// a ContentNotFoundException will be thrown.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async Task CreateSecurityEntityAsync(int contentId, CancellationToken cancel, bool throwIfNodeNotFound = false)
+        {
+            var nodeHead = await NodeHead.GetAsync(contentId, cancel).ConfigureAwait(false);
+            if (nodeHead == null)
+            {
+                if (throwIfNodeNotFound)
+                    throw new ContentNotFoundException(contentId.ToString());
+                return;
+            }
+            await CreateSecurityEntityAsync(nodeHead.Id, nodeHead.ParentId, nodeHead.OwnerId, cancel).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Creates a new entity in the security component, if it does not exist.
         /// Parent content must exist.
         /// </summary>
         /// <param name="contentId">Id of the created entity. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             CreateSecurityEntity(contentId, parentId, ownerId, SecurityContext);
+        }
+        /// <summary>
+        /// Creates a new entity in the security component, if it does not exist.
+        /// Parent content must exist.
+        /// </summary>
+        /// <param name="contentId">Id of the created entity. Cannot be 0.</param>
+        /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
+        /// <param name="ownerId">Id of the entity's owner identity.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task CreateSecurityEntityAsync(int contentId, int parentId, int ownerId, CancellationToken cancel)
+        {
+            return CreateSecurityEntityAsync(contentId, parentId, ownerId, SecurityContext, cancel);
+        }
+
+        /// <summary>
+        /// Creates a new entity in the security component, if it does not exist.
+        /// Parent must exist.
+        /// </summary>
+        /// <param name="contentId">Id of the created entity. Cannot be 0.</param>
+        /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
+        /// <param name="ownerId">Id of the entity's owner identity.</param>
+        /// <param name="context">Uses the passed context and does not create a new one.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void CreateSecurityEntity(int contentId, int parentId, int ownerId, SnSecurityContext context)
+        {
+            if (CheckSecurityEntityCreationParameters(contentId, parentId, ownerId, context))
+                context.CreateSecurityEntity(contentId, parentId, ownerId);
         }
         /// <summary>
         /// Creates a new entity in the security component, if it does not exist.
@@ -706,11 +757,15 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
         /// <param name="context">Uses the passed context and does not create a new one.</param>
-        public void CreateSecurityEntity(int contentId, int parentId, int ownerId, SnSecurityContext context)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task CreateSecurityEntityAsync(int contentId, int parentId, int ownerId, SnSecurityContext context, CancellationToken cancel)
         {
             if (CheckSecurityEntityCreationParameters(contentId, parentId, ownerId, context))
-                context.CreateSecurityEntity(contentId, parentId, ownerId);
+                return context.CreateSecurityEntityAsync(contentId, parentId, ownerId, cancel);
+            return Task.CompletedTask;
         }
+
         private bool CheckSecurityEntityCreationParameters(int contentId, int parentId, int ownerId, SecurityContext context)
         {
             if (context == null)
@@ -731,14 +786,39 @@ namespace SenseNet.ContentRepository.Storage.Security
             return false;
         }
 
+
         /// <summary>
         /// Modifies the owner of the entity in the security component.
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void ModifyEntityOwner(int contentId, int ownerId)
         {
             SecurityContext.ModifyEntityOwner(contentId, ownerId);
+        }
+        /// <summary>
+        /// Modifies the owner of the entity in the security component.
+        /// </summary>
+        /// <param name="contentId">Id of the entity. Cannot be 0.</param>
+        /// <param name="ownerId">Id of the entity's owner identity.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task ModifyEntityOwnerAsync(int contentId, int ownerId, CancellationToken cancel)
+        {
+            return SecurityContext.ModifyEntityOwnerAsync(contentId, ownerId, cancel);
+        }
+
+        /// <summary>
+        /// Moves the entity and it's whole subtree including the related ACLs in the security component 
+        /// after the content was moved in the repository.
+        /// </summary>
+        /// <param name="sourceId">Id of the source entity. Cannot be 0.</param>
+        /// <param name="targetId">Id of the target entity that will contain the source. Cannot be 0.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void MoveEntity(int sourceId, int targetId)
+        {
+            SecurityContext.MoveEntity(sourceId, targetId);
         }
         /// <summary>
         /// Moves the entity and it's whole subtree including the related ACLs in the security component 
@@ -746,18 +826,33 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="sourceId">Id of the source entity. Cannot be 0.</param>
         /// <param name="targetId">Id of the target entity that will contain the source. Cannot be 0.</param>
-        public void MoveEntity(int sourceId, int targetId)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task MoveEntityAsync(int sourceId, int targetId, CancellationToken cancel)
         {
-            SecurityContext.MoveEntity(sourceId, targetId);
+            return SecurityContext.MoveEntityAsync(sourceId, targetId, cancel);
+        }
+
+        /// <summary>
+        /// Deletes the entity and it's whole subtree including the related ACLs from the security component
+        /// after the content was deleted from the repository.
+        /// </summary>
+        /// <param name="contentId">Id of the entity. Cannot be 0.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void DeleteEntity(int contentId)
+        {
+            SecurityContext.DeleteEntity(contentId);
         }
         /// <summary>
         /// Deletes the entity and it's whole subtree including the related ACLs from the security component
         /// after the content was deleted from the repository.
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
-        public void DeleteEntity(int contentId)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task DeleteEntityAsync(int contentId, CancellationToken cancel)
         {
-            SecurityContext.DeleteEntity(contentId);
+            return SecurityContext.DeleteEntityAsync(contentId, cancel);
         }
 
         /// <summary>
@@ -798,6 +893,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void BreakInheritance(Node content, bool convertToExplicit = true)
         {
             var contentId = content.Id;
@@ -808,10 +904,27 @@ namespace SenseNet.ContentRepository.Storage.Security
                 .Apply();
         }
         /// <summary>
+        /// Clears the permission inheritance on the passed content.
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async Task BreakInheritanceAsync(Node content, CancellationToken cancel, bool convertToExplicit = true)
+        {
+            var contentId = content.Id;
+            if (!IsEntityInherited(contentId))
+                return;
+            await SecurityContext.CreateAclEditor()
+                .BreakInheritance(contentId, convertToExplicit ? new[] { EntryType.Normal } : Array.Empty<EntryType>())
+                .ApplyAsync(cancel).ConfigureAwait(false);
+        }
+        /// <summary>
         /// Restores the permission inheritance on the passed content.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void UnbreakInheritance(Node content, bool normalize = false)
         {
             var contentId = content.Id;
@@ -821,6 +934,23 @@ namespace SenseNet.ContentRepository.Storage.Security
                 .UnBreakInheritance(contentId,
                     normalize ? new[] { EntryType.Normal } : new EntryType[0])
                 .Apply();
+        }
+        /// <summary>
+        /// Restores the permission inheritance on the passed content.
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async Task UnbreakInheritanceAsync(Node content, CancellationToken cancel, bool normalize = false)
+        {
+            var contentId = content.Id;
+            if (IsEntityInherited(contentId))
+                return;
+            await SecurityContext.CreateAclEditor()
+                .UnBreakInheritance(contentId,
+                    normalize ? new[] { EntryType.Normal } : new EntryType[0])
+                .ApplyAsync(cancel).ConfigureAwait(false);
         }
 
         #endregion
@@ -849,9 +979,39 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void AddMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.AddMembersToSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
+        }
+        /// <summary>
+        /// Adds different kinds of members to a group in one step.
+        /// Non-existing groups or member groups will be created.
+        /// If all the parameters are null or empty, nothing will happen.
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
+        /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// group or groups are already known when this method is called. Can be null or empty.</param>
+        public Task AddMembersAsync(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, CancellationToken cancel, IEnumerable<int> parentGroups = null)
+        {
+            return SecurityContext.AddMembersToSecurityGroupAsync(groupId, userMembers, groupMembers, cancel, parentGroups);
+        }
+
+        /// <summary>
+        /// Adds one or more users to a group in one step.
+        /// Non-existing group will be created.
+        /// This method is a shortcut for AddMembers(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void AddUsersToGroup(int groupId, IEnumerable<int> userMembers)
+        {
+            SecurityContext.AddUsersToSecurityGroup(groupId, userMembers);
         }
         /// <summary>
         /// Adds one or more users to a group in one step.
@@ -860,9 +1020,23 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
-        public void AddUsersToGroup(int groupId, IEnumerable<int> userMembers)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task AddUsersToGroupAsync(int groupId, IEnumerable<int> userMembers, CancellationToken cancel)
         {
-            SecurityContext.AddUsersToSecurityGroup(groupId, userMembers);
+            return SecurityContext.AddUsersToSecurityGroupAsync(groupId, userMembers, cancel);
+        }
+
+        /// <summary>
+        /// Add one or more group members to a group. If the main group or any member is unknown it will be created.
+        /// This method is a shortcut for AddMembers(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void AddGroupsToGroup(int groupId, IEnumerable<int> groupMembers)
+        {
+            SecurityContext.AddGroupsToSecurityGroup(groupId, groupMembers);
         }
         /// <summary>
         /// Add one or more group members to a group. If the main group or any member is unknown it will be created.
@@ -870,9 +1044,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
-        public void AddGroupsToGroup(int groupId, IEnumerable<int> groupMembers)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task AddGroupsToGroupAsync(int groupId, IEnumerable<int> groupMembers, CancellationToken cancel)
         {
-            SecurityContext.AddGroupsToSecurityGroup(groupId, groupMembers);
+            return SecurityContext.AddGroupsToSecurityGroupAsync(groupId, groupMembers, cancel);
         }
 
         /// <summary>
@@ -884,9 +1060,38 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void RemoveMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.RemoveMembersFromSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
+        }
+        /// <summary>
+        /// Removes multiple kinds of members from a group in one step.
+        /// Non-existing groups or member groups will be skipped.
+        /// If all the parameters are null or empty, nothing will happen.
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
+        /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task RemoveMembersAsync(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, CancellationToken cancel, IEnumerable<int> parentGroups = null)
+        {
+            return SecurityContext.RemoveMembersFromSecurityGroupAsync(groupId, userMembers, groupMembers, cancel, parentGroups);
+        }
+
+        /// <summary>
+        /// Removes one or more group members from a group in one step.
+        /// Non-existing group or member groups will be skipped.
+        /// This method is a shortcut for RemoveMembers(...).
+        /// </summary>
+        /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
+        /// <param name="groupIds">Collection of group member identifiers. Can be null or empty.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        public void RemoveGroupsFromGroup(int groupId, IEnumerable<int> groupIds)
+        {
+            SecurityContext.RemoveGroupsFromSecurityGroup(groupId, groupIds);
         }
         /// <summary>
         /// Removes one or more group members from a group in one step.
@@ -895,38 +1100,87 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupIds">Collection of group member identifiers. Can be null or empty.</param>
-        public void RemoveGroupsFromGroup(int groupId, IEnumerable<int> groupIds)
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task RemoveGroupsFromGroupAsync(int groupId, IEnumerable<int> groupIds, CancellationToken cancel)
         {
-            SecurityContext.RemoveGroupsFromSecurityGroup(groupId, groupIds);
+            return SecurityContext.RemoveGroupsFromSecurityGroupAsync(groupId, groupIds, cancel);
         }
 
         /// <summary>
         /// Deletes the specified group and its relations including related security entries from the security component.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void DeleteGroup(int groupId)
         {
             SecurityContext.DeleteSecurityGroup(groupId);
         }
         /// <summary>
+        /// Deletes the specified group and its relations including related security entries from the security component.
+        /// </summary>
+        /// <param name="groupId">The Id of the group to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task DeleteGroupAsync(int groupId, CancellationToken cancel)
+        {
+            return SecurityContext.DeleteSecurityGroupAsync(groupId, cancel);
+        }
+
+        /// <summary>
         /// Deletes the user from the security component by removing all memberships and security entries related to this user.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void DeleteUser(int userId)
         {
             SecurityContext.DeleteUser(userId);
         }
         /// <summary>
+        /// Deletes the user from the security component by removing all memberships and security entries related to this user.
+        /// </summary>
+        /// <param name="userId">The Id of the user to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task DeleteUserAsync(int userId, CancellationToken cancel)
+        {
+            return SecurityContext.DeleteUserAsync(userId, cancel);
+        }
+
+        /// <summary>
         /// Deletes the specified group or user and its relations including related security entries from the security component.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void DeleteIdentity(int id)
         {
             SecurityContext.DeleteIdentity(id);
         }
         /// <summary>
+        /// Deletes the specified group or user and its relations including related security entries from the security component.
+        /// </summary>
+        /// <param name="id">The Id of the identity to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task DeleteIdentityAsync(int id, CancellationToken cancel)
+        {
+            return SecurityContext.DeleteIdentityAsync(id, cancel);
+        }
+
+        /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries from the security component.
         /// </summary>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void DeleteIdentities(IEnumerable<int> ids)
         {
             SecurityContext.DeleteIdentities(ids);
+        }
+        /// <summary>
+        /// Deletes the specified groups or users and their relations including related security entries from the security component.
+        /// </summary>
+        /// <param name="ids">Set of identity Ids to be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task DeleteIdentitiesAsync(IEnumerable<int> ids, CancellationToken cancel)
+        {
+            return SecurityContext.DeleteIdentitiesAsync(ids, cancel);
         }
 
         /*========================================================================================================== Collecting related identities */
@@ -1267,6 +1521,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="sourceId">Id of the source content.</param>
         /// <param name="targetId">Id of the target content.</param>
         /// <param name="mode">Whether a break or a permission clean is needed.</param>
+        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
         public void CopyPermissionsFrom(int sourceId, int targetId, CopyPermissionMode mode)
         {
             bool @break, @clear;
@@ -1284,6 +1539,32 @@ namespace SenseNet.ContentRepository.Storage.Security
                 aclEd.RemoveExplicitEntries(targetId);
             aclEd.CopyEffectivePermissions(sourceId, targetId);
             aclEd.Apply();
+        }
+        /// <summary>
+        /// Copies effective permissions from the source content to the target as explicite entries.
+        /// </summary>
+        /// <param name="sourceId">Id of the source content.</param>
+        /// <param name="targetId">Id of the target content.</param>
+        /// <param name="mode">Whether a break or a permission clean is needed.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async Task CopyPermissionsFromAsync(int sourceId, int targetId, CopyPermissionMode mode, CancellationToken cancel)
+        {
+            bool @break, @clear;
+            switch (mode)
+            {
+                case CopyPermissionMode.NoBreak: @break = false; @clear = false; break;
+                case CopyPermissionMode.BreakWithoutClear: @break = true; @clear = false; break;
+                case CopyPermissionMode.BreakAndClear: @break = true; @clear = true; break;
+                default: throw new SnNotSupportedException("Unknown mode: " + mode);
+            }
+            var aclEd = CreateAclEditor();
+            if (@break)
+                aclEd.BreakInheritance(targetId, new EntryType[0]);
+            if (@clear)
+                aclEd.RemoveExplicitEntries(targetId);
+            aclEd.CopyEffectivePermissions(sourceId, targetId);
+            await aclEd.ApplyAsync(cancel).ConfigureAwait(false);
         }
 
         /// <summary>

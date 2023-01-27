@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -117,7 +118,7 @@ namespace SenseNet.Packaging.Steps
                     aclEditor.Reset(content.Id, identity.Id, false, pbitmask);
                     aclEditor.Reset(content.Id, identity.Id, true, pbitmask);
                 }
-                aclEditor.Apply();
+                aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
     }
@@ -175,7 +176,7 @@ namespace SenseNet.Packaging.Steps
 
                 ChangePermissions(content.Id, identity.Id, aclEditor, permissionBitMmask);
 
-                aclEditor.Apply(); 
+                aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
