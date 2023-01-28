@@ -652,7 +652,8 @@ namespace SenseNet.Packaging.Steps
                     var users = orgUnit.Children.Where(c => c is User).Select(u => u.Id).ToArray();
                     var groups = orgUnit.Children.Where(c => c is Group || c is OrganizationalUnit).Select(g => g.Id).ToArray();
 
-                    Providers.Instance.SecurityHandler.AddMembers(orgUnit.Id, users, groups);
+                    Providers.Instance.SecurityHandler.AddMembersAsync(orgUnit.Id, users, groups,
+                        CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 Log(ImportLogLevel.Info, "Set initial permissions...");
@@ -1062,7 +1063,8 @@ namespace SenseNet.Packaging.Steps
                             content.ContentHandler.Security.RemoveExplicitEntries();
                             if (!(contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions))
                             {
-                                content.ContentHandler.Security.RemoveBreakInheritance();
+                                content.ContentHandler.Security.RemoveBreakInheritanceAsync(CancellationToken.None)
+                                    .GetAwaiter().GetResult();
                             }
                         }
                         if (contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions || 

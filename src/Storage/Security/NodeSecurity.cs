@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -267,18 +268,42 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Clear the permission inheritance on the current content.
         /// </summary>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void BreakInheritance(bool convertToExplicit = true)
         {
             _securityHandler.BreakInheritance(this._node, convertToExplicit);
         }
         /// <summary>
+        /// Clear the permission inheritance on the current content.
+        /// </summary>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task BreakInheritanceAsync(CancellationToken cancel, bool convertToExplicit = true)
+        {
+            return _securityHandler.BreakInheritanceAsync(this._node, cancel, convertToExplicit);
+        }
+
+        /// <summary>
         /// Restores the permission inheritance on the current content.
         /// </summary>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries 
         /// (the ones that are the same as the inherited ones) will be removed.</param>
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void RemoveBreakInheritance(bool normalize = false)
         {
             _securityHandler.UnbreakInheritance(this._node, normalize);
+        }
+        /// <summary>
+        /// Restores the permission inheritance on the current content.
+        /// </summary>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <param name="normalize">If true (default is false), the unnecessary explicit entries 
+        /// (the ones that are the same as the inherited ones) will be removed.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task RemoveBreakInheritanceAsync(CancellationToken cancel, bool normalize = false)
+        {
+            return _securityHandler.UnbreakInheritanceAsync(this._node, cancel, normalize);
         }
 
         /*========================================================== Install, Import, Export */

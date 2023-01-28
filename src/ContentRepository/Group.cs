@@ -546,14 +546,16 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
-                    Providers.Instance.SecurityHandler.AddGroupsToGroup(parent.Id, new[] { e.SourceNode.Id });
+                    Providers.Instance.SecurityHandler.AddGroupsToGroupAsync(parent.Id, new[] { e.SourceNode.Id },
+                        CancellationToken.None).GetAwaiter().GetResult();
             }
 
             var usersToAdd = GetMemberUsers().Select(u => u.Id).ToArray();
             var groupsToAdd = GetMemberGroups().Select(g => g.Id).ToArray();
 
             if (usersToAdd.Length > 0 || groupsToAdd.Length > 0)
-                Providers.Instance.SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
+                Providers.Instance.SecurityHandler.AddMembersAsync(this.Id, usersToAdd, groupsToAdd,
+                    CancellationToken.None).GetAwaiter().GetResult();
         }
 
         protected override void OnModifying(object sender, CancellableNodeEventArgs e)
@@ -656,9 +658,11 @@ namespace SenseNet.ContentRepository
             }
 
             if (usersToRemove.Count > 0 || groupsToRemove.Count > 0)
-                Providers.Instance.SecurityHandler.RemoveMembers(this.Id, usersToRemove, groupsToRemove);
+                Providers.Instance.SecurityHandler.RemoveMembersAsync(this.Id, usersToRemove, groupsToRemove,
+                    CancellationToken.None).GetAwaiter().GetResult();
             if (usersToAdd.Count > 0 || groupsToAdd.Count > 0)
-                Providers.Instance.SecurityHandler.AddMembers(this.Id, usersToAdd, groupsToAdd);
+                Providers.Instance.SecurityHandler.AddMembersAsync(this.Id, usersToAdd, groupsToAdd,
+                    CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // =================================================================================== IADSyncable Members

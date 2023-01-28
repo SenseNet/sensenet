@@ -281,7 +281,8 @@ namespace SenseNet.ContentRepository
                 return;
 
             // copy permissions from the source content, without reseting the permission system
-            Providers.Instance.SecurityHandler.CopyPermissionsFrom(source.Id, target.Id, CopyPermissionMode.BreakAndClear);
+            Providers.Instance.SecurityHandler.CopyPermissionsFromAsync(source.Id, target.Id, CopyPermissionMode.BreakAndClear,
+                CancellationToken.None).GetAwaiter().GetResult();
 
             // If there were any permission settings for the Creators group on the source content, we 
             // need to place an explicite entry with the same permissions onto the target for the creator 

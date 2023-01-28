@@ -39,7 +39,7 @@ namespace SenseNet.Packaging.Steps
         {
             if (content.ContentHandler.IsInherited)
             {
-                content.Security.BreakInheritance();
+                content.Security.BreakInheritanceAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Logger.LogMessage("Permission inheritance break successfully performed on " + content.Path);
             }
             else
@@ -54,7 +54,7 @@ namespace SenseNet.Packaging.Steps
         {
             if (!content.ContentHandler.IsInherited)
             {
-                content.Security.RemoveBreakInheritance();
+                content.Security.RemoveBreakInheritanceAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Logger.LogMessage("Permission inheritance break is removed from " + content.Path);
             }
             else

@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the created content. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("CreateSecurityEntity id:{0}, parent:{1}, owner:{2}", contentId, parentId, ownerId))
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
         /// <param name="ownerId">Id of the content's owner identity.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void ModifyEntityOwner(int contentId, int ownerId)
         {
             using (var op = SnTrace.Security.StartOperation("ModifyEntityOwner id:{0}, owner:{1}", contentId, ownerId))
@@ -232,7 +232,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// security component after a content was deleted in the repository.
         /// </summary>
         /// <param name="contentId">Id of the content. Cannot be 0.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void DeleteEntity(int contentId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteEntity id:{0}", contentId))
@@ -261,7 +261,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="sourceId">Id of the source content. Cannot be 0.</param>
         /// <param name="targetId">Id of the target content that will contain the source. Cannot be 0.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void MoveEntity(int sourceId, int targetId)
         {
             using (var op = SnTrace.Security.StartOperation("MoveEntity sourceId:{0}, targetId:{1}", sourceId, targetId))
@@ -440,7 +440,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void AddMembersToSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             using (var op = SnTrace.Security.StartOperation("AddMembersToSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
@@ -483,7 +483,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             var users = userMembers as int[] ?? userMembers.ToArray();
@@ -525,7 +525,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void AddGroupsToSecurityGroup(int groupId, IEnumerable<int> groupMembers)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupsToSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
@@ -558,7 +558,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void AddGroupToSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddGroupToSecurityGroups: groupId:{0}, parentGroups:[{1}]", groupId, string.Join(",", string.Join(",", parentGroups ?? new int[0]))))
@@ -592,7 +592,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of the group member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void RemoveGroupsFromSecurityGroup(int groupId, IEnumerable<int> groupMembers)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveGroupsFromSecurityGroup: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", groupMembers ?? new int[0])))
@@ -627,7 +627,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the member group. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void RemoveGroupFromSecurityGroups(int groupId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveGroupFromSecurityGroups: groupId:{0}, groupMembers:[{1}]", groupId, string.Join(",", parentGroups ?? new int[0])))
@@ -664,7 +664,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void AddUsersToSecurityGroup(int groupId, IEnumerable<int> userMembers)
         {
             using (var op = SnTrace.Security.StartOperation("AddUsersToSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
@@ -696,7 +696,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">Identifier of the the user member that will be added. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void AddUserToSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("AddUserToSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
@@ -727,7 +727,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">Identifier of the user the will be removed. Cannot be 0.</param>
         /// <param name="parentGroups">Collection of the parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void RemoveUserFromSecurityGroups(int userId, IEnumerable<int> parentGroups)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveUserFromSecurityGroups: userId:{0}, parentGroups:[{1}]", userId, string.Join(",", parentGroups ?? new int[0])))
@@ -759,7 +759,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of the user member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void RemoveUsersFromSecurityGroup(int groupId, IEnumerable<int> userMembers)
         {
             using (var op = SnTrace.Security.StartOperation("RemoveUsersFromSecurityGroup: groupId:{0}, userMembers:[{1}]", groupId, string.Join(",", userMembers ?? new int[0])))
@@ -788,7 +788,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group and its relations including related security entries.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void DeleteSecurityGroup(int groupId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteSecurityGroup: id:{0}", groupId))
@@ -809,11 +809,11 @@ namespace SenseNet.ContentRepository.Storage.Security
             await base.DeleteSecurityGroupAsync(groupId, cancel).ConfigureAwait(false);
             op.Successful = true;
         }
-        
+
         /// <summary>
         /// Deletes the user from the system by removing all memberships and security entries related to this user.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void DeleteUser(int userId)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteUser: id:{0}", userId))
@@ -838,7 +838,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group or user and its relations including related security entries.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void DeleteIdentity(int id)
         {
             using (var op = SnTrace.Security.StartOperation("DeleteIdentity: id:{0}", id))
@@ -863,7 +863,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public override void DeleteIdentities(IEnumerable<int> ids)
         {
             using var op = SnTrace.Security.StartOperation(() =>

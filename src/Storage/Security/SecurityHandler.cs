@@ -224,7 +224,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             catch (EntityNotFoundException)
             {
                 // entity not found in the security component: try to re-create it
-                ReCreateSecurityEntity(contentId);
+                ReCreateSecurityEntityAsync(contentId, CancellationToken.None).GetAwaiter().GetResult();
 
                 // retry the operation
                 return ctx.HasPermission(contentId, permissionTypes);
@@ -677,7 +677,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the content.</param>
         /// <param name="throwIfNodeNotFound">If true and the requested content does not exist,
         /// a ContentNotFoundException will be thrown.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void CreateSecurityEntity(int contentId, bool throwIfNodeNotFound = false)
         {
             var nodeHead = NodeHead.Get(contentId);
@@ -716,7 +716,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">Id of the created entity. Cannot be 0.</param>
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void CreateSecurityEntity(int contentId, int parentId, int ownerId)
         {
             CreateSecurityEntity(contentId, parentId, ownerId, SecurityContext);
@@ -743,7 +743,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="parentId">Id of the parent entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
         /// <param name="context">Uses the passed context and does not create a new one.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void CreateSecurityEntity(int contentId, int parentId, int ownerId, SnSecurityContext context)
         {
             if (CheckSecurityEntityCreationParameters(contentId, parentId, ownerId, context))
@@ -792,7 +792,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
         /// <param name="ownerId">Id of the entity's owner identity.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void ModifyEntityOwner(int contentId, int ownerId)
         {
             SecurityContext.ModifyEntityOwner(contentId, ownerId);
@@ -815,7 +815,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="sourceId">Id of the source entity. Cannot be 0.</param>
         /// <param name="targetId">Id of the target entity that will contain the source. Cannot be 0.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xx0:AsyncSecu: change to true
         public void MoveEntity(int sourceId, int targetId)
         {
             SecurityContext.MoveEntity(sourceId, targetId);
@@ -838,7 +838,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// after the content was deleted from the repository.
         /// </summary>
         /// <param name="contentId">Id of the entity. Cannot be 0.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xx0:AsyncSecu: change to true
         public void DeleteEntity(int contentId)
         {
             SecurityContext.DeleteEntity(contentId);
@@ -859,6 +859,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Tries to re-create the entity in the security component. This is a compensation method,
         /// call it only from where compensation is needed (e.g. there is a chance for a timing issue).
         /// </summary>
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         internal void ReCreateSecurityEntity(int contentId)
         {
             SnLog.WriteWarning("Re-creating entity in security component: " + contentId, EventId.Security);
@@ -867,6 +868,24 @@ namespace SenseNet.ContentRepository.Storage.Security
             {
                 // compensation: try to re-create the missing entity in the security component
                 CreateSecurityEntity(contentId);
+            }
+            catch (SecurityStructureException)
+            {
+                // Another thread already created the entity. No problem,
+                // simply retry the original operation in the caller.
+            }
+        }
+        /// <summary>
+        /// Tries to re-create the entity in the security component. This is a compensation method,
+        /// call it only from where compensation is needed (e.g. there is a chance for a timing issue).
+        /// </summary>
+        internal async Task ReCreateSecurityEntityAsync(int contentId, CancellationToken cancel)
+        {
+            SnLog.WriteWarning("Re-creating entity in security component: " + contentId, EventId.Security);
+
+            try
+            {
+                await CreateSecurityEntityAsync(contentId, cancel).ConfigureAwait(false);
             }
             catch (SecurityStructureException)
             {
@@ -893,7 +912,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void BreakInheritance(Node content, bool convertToExplicit = true)
         {
             var contentId = content.Id;
@@ -924,7 +943,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void UnbreakInheritance(Node content, bool normalize = false)
         {
             var contentId = content.Id;
@@ -979,7 +998,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Use this if the parent 
         /// group or groups are already known when this method is called. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void AddMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.AddMembersToSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
@@ -1008,7 +1027,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void AddUsersToGroup(int groupId, IEnumerable<int> userMembers)
         {
             SecurityContext.AddUsersToSecurityGroup(groupId, userMembers);
@@ -1033,7 +1052,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void AddGroupsToGroup(int groupId, IEnumerable<int> groupMembers)
         {
             SecurityContext.AddGroupsToSecurityGroup(groupId, groupMembers);
@@ -1060,7 +1079,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userMembers">Collection of user member identifiers. Can be null or empty.</param>
         /// <param name="groupMembers">Collection of group member identifiers. Can be null or empty.</param>
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void RemoveMembers(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
             SecurityContext.RemoveMembersFromSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
@@ -1088,7 +1107,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="groupId">Identifier of the container group. Cannot be 0.</param>
         /// <param name="groupIds">Collection of group member identifiers. Can be null or empty.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void RemoveGroupsFromGroup(int groupId, IEnumerable<int> groupIds)
         {
             SecurityContext.RemoveGroupsFromSecurityGroup(groupId, groupIds);
@@ -1110,7 +1129,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group and its relations including related security entries from the security component.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void DeleteGroup(int groupId)
         {
             SecurityContext.DeleteSecurityGroup(groupId);
@@ -1129,7 +1148,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the user from the security component by removing all memberships and security entries related to this user.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void DeleteUser(int userId)
         {
             SecurityContext.DeleteUser(userId);
@@ -1148,7 +1167,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified group or user and its relations including related security entries from the security component.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void DeleteIdentity(int id)
         {
             SecurityContext.DeleteIdentity(id);
@@ -1167,7 +1186,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the specified groups or users and their relations including related security entries from the security component.
         /// </summary>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void DeleteIdentities(IEnumerable<int> ids)
         {
             SecurityContext.DeleteIdentities(ids);
@@ -1521,7 +1540,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="sourceId">Id of the source content.</param>
         /// <param name="targetId">Id of the target content.</param>
         /// <param name="mode">Whether a break or a permission clean is needed.</param>
-        [Obsolete("Use async version instead.", false)]//UNDONE:xxx:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
         public void CopyPermissionsFrom(int sourceId, int targetId, CopyPermissionMode mode)
         {
             bool @break, @clear;

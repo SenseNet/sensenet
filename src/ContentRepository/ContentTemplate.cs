@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository
                     var targetNode = Node.LoadNode(targetNodePath);
                     if (!sourceNode.IsInherited)
                     {
-                        targetNode.Security.BreakInheritance();
+                        targetNode.Security.BreakInheritanceAsync(CancellationToken.None).GetAwaiter().GetResult();
                         targetNode.Security.RemoveExplicitEntries();
                     }
 

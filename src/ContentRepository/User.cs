@@ -1254,7 +1254,8 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
-                    Providers.Instance.SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
+                    Providers.Instance.SecurityHandler.AddUsersToGroupAsync(parent.Id, new[] { e.SourceNode.Id },
+                        CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

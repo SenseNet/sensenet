@@ -83,7 +83,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                                     groupMembers.Add(head.Id);
                             }
 
-                            _securityHandler.AddMembers(nodeId, userMembers, groupMembers);
+                            _securityHandler.AddMembersAsync(nodeId, userMembers, groupMembers,CancellationToken.None)
+                                .GetAwaiter().GetResult();
                         }
                     }
 
