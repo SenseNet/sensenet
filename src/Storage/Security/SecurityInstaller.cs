@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -106,9 +107,12 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             var entityTreeNodes = _dataStore.LoadEntityTreeAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
+            var tasks = new List<Task>();
             foreach (var entityTreeNode in entityTreeNodes)
-                securityContext.CreateSecurityEntityAsync(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId,
-                    CancellationToken.None).GetAwaiter().GetResult();
+                tasks.Add(securityContext.CreateSecurityEntityAsync(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId,
+                    CancellationToken.None));
+            Task.WhenAll(tasks.ToArray()).GetAwaiter().GetResult();
+            Task.Delay(100).GetAwaiter().GetResult();
         }
 
         internal static IEnumerable<PermissionAction> ParseInitialPermissions(SnSecurityContext context, IList<string> permissionData)
