@@ -64,11 +64,10 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         public async Task<ApiKey[]> GetApiKeysByUserAsync(int userId, CancellationToken cancel)
         {
-            if (userId < 1)
+            // in case of missing permissions: not an error, just return an empty list
+            if (userId < 1 || !IsUserAllowed(userId))
                 return Array.Empty<ApiKey>();
-
-            AssertPermissions(userId);
-
+            
             // do not load tokens from cache, this is for editing tokens
             var allTokens = await AccessTokenVault.GetAllTokensAsync(userId, cancel).ConfigureAwait(false);
 
@@ -131,12 +130,20 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         private void AssertPermissions(int userId)
         {
-            if (!Providers.Instance.SecurityHandler.HasPermission(userId, PermissionType.Save))
-            {
-                _logger.LogWarning($"ApiKeyManager: {User.Current.Name} tried to manage api keys of user {userId} without Save permissions.");
-                throw new SenseNetSecurityException(userId, $"Current user ({User.Current.Name}) does not have enough permissions " +
-                    $"to manage api keys. Save permission is required.");
-            }
+            if (IsUserAllowed(userId)) 
+                return;
+
+            _logger.LogWarning($"ApiKeyManager: {User.Current.Name} tried to manage api keys of user {userId} without Save permissions.");
+            throw new SenseNetSecurityException(userId, $"Current user ({User.Current.Name}) does not have enough permissions " +
+                                                        $"to manage api keys. Save permission is required.");
+        }
+        private static bool IsUserAllowed(int userId)
+        {
+            var currentUser = AccessProvider.Current.GetOriginalUser();
+
+            // Users can manage API keys of their own, or if they have Save permissions on the user.
+            return currentUser.Id == userId ||
+                   Providers.Instance.SecurityHandler.HasPermission(userId, PermissionType.Save);
         }
     }
 }

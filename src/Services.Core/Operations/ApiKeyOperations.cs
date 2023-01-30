@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.ApiKeys;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -35,6 +36,8 @@ namespace SenseNet.Services.Core.Operations
         /// Creates an api key for the target user.
         /// </summary>
         /// <snCategory>Authentication</snCategory>
+        /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
+        /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The newly created API key.</returns>
@@ -53,6 +56,8 @@ namespace SenseNet.Services.Core.Operations
         /// Deletes an API key.
         /// </summary>
         /// <snCategory>Authentication</snCategory>
+        /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
+        /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="apiKey">API key identifier.</param>
@@ -74,6 +79,8 @@ namespace SenseNet.Services.Core.Operations
         /// Deletes all api keys.
         /// </summary>
         /// <snCategory>Authentication</snCategory>
+        /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
+        /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
@@ -89,6 +96,8 @@ namespace SenseNet.Services.Core.Operations
         /// Deletes api keys of the target user.
         /// </summary>
         /// <snCategory>Authentication</snCategory>
+        /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
+        /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
