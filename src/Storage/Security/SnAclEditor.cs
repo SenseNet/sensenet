@@ -226,7 +226,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return this;
         }
 
-        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]// Security
         internal void Apply(IEnumerable<PermissionAction> actions)
         {
             var noCopy = new EntryType[0];
@@ -269,7 +269,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// An Auditlog record with changed data will be writen.
         /// OnPermissionChanging and OnPermissionChanged events are fired on any active NodeObserver.
         /// </summary>
-        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]// Security
         public override void Apply()
         {
             Apply((List<Type>)null);
@@ -294,7 +294,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// OnPermissionChanging and OnPermissionChanged events are fired on any active NodeObserver that is not in the exclusion list (see "disabledObservers" parameter).
         /// </summary>
         /// <param name="disabledObservers">NodeObserver exclusion list.</param>
-        [Obsolete("Use async version instead.", true)]//UNDONE:xxx0:AsyncSecu: change to true
+        [Obsolete("Use async version instead.", true)]// Security
         public void Apply(List<Type> disabledObservers)
         {
             foreach (var entityId in this._acls.Keys)
