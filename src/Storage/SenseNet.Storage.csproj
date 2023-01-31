@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SenseNet.Security" Version="4.1.5.1" />
+    <PackageReference Include="SenseNet.Security" Version="4.1.5" />
     <PackageReference Include="SenseNet.TaskManagement.Core" Version="2.2.1" />
     <PackageReference Include="SenseNet.Tools" Version="3.2.9" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
