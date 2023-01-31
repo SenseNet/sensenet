@@ -308,17 +308,17 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             IntegrationTest((sandbox) =>
             {
+                var initialText = "Lorem ipsum dolo sit amet..";
+                DeleteBinaryPropertyTest(initialText, 222);
             });
-            var initialText = "Lorem ipsum dolo sit amet..";
-            DeleteBinaryPropertyTest(initialText, 222);
         }
         public void TestCase_DeleteBinaryPropertyBig()
         {
             IntegrationTest((sandbox) =>
             {
+                var initialText = "Lorem ipsum dolo sit amet..";
+                DeleteBinaryPropertyTest(initialText, 20);
             });
-            var initialText = "Lorem ipsum dolo sit amet..";
-            DeleteBinaryPropertyTest(initialText, 20);
         }
         private void DeleteBinaryPropertyTest(string fileContent, int sizeLimit)
         {
@@ -348,55 +348,55 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             IntegrationTest((sandbox) =>
             {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFiles = CopyFileRowTest(initialText, updatedText, 222);
+
+                var stream0 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[0].Stream : dbFiles[0].ExternalStream;
+                Assert.IsNotNull(stream0);
+                Assert.AreEqual(dbFiles[0].Size, stream0.Length);
+                Assert.AreEqual(initialText, GetStringFromBytes(stream0));
+
+                var stream1 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[1].Stream : dbFiles[1].ExternalStream;
+                Assert.IsNotNull(stream1);
+                Assert.AreEqual(dbFiles[1].Size, stream1.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(stream1));
             });
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
-            var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            var dbFiles = CopyFileRowTest(initialText, updatedText, 222);
-
-            var stream0 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[0].Stream : dbFiles[0].ExternalStream;
-            Assert.IsNotNull(stream0);
-            Assert.AreEqual(dbFiles[0].Size, stream0.Length);
-            Assert.AreEqual(initialText, GetStringFromBytes(stream0));
-
-            var stream1 = BlobStoragePlatform.CanUseBuiltInBlobProvider ? dbFiles[1].Stream : dbFiles[1].ExternalStream;
-            Assert.IsNotNull(stream1);
-            Assert.AreEqual(dbFiles[1].Size, stream1.Length);
-            Assert.AreEqual(updatedText, GetStringFromBytes(stream1));
         }
         public void TestCase_CopyFileRowBig()
         {
             IntegrationTest((sandbox) =>
             {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFiles = CopyFileRowTest(initialText, updatedText, 20);
+
+                if (NeedExternal(BlobStoragePlatform.ExpectedExternalBlobProviderType))
+                {
+                    Assert.IsNull(dbFiles[0].Stream);
+                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
+                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
+
+                    Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
+                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
+
+                }
+                else
+                {
+                    Assert.IsNotNull(dbFiles[0].Stream);
+                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
+                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
+
+                    Assert.IsNotNull(dbFiles[1].Stream);
+                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
+                }
             });
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
-            var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            var dbFiles = CopyFileRowTest(initialText, updatedText, 20);
-
-            if (NeedExternal(BlobStoragePlatform.ExpectedExternalBlobProviderType))
-            {
-                Assert.IsNull(dbFiles[0].Stream);
-                Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
-                Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
-
-                Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
-                Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
-
-            }
-            else
-            {
-                Assert.IsNotNull(dbFiles[0].Stream);
-                Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
-                Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
-
-                Assert.IsNotNull(dbFiles[1].Stream);
-                Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
-            }
         }
         private DbFile[] CopyFileRowTest(string initialContent, string updatedText, int sizeLimit)
         {

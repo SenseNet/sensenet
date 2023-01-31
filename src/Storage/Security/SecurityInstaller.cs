@@ -112,7 +112,6 @@ namespace SenseNet.ContentRepository.Storage.Security
                 tasks.Add(securityContext.CreateSecurityEntityAsync(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId,
                     CancellationToken.None));
             Task.WhenAll(tasks.ToArray()).GetAwaiter().GetResult();
-            Task.Delay(100).GetAwaiter().GetResult();
         }
 
         internal static IEnumerable<PermissionAction> ParseInitialPermissions(SnSecurityContext context, IList<string> permissionData)
