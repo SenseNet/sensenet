@@ -322,8 +322,11 @@ namespace SenseNet.OData
                 }
                 case ContentNotFoundException _:
                     return new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                case AccessDeniedException _:
-                    return new ODataException(ODataExceptionCode.Forbidden, e);
+                case AccessDeniedException ade:
+                {
+                    SnTrace.Security.WriteError(ade.Message);
+                    return new ODataException("Access denied.", ODataExceptionCode.Forbidden);
+                }
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
@@ -337,7 +340,7 @@ namespace SenseNet.OData
                     if (odataRequest != null/* && User.Current.Id == Identifiers.VisitorUserId*/)
                     {
                         var head = NodeHead.Get(odataRequest.RepositoryPath);
-                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
+                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                         {
                             ContentNotFound(httpContext);
                             SnTrace.Security.Write(sse.Data["FormattedMessage"].ToString());
@@ -345,8 +348,8 @@ namespace SenseNet.OData
                         }
                     }
 
-                    var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
-                    SnLog.WriteException(oe);
+                    var oe = new ODataException(ODataExceptionCode.Forbidden, e);
+                    SnTrace.Security.WriteError(e.Message);
                     return oe;
                 }
                 case InvalidContentActionException invalidContentActionException:

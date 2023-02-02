@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         public SenseNetSecurityException(string message, Exception innerException = null)
-            : base(ACCESSDENIED, innerException)
+            : base(message, innerException)
         {
             Initialize(msg: message);
         }

@@ -121,6 +121,7 @@ public class ODataErrorHandlingTests : ODataTestBase
         await ODataTestAsync(async () =>
         {
             ODataResponse response;
+
             await ErrorHandlingTest(async (logger, tracer) =>
             {
                 // ACTION
@@ -142,6 +143,7 @@ public class ODataErrorHandlingTests : ODataTestBase
                 Email = "user1@example.com"
             };
             user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
             await ErrorHandlingTest(async (logger, tracer) =>
             {
                 // ACTION
@@ -160,6 +162,7 @@ public class ODataErrorHandlingTests : ODataTestBase
                 .Allow((await NodeHead.GetAsync("/Root/IMS", CancellationToken.None)).Id, user.Id, false,
                     PermissionType.See)
                 .Apply();
+
             await ErrorHandlingTest(async (logger, tracer) =>
             {
                 // ACTION
@@ -172,7 +175,8 @@ public class ODataErrorHandlingTests : ODataTestBase
                 var error = GetError(response);
                 Assert.IsTrue(error.Message.Contains("Operation not accessible:"));
                 Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")), "Unexpected log entry.");
-                Assert.IsTrue(tracer.Lines.Any(x => x.Contains("Operation not accessible. Path: /Root/IMS ")), "Missing trace line");
+                Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Warning:")), "Unexpected log entry.");
+                Assert.IsTrue(tracer.Lines.Any(x => x.Contains("Operation not accessible:")), "Missing trace line");
             }).ConfigureAwait(false);
         }).ConfigureAwait(false);
     }
@@ -221,10 +225,11 @@ public class ODataErrorHandlingTests : ODataTestBase
             Assert.AreEqual(403, response.StatusCode);
             var error = GetError(response, false);
             Assert.AreEqual(ODataExceptionCode.Forbidden, error.Code);
-            Assert.AreEqual(nameof(AccessDeniedException), error.ExceptionType);
+            //Assert.AreEqual(nameof(AccessDeniedException), error.ExceptionType);
+            Assert.AreEqual(nameof(ODataException), error.ExceptionType);
             Assert.AreEqual("Access denied.", error.Message);
             Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")), "Unexpected log entry");
-            Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR ")), "Missing trace line");
+            Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR")), "Missing trace line");
             Assert.IsTrue(tracer.Lines.Any(x => x.Contains(message)), "Wrong trace message");
         }
 
@@ -249,14 +254,14 @@ public class ODataErrorHandlingTests : ODataTestBase
                 response = await ODataPostAsync($"/OData.svc/('Root')/{nameof(ErrorHandling_SenseNetSecurityException)}", "",
                     $"{{a:\"magicValue\"}}").ConfigureAwait(false);
             // ASSERT
-            var message = "message Path: path EntityId: 42 UserId: 1 PermissionTypes: Custom01";
-            Assert.AreEqual(500, response.StatusCode);
+            var message = "message";
+            Assert.AreEqual(403, response.StatusCode);
             var error = GetError(response, false);
-            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual(ODataExceptionCode.Forbidden, error.Code);
             Assert.AreEqual(nameof(SenseNetSecurityException), error.ExceptionType);
             Assert.AreEqual(message, error.Message);
             Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")), "Unexpected log entry");
-            Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR ")), "Missing trace line");
+            Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR")), "Missing trace line");
             Assert.IsTrue(tracer.Lines.Any(x => x.Contains(message)), "Wrong trace message");
         }
 

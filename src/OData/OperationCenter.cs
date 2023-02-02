@@ -13,6 +13,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.OData;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
 using Task = System.Threading.Tasks.Task;
@@ -169,8 +170,7 @@ namespace SenseNet.OData
 
             candidates = candidates.Where(x => FilterByRolesAndPermissions(inspector, x.Roles, x.Permissions, content)).ToArray();
             if (candidates.Length == 0)
-                throw new AccessDeniedException("Operation not accessible: " + GetRequestSignature(methodName, requestParameterNames),
-                    null, 0, null, null);
+                throw new SenseNetSecurityException("Operation not accessible: " + GetRequestSignature(methodName, requestParameterNames));
 
             // Search candidates by parameter types
             // Phase-1: search complete type match (strict)
