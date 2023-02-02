@@ -301,7 +301,7 @@ namespace SenseNet.OData
                 var oe = HandleException(ex, odataRequest, httpContext);
                 if (oe == null)
                     return;
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe, _appConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -328,18 +328,19 @@ namespace SenseNet.OData
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
                     return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
-                case SenseNetSecurityException _:
+                case SenseNetSecurityException sse:
                 {
-                    // In case of a visitor we should not expose the information that this content actually exists. We return
-                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
+                    // In the case of a visitor we should not expose the information that this content actually exists. We return
+                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content
                     // really does not exist. But do this only if the visitor really does not have permission for the
-                    // requested content (because security exception could be thrown by an action or something else too).
-                    if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
+                    // requested content (because a security exception could be thrown by an action or something else too).
+                    if (odataRequest != null/* && User.Current.Id == Identifiers.VisitorUserId*/)
                     {
                         var head = NodeHead.Get(odataRequest.RepositoryPath);
                         if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
                         {
                             ContentNotFound(httpContext);
+                            SnTrace.Security.Write(sse.Data["FormattedMessage"].ToString());
                             return null;
                         }
                     }

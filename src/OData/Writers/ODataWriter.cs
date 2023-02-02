@@ -376,8 +376,14 @@ namespace SenseNet.OData.Writers
         protected abstract Task WriteActionsPropertyAsync(HttpContext httpContext, ODataRequest odataRequest, ODataActionItem[] actions, bool raw);
 
 
-        internal async Task WriteErrorResponseAsync(HttpContext httpContext, ODataRequest req, ODataException oe)
+        internal async Task WriteErrorResponseAsync(HttpContext httpContext, ODataRequest req, ODataException oe, IConfiguration config)
         {
+            var env = config?["ASPNETCORE_ENVIRONMENT"];
+#if DEBUG   
+            env ??= "Development";
+#endif
+            var isDevelopment = env == "Development";
+
             var error = new Error
             {
                 Code = string.IsNullOrEmpty(oe.ErrorCode) ? Enum.GetName(typeof(ODataExceptionCode), oe.ODataExceptionCode) : oe.ErrorCode,
@@ -387,15 +393,7 @@ namespace SenseNet.OData.Writers
                     Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
                     Value = SNSR.GetString(oe.Message).Replace(Environment.NewLine, "\\n").Replace('"', ' ').Replace('\'', ' ').Replace(" \\ ", " ")
                 },
-                InnerError =
-#if DEBUG
-        new StackInfo
-        {
-            Trace = Utility.CollectExceptionMessages(oe)
-        }
-#else
-                        null
-#endif
+                InnerError = isDevelopment ? new StackInfo {Trace = Utility.CollectExceptionMessages(oe)} : null
             };
 
             httpContext.Response.ContentType = "application/json";
