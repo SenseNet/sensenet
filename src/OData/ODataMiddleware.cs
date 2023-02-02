@@ -324,8 +324,8 @@ namespace SenseNet.OData
                     return new ODataException(ODataExceptionCode.ResourceNotFound, e);
                 case AccessDeniedException ade:
                 {
-                    SnTrace.Security.WriteError(ade.Message);
-                    return new ODataException("Access denied.", ODataExceptionCode.Forbidden);
+                    SnTrace.Security.WriteError(ade.ToString);
+                    return new ODataException("Access denied.", ODataExceptionCode.Forbidden, ade);
                 }
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);

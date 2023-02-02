@@ -226,7 +226,7 @@ public class ODataErrorHandlingTests : ODataTestBase
             var error = GetError(response, false);
             Assert.AreEqual(ODataExceptionCode.Forbidden, error.Code);
             //Assert.AreEqual(nameof(AccessDeniedException), error.ExceptionType);
-            Assert.AreEqual(nameof(ODataException), error.ExceptionType);
+            Assert.AreEqual(nameof(AccessDeniedException), error.ExceptionType);
             Assert.AreEqual("Access denied.", error.Message);
             Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")), "Unexpected log entry");
             Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR")), "Missing trace line");
