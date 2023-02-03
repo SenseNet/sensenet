@@ -261,7 +261,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     Set(entityId, entry.IdentityId, entry.LocalOnly,
                         new PermissionBitMask { AllowBits = entry.AllowBits, DenyBits = entry.DenyBits });
             }
-            await ApplyAsync(cancel);
+            await ApplyAsync(cancel).ConfigureAwait(false);
         }
         /// <summary>
         /// Executes all modifications.
