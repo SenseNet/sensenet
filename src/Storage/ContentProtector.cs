@@ -57,9 +57,10 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public class ContentProtector : IContentProtector
     {
-        private readonly List<string> _protectedPaths = new List<string>
+        private readonly List<string> _protectedPaths = new()
         {
             "/Root",
+            "/Root/ContentTemplates",
             "/Root/IMS",
             "/Root/IMS/BuiltIn",
             "/Root/IMS/BuiltIn/Portal",
@@ -134,7 +135,7 @@ namespace SenseNet.ContentRepository.Storage
             "/Root/System/Schema/ContentTypes/GenericContent/User",
             "/Root/System/Schema/ContentTypes/GenericContent/WebHookSubscription"
         };
-        private readonly List<string> _protectedGroups = new List<string>
+        private readonly List<string> _protectedGroups = new()
         {
             "/Root/IMS/BuiltIn/Portal/Administrators",
             "/Root/IMS/Public/Administrators"
