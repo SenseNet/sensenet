@@ -5,6 +5,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -64,20 +65,36 @@ namespace SenseNet.OData.IO
                 JObject model = imported.Fields;
                 model.Remove("Name");
 
-                string action;
-                List<string> brokenReferences;
+                string action = null;
+                List<string> brokenReferences = null;
                 var messages = new List<string>();
                 var targetContent = Content.Load(path);
                 if (targetContent != null)
                 {
-                    ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
-                    targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    action = "updated";
+                    try
+                    {
+                        ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
+                        targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                        action = "updated";
+                    }
+                    catch (ContentNotFoundException)
+                    {
+                        SnTrace.Repository.Write($"WARNING: Content {path} was loaded from the cache but not found in the database: Update failed.");
+
+                        // the content was loaded from the cache but not found in the database
+                        NodeIdDependency.FireChanged(targetContent.Id);
+                        PathDependency.FireChanged(path);
+
+                        // this will make the next block create a new content
+                        targetContent = null;
+                    }
                 }
-                else
+
+                if (targetContent == null)
                 {
                     var parentPath = RepositoryPath.GetParentPath(path);
-                    targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name, null, false, model, true, out brokenReferences);
+                    targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name,
+                        null, false, model, true, out brokenReferences);
                     action = "created";
                 }
 
