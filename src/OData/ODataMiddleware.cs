@@ -30,6 +30,8 @@ using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using System.Net.Http;
+using Retrier = SenseNet.Tools.Retrier;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
 // ReSharper disable ArrangeThisQualifier
@@ -41,6 +43,12 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
+        public class ContentCreationResult
+        {
+            public Content Content { get; set; }
+            public List<string> BrokenReferenceFieldNames { get; set; } = new();
+        }
+
         public static readonly string ODataRequestHttpContextKey = "SenseNet.OData.ODataRequest";
 
         private static readonly IActionResolver DefaultActionResolver = new DefaultActionResolver();
@@ -267,7 +275,7 @@ namespace SenseNet.OData
                             }
 
                             model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
-                            var newContent = CreateNewContent(model, odataRequest);
+                            var newContent = await CreateNewContentAsync(model, odataRequest, httpContext.RequestAborted).ConfigureAwait(false);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
@@ -520,7 +528,7 @@ namespace SenseNet.OData
                 : Content.Load(path);
         }
 
-        private Content CreateNewContent(JObject model, ODataRequest odataRequest) //UNDONE:x: rewrite to async (CRUD save)
+        private async Task<Content> CreateNewContentAsync(JObject model, ODataRequest odataRequest, CancellationToken cancel) //UNDONE:x: rewrite to async (CRUD save)
         {
             var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
@@ -529,17 +537,20 @@ namespace SenseNet.OData
             var displayName = GetPropertyValue<string>("DisplayName", model);
             var isMultiStepSave = odataRequest.MultistepSave;
 
-            return CreateNewContent(parentPath, contentTypeName, templateName, contentName, displayName, isMultiStepSave, model, false, out _);
+            var creationResult = await CreateNewContentAsync(parentPath, contentTypeName, templateName, contentName, displayName, 
+                isMultiStepSave, model, false, cancel).ConfigureAwait(false);
+
+            return creationResult.Content;
         }
-        public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
+        public static async Task<ContentCreationResult> CreateNewContentAsync(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames) //UNDONE:x: rewrite to async (CRUD save)
+            bool skipBrokenReferences, CancellationToken cancel) //UNDONE:x: rewrite to async (CRUD save)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
-            var parent = Tools.Retrier.Retry(5, 2000,
-                () => Node.Load<GenericContent>(parentPath),
-                (node, _, _) => node != null);
+            var parent = await Retrier.RetryAsync(5, 2000,
+                () => Node.LoadAsync<GenericContent>(parentPath, cancel),
+                (node, _, _) => node != null).ConfigureAwait(false);
 
             if (parent == null)
                 throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
@@ -575,18 +586,20 @@ namespace SenseNet.OData
                 var node = ContentTemplate.CreateFromTemplate(parent, template, contentName);
                 content = Content.Create(node);
             }
-
-
-            UpdateFields(content, model, skipBrokenReferences, out brokenReferenceFieldNames);
+            
+            UpdateFields(content, model, skipBrokenReferences, out var brokenReferenceFieldNames);
 
             if (isMultiStepSave)
-                content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
+                await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
             else
-                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await content.SaveAsync(cancel).ConfigureAwait(false);
 
-            return content;
+            return new ContentCreationResult
+            {
+                Content = content,
+                BrokenReferenceFieldNames = brokenReferenceFieldNames
+            };
         }
-
 
         private static readonly List<string> SafeFieldsInReset = new List<string>(new[] {
             "Name",
