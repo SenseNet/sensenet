@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
@@ -14,6 +16,12 @@ namespace SenseNet.OData.IO
 {
     public static class ImporterActions
     {
+        internal class SetPermissionResult
+        {
+            public bool HasUnknownIdentity { get; set; }
+            public List<string> Messages { get; set; } = new();
+        }
+
         /// <summary>
         /// Imports a content to the content repository. This action is able to import both new and
         /// existing content items.
@@ -46,6 +54,7 @@ namespace SenseNet.OData.IO
         /// </code>
         /// </remarks>
         /// <param name="content"></param>
+        /// <param name="context"></param>
         /// <param name="path">Target path. In case of a new content this is the path of the parent. In case of
         /// existing content this is the path of the content itself.</param>
         /// <param name="data">Content metadata (name, type, fields).</param>
@@ -54,62 +63,71 @@ namespace SenseNet.OData.IO
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
-        public static object Import(Content content, string path, object data)
+        public static async Task<object> Import(Content content, HttpContext context, string path, object data)
         {
             var jData = data as JObject;
             var imported = new ImportedContent(jData);
             var name = imported.Name;
             var type = imported.Type;
-            using (var op = SnTrace.ContentOperation.StartOperation($"Import: {path}, {type}, {name}"))
+            using var op = SnTrace.ContentOperation.StartOperation($"Import: {path}, {type}, {name}");
+            JObject model = imported.Fields;
+            model.Remove("Name");
+
+            string action = null;
+            List<string> brokenReferences = null;
+            var targetContent = Content.Load(path);
+            if (targetContent != null)
             {
-                JObject model = imported.Fields;
-                model.Remove("Name");
-
-                string action = null;
-                List<string> brokenReferences = null;
-                var messages = new List<string>();
-                var targetContent = Content.Load(path);
-                if (targetContent != null)
+                try
                 {
-                    try
-                    {
-                        ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
-                        targetContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                        action = "updated";
-                    }
-                    catch (ContentNotFoundException)
-                    {
-                        SnTrace.Repository.Write($"WARNING: Content {path} was loaded from the cache but not found in the database: Update failed.");
-
-                        // the content was loaded from the cache but not found in the database
-                        NodeIdDependency.FireChanged(targetContent.Id);
-                        PathDependency.FireChanged(path);
-
-                        // this will make the next block create a new content
-                        targetContent = null;
-                    }
+                    ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
+                    await targetContent.SaveAsync(context.RequestAborted).ConfigureAwait(false);
+                    action = "updated";
                 }
-
-                if (targetContent == null)
+                catch (ContentNotFoundException)
                 {
-                    var parentPath = RepositoryPath.GetParentPath(path);
-                    targetContent = ODataMiddleware.CreateNewContent(parentPath, type, null, name,
-                        null, false, model, true, out brokenReferences);
-                    action = "created";
+                    SnTrace.Repository.Write($"WARNING: Content {path} was loaded from the cache but not found in the database: Update failed.");
+
+                    // the content was loaded from the cache but not found in the database
+                    NodeIdDependency.FireChanged(targetContent.Id);
+                    PathDependency.FireChanged(path);
+
+                    // this will make the next block create a new content
+                    targetContent = null;
                 }
-
-                SetPermissions(targetContent, imported.Permissions, messages, out var retryPermissions);
-
-                op.Successful = true;
-                return new { path, name, type, action, brokenReferences, retryPermissions, messages };
             }
+
+            if (targetContent == null)
+            {
+                var parentPath = RepositoryPath.GetParentPath(path);
+                var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, name,
+                    null, false, model, true, context.RequestAborted).ConfigureAwait(false);
+
+                targetContent = creationResult.Content;
+                brokenReferences = creationResult.BrokenReferenceFieldNames;
+
+                action = "created";
+            }
+
+            var setPermissionResult = await SetPermissionsAsync(targetContent, imported.Permissions, 
+                context.RequestAborted).ConfigureAwait(false);
+
+            op.Successful = true;
+
+            return new
+            {
+                path, name, type, action, brokenReferences,
+                retryPermissions = setPermissionResult.HasUnknownIdentity,
+                messages = setPermissionResult.Messages
+            };
         }
 
-        private static void SetPermissions(Content content, PermissionModel permissions, List<string> messages, out bool hasUnkownIdentity)
+        private static async Task<SetPermissionResult> SetPermissionsAsync(Content content, 
+            PermissionModel permissions, CancellationToken cancel)
         {
-            hasUnkownIdentity = false;
+            var result = new SetPermissionResult();
             if (permissions == null)
-                return;
+                return result;
 
             var controller = content.ContentHandler.Security;
             var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
@@ -123,22 +141,27 @@ namespace SenseNet.OData.IO
 
             foreach (var entryModel in permissions.Entries)
             {
-                var identity = Node.LoadNode(entryModel.Identity);
+                var identity = await Node.LoadNodeAsync(entryModel.Identity, cancel).ConfigureAwait(false);
                 if (identity == null)
                 {
-                    hasUnkownIdentity = true;
+                    result.HasUnknownIdentity = true;
                     //messages.Add($"Unknown identity: {entryModel.Identity}");
                     continue;
                 }
 
-                SetPermissions(aclEditor, content.Id, identity.Id, entryModel.LocalOnly, entryModel.Permissions, messages);
-            }
-            aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var messages = new List<string>();
 
+                SetPermissions(aclEditor, content.Id, identity.Id, entryModel.LocalOnly, entryModel.Permissions, ref messages);
+
+                result.Messages = messages;
+            }
+            await aclEditor.ApplyAsync(cancel).ConfigureAwait(false);
+
+            return result;
         }
 
         private static void SetPermissions(AclEditor aclEditor, int contentId, int identityId, bool localOnly,
-            Dictionary<string, object> permissions, List<string> messages)
+            Dictionary<string, object> permissions, ref List<string> messages)
         {
             foreach (var item in permissions)
             {
@@ -148,11 +171,11 @@ namespace SenseNet.OData.IO
                     messages.Add($"WARING: Unknown permission: {item.Key}");
                     continue;
                 }
-                SetPermission(aclEditor, contentId, identityId, localOnly, permissionType, item.Value, messages);
+                SetPermission(aclEditor, contentId, identityId, localOnly, permissionType, item.Value, ref messages);
             }
         }
         private static void SetPermission(AclEditor editor, int contentId, int identityId, bool localOnly,
-            PermissionType permissionType, object permissionValue, List<string> messages)
+            PermissionType permissionType, object permissionValue, ref List<string> messages)
         {
             switch (permissionValue.ToString().ToLowerInvariant())
             {
@@ -179,6 +202,5 @@ namespace SenseNet.OData.IO
                     break;
             }
         }
-
     }
 }
