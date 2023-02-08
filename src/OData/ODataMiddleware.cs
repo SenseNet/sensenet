@@ -528,7 +528,7 @@ namespace SenseNet.OData
                 : Content.Load(path);
         }
 
-        private async Task<Content> CreateNewContentAsync(JObject model, ODataRequest odataRequest, CancellationToken cancel) //UNDONE:x: rewrite to async (CRUD save)
+        private async Task<Content> CreateNewContentAsync(JObject model, ODataRequest odataRequest, CancellationToken cancel)
         {
             var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
@@ -544,7 +544,7 @@ namespace SenseNet.OData
         }
         public static async Task<ContentCreationResult> CreateNewContentAsync(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, CancellationToken cancel) //UNDONE:x: rewrite to async (CRUD save)
+            bool skipBrokenReferences, CancellationToken cancel)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
