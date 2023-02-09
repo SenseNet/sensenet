@@ -2399,9 +2399,9 @@ namespace SenseNet.ContentRepository.Tests
                 var denied = webHooks[2];
                 using (new SystemAccount())
                 {
-                    Providers.Instance.SecurityHandler.CreateAclEditor()
+                    await Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(denied.Id, new EntryType[0])
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
                 }
 
                 var sdp = services.GetService<IStatisticalDataProvider>();
@@ -2568,9 +2568,9 @@ namespace SenseNet.ContentRepository.Tests
                 var denied = nodes[2];
                 using (new SystemAccount())
                 {
-                    Providers.Instance.SecurityHandler.CreateAclEditor()
+                    await Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(denied.Id, new EntryType[0])
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
                 }
 
                 var nodeIds = nodes.Select(x => x.Id).Union(new[] {9999}).ToArray();

@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage;
+using System.Threading;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Services
@@ -217,7 +218,7 @@ namespace SenseNet.Services
                     }
                 }
             }
-            ed.Apply();
+            ed.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static PermissionBitMask GetEditedBits(Permission[] permissions)
         {

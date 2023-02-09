@@ -3465,11 +3465,13 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (isNewNode)
                 {
-                    Providers.Instance.SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
+                    await Providers.Instance.SecurityHandler.CreateSecurityEntityAsync(node.Id, node.ParentId, node.OwnerId, cancel)
+                        .ConfigureAwait(false);
                 }
                 else if (isOwnerChanged)
                 {
-                    Providers.Instance.SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
+                    await Providers.Instance.SecurityHandler.ModifyEntityOwnerAsync(node.Id, node.OwnerId, cancel)
+                        .ConfigureAwait(false);
                 }
             }
             catch (EntityNotFoundException e)
@@ -3738,7 +3740,8 @@ namespace SenseNet.ContentRepository.Storage
                         throw new ApplicationException("Cannot move", e);
                     }
 
-                    Providers.Instance.SecurityHandler.MoveEntity(this.Id, target.Id);
+                    Providers.Instance.SecurityHandler.MoveEntityAsync(this.Id, target.Id, CancellationToken.None)
+                        .GetAwaiter().GetResult();
 
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
@@ -4098,7 +4101,7 @@ namespace SenseNet.ContentRepository.Storage
                 var targetNode = Node.LoadNode(targetNodePath);
                 var copy = sourceNode.MakeCopy(targetNode, newName);
                 copy.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                CopyExplicitPermissionsTo(sourceNode, copy);
+                CopyExplicitPermissionsToAsync(sourceNode, copy, CancellationToken.None).GetAwaiter().GetResult();
                 if (first)
                 {
                     copyOfSource = copy;
@@ -4109,7 +4112,7 @@ namespace SenseNet.ContentRepository.Storage
             return copyOfSource;
         }
 
-        private void CopyExplicitPermissionsTo(Node sourceNode, Node targetNode)
+        private async Task CopyExplicitPermissionsToAsync(Node sourceNode, Node targetNode, CancellationToken cancel)
         {
             AccessProvider.ChangeToSystemAccount();
             try
@@ -4121,10 +4124,10 @@ namespace SenseNet.ContentRepository.Storage
                 var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
                 foreach (var entry in entriesToCopy)
                     aclEd.Set(targetNode.Id, entry.IdentityId, entry.LocalOnly, entry.AllowBits, entry.DenyBits);
-                aclEd.Apply();
+                await aclEd.ApplyAsync(cancel).ConfigureAwait(false);
 
                 if (!targetNode.IsInherited)
-                    targetNode.Security.RemoveBreakInheritance();
+                    await targetNode.Security.RemoveBreakInheritanceAsync(cancel).ConfigureAwait(false);
             }
             finally
             {
@@ -4348,7 +4351,7 @@ namespace SenseNet.ContentRepository.Storage
                     var hadContentList = RemoveContentListTypesInTree(contentListTypesInTree) > 0;
 
                     if (this.Id > 0)
-                        Providers.Instance.SecurityHandler.DeleteEntity(this.Id);
+                        await Providers.Instance.SecurityHandler.DeleteEntityAsync(this.Id, cancel).ConfigureAwait(false);
 
                     await Providers.Instance.SearchManager.GetIndexPopulator()
                         .DeleteTreeAsync(myPath, this.Id, CancellationToken.None);
@@ -4539,7 +4542,7 @@ namespace SenseNet.ContentRepository.Storage
                 }
 
                 if (nodeRef.Id > 0)
-                    Providers.Instance.SecurityHandler.DeleteEntity(nodeRef.Id);
+                    Providers.Instance.SecurityHandler.DeleteEntityAsync(nodeRef.Id, CancellationToken.None).GetAwaiter().GetResult();
             }
 
             var ids = new List<Int32>();

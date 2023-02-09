@@ -651,7 +651,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Deny(settingsCtd.Id, user.Id, false, PermissionType.See)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 return user;
             }

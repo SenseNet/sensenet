@@ -569,13 +569,13 @@ namespace SenseNet.ODataTests
 
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(entityId, identityId, localOnly, permissions)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             public void Dispose()
             {
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .ClearPermission(_entityId, _identityId, _localOnly, _permissions)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

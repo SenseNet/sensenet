@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository
                             aclEditor.Allow(app2.Id, developersGroupId,
                                 false, PermissionType.RunApplication);
 
-                        aclEditor.Apply();
+                        aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     #endregion
@@ -457,7 +457,7 @@ namespace SenseNet.ContentRepository
                     Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                         .Allow(NodeHead.Get("/Root/Localization").Id, Identifiers.OwnersGroupId, false, 
                             PermissionType.Save, PermissionType.Delete)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -937,7 +937,7 @@ namespace SenseNet.ContentRepository
                         aclEditor.Allow(profile.Id, user.Id, false, PermissionType.Open);
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
 
@@ -1106,7 +1106,7 @@ namespace SenseNet.ContentRepository
                             .Allow(contentTypesId, publicAdminsGroupId, true, PermissionType.AddNew);
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -1324,7 +1324,7 @@ namespace SenseNet.ContentRepository
 
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });

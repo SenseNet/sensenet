@@ -40,13 +40,13 @@ namespace SenseNet.IntegrationTests.TestCases
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(testRoot.Id, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 IUser originalUser = AccessProvider.Current.GetCurrentUser();
                 IUser visitor = Node.LoadNode(Identifiers.VisitorUserId) as IUser;
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(testRoot.Id, visitor.Id, false, PermissionType.Save, PermissionType.Delete)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 EnsureNode(testRoot, "Source/N1");
                 EnsureNode(testRoot, "Source/N2");
@@ -96,7 +96,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 EnsureNode(testRoot, "Source/N1");
                 EnsureNode(testRoot, "Source/N2");
@@ -121,7 +121,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.PermissionTypes)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 EnsureNode(testRoot, "Source/N1/N2/N3");
                 EnsureNode(testRoot, "Source/N1/N4/N5");
@@ -174,7 +174,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(sourceNode.Id, visitor.Id, false, PermissionType.OpenMinor, PermissionType.Delete)
                     .Allow(targetNode.Id, visitor.Id, false, PermissionType.AddNew)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 IUser originalUser = AccessProvider.Current.GetCurrentUser();
                 try
@@ -203,7 +203,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(sourceNode.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
                     .Allow(targetNode.Id, Identifiers.VisitorUserId, false, PermissionType.AddNew)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 bool expectedExceptionWasThrown = false;
                 try
                 {
@@ -237,7 +237,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.PermissionTypes)
                     .Allow(sourceNode.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
                     .Allow(targetNode.Id, Identifiers.VisitorUserId, false, PermissionType.Delete)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 bool expectedExceptionWasThrown = false;
                 try
                 {

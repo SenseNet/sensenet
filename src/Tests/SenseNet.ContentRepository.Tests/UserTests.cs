@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Tests
                             .Allow(parent.Id, Identifiers.OwnersGroupId, false, PermissionType.BuiltInPermissionTypes)
                             // technical permission for content types
                             .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See);
-                        editor.Apply();
+                        editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     AccessProvider.Current.SetCurrentUser(user1);

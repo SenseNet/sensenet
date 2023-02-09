@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Globalization;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
@@ -249,7 +250,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     // ReSharper disable once CoVariantArrayConversion
                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
-                   .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 User.Administrator.CreationDate = new DateTime(2001, 01, 01);
             }
         }

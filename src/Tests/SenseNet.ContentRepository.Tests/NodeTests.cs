@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository.Tests
                     .Allow(u3.Id, u1.Id, false, PermissionType.See)
                     .Allow(u4.Id, u1.Id, false, PermissionType.See)
                     .Allow(group.Id, u1.Id, false, PermissionType.Save)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsFalse(u2.Security.HasPermission(u1, PermissionType.See));
                 Assert.IsTrue(u3.Security.HasPermission(u1, PermissionType.See));
@@ -167,7 +167,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(target1.Id, u1.Id, false, PermissionType.See)
                     .Allow(link.Id, u1.Id, false, PermissionType.Save)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 Assert.IsFalse(target0.Security.HasPermission(u1, PermissionType.See));
                 Assert.IsTrue(target1.Security.HasPermission(u1, PermissionType.See));

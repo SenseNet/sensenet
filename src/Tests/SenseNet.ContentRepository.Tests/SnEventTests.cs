@@ -456,7 +456,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     Providers.Instance.SecurityHandler.CreateAclEditor()
                         .BreakInheritance(node.Id, new [] {EntryType.Normal})
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
 

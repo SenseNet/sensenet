@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -83,14 +84,16 @@ namespace SenseNet.ContentRepository.Storage.Security
                                     groupMembers.Add(head.Id);
                             }
 
-                            _securityHandler.AddMembers(nodeId, userMembers, groupMembers);
+                            _securityHandler.AddMembersAsync(nodeId, userMembers, groupMembers,CancellationToken.None)
+                                .GetAwaiter().GetResult();
                         }
                     }
 
                     if (data == null)
-                        ed.Apply();
+                        ed.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     else
-                        ed.Apply(ParseInitialPermissions(ed.Context, data.Permissions));
+                        ed.ApplyAsync(ParseInitialPermissions(ed.Context, data.Permissions), CancellationToken.None)
+                            .GetAwaiter().GetResult();
                 }
 
                 op.Successful = true;
@@ -104,8 +107,11 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             var entityTreeNodes = _dataStore.LoadEntityTreeAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
+            var tasks = new List<Task>();
             foreach (var entityTreeNode in entityTreeNodes)
-                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
+                tasks.Add(securityContext.CreateSecurityEntityAsync(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId,
+                    CancellationToken.None));
+            Task.WhenAll(tasks.ToArray()).GetAwaiter().GetResult();
         }
 
         internal static IEnumerable<PermissionAction> ParseInitialPermissions(SnSecurityContext context, IList<string> permissionData)

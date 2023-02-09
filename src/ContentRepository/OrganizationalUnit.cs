@@ -158,7 +158,8 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(this);
                 if (parent != null)
-                    Providers.Instance.SecurityHandler.AddGroupsToGroup(parent.Id, new[] { this.Id });
+                    Providers.Instance.SecurityHandler.AddGroupsToGroupAsync(parent.Id, new[] { this.Id },
+                        CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
