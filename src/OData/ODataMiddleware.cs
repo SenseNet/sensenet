@@ -333,11 +333,9 @@ namespace SenseNet.OData
                     return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
                 case SenseNetSecurityException sse:
                 {
-                    // In the case of a visitor we should not expose the information that this content actually exists. We return
-                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content
-                    // really does not exist. But do this only if the visitor really does not have permission for the
-                    // requested content (because a security exception could be thrown by an action or something else too).
-                    if (odataRequest != null/* && User.Current.Id == Identifiers.VisitorUserId*/)
+                    // If the current user (visitor or the logged-in user) has not See permission on the requested content,
+                    // return 404 (content not found) instead of any security related error.
+                    if (odataRequest != null)
                     {
                         var head = NodeHead.Get(odataRequest.RepositoryPath);
                         if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
