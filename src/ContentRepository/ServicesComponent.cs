@@ -1599,7 +1599,7 @@ namespace SenseNet.ContentRepository
 
                 editor.Allow(contentTemplates.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open);
 
-                editor.Apply();
+                editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 logger.LogTrace("Permissions are successfully set on the ContentTemplates folder.");
             }
