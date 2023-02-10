@@ -750,7 +750,7 @@ namespace SenseNet.ODataTests
                     var testCases = new[]
                     {
                         new { request = "ContentNotFound", errorCode = ODataExceptionCode.ResourceNotFound },
-                        new { request = "SenseNetSecurityException", errorCode = ODataExceptionCode.NotSpecified },
+                        new { request = "SenseNetSecurityException", errorCode = ODataExceptionCode.Forbidden },
                         new { request = "InvalidContentActionException", errorCode = ODataExceptionCode.NotSpecified },
                         new { request = "NodeAlreadyExistsException", errorCode = ODataExceptionCode.ContentAlreadyExists },
                         new { request = "UnknownError", errorCode = ODataExceptionCode.NotSpecified },

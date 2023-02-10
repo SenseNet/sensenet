@@ -309,7 +309,7 @@ namespace SenseNet.OData
                 var oe = HandleException(ex, odataRequest, httpContext);
                 if (oe == null)
                     return;
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe, _appConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -330,30 +330,32 @@ namespace SenseNet.OData
                 }
                 case ContentNotFoundException _:
                     return new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                case AccessDeniedException _:
-                    return new ODataException(ODataExceptionCode.Forbidden, e);
+                case AccessDeniedException ade:
+                {
+                    SnTrace.Security.WriteError(ade.ToString);
+                    return new ODataException("Access denied.", ODataExceptionCode.Forbidden, ade);
+                }
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
                     return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
-                case SenseNetSecurityException _:
+                case SenseNetSecurityException sse:
                 {
-                    // In case of a visitor we should not expose the information that this content actually exists. We return
-                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
-                    // really does not exist. But do this only if the visitor really does not have permission for the
-                    // requested content (because security exception could be thrown by an action or something else too).
-                    if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
+                    // If the current user (visitor or the logged-in user) has not See permission on the requested content,
+                    // return 404 (content not found) instead of any security related error.
+                    if (odataRequest != null)
                     {
                         var head = NodeHead.Get(odataRequest.RepositoryPath);
-                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
+                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                         {
                             ContentNotFound(httpContext);
+                            SnTrace.Security.Write(sse.Data["FormattedMessage"].ToString());
                             return null;
                         }
                     }
 
-                    var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
-                    SnLog.WriteException(oe);
+                    var oe = new ODataException(ODataExceptionCode.Forbidden, e);
+                    SnTrace.Security.WriteError(e.Message);
                     return oe;
                 }
                 case InvalidContentActionException invalidContentActionException:
