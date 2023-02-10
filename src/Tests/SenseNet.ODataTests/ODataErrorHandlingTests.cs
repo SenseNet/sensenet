@@ -158,10 +158,10 @@ public class ODataErrorHandlingTests : ODataTestBase
                 Assert.IsTrue(tracer.Lines.Any(x => x.Contains("Access denied. Path: /Root/IMS ")));
             }).ConfigureAwait(false);
 
-            Providers.Instance.SecurityHandler.CreateAclEditor()
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
                 .Allow((await NodeHead.GetAsync("/Root/IMS", CancellationToken.None)).Id, user.Id, false,
                     PermissionType.See)
-                .Apply();
+                .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
 
             await ErrorHandlingTest(async (logger, tracer) =>
             {
