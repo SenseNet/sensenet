@@ -378,6 +378,7 @@ namespace SenseNet.OData.Writers
 
         internal async Task WriteErrorResponseAsync(HttpContext httpContext, ODataRequest req, ODataException oe, IConfiguration config)
         {
+            //TODO: config parameter will be removed and passed to ODataController with ctor injection in the future.
             var env = config?["ASPNETCORE_ENVIRONMENT"];
 #if DEBUG   
             env ??= "Development";
