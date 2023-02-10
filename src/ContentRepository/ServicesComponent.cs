@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -100,7 +101,7 @@ namespace SenseNet.ContentRepository
                             aclEditor.Allow(app2.Id, developersGroupId,
                                 false, PermissionType.RunApplication);
 
-                        aclEditor.Apply();
+                        aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     #endregion
@@ -456,7 +457,7 @@ namespace SenseNet.ContentRepository
                     Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                         .Allow(NodeHead.Get("/Root/Localization").Id, Identifiers.OwnersGroupId, false, 
                             PermissionType.Save, PermissionType.Delete)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -936,7 +937,7 @@ namespace SenseNet.ContentRepository
                         aclEditor.Allow(profile.Id, user.Id, false, PermissionType.Open);
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
 
@@ -1105,7 +1106,7 @@ namespace SenseNet.ContentRepository
                             .Allow(contentTypesId, publicAdminsGroupId, true, PermissionType.AddNew);
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -1323,7 +1324,7 @@ namespace SenseNet.ContentRepository
 
                     }
 
-                    aclEditor.Apply();
+                    aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
                 });
@@ -1558,6 +1559,52 @@ namespace SenseNet.ContentRepository
 
                     #endregion
                 });
+
+            builder.Patch("7.7.28", "7.7.28.1", "2023-02-03", "Upgrades sensenet content repository.")
+                .Action(Patch_AddContentTemplates);
+        }
+
+        private void Patch_AddContentTemplates(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Content changes
+
+            var contentTemplates = RepositoryTools.CreateStructure(RepositoryStructure.ContentTemplateFolderPath, 
+                "SystemFolder");
+
+            logger.LogTrace(contentTemplates != null
+                ? "ContentTemplates folder has been created."
+                : "ContentTemplates folder already exists.");
+
+            #endregion
+
+            #region Permission changes
+
+            // if we just created this folder above
+            if (contentTemplates != null)
+            {
+                var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
+                var developersGroupId = Node.LoadNode(N.R.Developers)?.Id ?? 0;
+                var editorsGroupId = Node.LoadNode(N.R.Editors)?.Id ?? 0;
+
+                var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+                if (publicAdminsGroupId > 0)
+                    editor.Allow(contentTemplates.Id, publicAdminsGroupId, false, PermissionType.BuiltInPermissionTypes);
+                if (developersGroupId > 0)
+                    editor.Allow(contentTemplates.Id, developersGroupId, false, PermissionType.BuiltInPermissionTypes);
+                if (editorsGroupId > 0)
+                    editor.Allow(contentTemplates.Id, editorsGroupId, false, PermissionType.BuiltInPermissionTypes);
+
+                editor.Allow(contentTemplates.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open);
+
+                editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                logger.LogTrace("Permissions are successfully set on the ContentTemplates folder.");
+            }
+
+            #endregion
         }
 
         #region Patch template
@@ -1608,7 +1655,7 @@ namespace SenseNet.ContentRepository
         //}
 
         #endregion
-        
+
         private static void CreateSettings(string contentName, string value, string description, ILogger logger)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))

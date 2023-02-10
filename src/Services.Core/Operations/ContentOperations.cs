@@ -889,7 +889,7 @@ namespace SenseNet.Services.Core.Operations
                     break;
             }
 
-            editor.Apply();
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             return content;
         }
@@ -947,7 +947,7 @@ namespace SenseNet.Services.Core.Operations
             var request = r;
             var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
             SetPermissions(content, request, editor);
-            editor.Apply();
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             return content;
         }
         private static void SetPermissions(Content content, SetPermissionsRequest request, SnAclEditor editor)
@@ -1011,7 +1011,7 @@ namespace SenseNet.Services.Core.Operations
                 if (permReq.Custom31 != null) ProcessPermission(editor, contentId, member.Id, localOnly, PermissionType.Custom31, permReq.Custom31);
                 if (permReq.Custom32 != null) ProcessPermission(editor, contentId, member.Id, localOnly, PermissionType.Custom32, permReq.Custom32);
             }
-            editor.Apply();
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ProcessPermission(SnAclEditor editor, int contentId, int identityId, bool localOnly, PermissionType permissionType, string requestValue)
         {

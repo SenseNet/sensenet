@@ -73,11 +73,13 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             // remove relevant child content from the original parent org unit (if it is different from the target)
             if (originalParentId > 0 && originalParentId != targetParentId)
-                Providers.Instance.SecurityHandler.RemoveMembers(originalParentId, movedUsers, movedGroups);
+                Providers.Instance.SecurityHandler.RemoveMembersAsync(originalParentId, movedUsers, movedGroups,
+                    CancellationToken.None).GetAwaiter().GetResult();
 
             // add the previously collected identities to the target orgunit (if it is different from the original)
             if (targetParentId > 0 && originalParentId != targetParentId)
-                Providers.Instance.SecurityHandler.AddMembers(targetParentId, movedUsers, movedGroups);
+                Providers.Instance.SecurityHandler.AddMembersAsync(targetParentId, movedUsers, movedGroups,
+                    CancellationToken.None).GetAwaiter().GetResult();
         }
 
         protected override void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e)
@@ -94,7 +96,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             base.OnNodeDeletedPhysically(sender, e);
 
             if (e.GetCustomData(IdentitiesCustomDataKey) is List<int> ids)
-                Providers.Instance.SecurityHandler.DeleteIdentities(ids);
+                Providers.Instance.SecurityHandler.DeleteIdentitiesAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // ======================================================================================= Helper methods

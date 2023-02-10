@@ -246,7 +246,7 @@ namespace SenseNet.ODataTests
                     .BreakInheritance(root.Id, new[] { EntryType.Normal })
                     .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
                     .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var savedUser = User.Current;
 

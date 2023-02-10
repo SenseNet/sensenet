@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
                         .Allow(file.Id, Identifiers.VisitorUserId, false, PermissionType.OpenMinor)
                         .Allow(TrashBin.Instance.Id, Identifiers.VisitorUserId, false, PermissionType.Open)
                         .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.Open)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 var thrown = false;
@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository.Tests
                             PermissionType.OpenMinor, PermissionType.Delete)
                         .Allow(TrashBin.Instance.Id, Identifiers.VisitorUserId, false, PermissionType.Open)
                         .Allow(Identifiers.VisitorUserId, Identifiers.VisitorUserId, false, PermissionType.Open)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 try

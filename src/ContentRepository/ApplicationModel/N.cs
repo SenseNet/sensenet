@@ -36,6 +36,7 @@ namespace SenseNet.ApplicationModel
             public const string Administrators = "/Root/IMS/BuiltIn/Portal/Administrators";
             public const string PublicAdministrators = "/Root/IMS/Public/Administrators";
             public const string Developers = "/Root/IMS/BuiltIn/Portal/Developers";
+            public const string Editors = "/Root/IMS/BuiltIn/Portal/Editors";
             public const string Everyone = "/Root/IMS/BuiltIn/Portal/Everyone";
             public const string IdentifiedUsers = "/Root/IMS/BuiltIn/Portal/IdentifiedUsers";
             public const string Visitor = "/Root/IMS/BuiltIn/Portal/Visitor";

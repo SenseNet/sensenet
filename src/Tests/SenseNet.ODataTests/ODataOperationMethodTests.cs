@@ -2681,7 +2681,7 @@ namespace SenseNet.ODataTests
                     publicAdmins.AddMember(user1);
                     new SecurityHandler().CreateAclEditor()
                         .Allow(Repository.ImsFolder.Id, publicAdmins.Id, false, PermissionType.BuiltInPermissionTypes)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
                         new Attribute[] { new ODataAction(), new AllowedRolesAttribute(N.R.Administrators) });
@@ -2759,7 +2759,7 @@ namespace SenseNet.ODataTests
                         .Allow(nodes[1].Id, user.Id, false, PermissionType.See)
                         .Allow(nodes[2].Id, user.Id, false, PermissionType.Open)
                         .Allow(nodes[3].Id, user.Id, false, PermissionType.Save)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     using (new CurrentUserBlock(User.Visitor))
                     {

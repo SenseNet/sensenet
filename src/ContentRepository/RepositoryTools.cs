@@ -533,7 +533,7 @@ namespace SenseNet.ContentRepository
                     }
                 }
             }
-            aclEd.Apply();
+            aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             return "Ok";
         }
 

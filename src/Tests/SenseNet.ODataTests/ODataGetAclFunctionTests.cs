@@ -33,14 +33,15 @@ namespace SenseNet.ODataTests
                 using (new SystemAccount())
                 {
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
-                    aclEditor
+                    await aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
-                        .Apply();
-                    aclEditor
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
+                            CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // ACTION
@@ -114,14 +115,15 @@ namespace SenseNet.ODataTests
                 using (new SystemAccount())
                 {
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
-                    aclEditor
+                    await aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
-                        .Apply();
-                    aclEditor
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
+                            CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // ACTION
@@ -175,14 +177,15 @@ namespace SenseNet.ODataTests
                 using (new SystemAccount())
                 {
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
-                    aclEditor
+                    await aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
-                        .Apply();
-                    aclEditor
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
+                            CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // ACTION
@@ -250,14 +253,15 @@ namespace SenseNet.ODataTests
                 using (new SystemAccount())
                 {
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
-                    aclEditor
+                    await aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
-                        .Apply();
-                    aclEditor
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
+                            CancellationToken.None).ConfigureAwait(false);
                 }
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 
@@ -326,16 +330,17 @@ namespace SenseNet.ODataTests
                 using (new SystemAccount())
                 {
                     var aclEditor = Providers.Instance.SecurityHandler.CreateAclEditor();
-                    aclEditor
+                    await aclEditor
                         .UnbreakInheritance(2, categoriesToNormalize)
                         .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
-                        .Apply();
-                    aclEditor
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
                         .RemoveExplicitEntries(2)
                         .RemoveExplicitEntries(contentNode.Id)
-                        .Apply();
-                    aclEditor
-                        .Apply(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData));
+                        .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+                    await aclEditor
+                        .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
+                            CancellationToken.None).ConfigureAwait(false);
                 }
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
 

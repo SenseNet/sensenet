@@ -1469,7 +1469,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(gc.Id, user1.Id, false, PermissionType.Preview)
                     .Allow(gc.Id, Group.Everyone.Id, false, PermissionType.Preview)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // create some sharing
                 var sharing = new[]
@@ -1507,7 +1507,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.Preview)
                     .Allow(gc.ParentId, Group.Everyone.Id, false, PermissionType.Preview)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // create some sharing
                 var sharing = new[]
@@ -1554,7 +1554,7 @@ namespace SenseNet.ContentRepository.Tests
                 // the caller user will have permissions for user1 but NOT for user2
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(user1.Id, userCaller.Id, false, PermissionType.Open)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
                 var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Private);
@@ -1672,7 +1672,7 @@ namespace SenseNet.ContentRepository.Tests
             using (new SystemAccount())
                 Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                     .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
             {

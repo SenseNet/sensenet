@@ -368,7 +368,7 @@ namespace SenseNet.ContentRepository
                     foreach (var ace in entries)
                         aclEdit.SetEntry(target.Id, ace, true);
 
-                    aclEdit.Apply();
+                    aclEdit.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository
                     var targetNode = Node.LoadNode(targetNodePath);
                     if (!sourceNode.IsInherited)
                     {
-                        targetNode.Security.BreakInheritance();
+                        targetNode.Security.BreakInheritanceAsync(CancellationToken.None).GetAwaiter().GetResult();
                         targetNode.Security.RemoveExplicitEntries();
                     }
 
@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository
                         }
                     }
                 }
-                aclEditor.Apply();
+                aclEditor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

@@ -177,7 +177,7 @@ namespace SenseNet.Tests.Core.Tests
                     .RemoveExplicitEntries(6)
                     .RemoveExplicitEntries(1000)
                     .Set(2, 7, false, mask, 0UL)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // PRECHECKS
                 // Administrators group has 1 entry on the Root.
@@ -238,7 +238,7 @@ namespace SenseNet.Tests.Core.Tests
                                 PermissionType.BuiltInPermissionTypes)
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,
                                 PermissionType.BuiltInPermissionTypes)
-                            .Apply();
+                            .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     
                     callback();

@@ -652,7 +652,8 @@ namespace SenseNet.Packaging.Steps
                     var users = orgUnit.Children.Where(c => c is User).Select(u => u.Id).ToArray();
                     var groups = orgUnit.Children.Where(c => c is Group || c is OrganizationalUnit).Select(g => g.Id).ToArray();
 
-                    Providers.Instance.SecurityHandler.AddMembers(orgUnit.Id, users, groups);
+                    Providers.Instance.SecurityHandler.AddMembersAsync(orgUnit.Id, users, groups,
+                        CancellationToken.None).GetAwaiter().GetResult();
                 }
 
                 Log(ImportLogLevel.Info, "Set initial permissions...");
@@ -665,7 +666,7 @@ namespace SenseNet.Packaging.Steps
 
                 // Apply changes because later we want to break inheritance on child nodes and that requires that
                 // the permissions we want to copy already exist on parents. This cannot be done in one round.
-                aclEd.Apply();
+                aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Break the permission inheritance on several content
                 aclEd.BreakInheritance(SystemFolderContentTypeId, new[] { EntryType.Normal })
@@ -766,7 +767,7 @@ namespace SenseNet.Packaging.Steps
                 }
 
                 // Apply all changes
-                aclEd.Apply();
+                aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             public void ImportContentTypeDefinitionsAndAspects(string ctdPath, string aspectsPath)
@@ -1062,7 +1063,8 @@ namespace SenseNet.Packaging.Steps
                             content.ContentHandler.Security.RemoveExplicitEntries();
                             if (!(contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions))
                             {
-                                content.ContentHandler.Security.RemoveBreakInheritance();
+                                content.ContentHandler.Security.RemoveBreakInheritanceAsync(CancellationToken.None)
+                                    .GetAwaiter().GetResult();
                             }
                         }
                         if (contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions || 
