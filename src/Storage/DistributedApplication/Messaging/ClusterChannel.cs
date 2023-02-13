@@ -194,11 +194,17 @@ namespace SenseNet.Communication.Messaging
             }
             else
             {
-                SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().FullName ?? "unknown"}. IsMe: {message?.SenderInfo.IsMe}): {message?.TraceMessage}");
                 if (message is PingMessage pingMessage)
                 {
-                    var pm = new PongMessage {PingId = pingMessage.Id};
-                    await pm.SendAsync(cancellationToken).ConfigureAwait(false);
+                    if (!pingMessage.SenderInfo.IsMe)
+                    {
+                        var pm = new PongMessage {PingId = pingMessage.Id};
+                        await pm.SendAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().Name ?? "unknown"}. IsMe: {message?.SenderInfo.IsMe}): {message?.TraceMessage}");
                 }
             }
 
