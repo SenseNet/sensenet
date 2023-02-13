@@ -182,6 +182,7 @@ namespace SenseNet.ContentRepository
         [Serializable]
         public class TreeCacheInvalidatorDistributedAction<Q> : DistributedAction where Q : Node
         {
+            public override string TraceMessage => $"SubType: {typeof(Q).Name}";
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)

@@ -9,6 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
     [Serializable]
     public class CacheCleanAction : DistributedAction
     {
+        public override string TraceMessage => null;
 
         public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {

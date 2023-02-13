@@ -87,14 +87,14 @@ namespace SenseNet.Communication.Messaging
                 message.SenderInfo.ClusterMemberID = ReceiverName;
 
                 Stream messageStream = m_formatter.Serialize(message);
-                SnTrace.Messaging.Write("Sending a '{0}' message", message.GetType().FullName);
+                SnTrace.Messaging.Write(() => $"Sending a message ({message.GetType().Name}): {message.TraceMessage}");
 
                 await InternalSendAsync(messageStream, message is DebugMessage, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) // logged
             {
                 SnLog.WriteException(e);
-                SnTrace.Messaging.WriteError("Sending a '{0}' message. Exception: {1}", message.GetType().FullName, e);
+                SnTrace.Messaging.WriteError("Sending a '{0}' message. Exception: {1}", message.GetType().Name, e);
                 OnSendException(message, e);
             }
         }
@@ -188,13 +188,13 @@ namespace SenseNet.Communication.Messaging
             if (message is DistributedAction msg)
             {
                 var isMe = msg.SenderInfo.IsMe;
-                SnTrace.Messaging.Write("Processing a '{0}' message. IsMe: {1}", message.GetType().FullName, isMe);
+                SnTrace.Messaging.Write(() => $"Processing a message ({message.GetType().Name}. IsMe: {isMe}): {message.TraceMessage}");
 
                 await msg.DoActionAsync(true, msg.SenderInfo.IsMe, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                SnTrace.Messaging.Write("Processing a '{0}' message.", message?.GetType().FullName ?? "unknown");
+                SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().FullName ?? "unknown"}. IsMe: {message?.SenderInfo.IsMe}): {message?.TraceMessage}");
                 if (message is PingMessage pingMessage)
                 {
                     var pm = new PongMessage {PingId = pingMessage.Id};
@@ -219,7 +219,7 @@ namespace SenseNet.Communication.Messaging
                 return;
             }
 
-            SnTrace.Messaging.Write("Received a '{0}' message.", message.GetType().FullName);
+            SnTrace.Messaging.Write(() => $"Received a message ({message.GetType().Name}): {message.TraceMessage}");
 
             lock (MessageListSwitchSync)
             {

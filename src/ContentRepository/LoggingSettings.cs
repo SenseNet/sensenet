@@ -61,6 +61,8 @@ namespace SenseNet.ContentRepository
         [Serializable]
         public class UpdateCategoriesDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)

@@ -28,6 +28,8 @@ namespace SenseNet.ContentRepository.Schema
         [Serializable]
         internal sealed class ContentTypeManagerResetDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything

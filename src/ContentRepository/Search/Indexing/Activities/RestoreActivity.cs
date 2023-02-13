@@ -7,6 +7,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     public class RestoreActivity : IndexingActivityBase
     {
+        public override string TraceMessage => $"NodeId: {NodeId}, VersionId: {VersionId}, Path: {Path}";
+
         protected override Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {
             // do nothing

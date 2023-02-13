@@ -9,6 +9,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
     [Serializable]
     public class PortletChangedMessage : ClusterMessage
     {
+        public override string TraceMessage => null;
+
         public string PortletID;
 
         public PortletChangedMessage() { }

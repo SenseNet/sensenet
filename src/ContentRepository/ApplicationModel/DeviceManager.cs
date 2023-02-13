@@ -27,6 +27,8 @@ namespace SenseNet.ApplicationModel
         [Serializable]
         internal sealed class DeviceManagerResetDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything

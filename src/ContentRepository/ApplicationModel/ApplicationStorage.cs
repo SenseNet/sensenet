@@ -772,6 +772,8 @@ namespace SenseNet.ApplicationModel
         [Serializable]
         internal class ApplicationStorageInvalidateDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)

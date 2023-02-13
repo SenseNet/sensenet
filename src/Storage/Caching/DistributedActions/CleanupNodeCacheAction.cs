@@ -8,6 +8,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 {
     public class CleanupNodeCacheAction : DistributedAction
     {
+        public override string TraceMessage => null;
+
         public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {
             // Local echo of my action: return without doing anything.

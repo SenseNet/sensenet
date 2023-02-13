@@ -16,6 +16,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         [Serializable]
         public class FireChangedDistributedAction : DistributedAction
         {
+            public override string TraceMessage => $"PathDependency: {Path}";
+
             private string _path;
 
             public string Path

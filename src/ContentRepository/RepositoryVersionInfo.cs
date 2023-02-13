@@ -135,6 +135,8 @@ namespace SenseNet.ContentRepository
         [Serializable]
         internal sealed class RepositoryVersionInfoResetDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)

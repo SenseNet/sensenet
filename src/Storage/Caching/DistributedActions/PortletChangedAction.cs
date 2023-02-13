@@ -10,6 +10,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
     [Serializable]
     public class PortletChangedAction : DistributedAction
     {
+        public override string TraceMessage => null;
+
         public string PortletID;
 
         public PortletChangedAction() { }
