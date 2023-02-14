@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
@@ -85,6 +86,17 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
                 .AddSenseNetWopi();
+
+            // [sensenet]: statistics overrides
+            var statOptions = new StatisticsOptions();
+            Configuration.GetSection("sensenet:statistics").Bind(statOptions);
+            if (!statOptions.Enabled)
+            {
+                // reset to default/null services
+                services
+                    .AddDefaultStatisticalDataProvider()
+                    .AddDefaultStatisticalDataCollector();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
