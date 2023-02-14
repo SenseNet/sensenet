@@ -10,6 +10,7 @@
 
     public class StatisticsOptions
     {
+        public bool Enabled { get; set; } = true;
         public RetentionSection Retention { get; set; } = new RetentionSection();
     }
 }

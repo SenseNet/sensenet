@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
 using SenseNet.Diagnostics;
 
@@ -9,10 +10,13 @@ namespace SenseNet.Services.Core.Diagnostics
     public class StatisticalDataAggregationMaintenanceTask : IMaintenanceTask
     {
         private readonly IStatisticalDataAggregationController _aggregationController;
+        private readonly StatisticsOptions _statisticsOptions;
 
-        public StatisticalDataAggregationMaintenanceTask(IStatisticalDataAggregationController aggregationController)
+        public StatisticalDataAggregationMaintenanceTask(IStatisticalDataAggregationController aggregationController,
+            IOptions<StatisticsOptions> statisticsOptions)
         {
             _aggregationController = aggregationController;
+            _statisticsOptions = statisticsOptions.Value;
         }
 
         public int WaitingSeconds => 60;
@@ -22,7 +26,7 @@ namespace SenseNet.Services.Core.Diagnostics
         public async Task ExecuteAsync(CancellationToken cancel)
         {
             // prevent overlapping executions
-            if (_running)
+            if (_running || !_statisticsOptions.Enabled)
                 return;
 
             // set the running flag exclusively
