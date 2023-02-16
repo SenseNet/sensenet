@@ -94,7 +94,8 @@ namespace SenseNet.Communication.Messaging
             catch (Exception e) // logged
             {
                 SnLog.WriteException(e);
-                SnTrace.Messaging.WriteError("Sending a '{0}' message. Exception: {1}", message.GetType().Name, e);
+                SnTrace.Messaging.WriteError($"ERROR when sending a message ({message.GetType().Name}): {message.TraceMessage}. " +
+                                             $"Exception: {e}");
                 OnSendException(message, e);
             }
         }
@@ -184,11 +185,12 @@ namespace SenseNet.Communication.Messaging
         private async Task ProcessSingleMessageAsync(object parameter, CancellationToken cancellationToken)
         {
             var message = parameter as ClusterMessage;
+            var isMe = message?.SenderInfo.IsMe ?? false;
 
             if (message is DistributedAction msg)
             {
-                var isMe = msg.SenderInfo.IsMe;
-                SnTrace.Messaging.Write(() => $"Processing a message ({message.GetType().Name}. IsMe: {isMe}): {message.TraceMessage}");
+                if (!isMe)
+                    SnTrace.Messaging.Write(() => $"Processing a message ({message.GetType().Name}): {message.TraceMessage}");
 
                 await msg.DoActionAsync(true, msg.SenderInfo.IsMe, cancellationToken).ConfigureAwait(false);
             }
@@ -196,7 +198,7 @@ namespace SenseNet.Communication.Messaging
             {
                 if (message is PingMessage pingMessage)
                 {
-                    if (!pingMessage.SenderInfo.IsMe)
+                    if (!isMe)
                     {
                         var pm = new PongMessage {PingId = pingMessage.Id};
                         await pm.SendAsync(cancellationToken).ConfigureAwait(false);
@@ -204,7 +206,8 @@ namespace SenseNet.Communication.Messaging
                 }
                 else
                 {
-                    SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().Name ?? "unknown"}. IsMe: {message?.SenderInfo.IsMe}): {message?.TraceMessage}");
+                    if (!isMe)
+                        SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().Name ?? "unknown"}): {message?.TraceMessage}");
                 }
             }
 
@@ -225,7 +228,8 @@ namespace SenseNet.Communication.Messaging
                 return;
             }
 
-            SnTrace.Messaging.Write(() => $"Received a message ({message.GetType().Name}): {message.TraceMessage}");
+            if(!message.SenderInfo.IsMe)
+                SnTrace.Messaging.Write(() => $"Received a message ({message.GetType().Name}): {message.TraceMessage}");
 
             lock (MessageListSwitchSync)
             {

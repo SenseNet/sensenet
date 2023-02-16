@@ -22,9 +22,8 @@ namespace SenseNet.Communication.Messaging
         {
             try
             {
+                SnTrace.Messaging.Write(() => $"Executing DistributedAction ({GetType().Name}): {TraceMessage}");
                 await DoActionAsync(false, true, cancellationToken).ConfigureAwait(false);
-
-                SnTrace.Messaging.Write("Execute DistributedAction: {0}", this);
             }
             finally
             {
