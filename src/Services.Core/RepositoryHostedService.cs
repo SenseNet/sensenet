@@ -49,7 +49,7 @@ namespace SenseNet.Services.Core
                 .UseEventDistributor(new EventDistributor())
                 .AddAsyncEventProcessors(eventProcessors)
                 .UseTraceCategories("Event", "Custom", "System", "Security", "ContentOperation", "Database", "Index",
-                    "Repository", "Web", "Messaging") as RepositoryBuilder;
+                    "Repository") as RepositoryBuilder;
 
             // hook for developers to modify the repository builder before start
             BuildRepository?.Invoke(repositoryBuilder, Services);
