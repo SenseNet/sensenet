@@ -364,7 +364,8 @@ namespace SenseNet.ContentRepository.Tests
                 var logger = new TestDbUsageLogger();
                 var collector = new TestStatisticalDataCollector();
                 var dbUsageHandler = new DatabaseUsageHandler(logger);
-                var maintenanceTask = new StatisticalDataCollectorMaintenanceTask(collector, dbUsageHandler);
+                var maintenanceTask = new StatisticalDataCollectorMaintenanceTask(collector, dbUsageHandler,
+                    Options.Create(new StatisticsOptions()));
 
                 // The first load creates a persistent cache and its container (2 system content) but caches the count without cache.
                 var _ = await dbUsageHandler.GetDatabaseUsageAsync(true, CancellationToken.None)
@@ -1741,7 +1742,7 @@ namespace SenseNet.ContentRepository.Tests
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
                 }, GetOptions(),
                 NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
-            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
+            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller, Options.Create(new StatisticsOptions()));
             var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
 
             using (new Swindler<List<ISnTracer>>(
@@ -1866,7 +1867,7 @@ namespace SenseNet.ContentRepository.Tests
                     new DatabaseUsageStatisticalDataAggregator(GetOptions())
                 }, GetOptions(),
                 NullLoggerFactory.Instance.CreateLogger<StatisticalDataAggregationController>());
-            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller);
+            var maintenanceTask = new StatisticalDataAggregationMaintenanceTask(controller, Options.Create(new StatisticsOptions()));
             var maintenanceTaskAcc = new ObjectAccessor(maintenanceTask);
 
             using (new Swindler<List<ISnTracer>>(

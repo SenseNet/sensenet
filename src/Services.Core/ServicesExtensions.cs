@@ -65,6 +65,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
+            services.Configure<StatisticsOptions>(configuration.GetSection("sensenet:statistics"));
             services.Configure<RepositoryTypeOptions>(options => {});
             
             services.ConfigureConnectionStrings(configuration);
