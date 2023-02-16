@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Indexing;
 using SenseNet.Storage.DistributedApplication.Messaging;
@@ -133,8 +134,16 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task Messaging_Serialization_AllParameterless()
         {
+            SnTrace.Messaging.Enabled = true;
+
             var messages = new ClusterMessage[]
             {
+                // some parameters
+                new NodeIdDependency.FireChangedDistributedAction(4242),
+                new NodeTypeDependency.FireChangedDistributedAction(42),
+                new PathDependency.FireChangedDistributedAction("/Root/MyContent"),
+                new AddDocumentActivity {NodeId = 142, VersionId = 42, Path = "/Root/MyContent"},
+                // no parameters
                 new PingMessage(),
                 new PongMessage(),
                 new CacheCleanAction(),
@@ -156,7 +165,6 @@ namespace SenseNet.ContentRepository.Tests
                 .BuildServiceProvider();
 
             var channel = (TestClusterChannel)services.GetRequiredService<IClusterChannel>();
-
             foreach (var message in messages)
             {
                 // ACTION

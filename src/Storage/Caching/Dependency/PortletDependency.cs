@@ -17,6 +17,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         [Serializable]
         private class FireChangedDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             private readonly string _portletId;
 
             public FireChangedDistributedAction(string portletId)
