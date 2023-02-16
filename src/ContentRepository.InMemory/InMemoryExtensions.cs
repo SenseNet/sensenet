@@ -2,14 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.InMemory;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -17,7 +15,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -108,7 +105,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddInactiveAuditEventWriter()
                 .AddSenseNetInMemoryClientStoreDataProvider()
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .AddSenseNetTracer<SnDebugViewTracer>();
+                .AddSenseNetTracer<SnDebugViewTracer>()
+                .AddComponent<InMemoryClientStoreComponent>();
         }
 
         public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
