@@ -206,7 +206,7 @@ namespace SenseNet.Communication.Messaging
                 }
                 else
                 {
-                    if (!isMe)
+                    if (!isMe && message is not PongMessage)
                         SnTrace.Messaging.Write(() => $"Processing a message ({message?.GetType().Name ?? "unknown"}): {message?.TraceMessage}");
                 }
             }
