@@ -9,14 +9,23 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetGitBranch="master",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetSlnPath,
+	[string]$SensenetFolderPath,
+	[Parameter(Mandatory=$False)]
+	[string]$SensenetDockerImage,
 
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityGitRepo="https://github.com/SenseNet/sn-identityserver",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityGitBranch="main",
 	[Parameter(Mandatory=$False)]
-	[string]$SnIsDockerImage="sensenet-identityserver"
+	[string]$IdentityDockerImage="sn-identityserver",
+
+	[Parameter(Mandatory=$False)]
+	[string]$SearchGitRepo="https://github.com/SenseNet/sn-search-lucene29",
+	[Parameter(Mandatory=$False)]
+	[string]$SearchGitBranch="master",	
+	[Parameter(Mandatory=$False)]
+	[string]$SearchDockerImage="sn-searchservice"
 )
 
 ##################
@@ -37,12 +46,18 @@ Function Invoke-Cli {
 Function Get-GitRepo {
 	Param (
 		[Parameter(Mandatory=$False)]
-		[string]$Url = "https://tfs.sensenet.com/SenseNetProductTeam/SenseNet/_git/sn-identityserver",
+		[string]$Url,
 		[Parameter(Mandatory=$False)]
-		[string]$TargetPath = "..\..\temp\IdentitySln",
+		[string]$TargetPath,
 		[Parameter(Mandatory=$False)]
-		[string]$BranchName = "master"
+		[string]$BranchName = "main"
 	)
+
+	if (-not $Url -or -not $TargetPath)
+	{
+		Write-Output "Repository url or target path missing!"
+		exit;
+	}
 	
 	if (Test-Path $TargetPath\.git) {
 		write-host "Template folder already exists!"
@@ -113,25 +128,22 @@ if ($ServerErrors){
 ##    Variables section     #
 #############################
 # Prepare sn solution if run script independently
-if (-not $SensenetSlnPath) {
+$creationList = @()
+if (-not $SensenetFolderPath) {
 	if (-not $LocalSn) {
-		$SensenetSlnPath="../temp/SnSolution"
+		$SensenetFolderPath="./temp/Sensenet"
 	} else {
-		$SensenetSlnPath="../.."
+		$SensenetFolderPath="../"
 	}
 }
-if (-not $IdentitySlnPath) {
-	$IdentitySlnPath="../temp/IdentitySln"
-}
-$creationList = @()
 
-# Set dockerfile path according to app type
+# Set image creator params according to app type
 if ($ImageType -eq "InMem" -or $ImageType -eq "All")
 {
 	$SensenetDockerImage="sn-api-inmem"
-	$SensenetDockerfilePath="$($SensenetSlnPath)/src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"
+	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"
 	$imageFrom = @{
-		SolutionPath=$SensenetSlnPath
+		SolutionPath=$SensenetFolderPath
 		DockerImage=$SensenetDockerImage
 		DockerFilePath=$SensenetDockerfilePath
 	}
@@ -140,9 +152,9 @@ if ($ImageType -eq "InMem" -or $ImageType -eq "All")
 if ($ImageType -eq "InSql" -or $ImageType -eq "All")
 {
 	$SensenetDockerImage="sn-api-sql"
-	$SensenetDockerfilePath="$($SensenetSlnPath)/src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
+	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
 	$imageFrom = @{
-		SolutionPath=$SensenetSlnPath
+		SolutionPath=$SensenetFolderPath
 		DockerImage=$SensenetDockerImage
 		DockerFilePath=$SensenetDockerfilePath
 	}
@@ -151,9 +163,9 @@ if ($ImageType -eq "InSql" -or $ImageType -eq "All")
 if ($ImageType -eq "InSqlNlb" -or $ImageType -eq "All")
 {
 	$SensenetDockerImage="sn-api-nlb"
-	$SensenetDockerfilePath="$($SensenetSlnPath)/src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
+	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
 	$imageFrom = @{
-		SolutionPath=$SensenetSlnPath
+		SolutionPath=$SensenetFolderPath
 		DockerImage=$SensenetDockerImage
 		DockerFilePath=$SensenetDockerfilePath
 	}
@@ -162,11 +174,24 @@ if ($ImageType -eq "InSqlNlb" -or $ImageType -eq "All")
 
 if ($ImageType -eq "Is" -or $ImageType -eq "All")
 {
-	$IdentityDockerfilePath="$($IdentitySlnPath)/src/SenseNet.IdentityServer4.Web/Dockerfile"
+	$identityFolderPath="./temp/Identity"
+	$IdentityDockerfilePath="$($identityFolderPath)/src/SenseNet.IdentityServer4.Web/Dockerfile"
 	$imageFrom = @{
-		SolutionPath=$IdentitySlnPath
-		DockerImage=$SnIsDockerImage
+		SolutionPath=$identityFolderPath
+		DockerImage=$IdentityDockerImage
 		DockerFilePath=$IdentityDockerfilePath
+	}
+	$creationList += $imageFrom
+}
+
+if ($ImageType -eq "Search" -or $ImageType -eq "All")
+{
+	$SearchFolderPath="./temp/SearchService"
+	$SearchDockerfilePath="$($SearchFolderPath)/src/SenseNet.Search.Lucene29.Centralized.GrpcService/Dockerfile"
+	$imageFrom = @{
+		SolutionPath=$SearchFolderPath
+		DockerImage=$SearchDockerImage
+		DockerFilePath=$SearchDockerfilePath
 	}
 	$creationList += $imageFrom
 }
@@ -185,7 +210,7 @@ if (-not $LocalSn -and
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetSlnPath -BranchName "$SensenetGitBranch" 
+	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" 
 }
 
 if ($ImageType -eq "Is" -or 	
@@ -195,7 +220,17 @@ if ($ImageType -eq "Is" -or
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $IdentitySlnPath -BranchName "$IdentityGitBranch" 
+	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" 
+}
+
+if ($ImageType -eq "Search" -or 	
+	$ImageType -eq "All") {
+	write-output " "
+	write-host "#######################################"
+	write-host "#       get search service repo       #"
+	write-host "#######################################"
+	
+	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" 
 }
 
 ###############################
