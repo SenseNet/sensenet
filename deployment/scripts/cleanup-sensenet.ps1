@@ -1,33 +1,40 @@
 Param (
     [Parameter(Mandatory=$False)]
 	[string]$ProjectName="docker",
-    
+
+	# Docker
 	[Parameter(Mandatory=$False)]
-	[string]$SqlContainerName="$($ProjectName)-snsql",
-    [Parameter(Mandatory=$False)]
-	[string]$IdentityContainerName="$($ProjectName)-snis",
-    [Parameter(Mandatory=$False)]
-	[string]$SensenetContainerName="$($ProjectName)-snapp",
-	[Parameter(Mandatory=$False)]
-	[string]$SearchContainerName="$($ProjectName)-snsearch",
-    [Parameter(Mandatory=$False)]
-	[string]$SnAuiContainerName="$($ProjectName)-snaui",
-	
-	[Parameter(Mandatory=$False)]
-	[string]$RabbitContainerName="sn-rabbit",
-    [Parameter(Mandatory=$False)]
 	[string]$DockerRegistry="",
+
+	# Sensenet App
+	[Parameter(Mandatory=$False)]
+	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
     [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
 	# [string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
+
+	# Identity server
 	[Parameter(Mandatory=$False)]
-    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
-	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
-	
+	[string]$IdentityContainerName="$($ProjectName)-snis",
+
+	# Sensenet Repository Database
+	[Parameter(Mandatory=$False)]
+	[string]$SqlContainerName="$($ProjectName)-snsql",
 	[Parameter(Mandatory=$False)]
 	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
 	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),
+	# [Parameter(Mandatory=$False)]
+	# [bool]$UseDbContainer=$True,
+
+	# Search service parameters
+	[Parameter(Mandatory=$False)]
+	[string]$SearchContainerName="$($ProjectName)-snsearch",
+
+	# Rabbit-mq
+	[Parameter(Mandatory=$False)]
+	[string]$RabbitContainerName="sn-rabbit",
 	
+	# Technical    
 	[Parameter(Mandatory=$False)]
 	[bool]$WithServices=$False,
 	[Parameter(Mandatory=$False)]
@@ -53,8 +60,6 @@ write-output "[$($date) INFO] Stop container: $SqlContainerName"
 docker container stop $SqlContainerName
 write-output "[$($date) INFO] Stop container: $IdentityContainerName"
 docker container stop $IdentityContainerName
-write-output "[$($date) INFO] Stop container: $SnAuiContainerName"
-docker container stop $SnAuiContainerName
 write-output "[$($date) INFO] Stop container: $SensenetContainerName"
 docker container stop $SensenetContainerName
 write-output "[$($date) INFO] Stop container: $SearchContainerName"
@@ -69,8 +74,6 @@ write-output "[$($date) INFO] Remove container: $SqlContainerName"
 docker container rm $SqlContainerName
 write-output "[$($date) INFO] Remove container: $IdentityContainerName"
 docker container rm $IdentityContainerName
-write-output "[$($date) INFO] Remove container: $SnAuiContainerName"
-docker container rm $SnAuiContainerName
 write-output "[$($date) INFO] Remove container: $SensenetContainerName"
 docker container rm $SensenetContainerName
 write-output "[$($date) INFO] Remove container: $SearchContainerName"
