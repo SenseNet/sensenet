@@ -27,7 +27,7 @@
 		<PackageReference Include="coverlet.collector" Version="1.3.0" />
 		<PackageReference Include="SenseNet.Client" Version="2.0.14.1" />
 		<PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.4.3" />
-		<PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.8" />
+		<PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>
