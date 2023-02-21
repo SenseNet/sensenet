@@ -14,7 +14,7 @@
     -OpenPort $True `
     -SensenetPublicHost https://localhost:8091 `
     -IsHostPort 8092 `
-    -CertFolder $env:USERPROFILE\.aspnet\https\ `
+	-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
     -CertPath /root/.aspnet/https/aspnetapp.pfx `
     -CertPass QWEasd123%
 
@@ -28,6 +28,6 @@
     -SensenetPublicHost https://localhost:8091 `
     -IdentityPublicHost https://localhost:8092 `
     -RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
-    -CertFolder $env:USERPROFILE\.aspnet\https\ `
+    -CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
     -CertPath /root/.aspnet/https/aspnetapp.pfx `
     -CertPass QWEasd123%
