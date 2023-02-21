@@ -103,7 +103,7 @@ $SQL_SA_PASSWORD="QWEasd123%"
 $SQL_SN_DBNAME=$SqlDbName
 
 switch ($SnType) {
-	"InSql" { 
+	"InMem" { 
 		$SensenetDockerImage="sn-api-inmem"
 	}
 	"InSql" { 
