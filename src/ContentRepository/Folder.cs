@@ -80,11 +80,8 @@ namespace SenseNet.ContentRepository
                 switch (PreviewEnabled)
                 {
                     case ContentRepository.PreviewEnabled.Inherited:
-                    {
-                        AssertSeeOnly(PropertyType.GetByName("PreviewEnabled"));
                         using (new SystemAccount())
                             return Parent?.IsPreviewEnabled ?? false;
-                    }
                     case ContentRepository.PreviewEnabled.No:
                         return false;
                     case ContentRepository.PreviewEnabled.Yes:
