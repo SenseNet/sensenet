@@ -27,7 +27,6 @@
     -SnHostPort 8091 `
     -SensenetPublicHost https://localhost:8091 `
     -IdentityPublicHost https://localhost:8092 `
-    -RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
     -CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
     -CertPath /root/.aspnet/https/aspnetapp.pfx `
     -CertPass QWEasd123%
