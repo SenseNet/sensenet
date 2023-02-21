@@ -1,6 +1,6 @@
 Param (
 	[Parameter(Mandatory=$False)]
-	[string]$ImageType="InMem",
+	[string]$ImageType="InSql",
 	[Parameter(Mandatory=$False)]
 	[boolean]$LocalSn=$False,
 
@@ -131,9 +131,9 @@ if ($ServerErrors){
 $creationList = @()
 if (-not $SensenetFolderPath) {
 	if (-not $LocalSn) {
-		$SensenetFolderPath="./temp/Sensenet"
+		$SensenetFolderPath="$($PSScriptRoot)/../temp/Sensenet"
 	} else {
-		$SensenetFolderPath="../"
+		$SensenetFolderPath="$($PSScriptRoot)/../../"
 	}
 }
 
@@ -174,7 +174,7 @@ if ($ImageType -eq "InSqlNlb" -or $ImageType -eq "All")
 
 if ($ImageType -eq "Is" -or $ImageType -eq "All")
 {
-	$identityFolderPath="./temp/Identity"
+	$identityFolderPath="$($PSScriptRoot)/../temp/Identity"
 	$IdentityDockerfilePath="$($identityFolderPath)/src/SenseNet.IdentityServer4.Web/Dockerfile"
 	$imageFrom = @{
 		SolutionPath=$identityFolderPath
@@ -186,7 +186,7 @@ if ($ImageType -eq "Is" -or $ImageType -eq "All")
 
 if ($ImageType -eq "Search" -or $ImageType -eq "All")
 {
-	$SearchFolderPath="./temp/SearchService"
+	$SearchFolderPath="$($PSScriptRoot)/../temp/SearchService"
 	$SearchDockerfilePath="$($SearchFolderPath)/src/SenseNet.Search.Lucene29.Centralized.GrpcService/Dockerfile"
 	$imageFrom = @{
 		SolutionPath=$SearchFolderPath
