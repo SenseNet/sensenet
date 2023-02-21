@@ -66,24 +66,6 @@ Param (
 	[bool]$DryRun=$False
 )
 
-# examples
-# 1. with visual studio cert
-## .\install_sensenetdocker-is.ps1 -ProjectName locald -Domain locahost -SearchDockerImage sensenet-identityserver:feature-standalone-docker.2022.06.13 -AppEnvironment Development -SnCrPublicHost https://localhost:8082 -UserSecrets $env:HOME\AppData\Roaming\Microsoft\UserSecrets -CertFolder $env:HOME\AppData\Roaming\ASP.NET\Https
-# 2. with manually created dev-cert
-## .\install_sensenetdocker-is.ps1 -ProjectName locald -Domain locahost -SearchDockerImage sensenet-identityserver:feature-standalone-docker.2022.06.13 -AppEnvironment Development -SnCrPublicHost https://localhost:8082 -CertFolder $($env:USERPROFILE)\.aspnet\https\ -CertPath /root/.aspnet/https/aspnetapp.pfx -CertPass QWEasd123%
-
-# manual dev-cert creation:
-# dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\aspnetapp.pfx -p QWEasd123%
-# dotnet dev-certs https --trust
-
-# manual dev-cert cleanup:
-# dotnet dev-certs https --clean
-
-# https://docs.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide
-
-# kestrel cert path + pass is for dev cert
-# usersecrets volume is for visual studio cert
-
 #############################
 ##    Variables section     #
 #############################

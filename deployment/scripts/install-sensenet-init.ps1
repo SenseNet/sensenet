@@ -2,6 +2,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$NetworkName="snnetwork",
     
+	# Docker
 	[Parameter(Mandatory=$False)]
 	[string]$DockerRegistry="",
 	[Parameter(Mandatory=$False)]

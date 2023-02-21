@@ -76,22 +76,11 @@ Param (
 	[string]$CertPass,
 
 	# Technical
-	# [Parameter(Mandatory=$False)]
-	# [bool]$UseGrpc=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )
-
-# db requred, e.g.
-# .\install_sensenetdocker-sql.ps1 -ProjectName locald 
-
-# examples
-# 1. with visual studio cert
-# .\install_sensenetdocker-sn.ps1 -ProjectName locald -Domain locahost -SensenetDockerImage sn-api-sql:feature-standalone-docker.2022.06.10 -AppEnvironment Development -SensenetPublicHost https://localhost:8082 -IdentityPublicHost https://localhost:8083 -UserSecrets $env:HOME\AppData\Roaming\Microsoft\UserSecrets -CertFolder=$env:HOME\AppData\Roaming\ASP.NET\Https
-# 2. with manually created dev-cert
-# .\install_sensenetdocker-sn.ps1 -ProjectName locald -Domain locahost -SensenetDockerImage sn-api-sql:feature-standalone-docker.2022.06.10 -AppEnvironment Development -SensenetPublicHost https://localhost:8082 -IdentityPublicHost https://localhost:8083 -CertFolder $env:HOME\.aspnet\https\ -CertPath /root/.aspnet/https/aspnetapp.pfx -CertPass QWEasd123% 
 
 #############################
 ##    Variables section     #

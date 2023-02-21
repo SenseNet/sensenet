@@ -3,3 +3,5 @@ dotnet dev-certs https --trust
 
 # cleanup
 # dotnet dev-certs https --clean
+
+# https://docs.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide
