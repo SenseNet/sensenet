@@ -1,6 +1,32 @@
+Param (
+    [Parameter(Mandatory=$False)]
+	[boolean]$CleanUp=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$CreateImages=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$CreateDevCert=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$Uninstall=$False
+)
 
-./scripts/cleanup-sensenet.ps1 `
-    -ProjectName sensenet-inmem
+if ($CreateDevCert) {
+	./scripts/create-devcert.ps1
+}
+
+if ($CleanUp -or $Uninstall) {
+    ./scripts/cleanup-sensenet.ps1 `
+        -ProjectName sensenet-inmem
+	if ($Uninstall) {
+		exit;
+	}
+}
+
+if ($CreateImages) {
+    ./scripts/create-images.ps1 `
+        -ImageType InMem
+    ./scripts/create-images.ps1 `
+        -ImageType Is
+}
 
 ./scripts/install-sensenet-init.ps1
 
