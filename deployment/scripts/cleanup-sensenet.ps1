@@ -3,13 +3,13 @@ Param (
 	[string]$ProjectName="docker",
     
 	[Parameter(Mandatory=$False)]
-	[string]$SqlContainerName="$($ProjectName)-sql",
+	[string]$SqlContainerName="$($ProjectName)-snsql",
     [Parameter(Mandatory=$False)]
-	[string]$IdentityContainerName="$($ProjectName)-is",
+	[string]$IdentityContainerName="$($ProjectName)-snis",
     [Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
-	[string]$SearchContainerName="$($ProjectName)-search",
+	[string]$SearchContainerName="$($ProjectName)-snsearch",
     [Parameter(Mandatory=$False)]
 	[string]$SnAuiContainerName="$($ProjectName)-snaui",
 	
@@ -18,16 +18,18 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$DockerRegistry="",
 	[Parameter(Mandatory=$False)]
-    # [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
-	[string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
+    [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
+	# [string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
 	[Parameter(Mandatory=$False)]
-    # [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
-	[string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
+    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
+	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
 	
 	[Parameter(Mandatory=$False)]
 	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
 	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),
 	
+	[Parameter(Mandatory=$False)]
+	[bool]$WithServices=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$UseGrpc=$False
 )
@@ -57,8 +59,10 @@ write-output "[$($date) INFO] Stop container: $SensenetContainerName"
 docker container stop $SensenetContainerName
 write-output "[$($date) INFO] Stop container: $SearchContainerName"
 docker container stop $SearchContainerName
-write-output "[$($date) INFO] Stop container: $RABBIT_CONTAINERNAME"
-docker container stop $RABBIT_CONTAINERNAME
+if ($WithServices) {
+	write-output "[$($date) INFO] Stop container: $RabbitContainerName"
+	docker container stop $RabbitContainerName
+}
 write-output " "
 write-output "[$($date) INFO] Remove old containers:"
 write-output "[$($date) INFO] Remove container: $SqlContainerName"
@@ -71,8 +75,10 @@ write-output "[$($date) INFO] Remove container: $SensenetContainerName"
 docker container rm $SensenetContainerName
 write-output "[$($date) INFO] Remove container: $SearchContainerName"
 docker container rm $SearchContainerName
-write-output "[$($date) INFO] Remove container: $RABBIT_CONTAINERNAME"
-docker container rm $RABBIT_CONTAINERNAME
+if ($WithServices) {
+	write-output "[$($date) INFO] Remove container: $RabbitContainerName"
+	docker container rm $RabbitContainerName
+}
 
 write-output "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume"
 docker run --rm -v "$($SensenetAppdataVolume):/app/App_Data" alpine rm -rf /app/App_Data

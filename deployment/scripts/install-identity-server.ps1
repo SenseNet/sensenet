@@ -32,7 +32,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityDockerImage="sensenet-identityserver",
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityContainerName="$($ProjectName)-is",
+	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityPublicHost="https://$($ProjectName)-is.$($Domain)",	
 	[Parameter(Mandatory=$False)]
@@ -85,10 +85,6 @@ Param (
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
-
-# $SensenetPublicHost=$($SensenetPublicHost)
-# $SensenetContainerHost=$($SensenetContainerHost)
-# $IdentityPublicHost=$($IdentityPublicHost)
 
 write-output " "
 write-host "#################################"

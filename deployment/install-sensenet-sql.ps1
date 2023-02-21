@@ -1,15 +1,14 @@
 
 ./scripts/cleanup-sensenet.ps1 `
-    -ProjectName local-devcert-sql-new
+    -ProjectName sensenet-insql
 
 ./scripts/install-sensenet-init.ps1
-./scripts/install-rabbit.ps1 
 
 ./scripts/install-sql-server.ps1 `
-    -ProjectName local-devcert-sql-new
+    -ProjectName sensenet-insql
 
 ./scripts/install-identity-server.ps1 `
-    -ProjectName local-devcert-sql-new `
+    -ProjectName sensenet-insql `
     -Routing cnt `
     -AppEnvironment Development `
     -OpenPort $True `
@@ -20,10 +19,11 @@
     -CertPass QWEasd123%
 
 ./scripts/install-sensenet-app.ps1 `
-    -ProjectName local-devcert-sql-new `
+    -ProjectName sensenet-insql `
     -Routing cnt `
     -AppEnvironment Development `
     -OpenPort $True `
+    -SnType "InSql" `
     -SnHostPort 8091 `
     -SensenetPublicHost https://localhost:8091 `
     -IdentityPublicHost https://localhost:8092 `

@@ -24,7 +24,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$UseDbContainer=$True,
 	[Parameter(Mandatory=$False)]
-	[string]$SqlContainerName="$($ProjectName)-sql",
+	[string]$SqlContainerName="$($ProjectName)-snsql",
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
@@ -34,10 +34,10 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$SearchDockerImage="sensenet-searchservice",
 	[Parameter(Mandatory=$False)]
-	[string]$SearchContainerName="$($ProjectName)-search",
+	[string]$SearchContainerName="$($ProjectName)-snsearch",
     [Parameter(Mandatory=$False)]
-    # [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
-	[string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
+    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
+	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
 	[Parameter(Mandatory=$False)]
 	[string]$SearchPublicHost="https://$($ProjectName)-search.$($Domain)",
 	[Parameter(Mandatory=$False)]
@@ -87,13 +87,6 @@ Param (
 #############################
 ##    Variables section     #
 #############################
-
-# $HostIp=$($HostIp)
-
-$SNCR_PURL="$($SnCrPublicHost)"
-$search_PURL="$($SearchPublicHost)"
-$search_IURL="$($searchContainerHost)"
-
 $SQL_SA_USER="dockertest"
 $SQL_SA_PASSWORD="QWEasd123%"
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"

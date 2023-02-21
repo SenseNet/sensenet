@@ -18,7 +18,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$SqlDockerImage="mcr.microsoft.com/mssql/server:2019-CU12-ubuntu-20.04",
 	[Parameter(Mandatory=$False)]
-	[string]$SqlContainerName="$($ProjectName)-sql",
+	[string]$SqlContainerName="$($ProjectName)-snsql",
     [Parameter(Mandatory=$False)]
 	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
     [string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),

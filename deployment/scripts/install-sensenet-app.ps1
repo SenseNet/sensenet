@@ -22,12 +22,14 @@ Param (
 
 	# Sensenet App
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage="sn-api-sql-ss",
+	[string]$SnType="InSql",
+	[Parameter(Mandatory=$False)]
+	[string]$SensenetDockerImage="sn-api-sql",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
-    # [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
-	[string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
+    [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
+	# [string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
 	[Parameter(Mandatory=$False)]
@@ -37,7 +39,7 @@ Param (
 
 	# Identity server
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityContainerName="$($ProjectName)-is",
+	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityPublicHost="https://$($ProjectName)-is.$($Domain)",	
 	[Parameter(Mandatory=$False)]
@@ -47,7 +49,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$UseDbContainer=$True,
 	[Parameter(Mandatory=$False)]
-	[string]$SqlContainerName="$($ProjectName)-sql",
+	[string]$SqlContainerName="$($ProjectName)-snsql",
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
@@ -55,7 +57,7 @@ Param (
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
-	[string]$SearchContainerName="$($ProjectName)-Search",	
+	[string]$SearchContainerName="$($ProjectName)-snsearch",	
 	[Parameter(Mandatory=$False)]
 	[string]$SearchServiceHost="http://$($SearchContainerName)",
 
@@ -74,8 +76,8 @@ Param (
 	[string]$CertPass,
 
 	# Technical
-	[Parameter(Mandatory=$False)]
-	[bool]$UseGrpc=$False,
+	# [Parameter(Mandatory=$False)]
+	# [bool]$UseGrpc=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
@@ -94,27 +96,31 @@ Param (
 #############################
 ##    Variables section     #
 #############################
-$Sensenet_PURL="$($SensenetPublicHost)"
-$Identity_PURL="$($IdentityPublicHost)"
-$Identity_IURL="$($IdentityContainerHost)"
-$Sensenet_HOST_PORT=$SnHostPort
-$Sensenet_APP_PORT=$SnAppPort
-$SN_NETWORKNAME=$NetworkName
-$SQL_SERVER=$DataSource
+$date = Get-Date -Format "yyyy-MM-dd HH:mm K"
+
 $SQL_SA_USER="dockertest"
 $SQL_SA_PASSWORD="QWEasd123%"
 $SQL_SN_DBNAME=$SqlDbName
-$Sensenet_CONTAINERNAME=$SensenetContainerName
-$Sensenet_APPDATA_VOLUME=$SensenetAppdataVolume
-$Sensenet_DOCKERIMAGE=$SensenetDockerImage
-$ASPNETCORE_ENVIRONMENT=$AppEnvironment
-$Search_URL=$SearchServiceHost
-$RBBT_URL=$RabbitserviceHost
-$date = Get-Date -Format "yyyy-MM-dd HH:mm K"
+
+switch ($SnType) {
+	"InSql" { 
+		$SensenetDockerImage="sn-api-inmem"
+	}
+	"InSql" { 
+		$SensenetDockerImage="sn-api-sql"
+	}
+	"InSqlNlb" { 
+		$SensenetDockerImage="sn-api-nlb"
+	}
+	Default {
+		Write-Output "Invalid sensenet type!"
+		exit;
+	}
+}
 
 if ($UseDbContainer -eq $True) {
 	$SQL_SA_USER="sa"
-	$SQL_SERVER=$SqlContainerName;
+	$DataSource=$SqlContainerName;
 }
 
 write-output " "
@@ -123,41 +129,45 @@ write-host "#    sensenet app container    #"
 write-host "################################"
 write-output "[$($date) INFO] Install sensenet repository"
 
-if ($Sensenet_DOCKERIMAGE -Match "/") {
-	write-host "pull $Sensenet_DOCKERIMAGE image from the registry"
-	docker pull $Sensenet_DOCKERIMAGE
+if ($SensenetDockerImage -Match "/") {
+	write-host "pull $SensenetDockerImage image from the registry"
+	docker pull $SensenetDockerImage
 }
 
 $aspnetUrls = "http://+:80"
-if ($Sensenet_APP_PORT -eq 443) {
+if ($SnAppPort -eq 443) {
 	$aspnetUrls = "https://+:443;http://+:80"
 }
 
 $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
-"--net", "`"$SN_NETWORKNAME`"", "eol",
-"--name", "`"$($Sensenet_CONTAINERNAME)`"", "eol",
+"--net", "`"$NetworkName`"", "eol",
+"--name", "`"$($SensenetContainerName)`"", "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT`"", "eol",
-"-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SQL_SN_DBNAME);Data Source=$($SQL_SERVER);User ID=$($SQL_SA_USER);Password=$($SQL_SA_PASSWORD);TrustServerCertificate=true", "eol",
-"-e", "sensenet__Container__Name=$($Sensenet_CONTAINERNAME)", "eol",
+"-e", "`"AppEnvironment=$AppEnvironment`"", "eol",
+"-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
 "-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol",
-"-e", "sensenet__authentication__authority=$($Identity_PURL)", "eol",
-"-e", "sensenet__authentication__repositoryUrl=$($Sensenet_PURL)", "eol"
+"-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
+"-e", "sensenet__authentication__repositoryUrl=$($SensenetPublicHost)", "eol"
 
-if ($UseGrpc -ne "") {
-	$params += "-e", "sensenet__search__service__ServiceAddress=$($Search_URL)", "eol",
-	"-e", "sensenet__security__rabbitmq__ServiceUrl=$($RBBT_URL)", "eol",
-	"-e", "sensenet__rabbitmq__ServiceUrl=$($RBBT_URL)", "eol"
+if ($SnType -eq "InSql" -or 
+	$SnType -eq "InSqlNlb") {
+		$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SQL_SN_DBNAME);Data Source=$($DataSource);User ID=$($SQL_SA_USER);Password=$($SQL_SA_PASSWORD);TrustServerCertificate=true", "eol"
+}
+
+if ($SnType -eq "InSqlNlb") {
+	$params += "-e", "sensenet__search__service__ServiceAddress=$($SearchServiceHost)", "eol",
+	"-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol",
+	"-e", "sensenet__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol"
 }
 
 switch($Routing) {
 	"cnt" {
-		$params += "-e", "sensenet__authentication__metadatahost=$($Identity_IURL)", "eol"
+		$params += "-e", "sensenet__authentication__metadatahost=$($IdentityContainerHost)", "eol"
 	}
 	"hst" {
-		$Identity_PURL_HOST=([System.Uri]$Identity_PURL).Host
-		$params += "--add-host", "$($Identity_PURL_HOST):host-gateway", "eol"
+		$IdentityPublicHost_HOST=([System.Uri]$IdentityPublicHost).Host
+		$params += "--add-host", "$($IdentityPublicHost_HOST):host-gateway", "eol"
 	}
 }
 
@@ -178,14 +188,14 @@ if ($UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
-$params += "-v", "$($Sensenet_APPDATA_VOLUME):/app/App_Data", "eol"
+$params += "-v", "$($SensenetAppdataVolume):/app/App_Data", "eol"
 
 
 if ($OpenPort) {
-	$params += "-p", "`"$($Sensenet_HOST_PORT):$($Sensenet_APP_PORT)`"", "eol"
+	$params += "-p", "`"$($SnHostPort):$($SnAppPort)`"", "eol"
 }
 
-$params += "$Sensenet_DOCKERIMAGE"
+$params += "$SensenetDockerImage"
 
 write-host "$execFile $($params -replace "eol", "```n`t")"
 if (-not $DryRun) {
@@ -194,11 +204,11 @@ if (-not $DryRun) {
 	if ($Debugging) {
 		write-output " "
 		Start-Sleep -s 5
-		docker exec -it "$Sensenet_CONTAINERNAME" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
+		docker exec -it "$SensenetContainerName" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
 	write-output " "
-	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($SN_NETWORKNAME).IPAddress }}" $Sensenet_CONTAINERNAME)
+	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
 	write-output "[$($date) INFO] CRIP: $CRIP"
 } else {
 	write-host "`nDryRun"
