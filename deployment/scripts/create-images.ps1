@@ -28,19 +28,9 @@ Param (
 	[string]$SearchDockerImage="sn-searchservice"
 )
 
-##################
-##    Helpers    #
-##################
-Function Invoke-Cli {
-	Param (
-		[Parameter(Mandatory=$True)]
-		[string]$execFile,
-		[Parameter(Mandatory=$False)]
-		[string[]]$params	
-	)
-
-	write-host "$execFile $($params -replace "eol", "```n`t")"
-	& $execFile $($params -replace "eol", "")
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
 Function Get-GitRepo {
@@ -55,30 +45,28 @@ Function Get-GitRepo {
 
 	if (-not $Url -or -not $TargetPath)
 	{
-		Write-Output "Repository url or target path missing!"
-		exit;
+		Write-Error "Repository url or target path missing!"
+		# exit 1;
 	}
 	
 	if (Test-Path $TargetPath\.git) {
+		$TargetPath = Resolve-Path $TargetPath
 		write-host "Template folder already exists!"
-		Write-Output "git --git-dir=`"$TargetPath\.git`" --work-tree=`"$TargetPath`" rev-parse --abbrev-ref HEAD"
+		
 		$currentBranch = (git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" rev-parse --abbrev-ref HEAD).Trim()
-	
 		Write-Output "Current branch: $currentBranch"
+
 		if (-Not($BranchName -eq $currentBranch)) {
-			Write-Output "git --git-dir=`"$TargetPath\.git`" --work-tree=`"$TargetPath`" fetch"
-			git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" fetch 
-			Write-Output "git --git-dir=`"$TargetPath\.git`" --work-tree=`"$TargetPath`" checkout $BranchName"
-			git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" checkout $BranchName 
-		}
-		Write-Output "git --git-dir=`"$TargetPath\.git`" --work-tree=`"$TargetPath`" pull"
-		git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" pull 
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "fetch" -ErrorAction Stop
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "checkout", $BranchName -ErrorAction Stop
+		}		
+		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "pull" -ErrorAction Stop
 	} 
 	else 
 	{
 		try {
 			write-Output "Git repository downloading started..."
-			Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath"
+			Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath" -ErrorAction Stop
 		} catch {
 			Write-Output "Exception: $_.Exception"
 		}
@@ -100,18 +88,18 @@ Function New-DockerImage {
 	write-host "#       create docker image       #"
 	write-host "###################################"
 
-	Invoke-Cli -execFile "docker" -params "build", "--progress", "plain", "-t", "$DockerImage", "-f", "$DockerfilePath", "$($SolutionPath)/src"
-	if ($LASTEXITCODE -gt 0) {
-		Write-Error "Image creation failed!"
-		exit;
-	}
+	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $DockerfilePath $($SolutionPath)/src" -ErrorAction Stop
+	# if ($LASTEXITCODE -gt 0) {
+	# 	Write-Error "Image creation failed!"
+	# 	# exit;
+	# }
 
 	write-output " "
 	write-host "#################################"
 	write-host "#       docker image info       #"
 	write-host "#################################"
 
-	Invoke-Cli -execFile "docker" -params "image", "ls", "$DockerImage"
+	Invoke-Cli -command "docker image ls $DockerImage" 
 }
 
 
@@ -120,8 +108,8 @@ Function New-DockerImage {
 # Check if docker is running
 $ServerErrors = (ConvertFrom-Json -InputObject (docker info --format '{{json .}}')).ServerErrors
 if ($ServerErrors){
-	Write-Output "Docker server is not running!"
-	exit;	
+	Write-Error "Docker server is not running!"
+	# exit 1;
 }
 
 #############################
@@ -210,7 +198,7 @@ if (-not $LocalSn -and
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" 
+	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" -ErrorAction Stop
 }
 
 if ($ImageType -eq "Is" -or 	
@@ -220,7 +208,7 @@ if ($ImageType -eq "Is" -or
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" 
+	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" -ErrorAction Stop
 }
 
 if ($ImageType -eq "Search" -or 	
@@ -230,7 +218,7 @@ if ($ImageType -eq "Search" -or
 	write-host "#       get search service repo       #"
 	write-host "#######################################"
 	
-	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" 
+	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" -ErrorAction Stop
 }
 
 ###############################
@@ -243,5 +231,5 @@ Foreach ($item in $creationList) {
 	# 	DockerImage=$item.DockerImage
 	# 	DockerFilePath=$item.DockerfilePath
 	# }
-	New-DockerImage @item
+	New-DockerImage @item -ErrorAction Stop
 }

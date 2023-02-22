@@ -82,6 +82,11 @@ Param (
 	[bool]$DryRun=$False
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
 #############################
 ##    Variables section     #
 #############################
@@ -102,8 +107,8 @@ switch ($SnType) {
 		$SensenetDockerImage="sn-api-nlb"
 	}
 	Default {
-		Write-Output "Invalid sensenet type!"
-		exit;
+		Write-Error "Invalid sensenet type!"
+		# exit 1;
 	}
 }
 
@@ -120,8 +125,10 @@ write-output "[$($date) INFO] Install sensenet repository"
 
 if ($SensenetDockerImage -Match "/") {
 	write-host "pull $SensenetDockerImage image from the registry"
-	docker pull $SensenetDockerImage
+	Invoke-Cli -command "docker pull $SensenetDockerImage"
 }
+
+# Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "chmod", "777", "/app/App_Data"
 
 $aspnetUrls = "http://+:80"
 if ($SnAppPort -eq 443) {
@@ -177,8 +184,9 @@ if ($UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
-$params += "-v", "$($SensenetAppdataVolume):/app/App_Data", "eol"
-
+if ($SnType -eq "InSql") {
+	$params += "-v", "$($SensenetAppdataVolume):/app/App_Data", "eol"
+}
 
 if ($OpenPort) {
 	$params += "-p", "`"$($SnHostPort):$($SnAppPort)`"", "eol"
@@ -186,19 +194,16 @@ if ($OpenPort) {
 
 $params += "$SensenetDockerImage"
 
-write-host "$execFile $($params -replace "eol", "```n`t")"
+Invoke-Cli -execFile $execFile -params $params -ErrorAction stop -dryRun $DryRun
 if (-not $DryRun) {
-	& $execFile $($params -replace "eol", "")
-
 	if ($Debugging) {
 		write-output " "
-		Start-Sleep -s 5
-		docker exec -it "$SensenetContainerName" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
+		Wait-For-It -Seconds 5 -Message "Prepare debugger apps for sensenet container"
+	 	Invoke-Cli -command "docker exec -it $SensenetContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
-	write-output " "
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
-	write-output "[$($date) INFO] CRIP: $CRIP"
+	write-output "`n[$($date) INFO] CRIP: $CRIP"
 } else {
 	write-host "`nDryRun"
 }

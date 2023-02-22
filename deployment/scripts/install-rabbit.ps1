@@ -9,6 +9,11 @@ Param (
 	[bool]$DryRun=$False
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
 #############################
 ##    Variables section     #
 #############################
@@ -32,10 +37,8 @@ $params = "run", "-d", "eol",
 	"-p", "`"$($RabbitPort):15672`"", "eol",
 	"$RABBIT_DOCKERIMAGE"
 
-write-host "$execFile $($params -replace "eol", "```n`t")"
-if (-not $DryRun) {
-	& $execFile $($params -replace "eol", "")
-
+Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
+if (-not $DryRun) {	
 	write-output " "
 	$RABBITIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $RabbitContainerName)
 	write-output "[$($date) INFO] RABBITIP: $RABBITIP"

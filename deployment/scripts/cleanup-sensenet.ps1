@@ -29,6 +29,9 @@ Param (
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
+	[Parameter(Mandatory=$False)]
+    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
+	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
 
 	# Rabbit-mq
 	[Parameter(Mandatory=$False)]
@@ -40,6 +43,11 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$UseGrpc=$False
 )
+
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
 
 #############################
 ##    Variables section     #
@@ -57,42 +65,42 @@ write-host "##############################"
 
 # stop and remove previous containers
 write-output "[$($date) INFO] Stop container: $SqlContainerName"
-docker container stop $SqlContainerName
+Invoke-Cli -command "docker container stop $SqlContainerName" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Stop container: $IdentityContainerName"
-docker container stop $IdentityContainerName
+Invoke-Cli -command "docker container stop $IdentityContainerName" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Stop container: $SensenetContainerName"
-docker container stop $SensenetContainerName
+Invoke-Cli -command "docker container stop $SensenetContainerName" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Stop container: $SearchContainerName"
-docker container stop $SearchContainerName
+Invoke-Cli -command "docker container stop $SearchContainerName" -ErrorAction SilentlyContinue
 if ($WithServices) {
 	write-output "[$($date) INFO] Stop container: $RabbitContainerName"
-	docker container stop $RabbitContainerName
+	Invoke-Cli -command "docker container stop $RabbitContainerName" -ErrorAction SilentlyContinue
 }
 write-output " "
 write-output "[$($date) INFO] Remove old containers:"
 write-output "[$($date) INFO] Remove container: $SqlContainerName"
-docker container rm $SqlContainerName
+Invoke-Cli -command "docker container rm $SqlContainerName" -ErrorAction SilentlyContinue 
 write-output "[$($date) INFO] Remove container: $IdentityContainerName"
-docker container rm $IdentityContainerName
+Invoke-Cli -command "docker container rm $IdentityContainerName" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Remove container: $SensenetContainerName"
-docker container rm $SensenetContainerName
+Invoke-Cli -command "docker container rm $SensenetContainerName" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Remove container: $SearchContainerName"
-docker container rm $SearchContainerName
+Invoke-Cli -command "docker container rm $SearchContainerName" -ErrorAction SilentlyContinue
 if ($WithServices) {
 	write-output "[$($date) INFO] Remove container: $RabbitContainerName"
-	docker container rm $RabbitContainerName
+	Invoke-Cli -command "docker container rm $RabbitContainerName" -ErrorAction SilentlyContinue
 }
 
 write-output "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume"
-docker run --rm -v "$($SensenetAppdataVolume):/app/App_Data" alpine rm -rf /app/App_Data
+Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -ErrorAction SilentlyContinue
 write-output "[$($date) INFO] Cleanup volume: $SqlVolume"
-docker run --rm -v "$($SqlVolume):/var/opt/mssql" alpine rm -rf /var/opt/mssql
+Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -ErrorAction SilentlyContinue
 if ($UseGrpc) {
 	write-output "[$($date) INFO] Cleanup volume: $SearchAppdataVolume"
-	docker run --rm -v "$($SearchAppdataVolume):/app/App_Data" alpine rm -rf /app/App_Data
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -ErrorAction SilentlyContinue
 }
 
 if ($DockerRegistry) {
 	write-host "logout from docker registry..."
-	docker logout $DockerRegistry 
+	Invoke-Cli -command "docker logout $DockerRegistry" -ErrorAction SilentlyContinue
 }

@@ -57,6 +57,11 @@ Param (
 	[bool]$DryRun=$False
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
 #############################
 ##    Variables section     #
 #############################
@@ -70,7 +75,7 @@ write-output "[$($date) INFO] Start identity server"
 
 if ($IdentityDockerImage -Match "/") {
 	write-host "pull $IdentityDockerImage image from the registry"
-	docker pull $IdentityDockerImage
+	Invoke-Cli -command "docker pull $IdentityDockerImage"
 }
 
 $aspnetUrls = "http://+:80"
@@ -125,10 +130,8 @@ if ($OpenPort) {
 
 $params += "$IdentityDockerImage"
 
-write-host "$execFile $($params -replace "eol", "```n`t")"
+Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {
-	& $execFile $($params -replace "eol", "")
-
 	if ($Debugging) {
 		write-output " "
 		Start-Sleep -s 5

@@ -13,6 +13,11 @@ Param (
 	[boolean]$Uninstall=$False
 )
 
+if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
+}
+
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1
 }
@@ -28,9 +33,11 @@ if ($CleanUp -or $Uninstall) {
 if ($CreateImages) {
     ./scripts/create-images.ps1 `
         -ImageType InMem `
-		-LocalSn $LocalSn
+		-LocalSn $LocalSn `
+		-ErrorAction Stop
     ./scripts/create-images.ps1 `
-        -ImageType Is
+        -ImageType Is `
+		-ErrorAction Stop
 }
 
 if ($Install) {
