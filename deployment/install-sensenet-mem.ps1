@@ -1,8 +1,12 @@
 Param (
+	[Parameter(Mandatory=$False)]
+	[boolean]$Install=$True,
     [Parameter(Mandatory=$False)]
 	[boolean]$CleanUp=$False,
 	[Parameter(Mandatory=$False)]
 	[boolean]$CreateImages=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$LocalSn=$False,
 	[Parameter(Mandatory=$False)]
 	[boolean]$CreateDevCert=$False,
 	[Parameter(Mandatory=$False)]
@@ -23,33 +27,36 @@ if ($CleanUp -or $Uninstall) {
 
 if ($CreateImages) {
     ./scripts/create-images.ps1 `
-        -ImageType InMem
+        -ImageType InMem `
+		-LocalSn $LocalSn
     ./scripts/create-images.ps1 `
         -ImageType Is
 }
 
-./scripts/install-sensenet-init.ps1
+if ($Install) {
+	./scripts/install-sensenet-init.ps1
 
-./scripts/install-identity-server.ps1 `
-    -ProjectName sensenet-inmem `
-    -Routing cnt `
-    -AppEnvironment Development `
-    -OpenPort $True `
-    -SensenetPublicHost https://localhost:8093 `
-    -IsHostPort 8094 `
-    -CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
-    -CertPath /root/.aspnet/https/aspnetapp.pfx `
-    -CertPass QWEasd123%
+	./scripts/install-identity-server.ps1 `
+		-ProjectName sensenet-inmem `
+		-Routing cnt `
+		-AppEnvironment Development `
+		-OpenPort $True `
+		-SensenetPublicHost https://localhost:8093 `
+		-IsHostPort 8094 `
+		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
+		-CertPath /root/.aspnet/https/aspnetapp.pfx `
+		-CertPass QWEasd123%
 
-./scripts/install-sensenet-app.ps1 `
-    -ProjectName sensenet-inmem `
-    -Routing cnt `
-    -AppEnvironment Development `
-    -OpenPort $True `
-    -SnType "InMem" `
-    -SnHostPort 8093 `
-    -SensenetPublicHost https://localhost:8093 `
-    -IdentityPublicHost https://localhost:8094 `
-    -CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
-    -CertPath /root/.aspnet/https/aspnetapp.pfx `
-    -CertPass QWEasd123%
+	./scripts/install-sensenet-app.ps1 `
+		-ProjectName sensenet-inmem `
+		-Routing cnt `
+		-AppEnvironment Development `
+		-OpenPort $True `
+		-SnType "InMem" `
+		-SnHostPort 8093 `
+		-SensenetPublicHost https://localhost:8093 `
+		-IdentityPublicHost https://localhost:8094 `
+		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
+		-CertPath /root/.aspnet/https/aspnetapp.pfx `
+		-CertPass QWEasd123%
+}

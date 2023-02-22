@@ -102,8 +102,8 @@ Function New-DockerImage {
 
 	Invoke-Cli -execFile "docker" -params "build", "--progress", "plain", "-t", "$DockerImage", "-f", "$DockerfilePath", "$($SolutionPath)/src"
 	if ($LASTEXITCODE -gt 0) {
-		Write-Output "Image creation failed!"
-		exit;	
+		Write-Error "Image creation failed!"
+		exit;
 	}
 
 	write-output " "
