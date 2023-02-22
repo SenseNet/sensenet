@@ -6,7 +6,9 @@ Function Invoke-Cli {
 		[Parameter(ParameterSetName="manual", Mandatory=$True)]
 		[string]$execFile,
 		[Parameter(ParameterSetName="manual", Mandatory=$False)]
-		[string[]]$params
+		[string[]]$params,
+		[Parameter(Mandatory=$False)]
+		[boolean]$DryRun=$False
 	)
 
 	if ($command) {
@@ -18,14 +20,21 @@ Function Invoke-Cli {
 	}
 
 	write-host "$execFile $($params -replace "eol", "```n`t")"
-	& $execFile $($params -replace "eol", "")
+	if (-not $DryRun) {	
+		& $execFile $($params -replace "eol", "")
+		if ($LASTEXITCODE -gt 0) {
+			write-error "Error in executing $execFile"
+		}
+	}
 }
 
 Function Wait-For-It {
-	Param (
+	Param (		
 		[Parameter(Mandatory=$True)]
-		[int]$ReadyBy
+		[int]$Seconds,
+		[Parameter(Mandatory=$False)]
+		[string]$Message
 	)
-	Write-Output "Your sensenet repository is about to make. It can take about a minute."
-	Start-Sleep -Seconds $ReadyBy
+	Write-Output $Message
+	Start-Sleep -Seconds $Seconds
 }

@@ -15,7 +15,7 @@ Param (
 	[boolean]$Uninstall=$False
 )
 
-if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
 }
@@ -27,7 +27,8 @@ if ($CreateDevCert) {
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
         -ProjectName sensenet-nlb `
-        -WithServices $True
+        -WithServices $True `
+		-UseGrpc $True
 	if ($Uninstall) {
 		exit 0;
 	}
@@ -81,7 +82,7 @@ if ($Install) {
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123%
 
-	Wait-For-It -ReadyBy 60	
+	Wait-For-It -Seconds 60	-Message "Your sensenet repository is about to make. It can take about a minute."
 
 	./scripts/install-search-service.ps1 `
 		-ProjectName sensenet-nlb `

@@ -68,11 +68,14 @@ Param (
 	[bool]$DryRun=$False
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
 if ($Restart) {
 	Write-Output "Restart search service..."
-	$execFile = "docker"
-	$params = "restart", "`"$($SensenetContainerName)`"", "eol"
-	& $execFile $($params -replace "eol", "")
+	Invoke-Cli -command "docker restart $($SearchContainerName)"
 	exit 0
 }
 
@@ -96,7 +99,7 @@ write-output "[$($date) INFO] Start search service"
 
 if ($SearchDockerImage -Match "/") {
 	write-host "pull $SearchDockerImage image from the registry"
-	docker pull $SearchDockerImage
+	Invoke-Cli -command "docker pull $SearchDockerImage"
 }
 
 $aspnetUrls = "http://+:80"
@@ -137,19 +140,17 @@ if ($OpenPort) {
 
 $params += "$SearchDockerImage"
 
-write-host "$execFile $($params -replace "eol", "```n`t")"
-if (-not $DryRun) {
-	& $execFile $($params -replace "eol", "")
 
+Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
+if (-not $DryRun) {	
 	if ($Debugging) {
 		write-output " "
-		Start-Sleep -s 5
-		docker exec -it "$SearchContainerName" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
+		Wait-For-It -Seconds 5 -Message "Prepare search container for debug..."
+	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
-	write-output " "
 	$ISIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
-	write-output "[$($date) INFO] ISIP: $ISIP"
+	write-output "`n[$($date) INFO] ISIP: $ISIP"
 } else {
 	write-host "`nDryRun"
 }
