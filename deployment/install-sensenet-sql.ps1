@@ -31,8 +31,6 @@ if ($CreateImages) {
 		-LocalSn $LocalSn
     ./scripts/create-images.ps1 `
         -ImageType Is
-    ./scripts/create-images.ps1 `
-        -ImageType Search
 }
 
 if ($Install) {
