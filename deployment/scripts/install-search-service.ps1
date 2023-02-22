@@ -61,10 +61,20 @@ Param (
 	
 	# Technical
 	[Parameter(Mandatory=$False)]
+	[bool]$Restart=$False,
+	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )
+
+if ($Restart) {
+	Write-Output "Restart search service..."
+	$execFile = "docker"
+	$params = "restart", "`"$($SensenetContainerName)`"", "eol"
+	& $execFile $($params -replace "eol", "")
+	exit 0
+}
 
 #############################
 ##    Variables section     #

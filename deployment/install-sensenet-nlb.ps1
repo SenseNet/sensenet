@@ -1,5 +1,7 @@
 Param (
 	[Parameter(Mandatory=$False)]
+	[string]$ProjectName="sensenet-nlb",	
+	[Parameter(Mandatory=$False)]
 	[boolean]$Install=$True,
     [Parameter(Mandatory=$False)]
 	[boolean]$CleanUp=$False,
@@ -13,6 +15,11 @@ Param (
 	[boolean]$Uninstall=$False
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
+}
+
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1
 }
@@ -22,7 +29,7 @@ if ($CleanUp -or $Uninstall) {
         -ProjectName sensenet-nlb `
         -WithServices $True
 	if ($Uninstall) {
-		exit;
+		exit 0;
 	}
 }
 
@@ -34,6 +41,7 @@ if ($CreateImages) {
 
 if ($Install) {
 	./scripts/install-sensenet-init.ps1
+	if ($LASTEXITCODE -gt 0) {exit 1}
 	./scripts/install-rabbit.ps1 
 	./scripts/install-sql-server.ps1 -ProjectName sensenet-nlb
 
@@ -72,4 +80,10 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123%
+
+	Wait-For-It -ReadyBy 60	
+
+	./scripts/install-search-service.ps1 `
+		-ProjectName sensenet-nlb `
+		-Restart $True
 }
