@@ -356,7 +356,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         _logger.LogError($"Could not connect to the database {_dbInstallerOptions.DatabaseName} after several retries.");
 
                     return false;
-                });
+                }, cancellationToken);
             }
             else
             {
