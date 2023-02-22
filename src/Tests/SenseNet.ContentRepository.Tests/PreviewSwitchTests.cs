@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Preview;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tests.Core;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -75,8 +73,10 @@ namespace SenseNet.ContentRepository.Tests
                 });
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         private class TestTaskManager : ITaskManager
         {
+            // ReSharper disable once InconsistentNaming
             public RegisterTaskRequest RegisterTask_requestData { get; set; }
             public Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData, CancellationToken cancellationToken)
             {
@@ -93,6 +93,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         private class TestPreviewProvider : DocumentPreviewProvider
         {
             public TestPreviewProvider(IOptions<TaskManagementOptions> taskManagementOptions, ITaskManager taskManager) : base(taskManagementOptions, taskManager)
@@ -122,30 +123,88 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private class FileOperation : IDisposable
+
+        [TestMethod]
+        public async STT.Task Preview_Switch_SeeOnlyAndInvisible()
         {
-            public File TheFile { get; }
-
-            public FileOperation(string fileName = null)
+            await Test(async () =>
             {
+                var testRoot = Content.CreateNew(nameof(SystemFolder), Repository.Root, "TestRoot");
+                await testRoot.SaveAsync(CancellationToken.None).ConfigureAwait(false);
 
-                var fileContainer = Node.LoadNode("/Root/Content/TestFiles/Folder1");
-                if (fileContainer == null)
+                var genericContent1 = Content.CreateNew(nameof(GenericContent), testRoot.ContentHandler, "GenericContent1");
+                ((GenericContent)genericContent1.ContentHandler).AllowChildType(nameof(Folder));
+                ((GenericContent)genericContent1.ContentHandler).AllowChildType(nameof(File));
+                await genericContent1.SaveAsync(CancellationToken.None).ConfigureAwait(false);
+
+                var folder1 = Content.CreateNew(nameof(Folder), genericContent1.ContentHandler, "Folder1");
+                await folder1.SaveAsync(CancellationToken.None).ConfigureAwait(false);
+
+                var file1 = Content.CreateNew(nameof(File), folder1.ContentHandler, "File1");
+                await file1.SaveAsync(CancellationToken.None).ConfigureAwait(false);
+
+                // TEST-1: Getting IsPreviewEnabled of the file1 cause InvalidOperationException id the permission is only See.
+                await Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(file1.Id, User.PublicAdministrator.Id, false, PermissionType.See)
+                    .ApplyAsync(CancellationToken.None);
+                using (new CurrentUserBlock(User.PublicAdministrator))
                 {
-                    var containerContent = Content.CreateNew("DocumentLibrary", Node.LoadNode("/Root/Content"), "TestFiles");
-                    containerContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    fileContainer = containerContent.ContentHandler;
+                    var node = Node.LoadNode(file1.Id); // reload to right node.IsHeadOnly value
+
+                    Assert.IsTrue(Repository.Root.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(testRoot.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(genericContent1.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(folder1.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(file1.Security.HasPermission(PermissionType.See));
+
+                    try
+                    {
+                        Assert.IsTrue(node.IsPreviewEnabled);
+                        Assert.Fail("The expected InvalidOperationException was not thrown.");
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        Assert.IsTrue(e.Message.Contains("Invalid property access attempt on a See-only node"));
+                    }
                 }
 
-                TheFile = new File(fileContainer) { Name = fileName ?? RepositoryTools.GetRandomString(8) + ".txt" };
-                TheFile.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                TheFile.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-            }
+                // TEST-2: Getting IsPreviewEnabled of the file1 walks to /Root on the ancestor axis but does not throw any exception.
+                // (/Root has local only see permission for everyone)
+                // Root / TestRoot / GenericContent1 / Folder1 / File1
+                // See    nothing    nothing           nothing   Open
+                await Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(file1.Id, User.PublicAdministrator.Id, false, PermissionType.Open)
+                    .ApplyAsync(CancellationToken.None);
+                using (new CurrentUserBlock(User.PublicAdministrator))
+                {
+                    var node = Node.LoadNode(file1.Id);
 
-            public void Dispose()
-            {
-                TheFile.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
-            }
+                    Assert.IsTrue(Repository.Root.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(testRoot.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(genericContent1.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(folder1.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(file1.Security.HasPermission(PermissionType.Open));
+
+                    Assert.IsTrue(node.IsPreviewEnabled);
+                }
+
+                // TEST-2: Same as test-1 but getting IsPreviewEnabled on a folder
+                await Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(folder1.Id, User.PublicAdministrator.Id, false, PermissionType.Open)
+                    .ApplyAsync(CancellationToken.None);
+                using (new CurrentUserBlock(User.PublicAdministrator))
+                {
+                    var node = Node.LoadNode(folder1.Id);
+
+                    Assert.IsTrue(Repository.Root.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(testRoot.Security.HasPermission(PermissionType.See));
+                    Assert.IsFalse(genericContent1.Security.HasPermission(PermissionType.See));
+                    Assert.IsTrue(folder1.Security.HasPermission(PermissionType.Open));
+
+                    Assert.IsTrue(node.IsPreviewEnabled);
+                }
+
+            }).ConfigureAwait(false);
         }
 
     }

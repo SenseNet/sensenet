@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 
@@ -79,7 +80,8 @@ namespace SenseNet.ContentRepository
                 switch (PreviewEnabled)
                 {
                     case ContentRepository.PreviewEnabled.Inherited:
-                        return Parent?.IsPreviewEnabled ?? false;
+                        using (new SystemAccount())
+                            return Parent?.IsPreviewEnabled ?? false;
                     case ContentRepository.PreviewEnabled.No:
                         return false;
                     case ContentRepository.PreviewEnabled.Yes:

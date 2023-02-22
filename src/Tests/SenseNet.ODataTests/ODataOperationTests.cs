@@ -469,10 +469,17 @@ namespace SenseNet.ODataTests
                 var error = GetError(response);
                 Assert.AreEqual(ODataExceptionCode.Forbidden, error.Code);
                 Assert.AreEqual("AccessDeniedException", error.ExceptionType);
+
+                //TODO: we should check stack trace based on the configured environment
+#if DEBUG
                 Assert.IsTrue(error.StackTrace.Contains(nameof(Function5Error)),
                     "Stacktrace does not contain the source function name.");
                 Assert.IsTrue(error.StackTrace.Contains(nameof(ODataOperationTests)),
                     "Stacktrace does not contain the source class name.");
+#else
+                Assert.IsTrue(string.IsNullOrEmpty(error.StackTrace), "Stacktrace is not empty");
+#endif
+
             }).ConfigureAwait(false);
         }
 
@@ -994,7 +1001,7 @@ namespace SenseNet.ODataTests
             });
         }
 
-        #region /* ===================================================================== ACTION RESOLVER MOCK */
+#region /* ===================================================================== ACTION RESOLVER MOCK */
 
         internal class ActionResolverSwindler : IDisposable
         {
@@ -1013,7 +1020,7 @@ namespace SenseNet.ODataTests
 
         internal class TestActionResolver : IActionResolver
         {
-            #region Nested classes
+#region Nested classes
 
             internal class Action1 : ActionBase
             {
@@ -1255,7 +1262,7 @@ namespace SenseNet.ODataTests
                 }
             }
 
-            #endregion
+#endregion
 
             public GenericScenario GetScenario(string name, string parameters, HttpContext httpContext)
             {
@@ -1338,6 +1345,6 @@ namespace SenseNet.ODataTests
                 DeleteLocalAppAction
                 ExploreAction
         */
-        #endregion
+#endregion
     }
 }

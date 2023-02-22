@@ -177,7 +177,15 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets a boolean value that specifies whether the preview of this content is enabled or not.
         /// </summary>
-        public virtual bool IsPreviewEnabled => Parent?.IsPreviewEnabled ?? false;
+        public virtual bool IsPreviewEnabled
+        {
+            get
+            {
+                AssertSeeOnly(PropertyType.GetByName("PreviewEnabled"));
+                using (new SystemAccount())
+                    return Parent?.IsPreviewEnabled ?? false;
+            }
+        }
 
         /// <summary>
         /// Gets a value that states if indexing is enabled for this content item. By default this is true
@@ -5147,7 +5155,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Private Tools
 
-        private void AssertSeeOnly(PropertyType propertyType)
+        protected void AssertSeeOnly(PropertyType propertyType)
         {
             if (IsPreviewOnly && propertyType.DataType == DataType.Binary)
             {
@@ -5155,7 +5163,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             else if (IsHeadOnly && !SeeEnabledProperties.Contains(propertyType.Name)) // && AccessProvider.Current.GetCurrentUser().Id != -1)
             {
-                SnTrace.Repository.WriteError($"Invalid property access attempt on a See-only node: {Path}");
+                SnTrace.Repository.WriteError($"Invalid property access attempt on a See-only node: {Path}. Property name: {propertyType.Name}.");
 
                 throw new InvalidOperationException(
                     "Invalid property access attempt on a See-only node. " +
