@@ -12,8 +12,15 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
+	[boolean]$OpenInChrome=$True,
+	[Parameter(Mandatory=$False)]
 	[boolean]$DryRun=$False
 )
+
+if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
+}
 
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1
@@ -65,4 +72,10 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123%
+	
+	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
+
+	if (-not $DryRun -and $OpenInChrome) {
+		Start-Process "chrome" "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8091"
+	}
 }

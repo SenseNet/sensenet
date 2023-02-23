@@ -12,6 +12,8 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
+	[boolean]$OpenInChrome=$True,
+	[Parameter(Mandatory=$False)]
 	[boolean]$DryRun=$False
 )
 
@@ -74,4 +76,10 @@ if ($Install) {
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
 		-DryRun $DryRun
+
+	Wait-For-It -Seconds 30	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
+
+	if (-not $DryRun -and $OpenInChrome) {
+		Start-Process "chrome" "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8093"
+	}
 }
