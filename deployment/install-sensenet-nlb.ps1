@@ -100,6 +100,8 @@ if ($Install) {
 		-DryRun $DryRun
 
 	if (-not $DryRun -and $OpenInChrome) {
-		Start-Process "chrome" "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8095"
+		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8095"
 	}
+
+	Write-Output "Done."
 }

@@ -80,6 +80,8 @@ if ($Install) {
 	Wait-For-It -Seconds 30	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
 
 	if (-not $DryRun -and $OpenInChrome) {
-		Start-Process "chrome" "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8093"
+		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8093"
 	}
+
+	Write-Output "Done."
 }
