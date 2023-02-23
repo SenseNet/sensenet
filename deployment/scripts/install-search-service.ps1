@@ -151,8 +151,8 @@ if (-not $DryRun) {
 	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
-	$ISIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
-	write-output "`n[$($date) INFO] ISIP: $ISIP"
+	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
+	write-output "`n[$($date) INFO] Search Service Ip: $SCIP"
 } else {
 	write-host "`nDryRun"
 }

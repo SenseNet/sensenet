@@ -205,7 +205,10 @@ if (-not $DryRun) {
 	}
 
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
-	write-output "`n[$($date) INFO] CRIP: $CRIP"
+	write-output "`n[$($date) INFO] Sensenet App Ip: $CRIP"
+	if ($OpenPort) {
+		write-output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"
+	}
 } else {
 	write-host "`nDryRun"
 }

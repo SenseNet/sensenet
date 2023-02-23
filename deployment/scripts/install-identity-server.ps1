@@ -140,9 +140,11 @@ if (-not $DryRun) {
 		docker exec -it "$IdentityContainerName" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
-	write-output " "
 	$ISIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $IdentityContainerName)
-	write-output "[$($date) INFO] ISIP: $ISIP"
+	write-output "`n[$($date) INFO] Identity server Ip: $ISIP"
+	if ($OpenPort) {
+		write-output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
+	}
 } else {
 	write-host "`nDryRun"
 }
