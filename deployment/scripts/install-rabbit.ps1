@@ -14,6 +14,8 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
+Test-Docker
+
 #############################
 ##    Variables section     #
 #############################

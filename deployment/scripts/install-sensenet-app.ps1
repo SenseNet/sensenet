@@ -128,6 +128,8 @@ if ($SensenetDockerImage -Match "/") {
 	Invoke-Cli -command "docker pull $SensenetDockerImage"
 }
 
+Test-Docker
+
 # Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "chmod", "777", "/app/App_Data"
 
 $aspnetUrls = "http://+:80"

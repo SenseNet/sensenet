@@ -33,84 +33,9 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
-Function Get-GitRepo {
-	Param (
-		[Parameter(Mandatory=$False)]
-		[string]$Url,
-		[Parameter(Mandatory=$False)]
-		[string]$TargetPath,
-		[Parameter(Mandatory=$False)]
-		[string]$BranchName = "main"
-	)
-
-	if (-not $Url -or -not $TargetPath)
-	{
-		Write-Error "Repository url or target path missing!"
-		# exit 1;
-	}
-	
-	if (Test-Path $TargetPath\.git) {
-		$TargetPath = Resolve-Path $TargetPath
-		write-host "Template folder already exists!"
-		
-		$currentBranch = (git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" rev-parse --abbrev-ref HEAD).Trim()
-		Write-Output "Current branch: $currentBranch"
-
-		if (-Not($BranchName -eq $currentBranch)) {
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "fetch" -ErrorAction Stop
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "checkout", $BranchName -ErrorAction Stop
-		}		
-		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "pull" -ErrorAction Stop
-	} 
-	else 
-	{
-		try {
-			write-Output "Git repository downloading started..."
-			Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath" -ErrorAction Stop
-		} catch {
-			Write-Output "Exception: $_.Exception"
-		}
-	}
-}
-
-Function New-DockerImage {
-	Param (
-		[Parameter(Mandatory=$False)]
-		[string]$SolutionPath="",
-		[Parameter(Mandatory=$False)]
-		[string]$DockerImage="",
-		[Parameter(Mandatory=$False)]
-		[string]$DockerFilePath=""
-	)
-
-	write-output " "
-	write-host "###################################"
-	write-host "#       create docker image       #"
-	write-host "###################################"
-
-	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $DockerfilePath $($SolutionPath)/src" -ErrorAction Stop
-	# if ($LASTEXITCODE -gt 0) {
-	# 	Write-Error "Image creation failed!"
-	# 	# exit;
-	# }
-
-	write-output " "
-	write-host "#################################"
-	write-host "#       docker image info       #"
-	write-host "#################################"
-
-	Invoke-Cli -command "docker image ls $DockerImage" 
-}
-
+Test-Docker
 
 # ==================================================================================
-
-# Check if docker is running
-$ServerErrors = (ConvertFrom-Json -InputObject (docker info --format '{{json .}}')).ServerErrors
-if ($ServerErrors){
-	Write-Error "Docker server is not running!"
-	# exit 1;
-}
 
 #############################
 ##    Variables section     #

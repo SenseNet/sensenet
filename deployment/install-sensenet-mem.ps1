@@ -18,6 +18,8 @@ if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
 }
 
+Test-Docker -ErrorAction stop
+
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1
 }

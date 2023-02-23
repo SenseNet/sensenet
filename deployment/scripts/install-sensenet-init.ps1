@@ -11,6 +11,13 @@ Param (
 	[string]$DockerPsw
 )
 
+if ($SensenetDockerImage -Match "/") {
+	write-host "pull $SensenetDockerImage image from the registry"
+	Invoke-Cli -command "docker pull $SensenetDockerImage"
+}
+
+Test-Docker
+
 #############################
 ##    Variables section     #
 #############################

@@ -73,6 +73,8 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
+Test-Docker
+
 if ($Restart) {
 	Write-Output "Restart search service..."
 	Invoke-Cli -command "docker restart $($SearchContainerName)"
