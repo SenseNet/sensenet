@@ -83,7 +83,7 @@ if ($Install) {
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123%
 
-	Wait-For-It -Seconds 60	-Message "Your sensenet repository is about to make. It can take about a minute."
+	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..."
 
 	./scripts/install-search-service.ps1 `
 		-ProjectName sensenet-nlb `

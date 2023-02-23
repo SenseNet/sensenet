@@ -105,8 +105,30 @@ Function Wait-For-It {
 		[Parameter(Mandatory=$True)]
 		[int]$Seconds,
 		[Parameter(Mandatory=$False)]
-		[string]$Message
+		[string]$Message,
+		[Parameter(Mandatory=$False)]
+		[boolean]$Silent=$False
 	)
-	Write-Output $Message
-	Start-Sleep -Seconds $Seconds
+	
+	$testmode = 1
+
+	if ($Message) {	Write-Output $Message }
+
+	$lenght = $Seconds / 100
+	For ($Seconds; $Seconds -gt 0; $Seconds--) {
+		if (-not $Silent) {
+			$status = " " + $Seconds + " seconds left"
+			if ($testmode -eq 1) {
+				Write-Progress -Activity $Message -Status $status -PercentComplete ($Seconds / $lenght)
+			} else {
+				if ($seconds % 10 -eq 0) {
+					Write-Output "$Message $status"
+				}
+			}
+		}
+		Start-Sleep 1
+	}
+
+
+
 }

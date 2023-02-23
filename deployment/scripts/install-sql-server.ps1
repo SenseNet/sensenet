@@ -73,11 +73,9 @@ if ($UseDbContainer) {
         # -v "$($SqlVolume):/var/opt/mssql", "eol"
         # -p "$($SQL_PORT):1433", "eol"
 
-    Wait-For-It -Seconds 20 
+    Wait-For-It -Seconds 20 -Message "Waiting for MsSql server to be ready..."
 
     Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SQL_SA_PASSWORD) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -ErrorAction stop
-    
-    Wait-For-It -Seconds 5
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	write-output "[$($date) INFO] SQLIP: $msSqlIp"
