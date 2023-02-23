@@ -47,7 +47,8 @@ if ($Install) {
 	./scripts/install-sensenet-init.ps1
 
 	./scripts/install-sql-server.ps1 `
-		-ProjectName sensenet-insql
+		-ProjectName sensenet-insql `
+		-OpenPort $True
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-insql `
@@ -76,6 +77,8 @@ if ($Install) {
 	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
 
 	if (-not $DryRun -and $OpenInChrome) {
-		Start-Process "chrome" "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8091"
+		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8091"
 	}
+
+	Write-Output "Done."
 }

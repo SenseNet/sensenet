@@ -8,6 +8,10 @@ Param (
     [Parameter(Mandatory=$False)]
     [string]$HostName="",
 
+	# Common app settings
+	[Parameter(Mandatory=$False)]
+	[bool]$OpenPort=$False,
+
     # Sensenet App
     [Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
@@ -26,6 +30,10 @@ Param (
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$($HostName)\MSSQL2016",
+    [Parameter(Mandatory=$False)]
+	[int]$SqlHostPort=9999,
+    [Parameter(Mandatory=$False)]
+	[int]$SqlAppPort=1433,
 
    	# Technical
 	[Parameter(Mandatory=$False)]
@@ -70,19 +78,24 @@ if ($UseDbContainer) {
         "-e", "ACCEPT_EULA=Y", "eol",
         "-e", "SA_PASSWORD=$($SQL_SA_PASSWORD)", "eol",
         "-e", "MSSQL_PID=Express", "eol",
-        "-v", "$($SqlVolume):/var/opt/mssql/data", "eol",
-        $SqlDockerImage
+        "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
+
+    if ($OpenPort) {
+        $params += "-p", "`"$($SqlHostPort):$($SqlAppPort)`"", "eol"
+    }
+
+    $params += $SqlDockerImage
     Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
-
-        # -v "$($SqlVolume):/var/opt/mssql", "eol"
-        # -p "$($SQL_PORT):1433", "eol"
-
+        
     Wait-For-It -Seconds 20 -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
 
     Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SQL_SA_PASSWORD) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
-	write-output "[$($date) INFO] SQLIP: $msSqlIp"
+	write-output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
+    if ($OpenPort) {
+		write-output "[$($date) INFO] MsSql Server: localhost,$SqlHostPort"
+	}
 } else {
 	# standalone mssql server
     # ..\..\Ops\Create-EmptyDb.ps1 -ServerName "$SQL_SERVER" -CatalogName "$SqlDbName" -UserName $SQL_SA_USER -UserPsw $SQL_SA_PASSWORD
