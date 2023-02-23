@@ -11,12 +11,17 @@ Param (
 	[string]$DockerPsw
 )
 
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+	Write-Output "load helper functions"
+	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
+Test-Docker
+
 if ($SensenetDockerImage -Match "/") {
 	write-host "pull $SensenetDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SensenetDockerImage"
 }
-
-Test-Docker
 
 #############################
 ##    Variables section     #

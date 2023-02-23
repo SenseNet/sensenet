@@ -151,10 +151,5 @@ if ($ImageType -eq "Search" -or
 ###############################
 
 Foreach ($item in $creationList) {
-	# $param = @{
-	# 	SolutionPath=$item.SolutionPath
-	# 	DockerImage=$item.DockerImage
-	# 	DockerFilePath=$item.DockerfilePath
-	# }
 	New-DockerImage @item -ErrorAction Stop
 }
