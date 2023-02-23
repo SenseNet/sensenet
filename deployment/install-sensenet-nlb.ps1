@@ -27,6 +27,7 @@ if ($CreateDevCert) {
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
         -ProjectName sensenet-nlb `
+		-SnType "InSqlNlb" `
         -WithServices $True `
 		-UseGrpc $True
 	if ($Uninstall) {

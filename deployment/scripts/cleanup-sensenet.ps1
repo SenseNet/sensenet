@@ -8,6 +8,8 @@ Param (
 
 	# Sensenet App
 	[Parameter(Mandatory=$False)]
+	[string]$SnType="InSql",
+	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
     [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
@@ -19,12 +21,12 @@ Param (
 
 	# Sensenet Repository Database
 	[Parameter(Mandatory=$False)]
+	[bool]$UseDbContainer=$True,
+	[Parameter(Mandatory=$False)]
 	[string]$SqlContainerName="$($ProjectName)-snsql",
 	[Parameter(Mandatory=$False)]
 	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
-	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),
-	# [Parameter(Mandatory=$False)]
-	# [bool]$UseDbContainer=$True,
+	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),	
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -57,52 +59,53 @@ Test-Docker
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 write-output " "
-write-host "##############################"
-write-host "## Docker Status and Cleanup #"
-write-host "##############################"
-
-# check docker
-# write-output "[$($date) INFO] docker version"
-# docker version
+write-host "#########################"
+write-host "##    Docker Cleanup    #"
+write-host "#########################"
 
 # stop and remove previous containers
-write-output "[$($date) INFO] Stop container: $SqlContainerName"
-Invoke-Cli -command "docker container stop $SqlContainerName" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Stop container: $IdentityContainerName"
-Invoke-Cli -command "docker container stop $IdentityContainerName" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Stop container: $SensenetContainerName"
-Invoke-Cli -command "docker container stop $SensenetContainerName" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Stop container: $SearchContainerName"
-Invoke-Cli -command "docker container stop $SearchContainerName" -ErrorAction SilentlyContinue
-if ($WithServices) {
-	write-output "[$($date) INFO] Stop container: $RabbitContainerName"
-	Invoke-Cli -command "docker container stop $RabbitContainerName" -ErrorAction SilentlyContinue
+if ($UseDbContainer -and
+	($SnType -eq "InSql" -or 
+	$SnType -eq "InSqlNlb")) {
+	Invoke-Cli -command "docker container stop $SqlContainerName" -message "[$($date) INFO] Stop container: $SqlContainerName" -ErrorAction SilentlyContinue
 }
-write-output " "
-write-output "[$($date) INFO] Remove old containers:"
-write-output "[$($date) INFO] Remove container: $SqlContainerName"
-Invoke-Cli -command "docker container rm $SqlContainerName" -ErrorAction SilentlyContinue 
-write-output "[$($date) INFO] Remove container: $IdentityContainerName"
-Invoke-Cli -command "docker container rm $IdentityContainerName" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Remove container: $SensenetContainerName"
-Invoke-Cli -command "docker container rm $SensenetContainerName" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Remove container: $SearchContainerName"
-Invoke-Cli -command "docker container rm $SearchContainerName" -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container stop $IdentityContainerName" -message "[$($date) INFO] Stop container: $IdentityContainerName" -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container stop $SensenetContainerName" -message "[$($date) INFO] Stop container: $SensenetContainerName" -ErrorAction SilentlyContinue
+if ($SnType -eq "InSqlNlb") {
+	Invoke-Cli -command "docker container stop $SearchContainerName" -message "[$($date) INFO] Stop container: $SearchContainerName" -ErrorAction SilentlyContinue
+}
 if ($WithServices) {
-	write-output "[$($date) INFO] Remove container: $RabbitContainerName"
-	Invoke-Cli -command "docker container rm $RabbitContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container stop $RabbitContainerName" -message "[$($date) INFO] Stop container: $RabbitContainerName" -ErrorAction SilentlyContinue
 }
 
-write-output "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume"
-Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -ErrorAction SilentlyContinue
-write-output "[$($date) INFO] Cleanup volume: $SqlVolume"
-Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -ErrorAction SilentlyContinue
-if ($UseGrpc) {
-	write-output "[$($date) INFO] Cleanup volume: $SearchAppdataVolume"
-	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -ErrorAction SilentlyContinue
+write-output "`n"
+
+if ($UseDbContainer -and
+	($SnType -eq "InSql" -or 
+	$SnType -eq "InSqlNlb")) {
+	Invoke-Cli -command "docker container rm $SqlContainerName" -message "[$($date) INFO] Remove container: $SqlContainerName" -ErrorAction SilentlyContinue 
+}
+Invoke-Cli -command "docker container rm $IdentityContainerName" -message "[$($date) INFO] Remove container: $IdentityContainerName" -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container rm $SensenetContainerName" -message "[$($date) INFO] Remove container: $SensenetContainerName" -ErrorAction SilentlyContinue
+if ($SnType -eq "InSqlNlb") {
+	Invoke-Cli -command "docker container rm $SearchContainerName" -message "[$($date) INFO] Remove container: $SearchContainerName" -ErrorAction SilentlyContinue
+}
+if ($WithServices) {
+	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -ErrorAction SilentlyContinue
+}
+
+if ($SnType -eq "InSql") {
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -ErrorAction SilentlyContinue
+}
+if ($UseDbContainer -and
+	($SnType -eq "InSql" -or 
+	$SnType -eq "InSqlNlb")) {
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -ErrorAction SilentlyContinue
+}
+if ($SnType -eq "InSqlNlb" -or $UseGrpc) {
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -ErrorAction SilentlyContinue
 }
 
 if ($DockerRegistry) {
-	write-host "logout from docker registry..."
-	Invoke-Cli -command "docker logout $DockerRegistry" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker logout $DockerRegistry" -message "logout from docker registry..." -ErrorAction SilentlyContinue
 }

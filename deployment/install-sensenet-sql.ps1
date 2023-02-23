@@ -19,7 +19,8 @@ if ($CreateDevCert) {
 
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
-		-ProjectName sensenet-insql
+		-ProjectName sensenet-insql `
+		-SnType "InSql"
 	if ($Uninstall) {
 		exit;
 	}

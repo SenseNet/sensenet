@@ -17,6 +17,8 @@ Function Invoke-Cli {
 		[Parameter(ParameterSetName="manual", Mandatory=$False)]
 		[string[]]$params,
 		[Parameter(Mandatory=$False)]
+		[string]$message,
+		[Parameter(Mandatory=$False)]
 		[boolean]$DryRun=$False
 	)
 
@@ -26,12 +28,12 @@ Function Invoke-Cli {
 		$params = $cmdParts | Select-Object -Skip 1
 	}
 
+	if ($message) { Write-Output $message}
 	Write-Verbose "$execFile $($params -replace "eol", "```n`t")"
 	if (-not $DryRun) {	
 		& $execFile $($params -replace "eol", "")
 		if ($LASTEXITCODE -ne 0) {
 			Write-Error "Error in executing $execFile"
-			exit 1
 		}
 	}
 }

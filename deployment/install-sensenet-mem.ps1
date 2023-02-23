@@ -26,7 +26,8 @@ if ($CreateDevCert) {
 
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
-        -ProjectName sensenet-inmem
+        -ProjectName sensenet-inmem `
+		-SnType "InMem"
 	if ($Uninstall) {
 		exit;
 	}
