@@ -10,15 +10,15 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$CreateDevCert=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False
+	[boolean]$Uninstall=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$DryRun=$False
 )
 
 if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
 }
-
-Test-Docker -ErrorAction stop
 
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1
@@ -27,7 +27,8 @@ if ($CreateDevCert) {
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
         -ProjectName sensenet-inmem `
-		-SnType "InMem"
+		-SnType "InMem" `
+		-DryRun $DryRun
 	if ($Uninstall) {
 		exit;
 	}
@@ -37,14 +38,16 @@ if ($CreateImages) {
     ./scripts/create-images.ps1 `
         -ImageType InMem `
 		-LocalSn $LocalSn `
-		-ErrorAction Stop
+		-DryRun $DryRun `
+		-ErrorAction Stop 
     ./scripts/create-images.ps1 `
         -ImageType Is `
+		-DryRun $DryRun `
 		-ErrorAction Stop
 }
 
 if ($Install) {
-	./scripts/install-sensenet-init.ps1
+	./scripts/install-sensenet-init.ps1 -DryRun $DryRun
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-inmem `
@@ -55,7 +58,8 @@ if ($Install) {
 		-IsHostPort 8094 `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
-		-CertPass QWEasd123%
+		-CertPass QWEasd123% `
+		-DryRun $DryRun
 
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName sensenet-inmem `
@@ -68,5 +72,6 @@ if ($Install) {
 		-IdentityPublicHost https://localhost:8094 `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
-		-CertPass QWEasd123%
+		-CertPass QWEasd123% `
+		-DryRun $DryRun
 }

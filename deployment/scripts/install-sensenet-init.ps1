@@ -8,7 +8,11 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$DockerUser,
 	[Parameter(Mandatory=$False)]
-	[string]$DockerPsw
+	[string]$DockerPsw,
+
+	# Technical
+	[Parameter(Mandatory=$False)]
+	[boolean]$DryRun=$False
 )
 
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
@@ -20,7 +24,7 @@ Test-Docker
 
 if ($SensenetDockerImage -Match "/") {
 	write-host "pull $SensenetDockerImage image from the registry"
-	Invoke-Cli -command "docker pull $SensenetDockerImage"
+	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
 }
 
 #############################
@@ -36,11 +40,9 @@ write-output " "
 write-output "[$($date) INFO] Create $($SN_NETWORKNAME)'"
 $getNetwork=(docker network list -f name=$($SN_NETWORKNAME) --format "{{.Name}}" )
 if ($getNetwork) {
-    # docker network rm $SN_NETWORKNAME
-    # docker network create -d bridge $SN_NETWORKNAME
     write-output "Docker network $getNetwork already exists..."
 } else {
-    docker network create -d bridge $SN_NETWORKNAME
+	Invoke-Cli -command "docker network create -d bridge $SN_NETWORKNAME" -DryRun $DryRun -ErrorAction stop
 }
 
 write-output " "
@@ -49,7 +51,7 @@ write-output " "
 #############################
 if ($DockerUser) {
 	write-host "authenticating to docker registry..."
-	docker login $DockerRegistry --username=$DockerUser --password=$DockerPsw
+	Invoke-Cli -command "docker login $DockerRegistry --username=$DockerUser --password=$DockerPsw" -DryRun $DryRun -ErrorAction stop
 }
 
 

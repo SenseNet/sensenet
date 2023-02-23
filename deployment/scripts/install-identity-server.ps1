@@ -77,7 +77,7 @@ write-output "[$($date) INFO] Start identity server"
 
 if ($IdentityDockerImage -Match "/") {
 	write-host "pull $IdentityDockerImage image from the registry"
-	Invoke-Cli -command "docker pull $IdentityDockerImage"
+	Invoke-Cli -command "docker pull $IdentityDockerImage" -DryRun $DryRun
 }
 
 $aspnetUrls = "http://+:80"
@@ -132,7 +132,7 @@ if ($OpenPort) {
 
 $params += "$IdentityDockerImage"
 
-Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
+Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {
 	if ($Debugging) {
 		write-output " "
@@ -145,6 +145,4 @@ if (-not $DryRun) {
 	if ($OpenPort) {
 		write-output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
 	}
-} else {
-	write-host "`nDryRun"
 }

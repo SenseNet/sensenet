@@ -125,12 +125,12 @@ write-output "[$($date) INFO] Install sensenet repository"
 
 if ($SensenetDockerImage -Match "/") {
 	write-host "pull $SensenetDockerImage image from the registry"
-	Invoke-Cli -command "docker pull $SensenetDockerImage"
+	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
 }
 
 Test-Docker
 
-# Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "chmod", "777", "/app/App_Data"
+# Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "chmod", "777", "/app/App_Data" -DryRun $DryRun
 
 $aspnetUrls = "http://+:80"
 if ($SnAppPort -eq 443) {
@@ -196,12 +196,12 @@ if ($OpenPort) {
 
 $params += "$SensenetDockerImage"
 
-Invoke-Cli -execFile $execFile -params $params -ErrorAction stop -dryRun $DryRun
+Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop 
 if (-not $DryRun) {
 	if ($Debugging) {
 		write-output " "
-		Wait-For-It -Seconds 5 -Message "Prepare debugger apps for sensenet container"
-	 	Invoke-Cli -command "docker exec -it $SensenetContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
+		Wait-For-It -Seconds 5 -Message "Prepare debugger apps for sensenet container" -DryRun $DryRun
+	 	Invoke-Cli -command "docker exec -it $SensenetContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun
 	}
 
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
@@ -209,7 +209,5 @@ if (-not $DryRun) {
 	if ($OpenPort) {
 		write-output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"
 	}
-} else {
-	write-host "`nDryRun"
 }
 

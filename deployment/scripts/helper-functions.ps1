@@ -45,7 +45,9 @@ Function Get-GitRepo {
 		[Parameter(Mandatory=$False)]
 		[string]$TargetPath,
 		[Parameter(Mandatory=$False)]
-		[string]$BranchName = "main"
+		[string]$BranchName = "main",
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
 	)
 
 	if (-not $Url -or -not $TargetPath)
@@ -56,21 +58,21 @@ Function Get-GitRepo {
 	
 	if (Test-Path $TargetPath\.git) {
 		$TargetPath = Resolve-Path $TargetPath
-		write-host "Template folder already exists!"
+		Write-Output "Template folder already exists!"
 		
 		$currentBranch = (git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" rev-parse --abbrev-ref HEAD).Trim()
 		Write-Output "Current branch: $currentBranch"
 
 		if (-Not($BranchName -eq $currentBranch)) {
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "fetch" -ErrorAction Stop
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "checkout", $BranchName -ErrorAction Stop
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "fetch" -DryRun $DryRun -ErrorAction Stop
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "checkout", $BranchName -DryRun $DryRun -ErrorAction Stop
 		}		
-		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "pull" -ErrorAction Stop
+		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "pull" -DryRun $DryRun -ErrorAction Stop
 	} 
 	else 
 	{
 		write-Output "Git repository downloading started..."
-		Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath" -ErrorAction Stop
+		Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath" -DryRun $DryRun -ErrorAction Stop
 	}
 }
 
@@ -81,24 +83,25 @@ Function New-DockerImage {
 		[Parameter(Mandatory=$False)]
 		[string]$DockerImage="",
 		[Parameter(Mandatory=$False)]
-		[string]$DockerFilePath=""
+		[string]$DockerFilePath="",
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
 	)
 
 	write-output " "
-	write-host "###################################"
-	write-host "#       create docker image       #"
-	write-host "###################################"
+	Write-Output "###################################"
+	Write-Output "#       create docker image       #"
+	Write-Output "###################################"
 
-	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $($DockerfilePath) $($SolutionPath)/src" -ErrorAction Stop
+	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $($DockerfilePath) $($SolutionPath)/src" -DryRun $DryRun -ErrorAction Stop
 
 	write-output " "
-	write-host "#################################"
-	write-host "#       docker image info       #"
-	write-host "#################################"
+	Write-Output "#################################"
+	Write-Output "#       docker image info       #"
+	Write-Output "#################################"
 
-	Invoke-Cli -command "docker image ls $DockerImage" 
+	Invoke-Cli -command "docker image ls $DockerImage" -DryRun $DryRun
 }
-
 
 Function Wait-For-It {
 	Param (		
@@ -107,26 +110,29 @@ Function Wait-For-It {
 		[Parameter(Mandatory=$False)]
 		[string]$Message,
 		[Parameter(Mandatory=$False)]
-		[boolean]$Silent=$False
+		[boolean]$Silent=$False,
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
 	)
 	
 	$testmode = 1
 
 	if ($Message) {	Write-Output $Message }
-
-	$lenght = $Seconds / 100
-	For ($Seconds; $Seconds -gt 0; $Seconds--) {
-		if (-not $Silent) {
-			$status = " " + $Seconds + " seconds left"
-			if ($testmode -eq 1) {
-				Write-Progress -Activity $Message -Status $status -PercentComplete ($Seconds / $lenght)
-			} else {
-				if ($seconds % 10 -eq 0) {
-					Write-Output "$Message $status"
+	if (-not $DryRun) {
+		$lenght = $Seconds / 100
+		For ($Seconds; $Seconds -gt 0; $Seconds--) {
+			if (-not $Silent) {
+				$status = " " + $Seconds + " seconds left"
+				if ($testmode -eq 1) {
+					Write-Progress -Activity $Message -Status $status -PercentComplete ($Seconds / $lenght)
+				} else {
+					if ($seconds % 10 -eq 0) {
+						Write-Output "$Message $status"
+					}
 				}
 			}
+			Start-Sleep 1
 		}
-		Start-Sleep 1
 	}
 
 

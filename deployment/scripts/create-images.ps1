@@ -4,6 +4,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$LocalSn=$False,
 
+	# Sensenet App
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetGitRepo="https://github.com/SenseNet/sensenet",
 	[Parameter(Mandatory=$False)]
@@ -13,6 +14,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetDockerImage,
 
+	# Identity server
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityGitRepo="https://github.com/SenseNet/sn-identityserver",
 	[Parameter(Mandatory=$False)]
@@ -20,12 +22,17 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityDockerImage="sn-identityserver",
 
+	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[string]$SearchGitRepo="https://github.com/SenseNet/sn-search-lucene29",
 	[Parameter(Mandatory=$False)]
 	[string]$SearchGitBranch="master",	
 	[Parameter(Mandatory=$False)]
-	[string]$SearchDockerImage="sn-searchservice"
+	[string]$SearchDockerImage="sn-searchservice",
+	
+	# Technical
+	[Parameter(Mandatory=$False)]
+	[bool]$DryRun=$False
 )
 
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
@@ -123,7 +130,7 @@ if (-not $LocalSn -and
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" -ErrorAction Stop
+	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
 
 if ($ImageType -eq "Is" -or 	
@@ -133,7 +140,7 @@ if ($ImageType -eq "Is" -or
 	write-host "#       get git repo       #"
 	write-host "############################"
 	
-	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" -ErrorAction Stop
+	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
 
 if ($ImageType -eq "Search" -or 	
@@ -143,7 +150,7 @@ if ($ImageType -eq "Search" -or
 	write-host "#       get search service repo       #"
 	write-host "#######################################"
 	
-	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" -ErrorAction Stop
+	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
 
 ###############################
@@ -151,5 +158,5 @@ if ($ImageType -eq "Search" -or
 ###############################
 
 Foreach ($item in $creationList) {
-	New-DockerImage @item -ErrorAction Stop
+	New-DockerImage @item -DryRun $DryRun -ErrorAction Stop
 }

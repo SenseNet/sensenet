@@ -39,14 +39,16 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$RabbitContainerName="sn-rabbit",
 	
-	# Technical    
+	# Technical
 	[Parameter(Mandatory=$False)]
 	[bool]$WithServices=$False,
 	[Parameter(Mandatory=$False)]
-	[bool]$UseGrpc=$False
+	[bool]$UseGrpc=$False,
+	[Parameter(Mandatory=$False)]
+	[bool]$DryRun=$False
 )
 
-if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command "Invoke-Cli" -DryRun $DryRun -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
@@ -67,15 +69,15 @@ write-host "#########################"
 if ($UseDbContainer -and
 	($SnType -eq "InSql" -or 
 	$SnType -eq "InSqlNlb")) {
-	Invoke-Cli -command "docker container stop $SqlContainerName" -message "[$($date) INFO] Stop container: $SqlContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container stop $SqlContainerName" -message "[$($date) INFO] Stop container: $SqlContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
-Invoke-Cli -command "docker container stop $IdentityContainerName" -message "[$($date) INFO] Stop container: $IdentityContainerName" -ErrorAction SilentlyContinue
-Invoke-Cli -command "docker container stop $SensenetContainerName" -message "[$($date) INFO] Stop container: $SensenetContainerName" -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container stop $IdentityContainerName" -message "[$($date) INFO] Stop container: $IdentityContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container stop $SensenetContainerName" -message "[$($date) INFO] Stop container: $SensenetContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 if ($SnType -eq "InSqlNlb") {
-	Invoke-Cli -command "docker container stop $SearchContainerName" -message "[$($date) INFO] Stop container: $SearchContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container stop $SearchContainerName" -message "[$($date) INFO] Stop container: $SearchContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($WithServices) {
-	Invoke-Cli -command "docker container stop $RabbitContainerName" -message "[$($date) INFO] Stop container: $RabbitContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container stop $RabbitContainerName" -message "[$($date) INFO] Stop container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
 write-output "`n"
@@ -83,29 +85,29 @@ write-output "`n"
 if ($UseDbContainer -and
 	($SnType -eq "InSql" -or 
 	$SnType -eq "InSqlNlb")) {
-	Invoke-Cli -command "docker container rm $SqlContainerName" -message "[$($date) INFO] Remove container: $SqlContainerName" -ErrorAction SilentlyContinue 
+	Invoke-Cli -command "docker container rm $SqlContainerName" -message "[$($date) INFO] Remove container: $SqlContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue 
 }
-Invoke-Cli -command "docker container rm $IdentityContainerName" -message "[$($date) INFO] Remove container: $IdentityContainerName" -ErrorAction SilentlyContinue
-Invoke-Cli -command "docker container rm $SensenetContainerName" -message "[$($date) INFO] Remove container: $SensenetContainerName" -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container rm $IdentityContainerName" -message "[$($date) INFO] Remove container: $IdentityContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
+Invoke-Cli -command "docker container rm $SensenetContainerName" -message "[$($date) INFO] Remove container: $SensenetContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 if ($SnType -eq "InSqlNlb") {
-	Invoke-Cli -command "docker container rm $SearchContainerName" -message "[$($date) INFO] Remove container: $SearchContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container rm $SearchContainerName" -message "[$($date) INFO] Remove container: $SearchContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($WithServices) {
-	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
 if ($SnType -eq "InSql") {
-	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -ErrorAction SilentlyContinue
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($UseDbContainer -and
 	($SnType -eq "InSql" -or 
 	$SnType -eq "InSqlNlb")) {
-	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -ErrorAction SilentlyContinue
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($SnType -eq "InSqlNlb" -or $UseGrpc) {
-	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -ErrorAction SilentlyContinue
+	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
 if ($DockerRegistry) {
-	Invoke-Cli -command "docker logout $DockerRegistry" -message "logout from docker registry..." -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker logout $DockerRegistry" -message "logout from docker registry..." -DryRun $DryRun -ErrorAction SilentlyContinue
 }

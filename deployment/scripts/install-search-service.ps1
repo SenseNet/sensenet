@@ -77,8 +77,8 @@ Test-Docker
 
 if ($Restart) {
 	Write-Output "Restart search service..."
-	Invoke-Cli -command "docker restart $($SearchContainerName)"
-	exit 0
+	Invoke-Cli -command "docker restart $($SearchContainerName)" -DryRun $DryRun
+	return
 }
 
 #############################
@@ -101,7 +101,7 @@ write-output "[$($date) INFO] Start search service"
 
 if ($SearchDockerImage -Match "/") {
 	write-host "pull $SearchDockerImage image from the registry"
-	Invoke-Cli -command "docker pull $SearchDockerImage"
+	Invoke-Cli -command "docker pull $SearchDockerImage" -DryRun $DryRun
 }
 
 $aspnetUrls = "http://+:80"
@@ -147,12 +147,10 @@ Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {	
 	if ($Debugging) {
 		write-output " "
-		Wait-For-It -Seconds 5 -Message "Prepare search container for debug..."
-	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
+		Wait-For-It -Seconds 5 -Message "Prepare search container for debug..." -DryRun $DryRun
+	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun
 	}
 
 	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
 	write-output "`n[$($date) INFO] Search Service Ip: $SCIP"
-} else {
-	write-host "`nDryRun"
 }

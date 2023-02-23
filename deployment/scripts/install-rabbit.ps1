@@ -39,11 +39,9 @@ $params = "run", "-d", "eol",
 	"-p", "`"$($RabbitPort):15672`"", "eol",
 	"$RABBIT_DOCKERIMAGE"
 
-Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
+Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {	
 	$RABBITIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $RabbitContainerName)
 	write-output "`n[$($date) INFO] RABBITIP: $RABBITIP"
 	write-output "[$($date) INFO] RabbitMq url: http://localhost:$RabbitPort"
-} else {
-	write-host "`nDryRun"
 }

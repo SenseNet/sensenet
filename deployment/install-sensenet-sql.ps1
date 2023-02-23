@@ -10,7 +10,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$CreateDevCert=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False
+	[boolean]$Uninstall=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$DryRun=$False
 )
 
 if ($CreateDevCert) {

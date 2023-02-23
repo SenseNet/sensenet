@@ -25,7 +25,11 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
-    [string]$DataSource="$($HostName)\MSSQL2016"
+    [string]$DataSource="$($HostName)\MSSQL2016",
+
+   	# Technical
+	[Parameter(Mandatory=$False)]
+	[boolean]$DryRun=$False
 )
 
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
@@ -33,7 +37,7 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
-Test-Docker
+Test-Docker 
 
 #############################
 ##    Variables section     #
@@ -56,7 +60,7 @@ write-host "############################"
 
 if ($UseDbContainer) {
     write-output "[$($date) INFO] Permit mssql server volume"
-    Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql"
+    Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
 
     write-output "[$($date) INFO] Install mssql server"
     $execFile = "docker"
@@ -68,14 +72,14 @@ if ($UseDbContainer) {
         "-e", "MSSQL_PID=Express", "eol",
         "-v", "$($SqlVolume):/var/opt/mssql/data", "eol",
         $SqlDockerImage
-    Invoke-Cli -execFile $execFile -params $params -ErrorAction stop
+    Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 
         # -v "$($SqlVolume):/var/opt/mssql", "eol"
         # -p "$($SQL_PORT):1433", "eol"
 
-    Wait-For-It -Seconds 20 -Message "Waiting for MsSql server to be ready..."
+    Wait-For-It -Seconds 20 -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
 
-    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SQL_SA_PASSWORD) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -ErrorAction stop
+    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SQL_SA_PASSWORD) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	write-output "[$($date) INFO] SQLIP: $msSqlIp"
