@@ -12,6 +12,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -147,6 +148,24 @@ namespace SenseNet.Services.Core.Operations
             public string Name { get; set; }
             [JsonProperty("loginName")]
             public string LoginName { get; set; }
+        }
+
+        /// <summary>
+        /// Gets the currently authenticated user.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>The currently logged in user or Visitor.</returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.All)]
+        public static Task<Content> GetCurrentUser(Content content, HttpContext context)
+        {
+            var user = AccessProvider.Current.GetCurrentUser();
+            if (user == null || user.Id < 1)
+                return null;
+
+            return Content.LoadAsync(user.Id, context.RequestAborted);
         }
 
         /// <summary>Creates an external user who registered using one of the available
