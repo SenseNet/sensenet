@@ -103,6 +103,146 @@ Function New-DockerImage {
 	Invoke-Cli -command "docker image ls $DockerImage" -DryRun $DryRun
 }
 
+Function Remove-Database {
+	Param (
+		[Parameter(Mandatory = $True)]
+		[string]$ServerName,
+		[Parameter(Mandatory = $True)]
+		[string]$CatalogName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserPsw
+	)
+
+	try {
+		# https://msdn.microsoft.com/en-us/library/microsoft.sqlserver.management.smo.database.drop.aspx
+		# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null 
+		# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SmoExtended') | out-null 
+
+		Write-Verbose "Initialize Drop $CatalogName on $ServerName with $UserName..."
+
+		if (Get-Module -ListAvailable -Name SqlServer) {
+			Write-Verbose "SQL Already Installed"
+		} 
+		else {
+			Import-Module SQLServer -DisableNameChecking
+		}
+
+		#Set variables 
+		$dbServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') $ServerName 
+
+		if ($UserName) {
+			#This sets the connection to mixed-mode authentication
+			$dbServer.ConnectionContext.LoginSecure = $false;
+
+			#This sets the login name
+			$dbServer.ConnectionContext.set_Login($UserName);
+		
+			#This sets the password
+			$dbServer.ConnectionContext.set_Password($UserPsw)
+		}
+
+		$databases = $dbServer.Databases 
+		$dbname = $CatalogName 
+		$db = $databases[$dbname]
+
+		if ($db) {
+			$dbServer.KillAllProcesses("$dbname")
+			#$dbServer.KillDatabase("$dbname")
+			#$dbServer.KillProcess(52)
+			$db.drop()
+			Write-Output "$dbname has been removed."
+		}
+		else {
+				Write-Verbose "$dbname doesn't exists!"
+		}
+	}
+	catch {
+		Write-Error "Something went wrong!"
+	}
+}
+
+Function New-Database {
+	Param (
+		[Parameter(Mandatory = $True)]
+		[string]$ServerName,
+		[Parameter(Mandatory = $True)]
+		[string]$CatalogName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserPsw
+	)
+
+	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null 
+	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SmoExtended') | out-null 
+
+	if (Get-Module -ListAvailable -Name SqlServer) {
+		# Write-Verbose "SQL Already Installed"
+	} 
+	else {
+		Import-Module SQLServer -DisableNameChecking
+	}
+
+	#Set variables 
+	$dbServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') $ServerName 
+	Write-Verbose "Create $CatalogName on $ServerName with $USerName"
+
+	if ($UserName) {
+		#This sets the connection to mixed-mode authentication
+		$dbServer.ConnectionContext.LoginSecure = $false;
+		# $dbServer.ConnectionContext.LoginSecure = $true;
+
+		#This sets the login name
+		$dbServer.ConnectionContext.set_Login($UserName);
+		
+		#This sets the password
+		$dbServer.ConnectionContext.set_Password($UserPsw)
+	}
+
+	DO {
+		Write-Verbose "check server availability..."
+		$isServerAvailable = $False
+		try {	 
+			$dbServer.ConnectionContext.Connect()
+			Write-Verbose "server available!"
+			$isServerAvailable = $True 
+		}
+		catch {
+			Write-Verbose "server not yet available!"
+			$isServerAvailable = $False
+			Start-Sleep -s 10
+		}
+
+	} Until ($isServerAvailable)
+
+	$databases = $dbServer.Databases 
+	$dbname = $CatalogName
+
+	# Write-Verbose "server: $dbServer"
+	# Write-Verbose "dbname: $dbname"
+	# Write-Verbose "databases: $databases"
+
+	$db = $databases[$dbname]
+
+	if ($db) {
+		Write-Verbose "$dbname already exists!"
+	}
+	else {
+		Write-Verbose "$dbname doesn't exists!"
+		try {
+			$db = New-Object Microsoft.SqlServer.Management.Smo.Database($dbServer, $dbname)
+			$db.RecoveryModel = "Simple"
+			$db.Create()
+			Write-Output "$dbname has been created."
+		} 
+		catch {
+			Write-Error "$_.Exception"
+		}	
+	}
+}
+
 Function Wait-For-It {
 	Param (		
 		[Parameter(Mandatory=$True)]

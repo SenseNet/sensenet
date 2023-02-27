@@ -53,7 +53,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
-    [string]$DataSource="$($HostName)\MSSQL2016",
+    [string]$DataSource="$($HostName)",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -164,9 +164,13 @@ switch($Routing) {
 		$params += "-e", "sensenet__authentication__metadatahost=$($IdentityContainerHost)", "eol"
 	}
 	"hst" {
-		$IdentityPublicHost_HOST=([System.Uri]$IdentityPublicHost).Host
-		$params += "--add-host", "$($IdentityPublicHost_HOST):host-gateway", "eol"
+		$IdentityPublicHostName=([System.Uri]$IdentityPublicHost).Host
+		$params += "--add-host", "$($IdentityPublicHostName):host-gateway", "eol"
 	}
+}
+
+if (-not $UseDbContainer) {
+	$params += "--add-host", "$($HostName):host-gateway", "eol"
 }
 
 
