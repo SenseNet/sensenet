@@ -1,5 +1,10 @@
 Param (
 	[Parameter(Mandatory=$False)]
+	[string]$HostName="",
+	[Parameter(Mandatory=$False)]
+    [string]$DataSource="$($HostName)",
+
+	[Parameter(Mandatory=$False)]
 	[boolean]$Install=$True,
     [Parameter(Mandatory=$False)]
 	[boolean]$CleanUp=$False,
@@ -37,8 +42,9 @@ if ($CleanUp -or $Uninstall) {
 		-ErrorAction stop
 	./scripts/install-sql-server.ps1 `
 		-ProjectName sensenet-extsql `
+		-HostName $Hostname `
 		-UseDbContainer $False `
-		-DataSource "QuietJoe" `
+		-DataSource $DataSource `
 		-Uninstall $True `
 		-DryRun $DryRun `
 		-ErrorAction stop
@@ -64,8 +70,9 @@ if ($Install) {
 
 	./scripts/install-sql-server.ps1 `
 		-ProjectName sensenet-extsql `
+		-HostName $Hostname `
 		-UseDbContainer $False `
-		-DataSource "QuietJoe" `
+		-DataSource $DataSource `
 		-DryRun $DryRun `
 		-ErrorAction stop
  
@@ -84,7 +91,8 @@ if ($Install) {
 
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName sensenet-extsql `
-		-HostName "QuietJoe" `
+		-HostName $Hostname `
+		-DataSource $DataSource `
 		-Routing cnt `
 		-AppEnvironment Development `
 		-OpenPort $True `

@@ -169,6 +169,11 @@ switch($Routing) {
 	}
 }
 
+if (-not $UseDbContainer -and -not $HostName) {
+	$dsPrep = $DataSource.Split("\")[0]
+	$params += "--add-host", "$($dsPrep):$DataSourceIp", "eol"
+}
+
 if (-not $UseDbContainer -and $HostName) {
 	$params += "--add-host", "$($HostName):host-gateway", "eol"
 }
