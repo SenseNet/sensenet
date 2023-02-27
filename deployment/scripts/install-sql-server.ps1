@@ -41,6 +41,10 @@ Param (
 	[int]$SqlAppPort=1433,
 
    	# Technical
+    [Parameter(Mandatory=$False)]
+    [boolean]$Cleanup=$False,
+    [Parameter(Mandatory=$False)]
+	[boolean]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
 	[boolean]$DryRun=$False
 )
@@ -54,6 +58,18 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
+
+$SqlUser="dockertest"
+$SqlPsw="QWEasd123%"
+
+if ($Cleanup -or $Uninstall) {
+    if (-not $UseDbContainer) {
+        Remove-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
+    }
+    if ($Uninstall) {
+        return
+    }
+}
 
 write-output " "
 write-host "############################"
@@ -96,8 +112,5 @@ if ($UseDbContainer) {
 	}
 } else {
 	# standalone mssql server
-    $SqlUser="dockertest"
-    $SqlPsw="QWEasd123%"
-    Remove-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
     New-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
 }

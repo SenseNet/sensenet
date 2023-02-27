@@ -30,6 +30,15 @@ if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
 		-ProjectName sensenet-extsql `
 		-SnType "InSql" `
+		-UseDbContainer $False `
+		-DryRun $DryRun `
+		-ErrorAction stop
+	./scripts/install-sql-server.ps1 `
+		-ProjectName sensenet-extsql `
+		-UseDbContainer $False `
+		-DataSource "QuietJoe" `
+		-Uninstall $True `
+		-DryRun $DryRun `
 		-ErrorAction stop
 	if ($Uninstall) {
 		exit;
@@ -39,9 +48,12 @@ if ($CleanUp -or $Uninstall) {
 if ($CreateImages) {
     ./scripts/create-images.ps1 `
         -ImageType InSql `
-		-LocalSn $LocalSn
+		-LocalSn $LocalSn `
+		-DryRun $DryRun `
+		-ErrorAction stop
     ./scripts/create-images.ps1 `
         -ImageType Is `
+		-DryRun $DryRun `
 		-ErrorAction stop
 }
 
@@ -52,6 +64,7 @@ if ($Install) {
 		-ProjectName sensenet-extsql `
 		-UseDbContainer $False `
 		-DataSource "QuietJoe" `
+		-DryRun $DryRun `
 		-ErrorAction stop
  
 	./scripts/install-identity-server.ps1 `
@@ -59,11 +72,12 @@ if ($Install) {
 		-Routing cnt `
 		-AppEnvironment Development `
 		-OpenPort $True `
-		-SensenetPublicHost https://localhost:8091 `
-		-IsHostPort 8092 `
+		-SensenetPublicHost https://localhost:8098 `
+		-IsHostPort 8099 `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
+		-DryRun $DryRun `
 		-ErrorAction stop
 
 	./scripts/install-sensenet-app.ps1 `
@@ -73,13 +87,14 @@ if ($Install) {
 		-AppEnvironment Development `
 		-OpenPort $True `
 		-SnType "InSql" `
-		-SnHostPort 8091 `
-		-SensenetPublicHost https://localhost:8091 `
-		-IdentityPublicHost https://localhost:8092 `
+		-SnHostPort 8098 `
+		-SensenetPublicHost https://localhost:8098 `
+		-IdentityPublicHost https://localhost:8099 `
 		-UseDbContainer $False `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
+		-DryRun $DryRun `
 		-ErrorAction stop
 	
 	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
