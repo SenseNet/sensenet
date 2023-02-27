@@ -23,13 +23,15 @@ if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 }
 
 if ($CreateDevCert) {
-	./scripts/create-devcert.ps1
+	./scripts/create-devcert.ps1 -ErrorAction stop
 }
 
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
 		-ProjectName sensenet-insql `
-		-SnType "InSql"
+		-SnType "InSql" `
+		-DryRun $DryRun `
+		-ErrorAction stop
 	if ($Uninstall) {
 		exit;
 	}
@@ -38,9 +40,12 @@ if ($CleanUp -or $Uninstall) {
 if ($CreateImages) {
     ./scripts/create-images.ps1 `
         -ImageType InSql `
-		-LocalSn $LocalSn
+		-LocalSn $LocalSn `
+		-ErrorAction stop
     ./scripts/create-images.ps1 `
-        -ImageType Is
+        -ImageType Is `
+		-DryRun $DryRun `
+		-ErrorAction stop
 }
 
 if ($Install) {
@@ -48,7 +53,9 @@ if ($Install) {
 
 	./scripts/install-sql-server.ps1 `
 		-ProjectName sensenet-insql `
-		-OpenPort $True
+		-OpenPort $True `
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-insql `
@@ -59,7 +66,9 @@ if ($Install) {
 		-IsHostPort 8092 `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
-		-CertPass QWEasd123%
+		-CertPass QWEasd123% `
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName sensenet-insql `
@@ -72,7 +81,9 @@ if ($Install) {
 		-IdentityPublicHost https://localhost:8092 `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
-		-CertPass QWEasd123%
+		-CertPass QWEasd123% `
+		-DryRun $DryRun `
+		-ErrorAction stop
 	
 	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
 

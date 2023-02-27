@@ -23,14 +23,15 @@ if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 }
 
 if ($CreateDevCert) {
-	./scripts/create-devcert.ps1
+	./scripts/create-devcert.ps1 -ErrorAction stop
 }
 
 if ($CleanUp -or $Uninstall) {
     ./scripts/cleanup-sensenet.ps1 `
         -ProjectName sensenet-inmem `
 		-SnType "InMem" `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 	if ($Uninstall) {
 		exit;
 	}
@@ -49,7 +50,7 @@ if ($CreateImages) {
 }
 
 if ($Install) {
-	./scripts/install-sensenet-init.ps1 -DryRun $DryRun
+	./scripts/install-sensenet-init.ps1 -DryRun $DryRun -ErrorAction stop
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-inmem `
@@ -61,7 +62,8 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName sensenet-inmem `
@@ -75,7 +77,8 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	Wait-For-It -Seconds 30	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
 

@@ -25,7 +25,7 @@ if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 }
 
 if ($CreateDevCert) {
-	./scripts/create-devcert.ps1 
+	./scripts/create-devcert.ps1 -ErrorAction stop
 }
 
 if ($CleanUp -or $Uninstall) {
@@ -34,7 +34,8 @@ if ($CleanUp -or $Uninstall) {
 		-SnType "InSqlNlb" `
         -WithServices $True `
 		-UseGrpc $True `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 	if ($Uninstall) {
 		exit 0;
 	}
@@ -44,14 +45,14 @@ if ($CreateImages) {
     ./scripts/create-images.ps1 `
     	-ImageType All `
 		-LocalSn $LocalSn `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 }
 
 if ($Install) {
-	./scripts/install-sensenet-init.ps1
-	if ($LASTEXITCODE -gt 0) {exit 1}
-	./scripts/install-rabbit.ps1 -DryRun $DryRun
-	./scripts/install-sql-server.ps1 -ProjectName sensenet-nlb -DryRun $DryRun
+	./scripts/install-sensenet-init.ps1 -DryRun $DryRun -ErrorAction stop
+	./scripts/install-rabbit.ps1 -DryRun $DryRun -ErrorAction stop
+	./scripts/install-sql-server.ps1 -ProjectName sensenet-nlb -DryRun $DryRun -ErrorAction stop
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-nlb `
@@ -63,7 +64,8 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	./scripts/install-search-service.ps1 `
 		-ProjectName sensenet-nlb `
@@ -75,7 +77,8 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName sensenet-nlb `
@@ -90,14 +93,16 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
 
 	./scripts/install-search-service.ps1 `
 		-ProjectName sensenet-nlb `
 		-Restart $True `
-		-DryRun $DryRun
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	if (-not $DryRun -and $OpenInChrome) {
 		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8095"
