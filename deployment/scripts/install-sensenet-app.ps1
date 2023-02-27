@@ -169,7 +169,7 @@ switch($Routing) {
 	}
 }
 
-if (-not $UseDbContainer) {
+if (-not $UseDbContainer -and $HostName) {
 	$params += "--add-host", "$($HostName):host-gateway", "eol"
 }
 

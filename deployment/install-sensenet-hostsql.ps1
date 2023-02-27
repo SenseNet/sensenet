@@ -17,6 +17,8 @@ Param (
 	[boolean]$DryRun=$False
 )
 
+# Sql Server Configuration Manager / SQL Server Network Configuration / Protocols -> TCP/IP=Enabled
+
 if (-not (Get-Command "Wait-For-It" -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/scripts/helper-functions.ps1"
