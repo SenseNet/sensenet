@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>fea20ce8-b30d-4d34-9b2d-f06a148c0a5f</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+	<DockerfileRunArguments>--network sensenet --name SnWebApplication</DockerfileRunArguments>
+	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+    <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.4" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.8.1" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.4.3" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+    <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ContentRepository.MsSql\SenseNet.ContentRepository.MsSql.csproj" />
+    <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\OpenApi\SenseNet.OpenApi.csproj" />
+    <ProjectReference Include="..\..\Services.Core.Install\SenseNet.Services.Core.Install.csproj" />
+    <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
+    <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
+    <ProjectReference Include="..\..\WebHooks\SenseNet.WebHooks.csproj" />
+  </ItemGroup>
+
+</Project>
