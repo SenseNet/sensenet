@@ -14,7 +14,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[boolean]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$OpenInChrome=$True,
+	[boolean]$OpenInBrowser=$True,
 	[Parameter(Mandatory=$False)]
 	[boolean]$DryRun=$False
 )
@@ -104,7 +104,7 @@ if ($Install) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 
-	if (-not $DryRun -and $OpenInChrome) {
+	if (-not $DryRun -and $OpenInBrowser) {
 		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A8095"
 	}
 
