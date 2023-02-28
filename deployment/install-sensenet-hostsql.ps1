@@ -3,6 +3,10 @@ Param (
 	[string]$HostName="",
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$($HostName)",
+	[Parameter(Mandatory=$False)]
+    [string]$SqlUser,
+	[Parameter(Mandatory=$False)]
+    [string]$SqlPsw,	
 
 	[Parameter(Mandatory=$False)]
 	[boolean]$Install=$True,
@@ -14,6 +18,8 @@ Param (
 	[boolean]$LocalSn=$False,
 	[Parameter(Mandatory=$False)]
 	[boolean]$CreateDevCert=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$KeepRemoteDatabase=$True,
 	[Parameter(Mandatory=$False)]
 	[boolean]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
@@ -34,8 +40,10 @@ if ($CreateDevCert) {
 }
 
 if ($HostName -or $DataSource) {
-	$SqlUSer = Read-Host -Prompt 'Input your mssql user name'
-	$SqlPsw = Read-Host -Prompt 'Input the mssql user password'
+	if (-not $SqlUser -or -not $SqlPsw) {
+		$SqlUser = Read-Host -Prompt 'Input your mssql user name'
+		$SqlPsw = Read-Host -Prompt 'Input the mssql user password'		
+	}
 	$UseDbContainer = $False
 } else {
 	Write-Error "HostName or DataSource required!" -ErrorAction stop
@@ -50,7 +58,7 @@ if ($CleanUp -or $Uninstall) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
-	if (-not $UseDbContainer) {
+	if (-not $UseDbContainer -and -not $KeepRemoteDatabase) {
 		./scripts/install-sql-server.ps1 `
 			-ProjectName sensenet-extsql `
 			-HostName $Hostname `
