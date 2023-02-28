@@ -54,6 +54,11 @@ Param (
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$($HostName)",
+	[Parameter(Mandatory=$False)]
+    [string]$SqlUser="",
+    [Parameter(Mandatory=$False)]
+    # [securestring]$SqlPsw=(ConvertTo-SecureString -String "" -AsPlainText -Force),
+    [string]$SqlPsw="",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -92,10 +97,6 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-$SQL_SA_USER="dockertest"
-$SQL_SA_PASSWORD="QWEasd123%"
-$SQL_SN_DBNAME=$SqlDbName
-
 switch ($SnType) {
 	"InMem" { 
 		$SensenetDockerImage="sn-api-inmem"
@@ -112,8 +113,8 @@ switch ($SnType) {
 	}
 }
 
-if ($UseDbContainer -eq $True) {
-	$SQL_SA_USER="sa"
+if ($UseDbContainer) {
+	$SqlUser="sa"
 	$DataSource=$SqlContainerName;
 }
 
@@ -150,7 +151,7 @@ $params = "run", "-it", "-d", "eol",
 
 if ($SnType -eq "InSql" -or 
 	$SnType -eq "InSqlNlb") {
-		$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SQL_SN_DBNAME);Data Source=$($DataSource);User ID=$($SQL_SA_USER);Password=$($SQL_SA_PASSWORD);TrustServerCertificate=true", "eol"
+		$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"
 }
 
 if ($SnType -eq "InSqlNlb") {

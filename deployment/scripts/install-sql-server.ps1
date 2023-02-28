@@ -31,10 +31,10 @@ Param (
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$HostName",
     [Parameter(Mandatory=$False)]
-    [string]$SqlUser="dockertest",
+    [string]$SqlUser,
     [Parameter(Mandatory=$False)]
-    # [securestring]$SqlPsw=(ConvertTo-SecureString -String "QWEasd123%" -AsPlainText -Force),
-    [string]$SqlPsw="QWEasd123%",
+    # [securestring]$SqlPsw=(ConvertTo-SecureString -String "" -AsPlainText -Force),
+    [string]$SqlPsw,
     [Parameter(Mandatory=$False)]
 	[int]$SqlHostPort=9999,
     [Parameter(Mandatory=$False)]
@@ -58,9 +58,6 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
-
-$SqlUser="dockertest"
-$SqlPsw="QWEasd123%"
 
 if ($Cleanup -or $Uninstall) {
     if (-not $UseDbContainer) {

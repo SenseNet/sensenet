@@ -122,12 +122,7 @@ Function Remove-Database {
 
 		Write-Verbose "Initialize Drop $CatalogName on $ServerName with $UserName..."
 
-		if (Get-Module -ListAvailable -Name SqlServer) {
-			Write-Verbose "SQL Already Installed"
-		} 
-		else {
-			Import-Module SQLServer -DisableNameChecking
-		}
+		Import-Module SQLServer -DisableNameChecking
 
 		#Set variables 
 		$dbServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') $ServerName 
@@ -178,12 +173,7 @@ Function New-Database {
 	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null 
 	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SmoExtended') | out-null 
 
-	if (Get-Module -ListAvailable -Name SqlServer) {
-		# Write-Verbose "SQL Already Installed"
-	} 
-	else {
-		Import-Module SQLServer -DisableNameChecking
-	}
+	Import-Module SQLServer -DisableNameChecking
 
 	#Set variables 
 	$dbServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') $ServerName 
