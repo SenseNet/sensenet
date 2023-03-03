@@ -82,6 +82,8 @@ Param (
 
 	# Technical
 	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$True,
+	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
@@ -170,7 +172,7 @@ switch($Routing) {
 	}
 }
 
-if (-not $UseDbContainer -and -not $HostName) {
+if ($SnType -ne "InMem" -and -not $UseDbContainer -and -not $HostName) {
 	$dsPrep = $DataSource.Split("\")[0]
 	$params += "--add-host", "$($dsPrep):$DataSourceIp", "eol"
 }
@@ -196,7 +198,7 @@ if ($UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
-if ($SnType -eq "InSql") {
+if ($UseVolume -and $SnType -eq "InSql") {
 	$params += "-v", "$($SensenetAppdataVolume):/app/App_Data", "eol"
 }
 

@@ -1,9 +1,11 @@
 Function Test-Docker {
 	# Check if docker is running
+	if ($DryRun) { return }
+
 	$ServerErrors = (ConvertFrom-Json -InputObject (docker info --format '{{json .}}')).ServerErrors
 	if ($ServerErrors){
 		Write-Error "Docker server is not running!"
-		exit 1
+		return
 	}
 }
 
