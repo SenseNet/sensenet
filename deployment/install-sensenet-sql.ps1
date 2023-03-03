@@ -53,6 +53,8 @@ if ($Install) {
 
 	./scripts/install-sql-server.ps1 `
 		-ProjectName sensenet-insql `
+		-SqlUser sa `
+		-SqlPsw QWEasd123% `
 		-OpenPort $True `
 		-DryRun $DryRun `
 		-ErrorAction stop
@@ -79,6 +81,8 @@ if ($Install) {
 		-SnHostPort 8091 `
 		-SensenetPublicHost https://localhost:8091 `
 		-IdentityPublicHost https://localhost:8092 `
+		-SqlUser sa `
+		-SqlPsw QWEasd123% `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
 		-CertPass QWEasd123% `
