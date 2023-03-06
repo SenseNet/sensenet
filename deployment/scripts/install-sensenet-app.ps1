@@ -11,6 +11,8 @@ Param (
 	[string]$HostIp="",
     [Parameter(Mandatory=$False)]
 	[string]$HostName="",
+	[Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
 
 	# Common app settings
 	[Parameter(Mandatory=$False)]
@@ -28,8 +30,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
-    [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
-	# [string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
+	[string]$SensenetAppdataVolume="$($VolumeBasePath)/$($SensenetContainerName)/appdata",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
 	[Parameter(Mandatory=$False)]

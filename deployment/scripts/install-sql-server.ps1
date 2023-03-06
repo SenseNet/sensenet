@@ -7,6 +7,8 @@ Param (
     # Hosting environment
     [Parameter(Mandatory=$False)]
     [string]$HostName="",
+    [Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
 
 	# Common app settings
 	[Parameter(Mandatory=$False)]
@@ -24,8 +26,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SqlContainerName="$($ProjectName)-snsql",
     [Parameter(Mandatory=$False)]
-	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
-    [string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),
+    [string]$SqlVolume="$($VolumeBasePath)/$($SensenetContainerName)/mssql",
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
@@ -33,7 +34,6 @@ Param (
     [Parameter(Mandatory=$False)]
     [string]$SqlUser,
     [Parameter(Mandatory=$False)]
-    # [securestring]$SqlPsw=(ConvertTo-SecureString -String "" -AsPlainText -Force),
     [string]$SqlPsw,
     [Parameter(Mandatory=$False)]
 	[int]$SqlHostPort=9999,

@@ -11,6 +11,8 @@ Param (
 	[string]$HostIp="",
 	[Parameter(Mandatory=$False)]
 	[string]$HostName="",
+	[Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
 	
 	# Common app settings
 	[Parameter(Mandatory=$False)]
@@ -36,8 +38,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
     [Parameter(Mandatory=$False)]
-    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
-	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
+	[string]$SearchAppdataVolume="$($VolumeBasePath)/$($SearchContainerName)/appdata",
 	[Parameter(Mandatory=$False)]
 	[string]$SearchPublicHost="https://$($ProjectName)-search.$($Domain)",
 	[Parameter(Mandatory=$False)]

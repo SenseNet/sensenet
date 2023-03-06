@@ -2,41 +2,65 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$PreSet="InSql",
 
+	# Install/Uninstall processes
+	[Parameter(Mandatory=$False)]
+	[boolean]$CreateDevCert=$False,	
+	[Parameter(Mandatory=$False)]
+	[boolean]$CreateImages=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$CleanUp=$False,
+	[Parameter(Mandatory=$False)]
+	[boolean]$Install=$True,
+	[Parameter(Mandatory=$False)]
+	[boolean]$OpenInBrowser=$True,
+	[Parameter(Mandatory=$False)]
+	[boolean]$Uninstall=$False,
+	
+	# Modifiers
+	[Parameter(Mandatory=$False)]
+	[boolean]$LocalSn=$False,
+	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$False,	
+	[Parameter(Mandatory=$False)]
+	[boolean]$KeepRemoteDatabase=$True,
+
+	# Hosting environment
 	[Parameter(Mandatory=$False)]
 	[string]$HostName="",
+	[Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
+
+	# Sensenet Repository Database
+	[Parameter(Mandatory=$False)]
+    [string]$DataSource="$HostName",
 	[Parameter(Mandatory=$False)]
     [string]$SqlUser,
 	[Parameter(Mandatory=$False)]
     [string]$SqlPsw,
 
+	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[boolean]$SearchService=$False,
-	[Parameter(Mandatory=$False)]
-	[bool]$UseVolume=$False,
 
-	[Parameter(Mandatory=$False)]
-	[boolean]$Install=$True,
-    [Parameter(Mandatory=$False)]
-	[boolean]$CleanUp=$False,
-	[Parameter(Mandatory=$False)]
-	[boolean]$CreateImages=$False,
-	[Parameter(Mandatory=$False)]
-	[boolean]$LocalSn=$False,
-	[Parameter(Mandatory=$False)]
-	[boolean]$CreateDevCert=$False,
-	[Parameter(Mandatory=$False)]
-	[boolean]$KeepRemoteDatabase=$True,
-	[Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False,
-	[Parameter(Mandatory=$False)]
-	[boolean]$OpenInBrowser=$True,
+	# Technical	
 	[Parameter(Mandatory=$False)]
 	[boolean]$DryRun=$False
 )
 
+# example 
+# .\install-sensenet-ultimate.ps1 -CleanUp $true -UseVolume $true -SearchService $true  -VolumeBasePath /var/lib/docker/volumes
+
+
 # actual settings: Get-ExecutionPolicy -List
 # disable: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
 # remove: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Undefined 
+
+# Docker images we use are created for linux and Docker for Windows with Linux containers have issues 
+# with lock files so if you want to use volumes you have to mount them from linux system
+# for example volume path on Docker Desktop for Windows with WSL2 can be: /var/lib/docker/volumes
+# You can manage mounted volume from File Explorer, but the actual path may be varied by Docker Desktop version, e.g.:
+# \\wsl$\docker-desktop-data\data\docker\volumes\
+# \\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes
 
 # Sql Server Configuration Manager / SQL Server Network Configuration / Protocols -> TCP/IP=Enabled
 # try {
@@ -50,8 +74,11 @@ Param (
 #############################
 $AppEnvironment="Development"
 
-#"//wsl$/..."
-$VolumeRoot="."
+# Workaround for relative path on host machine
+if ($VolumeBasePath.StartsWith("./") -or 
+	$VolumeBasePath.StartsWith("../")) {
+	$VolumeBasePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($VolumeBasePath)
+}
 
 $CertVolPath="$($VolumeRoot)/certificates"
 $CertPath="/root/.aspnet/https/aspnetapp.pfx"
@@ -169,6 +196,7 @@ if ($CreateImages) {
 if ($CleanUp -or $Uninstall) {
 	./scripts/cleanup-sensenet.ps1 `
 		@cleanupSetup `
+		-VolumeBasePath $VolumeBasePath `
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
@@ -176,6 +204,7 @@ if ($CleanUp -or $Uninstall) {
 		./scripts/install-sql-server.ps1 `
 			-ProjectName $ProjectName `
 			-HostName $Hostname `
+			-VolumeBasePath $VolumeBasePath `
 			-UseDbContainer $UseDbContainer `
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
@@ -206,6 +235,7 @@ if ($Install) {
 		./scripts/install-sql-server.ps1 `
 			-ProjectName $ProjectName `
 			-HostName $Hostname `
+			-VolumeBasePath $VolumeBasePath `
 			-UseDbContainer $UseDbContainer `
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
@@ -229,6 +259,7 @@ if ($Install) {
 	if ($SearchService) {
 		./scripts/install-search-service.ps1 `
 			-ProjectName $ProjectName `
+			-VolumeBasePath $VolumeBasePath `
 			-Routing cnt `
 			-AppEnvironment $AppEnvironment `
 			-OpenPort $True `
@@ -245,6 +276,7 @@ if ($Install) {
 	./scripts/install-sensenet-app.ps1 `
 		-ProjectName $ProjectName `
 		-HostName $Hostname `
+		-VolumeBasePath $VolumeBasePath `
 		-Routing cnt `
 		-AppEnvironment $AppEnvironment `
 		-OpenPort $True `

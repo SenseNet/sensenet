@@ -6,14 +6,17 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$DockerRegistry="",
 
+	# Hosting environment
+	[Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
+
 	# Sensenet App
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
-    [string]$SensenetAppdataVolume="/var/lib/docker/volumes/$($SensenetContainerName)/appdata",
-	# [string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/appdata"),
+	[string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SensenetContainerName)/appdata"),
 
 	# Identity server
 	[Parameter(Mandatory=$False)]
@@ -25,15 +28,13 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SqlContainerName="$($ProjectName)-snsql",
 	[Parameter(Mandatory=$False)]
-	# [string]$SqlVolume="/var/lib/docker/volumes/$($SensenetContainerName)/mssql",
-	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SensenetContainerName)/mssql"),	
+	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SensenetContainerName)/mssql"),	
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
 	[Parameter(Mandatory=$False)]
-    [string]$SearchAppdataVolume="/var/lib/docker/volumes/$($SearchContainerName)/appdata",
-	# [string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./volumes/$($SearchContainerName)/appdata"),
+	[string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SearchContainerName)/appdata"),
 
 	# Rabbit-mq
 	[Parameter(Mandatory=$False)]
@@ -98,15 +99,20 @@ if ($WithServices) {
 	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
-if ($UseVolume -and $SnType -eq "InSql") {
+if ($UseVolume -and 
+	$SensenetAppdataVolume -ne "" -and
+	$SnType -eq "InSql") {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($UseDbContainer -and
+	$SqlVolume -ne "" -and
 	($SnType -eq "InSql" -or 
 	$SnType -eq "InSqlNlb")) {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
-if ($UseVolume -and $SnType -eq "InSqlNlb" -or $UseGrpc) {
+if ($UseVolume -and 
+	$SearchAppdataVolume -ne "" -and
+	($SnType -eq "InSqlNlb" -or $UseGrpc)) {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
