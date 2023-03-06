@@ -41,6 +41,8 @@ Param (
 	
 	# Technical
 	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$True,
+	[Parameter(Mandatory=$False)]
 	[bool]$WithServices=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$UseGrpc=$False,
@@ -61,9 +63,9 @@ Test-Docker
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 write-output " "
-write-host "#########################"
-write-host "##    Docker Cleanup    #"
-write-host "#########################"
+Write-Output "#########################"
+Write-Output "##    Docker Cleanup    #"
+Write-Output "#########################"
 
 # stop and remove previous containers
 if ($UseDbContainer -and
@@ -96,7 +98,7 @@ if ($WithServices) {
 	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
-if ($SnType -eq "InSql") {
+if ($UseVolume -and $SnType -eq "InSql") {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($UseDbContainer -and
@@ -104,7 +106,7 @@ if ($UseDbContainer -and
 	$SnType -eq "InSqlNlb")) {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
-if ($SnType -eq "InSqlNlb" -or $UseGrpc) {
+if ($UseVolume -and $SnType -eq "InSqlNlb" -or $UseGrpc) {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 

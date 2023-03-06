@@ -63,6 +63,8 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$Restart=$False,
 	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$True,
+	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
@@ -94,13 +96,13 @@ if ($UseDbContainer -eq $True) {
 }
 
 write-output " "
-write-host "#################################"
-write-host "#   searchservice container   #"
-write-host "#################################"
+Write-Output "#################################"
+Write-Output "#   searchservice container   #"
+Write-Output "#################################"
 write-output "[$($date) INFO] Start search service"
 
 if ($SearchDockerImage -Match "/") {
-	write-host "pull $SearchDockerImage image from the registry"
+	Write-Output "pull $SearchDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SearchDockerImage" -DryRun $DryRun
 }
 
@@ -134,7 +136,9 @@ if ($UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
-$params += "-v", "$($SearchAppdataVolume):/app/App_Data", "eol"
+if ($UseVolume) {
+	$params += "-v", "$($SearchAppdataVolume):/app/App_Data", "eol"
+}
 
 if ($OpenPort) {
 	$params += "-p", "`"$($SearchHostPort):$($SearchAppPort)`"", "eol"
