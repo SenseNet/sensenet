@@ -31,7 +31,7 @@ Function Invoke-Cli {
 	}
 
 	if ($message) { Write-Output $message}
-	Write-Verbose "$execFile $($params -replace "eol", "```n`t")"
+	Write-Verbose "$execFile $($params -replace "eol", "```r`n`t")"
 	if (-not $DryRun) {	
 		& $execFile $($params -replace "eol", "")
 		if ($LASTEXITCODE -ne 0) {
@@ -244,20 +244,20 @@ Function Wait-For-It {
 		[Parameter(Mandatory=$False)]
 		[boolean]$Silent=$False,
 		[Parameter(Mandatory=$False)]
+		[string]$Progress="Bar",
+		[Parameter(Mandatory=$False)]
 		[bool]$DryRun=$False
 	)
 	
-	$testmode = 1
-
 	if ($Message) {	Write-Output $Message }
 	if (-not $DryRun) {
 		$lenght = $Seconds / 100
 		For ($Seconds; $Seconds -gt 0; $Seconds--) {
 			if (-not $Silent) {
 				$status = " " + $Seconds + " seconds left"
-				if ($testmode -eq 1) {
+				if ($Progress -eq "Bar") {
 					Write-Progress -Activity $Message -Status $status -PercentComplete ($Seconds / $lenght)
-				} else {
+				} elseif ($Progress -eq "Output") {
 					if ($seconds % 10 -eq 0) {
 						Write-Output "$Message $status"
 					}

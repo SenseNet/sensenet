@@ -58,6 +58,7 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
+$WaitForDbInSeconds = 20
 
 if ($Cleanup -or $Uninstall) {
     if (-not $UseDbContainer) {
@@ -68,10 +69,10 @@ if ($Cleanup -or $Uninstall) {
     }
 }
 
-write-output " "
-write-host "############################"
-write-host "#       mssql server       #"
-write-host "############################"
+write-output "`r`n"
+Write-Output "############################"
+Write-Output "#       mssql server       #"
+Write-Output "############################"
 
 if ($UseDbContainer) {
     Test-Docker 
@@ -97,7 +98,7 @@ if ($UseDbContainer) {
     $params += $SqlDockerImage
     Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
         
-    Wait-For-It -Seconds 20 -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
+    Wait-For-It -Seconds $WaitForDbInSeconds -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
 
     Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SqlPsw) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
