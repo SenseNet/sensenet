@@ -11,6 +11,8 @@ Param (
 
 	[Parameter(Mandatory=$False)]
 	[boolean]$SearchService=$False,
+	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$False,
 
 	[Parameter(Mandatory=$False)]
 	[boolean]$Install=$True,
@@ -55,21 +57,26 @@ $CertVolPath="$($VolumeRoot)/certificates"
 $CertPath="/root/.aspnet/https/aspnetapp.pfx"
 $CertPass="QWEasd123%"
 
+$WaitForSnInSeconds = 60
+
 switch ($PreSet) {
 	"InMem" {  
 		Write-Output "Prepare inmem settings"
 		$SnType="InMem"
+		$SearchService = $False
 		$UseDbContainer = $False
+		$WaitForSnInSeconds = 30
 		$ProjectName="sensenet-inmem"
 		$SnHostPort=8081
 		$IsHostPort=8082
 		$imageTypes="InMem","Is"
 		$cleanupSetup=@{
 			ProjectName=$ProjectName
-			SnType=$SnType			
+			SnType=$SnType
+			UseVolume=$UseVolume
 		}
 	}
-	"InSql" {  		
+	"InSql" {		
 		if (-not $SearchService) {
 			$SnType="InSql"
 			if (-not $HostName) {
@@ -90,6 +97,7 @@ switch ($PreSet) {
 				ProjectName=$ProjectName
 				SnType=$SnType
 				UseDbContainer=$UseDbContainer
+				UseVolume=$UseVolume
 			}
 		} else {
 			# insql type repository with search service
@@ -116,6 +124,7 @@ switch ($PreSet) {
 				UseDbContainer=$UseDbContainer
 				WithServices=$True
 				UseGrpc=$True
+				UseVolume=$UseVolume
 			}
 		}
 	}
@@ -183,7 +192,15 @@ if ($CleanUp -or $Uninstall) {
 #====================== installer ======================
 
 if ($Install) {
-	./scripts/install-sensenet-init.ps1 -ErrorAction stop
+	./scripts/install-sensenet-init.ps1 `
+		-DryRun $DryRun `
+		-ErrorAction stop
+
+	if ($SearchService) {
+		./scripts/install-rabbit.ps1 `
+			-DryRun $DryRun `
+			-ErrorAction stop
+	}
 
 	if ($PreSet -eq "InSql") {
 		./scripts/install-sql-server.ps1 `
@@ -208,7 +225,7 @@ if ($Install) {
 		-CertPass $CertPass `
 		-DryRun $DryRun `
 		-ErrorAction stop
-
+	
 	if ($SearchService) {
 		./scripts/install-search-service.ps1 `
 			-ProjectName $ProjectName `
@@ -220,6 +237,7 @@ if ($Install) {
 			-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CertVolPath) `
 			-CertPath $CertPath `
 			-CertPass $CertPass `
+			-UseVolume $UseVolume `
 			-DryRun $DryRun `
 			-ErrorAction stop
 	}
@@ -240,17 +258,22 @@ if ($Install) {
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CertVolPath) `
 		-CertPath $CertPath `
 		-CertPass $CertPass `
+		-UseVolume $UseVolume `
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
-	Wait-For-It -Seconds 60	-Message "We are preparing your sensenet repository..." -DryRun $DryRun
+	Wait-For-It -Seconds $WaitForSnInSeconds `
+		-Message "We are preparing your sensenet repository..." `
+		-DryRun $DryRun
 
-	./scripts/install-search-service.ps1 `
-		-ProjectName $ProjectName `
-		-Restart $True `
-		-DryRun $DryRun `
-		-ErrorAction stop
-
+	if ($SearchService) {
+		# Search service workaround to refresh lucene index after sensenet repository is initialized
+		./scripts/install-search-service.ps1 `
+			-ProjectName $ProjectName `
+			-Restart $True `
+			-DryRun $DryRun `
+			-ErrorAction stop
+	}
 
 	if (-not $DryRun -and $OpenInBrowser) {
 		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
