@@ -121,13 +121,13 @@ if ($UseDbContainer) {
 }
 
 write-output " "
-write-host "################################"
-write-host "#    sensenet app container    #"
-write-host "################################"
+Write-Output "################################"
+Write-Output "#    sensenet app container    #"
+Write-Output "################################"
 write-output "[$($date) INFO] Install sensenet repository"
 
 if ($SensenetDockerImage -Match "/") {
-	write-host "pull $SensenetDockerImage image from the registry"
+	Write-Output "pull $SensenetDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
 }
 
@@ -172,15 +172,14 @@ switch($Routing) {
 	}
 }
 
-if ($SnType -ne "InMem" -and -not $UseDbContainer -and -not $HostName) {
-	$dsPrep = $DataSource.Split("\")[0]
-	$params += "--add-host", "$($dsPrep):$DataSourceIp", "eol"
+if ($SnType -ne "InMem" -and -not $UseDbContainer) {
+	if ($HostName) {
+		$params += "--add-host", "$($HostName):host-gateway", "eol"
+	} else {
+		$dsPrep = $DataSource.Split("\")[0]
+		$params += "--add-host", "$($dsPrep):$DataSourceIp", "eol"
+	}
 }
-
-if (-not $UseDbContainer -and $HostName) {
-	$params += "--add-host", "$($HostName):host-gateway", "eol"
-}
-
 
 if ($CertPath -ne "") {
 	$params += "-e", "Kestrel__Certificates__Default__Path=`"$CertPath`"", "eol"
