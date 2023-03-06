@@ -52,7 +52,7 @@ if ($CreateImages) {
 if ($Install) {
 	./scripts/install-sensenet-init.ps1 -DryRun $DryRun -ErrorAction stop
 	./scripts/install-rabbit.ps1 -DryRun $DryRun -ErrorAction stop
-	./scripts/install-sql-server.ps1 -ProjectName sensenet-nlb -DryRun $DryRun -ErrorAction stop
+	./scripts/install-sql-server.ps1 -ProjectName sensenet-nlb -SqlPsw QWEasd123% -DryRun $DryRun -ErrorAction stop
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName sensenet-nlb `
@@ -89,6 +89,7 @@ if ($Install) {
 		-SnHostPort 8095 `
 		-SensenetPublicHost https://localhost:8095 `
 		-IdentityPublicHost https://localhost:8096 `
+		-SqlPsw QWEasd123% `
 		-RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
 		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("./certificates") `
 		-CertPath /root/.aspnet/https/aspnetapp.pfx `
