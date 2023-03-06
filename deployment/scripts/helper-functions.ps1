@@ -73,7 +73,7 @@ Function Get-GitRepo {
 	} 
 	else 
 	{
-		write-Output "Git repository downloading started..."
+		Write-Output "Git repository downloading started..."
 		Invoke-Cli -execFile "git" -params "clone", "--progress", "-b", "$BranchName", "$Url", "$TargetPath" -DryRun $DryRun -ErrorAction Stop
 	}
 }
@@ -90,14 +90,14 @@ Function New-DockerImage {
 		[bool]$DryRun=$False
 	)
 
-	write-output " "
+	Write-Output " "
 	Write-Output "###################################"
 	Write-Output "#       create docker image       #"
 	Write-Output "###################################"
 
 	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $($DockerfilePath) $($SolutionPath)/src" -DryRun $DryRun -ErrorAction Stop
 
-	write-output " "
+	Write-Output " "
 	Write-Output "#################################"
 	Write-Output "#       docker image info       #"
 	Write-Output "#################################"

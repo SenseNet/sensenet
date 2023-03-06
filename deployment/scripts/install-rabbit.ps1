@@ -24,10 +24,10 @@ $RABBIT_USER="admin"
 $RABBIT_PSW="QWEasd123%"
 $RABBIT_DOCKERIMAGE="rabbitmq:3-management"
 
-write-output " "
-write-host "############################"
-write-host "#         rabbitmq         #"
-write-host "############################"
+Write-Output " "
+Write-Output "############################"
+Write-Output "#         rabbitmq         #"
+Write-Output "############################"
 
 $execFile = "docker"
 $params = "run", "-d", "eol",
@@ -42,6 +42,6 @@ $params = "run", "-d", "eol",
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {	
 	$RABBITIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $RabbitContainerName)
-	write-output "`n[$($date) INFO] RABBITIP: $RABBITIP"
-	write-output "[$($date) INFO] RabbitMq url: http://localhost:$RabbitPort"
+	Write-Output "`n[$($date) INFO] RABBITIP: $RABBITIP"
+	Write-Output "[$($date) INFO] RabbitMq url: http://localhost:$RabbitPort"
 }

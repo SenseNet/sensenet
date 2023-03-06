@@ -120,11 +120,11 @@ if ($UseDbContainer) {
 	$DataSource=$SqlContainerName;
 }
 
-write-output " "
+Write-Output " "
 Write-Output "################################"
 Write-Output "#    sensenet app container    #"
 Write-Output "################################"
-write-output "[$($date) INFO] Install sensenet repository"
+Write-Output "[$($date) INFO] Install sensenet repository"
 
 if ($SensenetDockerImage -Match "/") {
 	Write-Output "pull $SensenetDockerImage image from the registry"
@@ -210,15 +210,15 @@ $params += "$SensenetDockerImage"
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop 
 if (-not $DryRun) {
 	if ($Debugging) {
-		write-output " "
+		Write-Output " "
 		Wait-For-It -Seconds 5 -Message "Prepare debugger apps for sensenet container" -DryRun $DryRun
 	 	Invoke-Cli -command "docker exec -it $SensenetContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun
 	}
 
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
-	write-output "`n[$($date) INFO] Sensenet App Ip: $CRIP"
+	Write-Output "`n[$($date) INFO] Sensenet App Ip: $CRIP"
 	if ($OpenPort) {
-		write-output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"
+		Write-Output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"
 	}
 }
 

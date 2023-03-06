@@ -69,7 +69,7 @@ if ($Cleanup -or $Uninstall) {
     }
 }
 
-write-output "`r`n"
+Write-Output "`r`n"
 Write-Output "############################"
 Write-Output "#       mssql server       #"
 Write-Output "############################"
@@ -77,10 +77,10 @@ Write-Output "############################"
 if ($UseDbContainer) {
     Test-Docker 
 
-    write-output "[$($date) INFO] Permit mssql server volume"
+    Write-Output "[$($date) INFO] Permit mssql server volume"
     Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
 
-    write-output "[$($date) INFO] Install mssql server"
+    Write-Output "[$($date) INFO] Install mssql server"
     $execFile = "docker"
     $params = "run", "-d", "eol",
         "--net", "$NetworkName", "eol",
@@ -103,9 +103,9 @@ if ($UseDbContainer) {
     Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SqlPsw) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
-	write-output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
+	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
     if ($OpenPort) {
-		write-output "[$($date) INFO] MsSql Server: localhost,$SqlHostPort"
+		Write-Output "[$($date) INFO] MsSql Server: localhost,$SqlHostPort"
 	}
 } else {
 	# standalone mssql server

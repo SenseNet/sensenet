@@ -69,14 +69,14 @@ Test-Docker
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-write-output " "
-write-host "#################################"
-write-host "#   identity server container   #"
-write-host "#################################"
-write-output "[$($date) INFO] Start identity server"
+Write-Output " "
+Write-Output "#################################"
+Write-Output "#   identity server container   #"
+Write-Output "#################################"
+Write-Output "[$($date) INFO] Start identity server"
 
 if ($IdentityDockerImage -Match "/") {
-	write-host "pull $IdentityDockerImage image from the registry"
+	Write-Output "pull $IdentityDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $IdentityDockerImage" -DryRun $DryRun
 }
 
@@ -135,14 +135,14 @@ $params += "$IdentityDockerImage"
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {
 	if ($Debugging) {
-		write-output " "
+		Write-Output " "
 		Start-Sleep -s 5
 		docker exec -it "$IdentityContainerName" /bin/sh -c "apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig"
 	}
 
 	$ISIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $IdentityContainerName)
-	write-output "`n[$($date) INFO] Identity server Ip: $ISIP"
+	Write-Output "`n[$($date) INFO] Identity server Ip: $ISIP"
 	if ($OpenPort) {
-		write-output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
+		Write-Output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
 	}
 }

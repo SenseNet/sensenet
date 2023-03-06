@@ -95,11 +95,11 @@ if ($UseDbContainer -eq $True) {
 	$DataSource=$SqlContainerName;
 }
 
-write-output " "
+Write-Output " "
 Write-Output "#################################"
 Write-Output "#   searchservice container   #"
 Write-Output "#################################"
-write-output "[$($date) INFO] Start search service"
+Write-Output "[$($date) INFO] Start search service"
 
 if ($SearchDockerImage -Match "/") {
 	Write-Output "pull $SearchDockerImage image from the registry"
@@ -150,11 +150,11 @@ $params += "$SearchDockerImage"
 Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {	
 	if ($Debugging) {
-		write-output " "
+		Write-Output " "
 		Wait-For-It -Seconds 5 -Message "Prepare search container for debug..." -DryRun $DryRun
 	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun
 	}
 
 	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
-	write-output "`n[$($date) INFO] Search Service Ip: $SCIP"
+	Write-Output "`n[$($date) INFO] Search Service Ip: $SCIP"
 }

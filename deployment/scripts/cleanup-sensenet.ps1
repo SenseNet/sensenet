@@ -62,7 +62,7 @@ Test-Docker
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-write-output " "
+Write-Output " "
 Write-Output "#########################"
 Write-Output "##    Docker Cleanup    #"
 Write-Output "#########################"
@@ -82,7 +82,7 @@ if ($WithServices) {
 	Invoke-Cli -command "docker container stop $RabbitContainerName" -message "[$($date) INFO] Stop container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 
-write-output "`n"
+Write-Output "`n"
 
 if ($UseDbContainer -and
 	($SnType -eq "InSql" -or 

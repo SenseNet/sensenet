@@ -23,7 +23,7 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 Test-Docker
 
 if ($SensenetDockerImage -Match "/") {
-	write-host "pull $SensenetDockerImage image from the registry"
+	Write-Output "pull $SensenetDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
 }
 
@@ -33,24 +33,24 @@ if ($SensenetDockerImage -Match "/") {
 $SN_NETWORKNAME=$NetworkName
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-write-output " "
+Write-Output " "
 ##############################
 #       docker network       #
 ##############################
-write-output "[$($date) INFO] Create $($SN_NETWORKNAME)'"
+Write-Output "[$($date) INFO] Create $($SN_NETWORKNAME)'"
 $getNetwork=(docker network list -f name=$($SN_NETWORKNAME) --format "{{.Name}}" )
 if ($getNetwork) {
-    write-output "Docker network $getNetwork already exists..."
+    Write-Output "Docker network $getNetwork already exists..."
 } else {
 	Invoke-Cli -command "docker network create -d bridge $SN_NETWORKNAME" -DryRun $DryRun -ErrorAction stop
 }
 
-write-output " "
+Write-Output " "
 #############################
 #       auth registry       #
 #############################
 if ($DockerUser) {
-	write-host "authenticating to docker registry..."
+	Write-Output "authenticating to docker registry..."
 	Invoke-Cli -command "docker login $DockerRegistry --username=$DockerUser --password=$DockerPsw" -DryRun $DryRun -ErrorAction stop
 }
 

@@ -125,30 +125,30 @@ if (-not $LocalSn -and
 	$ImageType -eq "InSql" -or
 	$ImageType -eq "InSqlNlb" -or
 	$ImageType -eq "All")) {
-	write-output " "
-	write-host "############################"
-	write-host "#       get git repo       #"
-	write-host "############################"
+	Write-Output " "
+	Write-Output "############################"
+	Write-Output "#       get git repo       #"
+	Write-Output "############################"
 	
 	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
 
 if ($ImageType -eq "Is" -or 	
 	$ImageType -eq "All") {
-	write-output " "
-	write-host "############################"
-	write-host "#       get git repo       #"
-	write-host "############################"
+	Write-Output " "
+	Write-Output "############################"
+	Write-Output "#       get git repo       #"
+	Write-Output "############################"
 	
 	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
 
 if ($ImageType -eq "Search" -or 	
 	$ImageType -eq "All") {
-	write-output " "
-	write-host "#######################################"
-	write-host "#       get search service repo       #"
-	write-host "#######################################"
+	Write-Output " "
+	Write-Output "#######################################"
+	Write-Output "#       get search service repo       #"
+	Write-Output "#######################################"
 	
 	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" -DryRun $DryRun -ErrorAction Stop
 }
