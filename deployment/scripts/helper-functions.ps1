@@ -5,7 +5,6 @@ Function Test-Docker {
 	$ServerErrors = (ConvertFrom-Json -InputObject (docker info --format '{{json .}}')).ServerErrors
 	if ($ServerErrors){
 		Write-Error "Docker server is not running!"
-		return
 	}
 }
 
@@ -211,11 +210,6 @@ Function New-Database {
 
 	$databases = $dbServer.Databases 
 	$dbname = $CatalogName
-
-	# Write-Verbose "server: $dbServer"
-	# Write-Verbose "dbname: $dbname"
-	# Write-Verbose "databases: $databases"
-
 	$db = $databases[$dbname]
 
 	if ($db) {
