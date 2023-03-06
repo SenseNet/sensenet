@@ -82,6 +82,8 @@ Param (
 
 	# Technical
 	[Parameter(Mandatory=$False)]
+	[bool]$Restart=$False,
+	[Parameter(Mandatory=$False)]
 	[bool]$UseVolume=$True,
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
@@ -92,6 +94,19 @@ Param (
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/helper-functions.ps1"
+}
+
+Test-Docker
+
+if ($Restart) {
+	# workaround if sensenet repository and search service preparation were too slow and snapp was terminated
+	$cntStatus = $( docker container inspect -f "{{.State.Status}}" $SensenetContainerName )
+	if ($cntStatus -ne "running") {
+		Write-Output "Restart sensenet application..."
+		Invoke-Cli -command "docker restart $($SensenetContainerName)" -DryRun $DryRun
+		Wait-For-It -Seconds 5 -Silent $True -DryRun $DryRun
+	}
+	return
 }
 
 #############################

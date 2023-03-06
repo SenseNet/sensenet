@@ -273,6 +273,13 @@ if ($Install) {
 			-Restart $True `
 			-DryRun $DryRun `
 			-ErrorAction stop
+
+		# Sensenet application workaround if preparation was too slow and app terminated
+		./scripts/install-sensenet-app.ps1 `
+			-ProjectName $ProjectName `
+			-Restart $True `
+			-DryRun $DryRun `
+			-ErrorAction stop
 	}
 
 	if (-not $DryRun -and $OpenInBrowser) {
