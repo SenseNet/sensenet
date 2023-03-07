@@ -16,7 +16,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SensenetContainerName)/appdata"),
+	[string]$SensenetAppdataVolume="$($VolumeBasePath)/$($SensenetContainerName)/appdata",
 
 	# Identity server
 	[Parameter(Mandatory=$False)]
@@ -28,13 +28,13 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SqlContainerName="$($ProjectName)-snsql",
 	[Parameter(Mandatory=$False)]
-	[string]$SqlVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SensenetContainerName)/mssql"),	
+	[string]$SqlVolume="$($VolumeBasePath)/$($SensenetContainerName)/mssql",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
 	[Parameter(Mandatory=$False)]
-	[string]$SearchAppdataVolume=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$($VolumeBasePath)/$($SearchContainerName)/appdata"),
+	[string]$SearchAppdataVolume="$($VolumeBasePath)/$($SearchContainerName)/appdata",
 
 	# Rabbit-mq
 	[Parameter(Mandatory=$False)]
