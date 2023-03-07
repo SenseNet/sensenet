@@ -11,6 +11,8 @@ Param (
 	[string]$HostIp="",
     [Parameter(Mandatory=$False)]
 	[string]$HostName="",
+	[Parameter(Mandatory=$False)]
+	[string]$VolumeBasePath="./volumes",
 
 	# Common app settings
 	[Parameter(Mandatory=$False)]
@@ -44,9 +46,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$UserSecrets,
 	[Parameter(Mandatory=$False)]
-	[string]$CertFolder,
+	[string]$CertFolder="$($VolumeBasePath)/certificates",
 	[Parameter(Mandatory=$False)]
-	[string]$CertPath,
+	[string]$CertPath="/root/.aspnet/https/aspnetapp.pfx",
 	[Parameter(Mandatory=$False)]
 	[string]$CertPass,
 	

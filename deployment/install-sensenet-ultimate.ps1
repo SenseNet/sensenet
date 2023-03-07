@@ -80,8 +80,6 @@ if ($VolumeBasePath.StartsWith("./") -or
 	$VolumeBasePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($VolumeBasePath)
 }
 
-$CertVolPath="$($VolumeRoot)/certificates"
-$CertPath="/root/.aspnet/https/aspnetapp.pfx"
 $CertPass="QWEasd123%"
 
 $WaitForSnInSeconds = 60
@@ -178,7 +176,11 @@ if ($SnType -eq "InSql" -or $SnType -eq "InSqlNlb") {
 #====================== prerequisites ======================
 
 if ($CreateDevCert) {
-	./scripts/create-devcert.ps1 -ErrorAction stop
+	./scripts/create-devcert.ps1 `
+		-VolumeBasePath $VolumeBasePath `
+		-CertPsw $CertPass `
+		-DryRun $DryRun `
+		-ErrorAction stop
 }
 
 if ($CreateImages) {
@@ -245,13 +247,12 @@ if ($Install) {
 
 	./scripts/install-identity-server.ps1 `
 		-ProjectName $ProjectName `
+		-VolumeBasePath $VolumeBasePath `
 		-Routing cnt `
 		-AppEnvironment $AppEnvironment `
 		-OpenPort $True `
 		-SensenetPublicHost https://localhost:$SnHostPort `
 		-IsHostPort $IsHostPort `
-		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CertVolPath) `
-		-CertPath $CertPath `
 		-CertPass $CertPass `
 		-DryRun $DryRun `
 		-ErrorAction stop
@@ -265,8 +266,6 @@ if ($Install) {
 			-OpenPort $True `
 			-SearchHostPort $SearchHostPort `
 			-RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
-			-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CertVolPath) `
-			-CertPath $CertPath `
 			-CertPass $CertPass `
 			-UseVolume $UseVolume `
 			-DryRun $DryRun `
@@ -287,8 +286,6 @@ if ($Install) {
 		-UseDbContainer $UseDbContainer `
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
-		-CertFolder $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($CertVolPath) `
-		-CertPath $CertPath `
 		-CertPass $CertPass `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `

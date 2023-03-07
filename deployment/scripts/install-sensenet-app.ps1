@@ -75,9 +75,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$UserSecrets,
 	[Parameter(Mandatory=$False)]
-	[string]$CertFolder,
+	[string]$CertFolder="$($VolumeBasePath)/certificates",
 	[Parameter(Mandatory=$False)]
-	[string]$CertPath,
+	[string]$CertPath="/root/.aspnet/https/aspnetapp.pfx",
 	[Parameter(Mandatory=$False)]
 	[string]$CertPass,
 
