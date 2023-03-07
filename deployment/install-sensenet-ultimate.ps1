@@ -6,25 +6,25 @@ Param (
 
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
-	[boolean]$CreateDevCert=$False,	
+	[bool]$CreateDevCert=$False,	
 	[Parameter(Mandatory=$False)]
-	[boolean]$CreateImages=$False,
+	[bool]$CreateImages=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$CleanUp=$False,
+	[bool]$CleanUp=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$Install=$True,
+	[bool]$Install=$True,
 	[Parameter(Mandatory=$False)]
-	[boolean]$OpenInBrowser=$True,
+	[bool]$OpenInBrowser=$True,
 	[Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False,
+	[bool]$Uninstall=$False,
 	
 	# Modifiers
 	[Parameter(Mandatory=$False)]
-	[boolean]$LocalSn=$False,
+	[bool]$LocalSn=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$UseVolume=$False,	
 	[Parameter(Mandatory=$False)]
-	[boolean]$KeepRemoteDatabase=$True,
+	[bool]$KeepRemoteDatabase=$True,
 
 	# Hosting environment
 	[Parameter(Mandatory=$False)]
@@ -46,11 +46,11 @@ Param (
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
-	[boolean]$SearchService=$False,
+	[bool]$SearchService=$False,
 
 	# Technical	
 	[Parameter(Mandatory=$False)]
-	[boolean]$DryRun=$False
+	[bool]$DryRun=$False
 )
 
 # example 

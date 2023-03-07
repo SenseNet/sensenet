@@ -20,7 +20,7 @@ Function Invoke-Cli {
 		[Parameter(Mandatory=$False)]
 		[string]$message,
 		[Parameter(Mandatory=$False)]
-		[boolean]$DryRun=$False
+		[bool]$DryRun=$False
 	)
 
 	if ($command) {
@@ -236,7 +236,7 @@ Function Wait-For-It {
 		[Parameter(Mandatory=$False)]
 		[string]$Message,
 		[Parameter(Mandatory=$False)]
-		[boolean]$Silent=$False,
+		[bool]$Silent=$False,
 		[Parameter(Mandatory=$False)]
 		[string]$Progress="Bar",
 		[Parameter(Mandatory=$False)]

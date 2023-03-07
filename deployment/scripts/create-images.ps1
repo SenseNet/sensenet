@@ -2,7 +2,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$ImageType="InSql",
 	[Parameter(Mandatory=$False)]
-	[boolean]$LocalSn=$False,
+	[bool]$LocalSn=$False,
 
 	# Sensenet App
 	[Parameter(Mandatory=$False)]

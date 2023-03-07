@@ -12,7 +12,7 @@ Param (
 
 	# Technical
 	[Parameter(Mandatory=$False)]
-	[boolean]$DryRun=$False
+	[bool]$DryRun=$False
 )
 
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {

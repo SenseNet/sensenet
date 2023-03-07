@@ -9,7 +9,7 @@ Param (
 
     # Technical
     [Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False,
+	[bool]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )

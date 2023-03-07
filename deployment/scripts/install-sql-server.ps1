@@ -42,11 +42,11 @@ Param (
 
    	# Technical
     [Parameter(Mandatory=$False)]
-    [boolean]$Cleanup=$False,
+    [bool]$Cleanup=$False,
     [Parameter(Mandatory=$False)]
-	[boolean]$Uninstall=$False,
+	[bool]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
-	[boolean]$DryRun=$False
+	[bool]$DryRun=$False
 )
 
 if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
