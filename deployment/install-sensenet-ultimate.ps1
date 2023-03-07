@@ -2,7 +2,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$ProjectName,
 	[Parameter(Mandatory=$False)]
-	[string]$PreSet="InSql",
+	[string]$SnType="InSql",
 
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
@@ -72,6 +72,11 @@ Param (
 		. "$($PSScriptRoot)/scripts/helper-functions.ps1"
 	}
 
+	if ($SnType -ne "InMem" -and $SnType -ne "InSql") {
+		Write-Error "-SnType is either 'InMem' or 'InSql'."
+		return
+	}
+
 #############################
 ##    Variables section     #
 #############################
@@ -79,8 +84,8 @@ $AppEnvironment="Development"
 
 # different sensenet types with different names for combined demo
 if (-not $ProjectName) {
-	$ProjectName = "sensenet-$($PreSet.ToLower())"
-	if ($PreSet -eq "InSql") {
+	$ProjectName = "sensenet-$($SnType.ToLower())"
+	if ($SnType -eq "InSql") {
 		if ($UseDbContainer) { $ProjectName += "-cdb" } else { $ProjectName += "-hdb" }
 		if ($UseVolume) { $ProjectName += "-wv" }
 		if ($SearchService) { $ProjectName += "-ws" }
@@ -90,13 +95,30 @@ if (-not $ProjectName) {
 # different sensenet types on different ports for combined demo
 $basePort = 51000
 $portModifier = 0
-if ($PreSet -eq "InSql") {
-	$portModifier = 5 * ($PreSet -eq "InSql") + 10 * $UseDbContainer + 20 * $UseVolume + 30 * $SearchService
+if ($SnType -eq "InSql") {
+	$portModifier = 5 + 10 * $UseDbContainer + 20 * $UseVolume + 30 * $SearchService
 }
 $SnHostPort=$basePort + 11 + $portModifier
 $IsHostPort=$basePort + 12 + $portModifier
 $SearchHostPort=$basePort + 13 + $portModifier
 #dbport?
+
+# Docker images needed for the actual setup
+[string[]]$imageTypes = "$($SnType)", "Is" 
+if ($SearchService) { $imageTypes+="Search" }
+
+# InMem repo neither use database nor search service 
+if ($SnType -eq "InMem") {  
+	$SearchService = $False
+	$UseDbContainer = $False	
+} 
+
+# Wait time in seconds before try to connect to sensenet repository
+if ($SnType -eq "InMem") {
+	$WaitForSnInSeconds = 30
+} else {
+	$WaitForSnInSeconds = 60
+}
 
 # Workaround for relative path on host machine
 if ($VolumeBasePath.StartsWith("./") -or 
@@ -107,61 +129,19 @@ if ($VolumeBasePath.StartsWith("./") -or
 # Developer certificate demo password
 $CertPass="QWEasd123%"
 
-# Wait time in seconds before try to connect to sensenet repository
-$WaitForSnInSeconds = 60
 
-switch ($PreSet) {
-	"InMem" {  
-		$SnType="InMem"
-		$SearchService = $False
-		$UseDbContainer = $False
-		$WaitForSnInSeconds = 30
-		$imageTypes="InMem","Is"
-		$cleanupSetup=@{
-			ProjectName=$ProjectName
-			SnType=$SnType
-			UseVolume=$UseVolume
-		}
-	}
-	"InSql" {		
-		if (-not $SearchService) {
-			$SnType="InSql"
-			$imageTypes="InSql","Is"
-			$cleanupSetup=@{
-				ProjectName=$ProjectName
-				SnType=$SnType
-				UseDbContainer=$UseDbContainer
-				UseVolume=$UseVolume
-			}
-		} else {
-			$SnType="InSqlNlb"
-			$imageTypes="InSql", "Is", "Search"
-			$cleanupSetup=@{
-				ProjectName=$ProjectName
-				SnType=$SnType
-				UseDbContainer=$UseDbContainer
-				WithServices=$False
-				UseGrpc=$True
-				UseVolume=$UseVolume
-			}
-		}
-	}
-	Default {
-		Write-Error "-PreSet is either 'InMem' or 'InSql'."
-	}
-}
 
-if ($SnType -eq "InSql" -or $SnType -eq "InSqlNlb") {
-	if ($HostName) {
+if ($SnType -eq "InSql") {
+	if (-not $UseDbContainer) {
 		if (-not $SqlUser -or -not $SqlPsw) {
 			$SqlUser = Read-Host -Prompt 'Input your mssql user name'
 			$SqlPsw = Read-Host -Prompt 'Input the mssql user password'		
 		}		
 	} else {
-		# db in container
+		# db in container, use sa for demo purposes
 		if (-not $SqlPsw) {
 			$SqlUser = "sa"
-			$SqlPsw = "QWEasd123%"
+			$SqlPsw = "SuP3rS3CuR3P4sSw0Rd!"
 		}
 	} 
 }
@@ -190,12 +170,16 @@ if ($CreateImages) {
 
 if ($CleanUp -or $Uninstall) {
 	./scripts/cleanup-sensenet.ps1 `
-		@cleanupSetup `
+		-ProjectName $ProjectName `
+		-SnType $SnType `
+		-UseDbContainer $UseDbContainer `
+		-SearchService $SearchService `
+		-UseVolume $UseVolume `
 		-VolumeBasePath $VolumeBasePath `
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
-	if ($PreSet -eq "InSql" -and -not $UseDbContainer -and -not $KeepRemoteDatabase) {
+	if ($SnType -eq "InSql" -and -not $UseDbContainer -and -not $KeepRemoteDatabase) {
 		./scripts/install-sql-server.ps1 `
 			-ProjectName $ProjectName `
 			-HostName $Hostname `
@@ -227,7 +211,7 @@ if ($Install) {
 			-ErrorAction stop
 	}
 
-	if ($PreSet -eq "InSql") {
+	if ($SnType -eq "InSql") {
 		./scripts/install-sql-server.ps1 `
 			-ProjectName $ProjectName `
 			-HostName $Hostname `
@@ -285,6 +269,7 @@ if ($Install) {
 		-DataSource $DataSource `
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
+		-SearchService $SearchService `
 		-CertPass $CertPass `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `

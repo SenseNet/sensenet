@@ -63,6 +63,8 @@ Param (
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
+	[bool]$SearchService=$False,	
+	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",	
 	[Parameter(Mandatory=$False)]
 	[string]$SearchServiceHost="http://$($SearchContainerName)",
@@ -120,14 +122,16 @@ switch ($SnType) {
 		$SensenetDockerImage="sn-api-inmem"
 	}
 	"InSql" { 
-		$SensenetDockerImage="sn-api-sql"
-	}
-	"InSqlNlb" { 
-		$SensenetDockerImage="sn-api-nlb"
+		if ($SearchService) { 			
+			$SensenetDockerImage="sn-api-nlb"
+		}
+		else {
+			$SensenetDockerImage="sn-api-sql"
+		}		
 	}
 	Default {
 		Write-Error "Invalid sensenet type!"
-		# exit 1;
+		return
 	}
 }
 
@@ -167,12 +171,11 @@ $params = "run", "-it", "-d", "eol",
 "-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
 "-e", "sensenet__authentication__repositoryUrl=$($SensenetPublicHost)", "eol"
 
-if ($SnType -eq "InSql" -or 
-	$SnType -eq "InSqlNlb") {
-		$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"
+if ($SnType -eq "InSql") {
+	$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"
 }
 
-if ($SnType -eq "InSqlNlb") {
+if ($SnType -eq "InSql" -and $SearchService) {
 	$params += "-e", "sensenet__search__service__ServiceAddress=$($SearchServiceHost)", "eol",
 	"-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol",
 	"-e", "sensenet__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol"
