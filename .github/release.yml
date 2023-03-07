@@ -1,0 +1,15 @@
+changelog:
+  exclude:
+    labels:
+      - releasenotes-skip
+  categories:
+    - title: Features
+      labels:
+        - releasenotes-feature
+    - title: Bug fixes
+      labels:
+        - bug
+        - releasenotes-bug
+    - title: Other Changes
+      labels:
+        - "*"
