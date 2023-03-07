@@ -38,7 +38,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityPublicHost="https://$($ProjectName)-is.$($Domain)",	
 	[Parameter(Mandatory=$False)]
-	[int]$IsHostPort=8083,
+	[int]$IsHostPort=8082,
     [Parameter(Mandatory=$False)]
 	[int]$IsAppPort=443,
 

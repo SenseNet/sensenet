@@ -1,5 +1,7 @@
 Param (
 	[Parameter(Mandatory=$False)]
+	[string]$ProjectName,
+	[Parameter(Mandatory=$False)]
 	[string]$PreSet="InSql",
 
 	# Install/Uninstall processes
@@ -38,6 +40,10 @@ Param (
 	[Parameter(Mandatory=$False)]
     [string]$SqlPsw,
 
+	# Sensenet Repository Database
+	[Parameter(Mandatory=$False)]
+	[bool]$UseDbContainer=$True,
+
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
 	[boolean]$SearchService=$False,
@@ -74,26 +80,45 @@ Param (
 #############################
 $AppEnvironment="Development"
 
+# different sensenet types with different names for combined demo
+if (-not $ProjectName) {
+	$ProjectName = "sensenet-$($PreSet.ToLower())"
+	if ($PreSet -eq "InSql") {
+		if ($UseDbContainer) { $ProjectName += "-cdb" } else { $ProjectName += "-hdb" }
+		if ($UseVolume) { $ProjectName += "-wv" }
+		if ($SearchService) { $ProjectName += "-ws" }
+	}
+}
+
+# different sensenet types on different ports for combined demo
+$basePort = 51000
+$portModifier = 0
+if ($PreSet -eq "InSql") {
+	$portModifier = 5 * ($PreSet -eq "InSql") + 10 * $UseDbContainer + 20 * $UseVolume + 30 * $SearchService
+}
+$SnHostPort=$basePort + 11 + $portModifier
+$IsHostPort=$basePort + 12 + $portModifier
+$SearchHostPort=$basePort + 13 + $portModifier
+#dbport?
+
 # Workaround for relative path on host machine
 if ($VolumeBasePath.StartsWith("./") -or 
 	$VolumeBasePath.StartsWith("../")) {
 	$VolumeBasePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($VolumeBasePath)
 }
 
+# Developer certificate demo password
 $CertPass="QWEasd123%"
 
+# Wait time in seconds before try to connect to sensenet repository
 $WaitForSnInSeconds = 60
 
 switch ($PreSet) {
 	"InMem" {  
-		Write-Output "Prepare inmem settings"
 		$SnType="InMem"
 		$SearchService = $False
 		$UseDbContainer = $False
 		$WaitForSnInSeconds = 30
-		$ProjectName="sensenet-inmem"
-		$SnHostPort=8081
-		$IsHostPort=8082
 		$imageTypes="InMem","Is"
 		$cleanupSetup=@{
 			ProjectName=$ProjectName
@@ -104,19 +129,6 @@ switch ($PreSet) {
 	"InSql" {		
 		if (-not $SearchService) {
 			$SnType="InSql"
-			if (-not $HostName) {
-				# create an mssql container
-				$ProjectName="sensenet-insql"
-				$UseDbContainer = $True
-				$SnHostPort=8083
-				$IsHostPort=8084
-			} else {
-				# connect to mssql server on host
-				$ProjectName="sensenet-sql-ext"
-				$UseDbContainer = $False
-				$SnHostPort=8085
-				$IsHostPort=8086
-			}
 			$imageTypes="InSql","Is"
 			$cleanupSetup=@{
 				ProjectName=$ProjectName
@@ -125,29 +137,13 @@ switch ($PreSet) {
 				UseVolume=$UseVolume
 			}
 		} else {
-			# insql type repository with search service
 			$SnType="InSqlNlb"
-			if (-not $HostName) {
-				# create an mssql container
-				$ProjectName="sensenet-nlb"
-				$UseDbContainer = $True
-				$SnHostPort=8091
-				$IsHostPort=8092
-				$SearchHostPort=8093
-			} else {
-				# connect to mssql server on host
-				$ProjectName="sensenet-nlb-ext"
-				$UseDbContainer = $False
-				$SnHostPort=8094
-				$IsHostPort=8095
-				$SearchHostPort=8096
-			}			
 			$imageTypes="InSql", "Is", "Search"
 			$cleanupSetup=@{
 				ProjectName=$ProjectName
 				SnType=$SnType
 				UseDbContainer=$UseDbContainer
-				WithServices=$True
+				WithServices=$False
 				UseGrpc=$True
 				UseVolume=$UseVolume
 			}

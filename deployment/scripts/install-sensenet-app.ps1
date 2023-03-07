@@ -34,7 +34,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
 	[Parameter(Mandatory=$False)]
-	[int]$SnHostPort=8082,
+	[int]$SnHostPort=8081,
 	[Parameter(Mandatory=$False)]
 	[int]$SnAppPort=443,
 
