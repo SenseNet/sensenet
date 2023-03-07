@@ -24,6 +24,14 @@ $RABBIT_USER="admin"
 $RABBIT_PSW="QWEasd123%"
 $RABBIT_DOCKERIMAGE="rabbitmq:3-management"
 
+
+$rbtStatus = $( docker container inspect -f "{{.State.Status}}" $RabbitContainerName )
+if ($rbtStatus -eq "running") {
+	Write-Output "RabbitMq already running! Remove it first if you want to start a new container..."
+	return
+}
+
+
 Write-Output " "
 Write-Output "############################"
 Write-Output "#         rabbitmq         #"

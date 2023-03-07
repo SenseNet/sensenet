@@ -28,21 +28,19 @@ Param (
 
 	# Hosting environment
 	[Parameter(Mandatory=$False)]
-	[string]$HostName="",
+	[string]$HostName="$Env:COMPUTERNAME",
 	[Parameter(Mandatory=$False)]
 	[string]$VolumeBasePath="./volumes",
 
 	# Sensenet Repository Database
+	[Parameter(Mandatory=$False)]
+	[bool]$UseDbContainer=$True,
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$HostName",
 	[Parameter(Mandatory=$False)]
     [string]$SqlUser,
 	[Parameter(Mandatory=$False)]
     [string]$SqlPsw,
-
-	# Sensenet Repository Database
-	[Parameter(Mandatory=$False)]
-	[bool]$UseDbContainer=$True,
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -55,7 +53,6 @@ Param (
 
 # example 
 # .\install-sensenet-ultimate.ps1 -CleanUp $true -UseVolume $true -SearchService $true  -VolumeBasePath /var/lib/docker/volumes
-
 
 # actual settings: Get-ExecutionPolicy -List
 # disable: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
@@ -204,6 +201,7 @@ if ($CleanUp -or $Uninstall) {
 			-HostName $Hostname `
 			-VolumeBasePath $VolumeBasePath `
 			-UseDbContainer $UseDbContainer `
+			-DataSource $DataSource `
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
 			-Uninstall $True `
@@ -235,6 +233,7 @@ if ($Install) {
 			-HostName $Hostname `
 			-VolumeBasePath $VolumeBasePath `
 			-UseDbContainer $UseDbContainer `
+			-DataSource $DataSource `
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
 			-DryRun $DryRun `
@@ -256,10 +255,13 @@ if ($Install) {
 	if ($SearchService) {
 		./scripts/install-search-service.ps1 `
 			-ProjectName $ProjectName `
+			-HostName $HostName `
 			-VolumeBasePath $VolumeBasePath `
 			-Routing cnt `
 			-AppEnvironment $AppEnvironment `
 			-OpenPort $True `
+			-UseDbContainer $UseDbContainer `
+			-DataSource $DataSource `
 			-SearchHostPort $SearchHostPort `
 			-RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
 			-CertPass $CertPass `
@@ -280,6 +282,7 @@ if ($Install) {
 		-SensenetPublicHost https://localhost:$SnHostPort `
 		-IdentityPublicHost https://localhost:$IsHostPort `
 		-UseDbContainer $UseDbContainer `
+		-DataSource $DataSource `
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
 		-CertPass $CertPass `

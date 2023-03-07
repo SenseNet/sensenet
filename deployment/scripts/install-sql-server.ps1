@@ -6,7 +6,7 @@ Param (
 
     # Hosting environment
     [Parameter(Mandatory=$False)]
-    [string]$HostName="",
+    [string]$HostName="$Env:COMPUTERNAME",
     [Parameter(Mandatory=$False)]
 	[string]$VolumeBasePath="./volumes",
 

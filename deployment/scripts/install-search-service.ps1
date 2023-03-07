@@ -30,7 +30,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
-    [string]$DataSource="$($HostName)\MSSQL2016",
+    [string]$DataSource="$($HostName)",
 
 	# Search service parameters
     [Parameter(Mandatory=$False)]
