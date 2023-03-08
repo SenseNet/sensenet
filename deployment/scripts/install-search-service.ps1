@@ -118,7 +118,7 @@ $params = "run", "-it", "-d", "eol",
 "--net", "`"$NetworkName`"", "eol",
 "--name", "`"$($SearchContainerName)`"", "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"AppEnvironment=$AppEnvironment`"", "eol",
+"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
 "-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
 "-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitServiceHost)", "eol"
 

@@ -311,7 +311,7 @@ if ($Install) {
 		if (-not $DryRun -and $OpenInBrowser) {
 			Wait-For-It -Seconds 5 `
 				-Message "Restart your sensenet repository..." `
-				-Silent $True
+				-Silent $True `
 				-DryRun $DryRun
 		}
 	}
