@@ -26,10 +26,23 @@ $RABBIT_DOCKERIMAGE="rabbitmq:3-management"
 
 
 $rbtStatus = $( docker container inspect -f "{{.State.Status}}" $RabbitContainerName )
-if ($rbtStatus -eq "running") {
-	Write-Output "RabbitMq already running! Remove it first if you want to start a new container..."
-	return
+switch ($rbtStatus) {
+	"running" {
+		Write-Output "RabbitMq already running! Remove it first if you want to start a new container..."
+		return
+	}
+	"exited" {
+		Write-Error "RabbitMq already started but exited! Fix the issue with the container and try again."
+		return
+	}
+	"" {
+		# not an issue, new container will be started
+	}
+	Default {
+		Write-Output "Rabbit status: $rbtStatus" 
+	}
 }
+
 
 
 Write-Output " "
