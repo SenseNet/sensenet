@@ -31,6 +31,10 @@ Param (
 	[string]$SqlDbName="$($ProjectName)-sndb",
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$($HostName)",
+	[Parameter(Mandatory=$False)]
+    [string]$SqlUser,
+    [Parameter(Mandatory=$False)]
+    [string]$SqlPsw,
 
 	# Search service parameters
     [Parameter(Mandatory=$False)]
@@ -87,12 +91,9 @@ if ($Restart) {
 #############################
 ##    Variables section     #
 #############################
-$SQL_SA_USER="dockertest"
-$SQL_SA_PASSWORD="QWEasd123%"
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-if ($UseDbContainer -eq $True) {
-	$SQL_SA_USER="sa"
+if ($UseDbContainer) {
 	$DataSource=$SqlContainerName;
 }
 
@@ -118,7 +119,7 @@ $params = "run", "-it", "-d", "eol",
 "--name", "`"$($SearchContainerName)`"", "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
 "-e", "`"AppEnvironment=$AppEnvironment`"", "eol",
-"-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SQL_SA_USER);Password=$($SQL_SA_PASSWORD);TrustServerCertificate=true", "eol",
+"-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
 "-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitServiceHost)", "eol"
 
 if ($CertPath -ne "") {

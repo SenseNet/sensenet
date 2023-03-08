@@ -58,7 +58,6 @@ Param (
 	[Parameter(Mandatory=$False)]
     [string]$SqlUser="",
     [Parameter(Mandatory=$False)]
-    # [securestring]$SqlPsw=(ConvertTo-SecureString -String "" -AsPlainText -Force),
     [string]$SqlPsw="",
 
 	# Search service parameters
@@ -136,7 +135,6 @@ switch ($SnType) {
 }
 
 if ($UseDbContainer) {
-	$SqlUser="sa"
 	$DataSource=$SqlContainerName;
 }
 

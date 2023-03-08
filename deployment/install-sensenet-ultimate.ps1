@@ -96,7 +96,7 @@ if (-not $ProjectName) {
 $basePort = 51000
 $portModifier = 0
 if ($SnType -eq "InSql") {
-	$portModifier = 5 + 10 * $UseDbContainer + 20 * $UseVolume + 30 * $SearchService
+	$portModifier = 5 + 10 * $UseDbContainer + 20 * $UseVolume + 40 * $SearchService
 }
 $SnHostPort=$basePort + 11 + $portModifier
 $IsHostPort=$basePort + 12 + $portModifier
@@ -141,7 +141,7 @@ if ($SnType -eq "InSql") {
 		# db in container, use sa for demo purposes
 		if (-not $SqlPsw) {
 			$SqlUser = "sa"
-			$SqlPsw = "SuP3rS3CuR3P4sSw0Rd!"
+			$SqlPsw = "SuP3rS3CuR3P4sSw0Rd"
 		}
 	} 
 }
@@ -246,6 +246,8 @@ if ($Install) {
 			-OpenPort $True `
 			-UseDbContainer $UseDbContainer `
 			-DataSource $DataSource `
+			-SqlUser $SqlUSer `
+			-SqlPsw $SqlPsw `
 			-SearchHostPort $SearchHostPort `
 			-RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
 			-CertPass $CertPass `
@@ -296,7 +298,7 @@ if ($Install) {
 	}
 
 	if (-not $DryRun -and $OpenInBrowser) {
-		Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
+		Start-Process "https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
 	}
 
 	Write-Output "You're welcome!"

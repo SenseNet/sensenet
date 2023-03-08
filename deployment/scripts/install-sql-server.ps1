@@ -100,7 +100,7 @@ if ($UseDbContainer) {
         
     Wait-For-It -Seconds $WaitForDbInSeconds -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
 
-    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U sa -P $($SqlPsw) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
+    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U $($SqlUser) -P $($SqlPsw) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
