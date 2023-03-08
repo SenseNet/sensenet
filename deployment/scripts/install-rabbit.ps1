@@ -1,10 +1,22 @@
 Param (
-    [Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False)]
 	[string]$NetworkName="snnetwork",
+
+	# RabbitMq
     [Parameter(Mandatory=$False)]
 	[string]$RabbitContainerName="sn-rabbit",
 	[Parameter(Mandatory=$False)]
 	[int]$RabbitPort=8079,
+	[Parameter(Mandatory=$False)]
+	[string]$RabbitUser,
+	[Parameter(Mandatory=$False)]
+	[string]$RabbitPsw,
+	
+   	# Technical
+	[Parameter(Mandatory=$False)]
+    [bool]$Cleanup=$False,
+    [Parameter(Mandatory=$False)]
+	[bool]$Uninstall=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )
@@ -16,14 +28,19 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 
 Test-Docker
 
+if ($Cleanup -or $Uninstall) {
+    Invoke-Cli -command "docker container stop $RabbitContainerName" -message "[$($date) INFO] Stop container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
+	Invoke-Cli -command "docker container rm $RabbitContainerName" -message "[$($date) INFO] Remove container: $RabbitContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
+    if ($Uninstall) {
+        return
+    }
+}
+
 #############################
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
-$RABBIT_USER="admin"
-$RABBIT_PSW="QWEasd123%"
 $RABBIT_DOCKERIMAGE="rabbitmq:3-management"
-
 
 $rbtStatus = $( docker container inspect -f "{{.State.Status}}" $RabbitContainerName )
 switch ($rbtStatus) {
@@ -43,7 +60,10 @@ switch ($rbtStatus) {
 	}
 }
 
-
+if (-not $RabbitUser -or -not $RabbitPsw) {
+	Write-Error "Username or password is missing!"
+	return
+}
 
 Write-Output " "
 Write-Output "############################"
@@ -55,8 +75,8 @@ $params = "run", "-d", "eol",
 	"--net", "`"$NetworkName`"", "eol",
 	"--hostname", "`"$($RabbitContainerName)`"", "eol",
 	"--name", "`"$($RabbitContainerName)`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_USER=$RABBIT_USER`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_PASS=$RABBIT_PSW`"", "eol",
+	"-e", "`"RABBITMQ_DEFAULT_USER=$RabbitUser`"", "eol",
+	"-e", "`"RABBITMQ_DEFAULT_PASS=$RabbitPsw`"", "eol",
 	"-p", "`"$($RabbitPort):15672`"", "eol",
 	"$RABBIT_DOCKERIMAGE"
 

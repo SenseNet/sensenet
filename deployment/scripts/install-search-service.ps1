@@ -52,7 +52,7 @@ Param (
     
 	# Rabbit-mq
 	[Parameter(Mandatory=$False)]
-	[string]$RabbitServiceHost="amqp://admin:QWEasd123%@sn-rabbit/",
+	[string]$RabbitServiceHost,
 
 	# Certificate
 	[Parameter(Mandatory=$False)]

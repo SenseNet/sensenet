@@ -126,10 +126,14 @@ if ($VolumeBasePath.StartsWith("./") -or
 	$VolumeBasePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($VolumeBasePath)
 }
 
-# Developer certificate demo password
-$CertPass="QWEasd123%"
+# Developer certificate demo passwords
+$CertPsw="SuP3rS3CuR3P4sSw0Rd"
 
-
+# RebbitMq container demo settings
+$rabbitContainerName="sn-rabbit"
+$rabbitUser="admin"
+$rabbitPsw="SuP3rS3CuR3P4sSw0Rd"
+$rabbitPort=$basePort + 5
 
 if ($SnType -eq "InSql") {
 	if (-not $UseDbContainer) {
@@ -151,7 +155,7 @@ if ($SnType -eq "InSql") {
 if ($CreateDevCert) {
 	./scripts/create-devcert.ps1 `
 		-VolumeBasePath $VolumeBasePath `
-		-CertPsw $CertPass `
+		-CertPsw $CertPsw `
 		-DryRun $DryRun `
 		-ErrorAction stop
 }
@@ -207,6 +211,10 @@ if ($Install) {
 
 	if ($SearchService) {
 		./scripts/install-rabbit.ps1 `
+			-RabbitContainername $rabbitContainerName `
+			-RabbitPort $rabbitPort `
+			-RabbitUser $rabbitUSer `
+			-RabbitPsw $rabbitPsw `
 			-DryRun $DryRun `
 			-ErrorAction stop
 	}
@@ -232,7 +240,7 @@ if ($Install) {
 		-OpenPort $True `
 		-SensenetPublicHost https://localhost:$SnHostPort `
 		-IsHostPort $IsHostPort `
-		-CertPass $CertPass `
+		-CertPass $CertPsw `
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
@@ -249,8 +257,8 @@ if ($Install) {
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
 			-SearchHostPort $SearchHostPort `
-			-RabbitServiceHost amqp://admin:QWEasd123%@sn-rabbit/ `
-			-CertPass $CertPass `
+			-RabbitServiceHost amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/ `
+			-CertPass $CertPsw `
 			-UseVolume $UseVolume `
 			-DryRun $DryRun `
 			-ErrorAction stop
@@ -272,7 +280,8 @@ if ($Install) {
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
 		-SearchService $SearchService `
-		-CertPass $CertPass `
+		-RabbitServiceHost amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/ `
+		-CertPass $CertPsw `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `
 		-ErrorAction stop
