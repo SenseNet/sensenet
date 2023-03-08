@@ -1561,10 +1561,10 @@ namespace SenseNet.ContentRepository
                 });
 
             builder.Patch("7.7.28", "7.7.28.1", "2023-02-03", "Upgrades sensenet content repository.")
-                .Action(Patch_AddContentTemplates);
+                .Action(Patch_7_7_29);
         }
 
-        private void Patch_AddContentTemplates(PatchExecutionContext context)
+        private void Patch_7_7_29(PatchExecutionContext context)
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
 
@@ -1581,14 +1581,23 @@ namespace SenseNet.ContentRepository
 
             #region Permission changes
 
+            var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
+            var systemFolderId = NodeHead.Get(Repository.SystemFolderPath).Id;
+            var schemaFolderId = NodeHead.Get(Repository.SchemaFolderPath).Id;
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+            // public admin local See permission on the System folder
+            if (publicAdminsGroupId > 0)
+            {
+                editor.Allow(systemFolderId, publicAdminsGroupId, true, PermissionType.See)
+                    .Allow(schemaFolderId, publicAdminsGroupId, true, PermissionType.See);
+            }
+
             // if we just created this folder above
             if (contentTemplates != null)
             {
-                var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
                 var developersGroupId = Node.LoadNode(N.R.Developers)?.Id ?? 0;
                 var editorsGroupId = Node.LoadNode(N.R.Editors)?.Id ?? 0;
-
-                var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
                 if (publicAdminsGroupId > 0)
                     editor.Allow(contentTemplates.Id, publicAdminsGroupId, false, PermissionType.BuiltInPermissionTypes);
@@ -1598,11 +1607,10 @@ namespace SenseNet.ContentRepository
                     editor.Allow(contentTemplates.Id, editorsGroupId, false, PermissionType.BuiltInPermissionTypes);
 
                 editor.Allow(contentTemplates.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open);
-
-                editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                logger.LogTrace("Permissions are successfully set on the ContentTemplates folder.");
             }
+
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            logger.LogTrace("Permissions are successfully set.");
 
             #endregion
         }
