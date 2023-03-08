@@ -121,7 +121,12 @@ Function Remove-Database {
 		# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null 
 		# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SmoExtended') | out-null 
 
-		Write-Verbose "Initialize Drop $CatalogName on $ServerName with $UserName..."
+		if ($ServerName -eq "" -or $CatalogName -eq "") {
+			Write-Error "ServerName or CatalogName is missing!"
+			return
+		}
+
+		Write-Verbose "Initialize Drop $CatalogName on $ServerName with $UserName..."		
 
 		Import-Module SQLServer -DisableNameChecking
 
