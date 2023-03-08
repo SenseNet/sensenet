@@ -45,6 +45,8 @@ Param (
     [bool]$Cleanup=$False,
     [Parameter(Mandatory=$False)]
 	[bool]$Uninstall=$False,
+    [Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$True,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )
@@ -87,10 +89,12 @@ if ($UseDbContainer) {
         "--name", "$SqlContainerName", "eol",
         "-e", "ACCEPT_EULA=Y", "eol",
         "-e", "MSSQL_SA_PASSWORD=$($SqlPsw)", "eol",
-        "-e", "MSSQL_PID=Express", "eol",
-        "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
+        "-e", "MSSQL_PID=Express", "eol"
+    
+    if ($UseVolume) {
+        $params += "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
+    }
 
-        # "-e", "MSSQL_SA_PASSWORD=$([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR(($SqlPsw))))", "eol",
     if ($OpenPort) {
         $params += "-p", "`"$($SqlHostPort):$($SqlAppPort)`"", "eol"
     }
