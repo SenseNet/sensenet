@@ -46,6 +46,10 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$SearchService=$False,
 
+	# Rabbit-mq
+	[Parameter(Mandatory=$False)]
+	[string]$RabbitServiceHost,
+
 	# Technical	
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
@@ -135,6 +139,14 @@ $rabbitUser="admin"
 $rabbitPsw="SuP3rS3CuR3P4sSw0Rd"
 $rabbitPort=$basePort + 5
 
+if ($RabbitServiceHost)
+{
+	$createRabbitContainer = $False
+} else {
+	$createRabbitContainer = $True
+	$RabbitServiceHost="amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/"
+}
+
 if ($SnType -eq "InSql") {
 	if (-not $UseDbContainer) {
 		if (-not $SqlUser -or -not $SqlPsw) {
@@ -211,7 +223,7 @@ if ($Install) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 
-	if ($SearchService) {
+	if ($SearchService -and $createRabbitContainer) {
 		./scripts/install-rabbit.ps1 `
 			-RabbitContainername $rabbitContainerName `
 			-RabbitPort $rabbitPort `
@@ -261,7 +273,7 @@ if ($Install) {
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
 			-SearchHostPort $SearchHostPort `
-			-RabbitServiceHost amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/ `
+			-RabbitServiceHost $RabbitServiceHost `
 			-CertPass $CertPsw `
 			-UseVolume $UseVolume `
 			-DryRun $DryRun `
@@ -284,7 +296,7 @@ if ($Install) {
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
 		-SearchService $SearchService `
-		-RabbitServiceHost amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/ `
+		-RabbitServiceHost $RabbitServiceHost `
 		-CertPass $CertPsw `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `
