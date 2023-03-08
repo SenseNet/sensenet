@@ -150,27 +150,6 @@ if ($SnType -eq "InSql") {
 	} 
 }
 
-#====================== prerequisites ======================
-
-if ($CreateDevCert) {
-	./scripts/create-devcert.ps1 `
-		-VolumeBasePath $VolumeBasePath `
-		-CertPsw $CertPsw `
-		-DryRun $DryRun `
-		-ErrorAction stop
-}
-
-if ($CreateImages) {
-	foreach ($imageType in $imageTypes) {
-		./scripts/create-images.ps1 `
-			-ImageType $imageType `
-			-SearchService $SearchService `
-			-LocalSn $LocalSn `
-			-DryRun $DryRun `
-			-ErrorAction stop
-	}
-}
-
 #====================== clean up ======================
 
 if ($CleanUp -or $Uninstall) {
@@ -194,12 +173,34 @@ if ($CleanUp -or $Uninstall) {
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
 			-Uninstall $True `
+			-UseVolume $UseVolume `
 			-DryRun $DryRun `
 			-ErrorAction stop
 	}
 
 	if ($Uninstall) {
 		exit;
+	}
+}
+
+#====================== prerequisites ======================
+
+if ($CreateDevCert) {
+	./scripts/create-devcert.ps1 `
+		-VolumeBasePath $VolumeBasePath `
+		-CertPsw $CertPsw `
+		-DryRun $DryRun `
+		-ErrorAction stop
+}
+
+if ($CreateImages) {
+	foreach ($imageType in $imageTypes) {
+		./scripts/create-images.ps1 `
+			-ImageType $imageType `
+			-SearchService $SearchService `
+			-LocalSn $LocalSn `
+			-DryRun $DryRun `
+			-ErrorAction stop
 	}
 }
 
@@ -229,6 +230,7 @@ if ($Install) {
 			-DataSource $DataSource `
 			-SqlUser $SqlUSer `
 			-SqlPsw $SqlPsw `
+			-UseVolume $UseVolume `
 			-DryRun $DryRun `
 			-ErrorAction stop
 	}
@@ -240,6 +242,7 @@ if ($Install) {
 		-AppEnvironment $AppEnvironment `
 		-OpenPort $True `
 		-SensenetPublicHost https://localhost:$SnHostPort `
+		-IdentityPublicHost https://localhost:$IsHostPort `
 		-IsHostPort $IsHostPort `
 		-CertPass $CertPsw `
 		-DryRun $DryRun `
