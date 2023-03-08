@@ -24,6 +24,8 @@ Param (
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
+	[bool]$SearchService=$False,
+	[Parameter(Mandatory=$False)]
 	[string]$SearchGitRepo="https://github.com/SenseNet/sn-search-lucene29",
 	[Parameter(Mandatory=$False)]
 	[string]$SearchGitBranch="master",	
@@ -69,7 +71,7 @@ if ($ImageType -eq "InMem" -or $ImageType -eq "All")
 	}
 	$creationList += $imageFrom
 }
-if ($ImageType -eq "InSql" -or $ImageType -eq "All")
+if (($ImageType -eq "InSql" -and -not $SearchService) -or $ImageType -eq "All")
 {
 	$SensenetDockerImage="sn-api-sql"
 	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
@@ -80,7 +82,7 @@ if ($ImageType -eq "InSql" -or $ImageType -eq "All")
 	}
 	$creationList += $imageFrom
 }
-if ($ImageType -eq "InSqlNlb" -or $ImageType -eq "All")
+if ($SearchService -or $ImageType -eq "All")
 {
 	$SensenetDockerImage="sn-api-nlb"
 	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
@@ -122,8 +124,7 @@ if ($ImageType -eq "Search" -or $ImageType -eq "All")
 
 if (-not $LocalSn -and
 	($ImageType -eq "InMem" -or 
-	$ImageType -eq "InSql" -or
-	$ImageType -eq "InSqlNlb" -or
+	$ImageType -eq "InSql" -or	
 	$ImageType -eq "All")) {
 	Write-Output " "
 	Write-Output "############################"

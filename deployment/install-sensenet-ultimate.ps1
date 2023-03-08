@@ -130,7 +130,7 @@ if ($VolumeBasePath.StartsWith("./") -or
 $CertPsw="SuP3rS3CuR3P4sSw0Rd"
 
 # RebbitMq container demo settings
-$rabbitContainerName="sn-rabbit"
+$rabbitContainerName="sensenet-rabbit"
 $rabbitUser="admin"
 $rabbitPsw="SuP3rS3CuR3P4sSw0Rd"
 $rabbitPort=$basePort + 5
@@ -164,6 +164,7 @@ if ($CreateImages) {
 	foreach ($imageType in $imageTypes) {
 		./scripts/create-images.ps1 `
 			-ImageType $imageType `
+			-SearchService $SearchService `
 			-LocalSn $LocalSn `
 			-DryRun $DryRun `
 			-ErrorAction stop
