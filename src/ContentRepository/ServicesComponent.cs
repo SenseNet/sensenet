@@ -1583,11 +1583,15 @@ namespace SenseNet.ContentRepository
 
             var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
             var systemFolderId = NodeHead.Get(Repository.SystemFolderPath).Id;
+            var schemaFolderId = NodeHead.Get(Repository.SchemaFolderPath).Id;
             var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
             // public admin local See permission on the System folder
             if (publicAdminsGroupId > 0)
-                editor.Allow(systemFolderId, publicAdminsGroupId, true, PermissionType.See);
+            {
+                editor.Allow(systemFolderId, publicAdminsGroupId, true, PermissionType.See)
+                    .Allow(schemaFolderId, publicAdminsGroupId, true, PermissionType.See);
+            }
 
             // if we just created this folder above
             if (contentTemplates != null)
