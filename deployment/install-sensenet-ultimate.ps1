@@ -277,9 +277,11 @@ if ($Install) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 	
-	Wait-For-It -Seconds $WaitForSnInSeconds `
-		-Message "We are preparing your sensenet repository..." `
-		-DryRun $DryRun
+	if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
+		Wait-For-It -Seconds $WaitForSnInSeconds `
+			-Message "We are preparing your sensenet repository..." `
+			-DryRun $DryRun
+	}
 
 	if ($SearchService) {
 		# Search service workaround to refresh lucene index after sensenet repository is initialized
@@ -295,6 +297,13 @@ if ($Install) {
 			-Restart $True `
 			-DryRun $DryRun `
 			-ErrorAction stop
+
+		if (-not $DryRun -and $OpenInBrowser) {
+			Wait-For-It -Seconds 5 `
+				-Message "Restart your sensenet repository..." `
+				-Silent $True
+				-DryRun $DryRun
+		}
 	}
 
 	if (-not $DryRun -and $OpenInBrowser) {
