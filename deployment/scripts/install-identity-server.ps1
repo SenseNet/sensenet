@@ -32,7 +32,7 @@ Param (
 	
 	# Identity server
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sensenet-identityserver",
+	[string]$IdentityDockerImage="sn-identityserver",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]

@@ -44,7 +44,7 @@ Param (
 	
 	# Technical
 	[Parameter(Mandatory=$False)]
-	[bool]$UseVolume=$True,
+	[bool]$UseVolume=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$WithServices=$False,
 	[Parameter(Mandatory=$False)]
@@ -104,6 +104,7 @@ if ($UseVolume -and
 }
 if ($UseDbContainer -and
 	$SqlVolume -ne "" -and
+	$UseVolume -and
 	$SnType -eq "InSql") {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
