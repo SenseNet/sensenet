@@ -28,5 +28,24 @@ if ($Uninstall) {
     return
 }
 
-Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "$($VolumeBasePath)/certificates/aspnetapp.pfx", "-p", "$CertPsw"
-Invoke-Cli -command "dotnet dev-certs https --trust"
+$dummyContainerName = -join ((65..90) + (97..122) | Get-Random -Count 10 | % {[char]$_})
+
+if (Test-Path "./certificates/aspnetapp.pfx") {
+	Write-Verbose "Certificate already exists"
+} else {	
+	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./certificates/aspnetapp.pfx", "-p", "$CertPsw"
+	Invoke-Cli -command "dotnet dev-certs https --trust"
+}
+
+# workaround if cert is not at default place
+Invoke-Cli -execFile "docker" -params "run", "-d", "--rm", "--name", $dummyContainerName, "-v", "$($VolumeBasePath)/certificates/:/root", "alpine", "tail", "-f", "/dev/null"
+$isCertExists = (docker exec -it $dummyContainerName sh -c "test -f /root/aspnetapp.pfx && echo 'FileExists'") 
+if ($isCertExists -eq "FileExists") {
+	Write-Verbose "Certificate is at the right place!"
+} else {
+	Invoke-Cli -execFile "docker" -params "cp", (Resolve-Path "./certificates/aspnetapp.pfx"), "$($dummyContainerName):/root/aspnetapp.pfx"
+}
+Invoke-Cli -execFile "docker" -params "stop", $dummyContainerName
+
+
+

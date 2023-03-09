@@ -196,15 +196,16 @@ if ($CleanUp -or $Uninstall) {
 			-ErrorAction stop
 	}
 
-	if ($createRabbitContainer -and -not $KeepRabbitMq) {
-		./scripts/install-rabbit.ps1 `
-			-RabbitContainername $rabbitContainerName `
-			-Uninstall $True `
-			-DryRun $DryRun `
-			-ErrorAction stop
-	}
-
 	if ($Uninstall) {
+		# rabbitmq shared across installments so remove only at uninstall 
+		if ($createRabbitContainer -and -not $KeepRabbitMq) {
+			./scripts/install-rabbit.ps1 `
+				-RabbitContainername $rabbitContainerName `
+				-Uninstall $True `
+				-DryRun $DryRun `
+				-ErrorAction stop
+		}
+
 		exit;
 	}
 }
