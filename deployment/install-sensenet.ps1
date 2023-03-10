@@ -216,6 +216,7 @@ if ($CreateDevCert) {
 	./scripts/create-devcert.ps1 `
 		-VolumeBasePath $VolumeBasePath `
 		-CertPsw $CertPsw `
+		-UseVolume $UseVolume `
 		-DryRun $DryRun `
 		-ErrorAction stop
 }
@@ -275,6 +276,7 @@ if ($SnType -eq "InSql") {
 	-IdentityPublicHost https://localhost:$IsHostPort `
 	-IsHostPort $IsHostPort `
 	-CertPass $CertPsw `
+	-UseVolume $UseVolume `
 	-DryRun $DryRun `
 	-ErrorAction stop
 

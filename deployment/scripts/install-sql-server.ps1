@@ -46,7 +46,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[bool]$Uninstall=$False,
     [Parameter(Mandatory=$False)]
-	[bool]$UseVolume=$True,
+	[bool]$UseVolume=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
 )
@@ -79,8 +79,11 @@ Write-Output "############################"
 if ($UseDbContainer) {
     Test-Docker 
 
-    Write-Output "[$($date) INFO] Permit mssql server volume"
-    Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
+    if ($UseVolume) {
+        # add permission to volume folder
+        Write-Output "[$($date) INFO] Permit mssql server volume"
+        Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
+    }
 
     Write-Output "[$($date) INFO] Install mssql server"
     $execFile = "docker"

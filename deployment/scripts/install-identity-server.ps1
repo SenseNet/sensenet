@@ -54,6 +54,8 @@ Param (
 	
 	# Technical
 	[Parameter(Mandatory=$False)]
+	[bool]$UseVolume=$False,
+	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
 	[bool]$DryRun=$False
@@ -120,11 +122,11 @@ if ($CertPass -ne "") {
 	$params += "-e", "Kestrel__Certificates__Default__Password=`"$CertPass`"", "eol"
 }
 
-if ($CertFolder -ne "") {
+if ($UseVolume -and $CertFolder -ne "") {
 	$params += "-v", "$($CertFolder):/root/.aspnet/https:ro", "eol"
 }
 
-if ($UserSecrets -ne "") {
+if ($UseVolume -and $UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
@@ -135,6 +137,16 @@ if ($OpenPort) {
 $params += "$IdentityDockerImage"
 
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
+if (-not $UseVolume) {
+	if (-not (Test-Path "./temp/certificates/aspnetapp.pfx")) {
+		Write-Error "Certificate file missing!"
+	}
+
+	# if containers started without volume mounts upload the certificate to the container
+	Invoke-Cli -execFile $execFile -params "exec", "-it", $IdentityContainerName, "mkdir", "-p", "/root/.aspnet/https"
+	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/aspnetapp.pfx", "$($IdentityContainerName):/root/.aspnet/https/aspnetapp.pfx"
+}
+
 if (-not $DryRun) {
 	if ($Debugging) {
 		Write-Output " "

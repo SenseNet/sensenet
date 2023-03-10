@@ -188,7 +188,6 @@ Function New-Database {
 	if ($UserName) {
 		#This sets the connection to mixed-mode authentication
 		$dbServer.ConnectionContext.LoginSecure = $false;
-		# $dbServer.ConnectionContext.LoginSecure = $true;
 
 		#This sets the login name
 		$dbServer.ConnectionContext.set_Login($UserName);
