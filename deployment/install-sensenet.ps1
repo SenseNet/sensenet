@@ -1,30 +1,33 @@
 Param (
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[string]$ProjectName,
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
-	[bool]$CreateDevCert=$False,	
+	[switch]$CreateDevCert,
 	[Parameter(Mandatory=$False)]
-	[bool]$CreateImages=$False,
+	[switch]$CreateImages,
 	[Parameter(Mandatory=$False)]
-	[bool]$CleanUp=$False,
+	[switch]$CleanUp,
 	[Parameter(Mandatory=$False)]
-	[bool]$Install=$True,
+	[switch]$NoInstall,
 	[Parameter(Mandatory=$False)]
-	[bool]$OpenInBrowser=$True,
+	[switch]$OpenInBrowser,
 	[Parameter(Mandatory=$False)]
-	[bool]$Uninstall=$False,
+	[switch]$Uninstall,
+	[Parameter(Mandatory=$False)]
+	[switch]$KeepRemoteDatabase,
+	[Parameter(Mandatory=$False)]
+	[switch]$KeepRabbitMq,
 	
 	# Modifiers
 	[Parameter(Mandatory=$False)]
-	[bool]$LocalSn=$False,
-	[Parameter(Mandatory=$False)]
-	[bool]$UseVolume=$False,	
-	[Parameter(Mandatory=$False)]
-	[bool]$KeepRemoteDatabase=$True,
+	[switch]$LocalSn,
+	[Parameter(Mandatory=$False,
+	ParameterSetName="volume")]
+	[switch]$UseVolume,	
 
 	# Hosting environment
 	[Parameter(Mandatory=$False)]
@@ -34,7 +37,7 @@ Param (
 
 	# Sensenet Repository Database
 	[Parameter(Mandatory=$False)]
-	[bool]$UseDbContainer=$True,
+	[switch]$HostDb,
 	[Parameter(Mandatory=$False)]
     [string]$DataSource="$HostName",
 	[Parameter(Mandatory=$False)]
@@ -44,7 +47,7 @@ Param (
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
-	[bool]$SearchService=$False,
+	[switch]$SearchService,
 
 	# Rabbit-mq
 	[Parameter(Mandatory=$False)]
@@ -52,7 +55,7 @@ Param (
 
 	# Technical	
 	[Parameter(Mandatory=$False)]
-	[bool]$DryRun=$False
+	[switch]$DryRun
 )
 
 # example 
@@ -90,7 +93,7 @@ $AppEnvironment="Development"
 if (-not $ProjectName) {
 	$ProjectName = "sensenet-$($SnType.ToLower())"
 	if ($SnType -eq "InSql") {
-		if ($UseDbContainer) { $ProjectName += "-cdb" } else { $ProjectName += "-hdb" }
+		if ($HostDb) { $ProjectName += "-hdb" } else { $ProjectName += "-cdb" }
 		if ($UseVolume) { $ProjectName += "-wv" }
 		if ($SearchService) { $ProjectName += "-ws" }
 	}
@@ -100,7 +103,7 @@ if (-not $ProjectName) {
 $basePort = 51000
 $portModifier = 0
 if ($SnType -eq "InSql") {
-	$portModifier = 5 + 10 * $UseDbContainer + 20 * $UseVolume + 40 * $SearchService
+	$portModifier = 5 + 10 * [bool]$HostDb + 20 * [bool]$UseVolume + 40 * [bool]$SearchService
 }
 $SnHostPort=$basePort + 11 + $portModifier
 $IsHostPort=$basePort + 12 + $portModifier
@@ -115,7 +118,9 @@ if ($SearchService) { $imageTypes+="Search" }
 if ($SnType -eq "InMem") {  
 	$SearchService = $False
 	$UseDbContainer = $False	
-} 
+} else {
+	$UseDbContainer = -not $HostDb
+}
 
 # Wait time in seconds before try to connect to sensenet repository
 if ($SnType -eq "InMem") {
@@ -139,8 +144,9 @@ $rabbitUser="admin"
 $rabbitPsw="SuP3rS3CuR3P4sSw0Rd"
 $rabbitPort=$basePort + 5
 
-if ($RabbitServiceHost)
-{
+if (-not $SearchService) {
+	$createRabbitContainer = $False
+} elseif ($RabbitServiceHost) {
 	$createRabbitContainer = $False
 } else {
 	$createRabbitContainer = $True
@@ -148,7 +154,7 @@ if ($RabbitServiceHost)
 }
 
 if ($SnType -eq "InSql") {
-	if (-not $UseDbContainer) {
+	if ($HostDb) {
 		if (-not $SqlUser -or -not $SqlPsw) {
 			$SqlUser = Read-Host -Prompt 'Input your mssql user name'
 			$SqlPsw = Read-Host -Prompt 'Input the mssql user password'		
@@ -191,6 +197,15 @@ if ($CleanUp -or $Uninstall) {
 	}
 
 	if ($Uninstall) {
+		# rabbitmq shared across installments so remove only at uninstall 
+		if ($createRabbitContainer -and -not $KeepRabbitMq) {
+			./scripts/install-rabbit.ps1 `
+				-RabbitContainername $rabbitContainerName `
+				-Uninstall $True `
+				-DryRun $DryRun `
+				-ErrorAction stop
+		}
+
 		exit;
 	}
 }
@@ -218,125 +233,128 @@ if ($CreateImages) {
 
 #====================== installer ======================
 
-if ($Install) {
-	./scripts/install-sensenet-init.ps1 `
+if ($NoInstall) {
+	return
+}
+
+./scripts/install-sensenet-init.ps1 `
+	-DryRun $DryRun `
+	-ErrorAction stop
+
+if ($SearchService -and $createRabbitContainer) {
+	./scripts/install-rabbit.ps1 `
+		-RabbitContainername $rabbitContainerName `
+		-RabbitPort $rabbitPort `
+		-RabbitUser $rabbitUSer `
+		-RabbitPsw $rabbitPsw `
 		-DryRun $DryRun `
 		-ErrorAction stop
+}
 
-	if ($SearchService -and $createRabbitContainer) {
-		./scripts/install-rabbit.ps1 `
-			-RabbitContainername $rabbitContainerName `
-			-RabbitPort $rabbitPort `
-			-RabbitUser $rabbitUSer `
-			-RabbitPsw $rabbitPsw `
-			-DryRun $DryRun `
-			-ErrorAction stop
-	}
-
-	if ($SnType -eq "InSql") {
-		./scripts/install-sql-server.ps1 `
-			-ProjectName $ProjectName `
-			-HostName $Hostname `
-			-VolumeBasePath $VolumeBasePath `
-			-UseDbContainer $UseDbContainer `
-			-DataSource $DataSource `
-			-SqlUser $SqlUSer `
-			-SqlPsw $SqlPsw `
-			-UseVolume $UseVolume `
-			-DryRun $DryRun `
-			-ErrorAction stop
-	}
-
-	./scripts/install-identity-server.ps1 `
-		-ProjectName $ProjectName `
-		-VolumeBasePath $VolumeBasePath `
-		-Routing cnt `
-		-AppEnvironment $AppEnvironment `
-		-OpenPort $True `
-		-SensenetPublicHost https://localhost:$SnHostPort `
-		-IdentityPublicHost https://localhost:$IsHostPort `
-		-IsHostPort $IsHostPort `
-		-CertPass $CertPsw `
-		-DryRun $DryRun `
-		-ErrorAction stop
-	
-	if ($SearchService) {
-		./scripts/install-search-service.ps1 `
-			-ProjectName $ProjectName `
-			-HostName $HostName `
-			-VolumeBasePath $VolumeBasePath `
-			-Routing cnt `
-			-AppEnvironment $AppEnvironment `
-			-OpenPort $True `
-			-UseDbContainer $UseDbContainer `
-			-DataSource $DataSource `
-			-SqlUser $SqlUSer `
-			-SqlPsw $SqlPsw `
-			-SearchHostPort $SearchHostPort `
-			-RabbitServiceHost $RabbitServiceHost `
-			-CertPass $CertPsw `
-			-UseVolume $UseVolume `
-			-DryRun $DryRun `
-			-ErrorAction stop
-	}
-
-	./scripts/install-sensenet-app.ps1 `
+if ($SnType -eq "InSql") {
+	./scripts/install-sql-server.ps1 `
 		-ProjectName $ProjectName `
 		-HostName $Hostname `
 		-VolumeBasePath $VolumeBasePath `
-		-Routing cnt `
-		-AppEnvironment $AppEnvironment `
-		-OpenPort $True `
-		-SnType $SnType `
-		-SnHostPort $SnHostPort `
-		-SensenetPublicHost https://localhost:$SnHostPort `
-		-IdentityPublicHost https://localhost:$IsHostPort `
 		-UseDbContainer $UseDbContainer `
 		-DataSource $DataSource `
 		-SqlUser $SqlUSer `
 		-SqlPsw $SqlPsw `
-		-SearchService $SearchService `
+		-UseVolume $UseVolume `
+		-DryRun $DryRun `
+		-ErrorAction stop
+}
+
+./scripts/install-identity-server.ps1 `
+	-ProjectName $ProjectName `
+	-VolumeBasePath $VolumeBasePath `
+	-Routing cnt `
+	-AppEnvironment $AppEnvironment `
+	-OpenPort $True `
+	-SensenetPublicHost https://localhost:$SnHostPort `
+	-IdentityPublicHost https://localhost:$IsHostPort `
+	-IsHostPort $IsHostPort `
+	-CertPass $CertPsw `
+	-DryRun $DryRun `
+	-ErrorAction stop
+
+if ($SearchService) {
+	./scripts/install-search-service.ps1 `
+		-ProjectName $ProjectName `
+		-HostName $HostName `
+		-VolumeBasePath $VolumeBasePath `
+		-Routing cnt `
+		-AppEnvironment $AppEnvironment `
+		-OpenPort $True `
+		-UseDbContainer $UseDbContainer `
+		-DataSource $DataSource `
+		-SqlUser $SqlUSer `
+		-SqlPsw $SqlPsw `
+		-SearchHostPort $SearchHostPort `
 		-RabbitServiceHost $RabbitServiceHost `
 		-CertPass $CertPsw `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `
 		-ErrorAction stop
-	
-	if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
-		Wait-For-It -Seconds $WaitForSnInSeconds `
-			-Message "We are preparing your sensenet repository..." `
-			-DryRun $DryRun
-	}
+}
 
-	if ($SearchService) {
-		# Search service workaround to refresh lucene index after sensenet repository is initialized
-		./scripts/install-search-service.ps1 `
-			-ProjectName $ProjectName `
-			-Restart $True `
-			-DryRun $DryRun `
-			-ErrorAction stop
+./scripts/install-sensenet-app.ps1 `
+	-ProjectName $ProjectName `
+	-HostName $Hostname `
+	-VolumeBasePath $VolumeBasePath `
+	-Routing cnt `
+	-AppEnvironment $AppEnvironment `
+	-OpenPort $True `
+	-SnType $SnType `
+	-SnHostPort $SnHostPort `
+	-SensenetPublicHost https://localhost:$SnHostPort `
+	-IdentityPublicHost https://localhost:$IsHostPort `
+	-UseDbContainer $UseDbContainer `
+	-DataSource $DataSource `
+	-SqlUser $SqlUSer `
+	-SqlPsw $SqlPsw `
+	-SearchService $SearchService `
+	-RabbitServiceHost $RabbitServiceHost `
+	-CertPass $CertPsw `
+	-UseVolume $UseVolume `
+	-DryRun $DryRun `
+	-ErrorAction stop
 
-		# Sensenet application workaround if preparation was too slow and app terminated
-		./scripts/install-sensenet-app.ps1 `
-			-ProjectName $ProjectName `
-			-Restart $True `
-			-DryRun $DryRun `
-			-ErrorAction stop
+if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
+	Wait-For-It -Seconds $WaitForSnInSeconds `
+		-Message "We are preparing your sensenet repository..." `
+		-DryRun $DryRun
+}
 
-		if (-not $DryRun -and $OpenInBrowser) {
-			Wait-For-It -Seconds 5 `
-				-Message "Restart your sensenet repository..." `
-				-Silent $True `
-				-DryRun $DryRun
-		}
-	}
+if ($SearchService) {
+	# Search service workaround to refresh lucene index after sensenet repository is initialized
+	./scripts/install-search-service.ps1 `
+		-ProjectName $ProjectName `
+		-Restart $True `
+		-DryRun $DryRun `
+		-ErrorAction stop
+
+	# Sensenet application workaround if preparation was too slow and app terminated
+	./scripts/install-sensenet-app.ps1 `
+		-ProjectName $ProjectName `
+		-Restart $True `
+		-DryRun $DryRun `
+		-ErrorAction stop
 
 	if (-not $DryRun -and $OpenInBrowser) {
-		Start-Process "https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
+		Wait-For-It -Seconds 5 `
+			-Message "Restart your sensenet repository..." `
+			-Silent $True `
+			-DryRun $DryRun
 	}
-
-	Write-Output "You're welcome!"
 }
+
+if (-not $DryRun -and $OpenInBrowser) {
+	Start-Process "https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
+}
+
+Write-Output "You're welcome!"
+
 # } catch {
 # 	Write-Error "$_"
 # }
