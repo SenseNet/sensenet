@@ -60,7 +60,8 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 ##    Variables section     #
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
-$WaitForDbInSeconds = 20
+$RecheckDbInSeconds = 10
+$MaxTryNumber = 6
 
 if ($Cleanup -or $Uninstall) {
     if (-not $UseDbContainer) {
@@ -105,9 +106,47 @@ if ($UseDbContainer) {
     $params += $SqlDockerImage
     Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
         
-    Wait-For-It -Seconds $WaitForDbInSeconds -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
+    # wait for docker container to be started
+	DO {
+		Write-Verbose "check container availability..."
+		$isContainerAvailable = $False        
+        $cntStatus = $( docker container inspect -f "{{.State.Status}}" $SqlContainerName )
+        if ($cntStatus -eq "running") {
+            Write-Verbose "container available!"
+            $isContainerAvailable = $True 
+        } else {
+            Write-Verbose "container not yet available!"
+            $isContainerAvailable = $False
+            Wait-For-It -Seconds $RecheckDbInSeconds -Message "Waiting for MsSql container to be ready..." -DryRun $DryRun
 
-    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U $($SqlUser) -P $($SqlPsw) -Q `"DROP DATABASE IF EXISTS [$($SqlDbName)];CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
+            if ($MaxTryNumber-- -lt 0) {
+                Write-Error "Wait for sql container timed out! ($($MaxTryNumber * $RecheckDbInSeconds)s)"
+                return
+            }
+        }
+	} Until ($isContainerAvailable)
+
+    # wait for sql server to be available
+    DO {
+		Write-Verbose "check server availability..."
+		$isServerAvailable = $False        
+        $dummyQuery = $((docker exec sensenet-insql-cdb-snsql /opt/mssql-tools/bin/sqlcmd -U sa -P SuP3rS3CuR3P4sSw0Rd -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+        if ($dummyQuery -eq "4") {
+            Write-Verbose "server available!"
+            $isServerAvailable = $True 
+        } else {
+            Write-Verbose "server not yet available!"
+            $isServerAvailable = $False
+            Wait-For-It -Seconds $RecheckDbInSeconds -Message "Waiting for MsSql server to be ready..." -DryRun $DryRun
+
+            if ($MaxTryNumber-- -lt 0) {
+                Write-Error "Wait for sql server timed out! ($($MaxTryNumber * $RecheckDbInSeconds)s)"
+                return
+            }
+        }
+	} Until ($isServerAvailable)
+
+    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U $($SqlUser) -P $($SqlPsw) -Q `"CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
@@ -115,6 +154,7 @@ if ($UseDbContainer) {
 		Write-Output "[$($date) INFO] MsSql Server: localhost,$SqlHostPort"
 	}
 } else {
+    # Wait-RemoteDbServer -ServerName "$DataSource" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
 	# standalone mssql server
     New-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
 }

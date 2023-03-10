@@ -233,6 +233,63 @@ Function New-Database {
 	}
 }
 
+Function Wait-RemoteDbServer {
+	Param (
+		[Parameter(Mandatory = $True)]
+		[string]$ServerName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserName,
+		[Parameter(Mandatory = $False)]
+		[string]$UserPsw,
+		[Parameter(Mandatory = $False)]
+		[int]$WaintInSeconds = 10,
+		[Parameter(Mandatory = $False)]
+		[int]$MaxTryNumber = 5
+	)
+	
+	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null 
+	# [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SmoExtended') | out-null 
+	
+	Import-Module SQLServer -DisableNameChecking
+	
+	#Set variables 
+	$dbServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') $ServerName 
+	
+	Write-Verbose "username: $UserName"
+	if ($UserName) {
+		Write-Output "username: $UserName"
+	
+		#This sets the connection to mixed-mode authentication
+		$dbServer.ConnectionContext.LoginSecure = $false;
+	
+		#This sets the login name
+		$dbServer.ConnectionContext.set_Login($UserName);
+		
+		#This sets the password
+		$dbServer.ConnectionContext.set_Password($UserPsw)
+	}
+	
+	DO {
+		Write-Verbose "check server availability..."
+		$isServerAvailable = $False
+		try {	 
+			$dbServer.ConnectionContext.Connect()
+			Write-Verbose "server available!"
+			$isServerAvailable = $True 
+		}
+		catch {
+			if ($MaxTryNumber-- -gt 0) {
+				Write-Verbose "server not yet available!"
+				$isServerAvailable = $False
+				Start-Sleep -s $WaintInSeconds
+			} else {
+				Write-Error "Wait for sql server timed out! ($($MaxTryNumber * $WaintInSeconds)s)"
+			}
+		}
+	
+	} Until ($isServerAvailable)
+}
+
 Function Wait-For-It {
 	Param (		
 		[Parameter(Mandatory=$True)]
