@@ -242,7 +242,7 @@ Function Wait-For-It {
 		[Parameter(Mandatory=$False)]
 		[bool]$Silent=$False,
 		[Parameter(Mandatory=$False)]
-		[string]$Progress="Bar",
+		[string]$Progress="Output",
 		[Parameter(Mandatory=$False)]
 		[bool]$DryRun=$False
 	)
