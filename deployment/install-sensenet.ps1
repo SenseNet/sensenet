@@ -11,7 +11,7 @@ Param (
 	[switch]$CreateImages,
 	[Parameter(Mandatory=$False)]
 	[switch]$CleanUp,
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[switch]$NoInstall,
 	[Parameter(Mandatory=$False)]
 	[switch]$OpenInBrowser,
