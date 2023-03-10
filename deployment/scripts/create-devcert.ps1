@@ -33,7 +33,7 @@ $dummyContainerName = -join ((65..90) + (97..122) | Get-Random -Count 10 | % {[c
 if (Test-Path "./certificates/aspnetapp.pfx") {
 	Write-Verbose "Certificate already exists"
 } else {	
-	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./certificates/aspnetapp.pfx", "-p", "$CertPsw"
+	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./temp/certificates/aspnetapp.pfx", "-p", "$CertPsw"
 	Invoke-Cli -command "dotnet dev-certs https --trust"
 }
 
@@ -43,7 +43,7 @@ $isCertExists = (docker exec -it $dummyContainerName sh -c "test -f /root/aspnet
 if ($isCertExists -eq "FileExists") {
 	Write-Verbose "Certificate is at the right place!"
 } else {
-	Invoke-Cli -execFile "docker" -params "cp", (Resolve-Path "./certificates/aspnetapp.pfx"), "$($dummyContainerName):/root/aspnetapp.pfx"
+	Invoke-Cli -execFile "docker" -params "cp", "./temp/certificates/aspnetapp.pfx", "$($dummyContainerName):/root/aspnetapp.pfx"
 }
 Invoke-Cli -execFile "docker" -params "stop", $dummyContainerName
 
