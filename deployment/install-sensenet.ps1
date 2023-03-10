@@ -2,7 +2,7 @@ Param (
 	[Parameter(Mandatory=$False, DontShow=$True)]
 	[string]$ProjectName,
 	[Parameter(Mandatory=$False)]
-	[string]$SnType="InSql",
+	[switch]$InMemPlatform,
 
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
@@ -79,15 +79,15 @@ Param (
 		. "$($PSScriptRoot)/scripts/helper-functions.ps1"
 	}
 
-	if ($SnType -ne "InMem" -and $SnType -ne "InSql") {
-		Write-Error "-SnType is either 'InMem' or 'InSql'."
-		return
-	}
-
 #############################
 ##    Variables section     #
 #############################
 $AppEnvironment="Development"
+if ($InMemPlatform) {
+	$SnType = "InMem"
+} else {
+	$SnType = "InSql"
+}
 
 # different sensenet types with different names for combined demo
 if (-not $ProjectName) {
