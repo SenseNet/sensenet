@@ -323,9 +323,35 @@ if ($SearchService) {
 	-ErrorAction stop
 
 if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
-	Wait-For-It -Seconds $WaitForSnInSeconds `
-		-Message "We are preparing your sensenet repository..." `
-		-DryRun $DryRun
+	# Wait-For-It -Seconds $WaitForSnInSeconds `
+	# 	-Message "We are preparing your sensenet repository..." `
+	# 	-DryRun $DryRun
+
+	$RecheckDbInSeconds = 10
+	$MaxTryNumber = 12
+	Write-Verbose "check snapp availability..."
+	DO {		
+		$isSnAppAvailable = $False
+		try {	 
+			$snApiStatusCode = (Invoke-WebRequest -Uri https://localhost:$($SnHostPort)/odata.svc/Root -Verbose:$false).StatusCode
+			if ($snApiStatusCode = 200) {
+				Write-Verbose "sn api available!"
+				$isSnAppAvailable = $True
+			} else {
+				Write-Verbose "sn api not yet available!"
+				$isSnAppAvailable = $False
+			}
+		}
+		catch {
+			if ($MaxTryNumber-- -gt 0) {
+				Write-Verbose "sn api not yet available!"
+				$isSnAppAvailable = $False
+				Start-Sleep -s $RecheckDbInSeconds
+			} else {
+				Write-Error "Wait for sql server timed out! ($($MaxTryNumber * $RecheckDbInSeconds)s)"
+			}
+		}
+	} Until ($isSnAppAvailable)
 }
 
 if ($SearchService) {
@@ -343,12 +369,12 @@ if ($SearchService) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 
-	if (-not $DryRun -and $OpenInBrowser) {
-		Wait-For-It -Seconds 5 `
-			-Message "Restart your sensenet repository..." `
-			-Silent $True `
-			-DryRun $DryRun
-	}
+	# if (-not $DryRun -and $OpenInBrowser) {
+	# 	Wait-For-It -Seconds 5 `
+	# 		-Message "Restart your sensenet repository..." `
+	# 		-Silent $True `
+	# 		-DryRun $DryRun
+	# }
 }
 
 if (-not $DryRun -and $OpenInBrowser) {

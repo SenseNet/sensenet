@@ -107,8 +107,8 @@ if ($UseDbContainer) {
     Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
         
     # wait for docker container to be started
-	DO {
-		Write-Verbose "check container availability..."
+    Write-Verbose "check container availability..."
+	DO {		
 		$isContainerAvailable = $False        
         $cntStatus = $( docker container inspect -f "{{.State.Status}}" $SqlContainerName )
         if ($cntStatus -eq "running") {
@@ -127,8 +127,8 @@ if ($UseDbContainer) {
 	} Until ($isContainerAvailable)
 
     # wait for sql server to be available
-    DO {
-		Write-Verbose "check server availability..."
+    Write-Verbose "check server availability..."
+    DO {		
 		$isServerAvailable = $False        
         $dummyQuery = $((docker exec sensenet-insql-cdb-snsql /opt/mssql-tools/bin/sqlcmd -U sa -P SuP3rS3CuR3P4sSw0Rd -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
         if ($dummyQuery -eq "4") {
