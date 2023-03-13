@@ -60,7 +60,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$CertFolder="$($VolumeBasePath)/certificates",
 	[Parameter(Mandatory=$False)]
-	[string]$CertPath="/root/.aspnet/https/aspnetapp.pfx",
+	[string]$CertName="snapp.pfx",
+	[Parameter(Mandatory=$False)]
+	[string]$CertPath="/root/.aspnet/https/$($CertName)",
 	[Parameter(Mandatory=$False)]
 	[string]$CertPass,
 	
@@ -152,13 +154,13 @@ $params += "$SearchDockerImage"
 Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
 
 if (-not $UseVolume) {
-	if (-not (Test-Path "./temp/certificates/aspnetapp.pfx")) {
+	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
 		Write-Error "Certificate file missing!"
 	}
 	
 	# if containers started without volume mounts upload the certificate to the container
 	Invoke-Cli -execFile $execFile -params "exec", "-it", $SearchContainerName, "mkdir", "-p", "/root/.aspnet/https"
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/aspnetapp.pfx", "$($SearchContainerName):/root/.aspnet/https/aspnetapp.pfx"
+	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SearchContainerName):/root/.aspnet/https/$($CertName)"
 }
 
 if (-not $DryRun) {	

@@ -6,8 +6,6 @@ Param (
 
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
-	[switch]$CreateDevCert,
-	[Parameter(Mandatory=$False)]
 	[switch]$CreateImages,
 	[Parameter(Mandatory=$False)]
 	[switch]$CleanUp,
@@ -212,14 +210,14 @@ if ($CleanUp -or $Uninstall) {
 
 #====================== prerequisites ======================
 
-if ($CreateDevCert) {
-	./scripts/create-devcert.ps1 `
-		-VolumeBasePath $VolumeBasePath `
-		-CertPsw $CertPsw `
-		-UseVolume $UseVolume `
-		-DryRun $DryRun `
-		-ErrorAction stop
-}
+# create dev cert if cert is not available
+./scripts/create-devcert.ps1 `
+	-VolumeBasePath $VolumeBasePath `
+	-CertPsw $CertPsw `
+	-UseVolume $UseVolume `
+	-DryRun $DryRun `
+	-ErrorAction stop
+
 
 if ($CreateImages) {
 	foreach ($imageType in $imageTypes) {

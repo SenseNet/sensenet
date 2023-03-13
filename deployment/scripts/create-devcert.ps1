@@ -4,6 +4,8 @@ Param (
 	[string]$VolumeBasePath="./volumes",
 
     # Common app settings
+	[Parameter(Mandatory=$False)]
+	[string]$CertName="snapp.pfx",	
     [Parameter(Mandatory=$False)]
 	[string]$CertPsw,
 
@@ -31,21 +33,21 @@ if ($Uninstall) {
 
 $dummyContainerName = -join ((65..90) + (97..122) | Get-Random -Count 10 | % {[char]$_})
 
-if (Test-Path "./certificates/aspnetapp.pfx") {
+if (Test-Path "./certificates/$($CertName)") {
 	Write-Verbose "Certificate already exists"
 } else {	
-	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./temp/certificates/aspnetapp.pfx", "-p", "$CertPsw"
+	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./temp/certificates/$($CertName)", "-p", "$CertPsw"
 	Invoke-Cli -command "dotnet dev-certs https --trust"
 }
 
 if ($UseVolume) {
-	# copy the certificate through dummy container volume mount to the exact place where the app will be use it
+	# copy the certificate through dummy container volume mount to the exact place from where the app will use it
 	Invoke-Cli -execFile "docker" -params "run", "-d", "--rm", "--name", $dummyContainerName, "-v", "$($VolumeBasePath)/certificates/:/root", "alpine", "tail", "-f", "/dev/null"
-	$isCertExists = (docker exec -it $dummyContainerName sh -c "test -f /root/aspnetapp.pfx && echo 'FileExists'") 
+	$isCertExists = (docker exec -it $dummyContainerName sh -c "test -f /root/$($CertName) && echo 'FileExists'") 
 	if ($isCertExists -eq "FileExists") {
 		Write-Verbose "Certificate is at the right place!"
 	} else {
-		Invoke-Cli -execFile "docker" -params "cp", "./temp/certificates/aspnetapp.pfx", "$($dummyContainerName):/root/aspnetapp.pfx"
+		Invoke-Cli -execFile "docker" -params "cp", "./temp/certificates/$($CertName)", "$($dummyContainerName):/root/$($CertName)"
 	}
 	Invoke-Cli -execFile "docker" -params "stop", $dummyContainerName
 }

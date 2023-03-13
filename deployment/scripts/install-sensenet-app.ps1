@@ -78,7 +78,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$CertFolder="$($VolumeBasePath)/certificates",
 	[Parameter(Mandatory=$False)]
-	[string]$CertPath="/root/.aspnet/https/aspnetapp.pfx",
+	[string]$CertName="snapp.pfx",
+	[Parameter(Mandatory=$False)]
+	[string]$CertPath="/root/.aspnet/https/$($CertName)",
 	[Parameter(Mandatory=$False)]
 	[string]$CertPass,
 
@@ -227,13 +229,13 @@ $params += "$SensenetDockerImage"
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop 
 
 if (-not $UseVolume) {
-	if (-not (Test-Path "./temp/certificates/aspnetapp.pfx")) {
+	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
 		Write-Error "Certificate file missing!"
 	}
 	
 	# if containers started without volume mounts upload the certificate to the container
 	Invoke-Cli -execFile $execFile -params "exec", "-it", $SensenetContainerName, "mkdir", "-p", "/root/.aspnet/https"
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/aspnetapp.pfx", "$($SensenetContainerName):/root/.aspnet/https/aspnetapp.pfx"
+	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SensenetContainerName):/root/.aspnet/https/$($CertName)"
 }
 
 if (-not $DryRun) {
