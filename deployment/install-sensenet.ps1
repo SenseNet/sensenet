@@ -188,7 +188,7 @@ if ($CleanUp -or $Uninstall) {
 			-VolumeBasePath $VolumeBasePath `
 			-UseDbContainer $UseDbContainer `
 			-DataSource $DataSource `
-			-SqlUser $SqlUSer `
+			-SqlUser $SqlUser `
 			-SqlPsw $SqlPsw `
 			-Uninstall $True `
 			-UseVolume $UseVolume `
@@ -259,7 +259,7 @@ if ($SnType -eq "InSql") {
 		-VolumeBasePath $VolumeBasePath `
 		-UseDbContainer $UseDbContainer `
 		-DataSource $DataSource `
-		-SqlUser $SqlUSer `
+		-SqlUser $SqlUser `
 		-SqlPsw $SqlPsw `
 		-UseVolume $UseVolume `
 		-DryRun $DryRun `
@@ -290,7 +290,7 @@ if ($SearchService) {
 		-OpenPort $True `
 		-UseDbContainer $UseDbContainer `
 		-DataSource $DataSource `
-		-SqlUser $SqlUSer `
+		-SqlUser $SqlUser `
 		-SqlPsw $SqlPsw `
 		-SearchHostPort $SearchHostPort `
 		-RabbitServiceHost $RabbitServiceHost `
@@ -313,7 +313,7 @@ if ($SearchService) {
 	-IdentityPublicHost https://localhost:$IsHostPort `
 	-UseDbContainer $UseDbContainer `
 	-DataSource $DataSource `
-	-SqlUser $SqlUSer `
+	-SqlUser $SqlUser `
 	-SqlPsw $SqlPsw `
 	-SearchService $SearchService `
 	-RabbitServiceHost $RabbitServiceHost `
@@ -323,35 +323,8 @@ if ($SearchService) {
 	-ErrorAction stop
 
 if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
-	# Wait-For-It -Seconds $WaitForSnInSeconds `
-	# 	-Message "We are preparing your sensenet repository..." `
-	# 	-DryRun $DryRun
-
-	$RecheckDbInSeconds = 10
-	$MaxTryNumber = 12
-	Write-Verbose "check snapp availability..."
-	DO {		
-		$isSnAppAvailable = $False
-		try {	 
-			$snApiStatusCode = (Invoke-WebRequest -Uri https://localhost:$($SnHostPort)/odata.svc/Root -Verbose:$false).StatusCode
-			if ($snApiStatusCode = 200) {
-				Write-Verbose "sn api available!"
-				$isSnAppAvailable = $True
-			} else {
-				Write-Verbose "sn api not yet available!"
-				$isSnAppAvailable = $False
-			}
-		}
-		catch {
-			if ($MaxTryNumber-- -gt 0) {
-				Write-Verbose "sn api not yet available!"
-				$isSnAppAvailable = $False
-				Start-Sleep -s $RecheckDbInSeconds
-			} else {
-				Write-Error "Wait for sql server timed out! ($($MaxTryNumber * $RecheckDbInSeconds)s)"
-			}
-		}
-	} Until ($isSnAppAvailable)
+	# wait for sensenet to be ready (first install)
+	Wait-SnApp -SnHostPort $SnHostPort -MaxTryNumber 12 -DryRun $DryRun -ErrorAction stop
 }
 
 if ($SearchService) {
@@ -369,12 +342,8 @@ if ($SearchService) {
 		-DryRun $DryRun `
 		-ErrorAction stop
 
-	# if (-not $DryRun -and $OpenInBrowser) {
-	# 	Wait-For-It -Seconds 5 `
-	# 		-Message "Restart your sensenet repository..." `
-	# 		-Silent $True `
-	# 		-DryRun $DryRun
-	# }
+	# wait for sensenet to be ready (restart only)
+	Wait-SnApp -SnHostPort $SnHostPort -MaxTryNumber 2 -DryRun $DryRun -ErrorAction stop
 }
 
 if (-not $DryRun -and $OpenInBrowser) {

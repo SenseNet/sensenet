@@ -290,10 +290,18 @@ Function Wait-RemoteDbServer {
 	} Until ($isServerAvailable)
 }
 
-Function Wait-For-It {
+Function Wait-CntDbServer {
 	Param (		
-		[Parameter(Mandatory=$True)]
-		[int]$Seconds,
+		[Parameter(Mandatory=$False)]
+		[string]$ContainerName,
+		[Parameter(Mandatory=$False)]
+		[int]$RecheckInSeconds=10,
+		[Parameter(Mandatory=$False)]
+		[int]$MaxTryNumber=6,
+		[Parameter(Mandatory = $False)]
+		[string]$UserName="sa",
+		[Parameter(Mandatory = $False)]
+		[string]$UserPsw,
 		[Parameter(Mandatory=$False)]
 		[string]$Message,
 		[Parameter(Mandatory=$False)]
@@ -304,24 +312,144 @@ Function Wait-For-It {
 		[bool]$DryRun=$False
 	)
 	
-	if ($Message) {	Write-Output $Message }
+	Write-Verbose "Waiting for $ContainerName MsSql server to be ready..."
+    DO {		
+		$isServerAvailable = $False        
+        $dummyQuery = $((docker exec $ContainerName /opt/mssql-tools/bin/sqlcmd -U $UserName -P $UserPsw -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+		Write-Verbose "[$dummyQuery]"
+        if ([int]$dummyQuery -gt 0) {
+            Write-Verbose "server available!"
+            $isServerAvailable = $True 
+        } else {
+            Write-Verbose "server not yet available!"
+            $isServerAvailable = $False
+            Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun
+
+            if ($MaxTryNumber-- -lt 0) {
+                Write-Error "Wait for sql server timed out! ($($MaxTryNumber * $RecheckInSeconds)s)"
+                return
+            }
+        }
+	} Until ($isServerAvailable)
+}
+
+Function Wait-For-It {
+	Param (		
+		[Parameter(Mandatory=$True)]
+		[int]$Seconds,
+		[Parameter(Mandatory=$False)]
+		[string]$Message,
+		[Parameter(Mandatory=$False)]
+		[string]$StatusPostFix=" seconds left",
+		[Parameter(Mandatory=$False)]
+		[bool]$ShowSeconds=$True,
+		[Parameter(Mandatory=$False)]
+		[bool]$Silent=$False,
+		[Parameter(Mandatory=$False)]
+		[string]$Progress="Output",
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
+	)
+	
+	if ($Progress -eq "Bar" -and $Message) { Write-Output $Message }
 	if (-not $DryRun) {
 		$lenght = $Seconds / 100
 		For ($Seconds; $Seconds -gt 0; $Seconds--) {
 			if (-not $Silent) {
-				$status = " " + $Seconds + " seconds left"
+				if ($ShowSeconds) {	$status = $Seconds + $StatusPostFix} 
 				if ($Progress -eq "Bar") {
 					Write-Progress -Activity $Message -Status $status -PercentComplete ($Seconds / $lenght)
 				} elseif ($Progress -eq "Output") {
 					if ($seconds % 10 -eq 0) {
-						Write-Output "$Message $status"
+						Write-Output "$("$Message $status".Trim())"
 					}
 				}
 			}
 			Start-Sleep 1
 		}
 	}
+}
 
+Function Wait-Container {
+	Param (		
+		[Parameter(Mandatory=$False)]
+		[string]$ContainerName,
+		[Parameter(Mandatory=$False)]
+		[int]$RecheckInSeconds=10,
+		[Parameter(Mandatory=$False)]
+		[int]$MaxTryNumber=6,
+		[Parameter(Mandatory=$False)]
+		[string]$Message,
+		[Parameter(Mandatory=$False)]
+		[bool]$Silent=$False,
+		[Parameter(Mandatory=$False)]
+		[string]$Progress="Output",
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
+	)
 
+	if ($Message) {	Write-Output $Message }
+	if (-not $DryRun) {
+		Write-Output "Waiting for $($ContainerName) container to be ready..."
+		DO {		
+			$isContainerAvailable = $False        
+			$cntStatus = $( docker container inspect -f "{{.State.Status}}" $ContainerName )
+			if ($cntStatus -eq "running") {
+				Write-Output "$($ContainerName) container available!"
+				$isContainerAvailable = $True 
+			} else {
+				Write-Verbose "$($ContainerName) container not yet available!"
+				$isContainerAvailable = $False
+				Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun 
+	
+				if ($MaxTryNumber-- -lt 0) {
+					Write-Error "Wait for $($ContainerName) container timed out! ($($MaxTryNumber * $RecheckInSeconds)s)"
+					return
+				}
+			}
+		} Until ($isContainerAvailable)
+	}
+}
 
+Function Wait-SnApp {
+	Param (		
+		[Parameter(Mandatory=$True)]
+		[int]$SnHostPort,
+		[Parameter(Mandatory=$False)]
+		[int]$RecheckInSeconds=10,
+		[Parameter(Mandatory=$False)]
+		[int]$MaxTryNumber=6,
+		[Parameter(Mandatory=$False)]
+		[string]$Message,
+		[Parameter(Mandatory=$False)]
+		[bool]$Silent=$False,
+		[Parameter(Mandatory=$False)]
+		[string]$Progress="Output",
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
+	)
+
+	Write-Output "Waiting for https://localhost:$($SnHostPort) snapp to be ready..."
+	DO {		
+		$isSnAppAvailable = $False
+		try {	 
+			$snApiStatusCode = (Invoke-WebRequest -Uri https://localhost:$($SnHostPort)/odata.svc/Root -Verbose:$false).StatusCode
+			if ($snApiStatusCode = 200) {
+				Write-Output "sn api available!"
+				$isSnAppAvailable = $True
+			} else {
+				Write-Verbose "sn api not yet available!"
+				$isSnAppAvailable = $False
+			}
+		}
+		catch {
+			if ($MaxTryNumber-- -gt 0) {
+				Write-Verbose "sn api not yet available!"
+				$isSnAppAvailable = $False
+				Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun 
+			} else {
+				Write-Error "Wait for snapp timed out! ($($MaxTryNumber * $RecheckInSeconds)s)"
+			}
+		}
+	} Until ($isSnAppAvailable)
 }
