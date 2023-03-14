@@ -33,21 +33,21 @@ note: `-CreateImages` switch is needed for the first run
 
 - InMemPlatform 
 
-Sample sensenet projects have a version of in memory sensenet that does not need a database. This version will start an identity server and a sensenet application container only.
+By default the installer will create a sensenet repository that uses mssql database, but sample sensenet projects have a version of in memory sensenet that does not need a database. This version will start an identity server and a sensenet application container only.
 ```powershell
 .\install-sensenet.ps1 -InMemPlatform
 ```
 
 - CreateImages
 
-The script started with `-CreateImages` switch will download the necessary github repositories and create the appropriate docker images for every service the set version of sensenet will be using. These temporary files will be created under `./temp` folder and the images will be created on the host docker registry. It is a necessary step for the first run as no images published yet.
+The script started with `-CreateImages` switch will download the necessary github repositories and create the appropriate docker images for every service that the specific version set of sensenet will be using. So if the installer started with `-SearchService`, it will create the appropriate sensenet docker image and search service image as well, and so on. These temporary files will be created under `./temp` folder and the images will be created on the host docker registry. It is a necessary step for the first run as no images published yet.
 ```powershell
 .\install-sensenet.ps1 -CreateImages
 ```
 
 - SearchService
 
-Sample sensenet set for nlb environments. The indexing is not handled by the sensenet application but with a separate search service. It will start four containers: Identityserver, search service, sensenet application and a rabbitmq for the messaging between services.
+Sample sensenet set for nlb environments. The indexing is not handled by the sensenet application but with a separate search service. It will start four containers: Identityserver, mmsql server, search service, sensenet application and a rabbitmq for the messaging between services.
 
 - HostDb with DataSource, SqlUser and SqlPsw
 
@@ -55,7 +55,6 @@ You can try this sensenet demo with you local database on the host machine. `-Ho
 ```powershell
 .\install-sensenet.ps1 -DataSource MyMachineHostName\Sql2019 -HostDb -SqlUser testuserfordockerdemo -SqlPsw Ultr4Secur3P4ssw0rd 
 ```
-
 - UseVolume and VolumeBasePath
 
 It's a bit advanced switch as docker for windows with linux containers may have a problem. By default with this demo containers will be created without volume bind, so it should work on every system. But it is recommended to use volumes with an actual sensenet project in containers. This switch shows how to bind those volumes for sensenet services. However with default settings it may only work on linux host. If you use docker for windows you may have to set the folder path to bind and this path should be on linux. It is because windows and linux file system handle file locks differently and the lucene engine from the linux containers will not be able to lock necessary files on windows file system.
