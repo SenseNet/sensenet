@@ -31,12 +31,21 @@ if ($Uninstall) {
     return
 }
 
+#############################
+##    Variables section     #
+#############################
 $dummyContainerName = -join ((65..90) + (97..122) | Get-Random -Count 10 | % {[char]$_})
+$tempCertPath = "./temp/certificates/$($CertName)"
 
-if (Test-Path "./certificates/$($CertName)") {
-	Write-Verbose "Certificate already exists"
+Write-Output " "
+Write-Output "###############################"
+Write-Output "#      check certificate      #"
+Write-Output "###############################"
+
+if (Test-Path $tempCertPath) {
+	Write-Output "Certificate already exists"
 } else {	
-	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", "./temp/certificates/$($CertName)", "-p", "$CertPsw"
+	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", $tempCertPath, "-p", "$CertPsw"
 	Invoke-Cli -command "dotnet dev-certs https --trust"
 }
 
@@ -47,7 +56,7 @@ if ($UseVolume) {
 	if ($isCertExists -eq "FileExists") {
 		Write-Verbose "Certificate is at the right place!"
 	} else {
-		Invoke-Cli -execFile "docker" -params "cp", "./temp/certificates/$($CertName)", "$($dummyContainerName):/root/$($CertName)"
+		Invoke-Cli -execFile "docker" -params "cp", $tempCertPath, "$($dummyContainerName):/root/$($CertName)"
 	}
 	Invoke-Cli -execFile "docker" -params "stop", $dummyContainerName
 }
