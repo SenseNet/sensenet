@@ -13,6 +13,10 @@ This change on process scope will only affect the current powershell session.
 
 See  [Microsoft documentation about execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.3#example-6-set-the-execution-policy-for-the-current-powershell-session)
 	
+- git cli
+
+CreateImages switch will download git repositories in order to create docker images from sensenet service solutions on the fly and it use git cli for this.
+
 - docker 
 
 The installer use docker cli and works with docker containers
