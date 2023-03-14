@@ -32,7 +32,7 @@ Function Invoke-Cli {
 	if ($message) { Write-Output $message}
 	Write-Verbose "$execFile $($params -replace "eol", "```r`n`t")"
 	if (-not $DryRun) {	
-		& $execFile $($params -replace "eol", "")
+		& $execFile $($params | where-object {$_ -ne "eol"})
 		if ($LASTEXITCODE -ne 0) {
 			Write-Error "Error in executing $execFile"
 		}
