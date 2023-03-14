@@ -13,6 +13,10 @@ This change on process scope will only affect the current powershell session.
 
 See  [Microsoft documentation about execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.3#example-6-set-the-execution-policy-for-the-current-powershell-session)
 	
+- dotnet cli
+
+If certificate is not present the installer will crete a developer certificate under temporary folder `./temp/certificates`. It uses dotnet cli for this.
+
 - git cli
 
 CreateImages switch will download git repositories in order to create docker images from sensenet service solutions on the fly and it use git cli for this.
