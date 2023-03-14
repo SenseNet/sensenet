@@ -45,9 +45,9 @@ if ($Cleanup -or $Uninstall) {
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 Write-Output " "
-##############################
-#       docker network       #
-##############################
+Write-Output "###############################"
+Write-Output "#       docker network        #"
+Write-Output "###############################"
 Write-Output "[$($date) INFO] Create $($NetworkName)'"
 $getNetwork=(docker network list -f name=$($NetworkName) --format "{{.Name}}" )
 if ($getNetwork) {
