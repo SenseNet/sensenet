@@ -145,8 +145,8 @@ if (-not $UseVolume) {
 	}
 
 	# if containers started without volume mounts upload the certificate to the container
-	Invoke-Cli -execFile $execFile -params "exec", "-it", $IdentityContainerName, "mkdir", "-p", "/root/.aspnet/https"
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($IdentityContainerName):/root/.aspnet/https/$($CertName)"
+	Invoke-Cli -execFile $execFile -params "exec", "-it", $IdentityContainerName, "mkdir", "-p", "/root/.aspnet/https" -DryRun $DryRun -ErrorAction stop
+	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($IdentityContainerName):/root/.aspnet/https/$($CertName)" -DryRun $DryRun -ErrorAction stop
 }
 
 if (-not $DryRun) {

@@ -159,15 +159,15 @@ if (-not $UseVolume) {
 	}
 	
 	# if containers started without volume mounts upload the certificate to the container
-	Invoke-Cli -execFile $execFile -params "exec", "-it", $SearchContainerName, "mkdir", "-p", "/root/.aspnet/https"
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SearchContainerName):/root/.aspnet/https/$($CertName)"
+	Invoke-Cli -execFile $execFile -params "exec", "-it", $SearchContainerName, "mkdir", "-p", "/root/.aspnet/https" -DryRun $DryRun -ErrorAction stop
+	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SearchContainerName):/root/.aspnet/https/$($CertName)" -DryRun $DryRun -ErrorAction stop
 }
 
 if (-not $DryRun) {	
 	if ($Debugging) {
 		Write-Output " "
 		Wait-For-It -Seconds 5 -Message "Prepare search container for debug..." -DryRun $DryRun
-	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun
+	 	Invoke-Cli -command "docker exec -it $SearchContainerName /bin/sh -c apt-get update && apt-get install -y net-tools iputils-ping mc telnet wget && ifconfig" -DryRun $DryRun -ErrorAction stop
 	}
 
 	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
