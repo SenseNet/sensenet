@@ -111,7 +111,7 @@ if ($UseDbContainer) {
     Wait-CntDbServer -ContainerName $SqlContainerName -UserName $($SqlUser) -UserPsw $($SqlPsw) -DryRun $DryRun -ErrorAction stop
 
     # create empyt database
-    Invoke-Cli -command "docker exec $SqlContainerName /opt/mssql-tools/bin/sqlcmd -U $($SqlUser) -P $($SqlPsw) -Q `"CREATE DATABASE [$($SqlDbName)]`"" -DryRun $DryRun -ErrorAction stop
+    Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
