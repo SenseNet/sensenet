@@ -316,10 +316,14 @@ Function Wait-CntDbServer {
 	if (-not $DryRun) {
 		DO {
 			$isServerAvailable = $False
-			$dummyQuery = $((docker exec $ContainerName /opt/mssql-tools/bin/sqlcmd -U $UserName -P $UserPsw -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+			try {
+				$dummyQuery = $((docker exec $ContainerName /opt/mssql-tools/bin/sqlcmd -U "$($UserName)" -P "$($UserPsw)" -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+			} catch {
+				$dummyQuery = -1
+			}
 			Write-Verbose "[$dummyQuery]"
 			if ([int]$dummyQuery -gt 0) {
-				Write-Verbose "server available!"
+				Write-Output "server available!"
 				$isServerAvailable = $True 
 			} else {
 				Write-Verbose "server not yet available!"
