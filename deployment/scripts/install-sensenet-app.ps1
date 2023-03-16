@@ -162,8 +162,8 @@ if ($SnAppPort -eq 443) {
 
 $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
-"--net", "`"$NetworkName`"", "eol",
-"--name", "`"$($SensenetContainerName)`"", "eol",
+"--net", $NetworkName, "eol",
+"--name", $SensenetContainerName, "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
 "-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
 "-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
@@ -221,7 +221,7 @@ if ($UseVolume -and $SnType -eq "InSql") {
 }
 
 if ($OpenPort) {
-	$params += "-p", "`"$($SnHostPort):$($SnAppPort)`"", "eol"
+	$params += "-p", "$($SnHostPort):$($SnAppPort)", "eol"
 }
 
 $params += "$SensenetDockerImage"

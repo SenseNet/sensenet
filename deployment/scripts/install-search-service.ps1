@@ -117,8 +117,8 @@ if ($SearchAppPort -eq 443) {
 
 $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
-"--net", "`"$NetworkName`"", "eol",
-"--name", "`"$($SearchContainerName)`"", "eol",
+"--net", $NetworkName, "eol",
+"--name", $SearchContainerName, "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
 "-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
 "-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
@@ -145,7 +145,7 @@ if ($UseVolume) {
 }
 
 if ($OpenPort) {
-	$params += "-p", "`"$($SearchHostPort):$($SearchAppPort)`"", "eol"
+	$params += "-p", "$($SearchHostPort):$($SearchAppPort)", "eol"
 }
 
 $params += "$SearchDockerImage"

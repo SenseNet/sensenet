@@ -93,8 +93,8 @@ if ($IsAppPort -eq 443) {
 
 $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
-"--net", "`"$NetworkName`"", "eol",
-"--name", "`"$($IdentityContainerName)`"", "eol",
+"--net", $NetworkName, "eol",
+"--name", $IdentityContainerName, "eol",
 "-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
 "-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
 "-e", "`"sensenet__LoginPage__DisplayOtherRepositoryButton=true`"", "eol",
@@ -133,7 +133,7 @@ if ($UseVolume -and $UserSecrets -ne "") {
 }
 
 if ($OpenPort) {
-	$params += "-p", "`"$($IsHostPort):$($IsAppPort)`"", "eol"
+	$params += "-p", "$($IsHostPort):$($IsAppPort)", "eol"
 }
 
 $params += "$IdentityDockerImage"

@@ -87,8 +87,8 @@ if ($UseDbContainer) {
     Write-Output "[$($date) INFO] Install mssql server"
     $execFile = "docker"
     $params = "run", "-d", "eol",
-        "--net", "$NetworkName", "eol",
-        "--name", "$SqlContainerName", "eol",
+        "--net", $NetworkName, "eol",
+        "--name", $SqlContainerName, "eol",
         "-e", "ACCEPT_EULA=Y", "eol",
         "-e", "MSSQL_SA_PASSWORD=$($SqlPsw)", "eol",
         "-e", "MSSQL_PID=Express", "eol"
@@ -98,7 +98,7 @@ if ($UseDbContainer) {
     }
 
     if ($OpenPort) {
-        $params += "-p", "`"$($SqlHostPort):$($SqlAppPort)`"", "eol"
+        $params += "-p", "$($SqlHostPort):$($SqlAppPort)", "eol"
     }
 
     $params += $SqlDockerImage
