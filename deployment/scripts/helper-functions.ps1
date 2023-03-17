@@ -23,6 +23,9 @@ Function Invoke-Cli {
 		[bool]$DryRun=$False
 	)
 
+	$eolChar = "``"
+	if ($IsLinux) { $eolChar = "\" }
+
 	if ($command) {
 		$cmdParts = $command.Trim().Split(" ")
 		$execFile = $cmdParts[0]
@@ -30,7 +33,7 @@ Function Invoke-Cli {
 	}
 
 	if ($message) { Write-Output $message}
-	Write-Verbose "$execFile $($params -replace "eol", "```r`n`t")"
+	Write-Verbose "$execFile $($params -replace "eol", "$($eolChar)`r`n`t")"
 	if (-not $DryRun) {	
 		& $execFile $($params | where-object {$_ -ne "eol"})
 		if ($LASTEXITCODE -ne 0) {
