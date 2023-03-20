@@ -117,11 +117,11 @@ switch($Routing) {
 }
 
 if ($CertPath -ne "") {
-	$params += "-e", "Kestrel__Certificates__Default__Path=`"$CertPath`"", "eol"
+	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "Kestrel__Certificates__Default__Password=`"$CertPass`"", "eol"
+	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {

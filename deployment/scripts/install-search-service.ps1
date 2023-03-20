@@ -125,11 +125,11 @@ $params = "run", "-it", "-d", "eol",
 "-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitServiceHost)", "eol"
 
 if ($CertPath -ne "") {
-	$params += "-e", "Kestrel__Certificates__Default__Path=`"$CertPath`"", "eol"
+	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "Kestrel__Certificates__Default__Password=`"$CertPass`"", "eol"
+	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {
