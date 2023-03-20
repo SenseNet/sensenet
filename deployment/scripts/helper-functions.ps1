@@ -60,18 +60,18 @@ Function Get-GitRepo {
 		exit 1
 	}
 	
-	if (Test-Path $TargetPath\.git) {
+	if (Test-Path $TargetPath/.git) {
 		$TargetPath = Resolve-Path $TargetPath
 		Write-Output "Template folder already exists!"
 		
-		$currentBranch = (git --git-dir="$TargetPath\.git" --work-tree="$TargetPath" rev-parse --abbrev-ref HEAD).Trim()
+		$currentBranch = (git --git-dir="$TargetPath/.git" --work-tree="$TargetPath" rev-parse --abbrev-ref HEAD).Trim()
 		Write-Output "Current branch: $currentBranch"
 
 		if (-Not($BranchName -eq $currentBranch)) {
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "fetch" -DryRun $DryRun -ErrorAction Stop
-			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "checkout", $BranchName -DryRun $DryRun -ErrorAction Stop
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath/.git", "--work-tree=$TargetPath", "fetch" -DryRun $DryRun -ErrorAction Stop
+			Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath/.git", "--work-tree=$TargetPath", "checkout", $BranchName -DryRun $DryRun -ErrorAction Stop
 		}		
-		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath\.git", "--work-tree=$TargetPath", "pull" -DryRun $DryRun -ErrorAction Stop
+		Invoke-Cli -execFile "git" -params "--git-dir=$TargetPath/.git", "--work-tree=$TargetPath", "pull" -DryRun $DryRun -ErrorAction Stop
 	} 
 	else 
 	{
