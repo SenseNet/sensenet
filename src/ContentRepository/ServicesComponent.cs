@@ -1560,7 +1560,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.28", "7.7.28.1", "2023-02-03", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.28", "7.7.28.2", "2023-03-21", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
         }
 
@@ -1586,11 +1586,15 @@ namespace SenseNet.ContentRepository
             var schemaFolderId = NodeHead.Get(Repository.SchemaFolderPath).Id;
             var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
-            // public admin local See permission on the System folder
+            // public admin permissions
             if (publicAdminsGroupId > 0)
             {
+                // local See permission on the System and Schema folders
                 editor.Allow(systemFolderId, publicAdminsGroupId, true, PermissionType.See)
                     .Allow(schemaFolderId, publicAdminsGroupId, true, PermissionType.See);
+
+                // Somebody user
+                editor.Allow(Identifiers.SomebodyUserId, publicAdminsGroupId, false, PermissionType.See);
             }
 
             // if we just created this folder above
