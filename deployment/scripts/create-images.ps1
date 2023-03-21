@@ -20,7 +20,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityGitBranch="main",
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sn-identityserver",
+	[string]$IdentityDockerImage="sensenetcsp/sn-identityserver",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -30,7 +30,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SearchGitBranch="master",	
 	[Parameter(Mandatory=$False)]
-	[string]$SearchDockerImage="sn-searchservice",
+	[string]$SearchDockerImage="sensenetcsp/sn-searchservice",
 	
 	# Technical
 	[Parameter(Mandatory=$False)]
@@ -62,7 +62,7 @@ if (-not $SensenetFolderPath) {
 # Set image creator params according to app type
 if ($ImageType -eq "InMem" -or $ImageType -eq "All")
 {
-	$SensenetDockerImage="sn-api-inmem"
+	$SensenetDockerImage="sensenetcsp/sn-api-inmem"
 	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"
 	$imageFrom = @{
 		SolutionPath=$SensenetFolderPath
@@ -73,7 +73,7 @@ if ($ImageType -eq "InMem" -or $ImageType -eq "All")
 }
 if (($ImageType -eq "InSql" -and -not $SearchService) -or $ImageType -eq "All")
 {
-	$SensenetDockerImage="sn-api-sql"
+	$SensenetDockerImage="sensenetcsp/sn-api-sql"
 	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
 	$imageFrom = @{
 		SolutionPath=$SensenetFolderPath
@@ -84,7 +84,7 @@ if (($ImageType -eq "InSql" -and -not $SearchService) -or $ImageType -eq "All")
 }
 if ($SearchService -or $ImageType -eq "All")
 {
-	$SensenetDockerImage="sn-api-nlb"
+	$SensenetDockerImage="sensenetcsp/sn-api-nlb"
 	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
 	$imageFrom = @{
 		SolutionPath=$SensenetFolderPath

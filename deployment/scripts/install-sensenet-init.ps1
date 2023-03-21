@@ -34,11 +34,6 @@ if ($Cleanup -or $Uninstall) {
     }
 }
 
-# if ($SensenetDockerImage -Match "/") {
-# 	Write-Output "pull $SensenetDockerImage image from the registry"
-# 	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
-# }
-
 #############################
 ##    Variables section     #
 #############################
