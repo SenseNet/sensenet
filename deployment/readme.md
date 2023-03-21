@@ -13,9 +13,9 @@ This change on process scope will only affect the current powershell session.
 
 See  [Microsoft documentation about execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.3#example-6-set-the-execution-policy-for-the-current-powershell-session)
 	
-- dotnet cli
+- dotnet cli or a valid certificate
 
-If certificate is not present the installer will crete a developer certificate under temporary folder `./temp/certificates`. It uses dotnet cli for this.
+Sensenet services will use `snapp.pfx` certificate file from under `./temp/certificates` folder. If it is not present the installer will create a developer certificate in this folder and it uses dotnet cli for this. Note: On linux, the dotnet `--trust` won't work. so you have to either create or trust the created certificate manually.
 
 - git cli
 
