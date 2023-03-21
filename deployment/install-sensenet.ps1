@@ -7,7 +7,7 @@ Param (
 	# Install/Uninstall processes
 	[Parameter(Mandatory=$False)]
 	[switch]$CreateImages,
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[switch]$CleanUp,
 	[Parameter(Mandatory=$False, DontShow=$True)]
 	[switch]$NoInstall,
@@ -15,20 +15,19 @@ Param (
 	[switch]$OpenInBrowser,
 	[Parameter(Mandatory=$False)]
 	[switch]$Uninstall,
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[switch]$KeepRemoteDatabase,
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[switch]$KeepRabbitMq,
 	
 	# Modifiers
 	[Parameter(Mandatory=$False)]
 	[switch]$LocalSn,
-	[Parameter(Mandatory=$False,
-	ParameterSetName="volume")]
+	[Parameter(Mandatory=$False)]
 	[switch]$UseVolume,	
 
 	# Hosting environment
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[string]$HostName="$Env:COMPUTERNAME",
 	[Parameter(Mandatory=$False)]
 	[string]$VolumeBasePath="./volumes",
@@ -48,7 +47,7 @@ Param (
 	[switch]$SearchService,
 
 	# Rabbit-mq
-	[Parameter(Mandatory=$False)]
+	[Parameter(Mandatory=$False, DontShow=$True)]
 	[string]$RabbitServiceHost,
 
 	# Technical	
