@@ -686,12 +686,24 @@ namespace SenseNet.OData
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
+            var readonlyFields = new List<string>();
+
             var isNew = content.Id == 0;
             foreach (var prop in model.Properties())
             {
-                if (string.IsNullOrEmpty(prop.Name) || prop.Name == "__ContentType" || prop.Name == "__ContentTemplate" || prop.Name == "Type" || prop.Name == "ContentType")
+                if (string.IsNullOrEmpty(prop.Name) || prop.Name is "__ContentType" or "__ContentTemplate" or "Type" or "ContentType")
                     continue;
 
+                // readonly properties: skip if not enough permissions
+                if (prop.Name is "CreationDate" or "VersionCreationDate")
+                {
+                    if (!User.Current.IsOperator)
+                    {
+                        readonlyFields.Add(prop.Name);
+                        continue;
+                    }
+                }
+                
                 try
                 {
                     var hasField = content.Fields.TryGetValue(prop.Name, out var field);
@@ -720,8 +732,7 @@ namespace SenseNet.OData
                                     continue;
                                 if (isNew && field is ReferenceField && jValue.Value == null)
                                 {
-                                    if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" ||
-                                        field.Name == "Owner")
+                                    if (field.Name is "CreatedBy" or "ModifiedBy" or "Owner")
                                         continue;
                                 }
 
@@ -730,6 +741,14 @@ namespace SenseNet.OData
                                     var refNode = jValue.Type == JTokenType.Integer
                                         ? Node.LoadNode(Convert.ToInt32(jValue.Value))
                                         : Node.LoadNode(jValue.Value.ToString());
+
+                                    // skip setting Somebody
+                                    if (prop.Name is "Owner" && refNode?.Id == Identifiers.SomebodyUserId)
+                                    {
+                                        readonlyFields.Add(prop.Name);
+                                        continue;
+                                    }
+
                                     if (refNode == null)
                                         brokenRefs.Add(field.Name);
                                     if (!skipBrokenReferences)
@@ -786,7 +805,14 @@ namespace SenseNet.OData
                                                 brokenRefs.Add(field.Name);
                                             return value;
                                         })
-                                        .Where(x => x != null); // filter unknown or invisible items
+                                        .Where(x => x != null).ToArray(); // filter unknown or invisible items
+
+                                    // skip setting Somebody
+                                    if (prop.Name is "Owner" && nodes?.FirstOrDefault()?.Id == Identifiers.SomebodyUserId)
+                                    {
+                                        readonlyFields.Add(prop.Name);
+                                        continue;
+                                    }
 
                                     if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                         field.SetData(nodes);
@@ -846,6 +872,10 @@ namespace SenseNet.OData
                     throw new ODataException($"Error updating property {prop.Name} of {content.Name}.", ODataExceptionCode.RequestError, ex);
                 }
             }
+
+            if (readonlyFields.Any())
+                SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
+                                         $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
         }
 
         private T GetPropertyValue<T>(string name, JObject model)

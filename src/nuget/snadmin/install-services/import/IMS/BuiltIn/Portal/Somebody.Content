@@ -11,4 +11,9 @@
     </Password>
     <Index>7</Index>
   </Fields>
+  <Permissions>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <See>Allow</See>
+    </Identity>
+  </Permissions>
 </ContentMetaData>
