@@ -36,6 +36,8 @@ namespace SenseNet.ODataTests
         public string Password { get; set; }
         public string PasswordHash { get; set; }
         public string Username { get; }
+        public bool IsOperator => false;
+
         public bool IsInGroup(IGroup @group)
         {
             if (group.Id == Identifiers.EveryoneGroupId)

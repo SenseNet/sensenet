@@ -642,25 +642,6 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
-        /// <summary>
-        /// Checks if the current user is a system user or a member of the Operators group.
-        /// </summary>
-        public bool CanEditReadonlyFields() 
-        {
-            var user = AccessProvider.Current.GetCurrentUser();
-
-            // there is no need for group check in elevated mode
-            if (user is SystemUser)
-                return true;
-
-            using (new SystemAccount())
-            {
-                if (!user.IsInGroup((IGroup)Node.LoadNode(Identifiers.OperatorsGroupPath)))
-                    return false;
-            }
-
-            return true;
-        }
 
         /// <summary>
         /// Checks if the current user is a system user or a member of the Operators group
@@ -669,7 +650,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="propertyName">The property that the caller tried to access. Used only when throwing an exception.</param>
         protected void AssertUserIsOperator(string propertyName)
         {
-            if (!CanEditReadonlyFields())
+            if (!AccessProvider.Current.GetCurrentUser().IsOperator)
                 throw new NotSupportedException(string.Format(SR.Exceptions.General.Msg_CannotWriteReadOnlyProperty_1, propertyName));
         }
 

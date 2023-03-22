@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
@@ -19,7 +18,6 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
 using SenseNet.Search.Querying;
@@ -275,6 +273,10 @@ namespace SenseNet.ContentRepository
                 return string.Concat(domain, @"\", loginName);
             }
         }
+
+        // there is no need for group check in case of system user
+        public bool IsOperator =>
+            Id == Identifiers.SystemUserId || SystemAccount.Execute(() => IsInGroup(Group.Operators));
 
         /// <inheritdoc />
         public override string Name

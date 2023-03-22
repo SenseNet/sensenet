@@ -697,7 +697,7 @@ namespace SenseNet.OData
                 // readonly properties: skip if not enough permissions
                 if (prop.Name is "CreationDate" or "VersionCreationDate")
                 {
-                    if (!content.ContentHandler.CanEditReadonlyFields())
+                    if (!User.Current.IsOperator)
                     {
                         readonlyFields.Add(prop.Name);
                         continue;
@@ -871,11 +871,11 @@ namespace SenseNet.OData
                     SnTrace.Repository.WriteError($"Error updating property {prop.Name} of {content.Path}. Error: {ex.Message}");
                     throw new ODataException($"Error updating property {prop.Name} of {content.Name}.", ODataExceptionCode.RequestError, ex);
                 }
-
-                if (readonlyFields.Any())
-                    SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
-                                             $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
             }
+
+            if (readonlyFields.Any())
+                SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
+                                         $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
         }
 
         private T GetPropertyValue<T>(string name, JObject model)

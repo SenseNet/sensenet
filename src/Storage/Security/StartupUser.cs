@@ -48,6 +48,9 @@ namespace SenseNet.ContentRepository.Storage.Security
             get { return "Startup"; }
             set { throw new InvalidOperationException("You cannot set a property of the STARTUP user."); }
         }
+
+        public bool IsOperator => true;
+
         public bool IsInGroup(IGroup group)
         {
             throw new InvalidOperationException("The STARTUP user is not a member of any group.");
