@@ -1,95 +1,118 @@
-# install sensenet demo on local docker with powershell
+# Install sensenet on local Docker with Powershell
 
-## prerequisits
+This article describes how to install sensenet in a docker environment on your local machine. It is a Powershell script that will install sensenet from Docker images. It will create a Docker network and start the necessary containers.
 
-- powershell 
+## Prerequisites
+Before you begin, please take a look at the prerequisites.
 
-Obviously as this installer made with powershell scripts you have to have powershell.
-By default the windows will ask confirmation before run every script, so it is recommended to set ExecutionPolicy for the current process, e.g.:
+### Docker 
+
+The installer uses the docker cli and works with docker containers. You have to have docker installed on your machine.
+
+By default the installer uses the publicly available sensenet Docker images.
+
+### Powershell 
+
+As this installer is built of Powershell scripts you have to have Powershell installed on your machine. 
+
+The installer is built of multiple scripts. By default Windows will ask confirmation before running every script, so it is recommended to set the _ExecutionPolicy_ for the current process:
+
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
 ```
-This change on process scope will only affect the current powershell session.
 
-See  [Microsoft documentation about execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.3#example-6-set-the-execution-policy-for-the-current-powershell-session)
+This change on process scope will only affect the current powershell session. To learn more see the documentation on [execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.3#example-6-set-the-execution-policy-for-the-current-powershell-session).
 	
-- dotnet cli or a valid certificate
+### dotnet cli OR a valid certificate
 
-Sensenet services will use `snapp.pfx` certificate file from under `./temp/certificates` folder. If it is not present the installer will create a developer certificate in this folder and it uses dotnet cli for this. Note: On linux, the dotnet `--trust` won't work. so you have to either create or trust the created certificate manually.
+Sensenet services will use the `snapp.pfx` certificate file from under `./temp/certificates` folder. If it is not present the installer will create a developer certificate in this folder and it uses dotnet cli for this. On linux the dotnet `--trust` switch won't work. so you have to either create or trust the created certificate manually.
 
-- git cli
+### git cli (in case of source install)
+By default the installer uses the publicly available sensenet Docker images. In case you want to create the Docker images from source code, you will have to have the _git cli_ installed. The _CreateImages_ switch will download the necessary git repositories in order to create Docker images from sensenet service solutions on-the-fly and it uses the git cli for this.
 
-CreateImages switch will download git repositories in order to create docker images from sensenet service solutions on the fly and it use git cli for this.
+## Simple install
 
-- docker 
+The script is preconfigured so you don't have to know every switch if you just want to try it out. With the preconfigured settings the installer will create an IdentityServer, an MS SQL Server and a sensenet application container. Neither will have mounted volumes so the necessary files will be either copied into the containers or created inside them.
 
-The installer use docker cli and works with docker containers
+To install sensenet, execute the following script:
 
-- docker images
-
-To install sensenet you will have to have the appropriate docker images to start the proper containers. There is no public images at the moment so we prepared the script to create these images for you on your local docker registry. At first run simply use `-CreateImages` switch with the script.
-
-## simple install
-
-The script is preconfigured so you don't have to know every switch if you just want to try it out. Except `-CreateImages` for the first run, but hopefully soon it won't be necessary either. With the preconfigured settings the installer will create an identityserver, an mssql server and a sensenet application container. Neither will be mount volumes so the necessary files will be either copied into the containers or created inside them. Example: 
 ```powershell
 .\install-sensenet.ps1 
 ```
-note: `-CreateImages` switch is needed for the first run
 
-## switches
+After the script completes, your repository will be available on the service url `https://localhost:51016`. You can log in with the following credentials by visiting [https://admin.sensenet.com](https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A51016) :
 
-- InMemPlatform 
+```text
+username: admin
+password: admin
+```
 
-By default the installer will create a sensenet repository that uses mssql database, but sample sensenet projects have a version of in memory sensenet that does not need a database. This version will start an identity server and a sensenet application container only.
+## Parameters
+You can customize the installation with the following parameters:
+
+### InMemPlatform 
+
+By default the installer will create a sensenet repository that uses an MS SQL database, but there is an in memory sensenet repository that does not need a physical database. This version will start an identity server and a sensenet application container only.
+
 ```powershell
 .\install-sensenet.ps1 -InMemPlatform
 ```
 
-- CreateImages
+### CreateImages
 
-The script started with `-CreateImages` switch will download the necessary github repositories and create the appropriate docker images for every service that the specific version set of sensenet will be using. So if the installer started with `-SearchService`, it will create the appropriate sensenet docker image and search service image as well, and so on. These temporary files will be created under `./temp` folder and the images will be created on the host docker registry. It is a necessary step for the first run as no images published yet.
+The `-CreateImages` switch will download the source code of the necessary repositories from GitHub and create the appropriate Docker images for sensenet services. For example if you executed the installer with the `-SearchService` switch, it will create the appropriate sensenet application Docker image and the search service image as well, and so on. These temporary folders will be created under the `./temp` folder and the images will be created on the host Docker registry.
+
 ```powershell
 .\install-sensenet.ps1 -CreateImages
 ```
 
-- SearchService
+### SearchService
 
-Sample sensenet set for nlb environments. The indexing is not handled by the sensenet application but with a separate search service. It will start four containers: Identityserver, mmsql server, search service, sensenet application and a rabbitmq for the messaging between services.
+Sample sensenet set for NLB environments. Indexing is not handled by the sensenet application but by a separate search service. It will start the following containers:
 
-- HostDb with DataSource, SqlUser and SqlPsw
+- IdentityServer
+- MS SQL Server
+- Search service
+- sensenet application
+- RabbitMQ service for messaging
 
-You can try this sensenet demo with you local database on the host machine. `-HostDb` switch will use this mode. However you will need an sql user on your mssql server at least with database creation permission. The script will autmatically use host name as datasource. If your mssql server name is different from your host name, you will have to set with `-DataSource` parameter. You can set `-SqlUser` and `-SqlPsw` parameters whit the script or the installer will be ask for these at run time. Exmaple:
+### HostDb with DataSource, SqlUser and SqlPsw
+
+You can try this sensenet demo with your local database on the host machine. The `-HostDb` switch will initiate this mode. However you will need a SQL user on your MS SQL Server at least with database creation permission. The script will automatically use the host name as datasource. If your MS SQL Server name is different from your host name, you will have to set it with the `-DataSource` parameter. You can also set the `-SqlUser` and `-SqlPsw` parameters when running the installer otherwise it will ask for these at run time. For example:
+
 ```powershell
 .\install-sensenet.ps1 -DataSource MyMachineHostName\Sql2019 -HostDb -SqlUser testuserfordockerdemo -SqlPsw Ultr4Secur3P4ssw0rd 
 ```
-- UseVolume and VolumeBasePath
+### UseVolume and VolumeBasePath
 
-It's a bit advanced switch as docker for windows with linux containers may have a problem. By default with this demo containers will be created without volume bind, so it should work on every system. But it is recommended to use volumes with an actual sensenet project in containers. This switch shows how to bind those volumes for sensenet services. However with default settings it may only work on linux host. If you use docker for windows you may have to set the folder path to bind and this path should be on linux. It is because windows and linux file system handle file locks differently and the lucene engine from the linux containers will not be able to lock necessary files on windows file system.
+This is a bit advanced switch as Docker for Windows with linux containers may have a problem with the default setup. By default containers will be created **without volume bind**, so it should work on every system. But it is recommended to use volumes with an actual sensenet project in containers. This switch shows how to bind those volumes for sensenet services. However with default settings it may only work on a linux host. If you use Docker for Windows you may have to set the folder path to bind and this path should be on linux. It is because Windows and linux file systems handle file locks differently and the Lucene engine from the linux containers will not be able to lock the necessary files on a Windows file system.
 
-so while on linux it will be enough to call 
+While on linux it is enough to call 
+
 ```powershell
 .\install-sensenet.ps1 -UseVolume
 ```
 
-on windows it will be something like this:
+on Windows it should be something like this:
+
 ```powershell
 .\install-sensenet.ps1 -UseVolume -VolumeBasePath /var/lib/docker/volumes
 ```
-note: above example will bind WSL paths with the containers
 
-- OpenInBrowser
+> The example above will bind the WSL paths with the containers.
+
+### OpenInBrowser
 
 With this switch the installer will open the admin ui when the repository is created.
 
-- Uninstall
+### Uninstall
 
-This switch is responsible to clean after an installation. You should use the same switches as with the install to remove the same resources.
+This switch is responsible for cleanup after an installation. You should use the same switches as with the install to remove the same resources.
 
-- DryRun
+### DryRun
 
-This switch can be used to se what process would be executed but without actually run them.
+This switch can be used to see what processes would be executed but without actually running them.
 
-- Verbose
+### Verbose
 
-Output is reduced by default to decrease the amount of install infromation. With `-Verbose` switch additional, mostly technical information will be shown. For example the actual docker command is the most useful of them.
+The output is reduced by default to decrease the amount of install information. With the `-Verbose` switch all the additional technical information will be shown. For example the actual Docker command is shown that can be useful if you need to customize the installation.
