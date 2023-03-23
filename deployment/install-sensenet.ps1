@@ -344,7 +344,7 @@ if ($SearchService) {
 }
 
 if (-not $DryRun -and $OpenInBrowser) {
-	Start-Process "https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
+	Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
 }
 
 Write-Output "You're welcome!"
