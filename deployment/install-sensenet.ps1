@@ -56,7 +56,7 @@ Param (
 )
 
 # example 
-# .\install-sensenet-ultimate.ps1 -CleanUp $true -UseVolume $true -SearchService $true  -VolumeBasePath /var/lib/docker/volumes
+# .\install-sensenet.ps1 -SearchService -UseVolume -VolumeBasePath /var/lib/docker/volumes
 
 # actual settings: Get-ExecutionPolicy -List
 # disable: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
