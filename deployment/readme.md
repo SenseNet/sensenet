@@ -40,12 +40,16 @@ To install sensenet, execute the following script:
 .\install-sensenet.ps1 
 ```
 
-After the script completes, your repository will be available on the service url `https://localhost:51016`. You can log in with the following credentials by visiting [https://admin.sensenet.com](https://admin.test.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A51016) :
+After the script completes, your repository will be accessible on the URL displayed by the script. In case of the default installation this is `https://localhost:51016` but it may be different in case of in-memory or search service scenarios. 
+
+You can log in by visiting [https://admin.sensenet.com](https://admin.test.sensenet.com) and providing the repository url. The default credentials are:
 
 ```text
 username: admin
 password: admin
 ```
+
+> Using the `-OpenInBrowser` switch will automatically open the admin ui in your default browser.
 
 ## Parameters
 You can customize the installation with the following parameters:
