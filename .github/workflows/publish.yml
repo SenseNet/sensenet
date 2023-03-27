@@ -29,6 +29,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
+    - name: Echo environment
+      run: echo $SOLUTION
     - name: Install dependencies
       run: dotnet restore $SOLUTION
     - name: Build
