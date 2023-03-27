@@ -30,7 +30,7 @@ jobs:
         dotnet-version: 6.0.x
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore $SOLUTION
     - name: Build
       run: dotnet build $SOLUTION --configuration Release --no-restore
     - name: Pack nugets
