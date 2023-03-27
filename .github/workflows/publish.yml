@@ -1,0 +1,43 @@
+name: Publish to NuGet
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  build:
+
+    runs-on: windows-latest  
+    defaults:
+      run:
+        working-directory: src
+
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'SenseNet.sln'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build $SOLUTION --configuration Release --no-restore
+    - name: Pack nugets
+      run: dotnet pack $SOLUTION -c Release --no-build --output .
+    - name: Push to NuGet
+      run: dotnet nuget push "*.nupkg" --skip-duplicate --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+
+
+
+   
