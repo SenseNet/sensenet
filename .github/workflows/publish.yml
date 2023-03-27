@@ -29,14 +29,12 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: Echo environment
-      run: echo ${{env.SOLUTION}}
     - name: Install dependencies
-      run: dotnet restore '$SOLUTION'
+      run: dotnet restore ${{env.SOLUTION}}
     - name: Build
-      run: dotnet build '$SOLUTION' --configuration Release --no-restore
+      run: dotnet build ${{env.SOLUTION}} --configuration Release --no-restore
     - name: Pack nugets
-      run: dotnet pack '$SOLUTION' -c Release --no-build --output .
+      run: dotnet pack ${{env.SOLUTION}} -c Release --no-build --output .
     - name: Push to NuGet
       run: dotnet nuget push "*.nupkg" --skip-duplicate --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
 
