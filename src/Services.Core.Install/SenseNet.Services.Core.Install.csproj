@@ -15,6 +15,10 @@
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
     <Product>sensenet Services Core</Product>
     <Description>sensenet is an Enterprise Content Services platform for .Net. This package contains installation items and should be installed only in a single console or web project. All other projects should reference the SenseNet.Services.Core dll-only package.</Description>
+	  <DebugType>portable</DebugType>
+	  <PublishRepositoryUrl>true</PublishRepositoryUrl>
+	  <IncludeSymbols>true</IncludeSymbols>
+	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>

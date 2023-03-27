@@ -1,55 +1,59 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-	  <Version>7.7.35.4</Version>
-	  <Authors>kavics,aniko,lajos,tusmester</Authors>
-    <Company>Sense/Net Inc.</Company>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet csp content repository storage</PackageTags>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Product>sensenet ContentRepository</Product>
-    <Description>Content Repository layer for the sensenet platform.</Description>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>7.7.35.4</Version>
+		<Authors>kavics,joe,tusmester</Authors>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet csp content repository storage</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>sensenet ContentRepository</Product>
+		<Description>Content Repository layer for the sensenet platform.</Description>
+		<LangVersion>latest</LangVersion>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Schema\AspectDefinition.xsd" />
-    <None Remove="Schema\ContentListDefinition.xsd" />
-    <None Remove="Schema\ContentTypeDefinition.xsd" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Schema\AspectDefinition.xsd" />
+		<None Remove="Schema\ContentListDefinition.xsd" />
+		<None Remove="Schema\ContentTypeDefinition.xsd" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Schema\AspectDefinition.xsd" />
-    <EmbeddedResource Include="Schema\ContentListDefinition.xsd" />
-    <EmbeddedResource Include="Schema\ContentTypeDefinition.xsd" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Schema\AspectDefinition.xsd" />
+		<EmbeddedResource Include="Schema\ContentListDefinition.xsd" />
+		<EmbeddedResource Include="Schema\ContentTypeDefinition.xsd" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MailKit" Version="3.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
-    <PackageReference Include="SenseNet.Security" Version="4.1.5.3" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.9.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="MailKit" Version="3.4.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
+		<PackageReference Include="SenseNet.Security" Version="4.2.0" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.11" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
+		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
-    <ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj" />
-    <ProjectReference Include="..\Common\SenseNet.Common.csproj" />
-    <ProjectReference Include="..\Search\SenseNet.Search.csproj" />
-    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
-  </ItemGroup>
-  
+	<ItemGroup>
+		<ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
+		<ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj" />
+		<ProjectReference Include="..\Common\SenseNet.Common.csproj" />
+		<ProjectReference Include="..\Search\SenseNet.Search.csproj" />
+		<ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
+	</ItemGroup>
+
 </Project>
