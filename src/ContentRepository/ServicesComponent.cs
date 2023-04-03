@@ -1562,6 +1562,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
+
+            builder.Patch("7.7.29", "7.7.29.1", "2023-04-03", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_30);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -1611,6 +1614,59 @@ namespace SenseNet.ContentRepository
                     editor.Allow(contentTemplates.Id, editorsGroupId, false, PermissionType.BuiltInPermissionTypes);
 
                 editor.Allow(contentTemplates.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open);
+            }
+
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            logger.LogTrace("Permissions are successfully set.");
+
+            #endregion
+        }
+
+        private void Patch_7_7_30(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Permission changes
+
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+            // Ensure the principle of minimal privilege on the builtin domain.
+            var builtinDomainId = NodeHead.Get("/Root/IMS/BuiltIn")?.Id ?? 0;
+            if (builtinDomainId > 0)
+            {
+                logger.LogTrace("Breaking permissions on the builtin domain.");
+                editor.BreakInheritance(builtinDomainId, new[] {EntryType.Normal});
+            }
+
+            // Add permissions for public administrators to all domains except Builtin.
+            var imsFolderId = NodeHead.Get("/Root/IMS")?.Id ?? 0;
+            if (imsFolderId > 0)
+            {
+                logger.LogTrace("Adding permissions for public administrators and owners on the IMS folder.");
+                var publicAdminsGroupId = NodeHead.Get("/Root/IMS/Public/Administrators")?.Id ?? 0;
+                if (publicAdminsGroupId > 0)
+                {
+                    // Add required permissions to manage new domains
+                    editor.Allow(imsFolderId, publicAdminsGroupId, false,
+                        PermissionType.Open,
+                        PermissionType.Save,
+                        PermissionType.AddNew,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
+                    // Avoid deleting or modifying the IMS root: local-only deny permissions
+                    editor.Deny(imsFolderId, publicAdminsGroupId, true,
+                        PermissionType.Save,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
+                }
+                // Add permissions for owners to manage their own domains.
+                editor.Allow(imsFolderId, Identifiers.OwnersGroupId, false,
+                    PermissionType.AddNew,
+                    PermissionType.Delete,
+                    PermissionType.SeePermissions,
+                    PermissionType.SetPermissions);
             }
 
             editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
