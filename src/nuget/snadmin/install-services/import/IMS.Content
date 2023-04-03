@@ -25,5 +25,16 @@
       <AddNew>Allowed</AddNew>
       <Delete>Allowed</Delete>
     </Identity>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Open>Allow</Open>
+      <AddNew>Allowed</AddNew>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/PublicAdmin">
+      <Open>Allow</Open>
+      <AddNew>Allowed</AddNew>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/AdminUIViewers">
+      <Open>Allow</Open>
+    </Identity>
   </Permissions>
 </ContentMetaData>
