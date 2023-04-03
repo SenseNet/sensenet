@@ -1560,7 +1560,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.28", "7.7.28.2", "2023-03-21", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
             builder.Patch("7.7.28", "7.7.28.3", "2023-04-03", "Upgrades sensenet content repository.")
