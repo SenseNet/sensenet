@@ -1642,7 +1642,7 @@ namespace SenseNet.ContentRepository
             var imsFolderId = NodeHead.Get("/Root/IMS")?.Id ?? 0;
             if (imsFolderId > 0)
             {
-                logger.LogTrace("Adding permissions for public administrators on the IMS folder.");
+                logger.LogTrace("Adding permissions for public administrators and owners on the IMS folder.");
                 var publicAdminsGroupId = NodeHead.Get("/Root/IMS/Public/Administrators")?.Id ?? 0;
                 if (publicAdminsGroupId > 0)
                 {
@@ -1654,7 +1654,7 @@ namespace SenseNet.ContentRepository
                         PermissionType.Delete,
                         PermissionType.SeePermissions,
                         PermissionType.SetPermissions);
-                    // Avoid deleting the "Public" domain.
+                    // Avoid deleting or modifying the IMS root: local-only deny permissions
                     editor.Deny(imsFolderId, publicAdminsGroupId, true,
                         PermissionType.Save,
                         PermissionType.Delete,
@@ -1662,8 +1662,7 @@ namespace SenseNet.ContentRepository
                         PermissionType.SetPermissions);
                 }
                 // Add permissions for owners to manage their own domains.
-                var ownersGroupId = Identifiers.OwnersGroupId;
-                editor.Allow(imsFolderId, ownersGroupId, false,
+                editor.Allow(imsFolderId, Identifiers.OwnersGroupId, false,
                     PermissionType.AddNew,
                     PermissionType.Delete,
                     PermissionType.SeePermissions,
