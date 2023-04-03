@@ -1657,6 +1657,12 @@ namespace SenseNet.ContentRepository
                         PermissionType.Open,
                         PermissionType.AddNew);
                 }
+                var ownersGroupId = Identifiers.OwnersGroupId;
+                editor.Allow(imsFolderId, ownersGroupId, false,
+                    PermissionType.AddNew,
+                    PermissionType.Delete,
+                    PermissionType.SeePermissions,
+                    PermissionType.SetPermissions);
             }
 
             editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();

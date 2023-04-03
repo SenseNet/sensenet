@@ -9,9 +9,16 @@
     <Clear />
     <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
       <See>Allow</See>
+      <Preview>Allow</Preview>
+      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
       <Open>Allow</Open>
       <OpenMinor>Allow</OpenMinor>
       <Save>Allow</Save>
+      <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
+      <SeePermissions>Allow</SeePermissions>
+      <SetPermissions>Allow</SetPermissions>
       <RunApplication>Allow</RunApplication>
     </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/HR">
