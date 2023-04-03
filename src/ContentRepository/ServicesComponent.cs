@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.28", "7.7.28.3", "2023-04-03", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.29.1", "2023-04-03", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
@@ -1638,11 +1638,11 @@ namespace SenseNet.ContentRepository
                 editor.BreakInheritance(builtinDomainId, new[] {EntryType.Normal});
             }
 
-            // Add permissions for public administrators and AdminUIViewers to all domains except Builtin.
+            // Add permissions for public administrators to all domains except Builtin.
             var imsFolderId = NodeHead.Get("/Root/IMS")?.Id ?? 0;
             if (imsFolderId > 0)
             {
-                logger.LogTrace("Adding permissions for public administrators and AdminUIViewers viewers on the IMS folder.");
+                logger.LogTrace("Adding permissions for public administrators on the IMS folder.");
                 var publicAdminsGroupId = NodeHead.Get("/Root/IMS/Public/Administrators")?.Id ?? 0;
                 if (publicAdminsGroupId > 0)
                 {
@@ -1656,12 +1656,6 @@ namespace SenseNet.ContentRepository
                     editor.Allow(imsFolderId, publicAdminUserId, false,
                         PermissionType.Open,
                         PermissionType.AddNew);
-                }
-                var adminUiViewersGroupId = NodeHead.Get("/Root/IMS/BuiltIn/Portal/AdminUIViewers")?.Id ?? 0;
-                if (adminUiViewersGroupId > 0)
-                {
-                    editor.Allow(imsFolderId, adminUiViewersGroupId, false,
-                        PermissionType.Open);
                 }
             }
 

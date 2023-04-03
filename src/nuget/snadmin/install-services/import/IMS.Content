@@ -15,23 +15,23 @@
       <RunApplication>Allow</RunApplication>
     </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/HR">
-      <See>Allowed</See>
-      <Preview>Allowed</Preview>
-      <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>
-      <PreviewWithoutRedaction>Allowed</PreviewWithoutRedaction>
-      <Open>Allowed</Open>
-      <OpenMinor>Allowed</OpenMinor>
-      <Save>Allowed</Save>
-      <AddNew>Allowed</AddNew>
-      <Delete>Allowed</Delete>
+      <See>Allow</See>
+      <Preview>Allow</Preview>
+      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
+      <Open>Allow</Open>
+      <OpenMinor>Allow</OpenMinor>
+      <Save>Allow</Save>
+      <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
     </Identity>
     <Identity path="/Root/IMS/Public/Administrators">
       <Open>Allow</Open>
-      <AddNew>Allowed</AddNew>
+      <AddNew>Allow</AddNew>
     </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/PublicAdmin">
       <Open>Allow</Open>
-      <AddNew>Allowed</AddNew>
+      <AddNew>Allow</AddNew>
     </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/AdminUIViewers">
       <Open>Allow</Open>
