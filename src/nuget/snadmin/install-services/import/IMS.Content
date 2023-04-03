@@ -34,11 +34,17 @@
     </Identity>
     <Identity path="/Root/IMS/Public/Administrators">
       <Open>Allow</Open>
+      <Save>Allow</Save>
       <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
+      <SeePermissions>Allow</SeePermissions>
+      <SetPermissions>Allow</SetPermissions>
     </Identity>
-    <Identity path="/Root/IMS/BuiltIn/Portal/PublicAdmin">
-      <Open>Allow</Open>
-      <AddNew>Allow</AddNew>
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <Save>Deny</Save>
+      <Delete>Deny</Delete>
+      <SeePermissions>Deny</SeePermissions>
+      <SetPermissions>Deny</SetPermissions>
     </Identity>
   </Permissions>
 </ContentMetaData>

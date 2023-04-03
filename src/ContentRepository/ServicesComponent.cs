@@ -1646,17 +1646,22 @@ namespace SenseNet.ContentRepository
                 var publicAdminsGroupId = NodeHead.Get("/Root/IMS/Public/Administrators")?.Id ?? 0;
                 if (publicAdminsGroupId > 0)
                 {
+                    // Add required permissions to manage new domains
                     editor.Allow(imsFolderId, publicAdminsGroupId, false,
                         PermissionType.Open,
-                        PermissionType.AddNew);
+                        PermissionType.Save,
+                        PermissionType.AddNew,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
+                    // Avoid deleting the "Public" domain.
+                    editor.Deny(imsFolderId, publicAdminsGroupId, true,
+                        PermissionType.Save,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
                 }
-                var publicAdminUserId = NodeHead.Get("/Root/IMS/BuiltIn/Portal/PublicAdmin")?.Id ?? 0;
-                if (publicAdminUserId > 0)
-                {
-                    editor.Allow(imsFolderId, publicAdminUserId, false,
-                        PermissionType.Open,
-                        PermissionType.AddNew);
-                }
+                // Add permissions for owners to manage their own domains.
                 var ownersGroupId = Identifiers.OwnersGroupId;
                 editor.Allow(imsFolderId, ownersGroupId, false,
                     PermissionType.AddNew,
