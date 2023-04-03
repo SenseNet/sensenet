@@ -33,8 +33,5 @@
       <Open>Allow</Open>
       <AddNew>Allow</AddNew>
     </Identity>
-    <Identity path="/Root/IMS/BuiltIn/Portal/AdminUIViewers">
-      <Open>Allow</Open>
-    </Identity>
   </Permissions>
 </ContentMetaData>
