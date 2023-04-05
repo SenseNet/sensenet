@@ -1,0 +1,23 @@
+{
+  "solution": {
+    "path": "SenseNet.sln",
+    "projects": [
+      "Abstractions\\SenseNet.Abstractions.csproj",
+      "BlobStorage\\SenseNet.BlobStorage.csproj",
+      "Common\\SenseNet.Common.csproj",
+      "ContentRepository.InMemory\\SenseNet.ContentRepository.InMemory.csproj",
+      "ContentRepository.MsSql\\SenseNet.ContentRepository.MsSql.csproj",
+      "ContentRepository\\SenseNet.ContentRepository.csproj",
+      "OData\\SenseNet.OData.csproj",
+      "OpenApi\\SenseNet.OpenApi.csproj",
+      "Search\\SenseNet.Search.csproj",
+      "Services.Core.Install\\SenseNet.Services.Core.Install.csproj",
+      "Services.Core\\SenseNet.Services.Core.csproj",
+      "Services.Wopi\\SenseNet.Services.Wopi.csproj",
+      "Storage\\SenseNet.Storage.csproj",
+      "Tests\\SenseNet.Tests.Core\\SenseNet.Tests.Core.csproj",
+      "WebHooks.Common\\SenseNet.WebHooks.Common.csproj",
+      "WebHooks\\SenseNet.WebHooks.csproj"
+    ]
+  }
+}

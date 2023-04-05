@@ -1560,11 +1560,14 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.28", "7.7.28.1", "2023-02-03", "Upgrades sensenet content repository.")
-                .Action(Patch_AddContentTemplates);
+            builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_29);
+
+            builder.Patch("7.7.29", "7.7.29.1", "2023-04-03", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_30);
         }
 
-        private void Patch_AddContentTemplates(PatchExecutionContext context)
+        private void Patch_7_7_29(PatchExecutionContext context)
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
 
@@ -1581,14 +1584,27 @@ namespace SenseNet.ContentRepository
 
             #region Permission changes
 
+            var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
+            var systemFolderId = NodeHead.Get(Repository.SystemFolderPath).Id;
+            var schemaFolderId = NodeHead.Get(Repository.SchemaFolderPath).Id;
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+            // public admin permissions
+            if (publicAdminsGroupId > 0)
+            {
+                // local See permission on the System and Schema folders
+                editor.Allow(systemFolderId, publicAdminsGroupId, true, PermissionType.See)
+                    .Allow(schemaFolderId, publicAdminsGroupId, true, PermissionType.See);
+
+                // Somebody user
+                editor.Allow(Identifiers.SomebodyUserId, publicAdminsGroupId, false, PermissionType.See);
+            }
+
             // if we just created this folder above
             if (contentTemplates != null)
             {
-                var publicAdminsGroupId = Node.LoadNode("/Root/IMS/Public/Administrators")?.Id ?? 0;
                 var developersGroupId = Node.LoadNode(N.R.Developers)?.Id ?? 0;
                 var editorsGroupId = Node.LoadNode(N.R.Editors)?.Id ?? 0;
-
-                var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
 
                 if (publicAdminsGroupId > 0)
                     editor.Allow(contentTemplates.Id, publicAdminsGroupId, false, PermissionType.BuiltInPermissionTypes);
@@ -1598,11 +1614,63 @@ namespace SenseNet.ContentRepository
                     editor.Allow(contentTemplates.Id, editorsGroupId, false, PermissionType.BuiltInPermissionTypes);
 
                 editor.Allow(contentTemplates.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open);
-
-                editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                logger.LogTrace("Permissions are successfully set on the ContentTemplates folder.");
             }
+
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            logger.LogTrace("Permissions are successfully set.");
+
+            #endregion
+        }
+
+        private void Patch_7_7_30(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Permission changes
+
+            var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+
+            // Ensure the principle of minimal privilege on the builtin domain.
+            var builtinDomainId = NodeHead.Get("/Root/IMS/BuiltIn")?.Id ?? 0;
+            if (builtinDomainId > 0)
+            {
+                logger.LogTrace("Breaking permissions on the builtin domain.");
+                editor.BreakInheritance(builtinDomainId, new[] {EntryType.Normal});
+            }
+
+            // Add permissions for public administrators to all domains except Builtin.
+            var imsFolderId = NodeHead.Get("/Root/IMS")?.Id ?? 0;
+            if (imsFolderId > 0)
+            {
+                logger.LogTrace("Adding permissions for public administrators and owners on the IMS folder.");
+                var publicAdminsGroupId = NodeHead.Get("/Root/IMS/Public/Administrators")?.Id ?? 0;
+                if (publicAdminsGroupId > 0)
+                {
+                    // Add required permissions to manage new domains
+                    editor.Allow(imsFolderId, publicAdminsGroupId, false,
+                        PermissionType.Open,
+                        PermissionType.Save,
+                        PermissionType.AddNew,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
+                    // Avoid deleting or modifying the IMS root: local-only deny permissions
+                    editor.Deny(imsFolderId, publicAdminsGroupId, true,
+                        PermissionType.Save,
+                        PermissionType.Delete,
+                        PermissionType.SeePermissions,
+                        PermissionType.SetPermissions);
+                }
+                // Add permissions for owners to manage their own domains.
+                editor.Allow(imsFolderId, Identifiers.OwnersGroupId, false,
+                    PermissionType.AddNew,
+                    PermissionType.Delete,
+                    PermissionType.SeePermissions,
+                    PermissionType.SetPermissions);
+            }
+
+            editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            logger.LogTrace("Permissions are successfully set.");
 
             #endregion
         }

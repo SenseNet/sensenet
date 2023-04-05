@@ -166,6 +166,9 @@ namespace SenseNet.ContentRepository.Fields
                 return list;
 
             list = new List<string>();
+            if (value == null)
+                return list;
+
             string stringValue = value as string;
             if (stringValue != null)
             {

@@ -1284,16 +1284,80 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 var loadValue = EnumTestNode.TestEnum.Value1;
                 var selectValue = EnumTestNode.TestEnum.Value3;
                 List<string> loadedList;
-                EnumTestNode.TestEnum result;
+                EnumTestNode.TestEnum? result;
                 bool isValid;
 
-                ChoiceTestOnEnum(ctd, testRoot, loadValue, selectValue, out loadedList, out result, out isValid);
+                ChoiceTestOnEnum(ctd, testRoot, loadValue, selectValue, out loadedList, out result, out isValid, out _);
 
                 Assert.IsTrue(result == selectValue, "#1");
                 Assert.IsTrue(isValid, "#2");
             });
         }
-        private void ChoiceTestOnEnum(string ctd, Node testRoot, EnumTestNode.TestEnum loadValue, EnumTestNode.TestEnum selectValue, out List<string> loadedList, out EnumTestNode.TestEnum result, out bool isValid)
+        [TestMethod]
+        public void FieldSetting_Validation_ChoiceOnEnum_null_Optional()
+        {
+            Test(() =>
+            {
+                var testRoot = CreateTestRoot();
+
+                string ctd = @"<?xml version='1.0' encoding='utf-8'?>
+				<ContentType name='EnumTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.Tests.ContentHandlers.EnumTestNode' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+					<Fields>
+						<Field name='TestProperty' type='Choice'>
+							<Configuration>
+								<Compulsory>false</Compulsory>
+								<Options>
+									<Enum type='SenseNet.ContentRepository.Tests.ContentHandlers.EnumTestNode+TestEnum' />
+								</Options>
+							</Configuration>
+						</Field>
+					</Fields>
+				</ContentType>";
+                var loadValue = EnumTestNode.TestEnum.Value1;
+                EnumTestNode.TestEnum? selectValue = null;
+                List<string> loadedList;
+                EnumTestNode.TestEnum? result;
+                bool isValid;
+
+                ChoiceTestOnEnum(ctd, testRoot, loadValue, selectValue, out loadedList, out result, out isValid, out _);
+
+                Assert.IsTrue(result == default(EnumTestNode.TestEnum), "#1");
+                Assert.IsTrue(isValid, "#2");
+            });
+        }
+        [TestMethod]
+        public void FieldSetting_Validation_ChoiceOnEnum_null_Required()
+        {
+            Test(() =>
+            {
+                var testRoot = CreateTestRoot();
+
+                string ctd = @"<?xml version='1.0' encoding='utf-8'?>
+				<ContentType name='EnumTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.Tests.ContentHandlers.EnumTestNode' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+					<Fields>
+						<Field name='TestProperty' type='Choice'>
+							<Configuration>
+								<Compulsory>true</Compulsory>
+								<Options>
+									<Enum type='SenseNet.ContentRepository.Tests.ContentHandlers.EnumTestNode+TestEnum' />
+								</Options>
+							</Configuration>
+						</Field>
+					</Fields>
+				</ContentType>";
+                var loadValue = EnumTestNode.TestEnum.Value1;
+                EnumTestNode.TestEnum? selectValue = null;
+
+                ChoiceTestOnEnum(ctd, testRoot, loadValue, selectValue,
+                    out var loadedList, out var result, out var isValid, out var validationResult);
+
+                Assert.IsTrue(result == default(EnumTestNode.TestEnum), "#1");
+                Assert.IsFalse(isValid, "#2");
+                Assert.AreEqual("Compulsory", validationResult.Category);
+            });
+        }
+        private void ChoiceTestOnEnum(string ctd, Node testRoot, EnumTestNode.TestEnum loadValue, EnumTestNode.TestEnum? selectValue,
+            out List<string> loadedList, out EnumTestNode.TestEnum? result, out bool isValid, out FieldValidationResult validationResult)
         {
             ContentTypeInstaller.InstallContentType(ctd);
 
@@ -1307,11 +1371,12 @@ namespace SenseNet.ContentRepository.Tests.Schema
             loadedList = fieldData as List<string>;
 
             //-- select item
-            field.SetData((int)selectValue);
+            field.SetData((int?)selectValue);
             new ObjectAccessor(field).Invoke("Save", false);
 
             result = (EnumTestNode.TestEnum)contentHandler.TestProperty;
             isValid = field.IsValid;
+            validationResult = field.ValidationResult;
         }
 
         [TestMethod]

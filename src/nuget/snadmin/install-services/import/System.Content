@@ -7,7 +7,10 @@
       </Fields>
   <Permissions>
     <Clear />
-    <Identity path="/Root/IMS/BuiltIn/Portal/Developers">
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <See>Allowed</See>
+    </Identity>
+	<Identity path="/Root/IMS/BuiltIn/Portal/Developers">
       <See>Allowed</See>
       <Preview>Allowed</Preview>
       <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>

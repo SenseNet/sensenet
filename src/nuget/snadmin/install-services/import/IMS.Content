@@ -9,21 +9,42 @@
     <Clear />
     <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
       <See>Allow</See>
+      <Preview>Allow</Preview>
+      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
       <Open>Allow</Open>
       <OpenMinor>Allow</OpenMinor>
       <Save>Allow</Save>
+      <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
+      <SeePermissions>Allow</SeePermissions>
+      <SetPermissions>Allow</SetPermissions>
       <RunApplication>Allow</RunApplication>
     </Identity>
     <Identity path="/Root/IMS/BuiltIn/Portal/HR">
-      <See>Allowed</See>
-      <Preview>Allowed</Preview>
-      <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>
-      <PreviewWithoutRedaction>Allowed</PreviewWithoutRedaction>
-      <Open>Allowed</Open>
-      <OpenMinor>Allowed</OpenMinor>
-      <Save>Allowed</Save>
-      <AddNew>Allowed</AddNew>
-      <Delete>Allowed</Delete>
+      <See>Allow</See>
+      <Preview>Allow</Preview>
+      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
+      <Open>Allow</Open>
+      <OpenMinor>Allow</OpenMinor>
+      <Save>Allow</Save>
+      <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/Public/Administrators">
+      <Open>Allow</Open>
+      <Save>Allow</Save>
+      <AddNew>Allow</AddNew>
+      <Delete>Allow</Delete>
+      <SeePermissions>Allow</SeePermissions>
+      <SetPermissions>Allow</SetPermissions>
+    </Identity>
+    <Identity path="/Root/IMS/Public/Administrators" propagation="LocalOnly">
+      <Save>Deny</Save>
+      <Delete>Deny</Delete>
+      <SeePermissions>Deny</SeePermissions>
+      <SetPermissions>Deny</SetPermissions>
     </Identity>
   </Permissions>
 </ContentMetaData>
