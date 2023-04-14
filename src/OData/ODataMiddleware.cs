@@ -669,6 +669,7 @@ namespace SenseNet.OData
                 await content.SaveAsync(cancel).ConfigureAwait(false);
         }
 
+        //UNDONE:xxx rewrite to async
         /// <summary>
         /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
         /// The <see cref="Content"/> will not be saved.
@@ -738,9 +739,8 @@ namespace SenseNet.OData
 
                                 if (field is ReferenceField && jValue.Value != null)
                                 {
-                                    var refNode = jValue.Type == JTokenType.Integer
-                                        ? Node.LoadNode(Convert.ToInt32(jValue.Value))
-                                        : Node.LoadNode(jValue.Value.ToString());
+                                    var refNode = LoadReferenceSafeAsync(jValue, CancellationToken.None)
+                                        .GetAwaiter().GetResult();
 
                                     // skip setting Somebody
                                     if (prop.Name is "Owner" && refNode?.Id == Identifiers.SomebodyUserId)
@@ -751,8 +751,9 @@ namespace SenseNet.OData
 
                                     if (refNode == null)
                                         brokenRefs.Add(field.Name);
-                                    if (!skipBrokenReferences)
+                                    if (refNode != null || !skipBrokenReferences)
                                         field.SetData(refNode);
+
                                     continue;
                                 }
 
@@ -798,12 +799,14 @@ namespace SenseNet.OData
                                     var nodes = refValues
                                         .Select(rv =>
                                         {
-                                            var value = rv.Type == JTokenType.Integer
-                                                ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
-                                                : Node.LoadNode(rv.ToString());
-                                            if (value == null)
-                                                brokenRefs.Add(field.Name);
-                                            return value;
+                                            Node refNode = null;
+                                            if(rv is JValue jv)
+                                                refNode = LoadReferenceSafeAsync(jv, CancellationToken.None)
+                                                    .GetAwaiter().GetResult();
+                                            if (refNode == null)
+                                                if(!brokenRefs.Contains(field.Name))
+                                                    brokenRefs.Add(field.Name);
+                                            return refNode;
                                         })
                                         .Where(x => x != null).ToArray(); // filter unknown or invisible items
 
@@ -876,6 +879,27 @@ namespace SenseNet.OData
             if (readonlyFields.Any())
                 SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
                                          $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
+        }
+
+        private static async Task<Node> LoadReferenceSafeAsync(JValue identifier, CancellationToken cancel)
+        {
+            if (identifier == null)
+                return null;
+            if (identifier.Value == null)
+                return null;
+            if (identifier.Type == JTokenType.Null)
+                return null;
+
+            var pathOrId = identifier.Value.ToString();
+
+            Node refNode = null;
+            try
+            {
+                refNode = await Node.LoadNodeByIdOrPathAsync(pathOrId, cancel).ConfigureAwait(false);
+            }
+            catch (AccessDeniedException) { /* do nothing, result is null */ }
+            catch (SenseNetSecurityException) { /* do nothing, result is null */ }
+            return refNode;
         }
 
         private T GetPropertyValue<T>(string name, JObject model)
