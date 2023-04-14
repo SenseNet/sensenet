@@ -358,10 +358,12 @@ public class ODataImportTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            var referredUser = await CreateUserAsync("AgentSmith", default).ConfigureAwait(false);
+            var initialReferredUser = await CreateUserAsync("AgentSmith", default).ConfigureAwait(false);
+            var referredUser = await CreateUserAsync("AgentTaylor", default).ConfigureAwait(false);
             var importerUser = await CreatePublicAdminUserAsync("Importer", default).ConfigureAwait(false);
 
             await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Deny(initialReferredUser.Id, importerUser.Id, false, PermissionType.See)
                 .Deny(referredUser.Id, importerUser.Id, false, PermissionType.See)
                 .ApplyAsync(default).ConfigureAwait(false);
 
@@ -369,7 +371,7 @@ public class ODataImportTests : ODataTestBase
             Assert.IsFalse(IsVisibleFor(importerUser, referredUser.Id));
 
             // ACT
-            var result = await ReimportSingleReferenceAsync(importerUser, referredUser, referredUser, default)
+            var result = await ReimportSingleReferenceAsync(importerUser, initialReferredUser, referredUser, default)
                 .ConfigureAwait(false);
 
             // ASSERT
@@ -379,7 +381,7 @@ public class ODataImportTests : ODataTestBase
             var importedContent = Node.Load<User>(result.Path);
             Assert.IsNotNull(importedContent);
             // Assert for Admin
-            Assert.AreEqual(referredUser.Id, importedContent.GetReference<User>("Manager").Id);
+            Assert.AreEqual(initialReferredUser.Id, importedContent.GetReference<User>("Manager").Id);
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
