@@ -244,11 +244,19 @@ namespace SenseNet.ODataTests
 
                 var permissionData = new List<string>
                 {
+                    // Admin and Administrators are in god mode.
                     " +               2|Normal|+        1:_____________________________________________+++++++++++++++++++",
                     " +               2|Normal|+        7:_____________________________________________+++++++++++++++++++",
+                    // U1 can see everything but cannot open anything.
                     $"+               2|Normal|+{user.Id}:_________________________________________________+_____________+",
+                    // U1 can manage /Root/Content subtree
                     $"+{contentNode.Id}|Normal|+{user.Id}:_____________________________________________+__________________",
+                    // U1 can see Admin and Administrators even if there is any break on their ancestor chain.
+                    $"+               1|Normal|+{user.Id}:_________________________________________________+_____________+",
+                    $"+               7|Normal|+{user.Id}:_________________________________________________+_____________+",
                 };
+
+                // Remove breaks and explicit entries from /Root and /Root/Content and install permissions above.
                 var categoriesToNormalize = new[] { EntryType.Normal };
                 using (new SystemAccount())
                 {
@@ -263,7 +271,14 @@ namespace SenseNet.ODataTests
                         .ApplyAsync(SecurityInstaller.ParseInitialPermissions(aclEditor.Context, permissionData),
                             CancellationToken.None).ConfigureAwait(false);
                 }
-                Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
+
+                // Check requirements
+                var security = Providers.Instance.SecurityHandler;
+                Assert.IsTrue(security.HasPermission(user, contentNode, PermissionType.SeePermissions));
+                Assert.IsTrue(security.HasPermission(user, User.Administrator, PermissionType.SeePermissions));
+                Assert.IsFalse(security.HasPermission(user, User.Administrator, PermissionType.Open));
+                Assert.IsTrue(security.HasPermission(user, Group.Administrators, PermissionType.SeePermissions));
+                Assert.IsFalse(security.HasPermission(user, Group.Administrators, PermissionType.Open));
 
 
                 // ACTION
@@ -288,6 +303,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(Identifiers.AdministratorUserId, admin.SelectToken("id").Value<int>());
                 Assert.AreEqual("Admin", admin.SelectToken("name").Value<string>());
                 Assert.AreEqual("user", admin.SelectToken("kind").Value<string>());
+                // Domain and avatar are invisible for U1 because the U1 has not Open permission to the Admin.
                 Assert.AreEqual(null, admin.SelectToken("domain").Value<string>());
                 Assert.AreEqual(null, admin.SelectToken("avatar").Value<string>());
 
@@ -295,6 +311,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(Identifiers.AdministratorsGroupId, admins.SelectToken("id").Value<int>());
                 Assert.AreEqual("Administrators", admins.SelectToken("name").Value<string>());
                 Assert.AreEqual("group", admins.SelectToken("kind").Value<string>());
+                // Domain and avatar are invisible for U1 because the U1 has not Open permission to the Administrators.
                 Assert.AreEqual(null, admins.SelectToken("domain").Value<string>());
                 Assert.AreEqual(null, admins.SelectToken("avatar").Value<string>());
 
@@ -302,6 +319,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(user.Id, u1.SelectToken("id").Value<int>());
                 Assert.AreEqual("U1", u1.SelectToken("name").Value<string>());
                 Assert.AreEqual("user", u1.SelectToken("kind").Value<string>());
+                // Domain and avatar are visible for U1.
                 Assert.AreEqual("BuiltIn", u1.SelectToken("domain").Value<string>());
                 Assert.AreEqual("", u1.SelectToken("avatar").Value<string>());
 
