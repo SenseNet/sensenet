@@ -30,6 +30,7 @@ using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using System.Net.Http;
+using Nito.AsyncEx;
 using Retrier = SenseNet.Tools.Retrier;
 
 // ReSharper disable UnusedMember.Global
@@ -588,8 +589,9 @@ namespace SenseNet.OData
                 var node = ContentTemplate.CreateFromTemplate(parent, template, contentName);
                 content = Content.Create(node);
             }
-            
-            UpdateFields(content, model, skipBrokenReferences, out var brokenReferenceFieldNames);
+
+            var brokenReferenceFieldNames = await UpdateFieldsAsync(content, model, skipBrokenReferences, cancel)
+                .ConfigureAwait(false);
 
             if (isMultiStepSave)
                 await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
@@ -661,7 +663,7 @@ namespace SenseNet.OData
 
         private async Task UpdateContentAsync(Content content, JObject model, ODataRequest odataRequest, CancellationToken cancel)
         {
-            UpdateFields(content, model, false, out _);
+            await UpdateFieldsAsync(content, model, false, cancel).ConfigureAwait(false);
 
             if (odataRequest.MultistepSave)
                 await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
@@ -669,7 +671,6 @@ namespace SenseNet.OData
                 await content.SaveAsync(cancel).ConfigureAwait(false);
         }
 
-        //UNDONE:xxx rewrite to async
         /// <summary>
         /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
         /// The <see cref="Content"/> will not be saved.
@@ -678,10 +679,29 @@ namespace SenseNet.OData
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
         /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
-        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
+        [Obsolete("Use async overload.", true)]
+        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences,
+            out List<string> brokenReferenceFieldNames)
         {
-            brokenReferenceFieldNames = new List<string>();
-            var brokenRefs = brokenReferenceFieldNames; // in the lambda expressions need to use a local value
+            brokenReferenceFieldNames = UpdateFieldsAsync(content, model, skipBrokenReferences, CancellationToken.None)
+                .GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
+        /// The <see cref="Content"/> will not be saved.
+        /// </summary>
+        /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
+        /// <param name="model">The modifier JObject instance. Cannot be null.</param>
+        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a list of field names
+        /// that have broken references.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ODataException"></exception>
+        public async static Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
+            CancellationToken cancel)
+        {
+            var brokenReferenceFieldNames = new List<string>();
             if (content == null)
                 throw new ArgumentNullException(nameof(content));
             if (model == null)
@@ -739,8 +759,8 @@ namespace SenseNet.OData
 
                                 if (field is ReferenceField && jValue.Value != null)
                                 {
-                                    var refNode = LoadReferenceSafeAsync(jValue, CancellationToken.None)
-                                        .GetAwaiter().GetResult();
+                                    var refNode = await LoadReferenceSafeAsync(jValue, cancel)
+                                        .ConfigureAwait(false);
 
                                     // skip setting Somebody
                                     if (prop.Name is "Owner" && refNode?.Id == Identifiers.SomebodyUserId)
@@ -750,7 +770,7 @@ namespace SenseNet.OData
                                     }
 
                                     if (refNode == null)
-                                        brokenRefs.Add(field.Name);
+                                        brokenReferenceFieldNames.Add(field.Name);
                                     if (refNode != null || !skipBrokenReferences)
                                         field.SetData(refNode);
 
@@ -795,20 +815,21 @@ namespace SenseNet.OData
                                         continue;
                                     }
 
-                                    var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
-                                    var nodes = refValues
-                                        .Select(rv =>
+                                    var nodesTasks = refValues
+                                        .Select(async rv =>
                                         {
                                             Node refNode = null;
                                             if(rv is JValue jv)
-                                                refNode = LoadReferenceSafeAsync(jv, CancellationToken.None)
-                                                    .GetAwaiter().GetResult();
+                                                refNode = await LoadReferenceSafeAsync(jv, cancel)
+                                                    .ConfigureAwait(false);
                                             if (refNode == null)
-                                                if(!brokenRefs.Contains(field.Name))
-                                                    brokenRefs.Add(field.Name);
+                                                if(!brokenReferenceFieldNames.Contains(field.Name))
+                                                    brokenReferenceFieldNames.Add(field.Name);
                                             return refNode;
-                                        })
-                                        .Where(x => x != null).ToArray(); // filter unknown or invisible items
+                                        });
+                                    var nodes = (await nodesTasks.WhenAll())
+                                        .Where(x => x != null) // filter unknown or invisible items
+                                        .ToArray();
 
                                     // skip setting Somebody
                                     if (prop.Name is "Owner" && nodes?.FirstOrDefault()?.Id == Identifiers.SomebodyUserId)
@@ -817,6 +838,7 @@ namespace SenseNet.OData
                                         continue;
                                     }
 
+                                    var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
                                     if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                         field.SetData(nodes);
                                     else
@@ -879,6 +901,8 @@ namespace SenseNet.OData
             if (readonlyFields.Any())
                 SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
                                          $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
+
+            return brokenReferenceFieldNames;
         }
 
         private static async Task<Node> LoadReferenceSafeAsync(JValue identifier, CancellationToken cancel)
