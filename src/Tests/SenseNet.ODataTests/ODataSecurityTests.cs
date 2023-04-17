@@ -27,7 +27,7 @@ namespace SenseNet.ODataTests
 
                 // ACTION
                 var response = await ODataPostAsync(
-                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions",
+                        "/OData.svc/Root/('IMS')/GetPermissions",
                         "",
                         null)
                     .ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace SenseNet.ODataTests
 
                 // ACTION
                 var response = await ODataPostAsync(
-                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions",
+                        "/OData.svc/Root/('IMS')/GetPermissions",
                         "",
                         "{identity:\"/root/ims/builtin/portal/visitor\"}")
                     .ConfigureAwait(false);
