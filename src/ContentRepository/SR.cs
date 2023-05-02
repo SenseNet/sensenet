@@ -1,4 +1,5 @@
 using SenseNet.ContentRepository.i18n;
+// ReSharper disable InconsistentNaming
 
 namespace SenseNet.ContentRepository
 {
@@ -15,7 +16,9 @@ namespace SenseNet.ContentRepository
             {
                 internal static string Msg_NodeTypeMustBeInheritedFromNode_1 = "NodeType must be inherited from Node: {0}";
                 internal static string Msg_DefinedHandlerIsNotAContentHandler = "Invalid ContentTypeDefinition: defined handler is not a ContentHandler";
+                internal static string Msg_MissingParentContentType = "Parent ContentType is not found (missing 'parentType' attribute).";
                 internal static string Msg_UnknownParentContentType = "Parent ContentType is not found";
+                internal static string Msg_ForbiddenParentContentType = "Parent ContentType cannot be 'ContentType'";
                 internal static string Msg_DataTypeCollisionInTwoProperties_4 = "DataType collision in two properties. NodeType = '{0}', PropertyType = '{1}', original DataType = {2}, passed DataType = {3}.";
 
                 // Attribute parsing

@@ -240,6 +240,11 @@ namespace SenseNet.Services.Core.Operations
             if (!AllowCreationForEmptyAllowedContentTypes(Content.ContentHandler))
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action","UploadExceptionEmptyAllowedChildTypes"));
 
+            // Only ContentType is allowed under the System/Schema/ContentTypes
+            if (this.Content.Path.StartsWith(Repository.ContentTypesFolderPath + "/", StringComparison.InvariantCultureIgnoreCase))
+                if (this.ContentTypeName != "ContentType")
+                    throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
+
             // the create parameter is sent in the url
             if (Create.HasValue)
             {

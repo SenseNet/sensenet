@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
 
@@ -113,7 +114,6 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-
         private object UploadTextFile(string text, Content parent, string fileName, bool overwrite)
         {
             var httpContext = CreateHttpContext("/Root/Content/DocLib");
@@ -140,6 +140,153 @@ namespace SenseNet.ContentRepository.Tests
             var response = handler.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
             return response;
         }
+
+        /* ========================================================================= Upload CTD */
+
+        private readonly string _ctd = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""TestContent"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields><Field name=""AppInfo"" type=""ShortText""><DisplayName>AppInfo</DisplayName></Field></Fields>
+</ContentType>";
+
+        [TestMethod]
+        public void UploadHandler_Create_ContentType()
+        {
+            Test(() =>
+            {
+                var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+
+                // ACT
+                UploadCtd(_ctd, parent, "ContentType", "TestContent");
+
+                // ASSERT
+                Assert.IsNotNull(ContentType.GetByName("TestContent"));
+
+                var createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/Folder/TestContent");
+                Assert.IsNotNull(createdContent);
+                Assert.AreEqual("ContentType", createdContent.ContentType.Name);
+
+                var createdText =
+                    RepositoryTools.GetStreamString(createdContent.ContentHandler.GetBinary("Binary").GetStream());
+                Assert.AreEqual(_ctd, createdText);
+            });
+        }
+        [TestMethod]
+        public void UploadHandler_Create_ContentType_AsFile()
+        {
+            Test(() =>
+            {
+                var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+
+                // ACT
+                try
+                {
+                    UploadCtd(_ctd, parent, "File", "TestContent");
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (Exception ex)
+                {
+                    // do nothing
+                }
+
+                // ASSERT
+                Assert.IsNull(ContentType.GetByName("TestContent"));
+
+                var createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/Folder/TestContent");
+                Assert.IsNull(createdContent);
+                createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/TestContent");
+                Assert.IsNull(createdContent);
+                createdContent = Content.Load("/Root/System/Schema/ContentTypes/TestContent");
+                Assert.IsNull(createdContent);
+            });
+        }
+
+        private readonly string _rootCtd = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""TestContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields><Field name=""AppInfo"" type=""ShortText""><DisplayName>AppInfo</DisplayName></Field></Fields>
+</ContentType>";
+
+        [TestMethod]
+        public void UploadHandler_Create_RootContentType()
+        {
+            Test(() =>
+            {
+                var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+
+                // ACT
+                try
+                {
+                    UploadCtd(_rootCtd, parent, "ContentType", "TestContent");
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (Exception ex)
+                {
+                    // do nothing
+                }
+
+                // ASSERT
+                Assert.IsNull(ContentType.GetByName("TestContent"));
+
+                var createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/TestContent");
+                Assert.IsNull(createdContent);
+                createdContent = Content.Load("/Root/System/Schema/ContentTypes/TestContent");
+                Assert.IsNull(createdContent);
+
+            });
+        }
+
+
+        private readonly string _wrongParentCtd = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""TestContent"" parentType=""ContentType"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields><Field name=""AppInfo"" type=""ShortText""><DisplayName>AppInfo</DisplayName></Field></Fields>
+</ContentType>";
+
+        [TestMethod]
+        public void UploadHandler_Create_InheritFromContentType()
+        {
+            Test(() =>
+            {
+                var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+
+                // ACT
+                try
+                {
+                    UploadCtd(_wrongParentCtd, parent, "ContentType", "TestContent");
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (Exception ex)
+                {
+                    // do nothing
+                }
+
+                // ASSERT
+                Assert.IsNull(ContentType.GetByName("TestContent"));
+
+                var createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/TestContent");
+                Assert.IsNull(createdContent);
+                createdContent = Content.Load("/Root/System/Schema/ContentTypes/TestContent");
+                Assert.IsNull(createdContent);
+
+            });
+        }
+
+        private object UploadCtd(string text, Content parent, string contentType, string fileName)
+        {
+            var httpContext = CreateHttpContext("/Root/Content/DocLib");
+
+            var handler = new UploadHandler(parent, httpContext)
+            {
+                FileName = fileName,
+                ContentTypeName = contentType,
+                PropertyName = "Binary",
+                Overwrite = true,
+                ChunkToken = "0*0*False*False",
+                FileText = text,
+            };
+
+            var response = handler.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            return response;
+        }
+
         private HttpContext CreateHttpContext(string resource, string queryString = null, IServiceProvider services = null)
         {
             var httpContext = new DefaultHttpContext();
