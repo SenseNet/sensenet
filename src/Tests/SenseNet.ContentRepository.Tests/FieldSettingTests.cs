@@ -94,7 +94,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 var testRoot = CreateTestRoot();
 
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
-				<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+				<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 					<Fields>
 						<Field name='TestString' type='ShortText'>
 							<Configuration>
@@ -311,7 +311,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool compulsory;
 
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText'>
 										<Configuration>
@@ -327,7 +327,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 Assert.IsFalse(compulsory, "#2");
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText'>
 										<Configuration>
@@ -343,7 +343,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 Assert.IsFalse(compulsory, "#4");
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText'>
 										<Configuration>
@@ -359,7 +359,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 Assert.IsTrue(compulsory, "#6");
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText'>
 										<Configuration>
@@ -386,7 +386,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool compulsory;
 
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='Id' type='Integer'>
 										<Configuration>
@@ -411,7 +411,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool compulsory;
 
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText'>
 										<Configuration>
@@ -427,7 +427,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 Assert.IsTrue(compulsory, "#2");
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									<Field name='TestString' type='ShortText' />
 								</Fields>
@@ -464,7 +464,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 //====
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-				<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+				<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 					<Fields>
 						<Field name='RefTest' type='Reference'>
 							<Configuration />
@@ -483,7 +483,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 //====
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-				<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+				<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 					<Fields>
 						<Field name='RefTest' type='Reference'>
 							<Configuration>
@@ -506,7 +506,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 //====
 
                 ctd = @"<?xml version='1.0' encoding='utf-8'?>
-				<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+				<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 					<Fields>
 						<Field name='RefTest' type='Reference'>
 							<Configuration>
@@ -2020,7 +2020,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
         private ContentType CreateContentType(string[] fieldXmlFragments)
         {
             var ctd = string.Format(@"<?xml version='1.0' encoding='utf-8'?>
-							<ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+							<ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 								<Fields>
 									{0}
 								</Fields>
@@ -2150,7 +2150,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 try
                 {
                     string ctd = @"<?xml version='1.0' encoding='utf-8'?>
-                                    <ContentType name='FieldSetting_Structure' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                                    <ContentType name='FieldSetting_Structure' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
                                         <Fields>
                                             <Field name='Id' type='Integer'>
                                                 <Indexing>
@@ -2184,6 +2184,8 @@ namespace SenseNet.ContentRepository.Tests.Schema
         {
             SchemaEditor ed1 = new SchemaEditor();
             SchemaEditor ed2 = new SchemaEditor();
+            ed1.Load();
+            ed2.Load();
 
             ContentTypeManagerAccessor ctmAcc = new ContentTypeManagerAccessor(ContentTypeManager.Current);
             ContentType cts = ctmAcc.LoadOrCreateNew(contentTypeDefInstall);
@@ -2197,7 +2199,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
             if (contentTypeDefModify != null)
             {
-                //-- Id-k beallitasa es klonozas
+                //-- Set ids and make clones
                 SchemaEditor ed3 = new SchemaEditor();
                 SchemaEditorAccessor ed3Acc = new SchemaEditorAccessor(ed3);
                 SchemaItemAccessor schItemAcc;
