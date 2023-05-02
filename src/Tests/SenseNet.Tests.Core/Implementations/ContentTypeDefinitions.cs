@@ -37,7 +37,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
@@ -357,7 +357,8 @@ namespace SenseNet.Tests.Core.Implementations
 			{ "BinaryFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name='BinaryFieldSetting' parentType='FieldSettingContent' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-BinaryFieldSetting,DisplayName</DisplayName>
-  <Icon>File</Icon>
+  <Icon>FieldSetting</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
@@ -387,7 +388,7 @@ namespace SenseNet.Tests.Core.Implementations
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <Compulsory>true</Compulsory>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name=""EndDate"" type=""DateTime"">
@@ -395,20 +396,17 @@ namespace SenseNet.Tests.Core.Implementations
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <Compulsory>true</Compulsory>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
-    <Field name=""Lead"" type=""LongText"">
+    <Field name=""Lead"" type=""RichText"">
       <DisplayName>$Ctd-CalendarEvent,Lead-DisplayName</DisplayName>
       <Description>$Ctd-CalendarEvent,Lead-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Description>$Ctd-CalendarEvent,Description-Description</Description>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -595,6 +593,7 @@ namespace SenseNet.Tests.Core.Implementations
 <ContentType name='ChoiceFieldSetting' parentType='ShortTextFieldSetting' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-ChoiceFieldSetting,DisplayName</DisplayName>
   <Icon>addchoicefield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
@@ -603,12 +602,18 @@ namespace SenseNet.Tests.Core.Implementations
 <ContentType name=""ContentLink"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.ContentLink"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ContentLink,DisplayName</DisplayName>
 	<Description>$Ctd-ContentLink,Description</Description>
-	<Icon>Folder</Icon>
+	<Icon>ContentLink</Icon>
 	<Fields>
+    <Field name=""Name"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name=""Link"" type=""Reference"">
       <DisplayName>$Ctd-ContentLink,Link-DisplayName</DisplayName>
       <Description>$Ctd-ContentLink,Link-Description</Description>
       <Configuration>
+        <FieldIndex>10</FieldIndex>
         <AllowMultiple>false</AllowMultiple>
       </Configuration>
     </Field>
@@ -619,7 +624,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleBrowse>Hide</VisibleBrowse>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleNew>Hide</VisibleNew>
         <VisibleEdit>Hide</VisibleEdit>
@@ -992,10 +997,21 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
+    <Field name=""IsSystemType"" type=""Boolean"">
+      <DisplayName>$Ctd-ContentType,IsSystemType-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,IsSystemType-Description</Description>
+      <Bind property=""IsSystemType""/>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
     <Field name=""IsSystemContent"" type=""Boolean"">
       <DisplayName>$Ctd-ContentType,IsSystemContent-DisplayName</DisplayName>
       <Description>$Ctd-ContentType,IsSystemContent-Description</Description>
-      <Bind property=""IsSystem""></Bind>
+      <Bind property=""IsSystem""/>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -1016,7 +1032,7 @@ namespace SenseNet.Tests.Core.Implementations
 			<DisplayName>$Ctd-ContentType,DisplayName-DisplayName</DisplayName>
 			<Description>$Ctd-ContentType,DisplayName-Description</Description>
 		</Field>
-		<Field name=""Description"" type=""LongText"">
+		<Field name=""Description"" type=""RichText"">
 			<DisplayName>$Ctd-ContentType,Description-DisplayName</DisplayName>
 			<Description>$Ctd-ContentType,Description-Description</Description>
       <Indexing>
@@ -1051,9 +1067,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""LongTextField"" type=""LongText"">
@@ -1062,13 +1078,13 @@ namespace SenseNet.Tests.Core.Implementations
       <Configuration>
         <MaxLength>100</MaxLength>
         <MinLength>0</MinLength>
-        <TextType>LongText|RichText|AdvancedRichText</TextType>
+        <TextType>LongText|RichText</TextType>
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""NumberField"" type=""Number"">
@@ -1081,9 +1097,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""IntegerField"" type=""Integer"">
@@ -1095,9 +1111,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""BooleanField"" type=""Boolean"">
@@ -1107,9 +1123,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""ChoiceField"" type=""Choice"">
@@ -1125,9 +1141,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""DateTimeField"" type=""DateTime"">
@@ -1139,9 +1155,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""ReferenceField"" type=""Reference"">
@@ -1160,9 +1176,9 @@ namespace SenseNet.Tests.Core.Implementations
         <DefaultValue>/Root/Path1,/Root/Path2</DefaultValue>
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""BinaryField"" type=""Binary"">
@@ -1173,9 +1189,9 @@ namespace SenseNet.Tests.Core.Implementations
         <ReadOnly>false</ReadOnly>
         <Compulsory>false</Compulsory>
         <DefaultValue></DefaultValue>
-        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
-        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
-        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+        <VisibleBrowse>Show|Hide</VisibleBrowse>
+        <VisibleEdit>Show|Hide</VisibleEdit>
+        <VisibleNew>Show|Hide</VisibleNew>
       </Configuration>
     </Field>
   </Fields>
@@ -1258,6 +1274,7 @@ namespace SenseNet.Tests.Core.Implementations
 <ContentType name=""CurrencyFieldSetting"" parentType=""NumberFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-CurrencyFieldSetting,DisplayName</DisplayName>
   <Icon>addcurrencyfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
@@ -1309,7 +1326,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -1345,6 +1362,7 @@ namespace SenseNet.Tests.Core.Implementations
 <ContentType name=""DateTimeFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-DateTimeFieldSetting,DisplayName</DisplayName>
   <Icon>adddatetimefield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
@@ -1367,20 +1385,21 @@ namespace SenseNet.Tests.Core.Implementations
 <ContentType name=""DocumentLibrary"" parentType=""Library"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-DocumentLibrary,DisplayName</DisplayName>
   <Description>$Ctd-DocumentLibrary,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>DocumentLibrary</Icon>
   <AllowedChildTypes>
     Folder,File
   </AllowedChildTypes>
   <Fields>
-  <Field name=""DisplayName"" type=""ShortText"">
+    <Field name=""DisplayName"" type=""ShortText"">
     <DisplayName>$Ctd-DocumentLibrary,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-DocumentLibrary,DisplayName-Description</Description>
       <Configuration>
-        <FieldIndex>0</FieldIndex>
+        <FieldIndex>20</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""Name"" type=""ShortText"">
       <Configuration>
+        <FieldIndex>10</FieldIndex>
         <DefaultValue>DocumentLibrary</DefaultValue>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -1389,22 +1408,18 @@ namespace SenseNet.Tests.Core.Implementations
     </Field>
     <Field name=""Index"" type=""Integer"">
       <Configuration>
-        <FieldIndex>1</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""InheritableVersioningMode"" type=""InheritableVersioningMode"">
       <Configuration>
-        <FieldIndex>2</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""InheritableApprovingMode"" type=""InheritableApprovingMode"">
       <Configuration>
-        <FieldIndex>3</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""AllowedChildTypes"" type=""AllowedChildTypes"">
       <Configuration>
-        <FieldIndex>4</FieldIndex>
       </Configuration>
     </Field>
   </Fields>
@@ -1435,7 +1450,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Advanced</VisibleBrowse>
         <VisibleEdit>Advanced</VisibleEdit>
@@ -1473,6 +1488,7 @@ namespace SenseNet.Tests.Core.Implementations
   <AllowedChildTypes>
     Domain
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
@@ -1480,7 +1496,7 @@ namespace SenseNet.Tests.Core.Implementations
 			{ "EmailCtd.xml", @"<ContentType name=""Email"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Email,DisplayName</DisplayName>
   <Description>$Ctd-Email,Description</Description>
-  <Icon>Document</Icon>
+  <Icon>Email</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <AllowedChildTypes>
     File
@@ -1494,13 +1510,9 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Email,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-Email,DisplayName-Description</Description>
     </Field>
-    <Field name=""Body"" type=""LongText"">
+    <Field name=""Body"" type=""RichText"">
       <DisplayName>$Ctd-Email,Body-DisplayName</DisplayName>
       <Description>$Ctd-Email,Body-Description</Description>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-        <TextType>RichText</TextType>
-      </Configuration>
     </Field>
     <Field name=""Sent"" type=""DateTime"">
       <DisplayName>$Ctd-Email,Sent-DisplayName</DisplayName>
@@ -1512,11 +1524,32 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  19. EventListCtd.xml
+			#region  19. EmailTemplateCtd.xml
+			{ "EmailTemplateCtd.xml", @"<ContentType name=""EmailTemplate"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Email.EmailTemplate"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-EmailTemplate,DisplayName</DisplayName>
+  <Description>$Ctd-EmailTemplate,Description</Description>
+  <Icon>EmailTemplate</Icon>
+  <Fields>
+    <Field name=""Subject"" type=""ShortText"">
+      <DisplayName>$Ctd-EmailTemplate,Subject-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Subject-Description</Description>
+    </Field>
+    <Field name=""Body"" type=""RichText"">
+      <DisplayName>$Ctd-EmailTemplate,Body-DisplayName</DisplayName>
+      <Description>$Ctd-EmailTemplate,Body-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+    </Field>
+  </Fields>
+</ContentType>
+" },
+			#endregion
+			#region  20. EventListCtd.xml
 			{ "EventListCtd.xml", @"<ContentType name=""EventList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-EventList,DisplayName</DisplayName>
   <Description>$Ctd-EventList,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>EventList</Icon>
   <AllowedChildTypes>CalendarEvent</AllowedChildTypes>
   <Fields>
     <Field name=""DisplayName"" type=""ShortText"">
@@ -1591,21 +1624,23 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  20. ExecutableFileCtd.xml
+			#region  21. ExecutableFileCtd.xml
 			{ "ExecutableFileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ExecutableFile"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ExecutableFile,DisplayName</DisplayName>
   <Description>$Ctd-ExecutableFile,Description</Description>
-  <Icon>Application</Icon>
+  <Icon>ExecutableFile</Icon>
   <Preview>false</Preview>
+  <SystemType>true</SystemType>
 </ContentType>" },
 			#endregion
-			#region  21. FieldSettingContentCtd.xml
+			#region  22. FieldSettingContentCtd.xml
 			{ "FieldSettingContentCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""FieldSettingContent"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-FieldSettingContent,DisplayName</DisplayName>
   <Description>$Ctd-FieldSettingContent,Description</Description>
   <Icon>fieldsetting</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""DisplayName"" type=""ShortText"">
       <Configuration>
@@ -1635,7 +1670,7 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  22. FileCtd.xml
+			#region  23. FileCtd.xml
 			{ "FileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""File"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-File,DisplayName</DisplayName>
@@ -1695,6 +1730,7 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-File,Size-DisplayName</DisplayName>
       <Description>$Ctd-File,Size-Description</Description>
       <Configuration>
+        <ControlHint>sn:FileSize</ControlHint>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -1737,7 +1773,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -1774,18 +1810,26 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  23. FolderCtd.xml
+			#region  24. FolderCtd.xml
 			{ "FolderCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Folder"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Folder,DisplayName</DisplayName>
   <Description>$Ctd-Folder,Description</Description>
   <Icon>Folder</Icon>
   <Fields>
+    <Field name=""Name"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name=""DisplayName"" type=""ShortText"">
       <DisplayName>$Ctd-Folder,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-Folder,DisplayName-Description</Description>
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -1799,14 +1843,37 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name=""TrashDisabled"" type=""Boolean"">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""PreviewEnabled"" type=""Choice"">
+      <DisplayName>$Ctd-Folder,PreviewEnabled-DisplayName</DisplayName>
+      <Description>$Ctd-Folder,PreviewEnabled-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Enum type=""SenseNet.ContentRepository.PreviewEnabled""/>
+        </Options>
+      </Configuration>
+    </Field>
   </Fields>
-</ContentType>" },
+</ContentType>
+" },
 			#endregion
-			#region  24. GenericContentCtd.xml
+			#region  25. GenericContentCtd.xml
 			{ "GenericContentCtd.xml", @"<ContentType name=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-GenericContent,DisplayName</DisplayName>
   <Description>$Ctd-GenericContent,Description</Description>
   <Icon>Content</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""Id"" type=""Integer"">
       <DisplayName>$Ctd-GenericContent,Id-DisplayName</DisplayName>
@@ -2041,15 +2108,12 @@ namespace SenseNet.Tests.Core.Implementations
         <ControlHint>sn:DisplayName</ControlHint>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <DisplayName>$Ctd-GenericContent,Description-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Description-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
     <Field name=""Hidden"" type=""Boolean"">
       <DisplayName>$Ctd-GenericContent,Hidden-DisplayName</DisplayName>
@@ -2086,7 +2150,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.Now; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name=""ValidTill"" type=""DateTime"">
@@ -2097,7 +2161,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.Now; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name=""AllowedChildTypes"" type=""AllowedChildTypes"">
@@ -2559,7 +2623,7 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  25. GenericODataApplicationCtd.xml
+			#region  26. GenericODataApplicationCtd.xml
 			{ "GenericODataApplicationCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""GenericODataApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.GenericODataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-GenericODataApplication,DisplayName</DisplayName>
@@ -2587,7 +2651,7 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  26. GroupCtd.xml
+			#region  27. GroupCtd.xml
 			{ "GroupCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Group"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Group"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Group,DisplayName</DisplayName>
@@ -2598,7 +2662,7 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Group,Name-DisplayName</DisplayName>
       <Description>$Ctd-Group,Name-Description</Description>
       <Configuration>
-        <FieldIndex>80</FieldIndex>
+        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -2609,7 +2673,7 @@ namespace SenseNet.Tests.Core.Implementations
     </Field>
     <Field name=""DisplayName"" type=""ShortText"">
       <Configuration>
-        <FieldIndex>60</FieldIndex>
+        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -2617,7 +2681,6 @@ namespace SenseNet.Tests.Core.Implementations
     </Field>
     <Field name=""Version"" type=""Version"">
       <Configuration>
-      <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -2627,15 +2690,14 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Group,Members-DisplayName</DisplayName>
       <Description>$Ctd-Group,Members-Description</Description>
       <Configuration>
-        <!--<ReadOnly>true</ReadOnly>-->
-        <FieldIndex>20</FieldIndex>
+        <FieldIndex>10</FieldIndex>
         <AllowMultiple>true</AllowMultiple>
         <AllowedTypes>
           <Type>User</Type>
           <Type>Group</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS/Public</Path>
+          <Path>/Root/IMS</Path>
           <Path>/Root</Path>
         </SelectionRoot>
         <VisibleBrowse>Show</VisibleBrowse>
@@ -2666,15 +2728,13 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Group,Index-DisplayName</DisplayName>
       <Description>$Ctd-Group,Index-Description</Description>
       <Configuration>
-        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
-        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -2687,6 +2747,11 @@ namespace SenseNet.Tests.Core.Implementations
         <Mode>No</Mode>
         <Store>No</Store>
       </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
     <Field name=""DirectRoles"" type=""DirectRoles"">
       <DisplayName>$Ctd-Group,DirectRoles-DisplayName</DisplayName>
@@ -2695,20 +2760,26 @@ namespace SenseNet.Tests.Core.Implementations
         <Mode>No</Mode>
         <Store>No</Store>
       </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
   </Fields>
 </ContentType>
 " },
 			#endregion
-			#region  27. HyperLinkFieldSettingCtd.xml
+			#region  28. HyperLinkFieldSettingCtd.xml
 			{ "HyperLinkFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""HyperLinkFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-HyperLinkFieldSetting,DisplayName</DisplayName>
   <Icon>addhyperlinkfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  28. ImageCtd.xml
+			#region  29. ImageCtd.xml
 			{ "ImageCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Image"" parentType=""File"" handler=""SenseNet.ContentRepository.Image"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Image,DisplayName</DisplayName>
@@ -2719,7 +2790,7 @@ namespace SenseNet.Tests.Core.Implementations
   <Field name=""Name"" type=""ShortText"">
       <DisplayName>$Ctd-Image,Name-DisplayName</DisplayName>
       <Configuration>
-        <FieldIndex>0</FieldIndex>
+        <FieldIndex>30</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""DateTaken"" type=""DateTime"">
@@ -2727,18 +2798,16 @@ namespace SenseNet.Tests.Core.Implementations
       <Description>$Ctd-Image,DateTaken-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
-        <FieldIndex>1</FieldIndex>
+        <FieldIndex>20</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""Keywords"" type=""LongText"">
       <DisplayName>$Ctd-Image,Keywords-DisplayName</DisplayName>
       <Description>$Ctd-Image,Keywords-Description</Description>
-      <Configuration>
-        <FieldIndex>2</FieldIndex>
-      </Configuration>
     </Field>
     <Field name=""Index"" type=""Integer"">
     <Configuration>
+        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -2769,7 +2838,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -2779,11 +2848,11 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  29. ImageLibraryCtd.xml
+			#region  30. ImageLibraryCtd.xml
 			{ "ImageLibraryCtd.xml", @"<ContentType name=""ImageLibrary"" parentType=""Library"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ImageLibrary,DisplayName</DisplayName>
   <Description>$Ctd-ImageLibrary,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>ImageLibrary</Icon>
   <AllowedChildTypes>
     Folder,Image
   </AllowedChildTypes>
@@ -2792,7 +2861,7 @@ namespace SenseNet.Tests.Core.Implementations
     <DisplayName>$Ctd-ImageLibrary,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-ImageLibrary,DisplayName-Description</Description>
       <Configuration>
-        <FieldIndex>0</FieldIndex>
+        <FieldIndex>20</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""CoverImage"" type=""Reference"">
@@ -2803,7 +2872,7 @@ namespace SenseNet.Tests.Core.Implementations
         <AllowedTypes>
           <Type>Image</Type>
         </AllowedTypes>
-        <FieldIndex>1</FieldIndex>
+        <FieldIndex>10</FieldIndex>
       </Configuration>
     </Field>
     <Field name=""Name"" type=""ShortText"">
@@ -2814,42 +2883,22 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <FieldIndex>2</FieldIndex>
-      </Configuration>
-    </Field>
-    <Field name=""Index"" type=""Integer"">
-      <Configuration>
-        <FieldIndex>3</FieldIndex>
-      </Configuration>
-    </Field>
-    <Field name=""InheritableVersioningMode"" type=""InheritableVersioningMode"">
-      <Configuration>
-        <FieldIndex>4</FieldIndex>
-      </Configuration>
-    </Field>
-    <Field name=""InheritableApprovingMode"" type=""InheritableApprovingMode"">
-      <Configuration>
-        <FieldIndex>5</FieldIndex>
-      </Configuration>
-    </Field>
-    <Field name=""AllowedChildTypes"" type=""AllowedChildTypes"">
-      <Configuration>
-        <FieldIndex>6</FieldIndex>
       </Configuration>
     </Field>
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  30. IndexingSettingsCtd.xml
+			#region  31. IndexingSettingsCtd.xml
 			{ "IndexingSettingsCtd.xml", @"<ContentType name=""IndexingSettings"" parentType=""Settings"" handler=""SenseNet.Search.IndexingSettings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-IndexingSettings,DisplayName</DisplayName>
   <Description>$Ctd-IndexingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""TextExtractorInstances"" type=""TextExtractors"">
       <DisplayName>$Ctd-IndexingSettings,TextExtractorInstances-DisplayName</DisplayName>
@@ -2865,21 +2914,33 @@ namespace SenseNet.Tests.Core.Implementations
 </ContentType>
 " },
 			#endregion
-			#region  31. IntegerFieldSettingCtd.xml
+			#region  32. IntegerFieldSettingCtd.xml
 			{ "IntegerFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""IntegerFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-IntegerFieldSetting,DisplayName</DisplayName>
   <Icon>addnumberfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  32. ItemListCtd.xml
+			#region  33. ItemListCtd.xml
 			{ "ItemListCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ItemList"" parentType=""ContentList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ItemList,DisplayName</DisplayName>
   <Description>$Ctd-ItemList,Description</Description>
   <Icon>ContentList</Icon>
+  <SystemType>true</SystemType>
   <Fields>
+    <Field name=""Name"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name=""DisplayName"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name=""OwnerWhenVisitor"" type=""Reference"">
       <DisplayName>$Ctd-ContentList,OwnerWhenVisitor-DisplayName</DisplayName>
       <Description>$Ctd-ContentList,OwnerWhenVisitor-Description</Description>
@@ -2892,9 +2953,9 @@ namespace SenseNet.Tests.Core.Implementations
           <Path>/Root/IMS</Path>
         </SelectionRoot>
         <DefaultValue>/Root/IMS/BuiltIn/Portal/Admin</DefaultValue>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""InheritableVersioningMode"" type=""InheritableVersioningMode"">
@@ -2906,7 +2967,6 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-
     <Field name=""InheritableApprovingMode"" type=""InheritableApprovingMode"">
       <DisplayName>$Ctd-GenericContent,InheritableApprovingMode-DisplayName</DisplayName>
       <Description>$Ctd-ItemList,ItemListInheritableApprovingMode-Description</Description>
@@ -2919,12 +2979,13 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  33. LibraryCtd.xml
+			#region  34. LibraryCtd.xml
 			{ "LibraryCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Library"" parentType=""ContentList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Library,DisplayName</DisplayName>
   <Description>$Ctd-Library,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>Library</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""InheritableVersioningMode"" type=""InheritableVersioningMode"">
       <DisplayName>$Ctd-GenericContent,InheritableVersioningMode-DisplayName</DisplayName>
@@ -2948,7 +3009,7 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  34. LInkCtd.xml
+			#region  35. LInkCtd.xml
 			{ "LInkCtd.xml", @"<ContentType name=""Link"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Link,DisplayName</DisplayName>
   <Description>$Ctd-Link,Description</Description>
@@ -2973,19 +3034,16 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Link,Url-DisplayName</DisplayName>
       <Description>$Ctd-Link,Url-Description</Description>
       <Configuration>
-        <Regex>^(http|https)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|localhost|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+(\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|hu|[a-zA-Z]{2})){0,1})(\:[0-9]+)*((\#|/)($|[a-zA-Z0-9\.\,\?\'\\\+&amp;%\$#\=~_\-]+))*$</Regex>
-        <DefaultValue>http://</DefaultValue>
+        <Regex>^(https?|ftp)\://([a-zA-Z0-9\.\-]+(\:[a-zA-Z0-9\.&amp;%\$\-]+)*@)*((25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])|localhost|([a-zA-Z0-9\-]+\.)*[a-zA-Z0-9\-]+(\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|hu|[a-zA-Z]{2})){0,1})(\:[0-9]+)*(\/[\w\-\@\/\(\)]*){0,1}((\?|\#)(($|[\w\.\,\'\\\+&amp;%\$#\=~_\-\(\)]+)*)){0,1}$</Regex>
+        <DefaultValue>https://</DefaultValue>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <DisplayName>$Ctd-Link,Description-DisplayName</DisplayName>
       <Description>$Ctd-Link,Description-Description</Description>
       <Indexing>
         <Analyzer>Standard</Analyzer>
       </Indexing>
-      <Configuration>
-        <ControlHint>sn:RichText</ControlHint>
-      </Configuration>
     </Field>
     <Field name=""Version"" type=""Version"">
       <Configuration>
@@ -3025,11 +3083,11 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  35. LinkListCtd.xml
+			#region  36. LinkListCtd.xml
 			{ "LinkListCtd.xml", @"<ContentType name=""LinkList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-LinkList,DisplayName</DisplayName>
   <Description>$Ctd-LinkList,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>LinkList</Icon>
   <AllowedChildTypes>Link</AllowedChildTypes>
   <Fields>
   <Field name=""DisplayName"" type=""ShortText"">
@@ -3085,14 +3143,25 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  36. ListItemCtd.xml
+			#region  37. ListItemCtd.xml
 			{ "ListItemCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ListItem"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ListItem,DisplayName</DisplayName>
   <Description>$Ctd-ListItem,Description</Description>
   <Icon>FormItem</Icon>
+  <SystemType>true</SystemType>
   <Fields>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Name"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name=""DisplayName"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <OutputMethod>Html</OutputMethod>
       </Configuration>
@@ -3100,7 +3169,7 @@ namespace SenseNet.Tests.Core.Implementations
     <Field name=""ModifiedBy"" type=""Reference"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
@@ -3114,31 +3183,33 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  37. LoggingSettingsCtd.xml
+			#region  38. LoggingSettingsCtd.xml
 			{ "LoggingSettingsCtd.xml", @"<ContentType name=""LoggingSettings"" parentType=""Settings"" handler=""SenseNet.ContentRepository.LoggingSettings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-LoggingSettings,DisplayName</DisplayName>
   <Description>$Ctd-LoggingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  38. LongTextFieldSettingCtd.xml
+			#region  39. LongTextFieldSettingCtd.xml
 			{ "LongTextFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""LongTextFieldSetting"" parentType=""TextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-LongTextFieldSetting,DisplayName</DisplayName>
   <Icon>addshorttextfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  39. MemoCtd.xml
+			#region  40. MemoCtd.xml
 			{ "MemoCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Memo"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Memo,DisplayName</DisplayName>
   <Description>$Ctd-Memo,Description</Description>
-  <Icon>Document</Icon>
+  <Icon>Memo</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <Fields>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <DisplayName>$Ctd-Memo,Description-DisplayName</DisplayName>
       <Description>$Ctd-Memo,Description-Description</Description>
     </Field>
@@ -3172,35 +3243,37 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  40. MemoList.xml
+			#region  41. MemoList.xml
 			{ "MemoList.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""MemoList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-MemoList,DisplayName</DisplayName>
   <Description>$Ctd-MemoList,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>MemoList</Icon>
   <AllowedChildTypes>
     Memo
   </AllowedChildTypes>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  41. NullFieldSettingCtd.xml
+			#region  42. NullFieldSettingCtd.xml
 			{ "NullFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""NullFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-NullFieldSetting,DisplayName</DisplayName>
-  <Icon>File</Icon>
+  <Icon>FieldSetting</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  42. NumberFieldSettingCtd.xml
+			#region  43. NumberFieldSettingCtd.xml
 			{ "NumberFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""NumberFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-NumberFieldSetting,DisplayName</DisplayName>
   <Icon>addnumberfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  43. OrganizationalUnitCtd.xml
+			#region  44. OrganizationalUnitCtd.xml
 			{ "OrganizationalUnitCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""OrganizationalUnit"" parentType=""Folder"" handler=""SenseNet.ContentRepository.OrganizationalUnit"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-OrganizationalUnit,DisplayName</DisplayName>
@@ -3224,7 +3297,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Advanced</VisibleBrowse>
         <VisibleEdit>Advanced</VisibleEdit>
@@ -3253,23 +3326,25 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  44. PasswordFieldSettingCtd.xml
+			#region  45. PasswordFieldSettingCtd.xml
 			{ "PasswordFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PasswordFieldSetting"" parentType=""ShortTextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PasswordFieldSetting,DisplayName</DisplayName>
   <Icon>addshorttextfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  45. PermissionChoiceFieldSettingCtd.xml
+			#region  46. PermissionChoiceFieldSettingCtd.xml
 			{ "PermissionChoiceFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PermissionChoiceFieldSetting"" parentType=""ChoiceFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PermissionChoiceFieldSetting,DisplayName</DisplayName>
-  <Icon>File</Icon>
+  <Icon>FieldSetting</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  46. PortalRootCtd.xml
+			#region  47. PortalRootCtd.xml
 			{ "PortalRootCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PortalRoot"" parentType=""Folder"" handler=""SenseNet.ContentRepository.PortalRoot"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PortalRoot,DisplayName</DisplayName>
@@ -3278,6 +3353,7 @@ namespace SenseNet.Tests.Core.Implementations
   <AllowedChildTypes>
     Folder,SystemFolder,TrashBin,ContentList,CustomList,Sites,Domains,Profiles,Resources,Skins,Workspace
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""DisplayName"" type=""ShortText"">
       <Configuration>
@@ -3289,13 +3365,14 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  47. PreviewImageCtd.xml
+			#region  48. PreviewImageCtd.xml
 			{ "PreviewImageCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PreviewImage"" parentType=""Image"" handler=""SenseNet.ContentRepository.Image"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PreviewImage,DisplayName</DisplayName>
   <Description>$Ctd-PreviewImage,Description</Description>
   <Icon>Image</Icon>
   <AllowIncrementalNaming>false</AllowIncrementalNaming>
+  <SystemType>true</SystemType>
   <AllowIndexing>false</AllowIndexing>
   <Fields>
   </Fields>
@@ -3303,7 +3380,7 @@ namespace SenseNet.Tests.Core.Implementations
 
 " },
 			#endregion
-			#region  48. ProfileDomainCtd.xml
+			#region  49. ProfileDomainCtd.xml
 			{ "ProfileDomainCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ProfileDomain"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ProfileDomain,DisplayName</DisplayName>
@@ -3312,6 +3389,7 @@ namespace SenseNet.Tests.Core.Implementations
   <AllowedChildTypes>
     UserProfile
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""Name"" type=""ShortText"">
       <Configuration>
@@ -3328,7 +3406,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Advanced</VisibleBrowse>
         <VisibleEdit>Advanced</VisibleEdit>
@@ -3338,19 +3416,20 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  49. ProfilesCtd.xml
+			#region  50. ProfilesCtd.xml
 			{ "ProfilesCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Profiles"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Profiles,DisplayName</DisplayName>
   <Description>$Ctd-Profiles,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>Profiles</Icon>
   <AllowedChildTypes>
     ProfileDomain
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  50. Query.xml
+			#region  51. Query.xml
 			{ "Query.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Query"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.QueryContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Query,DisplayName</DisplayName>
@@ -3358,6 +3437,16 @@ namespace SenseNet.Tests.Core.Implementations
   <Icon>Query</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
   <Fields>
+    <Field name=""Name"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>20</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name=""DisplayName"" type=""ShortText"">
+      <Configuration>
+        <FieldIndex>10</FieldIndex>
+      </Configuration>
+    </Field>
     <Field name=""Query"" type=""LongText"">
       <DisplayName>$Ctd-Query,Query-DisplayName</DisplayName>
       <Description>$Ctd-Query,Query-Description</Description>
@@ -3377,18 +3466,29 @@ namespace SenseNet.Tests.Core.Implementations
         <DisplayChoices>RadioButtons</DisplayChoices>
       </Configuration>
     </Field>
+    <Field name=""UiFilters"" type=""LongText"">
+      <DisplayName>$Ctd-Query,UiFilters-DisplayName</DisplayName>
+      <Description>$Ctd-Query,UiFilters-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <TextType>LongText</TextType>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  51. ReferenceFieldSettingCtd.xml
+			#region  52. ReferenceFieldSettingCtd.xml
 			{ "ReferenceFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ReferenceFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ReferenceFieldSetting,DisplayName</DisplayName>
   <Icon>addreferencefield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  52. ResourceCtd.xml
+			#region  53. ResourceCtd.xml
 			{ "ResourceCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Resource"" parentType=""SystemFile"" handler=""SenseNet.ContentRepository.i18n.Resource"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Resource,DisplayName</DisplayName>
@@ -3431,28 +3531,30 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  53. ResourcesCtd.xml
+			#region  54. ResourcesCtd.xml
 			{ "ResourcesCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Resources"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Resources,DisplayName</DisplayName>
   <Description>$Ctd-Resources,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>Resources</Icon>
   <AllowedChildTypes>
     Resource
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  54. RuntimeContentContainerCtd.xml
+			#region  55. RuntimeContentContainerCtd.xml
 			{ "RuntimeContentContainerCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""RuntimeContentContainer"" parentType=""Folder"" handler=""SenseNet.ContentRepository.RuntimeContentContainer"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-RuntimeContentContainer,DisplayName</DisplayName>
   <Description>$Ctd-RuntimeContentContainer,Description</Description>
   <Icon>Folder</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  55. SettingsCtd.xml
+			#region  56. SettingsCtd.xml
 			{ "SettingsCtd.xml", @"<ContentType name=""Settings"" parentType=""File"" handler=""SenseNet.ContentRepository.Settings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Settings,DisplayName</DisplayName>
   <Description>$Ctd-Settings,Description</Description>
@@ -3468,6 +3570,13 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""Description"" type=""RichText"">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""Version"" type=""Version"">
@@ -3499,11 +3608,12 @@ namespace SenseNet.Tests.Core.Implementations
 </ContentType>
 " },
 			#endregion
-			#region  56. SharingGroupCtd.xml
+			#region  57. SharingGroupCtd.xml
 			{ "SharingGroupCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SharingGroup"" parentType=""Group"" handler=""SenseNet.ContentRepository.Group"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>SharingGroup</DisplayName>
   <Icon>Group</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""SharingIds"" type=""LongText"">
       <Indexing>
@@ -3533,27 +3643,29 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  57. ShortTextFieldSettingCtd.xml
+			#region  58. ShortTextFieldSettingCtd.xml
 			{ "ShortTextFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ShortTextFieldSetting"" parentType=""TextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ShortTextFieldSetting,DisplayName</DisplayName>
   <Icon>addshorttextfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  58. SitesCtd.xml
+			#region  59. SitesCtd.xml
 			{ "SitesCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Sites"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Sites,DisplayName</DisplayName>
   <Description>$Ctd-Sites,Description</Description>
-  <Icon>Site</Icon>
+  <Icon>Sites</Icon>
   <AllowedChildTypes>
     Site
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  59. SmartFolderCtd.xml
+			#region  60. SmartFolderCtd.xml
 			{ "SmartFolderCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SmartFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SmartFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SmartFolder,DisplayName</DisplayName>
@@ -3595,12 +3707,13 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  60. SystemFileCtd.xml
+			#region  61. SystemFileCtd.xml
 			{ "SystemFileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFile"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFile,DisplayName</DisplayName>
   <Description>$Ctd-SystemFile,Description</Description>
-  <Icon>File</Icon>
+  <Icon>SystemFile</Icon>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""Watermark"" type=""ShortText"">
       <Configuration>
@@ -3612,12 +3725,12 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  61. SystemFolderCtd.xml
+			#region  62. SystemFolderCtd.xml
 			{ "SystemFolderCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFolder,DisplayName</DisplayName>
   <Description>$Ctd-SystemFolder,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>SystemFolder</Icon>
   <Fields>
   <Field name=""DisplayName"" type=""ShortText"">
     <DisplayName>$Ctd-SystemFolder,DisplayName-DisplayName</DisplayName>
@@ -3626,12 +3739,12 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  62. TaskCtd.xml
+			#region  63. TaskCtd.xml
 			{ "TaskCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Task"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.Task"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Task,DisplayName</DisplayName>
   <Description>$Ctd-Task,Description</Description>
-  <Icon>FormItem</Icon>
+  <Icon>Task</Icon>
   <Fields>
     <Field name=""Name"" type=""ShortText"">
       <Configuration>
@@ -3741,33 +3854,35 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  63. TaskList.xml
+			#region  64. TaskList.xml
 			{ "TaskList.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TaskList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TaskList,DisplayName</DisplayName>
   <Description>$Ctd-TaskList,Description</Description>
-  <Icon>ContentList</Icon>
+  <Icon>TaskList</Icon>
   <AllowedChildTypes>
     Task,ApprovalWorkflowTask,ExpenseClaimWorkflowTask
   </AllowedChildTypes>
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  64. TextFieldSettingCtd.xml
+			#region  65. TextFieldSettingCtd.xml
 			{ "TextFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TextFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TextFieldSetting,DisplayName</DisplayName>
   <Icon>addshorttextfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  65. TrashBagCtd.xml
+			#region  66. TrashBagCtd.xml
 			{ "TrashBagCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBag"" parentType=""Folder"" handler=""SenseNet.ContentRepository.TrashBag"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBag,DisplayName</DisplayName>
   <Description>$Ctd-TrashBag,Description</Description>
-  <Icon>Folder</Icon>
+  <Icon>TrashBag</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""DisplayName"" type=""ShortText"">
       <DisplayName>$Ctd-TrashBag,DisplayName-DisplayName</DisplayName>
@@ -3825,15 +3940,16 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  66. TrashBinCtd.xml
+			#region  67. TrashBinCtd.xml
 			{ "TrashBinCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBin"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.TrashBin"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBin,DisplayName</DisplayName>
   <Description>$Ctd-TrashBin,Description</Description>
-  <Icon>trash</Icon>
+  <Icon>TrashBin</Icon>
   <AllowedChildTypes>
     TrashBag
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""Name"" type=""ShortText"">
       <Configuration>
@@ -3849,7 +3965,7 @@ namespace SenseNet.Tests.Core.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -3880,6 +3996,9 @@ namespace SenseNet.Tests.Core.Implementations
     <Field name=""IsActive"" type=""Boolean"">
       <DisplayName>$Ctd-TrashBin,IsActive-DisplayName</DisplayName>
       <Description>$Ctd-TrashBin,IsActive-Description</Description>
+      <Configuration>
+        <VisibleEdit>Show</VisibleEdit>
+      </Configuration>
     </Field>
     <Field name=""MinRetentionTime"" type=""Integer"">
       <DisplayName>$Ctd-TrashBin,MinRetentionTime-DisplayName</DisplayName>
@@ -3956,7 +4075,7 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  67. UserCtd.xml
+			#region  68. UserCtd.xml
 			{ "UserCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""User"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.User"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-User,DisplayName</DisplayName>
@@ -3985,7 +4104,7 @@ namespace SenseNet.Tests.Core.Implementations
       <Configuration>
         <FieldIndex>220</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
-        <VisibleEdit>Show</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
         <Compulsory>true</Compulsory>
         <MaxLength>100</MaxLength>
@@ -4035,6 +4154,9 @@ namespace SenseNet.Tests.Core.Implementations
         <FieldIndex>160</FieldIndex>
         <Compulsory>true</Compulsory>
         <Regex>^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$</Regex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""FullName"" type=""ShortText"">
@@ -4129,11 +4251,11 @@ namespace SenseNet.Tests.Core.Implementations
           <Type>User</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS/Public</Path>
+          <Path>/Root/IMS</Path>
         </SelectionRoot>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -4238,10 +4360,10 @@ namespace SenseNet.Tests.Core.Implementations
       <Configuration>
         <FieldIndex>180</FieldIndex>
         <DateTimeMode>Date</DateTimeMode>
+        <MaxValue>@@Today@@</MaxValue>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
       </Configuration>
     </Field>
     <Field name=""Education"" type=""LongText"">
@@ -4345,6 +4467,11 @@ namespace SenseNet.Tests.Core.Implementations
         <Mode>No</Mode>
         <Store>No</Store>
       </Indexing>
+       <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
     <Field name=""DirectRoles"" type=""DirectRoles"">
       <DisplayName>$Ctd-User,DirectRoles-DisplayName</DisplayName>
@@ -4352,13 +4479,18 @@ namespace SenseNet.Tests.Core.Implementations
       <Indexing>
         <Mode>No</Mode>
         <Store>No</Store>
-      </Indexing>
+      </Indexing> 
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
   </Fields>
 </ContentType>
 " },
 			#endregion
-			#region  68. UserProfileCtd.xml
+			#region  69. UserProfileCtd.xml
 			{ "UserProfileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""UserProfile"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.UserProfile"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-UserProfile,DisplayName</DisplayName>
@@ -4367,6 +4499,7 @@ namespace SenseNet.Tests.Core.Implementations
   <AllowedChildTypes>
     Blog,DocumentLibrary,EventList,MemoList,LinkList,TaskList,ImageLibrary,Posts,CustomList
   </AllowedChildTypes>
+  <SystemType>true</SystemType>
   <Fields>
     <Field name=""IsWallContainer"" type=""Boolean"">
       <Configuration>
@@ -4419,10 +4552,24 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  69. WebServiceApplicationCtd.xml
-			{ "WebServiceApplicationCtd.xml", @"<ContentType name=""WebServiceApplication"" parentType=""Application"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""><DisplayName>$Ctd-WebServiceApplication,DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Description</Description><Icon>File</Icon><Fields><Field name=""Binary"" type=""Binary""><DisplayName>$Ctd-WebServiceApplication,Binary-DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Binary-Description</Description><Configuration><IsText>true</IsText></Configuration></Field></Fields></ContentType>" },
+			#region  70. WebServiceApplicationCtd.xml
+			{ "WebServiceApplicationCtd.xml", @"<ContentType name=""WebServiceApplication"" parentType=""Application"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-WebServiceApplication,DisplayName</DisplayName>
+  <Description>$Ctd-WebServiceApplication,Description</Description>
+  <Icon>File</Icon>
+  <SystemType>true</SystemType>
+  <Fields>
+    <Field name=""Binary"" type=""Binary"">
+      <DisplayName>$Ctd-WebServiceApplication,Binary-DisplayName</DisplayName>
+      <Description>$Ctd-WebServiceApplication,Binary-Description</Description>
+      <Configuration>
+        <IsText>true</IsText>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>" },
 			#endregion
-			#region  70. WorkspaceCtd.xml
+			#region  71. WorkspaceCtd.xml
 			{ "WorkspaceCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Workspace"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Workspaces.Workspace"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Workspace,DisplayName</DisplayName>
@@ -4434,24 +4581,23 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Workspace,Name-DisplayName</DisplayName>
       <Description>$Ctd-Workspace,Name-Description</Description>
       <Configuration>
-        <FieldIndex>60</FieldIndex>
+        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
         <Compulsory>true</Compulsory>
-        <MaxLength>20</MaxLength>
+        <MaxLength>100</MaxLength>
         <ControlHint>sn:ShortText</ControlHint>
       </Configuration>
     </Field>
     <Field name=""DisplayName"" type=""ShortText"">
       <DisplayName>$Ctd-Workspace,DisplayName-DisplayName</DisplayName>
       <Configuration>
-        <FieldIndex>40</FieldIndex>
+        <FieldIndex>10</FieldIndex>
       </Configuration>
     </Field>
-    <Field name=""Description"" type=""LongText"">
+    <Field name=""Description"" type=""RichText"">
       <Configuration>
-        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -4536,7 +4682,6 @@ namespace SenseNet.Tests.Core.Implementations
     </Field>
     <Field name=""AllowedChildTypes"" type=""AllowedChildTypes"">
       <Configuration>
-        <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -4545,7 +4690,6 @@ namespace SenseNet.Tests.Core.Implementations
     <Field name=""InheritableVersioningMode"" type=""InheritableVersioningMode"">
       <Description>$Ctd-Workspace,WorkspaceInheritableVersioningMode-Description</Description>
       <Configuration>
-        <FieldIndex>30</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -4554,7 +4698,6 @@ namespace SenseNet.Tests.Core.Implementations
     <Field name=""InheritableApprovingMode"" type=""InheritableApprovingMode"">
       <Description>$Ctd-Workspace,WorkspaceInheritableApprovingMode-Description</Description>
       <Configuration>
-        <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -4564,7 +4707,6 @@ namespace SenseNet.Tests.Core.Implementations
       <DisplayName>$Ctd-Workspace,Path-DisplayName</DisplayName>
       <Description>$Ctd-Workspace,Path-Description</Description>
       <Configuration>
-        <FieldIndex>11</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -4575,19 +4717,21 @@ namespace SenseNet.Tests.Core.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  71. XmlFieldSettingCtd.xml
+			#region  72. XmlFieldSettingCtd.xml
 			{ "XmlFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""XmlFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-XmlFieldSetting,DisplayName</DisplayName>
   <Icon>addxmlfield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  72. YesNoFieldSettingCtd.xml
+			#region  73. YesNoFieldSettingCtd.xml
 			{ "YesNoFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""YesNoFieldSetting"" parentType=""ChoiceFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-YesNoFieldSetting,DisplayName</DisplayName>
   <Icon>addyesnofield</Icon>
+  <SystemType>true</SystemType>
   <Fields />
 </ContentType>" },
 			#endregion

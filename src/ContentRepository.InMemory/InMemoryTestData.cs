@@ -4775,7 +4775,7 @@ VersionId: 403
           <Type>Group</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS/Public</Path>
+          <Path>/Root/IMS</Path>
           <Path>/Root</Path>
         </SelectionRoot>
         <VisibleBrowse>Show</VisibleBrowse>
@@ -5674,7 +5674,7 @@ VersionId: 403
           <Type>User</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS/Public</Path>
+          <Path>/Root/IMS</Path>
         </SelectionRoot>
       </Configuration>
     </Field>
