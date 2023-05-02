@@ -173,7 +173,7 @@
           <Type>User</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS/Public</Path>
+          <Path>/Root/IMS</Path>
         </SelectionRoot>
       </Configuration>
     </Field>
