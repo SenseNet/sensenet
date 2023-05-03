@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.29", "7.7.29.1", "2023-04-03", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.29.2", "2023-05-02", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
@@ -1671,6 +1671,45 @@ namespace SenseNet.ContentRepository
 
             editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             logger.LogTrace("Permissions are successfully set.");
+
+            #endregion
+
+            #region CTD changes
+
+            try
+            {
+                const string publicDomainPath = "/Root/IMS/Public";
+                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+
+                void ReplaceSelectionRoot(string contentTypeName, string fieldName)
+                {
+                    var contentType = ContentType.GetByName(contentTypeName);
+                    var field = (ReferenceFieldSetting)contentType.FieldSettings.First(f => f.Name == fieldName);
+                    if (!field.SelectionRoots.Contains(publicDomainPath)) 
+                        return;
+
+                    // a new list, with the public domain replaced by /Root/IMS
+                    var newList = field.SelectionRoots.Select(sr => sr == publicDomainPath ? "/Root/IMS" : sr)
+                        .Distinct()
+                        .ToList();
+
+                    cb.Type(contentTypeName)
+                        .Field(fieldName)
+                        .Configure("SelectionRoot",
+                            string.Join(string.Empty, newList.Select(sr => $"<Path>{sr}</Path>")));
+                }
+
+                logger.LogTrace("Editing CTDs: replacing Public domain selection roots with IMS...");
+
+                ReplaceSelectionRoot("Group", "Members");
+                ReplaceSelectionRoot("User", "Manager");
+
+                cb.Apply();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during CTD changes.");
+            }
 
             #endregion
         }

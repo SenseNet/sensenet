@@ -79,6 +79,17 @@ SnTrace.Database.Enabled = true;
         /// <returns>The new child content.</returns>
         public static Node CreateChild(this Node parent, string name, string typeName)
         {
+            // check if a node with the same name exists
+            var existing = Node.LoadNode(RepositoryPath.Combine(parent.Path, name));
+            if (existing != null)
+            {
+                if (existing.NodeType.Name == typeName)
+                    return existing;
+
+                // different type: delete and create
+                existing.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
             var content = Content.CreateNew(typeName, parent, name);
             content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return content.ContentHandler;
@@ -91,6 +102,11 @@ SnTrace.Database.Enabled = true;
         }
         public static T CreateChild<T>(this Node parent, string name) where T : Node
         {
+            // check if a node with the same name exists
+            var existing = Node.Load<T>(RepositoryPath.Combine(parent.Path, name));
+            if (existing != null)
+                return existing;
+
             var content = Content.CreateNew(typeof(T).Name, parent, name);
             content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
             return (T)content.ContentHandler;

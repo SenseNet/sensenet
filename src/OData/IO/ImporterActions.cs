@@ -80,7 +80,8 @@ namespace SenseNet.OData.IO
             {
                 try
                 {
-                    ODataMiddleware.UpdateFields(targetContent, model, true, out brokenReferences);
+                    brokenReferences = await ODataMiddleware.UpdateFieldsAsync(targetContent, model, true,
+                        context.RequestAborted).ConfigureAwait(false);
                     await targetContent.SaveAsync(context.RequestAborted).ConfigureAwait(false);
                     action = "updated";
                 }
