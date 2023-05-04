@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
@@ -10,9 +11,9 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     public interface IApiKeyManager
     {
         /// <summary>
-        /// Gets the user id related to the provided api key or null.
+        /// Gets the user related to the provided api key or null.
         /// </summary>
-        Task<int?> GetUserIdByApiKeyAsync(string apiKey, CancellationToken cancel);
+        Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel);
         /// <summary>
         /// Gets all api keys related to the provided user id.
         /// </summary>        

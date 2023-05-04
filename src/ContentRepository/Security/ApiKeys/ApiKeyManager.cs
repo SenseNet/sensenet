@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
@@ -24,7 +25,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             _logger = logger;
         }
 
-        public async Task<int?> GetUserIdByApiKeyAsync(string apiKey, CancellationToken cancel)
+        public async Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
         {
             if (string.IsNullOrEmpty(apiKey))
                 return null;
@@ -48,10 +49,9 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
             if (token == null || token.UserId == 0 || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
-
             AssertPermissions(token.UserId);
 
-            return token.UserId;
+            return await Node.LoadAsync<User>(token.UserId, cancel);
         }
 
         public async Task<ApiKey[]> GetApiKeysByUserAsync(int userId, CancellationToken cancel)

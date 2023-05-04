@@ -1,7 +1,4 @@
 ﻿using SenseNet.ContentRepository.Storage.Security;
-using System.Threading.Tasks;
-using System.Threading;
-using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
@@ -18,15 +15,6 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
                 CreationDate = token.CreationDate,
                 ExpirationDate = token.ExpirationDate
             };
-        }
-
-        public static async Task<User> GetUserByApiKeyAsync(this IApiKeyManager apiKeyManager, string apiKey, CancellationToken cancel)
-        {
-            var userId = await apiKeyManager.GetUserIdByApiKeyAsync(apiKey, cancel).ConfigureAwait(false);
-            if (!userId.HasValue)
-                return null;
-
-            return await Node.LoadAsync<User>(userId.Value, cancel);
         }
     }
 }
