@@ -130,8 +130,8 @@ namespace SenseNet.Extensions.DependencyInjection
                         var akm = context.RequestServices.GetRequiredService<IApiKeyManager>();
 
                         user = await SystemAccount.ExecuteAsync(async () =>
-                            await akm.GetUserByApiKeyAsync(apiKey, context.RequestAborted).ConfigureAwait(false))
-                            .ConfigureAwait(false);
+                                await akm.GetUserByApiKeyAsync(apiKey, context.RequestAborted).ConfigureAwait(false))
+                            .ConfigureAwait(false) as User;
                     }
                 }
 
