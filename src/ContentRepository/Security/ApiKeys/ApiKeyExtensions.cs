@@ -2,7 +2,7 @@
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
-    public static class ApiKeyExtensions
+    internal static class ApiKeyExtensions
     {
         internal static ApiKey ToApiKey(this AccessToken token)
         {
