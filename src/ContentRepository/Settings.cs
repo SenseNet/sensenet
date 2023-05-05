@@ -14,6 +14,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using System.Collections;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
@@ -21,6 +23,7 @@ using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Indexing;
+using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable RedundantBaseQualifier
 // ReSharper disable InconsistentNaming
@@ -241,10 +244,44 @@ namespace SenseNet.ContentRepository
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers, N.R.Editors, N.R.IdentifiedUsers)]
-        public static object WriteSettings(Content content, string name, string jsonData, string property = null)
+        public static async STT.Task WriteSettings(Content content, HttpContext httpContext,
+            string name, object settingsData, string property = null)
         {
-            //UNDONE:xxx: not implemented: WriteSettings(name, property)
-            throw new NotImplementedException("##");
+            var settingsText = JsonConvert.SerializeObject(settingsData);
+            var settings = await EnsureSettingsContentAsync(content, name, httpContext.RequestAborted).ConfigureAwait(false);
+            settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsText));
+            await settings.SaveAsync(httpContext.RequestAborted);
+        }
+
+        private static async Task<Settings> EnsureSettingsContentAsync(Content content, string name, CancellationToken cancel)
+        {
+            var settingsContentName = name + "." + EXTENSION;
+            var basePath = content.Id == Identifiers.PortalRootId ? Repository.SystemFolderPath : content.Path;
+            var settingsContainerPath = RepositoryPath.Combine(basePath, Repository.SettingsFolderName);
+            var settingsPath = RepositoryPath.Combine(settingsContainerPath, settingsContentName);
+            var settings = await Node.LoadAsync<Settings>(settingsPath, cancel).ConfigureAwait(false);
+
+            if (settings == null)
+            {
+                var settingsContainer = await Node.LoadNodeAsync(settingsContainerPath, cancel).ConfigureAwait(false);
+                if (settingsContainer == null)
+                {
+                    settingsContainer = new SystemFolder(content.ContentHandler)
+                    {
+                        Name = Repository.SettingsFolderName,
+                        DisplayName = Repository.SettingsFolderName
+                    };
+                    await settingsContainer.SaveAsync(cancel).ConfigureAwait(false);
+                }
+
+                settings = new Settings(settingsContainer)
+                {
+                    Name = settingsContentName,
+                    DisplayName = settingsContentName
+                };
+            }
+
+            return settings;
         }
 
         // ================================================================================= Settings API (STATIC)

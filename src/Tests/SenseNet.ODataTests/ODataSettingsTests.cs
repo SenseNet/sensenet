@@ -267,4 +267,27 @@ public class ODataSettingsTests : ODataTestBase
 
         }).ConfigureAwait(false);
     }
+
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings()
+    {
+        await ODataTestAsync(async () =>
+        {
+            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
+            var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
+
+            // ACT
+            var response = await ODataPostAsync(
+                    $"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
+                    "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V1\",\"P2\":\"V2\"}}]")
+                .ConfigureAwait(false);
+
+            // ASSERT
+            Assert.AreEqual(204, response.StatusCode);
+            var loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            var loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V1\",\"P2\":\"V2\"}", loadedJsonData);
+        }).ConfigureAwait(false);
+    }
 }
