@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tests.Core;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Engines;
 using SenseNet.ContentRepository.Schema;
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedMethodReturnValue.Local
@@ -64,10 +65,78 @@ public class SettingsTests : TestBase
 
         return node;
     }
+
+    private class SettingsData1 : IEquatable<SettingsData1>
+    {
+        public string P1 { get; set; }
+        public string P2 { get; set; }
+        public string P3 { get; set; }
+
+        public bool Equals(SettingsData1 other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return P1 == other.P1 && P2 == other.P2 && P3 == other.P3;
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SettingsData1)obj);
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(P1, P2, P3);
+        }
+
+        public override string ToString()
+        {
+            return $"P1={P1},P2={P2},P3={P3}";
+        }
+    }
     #endregion
 
     [TestMethod]
-    public async STT.Task Settings_GetPropertiesThroughTheSieve()
+    public async STT.Task Settings_GetWholeSettings_ThroughTheSieve()
+    {
+        await Test(async () =>
+        {
+            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
+            await EnsureSettingsAsync<Settings1>("/Root/System",
+                new { P1 = "V1" },
+                _cancel).ConfigureAwait(false);
+            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1",
+                new { P1 = "V11", P3 = "V3" },
+                _cancel).ConfigureAwait(false);
+            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1/Folder2",
+                new { P2 = "V2", P3 = "V33" },
+                _cancel).ConfigureAwait(false);
+            var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
+            var folder1 = await Node.LoadNodeAsync("/Root/Content/Folder1", _cancel).ConfigureAwait(false);
+            var contents = await Node.LoadNodeAsync("/Root/Content", _cancel).ConfigureAwait(false);
+
+            // Default (without context path)
+            var effectiveValues0 = Settings.GetEffectiveValues(nameof(Settings1), null).ToObject<SettingsData1>();
+            Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = null, P3 = null }, effectiveValues0);
+
+            // No local settings, nearest: default
+            var effectiveValues1 = Settings.GetEffectiveValues(nameof(Settings1), contents.Path).ToObject<SettingsData1>();
+            Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = null, P3 = null }, effectiveValues1);
+
+            // Has explicit settings
+            var effectiveValues2 = Settings.GetEffectiveValues(nameof(Settings1), folder1.Path).ToObject<SettingsData1>();
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = null, P3 = "V3" }, effectiveValues2);
+
+            // No local settings, nearest: on the parent chain
+            var effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+            Assert.AreEqual(new SettingsData1 {P1 = "V11", P2 = "V2", P3 = "V33"}, effectiveValues);
+
+        }).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async STT.Task Settings_GetProperties_ThroughTheSieve()
     {
         await Test(async () =>
         {
@@ -106,4 +175,36 @@ public class SettingsTests : TestBase
             Assert.AreEqual("V33", Settings.GetValue<string>(nameof(Settings1), "P3", folder3.Path));
         }).ConfigureAwait(false);
     }
+
+    [TestMethod]
+    public async STT.Task Settings_GetWholeSettings_Permissions()
+    {
+        await Test(async () =>
+        {
+            var user1 = new User(User.Administrator.Parent) {Name = "U1"};
+            await user1.SaveAsync(_cancel);
+            Group.Administrators.AddMember(user1);
+
+            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
+            await EnsureSettingsAsync<Settings1>("/Root/System",
+                new { P1 = "V1" },
+                _cancel).ConfigureAwait(false);
+            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1",
+                new { P1 = "V11", P2 = "V2" },
+                _cancel).ConfigureAwait(false);
+            var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2", _cancel).ConfigureAwait(false);
+
+            var effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2" }, effectiveValues);
+
+            // Test-1: an administrator 
+            using (new CurrentUserBlock(user1))
+            {
+                effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+                Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2" }, effectiveValues);
+            }
+
+        }).ConfigureAwait(false);
+    }
+
 }
