@@ -11,6 +11,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Sharing;
@@ -146,6 +147,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
                 .AddSingleton<SecurityHandler>()
+                .AddSingleton<IUserProvider, DefaultUserProvider>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 

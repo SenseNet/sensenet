@@ -13,14 +13,24 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "sensenet__TaskManagement__Url": "https://localhost:56484",
+        "sensenet__TaskManagement__ApplicationUrl": "https://localhost:44362",
+        "sensenet__TaskManagement__ApplicationId": "localhost",
+        "sensenet__TaskManagement__Authentication__Default__User": "builtin\\publicadmin",
+        "sensenet__TaskManagement__Authentication__AsposePreviewGenerator__User": "builtin\\publicadmin"
       },
       "applicationUrl": "https://localhost:44362"
     },
     "Docker": {
       "commandName": "Docker",
       "environmentVariables": {
-        "sensenet:Authentication:metadatahost": "http://SnIdentityServer"
+        "sensenet__Authentication__metadatahost": "http://SnIdentityServer",
+        "sensenet__TaskManagement__Url": "https://localhost:56484",
+        "sensenet__TaskManagement__ApplicationUrl": "https://localhost:44362",
+        "sensenet__TaskManagement__ApplicationId": "localhost",
+        "sensenet__TaskManagement__Authentication__Default__User": "builtin\\publicadmin",
+        "sensenet__TaskManagement__Authentication__AsposePreviewGenerator__User": "builtin\\publicadmin"
       },
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
