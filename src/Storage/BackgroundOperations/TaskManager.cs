@@ -191,23 +191,19 @@ namespace SenseNet.BackgroundOperations
             {
                 await _client.RegisterApplicationAsync(requestData).ConfigureAwait(false);
 
-                SnLog.WriteInformation("Task management app registration was successful.", EventId.TaskManagement.General, properties: new Dictionary<string, object>
-                {
-                    { "TaskManagementUrl", taskManagementUrl },
-                    { "AppId", requestData.AppId }
-                });
+                _logger.LogInformation("Task management app registration was successful. " +
+                                       "Url: {url}, AppId: {appId}, Task users: {users}, ApiKeys: {apiKeys}",
+                    taskManagementUrl, requestData.AppId,
+                    string.Join(", ", _options.Authentication.Select(
+                        a => a.Key + ": " + a.Value.User)),
+                    string.Join(", ", requestData.Authentication.Select(a => a.TaskType + ": " + a.ApiKey.Substring(0, 5))));
 
                 return true;
             }
             catch (Exception ex)
             {
-                SnLog.WriteException(ex, "Error during app registration.", EventId.TaskManagement.General,
-                    properties: new Dictionary<string, object>
-                    {
-                        {"TaskManagementUrl", taskManagementUrl},
-                        {"AppId", requestData.AppId},
-                        {"ApplicationUrl", requestData.ApplicationUrl}
-                    });
+                _logger.LogError(ex, "Error during app registration. Url: {url}, AppId: {appId}, AppUrl: {appUrl}",
+                    taskManagementUrl, requestData.AppId, requestData.ApplicationUrl);
             }
 
             // no need to throw an exception, we already logged the error

@@ -32,6 +32,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
+using SenseNet.Storage.BackgroundOperations;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -125,6 +126,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
+                .AddSingleton<IMaintenanceTask, RefreshTaskManagementTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
