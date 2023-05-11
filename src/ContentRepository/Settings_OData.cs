@@ -29,25 +29,6 @@ internal static class ExtensionsForSettings
         var group = await Node.LoadAsync<Group>(result.Identifiers.FirstOrDefault(), cancel).ConfigureAwait(false);
         return group;
     }
-    /*
-    public static async STT.Task<IGroup[]> GetLocalGroups(this Workspace workspace, string namePrefix, CancellationToken cancel)
-    {
-        var query = $"+InTree:'{RepositoryPath.Combine(workspace.Path, Workspace.LocalGroupsFolderName)}' " +
-                    $"+TypeIs:Group " +
-                    $"+Name:{namePrefix}*";
-        var result = await ContentQuery.QueryAsync(query, cancel).ConfigureAwait(false);
-
-        var tasks = result.Identifiers
-            .Select(i => Node.LoadAsync<Group>(i, cancel))
-            .ToArray();
-
-        await STT.Task.WhenAll(tasks);
-        var groups = tasks.Select(t => t.Result).ToArray();
-
-        // ReSharper disable once CoVariantArrayConversion
-        return groups;
-    }
-    */
 }
 
 public partial class Settings
