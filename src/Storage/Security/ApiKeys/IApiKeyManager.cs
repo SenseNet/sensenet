@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
@@ -12,7 +13,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
         /// <summary>
         /// Gets the user related to the provided api key or null.
         /// </summary>
-        Task<User> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel);
+        Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel);
         /// <summary>
         /// Gets all api keys related to the provided user id.
         /// </summary>        
@@ -24,14 +25,14 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
         /// <summary>
         /// Deletes the provided api key.
         /// </summary>
-        System.Threading.Tasks.Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel);
+        Task DeleteApiKeyAsync(string apiKey, CancellationToken cancel);
         /// <summary>
         /// Deletes api keys of a user.
         /// </summary>
-        System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel);
+        Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel);
         /// <summary>
         /// Deletes all api keys.
         /// </summary>
-        System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel);
+        Task DeleteApiKeysAsync(CancellationToken cancel);
     }
 }
