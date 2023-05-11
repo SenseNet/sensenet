@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,7 +10,11 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Workspaces;
+using SenseNet.OData;
+using SenseNet.ODataTests.Responses;
 using SenseNet.Security;
+using SenseNet.Testing;
 using Settings = SenseNet.ContentRepository.Settings;
 using Task = System.Threading.Tasks.Task;
 
@@ -19,37 +24,27 @@ namespace SenseNet.ODataTests;
 public class ODataSettingsTests : ODataTestBase
 {
     #region Infrastructure
-    [ContentHandler]
-    private class Settings1 : Settings
-    {
-        public static readonly string Ctd = $@"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='{nameof(Settings1)}' parentType='Settings' handler='{typeof(Settings1).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
-  <Fields/>
-</ContentType>";
-
-        public Settings1(Node parent) : base(parent) { }
-        public Settings1(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
-        protected Settings1(NodeToken nt) : base(nt) { }
-    }
-
     private readonly CancellationToken _cancel = new CancellationTokenSource().Token;
 
-    private async Task<T> EnsureSettingsAsync<T>(string contentPath, object settingValues, CancellationToken cancel) where T : Settings
+    private async Task AddToLocalGroup(Workspace workspace, IUser user, string groupName, CancellationToken cancel)
+    {
+        var group = await Node.LoadAsync<Group>($"{workspace.Path}/Groups/{groupName}", cancel).ConfigureAwait(false);
+        if (group == null)
+        {
+            var groupsNode = await EnsureNodeAsync($"{workspace.Path}/Groups", cancel).ConfigureAwait(false);
+            var groupNode = new Group(groupsNode) {Name = groupName};
+            await groupNode.SaveAsync(cancel).ConfigureAwait(false);
+            group = groupNode;
+        }
+        group.AddMember(user);
+    }
+    private async Task<Settings> EnsureSettingsAsync(string contentPath, string name, object settingValues, CancellationToken cancel)
     {
         var settingsFolder = await EnsureNodeAsync(contentPath + "/Settings", cancel);
-        var settings = CreateSettings<T>(settingsFolder);
+        var settings = new Settings(settingsFolder) { Name = name + ".settings" };
         var json = JsonConvert.SerializeObject(settingValues);
         settings.Binary.SetStream(RepositoryTools.GetStreamFromString(json));
         await settings.SaveAsync(cancel);
-        return settings;
-    }
-    T CreateSettings<T>(Node parent) where T : Settings
-    {
-        var constructor = typeof(T).GetConstructor(new[] { typeof(Node) });
-        if (constructor == null)
-            throw new InvalidOperationException("Type " + typeof(T).Name + " does not contain an appropriate constructor");
-        var settings = (T)constructor.Invoke(new object[] { parent });
-        settings.Name = typeof(T).Name + ".settings";
         return settings;
     }
     private async Task<Node> EnsureNodeAsync(string path, CancellationToken cancel)
@@ -62,7 +57,7 @@ public class ODataSettingsTests : ODataTestBase
         var name = RepositoryPath.GetFileName(path);
         var parent = await EnsureNodeAsync(parentPath, cancel).ConfigureAwait(false);
 
-        node = name.ToLowerInvariant() == "settings" ? new SystemFolder(parent) : new Folder(parent);
+        node = name.ToLowerInvariant() is "settings" or "groups" ? new SystemFolder(parent) : new Folder(parent);
         node.Name = name;
         await node.SaveAsync(cancel).ConfigureAwait(false);
 
@@ -98,6 +93,17 @@ public class ODataSettingsTests : ODataTestBase
             return $"P1={P1},P2={P2},P3={P3}";
         }
     }
+
+    protected override void InitializeTest()
+    {
+        base.InitializeTest();
+        if (Providers.Instance?.NodeObservers != null)
+        {
+            SettingsCache.Reset();
+            Providers.Instance = null;
+        }
+    }
+
     #endregion
 
     [TestMethod]
@@ -105,10 +111,8 @@ public class ODataSettingsTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
-
             var settings0 = new SettingsData1 { P1 = "V1"};
-            await EnsureSettingsAsync<Settings1>("/Root/System", settings0, _cancel)
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
                 .ConfigureAwait(false);
 
             // ACT
@@ -127,18 +131,16 @@ public class ODataSettingsTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
-
             var settings0 = new SettingsData1 { P1 = "V1" };
-            await EnsureSettingsAsync<Settings1>("/Root/System", settings0, _cancel)
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
                 .ConfigureAwait(false);
 
             var settings1 = new SettingsData1 { P1 = "V11", P3 = "V3" };
-            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1", settings1, _cancel)
+            await EnsureSettingsAsync("/Root/Content/Folder1", "Settings1", settings1, _cancel)
                 .ConfigureAwait(false);
 
             var settings2 = new SettingsData1 { P2 = "V2", P3 = "V33" };
-            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1/Folder2", settings2, _cancel)
+            await EnsureSettingsAsync("/Root/Content/Folder1/Folder2", "Settings1", settings2, _cancel)
                 .ConfigureAwait(false);
 
             var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
@@ -180,18 +182,16 @@ public class ODataSettingsTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
-
             var settings0 = new SettingsData1 { P1 = "V1" };
-            await EnsureSettingsAsync<Settings1>("/Root/System", settings0, _cancel)
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
                 .ConfigureAwait(false);
 
             var settings1 = new SettingsData1 { P1 = "V11", P3 = "V3" };
-            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1", settings1, _cancel)
+            await EnsureSettingsAsync("/Root/Content/Folder1", "Settings1", settings1, _cancel)
                 .ConfigureAwait(false);
 
             var settings2 = new SettingsData1 { P2 = "V2", P3 = "V33" };
-            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1/Folder2", settings2, _cancel)
+            await EnsureSettingsAsync("/Root/Content/Folder1/Folder2", "Settings1", settings2, _cancel)
                 .ConfigureAwait(false);
 
             var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
@@ -215,7 +215,7 @@ public class ODataSettingsTests : ODataTestBase
     }
 
     [TestMethod]
-    public async Task OD_Settings_GetSettings_Permissions()
+    public async Task OD_Settings_GetSettings_Admin_DenyOnGlobal()
     {
         await ODataTestAsync(async () =>
         {
@@ -223,20 +223,19 @@ public class ODataSettingsTests : ODataTestBase
             await user1.SaveAsync(_cancel);
             Group.Administrators.AddMember(user1);
 
-            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
-
             var settings0 = new SettingsData1 { P1 = "V1" };
-            await EnsureSettingsAsync<Settings1>("/Root/System", settings0, _cancel)
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
                 .ConfigureAwait(false);
 
             var globalSettings = await Node.LoadNodeAsync("/Root/System/Settings/Settings1.settings", _cancel);
             Assert.IsTrue(globalSettings.Security.HasPermission(user1, PermissionType.Open));
 
+            var folder2 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2", _cancel).ConfigureAwait(false);
+
             var settings1 = new SettingsData1 { P1 = "V11", P2 = "V2" };
-            await EnsureSettingsAsync<Settings1>("/Root/Content/Folder1", settings1, _cancel)
+            await EnsureSettingsAsync("/Root/Content/Folder1", "Settings1", settings1, _cancel)
                 .ConfigureAwait(false);
 
-            var folder2 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2", _cancel).ConfigureAwait(false);
 
             var resourceUrl = "/OData.svc/Root/Content/Folder1/('Folder2')/GetSettings";
             var queryString = "?name=Settings1";
@@ -247,7 +246,7 @@ public class ODataSettingsTests : ODataTestBase
                 response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
             Assert.AreEqual(settings1, JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
-            // Test-2: Get settings with Open permission
+            // Test-2: Get settings with Open permission on global
             await Providers.Instance.SecurityHandler.CreateAclEditor()
                 .Deny(globalSettings.Id, user1.Id, true, PermissionType.OpenMinor)
                 .ApplyAsync(_cancel);
@@ -256,14 +255,73 @@ public class ODataSettingsTests : ODataTestBase
                 response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
             Assert.AreEqual(settings1, JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
-            // Test-3: Get settings without Open permission
+            // Test-3: Get settings without Open permission on global
             await Providers.Instance.SecurityHandler.CreateAclEditor()
                 .Deny(globalSettings.Id, user1.Id, true, PermissionType.Open)
                 .ApplyAsync(_cancel);
 
             using (new CurrentUserBlock(user1))
                 response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
+            Assert.AreEqual(settings1, JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_GetSettings_UserIsReader()
+    {
+        await ODataTestAsync(async () =>
+        {
+            // Create a new user.
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+
+            // Create a global settings
+            var settings0 = new SettingsData1 { P1 = "V1", P2 = "V2" };
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            // Check that the user cannot see the global settings
+            var globalSettings = await Node.LoadNodeAsync("/Root/System/Settings/Settings1.settings", _cancel);
+            Assert.IsFalse(globalSettings.Security.HasPermission(user1, PermissionType.See));
+
+            // Create a local settings in the workspace.
+            var settings1 = new SettingsData1 { P1 = "V11", P3 = "V3" };
+            await EnsureSettingsAsync("/Root/Content/Folder1", "Settings1", settings1, _cancel)
+                .ConfigureAwait(false);
+
+            // Create a deep folder.
+            var folder2 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2", _cancel).ConfigureAwait(false);
+
+            // Permit the user to open the deep folder
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(folder2.Id, user1.Id, true, PermissionType.Open)
+                .ApplyAsync(_cancel);
+
+            var resourceUrl = "/OData.svc/Root/Content/Folder1/('Folder2')/GetSettings";
+            var queryString = "?name=Settings1";
+            ODataResponse response;
+
+            // ACT-1: get settings from the deep folder.
+            using (new CurrentUserBlock(user1))
+                response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
+
+            // ASSERT-1: empty settings
             Assert.AreEqual("{}", response.Result);
+
+            // ALIGN-2: Create the settings readers group and add the user to it.
+            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            await AddToLocalGroup(workspace, user1, "Settings1Readers", _cancel).ConfigureAwait(false);
+            // Check that the user is settings reader.
+            var group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Readers", _cancel).ConfigureAwait(false);
+            Assert.IsTrue(user1.IsInGroup(group));
+
+            // ACT-2: get settings from the deep folder.
+            using (new CurrentUserBlock(user1))
+                response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
+
+            // ASSERT-1: empty settings
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2", P3 = "V3" },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
         }).ConfigureAwait(false);
     }
@@ -273,7 +331,119 @@ public class ODataSettingsTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(Settings1.Ctd);
+            var settings0 = new SettingsData1 { P1 = "V1", P2 = "V2" };
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            await EnsureNodeAsync("/Root/Content/Folder1", _cancel).ConfigureAwait(false);
+
+            // ACT
+            var response = await ODataPostAsync(
+                    $"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
+                    "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P3\":\"V3\"}}]")
+                .ConfigureAwait(false);
+
+            // ASSERT
+            AssertNoError(response);
+            Assert.AreEqual(204, response.StatusCode);
+            var loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            var loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V11\",\"P3\":\"V3\"}", loadedJsonData);
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_UserIsWriter()
+    {
+        await ODataTestAsync(async () =>
+        {
+            // Create a new developer user.
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+            var developers = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Developers", _cancel).ConfigureAwait(false);
+            developers.AddMember(user1);
+
+            // Create the settings writer group and add the user to it.
+            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            await AddToLocalGroup(workspace, user1, "Settings1Writers", _cancel).ConfigureAwait(false);
+
+            // Check that the user is settings writer.
+            var group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Writers", _cancel).ConfigureAwait(false);
+            Assert.IsTrue(user1.IsInGroup(group));
+
+            // Create a global settings.
+            var settings0 = new SettingsData1 { P1 = "V1", P2 = "V2" };
+            await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            // Create a local folder.
+            var folder1 = await EnsureNodeAsync("/Root/Content/Folder1", _cancel).ConfigureAwait(false);
+
+            // Permit the user to open the deep folder
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(folder1.Id, user1.Id, true, PermissionType.Open)
+                .ApplyAsync(_cancel);
+
+            // ACT
+            ODataResponse response;
+            using (new CurrentUserBlock(user1))
+                response = await ODataPostAsync($"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
+                        "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P3\":\"V3\"}}]")
+                    .ConfigureAwait(false);
+
+            // ASSERT
+            AssertNoError(response);
+            Assert.AreEqual(204, response.StatusCode);
+            var loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            var loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V11\",\"P3\":\"V3\"}", loadedJsonData);
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_Error_NotWorkspace()
+    {
+        await ODataTestAsync(async () =>
+        {
+            var requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V1\",\"P2\":\"V2\"}}]";
+            var expectedErrorType = "InvalidOperationException";
+            var expectedMessage = "Local settings cannot be written outside a workspace.";
+            ODataResponse response;
+            ODataErrorResponse error;
+
+            // ACT-1
+            response = await ODataPostAsync($"/OData.svc/('Root')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-1
+            error = GetError(response);
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual(expectedErrorType, error.ExceptionType);
+            Assert.AreEqual(expectedMessage, error.Message);
+
+            // ACT-2
+            response = await ODataPostAsync($"/OData.svc/Root('System')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-2
+            error = GetError(response);
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual(expectedErrorType, error.ExceptionType);
+            Assert.AreEqual(expectedMessage, error.Message);
+
+            // ACT-2
+            response = await ODataPostAsync($"/OData.svc/Root/System('Schema')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-2
+            error = GetError(response);
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual(expectedErrorType, error.ExceptionType);
+            Assert.AreEqual(expectedMessage, error.Message);
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_Error_MissingGlobal()
+    {
+        await ODataTestAsync(async () =>
+        {
             var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
 
             // ACT
@@ -283,11 +453,11 @@ public class ODataSettingsTests : ODataTestBase
                 .ConfigureAwait(false);
 
             // ASSERT
-            Assert.AreEqual(204, response.StatusCode);
-            var loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
-                .ConfigureAwait(false);
-            var loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
-            Assert.AreEqual("{\"P1\":\"V1\",\"P2\":\"V2\"}", loadedJsonData);
+            var error = GetError(response);
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual("InvalidOperationException", error.ExceptionType);
+            Assert.AreEqual("Cannot write local settings Settings1 if it is not created " +
+                            "in the the global settings folder (/Root/System/Settings)", error.Message);
         }).ConfigureAwait(false);
     }
 }

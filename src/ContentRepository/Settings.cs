@@ -37,7 +37,7 @@ namespace SenseNet.ContentRepository
     /// stored in the Content Repository instead of a config file in the file system.
     /// </summary>
     [ContentHandler]
-    public class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
+    public partial class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
     {
         /// <summary>
         /// This class serves as an internal helper for providing settings feature to
@@ -223,65 +223,6 @@ namespace SenseNet.ContentRepository
 
                 return _settingValues;
             }
-        }
-
-        // ================================================================================= Settings ODATA API
-
-        [ODataFunction]
-        [ContentTypes(N.CT.GenericContent)]
-        [AllowedRoles(N.R.Everyone, N.R.Visitor)]
-        public static object GetSettings(Content content, string name, string property = null)
-        {
-            var globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
-            if (globalSettings != null)
-                if (!globalSettings.Security.HasPermission(User.Current, PermissionType.Open))
-                    return "{}";
-
-            return property == null
-                ? GetEffectiveValues(name, content.Path)
-                : GetValue<object>(name, property, content.Path);
-        }
-        [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
-        [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers, N.R.Editors, N.R.IdentifiedUsers)]
-        public static async STT.Task WriteSettings(Content content, HttpContext httpContext,
-            string name, object settingsData, string property = null)
-        {
-            var settingsText = JsonConvert.SerializeObject(settingsData);
-            var settings = await EnsureSettingsContentAsync(content, name, httpContext.RequestAborted).ConfigureAwait(false);
-            settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsText));
-            await settings.SaveAsync(httpContext.RequestAborted);
-        }
-
-        private static async Task<Settings> EnsureSettingsContentAsync(Content content, string name, CancellationToken cancel)
-        {
-            var settingsContentName = name + "." + EXTENSION;
-            var basePath = content.Id == Identifiers.PortalRootId ? Repository.SystemFolderPath : content.Path;
-            var settingsContainerPath = RepositoryPath.Combine(basePath, Repository.SettingsFolderName);
-            var settingsPath = RepositoryPath.Combine(settingsContainerPath, settingsContentName);
-            var settings = await Node.LoadAsync<Settings>(settingsPath, cancel).ConfigureAwait(false);
-
-            if (settings == null)
-            {
-                var settingsContainer = await Node.LoadNodeAsync(settingsContainerPath, cancel).ConfigureAwait(false);
-                if (settingsContainer == null)
-                {
-                    settingsContainer = new SystemFolder(content.ContentHandler)
-                    {
-                        Name = Repository.SettingsFolderName,
-                        DisplayName = Repository.SettingsFolderName
-                    };
-                    await settingsContainer.SaveAsync(cancel).ConfigureAwait(false);
-                }
-
-                settings = new Settings(settingsContainer)
-                {
-                    Name = settingsContentName,
-                    DisplayName = settingsContentName
-                };
-            }
-
-            return settings;
         }
 
         // ================================================================================= Settings API (STATIC)
