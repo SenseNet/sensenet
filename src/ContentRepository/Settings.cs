@@ -14,13 +14,16 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using System.Collections;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Indexing;
+using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable RedundantBaseQualifier
 // ReSharper disable InconsistentNaming
@@ -34,7 +37,7 @@ namespace SenseNet.ContentRepository
     /// stored in the Content Repository instead of a config file in the file system.
     /// </summary>
     [ContentHandler]
-    public class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
+    public partial class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
     {
         /// <summary>
         /// This class serves as an internal helper for providing settings feature to
@@ -351,8 +354,12 @@ namespace SenseNet.ContentRepository
                     // NOTE: no need to add to cache here, we suppose that the content fields are already in the memory
                     //       (also, the dynamic fields of Settings are added to the cache in GetProperty)
 
-                    settingValue = ConvertSettingValue<T>(settingsContent[key], defaultValue);
-                    return (T)settingValue;
+                    var fieldValue = settingsContent[key];
+                    if (fieldValue != null)
+                    {
+                        settingValue = ConvertSettingValue<T>(fieldValue, defaultValue);
+                        return (T) settingValue;
+                    }
                 }
 
                 // if this is a local setting, try to find the value upwards
@@ -384,6 +391,29 @@ namespace SenseNet.ContentRepository
 
             var result = GetSettingsByName<Settings>(this.GetSettingName(), newPath);
             return result;
+        }
+
+        private static readonly JsonMergeSettings MergeControl = new JsonMergeSettings
+        {
+            MergeArrayHandling = MergeArrayHandling.Replace,
+            MergeNullValueHandling = MergeNullValueHandling.Ignore,
+            PropertyNameComparison = StringComparison.InvariantCultureIgnoreCase
+        };
+        public static JObject GetEffectiveValues(string settingsName, string contextPath)
+        {
+            var allSettings = GetAllSettingsByName<Settings>(settingsName, contextPath).ToList();
+            if (allSettings.Count == 0)
+                return null;
+
+            var effectiveValues = allSettings.Last().BinaryAsJObject;
+            if (allSettings.Count > 1)
+            {
+                allSettings.Reverse();
+                for (var i = 1; i < allSettings.Count; i++)
+                    effectiveValues.Merge(allSettings[i].BinaryAsJObject, MergeControl);
+            }
+
+            return effectiveValues;
         }
 
         // ================================================================================= Settings API (INSTANCE)
@@ -423,7 +453,7 @@ namespace SenseNet.ContentRepository
             // try json format
             // only return the result if the key was found in the JSON text
             var jsonToken = BinaryAsJObject?[key];
-            if (jsonToken != null)
+            if (jsonToken != null && jsonToken.Type != JTokenType.Null)
             {
                 found = true;
                 return this.GetValueFromJsonInternal<T>(jsonToken, key);

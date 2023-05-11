@@ -67,5 +67,11 @@ namespace SenseNet.ContentRepository
 
             return settings;
         }
+
+        internal static void Reset()
+        {
+            Instance?.Invalidate();
+            __instance = null;
+        }
     }
 }
