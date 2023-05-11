@@ -28,15 +28,20 @@ public class ODataSettingsTests : ODataTestBase
 
     private async Task AddToLocalGroup(Workspace workspace, IUser user, string groupName, CancellationToken cancel)
     {
+        var group = await EnsureLocalGroupAsync(workspace, groupName, cancel);
+        group.AddMember(user);
+    }
+    private async Task<Group> EnsureLocalGroupAsync(Workspace workspace, string groupName, CancellationToken cancel)
+    {
         var group = await Node.LoadAsync<Group>($"{workspace.Path}/Groups/{groupName}", cancel).ConfigureAwait(false);
         if (group == null)
         {
             var groupsNode = await EnsureNodeAsync($"{workspace.Path}/Groups", cancel).ConfigureAwait(false);
-            var groupNode = new Group(groupsNode) {Name = groupName};
+            var groupNode = new Group(groupsNode) { Name = groupName };
             await groupNode.SaveAsync(cancel).ConfigureAwait(false);
             group = groupNode;
         }
-        group.AddMember(user);
+        return group;
     }
     private async Task<Settings> EnsureSettingsAsync(string contentPath, string name, object settingValues, CancellationToken cancel)
     {
@@ -301,25 +306,43 @@ public class ODataSettingsTests : ODataTestBase
             var queryString = "?name=Settings1";
             ODataResponse response;
 
-            // ACT-1: get settings from the deep folder.
+            // ACT-1: The user gets the settings from the deep folder.
             using (new CurrentUserBlock(user1))
                 response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
 
-            // ASSERT-1: empty settings
+            // ASSERT-1: settings solved because there is no readers group.
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2", P3 = "V3" },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+
+            /* ------------------------------------------------------------------------ */
+
+            // ALIGN-2: Create the settings readers group.
+            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            // Path: /Root/Content/Groups/Settings1Readers
+            var group = await EnsureLocalGroupAsync(workspace, "Settings1Readers", _cancel).ConfigureAwait(false);
+            // Check that the user is not a settings reader.
+            Assert.IsFalse(user1.IsInGroup(group));
+
+            // ACT-2: The user gets settings from the deep folder.
+            using (new CurrentUserBlock(user1))
+                response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
+
+            // ASSERT-2: settings is empty because the user is not reader.
             Assert.AreEqual("{}", response.Result);
 
-            // ALIGN-2: Create the settings readers group and add the user to it.
-            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            /* ------------------------------------------------------------------------ */
+
+            // ALIGN-3: Add the user to the settings readers group.
             await AddToLocalGroup(workspace, user1, "Settings1Readers", _cancel).ConfigureAwait(false);
             // Check that the user is settings reader.
-            var group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Readers", _cancel).ConfigureAwait(false);
+            group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Readers", _cancel).ConfigureAwait(false);
             Assert.IsTrue(user1.IsInGroup(group));
 
-            // ACT-2: get settings from the deep folder.
+            // ------------- ACT-3: get settings from the deep folder.
             using (new CurrentUserBlock(user1))
                 response = await ODataGetAsync(resourceUrl, queryString).ConfigureAwait(false);
 
-            // ASSERT-1: empty settings
+            // ASSERT-3: settings solved
             Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2", P3 = "V3" },
                 JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
@@ -353,23 +376,15 @@ public class ODataSettingsTests : ODataTestBase
         }).ConfigureAwait(false);
     }
     [TestMethod]
-    public async Task OD_Settings_WriteSettings_UserIsWriter()
+    public async Task OD_Settings_WriteSettings_UserIsEditor()
     {
         await ODataTestAsync(async () =>
         {
-            // Create a new developer user.
+            // Create a new developer user (can execute the WriteSettings OData action).
             var user1 = new User(User.Administrator.Parent) { Name = "U1" };
             await user1.SaveAsync(_cancel);
-            var developers = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Developers", _cancel).ConfigureAwait(false);
+            var developers = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Editors", _cancel).ConfigureAwait(false);
             developers.AddMember(user1);
-
-            // Create the settings writer group and add the user to it.
-            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
-            await AddToLocalGroup(workspace, user1, "Settings1Writers", _cancel).ConfigureAwait(false);
-
-            // Check that the user is settings writer.
-            var group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Writers", _cancel).ConfigureAwait(false);
-            Assert.IsTrue(user1.IsInGroup(group));
 
             // Create a global settings.
             var settings0 = new SettingsData1 { P1 = "V1", P2 = "V2" };
@@ -384,20 +399,63 @@ public class ODataSettingsTests : ODataTestBase
                 .Allow(folder1.Id, user1.Id, true, PermissionType.Open)
                 .ApplyAsync(_cancel);
 
-            // ACT
+            var resourceUrl = "/OData.svc/Root/Content('Folder1')/WriteSettings";
+            var requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P3\":\"V3\"}}]";
             ODataResponse response;
-            using (new CurrentUserBlock(user1))
-                response = await ODataPostAsync($"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
-                        "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P3\":\"V3\"}}]")
-                    .ConfigureAwait(false);
+            Settings loadedSettings;
+            string loadedJsonData;
 
-            // ASSERT
+            // ACT-1
+            using (new CurrentUserBlock(user1))
+                response = await ODataPostAsync(resourceUrl, null, requestBody).ConfigureAwait(false);
+
+            // ASSERT-1: There is no settings editors group
             AssertNoError(response);
             Assert.AreEqual(204, response.StatusCode);
-            var loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+            loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
                 .ConfigureAwait(false);
-            var loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
+            loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
             Assert.AreEqual("{\"P1\":\"V11\",\"P3\":\"V3\"}", loadedJsonData);
+
+            /* ------------------------------------------------------------------------ */
+
+            // ALIGN-2: Create the settings readers group.
+            var workspace = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            // Path: /Root/Content/Groups/Settings1Editors
+            var group = await EnsureLocalGroupAsync(workspace, "Settings1Editors", _cancel).ConfigureAwait(false);
+            // Check that the user is not a settings reader.
+            Assert.IsFalse(user1.IsInGroup(group));
+
+            // ACT-2
+            using (new CurrentUserBlock(user1))
+                response = await ODataPostAsync(resourceUrl, null, requestBody).ConfigureAwait(false);
+
+            // ASSERT-2: The user is not a settings editor.
+            var error = GetError(response);
+            Assert.AreEqual("InvalidContentActionException", error.ExceptionType);
+            Assert.AreEqual("Not enough permission for write local settings Settings1 " +
+                            "for the requested path: /Root/Content/Folder1", error.Message);
+
+            /* ------------------------------------------------------------------------ */
+
+            // ALIGN-3: Add the user to the settings editors group.
+            await AddToLocalGroup(workspace, user1, "Settings1Editors", _cancel).ConfigureAwait(false);
+            // Check that the user is settings editor.
+            group = await Node.LoadAsync<Group>("/Root/Content/Groups/Settings1Editors", _cancel).ConfigureAwait(false);
+            Assert.IsTrue(user1.IsInGroup(group));
+
+            // ACT-3
+            using (new CurrentUserBlock(user1))
+                response = await ODataPostAsync(resourceUrl, null, requestBody).ConfigureAwait(false);
+
+            // ASSERT-3: The settings is writen.
+            AssertNoError(response);
+            Assert.AreEqual(204, response.StatusCode);
+            loadedSettings = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            loadedJsonData = RepositoryTools.GetStreamString(loadedSettings.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V11\",\"P3\":\"V3\"}", loadedJsonData);
+
         }).ConfigureAwait(false);
     }
     [TestMethod]

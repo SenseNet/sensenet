@@ -90,26 +90,33 @@ public partial class Settings
         if (0 < content.Path.IndexOf("/settings/", StringComparison.InvariantCultureIgnoreCase))
             throw GetCannotCreateUnderSettingsException(content.Path);
 
-        using var _ = new SystemAccount();
+        Workspaces.Workspace workspace;
+        using (new SystemAccount())
+        {
+            workspace = GetWorkspace(content);
+            if (workspace == null)
+                throw new InvalidOperationException("Local settings cannot be written outside a workspace.");
 
-        var workspace = GetWorkspace(content);
-        if (workspace == null)
-            throw new InvalidOperationException("Local settings cannot be written outside a workspace.");
-
-        var globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
-        if (globalSettings == null)
-            throw new InvalidOperationException($"Cannot write local settings {name} if it is not created " +
-                                                $"in the the global settings folder ({Repository.SettingsFolderPath})");
+            var globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
+            if (globalSettings == null)
+                throw new InvalidOperationException($"Cannot write local settings {name} if it is not created " +
+                                                    $"in the the global settings folder ({Repository.SettingsFolderPath})");
+        }
 
         if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content, workspace, httpContext.RequestAborted))
-            throw new InvalidContentActionException($"Not enough permission for write local settings '{name}'" +
+            throw new InvalidContentActionException($"Not enough permission for write local settings {name} " +
                                                     $"for the requested path: {content.Path}");
 
-        var settings = await EnsureSettingsContentAsync(content, name, httpContext.RequestAborted).ConfigureAwait(false);
-        var settingsText = JsonConvert.SerializeObject(settingsData);
-        settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsText));
-        await settings.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
+        using (new SystemAccount())
+        {
+            var settings = await EnsureSettingsContentAsync(content, name, httpContext.RequestAborted)
+                .ConfigureAwait(false);
+            var settingsText = JsonConvert.SerializeObject(settingsData);
+            settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsText));
+            await settings.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
+        }
     }
+
     private static Workspace GetWorkspace(Content content)
     {
         if (content.ContentHandler is not GenericContent gc)
@@ -146,9 +153,10 @@ public partial class Settings
         var groupName = $"{settingsName}{roleName}";
 
         var group = await workspace.GetLocalGroup(groupName, cancel);
-//UNDONE:xxx: DISCUSSION: the strictest: return false;
         if (group == null)
-            return role == SettingsRole.Reader;
+            //UNDONE:xxx: DISCUSSION: stricter: role == SettingsRole.Reader;
+            //UNDONE:xxx: DISCUSSION: the strictest: return false;
+            return true;
 
         return user.IsInGroup(group);
     }
