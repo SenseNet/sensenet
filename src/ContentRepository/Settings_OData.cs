@@ -71,7 +71,7 @@ public partial class Settings
     [AllowedRoles(N.R.Everyone, N.R.Visitor)]
     public static async Task<object> GetSettings(Content content, HttpContext httpContext, string name, string property = null)
     {
-        if (!await IsCurrentUserInRoleAsync(SettingsRole.Reader, name, content, null, httpContext.RequestAborted))
+        if (!await IsCurrentUserInRoleAsync(SettingsRole.Reader, name, content, null, null, httpContext.RequestAborted))
             return "{}";
 
         using(new SystemAccount())
@@ -91,19 +91,20 @@ public partial class Settings
             throw GetCannotCreateUnderSettingsException(content.Path);
 
         Workspaces.Workspace workspace;
+        Settings globalSettings;
         using (new SystemAccount())
         {
             workspace = GetWorkspace(content);
             if (workspace == null)
                 throw new InvalidOperationException("Local settings cannot be written outside a workspace.");
 
-            var globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
+            globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
             if (globalSettings == null)
                 throw new InvalidOperationException($"Cannot write local settings {name} if it is not created " +
                                                     $"in the the global settings folder ({Repository.SettingsFolderPath})");
         }
 
-        if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content, workspace, httpContext.RequestAborted))
+        if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content, workspace, globalSettings, httpContext.RequestAborted))
             throw new InvalidContentActionException($"Not enough permission for write local settings {name} " +
                                                     $"for the requested path: {content.Path}");
 
@@ -125,7 +126,7 @@ public partial class Settings
     }
 
     private static async Task<bool> IsCurrentUserInRoleAsync(SettingsRole role, string settingsName,
-        Content content, Workspace workspace, CancellationToken cancel)
+        Content content, Workspace workspace, Settings globalSettings, CancellationToken cancel)
     {
         var user = User.Current;
         if (user.Id == Identifiers.SystemUserId)
@@ -150,15 +151,35 @@ public partial class Settings
             _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
         };
 
-        var groupName = $"{settingsName}{roleName}";
+        var group = await GetLocalGroupAsync(workspace, $"{settingsName}{roleName}", cancel).ConfigureAwait(false);
+        return group == null
+            ? HasEnoughPermission(user, globalSettings ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath), role)
+            : user.IsInGroup(group);
+    }
+    private static async Task<IGroup> GetLocalGroupAsync(Workspace workspace, string groupName, CancellationToken cancel)
+    {
+        while (true)
+        {
+            var group = await workspace.GetLocalGroup(groupName, cancel);
+            if (group != null)
+                return group;
 
-        var group = await workspace.GetLocalGroup(groupName, cancel);
-        if (group == null)
-            //UNDONE:xxx: DISCUSSION: stricter: role == SettingsRole.Reader;
-            //UNDONE:xxx: DISCUSSION: the strictest: return false;
-            return true;
-
-        return user.IsInGroup(group);
+            var parent = workspace.Parent as GenericContent;
+            workspace = parent?.Workspace as Workspace;
+            if (workspace == null)
+                return null;
+        }
+    }
+    private static bool HasEnoughPermission(IUser user, Settings globalSettings, SettingsRole role)
+    {
+        PermissionType permissionType;
+        switch (role)
+        {
+            case SettingsRole.Reader: permissionType = PermissionType.Open; break;
+            case SettingsRole.Editor: permissionType = PermissionType.Save; break;
+            default: throw new ArgumentOutOfRangeException(nameof(role), role, null);
+        }
+        return globalSettings.Security.HasPermission(user, permissionType);
     }
 
     private static async Task<Settings> EnsureSettingsContentAsync(Content content, string name, CancellationToken cancel)
