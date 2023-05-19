@@ -14,9 +14,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using System.Collections;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
 using SenseNet.ContentRepository.Search.Querying;
@@ -24,6 +21,7 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Indexing;
 using STT = System.Threading.Tasks;
+
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable RedundantBaseQualifier
 // ReSharper disable InconsistentNaming
@@ -605,6 +603,16 @@ namespace SenseNet.ContentRepository
             else
             {
                 await base.SaveAsync(settings, cancel).ConfigureAwait(false);
+            }
+
+            // Remove all items from cache on the parent settings chain
+            var allSettings = GetAllSettingsByName<Settings>(Name.Replace(".settings", ""), Path).ToList();
+            foreach (var item in allSettings)
+            {
+                item._jsonIsLoaded = false;
+                item._binaryAsJObject = null;
+                PathDependency.FireChanged(item.Path);
+                NodeIdDependency.FireChanged(item.Id);
             }
 
             // Find all settings that inherit from this setting and remove their cached data.
