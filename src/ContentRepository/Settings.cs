@@ -607,6 +607,16 @@ namespace SenseNet.ContentRepository
                 await base.SaveAsync(settings, cancel).ConfigureAwait(false);
             }
 
+            // Remove all items from cache on the parent settings chain
+            var allSettings = GetAllSettingsByName<Settings>(Name.Replace(".settings", ""), Path).ToList();
+            foreach (var item in allSettings)
+            {
+                item._jsonIsLoaded = false;
+                item._binaryAsJObject = null;
+                PathDependency.FireChanged(item.Path);
+                NodeIdDependency.FireChanged(item.Id);
+            }
+
             // Find all settings that inherit from this setting and remove their cached data.
             if (RepositoryInstance.IndexingEngineIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
             {
