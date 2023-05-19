@@ -14,6 +14,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using System.Collections;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
 using SenseNet.ContentRepository.Search.Querying;
@@ -21,7 +24,6 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Indexing;
 using STT = System.Threading.Tasks;
-
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable RedundantBaseQualifier
 // ReSharper disable InconsistentNaming
