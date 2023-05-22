@@ -551,4 +551,58 @@ public class ODataSettingsTests : ODataTestBase
                             "in the the global settings folder (/Root/System/Settings)", error.Message);
         }).ConfigureAwait(false);
     }
+
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_Update_RemoveProperty()
+    {
+        await ODataTestAsync(async () =>
+        {
+            var settings0 = new {P1 = "V1"}; // SettingsData1 { P1 = "V1" };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            await EnsureNodeAsync("/Root/Content/Folder1", _cancel).ConfigureAwait(false);
+
+            // create local
+            var creationResponse = await ODataPostAsync(
+                    $"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
+                    "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P2\":\"V2\"}}]")
+                .ConfigureAwait(false);
+            // reload global to cache it
+            globalSettings = Node.Load<Settings>(globalSettings.Id);
+            // check local via OData
+            AssertNoError(creationResponse);
+            var gettingResponse = await ODataGetAsync(
+                $"/OData.svc/Root/Content('Folder1')/GetSettings", "?name=Settings1").ConfigureAwait(false);
+            Assert.AreEqual("{\"P1\":\"V11\",\"P2\":\"V2\"}", gettingResponse.Result
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+            Assert.AreEqual(204, creationResponse.StatusCode);
+            // check local via Node
+            var loadedSettings1 = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            var loadedJsonData1 = RepositoryTools.GetStreamString(loadedSettings1.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V11\",\"P2\":\"V2\"}", loadedJsonData1);
+
+            // ACT: Update P1 and remove P2
+            var updatingResponse = await ODataPostAsync(
+                    $"/OData.svc/Root/Content('Folder1')/WriteSettings", null,
+                    "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V12\"}}]")
+                .ConfigureAwait(false);
+
+            // ASSERT
+            AssertNoError(updatingResponse);
+            Assert.AreEqual(204, updatingResponse.StatusCode);
+            var loadedSettings2 = await Node.LoadAsync<Settings>("/Root/Content/Folder1/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+            var loadedJsonData2 = RepositoryTools.GetStreamString(loadedSettings2.Binary.GetStream());
+            Assert.AreEqual("{\"P1\":\"V12\"}", loadedJsonData2);
+            // get settings
+            gettingResponse = await ODataGetAsync(
+                    $"/OData.svc/Root/Content('Folder1')/GetSettings", "?name=Settings1").ConfigureAwait(false);
+            Assert.AreEqual("{\"P1\":\"V12\"}", gettingResponse.Result
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+
+        }).ConfigureAwait(false);
+    }
+
 }

@@ -48,7 +48,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
-        public static async Task<Client> CreateClient(Content content, HttpContext context,
+        public static async Task<ContentRepository.Security.Clients.Client> CreateClient(Content content, HttpContext context,
             string name, string type, string userName = null)
         {
             if (!Enum.TryParse<ClientType>(type, true, out var clientType))
