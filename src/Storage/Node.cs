@@ -2437,7 +2437,7 @@ namespace SenseNet.ContentRepository.Storage
         public static Task<Node> LoadNodeByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(idOrPath))
-                return null;
+                return Task.FromResult(null as Node);
 
             if (int.TryParse(idOrPath, out var nodeId))
                 return Node.LoadNodeAsync(nodeId, cancellationToken);
@@ -2445,7 +2445,7 @@ namespace SenseNet.ContentRepository.Storage
             if (RepositoryPath.IsValidPath(idOrPath) == RepositoryPath.PathResult.Correct)
                 return Node.LoadNodeAsync(idOrPath, cancellationToken);
 
-            return null;
+            return Task.FromResult(null as Node);
         }
         private static Node LoadLastFinalizedVersion(NodeHead head)
         {

@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
+using SNCRClients = SenseNet.ContentRepository.Security.Clients;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -90,7 +91,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
-        public static async Task<Client> CreateClient(Content content, HttpContext context,
+        public static async Task<SNCRClients.Client> CreateClient(Content content, HttpContext context,
             string name, string type, string userName = null)
         {
             if (!Enum.TryParse<ClientType>(type, true, out var clientType))
@@ -134,7 +135,7 @@ namespace SenseNet.Services.Core.Operations
                     throw new InvalidOperationException("User does not exist or is not accessible.");
             }
 
-            var client = new Client
+            var client = new SNCRClients.Client
             {
                 Authority = options.Authority.RemoveUrlSchema(),
                 Name = name,
@@ -281,7 +282,7 @@ namespace SenseNet.Services.Core.Operations
 
             return Providers.Instance.SecurityHandler.IsInGroup(originalUser.Id, publicAdminsGroupHead?.Id ?? 0);
         }
-        private static bool IsUserAccessible(Client client) => IsUserAccessible(client?.UserName);
+        private static bool IsUserAccessible(SNCRClients.Client client) => IsUserAccessible(client?.UserName);
         private static bool IsUserAccessible(string userName)
         {
             if (string.IsNullOrEmpty(userName))
@@ -305,12 +306,12 @@ namespace SenseNet.Services.Core.Operations
             return Providers.Instance.SecurityHandler.HasPermission(user, PermissionType.Save);
         }
         
-        private static Task<Client> GetClientAsync(this HttpContext context, string clientId)
+        private static Task<SNCRClients.Client> GetClientAsync(this HttpContext context, string clientId)
         {
             var clientStore = context.GetClientStore();
             return GetClientAsync(context, clientId, clientStore);
         }
-        private static async Task<Client> GetClientAsync(this HttpContext context, string clientId, ClientStore clientStore)
+        private static async Task<SNCRClients.Client> GetClientAsync(this HttpContext context, string clientId, ClientStore clientStore)
         {
             var options = context.GetOptions();
 
@@ -322,7 +323,7 @@ namespace SenseNet.Services.Core.Operations
             return client;
         }
 
-        private static void AssertClient(Client client, string clientId = null)
+        private static void AssertClient(SNCRClients.Client client, string clientId = null)
         {
             if (client == null)
                 throw new InvalidOperationException($"Unknown client id: {clientId}");
