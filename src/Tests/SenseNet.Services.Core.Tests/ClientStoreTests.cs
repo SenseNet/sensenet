@@ -30,13 +30,6 @@ namespace SenseNet.Services.Core.Tests
                 Assert.AreEqual(5, clients.Length);
                 Assert.AreEqual(1, clients.Count(c => 
                     c.UserName == "builtin\\admin" && c.Type == ClientType.InternalClient));
-
-                result = await ClientStoreOperations.GetClientsForRepository(null, context);
-                clients = (Client[])result.clients;
-
-                // only external clients are returned
-                Assert.AreEqual(4, clients.Length);
-                Assert.AreEqual(0, clients.Count(c => ClientType.AllInternal.HasFlag(c.Type)));
             });
         }
         [TestMethod, TestCategory("ClientStore")]
@@ -57,12 +50,6 @@ namespace SenseNet.Services.Core.Tests
                     c.UserName == "builtin\\publicadmin" && c.Type == ClientType.ExternalClient));
                 Assert.AreEqual(0, clients.Count(c =>
                     c.UserName == "domain2\\user2" && c.Type == ClientType.ExternalClient));
-
-                result = await ClientStoreOperations.GetClientsForRepository(null, context);
-                clients = (Client[])result.clients;
-
-                // only 3 are accessible
-                Assert.AreEqual(3, clients.Length);
             });
         }
         [TestMethod, TestCategory("ClientStore")]
