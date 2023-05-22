@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -146,6 +147,15 @@ namespace SenseNet.ContentRepository.Tests
             await user2.SaveAsync(CancellationToken.None);
 
             var publicAdmin = NodeHead.Get(Identifiers.PublicAdminPath);
+
+            await domain2.Security.BreakInheritanceAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // remove public admin permissions from domain2 to have a user that this admin does not see
+            var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
+            await aclEditor
+                .BreakInheritance(domain2.Id, new[] { EntryType.Normal })
+                .ClearPermission(domain2.Id, publicAdminGroup.Id, false, PermissionType.See)
+                .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
 
             await apiKeyManager.CreateApiKeyAsync(publicAdmin.Id, DateTime.Today.AddDays(10), CancellationToken.None);
             await apiKeyManager.CreateApiKeyAsync(user1.Id, DateTime.Today.AddDays(10), CancellationToken.None);

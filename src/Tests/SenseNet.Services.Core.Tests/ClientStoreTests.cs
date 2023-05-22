@@ -12,6 +12,7 @@ using Task = System.Threading.Tasks.Task;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.Services.Core.Tests
 {
@@ -459,6 +460,14 @@ namespace SenseNet.Services.Core.Tests
 
             var user2 = Content.CreateNew("User", domain2.ContentHandler, "user2");
             await user2.SaveAsync(CancellationToken.None);
+
+            // remove public admin permissions from domain2 to have a user that this admin does not see
+            var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
+            await aclEditor
+                .BreakInheritance(domain2.Id, new[] { EntryType.Normal })
+                .ClearPermission(domain2.Id, publicAdminGroup.Id, false, PermissionType.See)
+                .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+
 
             await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
