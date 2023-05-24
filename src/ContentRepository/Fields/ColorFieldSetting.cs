@@ -5,7 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
-using System.Drawing;
+using SkiaSharp;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -105,9 +105,13 @@ namespace SenseNet.ContentRepository.Fields
             if (value == null || value.GetType() == typeof(string))
                 return base.ValidateData(null, field);
 
-            if (value.GetType() == typeof(Color))
+            //if (value.GetType() == typeof(Color))
+            //{
+            //    return base.ValidateData(ColorField.ColorToString((Color)value), field);
+            //}
+            if (value.GetType() == typeof(SKColor))
             {
-                return base.ValidateData(ColorField.ColorToString((Color)value), field);
+                return base.ValidateData(ColorField.ColorToString((SKColor)value), field);
             }
 
             return FieldValidationResult.Successful;

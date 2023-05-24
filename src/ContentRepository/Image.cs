@@ -9,6 +9,7 @@ using SenseNet.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Events;
+using SkiaSharp;
 
 
 namespace SenseNet.ContentRepository
@@ -85,36 +86,39 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Methods
 
         /// <summary>
-        /// Returns an <see cref="System.Drawing.Imaging.ImageFormat"/> value converted from the given string value.
+        /// Returns an <see cref="SKEncodedImageFormat"/> value converted from the given string value.
         /// Note that "gif" is converted to ImageFormat.Png.
         /// </summary>
         /// <param name="contentType">String representation of an image format (e.g. png, jpeg) or an image file name.</param>
-        public static System.Drawing.Imaging.ImageFormat getImageFormat(string contentType)
+        public static SKEncodedImageFormat getImageFormat(string contentType)
         {
             var lowerContentType = contentType.ToLower();
 
             if (lowerContentType.EndsWith("png"))
-                return System.Drawing.Imaging.ImageFormat.Png;
+                return SKEncodedImageFormat.Png;
             if (lowerContentType.EndsWith("bmp"))
-                return System.Drawing.Imaging.ImageFormat.Bmp;
+                return SKEncodedImageFormat.Bmp;
             if (lowerContentType.EndsWith("jpeg"))
-                return System.Drawing.Imaging.ImageFormat.Jpeg;
+                return SKEncodedImageFormat.Jpeg;
             if (lowerContentType.EndsWith("jpg"))
-                return System.Drawing.Imaging.ImageFormat.Jpeg;
+                return SKEncodedImageFormat.Jpeg;
 
             // gif -> png! resizing gif with gif imageformat ruins alpha values, therefore we return with png
             if (lowerContentType.EndsWith("gif"))
-                return System.Drawing.Imaging.ImageFormat.Png;
-            if (lowerContentType.EndsWith("tiff"))
-                return System.Drawing.Imaging.ImageFormat.Tiff;
-            if (lowerContentType.EndsWith("wmf"))
-                return System.Drawing.Imaging.ImageFormat.Wmf;
-            if (lowerContentType.EndsWith("emf"))
-                return System.Drawing.Imaging.ImageFormat.Emf;
-            if (lowerContentType.EndsWith("exif"))
-                return System.Drawing.Imaging.ImageFormat.Exif;
+                return SKEncodedImageFormat.Png;
+            // These are not supported in SkiaSharp.
+            // (see for tiff support: https://stackoverflow.com/questions/50312937/skiasharp-tiff-support)
+            //if (lowerContentType.EndsWith("tiff"))
+            //    return SKEncodedImageFormat.Tiff;
+            //if (lowerContentType.EndsWith("wmf"))
+            //    return SKEncodedImageFormat.Wmf;
+            //if (lowerContentType.EndsWith("emf"))
+            //    return SKEncodedImageFormat.Emf;
+            //if (lowerContentType.EndsWith("exif"))
+            //    return SKEncodedImageFormat.Exif;
 
-            return System.Drawing.Imaging.ImageFormat.Jpeg;
+            //UNDONE:xxxDrawing: discussion: this fallback is not good in all cases
+            return SKEncodedImageFormat.Jpeg;
         }
         /// <summary>
         /// Returns a new <see cref="Image"/> instance created from the given <see cref="BinaryData"/> 
@@ -338,14 +342,14 @@ namespace SenseNet.ContentRepository
                 var imgStream = imgNode.Binary.GetStream();
                 if (imgStream != null && imgStream.Length > 0)
                 {
-                    using (var img = System.Drawing.Image.FromStream(imgStream))
+                    using (var bitmap = SKBitmap.Decode(imgStream))
                     {
                         // if there is no need to modify the image, return false
-                        if (originalWidth == img.Width && originalHeight == img.Height)
+                        if (originalWidth == bitmap.Width && originalHeight == bitmap.Height)
                             return false;
 
-                        imgNode.Width = img.Width;
-                        imgNode.Height = img.Height;
+                        imgNode.Width = bitmap.Width;
+                        imgNode.Height = bitmap.Height;
                     }
                 }
             }
