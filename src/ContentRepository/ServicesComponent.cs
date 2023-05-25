@@ -1054,9 +1054,9 @@ namespace SenseNet.ContentRepository
                     
                     CreateSettings("Permission.settings", permissionSettings, 
                         "In this section you can manage and customize permission groups, " +
-                        "add custom permissions that can be displayed and used in the permission editor.", logger);
+                        "add custom permissions that can be displayed and used in the permission editor.", true, logger);
                     CreateSettings("Portal.settings", portalSettings, 
-                        "Here you can customize client cache headers, CORS values and other portal-related settings.", logger);
+                        "Here you can customize client cache headers, CORS values and other portal-related settings.", true, logger);
                     
                     #endregion
                 });
@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.29", "7.7.29.2", "2023-05-02", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.29.3", "2023-05-25", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
@@ -1626,6 +1626,19 @@ namespace SenseNet.ContentRepository
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
 
+            #region Content changes
+
+            // load it first so that we know if it exists in the repo or not
+            var columnSettingsPath = RepositoryPath.Combine(Repository.SettingsFolderPath, "ColumnSettings.settings");
+            var columnSettings = Node.LoadNode(columnSettingsPath);
+
+            CreateSettings("ColumnSettings.settings", "{}",
+                "In this setting section you can customize the columns visible in grids " +
+                "throughout admin UI. It is also possible to set local column settings " +
+                "(using the button in grid headers) to have container-specific columns.", false, logger);
+
+            #endregion
+
             #region Permission changes
 
             var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
@@ -1667,6 +1680,21 @@ namespace SenseNet.ContentRepository
                     PermissionType.Delete,
                     PermissionType.SeePermissions,
                     PermissionType.SetPermissions);
+            }
+
+            // if we just created this content above
+            if (columnSettings == null)
+            {
+                logger.LogTrace("Setting permissions for public developers and editors on the column settings content.");
+                columnSettings = Node.LoadNode(columnSettingsPath);
+
+                var developers = NodeHead.Get(N.R.Developers);
+                var editors = NodeHead.Get(N.R.Editors);
+
+                if (developers != null)
+                    editor.Allow(columnSettings.Id, developers.Id, false, PermissionType.Save);
+                if (editors != null)
+                    editor.Allow(columnSettings.Id, editors.Id, false, PermissionType.Save);
             }
 
             editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -1763,7 +1791,7 @@ namespace SenseNet.ContentRepository
 
         #endregion
 
-        private static void CreateSettings(string contentName, string value, string description, ILogger logger)
+        private static void CreateSettings(string contentName, string value, string description, bool globalOnly, ILogger logger)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))
             {
@@ -1781,7 +1809,7 @@ namespace SenseNet.ContentRepository
             using var stream = RepositoryTools.GetStreamFromString(value);
             var settings = Content.CreateNew("Settings", parent, contentName);
 
-            settings["GlobalOnly"] = true;
+            settings["GlobalOnly"] = globalOnly;
             settings["Binary"] = UploadHelper.CreateBinaryData(contentName, stream);
             settings["Description"] = description;
             settings.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
