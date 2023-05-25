@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>ColumnSettings.settings</ContentName>
+  <Fields>
+    <Binary attachment="ColumnSettings.settings" />
+    <GlobalOnly>false</GlobalOnly>
+    <Index>250</Index>
+    <Description><![CDATA[In this setting section you can customize the columns visible in grids throughout admin UI. It is also possible to set local column settings (using the button in grid headers) to have container-specific columns.]]></Description>
+  </Fields>
+  <Permissions>
+    <Clear />
+	<Identity path="/Root/IMS/BuiltIn/Portal/Developers">
+      <Save>Allowed</Save>      
+    </Identity>
+	<Identity path="/Root/IMS/BuiltIn/Portal/Editors">
+      <Save>Allowed</Save>      
+    </Identity>
+  </Permissions>
+</ContentMetaData>
