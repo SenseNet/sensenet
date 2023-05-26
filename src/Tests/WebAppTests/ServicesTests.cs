@@ -24,6 +24,7 @@ using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Packaging.Steps.Internal;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
@@ -63,6 +64,7 @@ using SenseNet.Services.Core.Cors;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Wopi;
 using SenseNet.Storage;
+using SenseNet.Storage.BackgroundOperations;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.DistributedApplication.Messaging;
@@ -334,6 +336,7 @@ namespace WebAppTests
                 // TaskManager
                 {typeof(ITaskManager), typeof(TaskManagerBase)},
                 {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+                {typeof(IUserProvider), typeof(DefaultUserProvider)},
 
                 // Preview
                 {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
@@ -377,6 +380,7 @@ namespace WebAppTests
                 {typeof(IMaintenanceTask), new[] {
                     //typeof(ReindexBinariesTask),
                     typeof(CleanupFilesTask),
+                    typeof(RefreshTaskManagementTask),
                     typeof(StartActiveDirectorySynchronizationTask),
                     typeof(AccessTokenCleanupTask),
                     typeof(SharedLockCleanupTask),

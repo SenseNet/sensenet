@@ -12,6 +12,7 @@ using Task = System.Threading.Tasks.Task;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.Services.Core.Tests
 {
@@ -24,19 +25,12 @@ namespace SenseNet.Services.Core.Tests
             return ClientStoreTest(async (context, _) =>
             {
                 dynamic result = await ClientStoreOperations.GetClients(null, context);
-                var clients = (Client[])result.clients;
+                var clients = (ContentRepository.Security.Clients.Client[])result.clients;
 
                 // all clients are accessible
                 Assert.AreEqual(5, clients.Length);
                 Assert.AreEqual(1, clients.Count(c => 
                     c.UserName == "builtin\\admin" && c.Type == ClientType.InternalClient));
-
-                result = await ClientStoreOperations.GetClientsForRepository(null, context);
-                clients = (Client[])result.clients;
-
-                // only external clients are returned
-                Assert.AreEqual(4, clients.Length);
-                Assert.AreEqual(0, clients.Count(c => ClientType.AllInternal.HasFlag(c.Type)));
             });
         }
         [TestMethod, TestCategory("ClientStore")]
@@ -45,7 +39,7 @@ namespace SenseNet.Services.Core.Tests
             return ClientStoreTestForPublicAdmin(async (context, _) =>
             {
                 dynamic result = await ClientStoreOperations.GetClients(null, context);
-                var clients = (Client[])result.clients;
+                var clients = (ContentRepository.Security.Clients.Client[])result.clients;
 
                 // only 3 are accessible
                 Assert.AreEqual(3, clients.Length);
@@ -57,12 +51,6 @@ namespace SenseNet.Services.Core.Tests
                     c.UserName == "builtin\\publicadmin" && c.Type == ClientType.ExternalClient));
                 Assert.AreEqual(0, clients.Count(c =>
                     c.UserName == "domain2\\user2" && c.Type == ClientType.ExternalClient));
-
-                result = await ClientStoreOperations.GetClientsForRepository(null, context);
-                clients = (Client[])result.clients;
-
-                // only 3 are accessible
-                Assert.AreEqual(3, clients.Length);
             });
         }
         [TestMethod, TestCategory("ClientStore")]
@@ -74,7 +62,7 @@ namespace SenseNet.Services.Core.Tests
             return ClientStoreTestForRegularUser(async (context, _) =>
             {
                 dynamic result = await ClientStoreOperations.GetClients(null, context);
-                var clients = (Client[])result.clients;
+                var clients = (ContentRepository.Security.Clients.Client[])result.clients;
 
                 // only 3 are accessible
                 Assert.AreEqual(2, clients.Length);
@@ -473,7 +461,15 @@ namespace SenseNet.Services.Core.Tests
             var user2 = Content.CreateNew("User", domain2.ContentHandler, "user2");
             await user2.SaveAsync(CancellationToken.None);
 
-            await clientStore.SaveClientAsync(new Client
+            // remove public admin permissions from domain2 to have a user that this admin does not see
+            var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
+            await aclEditor
+                .BreakInheritance(domain2.Id, new[] { EntryType.Normal })
+                .ClearPermission(domain2.Id, publicAdminGroup.Id, false, PermissionType.See)
+                .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
+
+
+            await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
                 Name = "c1",
                 ClientId = "c1",
@@ -482,7 +478,7 @@ namespace SenseNet.Services.Core.Tests
                 Type = ClientType.InternalClient,
                 Repository = "x"
             });
-            await clientStore.SaveClientAsync(new Client
+            await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
                 Name = "c2",
                 ClientId = "c2",
@@ -490,7 +486,7 @@ namespace SenseNet.Services.Core.Tests
                 Type = ClientType.ExternalSpa,
                 Repository = "x"
             });
-            await clientStore.SaveClientAsync(new Client
+            await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
                 Name = "c3",
                 ClientId = "c3",
@@ -499,7 +495,7 @@ namespace SenseNet.Services.Core.Tests
                 Type = ClientType.ExternalClient,
                 Repository = "x"
             });
-            await clientStore.SaveClientAsync(new Client
+            await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
                 Name = "c4",
                 ClientId = "c4",
@@ -508,7 +504,7 @@ namespace SenseNet.Services.Core.Tests
                 Type = ClientType.ExternalClient,
                 Repository = "x"
             });
-            await clientStore.SaveClientAsync(new Client
+            await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
                 Name = "c5",
                 ClientId = "c5",

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>0.0.27</Version>
+		<Version>0.0.27.1</Version>
 		<Authors>kavics,tusmester</Authors>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Company>Sense/Net Inc.</Company>
@@ -25,7 +25,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

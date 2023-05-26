@@ -11,6 +11,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Sharing;
@@ -31,6 +32,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
+using SenseNet.Storage.BackgroundOperations;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -124,6 +126,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
+                .AddSingleton<IMaintenanceTask, RefreshTaskManagementTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
@@ -146,6 +149,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
                 .AddSingleton<SecurityHandler>()
+                .AddSingleton<IUserProvider, DefaultUserProvider>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 
