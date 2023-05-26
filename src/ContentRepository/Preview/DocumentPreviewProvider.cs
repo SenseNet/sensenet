@@ -24,9 +24,11 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.BackgroundOperations;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using SkiaSharp;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 using Task = System.Threading.Tasks.Task;
 
@@ -64,33 +66,26 @@ namespace SenseNet.Preview
 
     public class WatermarkDrawingInfo
     {
-        private readonly System.Drawing.Image _image;
-        private readonly System.Drawing.Graphics _context;
-
         public string WatermarkText { get; set; }
-        public System.Drawing.Font Font { get; set; }
+        public SKFont Font { get; set; }
         public WatermarkPosition Position { get; set; }
-        public System.Drawing.Color Color { get; set; }
+        public SKColor Color { get; set; }
+        public SKBitmap Image { get; }
+        public SKCanvas DrawingContext { get; }
+        public SKPaint Paint { get; }
 
-        public WatermarkDrawingInfo(System.Drawing.Image image, System.Drawing.Graphics context)
+        public WatermarkDrawingInfo(SKBitmap image, SKCanvas context, SKPaint paint)
         {
-            if (image == null) 
-                throw new ArgumentNullException("image");
-            if (context == null)
-                throw new ArgumentNullException("context");
-
-            _image = image;
-            _context = context;
+            Image = image ?? throw new ArgumentNullException(nameof(image));
+            DrawingContext = context ?? throw new ArgumentNullException(nameof(context));
+            Paint = paint;
         }
 
-        public System.Drawing.Image Image
+        public SKSize MeasureString(string text)
         {
-            get { return _image; }
-        }
-
-        public System.Drawing.Graphics DrawingContext
-        {
-            get { return _context; }
+            var rectangle = new SKRect();
+            var textWidth = Paint.MeasureText(text, ref rectangle);
+            return new SKSize(rectangle.Width, rectangle.Height);
         }
     }
 
@@ -451,12 +446,12 @@ namespace SenseNet.Preview
 
             for (var j = 0; j < numberOfLines; j++)
             {
-                blockHeight += info.DrawingContext.MeasureString(lines[j], info.Font).Height;
+                blockHeight += info.MeasureString(lines[j]).Height;
             }
 
             for (var j = 0; j < numberOfLines; j++)
             {
-                var currentLineSize = info.DrawingContext.MeasureString(lines[j], info.Font);
+                var currentLineSize = info.MeasureString(lines[j]);
                 var wx = -currentLineSize.Width / 2;
                 var wy = 0.0f;
 
@@ -468,11 +463,11 @@ namespace SenseNet.Preview
                         break;
                     case WatermarkPosition.Top:
                         wx = (info.Image.Width - currentLineSize.Width) / 2;
-                        wy = (currentLineSize.Height - info.Font.Size) * j;
+                        wy = currentLineSize.Height * (j + 1);
                         break;
                     case WatermarkPosition.Bottom:
                         wx = (info.Image.Width - currentLineSize.Width) / 2;
-                        wy = info.Image.Height - ((currentLineSize.Height - info.Font.Size) * (numberOfLines - j));
+                        wy = info.Image.Height - blockHeight + currentLineSize.Height * j;
                         break;
                     case WatermarkPosition.Center:
                         wx = (info.Image.Width - currentLineSize.Width) / 2;
@@ -480,7 +475,7 @@ namespace SenseNet.Preview
                         break;
                 }
 
-                info.DrawingContext.DrawString(lines[j], info.Font, new System.Drawing.SolidBrush(info.Color), wx, wy);
+                info.DrawingContext.DrawText(lines[j], new SKPoint(wx, wy), info.Paint);
             }
         }
 
@@ -822,8 +817,7 @@ namespace SenseNet.Preview
                 }
             }
 
-            if (options == null)
-                options = new PreviewImageOptions();
+            options ??= new PreviewImageOptions();
 
             BinaryData binaryData = null;
 
@@ -834,11 +828,11 @@ namespace SenseNet.Preview
                     binaryData = previewImage.GetBinary(property);
             }
 
-            if (binaryData == null)
-                binaryData = previewImage.Binary;
+            binaryData ??= previewImage.Binary;
 
             // if the image is not a preview, return the requested binary without changes
-            if (!IsPreviewOrThumbnailImage(NodeHead.Get(previewImage.Id)))
+            var isPreviewOrThumbnailImage = IsPreviewOrThumbnailImage(NodeHead.Get(previewImage.Id));
+            if (!isPreviewOrThumbnailImage)
                 return binaryData.GetStream();
 
             var isThumbnail = IsThumbnailImage(previewImage);
@@ -883,14 +877,15 @@ namespace SenseNet.Preview
                 return binaryData.GetStream();
 
             // return a memory stream containing the new image
-            var ms = new IO.MemoryStream();
+            var outputStream = new IO.MemoryStream();
 
-            using (var img = System.Drawing.Image.FromStream(binaryData.GetStream()))
+            using (var bitmap = SKBitmap.Decode(binaryData.GetStream()))
             {
                 // draw redaction before rotating the image, because redaction rectangles
                 // are defined in the coordinating system of the original image
                 if (displayRedaction && !string.IsNullOrEmpty(shapes))
                 {
+/*
                     using (var g = System.Drawing.Graphics.FromImage(img))
                     {
                         var imageIndex = GetPreviewImagePageIndex(previewImage);
@@ -913,8 +908,8 @@ namespace SenseNet.Preview
                             {
                                 // Compute the exact position of the shape based on the size ratio of 
                                 // the real preview image and this thumbnail. 
-                                realWidthRatio = (float)img.Width / (float)pi.Width;
-                                realHeightRatio = (float)img.Height / (float)pi.Height;
+                                realWidthRatio = (float)bitmap.Width / (float)pi.Width;
+                                realHeightRatio = (float)bitmap.Height / (float)pi.Height;
                             }
                             else
                             {
@@ -950,12 +945,14 @@ namespace SenseNet.Preview
 
                         g.Save();
                     }
+*/
                 }
 
                 // Rotate image if necessary, before drawing the watermark. RotateFlip method is
                 // faster than using the Graphics object to rotate the image.
                 if (rotation.HasValue)
                 {
+/*
                     switch (rotation)
                     {
                         case 90:
@@ -971,89 +968,98 @@ namespace SenseNet.Preview
                             img.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
                             break;
                     }
+*/
                 }
 
                 // draw watermark
                 if (displayWatermark && !string.IsNullOrEmpty(watermark))
                 {
-                    using (var g = System.Drawing.Graphics.FromImage(img))
+                    watermark = TemplateManager.Replace(typeof(WatermarkTemplateReplacer), watermark,
+                        new[] {document, image});
+
+                    var fontName = Settings.GetValue<string>(DOCUMENTPREVIEW_SETTINGS, WATERMARK_FONT, image.Path) ??
+                                   "Microsoft Sans Serif";
+                    var weight = SKFontStyleWeight.Normal;
+                    if (Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_BOLD, image.Path, true))
+                        weight = SKFontStyleWeight.Bold;
+                    var slant = SKFontStyleSlant.Upright;
+                    if (Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_ITALIC, image.Path, false))
+                        slant = SKFontStyleSlant.Italic;
+
+                    var size = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_FONTSIZE, image.Path, 72.0f);
+                    if (isThumbnail)
+                        size *= THUMBNAIL_PREVIEW_WIDTH_RATIO;
+
+                    var position = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_POSITION, image.Path,
+                        WatermarkPosition.BottomLeftToUpperRight);
+
+                    var color = GetWatermarkColor(image.Path);
+
+                    var typeFace = SKTypeface.FromFamilyName(fontName, weight, SKFontStyleWidth.Normal, slant);
+                    var paint = new SKPaint
                     {
-                        watermark = TemplateManager.Replace(typeof(WatermarkTemplateReplacer), watermark, new[] { document, image });
+                        Typeface = typeFace,
+                        TextSize = size,
+                        IsAntialias = true,
+                        Color = color
+                    };
+                    var font = new SKFont(typeFace, size);
 
-                        var fontName = Settings.GetValue<string>(DOCUMENTPREVIEW_SETTINGS, WATERMARK_FONT, image.Path) ?? "Microsoft Sans Serif";
-                        var fs = System.Drawing.FontStyle.Regular;
-                        if (Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_BOLD, image.Path, true))
-                            fs = fs | System.Drawing.FontStyle.Bold;
-                        if (Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_ITALIC, image.Path, false))
-                            fs = fs | System.Drawing.FontStyle.Italic;
+                    var wmInfo = new WatermarkDrawingInfo(bitmap, new SKCanvas(bitmap), paint)
+                    {
+                        WatermarkText = watermark,
+                        Font = font,
+                        Color = color,
+                        Position = position
+                    };
 
-                        var size = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_FONTSIZE, image.Path, 72.0f);
+                    DrawWatermark(wmInfo);
+                }
 
-                        // resize font in case of thumbnails
-                        if (isThumbnail)
-                            size = size * THUMBNAIL_PREVIEW_WIDTH_RATIO;
-
-                        var font = new System.Drawing.Font(fontName, size, fs);
-                        var position = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_POSITION, image.Path, WatermarkPosition.BottomLeftToUpperRight);
-                        var color = GetWatermarkColor(image.Path);
-
-                        var wmInfo = new WatermarkDrawingInfo(img, g)
-                        {
-                            WatermarkText = watermark,
-                            Font = font,
-                            Color = color,
-                            Position = position
-                        };
-
-                        DrawWatermark(wmInfo);
-
-                        g.Save();
-                    }
-                }                               
-
-                ImageFormat imgFormat;
+                SKEncodedImageFormat imgFormat;
 
                 switch (IO.Path.GetExtension(previewImage.Path).ToLower())
                 {
                     case ".png":
-                        imgFormat = ImageFormat.Png;
+                        imgFormat = SKEncodedImageFormat.Png;
                         break;
                     case ".jpg":
                     case ".jpeg":
-                        imgFormat = ImageFormat.Jpeg;
+                        imgFormat = SKEncodedImageFormat.Jpeg;
                         break;
                     case ".bmp":
-                        imgFormat = ImageFormat.Bmp;
+                        imgFormat = SKEncodedImageFormat.Bmp;
                         break;
                     default:
                         throw new SnNotSupportedException("Unknown image preview type: " + previewImage.Path);
                 }
-
-                img.Save(ms, imgFormat);
+                var imageToSave = SKImage.FromBitmap(bitmap);
+                var data = imageToSave.Encode(imgFormat, 90);
+                data.SaveTo(outputStream);
             }
 
-            ms.Seek(0, IO.SeekOrigin.Begin);
-
-            return ms;
+            outputStream.Seek(0, IO.SeekOrigin.Begin);
+            return outputStream;
         }
 
-        private static System.Drawing.Color GetWatermarkColor(string contentPath = null)
+        internal static SKColor GetWatermarkColor(string contentPath = null)
         {
             var alpha = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_OPACITY, contentPath, 50);
-            var colorName = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, contentPath, "Black");
+            alpha = Math.Max(0, Math.Min(0xFF, alpha));
 
-            var color = System.Drawing.Color.Black;
+            var colorName = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, contentPath, "Black");
+            var color = SKColors.Black;
 
             try
             {
-                color = System.Drawing.ColorTranslator.FromHtml(colorName);
+                color = ColorField.ColorFromString(colorName);
             }
             catch (Exception e)
             {
                 SnLog.WriteWarning($"Document preview provider: watermark color {colorName} for {contentPath} could not be converted to a color object. {e.Message}");
             }
 
-            return System.Drawing.Color.FromArgb(alpha, color);
+            return new SKColor(color.Red, color.Green, color.Blue, Convert.ToByte(alpha));
         }
 
         private static void NormalizeRectangle(ref System.Drawing.Rectangle shapeRectangle)
@@ -1097,21 +1103,22 @@ namespace SenseNet.Preview
             if (string.IsNullOrEmpty(info.WatermarkText)) 
                 return;
 
-            var textSize = info.DrawingContext.MeasureString(info.WatermarkText, info.Font);
+            var textSize = info.MeasureString(info.WatermarkText);
             var charCount = info.WatermarkText.Length;
             var charSize = textSize.Width / charCount;
             double maxTextWithOnImage = 0;
 
+            info.DrawingContext.Save();
             switch (info.Position)
             {
                 case WatermarkPosition.BottomLeftToUpperRight:
-                    info.DrawingContext.TranslateTransform(info.Image.Width / 2.0f, info.Image.Height / 2.0f);
-                    info.DrawingContext.RotateTransform(-45);
+                    info.DrawingContext.Translate(info.Image.Width / 2.0f, info.Image.Height / 2.0f);
+                    info.DrawingContext.RotateDegrees(-45);
                     maxTextWithOnImage = Math.Sqrt((info.Image.Width * info.Image.Width) + (info.Image.Height * info.Image.Height)) * 0.7;
                     break;
                 case WatermarkPosition.UpperLeftToBottomRight:
-                    info.DrawingContext.TranslateTransform(info.Image.Width / 2.0f, info.Image.Height / 2.0f);
-                    info.DrawingContext.RotateTransform(45);
+                    info.DrawingContext.Translate(info.Image.Width / 2.0f, info.Image.Height / 2.0f);
+                    info.DrawingContext.RotateDegrees(45);
                     maxTextWithOnImage = Math.Sqrt((info.Image.Width * info.Image.Width) + (info.Image.Height * info.Image.Height)) * 0.7;
                     break;
                 case WatermarkPosition.Top:
@@ -1124,13 +1131,14 @@ namespace SenseNet.Preview
                     maxTextWithOnImage = info.Image.Width;
                     break;
                 default:
-                    info.DrawingContext.RotateTransform(45);
+                    info.DrawingContext.RotateDegrees(45);
                     break;
             }
 
             var lines = BreakTextIntoLines(info, maxTextWithOnImage, charSize).ToList();
 
             DrawLines(lines, info);
+            info.DrawingContext.Restore();
         }
 
         public IO.Stream GetPreviewImagesDocumentStream(Content content, DocumentFormat? documentFormat = null, RestrictionType? restrictionType = null)
