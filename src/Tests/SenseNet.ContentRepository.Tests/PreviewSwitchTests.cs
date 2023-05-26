@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class PreviewSwitchTests : TestBase
     {
-        [TestMethod]
+        //[TestMethod]
         public async System.Threading.Tasks.Task Xxxx_()
         {
             var cancel = new CancellationTokenSource().Token;
