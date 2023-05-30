@@ -116,6 +116,29 @@ namespace SenseNet.Services.Core.Operations
             throw new SenseNetSecurityException("Invalid username or password.");
         }
 
+        /// <summary>
+        /// Gets the user's multifactor authentication info.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)
+        {
+            var user = (User)content.ContentHandler;
+
+            //UNDONE:[MFA] take global settings into account
+            // Do we need a separate property for global settings, or merge into one effective property?
+            return new
+            {
+                user.MultiFactorEnabled,
+                user.QrCodeSetupImageUrl,
+                user.ManualEntryKey
+            };
+        }
+
         private static void CheckDomainPolicy(string userName)
         {
             // return if the domain is specified

@@ -174,6 +174,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()
+                .AddDefaultMultiFactorAuthenticationProvider()
             ;
         }
 

@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.29", "7.7.29.3", "2023-05-25", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.29.4", "2023-05-30", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
@@ -1702,6 +1702,46 @@ namespace SenseNet.ContentRepository
 
             #endregion
 
+            #region String resource changes
+
+            var rb = new ResourceBuilder();
+
+            rb.Content("CtdResourcesTZ.xml")
+                .Class("Ctd-User")
+                .Culture("en")
+                .AddResource("MultiFactorEnabled-DisplayName", "Multifactor authentication enabled")
+                .AddResource("MultiFactorEnabled-Description", "Multifactor authentication enabled")
+                .AddResource("MultiFactorData-DisplayName", "Multifactor data")
+                .AddResource("MultiFactorData-Description", "")
+                .Culture("hu")
+                .AddResource("MultiFactorEnabled-DisplayName", "Többfaktoros hitelesítés engedélyezve")
+                .AddResource("MultiFactorEnabled-Description", "Többfaktoros hitelesítés engedélyezve")
+                .AddResource("MultiFactorData-DisplayName", "Többfaktoros hitelesítés beállítások")
+                .AddResource("MultiFactorData-Description", "");
+
+            rb.Apply();
+
+            #endregion
+
+            #region Settings changes
+
+            CreateSettings("MultiFactorAuthentication.settings", @"{ ""MultiFactorAuthentication"": ""Optional"" }",
+                "In this setting section you can define whether multi-factor authentication is enabled optionally " +
+                "or forced in the system. This setting can be overridden locally.",
+                false, logger,
+                (settings, aclEditor) =>
+                {
+                    var developers = NodeHead.Get(N.R.Developers);
+                    if (developers != null)
+                        aclEditor.Allow(settings.Id, developers.Id, false, PermissionType.Save);
+                    var publicAdmins = NodeHead.Get(N.R.PublicAdministrators);
+                    if (publicAdmins != null)
+                        aclEditor.Allow(settings.Id, publicAdmins.Id, false, PermissionType.Save);
+                }
+            );
+
+            #endregion
+
             #region CTD changes
 
             try
@@ -1709,6 +1749,7 @@ namespace SenseNet.ContentRepository
                 const string publicDomainPath = "/Root/IMS/Public";
                 var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
 
+                // selection root changes
                 void ReplaceSelectionRoot(string contentTypeName, string fieldName)
                 {
                     var contentType = ContentType.GetByName(contentTypeName);
@@ -1731,6 +1772,23 @@ namespace SenseNet.ContentRepository
 
                 ReplaceSelectionRoot("Group", "Members");
                 ReplaceSelectionRoot("User", "Manager");
+
+                // adding multifactor fields
+                logger.LogTrace("Editing CTDs: adding multifactor fields...");
+
+                cb.Type("User")
+                    .Field("MultiFactorEnabled", "Boolean")
+                    .DisplayName("$Ctd-User,MultiFactorEnabled-DisplayName")
+                    .Description("$Ctd-User,MultiFactorEnabled-Description")
+                    .FieldIndex(800)
+                    .Field("MultiFactorData", "LongText")
+                    .DisplayName("$Ctd-User,MultiFactorData-DisplayName")
+                    .Description("$Ctd-User,MultiFactorData-Description")
+                    .Configure("TextType", "LongText")
+                    .VisibleBrowse(FieldVisibility.Hide)
+                    .VisibleEdit(FieldVisibility.Hide)
+                    .VisibleNew(FieldVisibility.Hide)
+                    ;
 
                 cb.Apply();
             }
@@ -1791,7 +1849,8 @@ namespace SenseNet.ContentRepository
 
         #endregion
 
-        private static void CreateSettings(string contentName, string value, string description, bool globalOnly, ILogger logger)
+        private static void CreateSettings(string contentName, string value, string description, bool globalOnly, ILogger logger,
+            Action<Settings, SnAclEditor> setPermissions = null)
         {
             if (Node.Exists(RepositoryPath.Combine(Repository.SettingsFolderPath, contentName)))
             {
@@ -1813,6 +1872,13 @@ namespace SenseNet.ContentRepository
             settings["Binary"] = UploadHelper.CreateBinaryData(contentName, stream);
             settings["Description"] = description;
             settings.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+            if (setPermissions != null)
+            {
+                var editor = Providers.Instance.SecurityHandler.CreateAclEditor();
+                setPermissions(settings.ContentHandler as Settings, editor);
+                editor.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
 
             logger.LogTrace($"Settings {contentName} was created.");
         }

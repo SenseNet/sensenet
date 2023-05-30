@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Storage;
@@ -15,6 +16,7 @@ using SenseNet.Preview;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -220,6 +222,22 @@ namespace SenseNet.Extensions.DependencyInjection
                     .AddTextExtractor<PlainTextExtractor>("settings")
                     .AddTextExtractor<RtfTextExtractor>("rtf")
                 ;
+        }
+
+        /// <summary>
+        /// Adds the default multifactor authentication provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddDefaultMultiFactorAuthenticationProvider(this IServiceCollection services)
+        {
+            return services.AddMultiFactorAuthenticationProvider<DefaultMultiFactorProvider>();
+        }
+        /// <summary>
+        /// Adds the provided multifactor authentication provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddMultiFactorAuthenticationProvider<T>(this IServiceCollection services)
+            where T : class, IMultiFactorAuthenticationProvider
+        {
+            return services.AddSingleton<IMultiFactorAuthenticationProvider, T>();
         }
     }
 }

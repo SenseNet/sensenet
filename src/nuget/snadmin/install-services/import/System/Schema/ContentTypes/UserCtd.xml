@@ -408,5 +408,25 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+	<Field name="MultiFactorEnabled" type="Boolean">
+      <DisplayName>$Ctd-User,MultiFactorEnabled-DisplayName</DisplayName>
+      <Description>$Ctd-User,MultiFactorEnabled-Description</Description>
+      <Configuration>
+        <FieldIndex>800</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+	<Field name="MultiFactorData" type="LongText">
+      <DisplayName>$Ctd-User,MultiFactorData-DisplayName</DisplayName>
+      <Description>$Ctd-User,MultiFactorData-Description</Description>
+      <Configuration>
+        <TextType>LongText</TextType>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>

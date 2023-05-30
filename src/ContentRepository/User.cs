@@ -24,6 +24,8 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SenseNet.ContentRepository
 {
@@ -351,6 +353,75 @@ namespace SenseNet.ContentRepository
             set { SetReferences(FOLLOWEDWORKSPACES, value); }
         }
 
+        [RepositoryProperty(nameof(MultiFactorEnabled), RepositoryDataType.Int)]
+        public bool MultiFactorEnabled
+        {
+            get => this.GetProperty<int>(nameof(MultiFactorEnabled)) != 0;
+            set
+            {
+                this[nameof(MultiFactorEnabled)] = value ? 1 : 0;
+                if (Id != 0 && !value)
+                    _inactivating = true;
+            }
+        }
+
+        [RepositoryProperty(nameof(MultiFactorData), RepositoryDataType.Text)]
+        public string MultiFactorData
+        {
+            get => this.GetProperty<string>(nameof(MultiFactorData));
+            set => this[nameof(MultiFactorData)] = value;
+        }
+
+        public string QrCodeSetupImageUrl
+        {
+            get
+            {
+                //UNDONE:[MFA] shortcut: if 2FA is NOT enabled globally and locally --> return null
+
+                var imageUrl = GetCachedData(nameof(QrCodeSetupImageUrl)) as string;
+
+                //UNDONE:[MFA] check if MFA is forced globally!!!!!!!!!!!!!!!!!!!4
+                if (imageUrl == null && MultiFactorEnabled)
+                {
+                    var key = EnsureTwoFactorKey();
+
+                    var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                        GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+
+                    SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                    SetCachedData(nameof(ManualEntryKey), entryKey);
+
+                    imageUrl = url;
+                }
+
+                return imageUrl;
+            }
+        }
+        public string ManualEntryKey
+        {
+            get
+            {
+                //UNDONE:[MFA] shortcut: if 2FA is NOT enabled globally and locally --> return null
+
+                var manualEntryKey = GetCachedData(nameof(ManualEntryKey)) as string;
+
+                //UNDONE:[MFA] check if MFA is forced globally!!!!!!!!!!!!!!!!!!!4
+                if (manualEntryKey == null && MultiFactorEnabled)
+                {
+                    var key = EnsureTwoFactorKey();
+
+                    var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                        GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+
+                    SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                    SetCachedData(nameof(ManualEntryKey), entryKey);
+
+                    manualEntryKey = entryKey;
+                }
+
+                return manualEntryKey;
+            }
+        }
 
         // =================================================================================== Construction
 
@@ -1182,6 +1253,12 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Events
 
+        protected override void OnCreating(object sender, CancellableNodeEventArgs e)
+        {
+            EnsureTwoFactorKey();
+            base.OnCreating(sender, e);
+        }
+
         protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
         {
             base.OnDeletingPhysically(sender, e);
@@ -1217,6 +1294,14 @@ namespace SenseNet.ContentRepository
         {
             base.OnModifying(sender, e);
 
+            // has the MultiFactorEnabled field changed to true?
+            var multiFactorEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(MultiFactorEnabled));
+            if (multiFactorEnabled != null && !string.IsNullOrEmpty((string)multiFactorEnabled.Value) &&
+                int.Parse((string)multiFactorEnabled.Value) == 1)
+            {
+                ResetTwoFactorKeyAsync(false, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            
             // has the Enabled field changed to False?
             var changedEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Enabled));
             if (changedEnabled == null || string.IsNullOrEmpty((string)changedEnabled.Value) || 
@@ -1330,6 +1415,59 @@ namespace SenseNet.ContentRepository
             this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
+        // =================================================================================== Multifactor authentication
+
+        private const string TwoFactorKeyName = "TwoFactorKey";
+
+        private string EnsureTwoFactorKey(bool resetKey = false)
+        {
+            string key;
+            var data = MultiFactorData;
+
+            if (data == null)
+            {
+                key = GenerateTwoFactorKey();
+                data = JsonConvert.SerializeObject(new
+                {
+                    TwoFactorKey = key,
+                }, Formatting.Indented);
+                MultiFactorData = data;
+            }
+            else
+            {
+                var dataJObject = JsonConvert.DeserializeObject<JObject>(data) ?? new JObject();
+                key = dataJObject[TwoFactorKeyName]?.ToString();
+
+                if (string.IsNullOrEmpty(key) || resetKey)
+                {
+                    key = GenerateTwoFactorKey();
+                    dataJObject[TwoFactorKeyName] = key;
+                    MultiFactorData = JsonConvert.SerializeObject(dataJObject);
+                }
+            }
+
+            return key;
+        }
+
+        public async System.Threading.Tasks.Task ResetTwoFactorKeyAsync(bool save, CancellationToken cancel)
+        {
+            EnsureTwoFactorKey(true);
+            if (save)
+            {
+                await SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
+            }
+
+            SetCachedData(nameof(QrCodeSetupImageUrl), null);
+            SetCachedData(nameof(ManualEntryKey), null);
+        }
+
+        private string GenerateTwoFactorKey() => AccessTokenVault.GenerateTokenValue().Substring(0, 32);
+
+        //UNDONE:[MFA] set project-specific issuer!!!!!!!
+        //UNDONE:[MFA] user-specific account?
+        private string GetTwoFactorAppName() => "sensenet";
+        private string GetTwoFactorAccountName() => Email;
+
         // =================================================================================== Generic Property handlers
 
         /// <inheritdoc />
@@ -1359,6 +1497,10 @@ namespace SenseNet.ContentRepository
                     return this.ProfilePath;
                 case LASTLOGGEDOUT:
                     return this.LastLoggedOut;
+                case nameof(MultiFactorEnabled):
+                    return this.MultiFactorEnabled;
+                case nameof(MultiFactorData):
+                    return this.MultiFactorData;
                 default:
                     return base.GetProperty(name);
             }
@@ -1400,6 +1542,12 @@ namespace SenseNet.ContentRepository
                     break;
                 case LASTLOGGEDOUT:
                     this.LastLoggedOut = (DateTime)value;
+                    break;
+                case nameof(MultiFactorEnabled):
+                    this.MultiFactorEnabled = (bool) value;
+                    break;
+                case nameof(MultiFactorData):
+                    this.MultiFactorData = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);

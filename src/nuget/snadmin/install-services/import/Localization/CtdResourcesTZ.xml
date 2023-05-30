@@ -533,6 +533,18 @@
         <data name="DirectRoles-Description" xml:space="preserve">
           <value>Roles that this user is a member of directly.</value>
         </data>
+		<data name="MultiFactorEnabled-DisplayName" xml:space="preserve">
+          <value>Multifactor authentication enabled</value>
+        </data>
+		<data name="MultiFactorEnabled-Description" xml:space="preserve">
+          <value>Multifactor authentication enabled</value>
+        </data>
+		<data name="MultiFactorData-DisplayName" xml:space="preserve">
+          <value>Multifactor data</value>
+        </data>
+		<data name="MultiFactorData-Description" xml:space="preserve">
+          <value></value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -768,6 +780,18 @@
         </data>
         <data name="DirectRoles-Description" xml:space="preserve">
           <value>Azon szerepkörök listája, amelyekben a felhasználó közvetlenül tag.</value>
+        </data>
+		<data name="MultiFactorEnabled-DisplayName" xml:space="preserve">
+          <value>Többfaktoros hitelesítés engedélyezve</value>
+        </data>
+		<data name="MultiFactorEnabled-Description" xml:space="preserve">
+          <value>Többfaktoros hitelesítés engedélyezve</value>
+        </data>
+		<data name="MultiFactorData-DisplayName" xml:space="preserve">
+          <value>Többfaktoros hitelesítés beállítások</value>
+        </data>
+		<data name="MultiFactorData-Description" xml:space="preserve">
+          <value></value>
         </data>
       </Language>
     </Languages>
