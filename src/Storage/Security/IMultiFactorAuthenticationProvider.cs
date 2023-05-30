@@ -6,6 +6,10 @@
     public interface IMultiFactorAuthenticationProvider
     {
         /// <summary>
+        /// Gets a name that identifies the application. This should be configured differently for different repositories.
+        /// </summary>
+        public string GetApplicationName();
+        /// <summary>
         /// Generates QR code url and a manual entry key for two-factor authentication.
         /// </summary>
         /// <param name="appName">Application name</param>

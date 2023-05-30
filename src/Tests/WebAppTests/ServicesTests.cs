@@ -28,6 +28,7 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -418,6 +419,7 @@ namespace WebAppTests
                 {typeof(IRetrier), typeof(DefaultRetrier)},
                 {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
+                {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()

@@ -26,6 +26,7 @@ using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.Security.MultiFactor;
 
 namespace SenseNet.ContentRepository
 {
@@ -372,27 +373,46 @@ namespace SenseNet.ContentRepository
             set => this[nameof(MultiFactorData)] = value;
         }
 
+        /// <summary>
+        /// Gets whether MFA is enabled or forced globally or on this user.
+        /// </summary>
+        public bool EffectiveMultiFactorEnabled
+        {
+            get
+            {
+                var mfaMode = Settings.GetValue<MultiFactorMode>("MultiFactorAuthentication", "MultiFactorAuthentication",
+                    this.Path);
+
+                // merge enabled state into a single effective property
+                return mfaMode switch
+                {
+                    MultiFactorMode.Disabled => false,
+                    MultiFactorMode.Forced => true,
+                    _ => MultiFactorEnabled
+                };
+            }
+        }
+
         public string QrCodeSetupImageUrl
         {
             get
             {
-                //UNDONE:[MFA] shortcut: if 2FA is NOT enabled globally and locally --> return null
+                if (!EffectiveMultiFactorEnabled)
+                    return string.Empty;
 
-                var imageUrl = GetCachedData(nameof(QrCodeSetupImageUrl)) as string;
+                // if already generated and cached
+                if (GetCachedData(nameof(QrCodeSetupImageUrl)) is string imageUrl) 
+                    return imageUrl;
 
-                //UNDONE:[MFA] check if MFA is forced globally!!!!!!!!!!!!!!!!!!!4
-                if (imageUrl == null && MultiFactorEnabled)
-                {
-                    var key = EnsureTwoFactorKey();
+                var key = EnsureTwoFactorKey();
 
-                    var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                        GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+                var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                    GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
 
-                    SetCachedData(nameof(QrCodeSetupImageUrl), url);
-                    SetCachedData(nameof(ManualEntryKey), entryKey);
+                SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                SetCachedData(nameof(ManualEntryKey), entryKey);
 
-                    imageUrl = url;
-                }
+                imageUrl = url;
 
                 return imageUrl;
             }
@@ -401,23 +421,22 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                //UNDONE:[MFA] shortcut: if 2FA is NOT enabled globally and locally --> return null
+                if (!EffectiveMultiFactorEnabled)
+                    return string.Empty;
 
-                var manualEntryKey = GetCachedData(nameof(ManualEntryKey)) as string;
+                // if already generated and cached
+                if (GetCachedData(nameof(ManualEntryKey)) is string manualEntryKey) 
+                    return manualEntryKey;
 
-                //UNDONE:[MFA] check if MFA is forced globally!!!!!!!!!!!!!!!!!!!4
-                if (manualEntryKey == null && MultiFactorEnabled)
-                {
-                    var key = EnsureTwoFactorKey();
+                var key = EnsureTwoFactorKey();
 
-                    var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                        GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+                var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                    GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
 
-                    SetCachedData(nameof(QrCodeSetupImageUrl), url);
-                    SetCachedData(nameof(ManualEntryKey), entryKey);
+                SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                SetCachedData(nameof(ManualEntryKey), entryKey);
 
-                    manualEntryKey = entryKey;
-                }
+                manualEntryKey = entryKey;
 
                 return manualEntryKey;
             }
@@ -1462,11 +1481,11 @@ namespace SenseNet.ContentRepository
         }
 
         private string GenerateTwoFactorKey() => AccessTokenVault.GenerateTokenValue().Substring(0, 32);
+        
+        private string GetTwoFactorAppName() => Providers.Instance.MultiFactorAuthenticationProvider.GetApplicationName();
 
-        //UNDONE:[MFA] set project-specific issuer!!!!!!!
-        //UNDONE:[MFA] user-specific account?
-        private string GetTwoFactorAppName() => "sensenet";
-        private string GetTwoFactorAccountName() => Email;
+        //TODO: handle user-specific account changes
+        private string GetTwoFactorAccountName() => Email ?? LoginName;
 
         // =================================================================================== Generic Property handlers
 

@@ -14,6 +14,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
+using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
@@ -128,14 +129,13 @@ namespace SenseNet.Services.Core.Operations
         public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)
         {
             var user = (User)content.ContentHandler;
-
-            //UNDONE:[MFA] take global settings into account
-            // Do we need a separate property for global settings, or merge into one effective property?
+            var multiFactorEnabled = user.EffectiveMultiFactorEnabled;
+            
             return new
             {
-                user.MultiFactorEnabled,
-                user.QrCodeSetupImageUrl,
-                user.ManualEntryKey
+                multiFactorEnabled,
+                qrCodeSetupImageUrl = multiFactorEnabled ? user.QrCodeSetupImageUrl : string.Empty,
+                manualEntryKey = multiFactorEnabled ? user.ManualEntryKey : string.Empty
             };
         }
 
