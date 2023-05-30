@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using IO = System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -21,7 +19,6 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.BackgroundOperations;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
@@ -225,7 +222,7 @@ namespace SenseNet.Preview
 
             return pageAttributes;
         }
-
+/*
         protected static System.Drawing.Color ParseColor(string color)
         {
             // rgba(0,0,0,1)
@@ -238,7 +235,8 @@ namespace SenseNet.Preview
             return System.Drawing.Color.FromArgb(Convert.ToInt32(colorVals[3]), Convert.ToInt32(colorVals[0]),
                                   Convert.ToInt32(colorVals[1]), Convert.ToInt32(colorVals[2]));
         }
-
+*/
+/*
         protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
         {
             if (image == null)
@@ -258,7 +256,7 @@ namespace SenseNet.Preview
                 var newImage = new System.Drawing.Bitmap(newWidth, newHeight);
                 using (var graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
                 {
-                    graphicsHandle.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphicsHandle.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
                 }
 
@@ -270,7 +268,8 @@ namespace SenseNet.Preview
                 return null;
             }
         }
-               
+*/
+/*
         protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
         {
             // do not scale up the image
@@ -291,7 +290,8 @@ namespace SenseNet.Preview
             newWidth = (int)(originalWidth * percent);
             newHeight = (int)(originalHeight * percent);
         }
-
+*/
+/*
         protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
         {
             // Compute dimensions using a SQUARE (max width and height are equal). This way
@@ -307,7 +307,7 @@ namespace SenseNet.Preview
                 newHeight = tempWidth;
             }
         }
-
+*/
         protected static void SavePageCount(File file, int pageCount)
         {
             if (file == null || file.PageCount == pageCount)
@@ -810,12 +810,8 @@ namespace SenseNet.Preview
 
             // we need to reload the image in elevated mode to have access to its properties
             if (previewImage.IsHeadOnly)
-            {
                 using (new SystemAccount())
-                {
                     previewImage = Node.Load<Image>(image.Id);
-                }
-            }
 
             options ??= new PreviewImageOptions();
 
@@ -879,96 +875,32 @@ namespace SenseNet.Preview
             // return a memory stream containing the new image
             var outputStream = new IO.MemoryStream();
 
-            using (var bitmap = SKBitmap.Decode(binaryData.GetStream()))
+            // Do not use "using" statement here, because the "bitmap" is changed in the safe block.
+            var bitmap = SKBitmap.Decode(binaryData.GetStream());
+            try
             {
                 // draw redaction before rotating the image, because redaction rectangles
                 // are defined in the coordinating system of the original image
                 if (displayRedaction && !string.IsNullOrEmpty(shapes))
                 {
-/*
-                    using (var g = System.Drawing.Graphics.FromImage(img))
+                    var temporaryBitmap = Redaction(document, previewImage, isThumbnail, bitmap, shapes);
+                    if(!ReferenceEquals(temporaryBitmap, bitmap))
                     {
-                        var imageIndex = GetPreviewImagePageIndex(previewImage);
-                        var settings = new JsonSerializerSettings();
-                        var serializer = JsonSerializer.Create(settings);
-                        var jreader = new JsonTextReader(new IO.StringReader(shapes));
-                        var shapeCollection = (JArray)serializer.Deserialize(jreader);
-                        var redactions = shapeCollection[0]["redactions"].Where(jt => (int)jt["imageIndex"] == imageIndex).ToList();
-
-                        var realWidthRatio = THUMBNAIL_PREVIEW_WIDTH_RATIO;
-                        var realHeightRatio = THUMBNAIL_PREVIEW_HEIGHT_RATIO;
-
-                        if (redactions.Any() && isThumbnail)
-                        {
-                            // If this is a thumbnail, we will need the real preview image to determine 
-                            // the page width and height ratios to draw redactions to the correct place.
-                            var pi = GetPreviewImage(Content.Create(document), imageIndex);
-
-                            if (pi != null)
-                            {
-                                // Compute the exact position of the shape based on the size ratio of 
-                                // the real preview image and this thumbnail. 
-                                realWidthRatio = (float)bitmap.Width / (float)pi.Width;
-                                realHeightRatio = (float)bitmap.Height / (float)pi.Height;
-                            }
-                            else
-                            {
-                                // We could not find the main preview image that this thumbnail is 
-                                // related to (maybe because it is not generated yet). Use the old 
-                                // inaccurate algorithm (that builds on the default image ratios) 
-                                // as a workaround.
-                            }
-                        }
-
-                        foreach (var redaction in redactions)
-                        {
-                            var color = System.Drawing.Color.Black;
-                            var shapeBrush = new System.Drawing.SolidBrush(color);
-                            var shapeRectangle = new System.Drawing.Rectangle(redaction["x"].Value<int>(), redaction["y"].Value<int>(),
-                                                            redaction["w"].Value<int>(), redaction["h"].Value<int>());
-
-                            // there could be negative coordinates in the db, correct them here
-                            NormalizeRectangle(ref shapeRectangle);
-
-                            // convert shape to thumbnail size if needed
-                            if (isThumbnail)
-                            {
-                                shapeRectangle = new System.Drawing.Rectangle(
-                                    (int)Math.Round(shapeRectangle.X * realWidthRatio),
-                                    (int)Math.Round(shapeRectangle.Y * realHeightRatio),
-                                    (int)Math.Round(shapeRectangle.Width * realWidthRatio),
-                                    (int)Math.Round(shapeRectangle.Height * realHeightRatio));
-                            }
-
-                            g.FillRectangle(shapeBrush, shapeRectangle);
-                        }
-
-                        g.Save();
+                        bitmap.Dispose();
+                        bitmap = temporaryBitmap;
                     }
-*/
                 }
 
                 // Rotate image if necessary, before drawing the watermark. RotateFlip method is
                 // faster than using the Graphics object to rotate the image.
                 if (rotation.HasValue)
                 {
-/*
-                    switch (rotation)
+                    var temporaryBitmap = Rotate(bitmap, rotation.Value);
+                    if (!ReferenceEquals(temporaryBitmap, bitmap))
                     {
-                        case 90:
-                        case -270:
-                            img.RotateFlip(System.Drawing.RotateFlipType.Rotate90FlipNone);
-                            break;
-                        case 180:
-                        case -180:
-                            img.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
-                            break;
-                        case 270:
-                        case -90:
-                            img.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
-                            break;
+                        bitmap.Dispose();
+                        bitmap = temporaryBitmap;
                     }
-*/
                 }
 
                 // draw watermark
@@ -1033,13 +965,125 @@ namespace SenseNet.Preview
                     default:
                         throw new SnNotSupportedException("Unknown image preview type: " + previewImage.Path);
                 }
+
                 var imageToSave = SKImage.FromBitmap(bitmap);
                 var data = imageToSave.Encode(imgFormat, 90);
                 data.SaveTo(outputStream);
             }
+            finally
+            {
+                bitmap.Dispose();
+            }
 
             outputStream.Seek(0, IO.SeekOrigin.Begin);
             return outputStream;
+        }
+
+        private SKBitmap Redaction(File document, Image previewImage, bool isThumbnail, SKBitmap bitmap, string shapes)
+        {
+            using (var canvas = new SKCanvas(bitmap))
+            {
+                var imageIndex = GetPreviewImagePageIndex(previewImage);
+                var settings = new JsonSerializerSettings();
+                var serializer = JsonSerializer.Create(settings);
+                var jreader = new JsonTextReader(new IO.StringReader(shapes));
+                var shapeCollection = (JArray)serializer.Deserialize(jreader);
+                var redactions = shapeCollection[0]["redactions"].Where(jt => (int)jt["imageIndex"] == imageIndex).ToList();
+
+                var realWidthRatio = THUMBNAIL_PREVIEW_WIDTH_RATIO;
+                var realHeightRatio = THUMBNAIL_PREVIEW_HEIGHT_RATIO;
+
+                if (redactions.Any() && isThumbnail)
+                {
+                    // If this is a thumbnail, we will need the real preview image to determine 
+                    // the page width and height ratios to draw redactions to the correct place.
+                    var pi = GetPreviewImage(Content.Create(document), imageIndex);
+
+                    if (pi != null)
+                    {
+                        // Compute the exact position of the shape based on the size ratio of 
+                        // the real preview image and this thumbnail. 
+                        realWidthRatio = (float)bitmap.Width / (float)pi.Width;
+                        realHeightRatio = (float)bitmap.Height / (float)pi.Height;
+                    }
+                    else
+                    {
+                        // We could not find the main preview image that this thumbnail is 
+                        // related to (maybe because it is not generated yet). Use the old 
+                        // inaccurate algorithm (that builds on the default image ratios) 
+                        // as a workaround.
+                    }
+                }
+
+                foreach (var redaction in redactions)
+                {
+                    var color = SKColors.Black;
+                    var shapeBrush = new SKPaint {IsAntialias = true, Color = color};
+                    var x = redaction["x"]?.Value<int>() ?? 0;
+                    var y = redaction["y"]?.Value<int>() ?? 0;
+                    var w = redaction["w"]?.Value<int>() ?? 0;
+                    var h = redaction["h"]?.Value<int>() ?? 0;
+
+                    // there could be negative coordinates in the db, correct them here
+                    NormalizeRectangle(ref x, ref y, ref w, ref h);
+
+                    var shapeRectangle = new SKRectI(x, y, x + w, y + h);
+
+                    // convert shape to thumbnail size if needed
+                    if (isThumbnail)
+                    {
+                        shapeRectangle = new SKRectI(
+                            (int)Math.Round(shapeRectangle.Top * realWidthRatio),
+                            (int)Math.Round(shapeRectangle.Bottom * realHeightRatio),
+                            (int)Math.Round(shapeRectangle.Width * realWidthRatio),
+                            (int)Math.Round(shapeRectangle.Height * realHeightRatio));
+                    }
+
+                    canvas.DrawRect(shapeRectangle, shapeBrush);
+                }
+
+                canvas.Save();
+            }
+
+            return bitmap;
+        }
+
+        private SKBitmap Rotate(SKBitmap bitmap, int rotation)
+        {
+            SKBitmap rotated;
+            SKCanvas canvas;
+            switch (rotation)
+            {
+                case 90:
+                case -270:
+                    rotated = new SKBitmap(bitmap.Height, bitmap.Width);
+                    canvas = new SKCanvas(rotated);
+                    canvas.RotateDegrees(90);
+                    canvas.DrawBitmap(bitmap, 0, -bitmap.Height);
+                    break;
+                case 180:
+                case -180:
+                    rotated = new SKBitmap(bitmap.Width, bitmap.Height);
+                    canvas = new SKCanvas(rotated);
+                    canvas.RotateDegrees(180);
+                    canvas.DrawBitmap(bitmap, -bitmap.Width, -bitmap.Height);
+                    break;
+                case 270:
+                case -90:
+                    rotated = new SKBitmap(bitmap.Height, bitmap.Width);
+                    canvas = new SKCanvas(rotated);
+                    canvas.RotateDegrees(270);
+                    canvas.DrawBitmap(bitmap, -bitmap.Width, 0);
+                    break;
+                default:
+                    rotated = new SKBitmap(bitmap.Width, bitmap.Height);
+                    canvas = new SKCanvas(rotated);
+                    canvas.DrawBitmap(bitmap, 0, 0);
+                    break;
+            }
+
+            canvas.Dispose();
+            return rotated;
         }
 
         internal static SKColor GetWatermarkColor(string contentPath = null)
@@ -1062,27 +1106,27 @@ namespace SenseNet.Preview
             return new SKColor(color.Red, color.Green, color.Blue, Convert.ToByte(alpha));
         }
 
-        private static void NormalizeRectangle(ref System.Drawing.Rectangle shapeRectangle)
+        private static void NormalizeRectangle(ref int x, ref int y, ref int w, ref int h)
         {
             // This methods recalculates rectangle coordinates if it has negative numbers 
             // as a height or width (because it was drawn backwards).
 
             // normalize width and X
-            var pos = shapeRectangle.X;
-            var delta = shapeRectangle.Width;
+            var pos = x;
+            var delta = w;
             if (NormalizeCoordinates(ref pos, ref delta))
             {
-                shapeRectangle.X = pos;
-                shapeRectangle.Width = delta;
+                x = pos;
+                w = delta;
             }
 
             // normalize height and Y
-            pos = shapeRectangle.Y;
-            delta = shapeRectangle.Height;
+            pos = y;
+            delta = h;
             if (NormalizeCoordinates(ref pos, ref delta))
             {
-                shapeRectangle.Y = pos;
-                shapeRectangle.Height = delta;
+                y = pos;
+                h = delta;
             }
         }
 
@@ -1138,6 +1182,7 @@ namespace SenseNet.Preview
             var lines = BreakTextIntoLines(info, maxTextWithOnImage, charSize).ToList();
 
             DrawLines(lines, info);
+            
             info.DrawingContext.Restore();
         }
 
