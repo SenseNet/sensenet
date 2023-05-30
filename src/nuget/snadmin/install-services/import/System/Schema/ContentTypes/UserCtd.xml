@@ -428,5 +428,15 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+	<Field name="MultiFactorRegistered" type="Boolean">
+      <DisplayName>$Ctd-User,MultiFactorRegistered-DisplayName</DisplayName>
+      <Description>$Ctd-User,MultiFactorRegistered-Description</Description>
+      <Configuration>
+        <FieldIndex>900</FieldIndex>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>

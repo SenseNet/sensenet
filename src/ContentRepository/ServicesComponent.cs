@@ -1713,11 +1713,16 @@ namespace SenseNet.ContentRepository
                 .AddResource("MultiFactorEnabled-Description", "Multifactor authentication enabled")
                 .AddResource("MultiFactorData-DisplayName", "Multifactor data")
                 .AddResource("MultiFactorData-Description", "")
+                .AddResource("MultiFactorRegistered-DisplayName", "Multifactor authentication registered")
+                .AddResource("MultiFactorRegistered-Description", "Whether the user already signed in using multifactor authentication.")
                 .Culture("hu")
                 .AddResource("MultiFactorEnabled-DisplayName", "Többfaktoros hitelesítés engedélyezve")
                 .AddResource("MultiFactorEnabled-Description", "Többfaktoros hitelesítés engedélyezve")
                 .AddResource("MultiFactorData-DisplayName", "Többfaktoros hitelesítés beállítások")
-                .AddResource("MultiFactorData-Description", "");
+                .AddResource("MultiFactorData-Description", "")
+                .AddResource("MultiFactorRegistered-DisplayName", "Többfaktoros hitelesítés regisztrálva")
+                .AddResource("MultiFactorRegistered-Description", "A felhasználó belépett már többfaktoros hitelesítéssel.")
+                ;
 
             rb.Apply();
 
@@ -1788,6 +1793,13 @@ namespace SenseNet.ContentRepository
                     .VisibleBrowse(FieldVisibility.Hide)
                     .VisibleEdit(FieldVisibility.Hide)
                     .VisibleNew(FieldVisibility.Hide)
+                    .Field("MultiFactorRegistered", "Boolean")
+                    .DisplayName("$Ctd-User,MultiFactorRegistered-DisplayName")
+                    .Description("$Ctd-User,MultiFactorRegistered-Description")
+                    .VisibleBrowse(FieldVisibility.Hide)
+                    .VisibleEdit(FieldVisibility.Hide)
+                    .VisibleNew(FieldVisibility.Hide)
+                    .FieldIndex(900)
                     ;
 
                 cb.Apply();
