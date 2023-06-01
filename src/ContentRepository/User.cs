@@ -1317,12 +1317,12 @@ namespace SenseNet.ContentRepository
         {
             base.OnModifying(sender, e);
 
-            // has the MultiFactorEnabled field changed to true?
+            // has the MultiFactorEnabled field changed?
             var multiFactorEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(MultiFactorEnabled));
-            if (multiFactorEnabled != null && !string.IsNullOrEmpty((string)multiFactorEnabled.Value) &&
-                int.Parse((string)multiFactorEnabled.Value) == 1)
+            if (multiFactorEnabled != null && !string.IsNullOrEmpty((string)multiFactorEnabled.Value))
             {
-                ResetTwoFactorKeyAsync(false, CancellationToken.None).GetAwaiter().GetResult();
+                // reset values in both cases (on or off)
+                ResetTwoFactorKeyAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             
             // has the Enabled field changed to False?
@@ -1440,29 +1440,20 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Multifactor authentication
 
-        public async System.Threading.Tasks.Task ResetTwoFactorKeyAsync(bool save, CancellationToken cancel)
+        public async System.Threading.Tasks.Task ResetTwoFactorKeyAsync(CancellationToken cancel)
         {
             var twoFactorToken = TwoFactorKey;
 
             // delete the existing key
             await AccessTokenVault.DeleteTokenAsync(twoFactorToken, cancel).ConfigureAwait(false);
 
-            // clear cache and regenerate two-factor key
-            SetCachedData(nameof(TwoFactorKey), null);
-            _ = TwoFactorKey;
-
             MultiFactorRegistered = false;
 
-            if (save)
-            {
-                await SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
-            }
-
+            // clear cache
+            SetCachedData(nameof(TwoFactorKey), null);
             SetCachedData(nameof(QrCodeSetupImageUrl), null);
             SetCachedData(nameof(ManualEntryKey), null);
         }
-
-        private string GenerateTwoFactorKey() => AccessTokenVault.GenerateTokenValue().Substring(0, 32);
         
         private string GetTwoFactorAppName() => Providers.Instance.MultiFactorAuthenticationProvider.GetApplicationName();
 
