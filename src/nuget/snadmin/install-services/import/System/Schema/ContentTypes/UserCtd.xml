@@ -412,7 +412,7 @@
       <DisplayName>$Ctd-User,MultiFactorEnabled-DisplayName</DisplayName>
       <Description>$Ctd-User,MultiFactorEnabled-Description</Description>
       <Configuration>
-        <FieldIndex>800</FieldIndex>
+        <FieldIndex>130</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -422,7 +422,7 @@
       <DisplayName>$Ctd-User,MultiFactorRegistered-DisplayName</DisplayName>
       <Description>$Ctd-User,MultiFactorRegistered-Description</Description>
       <Configuration>
-        <FieldIndex>900</FieldIndex>
+        <FieldIndex>135</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>

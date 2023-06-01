@@ -539,10 +539,10 @@
 		<data name="MultiFactorEnabled-Description" xml:space="preserve">
           <value>Multifactor authentication enabled</value>
         </data>
-		<data name="MultiFactorData-DisplayName" xml:space="preserve">
-          <value>Multifactor data</value>
+		<data name="MultiFactorRegistered-DisplayName" xml:space="preserve">
+          <value>Multifactor authentication registered</value>
         </data>
-		<data name="MultiFactorData-Description" xml:space="preserve">
+		<data name="MultiFactorRegistered-Description" xml:space="preserve">
           <value></value>
         </data>
       </Language>
@@ -787,10 +787,10 @@
 		<data name="MultiFactorEnabled-Description" xml:space="preserve">
           <value>Többfaktoros hitelesítés engedélyezve</value>
         </data>
-		<data name="MultiFactorData-DisplayName" xml:space="preserve">
-          <value>Többfaktoros hitelesítés beállítások</value>
+		<data name="MultiFactorRegistered-DisplayName" xml:space="preserve">
+          <value>Többfaktoros hitelesítés regisztrálva</value>
         </data>
-		<data name="MultiFactorData-Description" xml:space="preserve">
+		<data name="MultiFactorRegistered-Description" xml:space="preserve">
           <value></value>
         </data>
       </Language>
