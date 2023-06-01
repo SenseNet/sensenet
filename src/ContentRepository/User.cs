@@ -360,14 +360,7 @@ namespace SenseNet.ContentRepository
             get => this.GetProperty<int>(nameof(MultiFactorEnabled)) != 0;
             set => this[nameof(MultiFactorEnabled)] = value ? 1 : 0;
         }
-
-        [RepositoryProperty(nameof(MultiFactorData), RepositoryDataType.Text)]
-        public string MultiFactorData
-        {
-            get => this.GetProperty<string>(nameof(MultiFactorData));
-            set => this[nameof(MultiFactorData)] = value;
-        }
-
+        
         [RepositoryProperty(nameof(MultiFactorRegistered), RepositoryDataType.Int)]
         public bool MultiFactorRegistered
         {
@@ -405,11 +398,9 @@ namespace SenseNet.ContentRepository
                 // if already generated and cached
                 if (GetCachedData(nameof(QrCodeSetupImageUrl)) is string imageUrl) 
                     return imageUrl;
-
-                var key = EnsureTwoFactorKey();
-
+                
                 var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                    GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+                    GetTwoFactorAppName(), GetTwoFactorAccountName(), TwoFactorKey);
 
                 SetCachedData(nameof(QrCodeSetupImageUrl), url);
                 SetCachedData(nameof(ManualEntryKey), entryKey);
@@ -429,11 +420,9 @@ namespace SenseNet.ContentRepository
                 // if already generated and cached
                 if (GetCachedData(nameof(ManualEntryKey)) is string manualEntryKey) 
                     return manualEntryKey;
-
-                var key = EnsureTwoFactorKey();
-
+                
                 var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                    GetTwoFactorAppName(), GetTwoFactorAccountName(), key);
+                    GetTwoFactorAppName(), GetTwoFactorAccountName(), TwoFactorKey);
 
                 SetCachedData(nameof(QrCodeSetupImageUrl), url);
                 SetCachedData(nameof(ManualEntryKey), entryKey);
@@ -452,20 +441,14 @@ namespace SenseNet.ContentRepository
                 if (GetCachedData(nameof(TwoFactorKey)) is string twoFactorKey)
                     return twoFactorKey;
 
-                var data = MultiFactorData;
-                if (data != null)
-                {
-                    var dataJObject = JsonConvert.DeserializeObject<JObject>(data) ?? new JObject();
-                    twoFactorKey = dataJObject[nameof(TwoFactorKey)]?.ToString();
-                }
-                else
-                {
-                    twoFactorKey = null;
-                }
+                if (this.Id == 0)
+                    return null;
 
-                SetCachedData(nameof(TwoFactorKey), twoFactorKey);
+                var twoFactorToken = AccessTokenVault.GetOrAddToken(this.Id, TimeSpan.MaxValue, Id, "2fa");
 
-                return twoFactorKey;
+                SetCachedData(nameof(TwoFactorKey), twoFactorToken.Value);
+
+                return twoFactorToken.Value;
             }
         }
 
@@ -1298,13 +1281,7 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== Events
-
-        protected override void OnCreating(object sender, CancellableNodeEventArgs e)
-        {
-            EnsureTwoFactorKey();
-            base.OnCreating(sender, e);
-        }
-
+        
         protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
         {
             base.OnDeletingPhysically(sender, e);
@@ -1462,42 +1439,20 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== Multifactor authentication
-        
-        private string EnsureTwoFactorKey(bool resetKey = false)
-        {
-            string key;
-            var data = MultiFactorData;
-
-            if (data == null)
-            {
-                key = GenerateTwoFactorKey();
-                data = JsonConvert.SerializeObject(new
-                {
-                    TwoFactorKey = key,
-                }, Formatting.Indented);
-                MultiFactorData = data;
-                MultiFactorRegistered = false;
-            }
-            else
-            {
-                var dataJObject = JsonConvert.DeserializeObject<JObject>(data) ?? new JObject();
-                key = dataJObject[nameof(TwoFactorKey)]?.ToString();
-
-                if (string.IsNullOrEmpty(key) || resetKey)
-                {
-                    key = GenerateTwoFactorKey();
-                    dataJObject[nameof(TwoFactorKey)] = key;
-                    MultiFactorData = JsonConvert.SerializeObject(dataJObject);
-                    MultiFactorRegistered = false;
-                }
-            }
-
-            return key;
-        }
 
         public async System.Threading.Tasks.Task ResetTwoFactorKeyAsync(bool save, CancellationToken cancel)
         {
-            EnsureTwoFactorKey(true);
+            var twoFactorToken = TwoFactorKey;
+
+            // delete the existing key
+            await AccessTokenVault.DeleteTokenAsync(twoFactorToken, cancel).ConfigureAwait(false);
+
+            // clear cache and regenerate two-factor key
+            SetCachedData(nameof(TwoFactorKey), null);
+            _ = TwoFactorKey;
+
+            MultiFactorRegistered = false;
+
             if (save)
             {
                 await SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
@@ -1505,7 +1460,6 @@ namespace SenseNet.ContentRepository
 
             SetCachedData(nameof(QrCodeSetupImageUrl), null);
             SetCachedData(nameof(ManualEntryKey), null);
-            SetCachedData(nameof(TwoFactorKey), null);
         }
 
         private string GenerateTwoFactorKey() => AccessTokenVault.GenerateTokenValue().Substring(0, 32);
@@ -1546,8 +1500,6 @@ namespace SenseNet.ContentRepository
                     return this.LastLoggedOut;
                 case nameof(MultiFactorEnabled):
                     return this.MultiFactorEnabled;
-                case nameof(MultiFactorData):
-                    return this.MultiFactorData;
                 case nameof(MultiFactorRegistered):
                     return this.MultiFactorRegistered;
                 default:
@@ -1594,9 +1546,6 @@ namespace SenseNet.ContentRepository
                     break;
                 case nameof(MultiFactorEnabled):
                     this.MultiFactorEnabled = (bool) value;
-                    break;
-                case nameof(MultiFactorData):
-                    this.MultiFactorData = (string)value;
                     break;
                 case nameof(MultiFactorRegistered):
                     this.MultiFactorRegistered = (bool)value;

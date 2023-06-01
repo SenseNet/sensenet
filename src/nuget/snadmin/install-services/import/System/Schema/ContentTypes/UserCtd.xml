@@ -418,16 +418,6 @@
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-	<Field name="MultiFactorData" type="LongText">
-      <DisplayName>$Ctd-User,MultiFactorData-DisplayName</DisplayName>
-      <Description>$Ctd-User,MultiFactorData-Description</Description>
-      <Configuration>
-        <TextType>LongText</TextType>
-        <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Hide</VisibleEdit>
-        <VisibleNew>Hide</VisibleNew>
-      </Configuration>
-    </Field>
 	<Field name="MultiFactorRegistered" type="Boolean">
       <DisplayName>$Ctd-User,MultiFactorRegistered-DisplayName</DisplayName>
       <Description>$Ctd-User,MultiFactorRegistered-Description</Description>
