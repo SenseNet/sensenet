@@ -111,8 +111,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
-                .AddSenseNetDefaultClientManager()
-                .AddSenseNetApiKeys()
                 .AddSenseNetEmailManager(options =>
                 {
                     configuration.GetSection("sensenet:Email").Bind(options);
@@ -173,6 +171,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
+
+                .AddSenseNetDefaultClientManager()
+                .AddSenseNetApiKeys()
             ;
         }
 
