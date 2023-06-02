@@ -22,46 +22,6 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class PreviewSwitchTests : TestBase
     {
-        //[TestMethod]
-        public async System.Threading.Tasks.Task Xxxx_()
-        {
-            var cancel = new CancellationTokenSource().Token;
-            await Test(async () =>
-            {
-                var testRoot = new SystemFolder(Node.LoadNode("/Root/Content")) {Name = "TestRoot"};
-                await testRoot.SaveAsync(cancel);
-
-                var file1 = new File(testRoot) {Name = "File1.txt"}; await file1.SaveAsync(cancel);
-                var previews = new SystemFolder(file1) {Name = "Previews"}; await previews.SaveAsync(cancel);
-                var v10A = new SystemFolder(previews) {Name = "1.0.A"}; await v10A.SaveAsync(cancel);
-
-                var preview1_png = new Image(v10A, "PreviewImage") {Name = "preview1.png" };
-                await using (var loadingStream = new FileStream(@"C:\Users\kavics\Desktop\preview\800x500.png", FileMode.Open,
-                           FileAccess.Read))
-                {
-                    var imgBuffer = new byte[loadingStream.Length];
-                    await loadingStream.ReadAsync(imgBuffer, 0, imgBuffer.Length, cancel);
-                    using (var memStream = new MemoryStream(imgBuffer))
-                    {
-                        preview1_png.Binary.SetStream(memStream);
-                        await preview1_png.SaveAsync(cancel);
-                    }
-                }
-
-                // ACT
-                preview1_png = Node.Load<Image>(preview1_png.Id);
-                var options = new PreviewImageOptions {RestrictionType = RestrictionType.Watermark};
-                await using var outputStream = DocumentPreviewProvider.Current.GetRestrictedImage(preview1_png, options);
-                await using var savingStream = new FileStream(@"C:\Users\kavics\Desktop\preview\output.png", FileMode.OpenOrCreate, FileAccess.Write);
-                await outputStream.CopyToAsync(savingStream, cancel);
-
-                // ASSERT
-                Assert.Inconclusive();
-            });
-        }
-
-
-
         [TestMethod]
         public void Preview_Switch_()
         {
