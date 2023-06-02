@@ -179,6 +179,30 @@ namespace SenseNet.Services.Core.Tests
             });
         }
 
+        [TestMethod, TestCategory("MultiFactor")]
+        public Task MultiFactor_Reset()
+        {
+            return MultiFactorTest(async (context) =>
+            {
+                var userContent = await Content.LoadAsync(Identifiers.AdministratorUserId, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                await IdentityOperations.ValidateTwoFactorCode(userContent, context, "correctcode");
+
+                var originalKey = User.Administrator.TwoFactorKey;
+
+                Assert.IsTrue(User.Administrator.MultiFactorRegistered, "Multifactor auth is NOT registered.");
+
+                await IdentityOperations.ResetTwoFactorKey(userContent, context);
+
+                Assert.IsFalse(User.Administrator.MultiFactorRegistered, "Multifactor auth is still registered.");
+
+                var newKey = User.Administrator.TwoFactorKey;
+
+                Assert.AreNotEqual(originalKey, newKey);
+            });
+        }
+
         protected Task MultiFactorTest(Func<HttpContext, Task> callback)
         {
             IServiceProvider services = null;

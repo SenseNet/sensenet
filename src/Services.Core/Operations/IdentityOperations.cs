@@ -249,6 +249,27 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
+        /// <summary>
+        /// Resets two-factor authentication on a user. Administrators may use this method as a way
+        /// to repair a user account.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+        [ODataAction]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task ResetTwoFactorKey(Content content, HttpContext context)
+        {
+            var user = (User)content.ContentHandler;
+
+            await user.ResetTwoFactorKeyAsync(context.RequestAborted).ConfigureAwait(false);
+            await user.SaveAsync(SavingMode.KeepVersion, context.RequestAborted).ConfigureAwait(false);
+
+            var logger = context.RequestServices.GetRequiredService<ILogger<User>>();
+            logger.LogTrace("Two-factor code reset successful on user {userId} ({userName})", user.Id, user.LoginName);
+        }
+
         private static void CheckDomainPolicy(string userName)
         {
             // return if the domain is specified
