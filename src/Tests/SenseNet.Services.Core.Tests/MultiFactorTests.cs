@@ -20,7 +20,7 @@ namespace SenseNet.Services.Core.Tests
             return "test";
         }
 
-        public (string Url, string EntryKey) GenerateSetupCode(string appName, string userName, string key)
+        public (string Url, string EntryKey) GenerateSetupCode(string userName, string key)
         {
             return ("test", "test");
         }

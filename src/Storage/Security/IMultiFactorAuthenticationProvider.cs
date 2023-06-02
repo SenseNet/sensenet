@@ -12,11 +12,10 @@
         /// <summary>
         /// Generates QR code url and a manual entry key for two-factor authentication.
         /// </summary>
-        /// <param name="appName">Application name</param>
         /// <param name="userName">Unique user identifier</param>
         /// <param name="key">Secret key for the user</param>
         /// <returns>A url that represent a QR code and an alternative entry key for manual setup.</returns>
-        public (string Url, string EntryKey) GenerateSetupCode(string appName, string userName, string key);
+        public (string Url, string EntryKey) GenerateSetupCode(string userName, string key);
         /// <summary>
         /// Validates user input for two-factor authentication.
         /// </summary>

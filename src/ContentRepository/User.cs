@@ -400,7 +400,7 @@ namespace SenseNet.ContentRepository
                     return imageUrl;
                 
                 var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                    GetTwoFactorAppName(), GetTwoFactorAccountName(), TwoFactorKey);
+                    GetTwoFactorAccountName(), TwoFactorKey);
 
                 SetCachedData(nameof(QrCodeSetupImageUrl), url);
                 SetCachedData(nameof(ManualEntryKey), entryKey);
@@ -422,7 +422,7 @@ namespace SenseNet.ContentRepository
                     return manualEntryKey;
                 
                 var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
-                    GetTwoFactorAppName(), GetTwoFactorAccountName(), TwoFactorKey);
+                    GetTwoFactorAccountName(), TwoFactorKey);
 
                 SetCachedData(nameof(QrCodeSetupImageUrl), url);
                 SetCachedData(nameof(ManualEntryKey), entryKey);
@@ -1455,8 +1455,6 @@ namespace SenseNet.ContentRepository
             SetCachedData(nameof(ManualEntryKey), null);
         }
         
-        private string GetTwoFactorAppName() => Providers.Instance.MultiFactorAuthenticationProvider.GetApplicationName();
-
         //TODO: handle user-specific account changes
         private string GetTwoFactorAccountName() => Email ?? LoginName;
 
