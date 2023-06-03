@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.29", "7.7.29.4", "2023-05-30", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.29.5", "2023-06-03", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
@@ -1632,7 +1632,26 @@ namespace SenseNet.ContentRepository
             var columnSettingsPath = RepositoryPath.Combine(Repository.SettingsFolderPath, "ColumnSettings.settings");
             var columnSettings = Node.LoadNode(columnSettingsPath);
 
-            CreateSettings("ColumnSettings.settings", "{}",
+            CreateSettings("ColumnSettings.settings", @"{
+  ""columns"": [
+    {
+      ""field"": ""DisplayName"",
+      ""title"": ""Display Name""
+    },
+    {
+      ""field"": ""Locked"",
+      ""title"": ""Locked""
+    },
+    {
+      ""field"": ""CreatedBy"",
+      ""title"": ""Created by""
+    },
+    {
+      ""field"": ""Actions"",
+      ""title"": ""Actions""
+    }
+  ]
+}",
                 "In this setting section you can customize the columns visible in grids " +
                 "throughout admin UI. It is also possible to set local column settings " +
                 "(using the button in grid headers) to have container-specific columns.", false, logger);
