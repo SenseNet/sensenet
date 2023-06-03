@@ -1,6 +1,7 @@
 ﻿using System;
 
-namespace SenseNet.Common.Common
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Common
 {
     public static class StringExtensions
     {
@@ -15,8 +16,8 @@ namespace SenseNet.Common.Common
         {
             if (maxLength < 0)
                 throw new InvalidOperationException("Strings cannot have negative length.");
-                
-            return value?.Substring(0, Math.Min(value.Length, maxLength));
+
+            return value?.Length <= maxLength ? value : value?.Substring(0, maxLength);
         }
     }
 }

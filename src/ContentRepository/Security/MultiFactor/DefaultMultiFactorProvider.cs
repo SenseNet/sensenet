@@ -2,7 +2,7 @@
 using Google.Authenticator;
 using Microsoft.Extensions.Options;
 using SenseNet.Client;
-using SenseNet.Common.Common;
+using SenseNet.Common;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.Storage.Security;
 
