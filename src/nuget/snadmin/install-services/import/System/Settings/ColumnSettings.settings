@@ -1,2 +1,20 @@
 {
+  "columns": [
+    {
+      "field": "DisplayName",
+      "title": "Display Name"
+    },
+    {
+      "field": "Locked",
+      "title": "Locked"
+    },
+    {
+      "field": "CreatedBy",
+      "title": "Created by"
+    },
+    {
+      "field": "Actions",
+      "title": "Actions"
+    }
+  ]
 }

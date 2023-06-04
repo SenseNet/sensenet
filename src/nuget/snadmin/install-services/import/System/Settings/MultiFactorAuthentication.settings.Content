@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>MultiFactorAuthentication.settings</ContentName>
+  <Fields>
+    <Binary attachment="MultiFactorAuthentication.settings" />
+    <GlobalOnly>false</GlobalOnly>
+    <Index>450</Index>
+    <Description><![CDATA[In this setting section you can define whether multi-factor authentication is enabled optionally or forced in the system. This setting can be overridden locally.]]></Description>
+  </Fields>
+  <Permissions>
+    <Clear />
+	<Identity path="/Root/IMS/BuiltIn/Portal/Developers">
+      <Save>Allowed</Save>      
+    </Identity>
+	<Identity path="/Root/IMS/Public/Administrators">
+      <Save>Allowed</Save>      
+    </Identity>
+  </Permissions>
+</ContentMetaData>
