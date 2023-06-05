@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Workspaces;
+using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Security;
@@ -110,6 +112,108 @@ public class ODataSettingsTests : ODataTestBase
     }
 
     #endregion
+
+
+
+[TestMethod]
+public async Task OD_Settings_GetSettings_Cache()
+{
+    await ODataTestAsync(async () =>
+    {
+        var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2/Folder3", _cancel).ConfigureAwait(false);
+        List<(string Url, string Expectation)> controlData;
+        List<string> responses;
+
+        var settings0 = "{P:{A:1}}";
+        await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+            .ConfigureAwait(false);
+        //controlData = new List<(string Url, string Expectation)>
+        //{
+        //    new("/OData.svc/('Root')/GetSettings",                                "{P:{A:1}}"),
+        //    new("/OData.svc/Root/('Content')/GetSettings",                        "{P:{A:1}}"),
+        //    new("/OData.svc/Root/Content/('Folder1')/GetSettings",                "{P:{A:1}}"),
+        //    new("/OData.svc/Root/Content/Folder1/Folder2('Folder3')/GetSettings", "{P:{A:1}}"),
+        //    new("/OData.svc/Root/(Localization)/GetSettings",                     ""),
+        //};
+        //// ACT 1..N
+        //var responses = new List<string>();
+        //foreach (var item in controlData)
+        //{
+        //    var response = await ODataGetAsync(item.Url, "?name=Settings1").ConfigureAwait(false);
+        //    responses.Add(response.Result.Replace("\r", "").Replace("\n", "")
+        //        .Replace(" ", "").Replace("\"", ""));
+        //}
+        //// ASSERT 1..N
+        //for (int i = 0; i < responses.Count; i++)
+        //    Assert.AreEqual(controlData[i].Expectation, responses[i], $"url:{controlData[i].Url}");
+
+        // --------------------- ADD LOCAL SETTINGS to /Root/Content/Folder1
+        var settings1 = "{P:{A:11,B:2}}";
+        await EnsureSettingsAsync("/Root/Content/Folder1", "Settings1", settings1, _cancel)
+            .ConfigureAwait(false);
+
+        controlData = new List<(string Url, string Expectation)>
+        {
+            // Access to a deeper first
+            new("/OData.svc/Root/Content/('Folder1')/GetSettings",                "{P:{A:11,B:2}}"),
+            new("/OData.svc/('Root')/GetSettings",                                "{P:{A:1}}"),
+            new("/OData.svc/Root/('Content')/GetSettings",                        "{P:{A:1}}"),
+            new("/OData.svc/Root/Content/Folder1/Folder2('Folder3')/GetSettings", "{P:{A:11,B:2}}"),
+            new("/OData.svc/Root/(Localization)/GetSettings",                     ""),
+        };
+        // ACT 1..N
+        responses = new List<string>();
+        foreach (var item in controlData)
+        {
+            SnTrace.Test.Write($"TEST: GetSettings: {item.Url}");
+            var response = await ODataGetAsync(item.Url, "?name=Settings1").ConfigureAwait(false);
+            responses.Add(response.Result.Replace("\r", "").Replace("\n", "")
+                .Replace(" ", "").Replace("\"", ""));
+        }
+        // ASSERT 1..N
+        for (int i = 0; i < responses.Count; i++)
+            Assert.AreEqual(controlData[i].Expectation, responses[i], $"url:{controlData[i].Url}");
+
+        // --------------------- ADD LOCAL SETTINGS to /Root/Content/Folder1/Folder2
+        var settings2 = "{P:{A:111,B:22,C:3}}";
+        await EnsureSettingsAsync("/Root/Content/Folder1/Folder2", "Settings1", settings2, _cancel)
+            .ConfigureAwait(false);
+
+        controlData = new List<(string Url, string Expectation)>
+        {
+            // Access to a deeper first
+            new("/OData.svc/Root/Content/Folder1/Folder2('Folder3')/GetSettings", "{P:{A:111,B:22,C:3}}"),
+            new("/OData.svc/('Root')/GetSettings",                                "{P:{A:1}}"),
+            new("/OData.svc/Root/('Content')/GetSettings",                        "{P:{A:1}}"),
+            new("/OData.svc/Root/Content/('Folder1')/GetSettings",                "{P:{A:11,B:2}}"),
+            new("/OData.svc/Root/(Localization)/GetSettings",                     ""),
+        };
+        // ACT 1..N
+        responses = new List<string>();
+        foreach (var item in controlData)
+        {
+            SnTrace.Test.Write($"TEST: GetSettings: {item.Url}");
+            var response = await ODataGetAsync(item.Url, "?name=Settings1").ConfigureAwait(false);
+            responses.Add(response.Result.Replace("\r", "").Replace("\n", "")
+                .Replace(" ", "").Replace("\"", ""));
+        }
+        // ASSERT 1..N
+        for (int i = 0; i < responses.Count; i++)
+            Assert.AreEqual(controlData[i].Expectation, responses[i], $"url:{controlData[i].Url}");
+
+    }).ConfigureAwait(false);
+}
+private async Task<Settings> EnsureSettingsAsync(string contentPath, string name, string json, CancellationToken cancel)
+{
+    var settingsFolder = await EnsureNodeAsync(contentPath + "/Settings", cancel);
+    var settings = new Settings(settingsFolder) { Name = name + ".settings" };
+    settings.Binary.SetStream(RepositoryTools.GetStreamFromString(json));
+SnTrace.Test.Write("TEST: Save Settings: {0} {1}", contentPath, json);
+    await settings.SaveAsync(cancel);
+    return settings;
+}
+
+
 
     [TestMethod]
     public async Task OD_Settings_GetSettings_Root()

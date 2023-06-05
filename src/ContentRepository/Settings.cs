@@ -405,7 +405,7 @@ namespace SenseNet.ContentRepository
             if (allSettings.Count == 0)
                 return null;
 
-            var effectiveValues = allSettings.Last().BinaryAsJObject;
+            var effectiveValues = (JObject)allSettings.Last().BinaryAsJObject.DeepClone();
             if (allSettings.Count > 1)
             {
                 allSettings.Reverse();
