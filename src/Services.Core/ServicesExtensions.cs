@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -68,6 +69,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
             services.Configure<StatisticsOptions>(configuration.GetSection("sensenet:statistics"));
+            services.Configure<MultiFactorOptions>(configuration.GetSection("sensenet:Authentication:MultiFactor"));
             services.Configure<RepositoryTypeOptions>(options => {});
             
             services.ConfigureConnectionStrings(configuration);
@@ -111,8 +113,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
-                .AddSenseNetDefaultClientManager()
-                .AddSenseNetApiKeys()
                 .AddSenseNetEmailManager(options =>
                 {
                     configuration.GetSection("sensenet:Email").Bind(options);
@@ -173,6 +173,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
+
+                .AddSenseNetDefaultClientManager()
+                .AddSenseNetApiKeys()
+                .AddDefaultMultiFactorAuthenticationProvider()
             ;
         }
 
