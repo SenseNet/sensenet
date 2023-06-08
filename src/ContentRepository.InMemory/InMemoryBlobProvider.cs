@@ -73,7 +73,6 @@ namespace SenseNet.ContentRepository.InMemory
     public class InMemoryStreamForRead : Stream
     {
         private byte[] _buffer;
-        private long _position;
 
         public override bool CanRead => true;
         public override bool CanSeek => true;
@@ -98,18 +97,18 @@ namespace SenseNet.ContentRepository.InMemory
             switch (origin)
             {
                 case SeekOrigin.Begin:
-                    _position = offset;
+                    Position = offset;
                     break;
                 case SeekOrigin.Current:
-                    _position += offset;
+                    Position += offset;
                     break;
                 case SeekOrigin.End:
-                    _position -= offset;
+                    Position -= offset;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(origin), origin, null);
             }
-            return _position;
+            return Position;
         }
 
         public override void SetLength(long value)
@@ -119,10 +118,10 @@ namespace SenseNet.ContentRepository.InMemory
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var realCount = Math.Min(_buffer.LongLength - _position - offset, count);
+            var realCount = Math.Min(_buffer.LongLength - Position - offset, count);
             if (realCount > 0)
-                Array.Copy(_buffer, _position, buffer, 0, realCount);
-            _position += realCount;
+                Array.Copy(_buffer, Position, buffer, 0, realCount);
+            Position += realCount;
             return Convert.ToInt32(realCount);
         }
 
