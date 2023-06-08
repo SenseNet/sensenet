@@ -223,96 +223,90 @@ namespace SenseNet.Preview
 
             return pageAttributes;
         }
-        //UNDONE:xxxDrawing: discussion: //protected static System.Drawing.Color ParseColor(string color)
-        /*
-            protected static System.Drawing.Color ParseColor(string color)
+
+        //UNDONE:xxxDrawing: Remove System.Drawing features: ParseColor
+        protected static System.Drawing.Color ParseColor(string color)
+        {
+            // rgba(0,0,0,1)
+            if (string.IsNullOrEmpty(color))
+                return System.Drawing.Color.DarkBlue;
+
+            var i1 = color.IndexOf('(');
+            var colorVals = color.Substring(i1 + 1, color.IndexOf(')') - i1 - 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return System.Drawing.Color.FromArgb(Convert.ToInt32(colorVals[3]), Convert.ToInt32(colorVals[0]),
+                                  Convert.ToInt32(colorVals[1]), Convert.ToInt32(colorVals[2]));
+        }
+        //UNDONE:xxxDrawing: Remove System.Drawing features: ResizeImage
+        protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
+        {
+            if (image == null)
+                return null;
+
+            // do not scale up the image
+            if (image.Width < maxWidth && image.Height < maxHeight)
+                return image;
+
+            int newWidth;
+            int newHeight;
+
+            ComputeResizedDimensions(image.Width, image.Height, maxWidth, maxHeight, out newWidth, out newHeight);
+
+            try
             {
-                // rgba(0,0,0,1)
-                if (string.IsNullOrEmpty(color))
-                    return System.Drawing.Color.DarkBlue;
-
-                var i1 = color.IndexOf('(');
-                var colorVals = color.Substring(i1 + 1, color.IndexOf(')') - i1 - 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                return System.Drawing.Color.FromArgb(Convert.ToInt32(colorVals[3]), Convert.ToInt32(colorVals[0]),
-                                      Convert.ToInt32(colorVals[1]), Convert.ToInt32(colorVals[2]));
-            }
-        */
-        //UNDONE:xxxDrawing: discussion: //protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
-        /*
-            protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
-            {
-                if (image == null)
-                    return null;
-
-                // do not scale up the image
-                if (image.Width < maxWidth && image.Height < maxHeight)
-                    return image;
-
-                int newWidth;
-                int newHeight;
-
-                ComputeResizedDimensions(image.Width, image.Height, maxWidth, maxHeight, out newWidth, out newHeight);
-
-                try
+                var newImage = new System.Drawing.Bitmap(newWidth, newHeight);
+                using (var graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
                 {
-                    var newImage = new System.Drawing.Bitmap(newWidth, newHeight);
-                    using (var graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
-                    {
-                        graphicsHandle.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
-                    }
-
-                    return newImage;
-                }
-                catch (OutOfMemoryException omex)
-                {
-                    SnLog.WriteException(omex);
-                    return null;
-                }
-            }
-        */
-        //UNDONE:xxxDrawing: discussion: //protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
-        /*
-            protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
-            {
-                // do not scale up the image
-                if (originalWidth <= maxWidth && originalHeight <= maxHeight)
-                {
-                    newWidth = originalWidth;
-                    newHeight = originalHeight;
-                    return;
+                    graphicsHandle.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
                 }
 
-                var percentWidth = (float)maxWidth / (float)originalWidth;
-                var percentHeight = (float)maxHeight / (float)originalHeight;
-
-                // determine which dimension scale should we use (the smaller)
-                var percent = percentHeight < percentWidth ? percentHeight : percentWidth;
-
-                // compute new width and height, based on the final scale
-                newWidth = (int)(originalWidth * percent);
-                newHeight = (int)(originalHeight * percent);
+                return newImage;
             }
-        */
-        //UNDONE:xxxDrawing: discussion: //protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
-        /*
-            protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
+            catch (OutOfMemoryException omex)
             {
-                // Compute dimensions using a SQUARE (max width and height are equal). This way
-                // the image quality and size will be correct. The page will be rotated
-                // later to match the image orientation.
-                ComputeResizedDimensions(previewImage.Width, previewImage.Height, maxWidthHeight, maxWidthHeight, out newWidth, out newHeight);
-
-                // if the page is rotated, we need to swap the two coordinates (180 degree does not count, but negative values do)
-                if (rotation.HasValue && (Math.Abs(rotation.Value) == 90 || Math.Abs(rotation.Value) == 270))
-                {
-                    int tempWidth = newWidth;
-                    newWidth = newHeight;
-                    newHeight = tempWidth;
-                }
+                SnLog.WriteException(omex);
+                return null;
             }
-        */
+        }
+        //UNDONE:xxxDrawing: Remove System.Drawing features: ComputeResizedDimensions
+        protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
+        {
+            // do not scale up the image
+            if (originalWidth <= maxWidth && originalHeight <= maxHeight)
+            {
+                newWidth = originalWidth;
+                newHeight = originalHeight;
+                return;
+            }
+
+            var percentWidth = (float)maxWidth / (float)originalWidth;
+            var percentHeight = (float)maxHeight / (float)originalHeight;
+
+            // determine which dimension scale should we use (the smaller)
+            var percent = percentHeight < percentWidth ? percentHeight : percentWidth;
+
+            // compute new width and height, based on the final scale
+            newWidth = (int)(originalWidth * percent);
+            newHeight = (int)(originalHeight * percent);
+        }
+        //UNDONE:xxxDrawing: Remove System.Drawing features: ComputeResizedDimensionsWithRotation
+        protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
+        {
+            // Compute dimensions using a SQUARE (max width and height are equal). This way
+            // the image quality and size will be correct. The page will be rotated
+            // later to match the image orientation.
+            ComputeResizedDimensions(previewImage.Width, previewImage.Height, maxWidthHeight, maxWidthHeight, out newWidth, out newHeight);
+
+            // if the page is rotated, we need to swap the two coordinates (180 degree does not count, but negative values do)
+            if (rotation.HasValue && (Math.Abs(rotation.Value) == 90 || Math.Abs(rotation.Value) == 270))
+            {
+                int tempWidth = newWidth;
+                newWidth = newHeight;
+                newHeight = tempWidth;
+            }
+        }
+
         protected static void SavePageCount(File file, int pageCount)
         {
             if (file == null || file.PageCount == pageCount)

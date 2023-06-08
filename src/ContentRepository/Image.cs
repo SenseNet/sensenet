@@ -117,7 +117,6 @@ namespace SenseNet.ContentRepository
             //if (lowerContentType.EndsWith("exif"))
             //    return SKEncodedImageFormat.Exif;
 
-            //UNDONE:xxxDrawing: discussion: this fallback is not good in all cases
             return SKEncodedImageFormat.Jpeg;
         }
         /// <summary>
