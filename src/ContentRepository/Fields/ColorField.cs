@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using SkiaSharp;
 using System.Globalization;
-using  SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Fields
@@ -42,36 +41,37 @@ namespace SenseNet.ContentRepository.Fields
 		}
 		protected override object[] ConvertFrom(object value)
 		{
-			return new object[] { ConvertFromControlInner(value) };
+			return new[] { ConvertFromControlInner(value) };
 		}
 		private object ConvertFromControlInner(object value)
 		{
-			Type propertyType = this.GetHandlerSlot(0);
+			var propertyType = this.GetHandlerSlot(0);
 			if (value == null)
 			{
 				if (propertyType == typeof(SKColor))
 					return SKColor.Empty;
 				if (propertyType == typeof(string))
 					return null;
-			}
-			if (value.GetType() == typeof(string))
+            }
+			else if (value is string stringValue)
 			{
 				if (propertyType == typeof(SKColor))
-					return ColorFromString((string)value);
+					return ColorFromString(stringValue);
 				if (propertyType == typeof(string))
 					return value;
-			}
-			if (value.GetType() == typeof(SKColor))
+            }
+			else if (value is SKColor colorValue)
 			{
 				if (propertyType == typeof(SKColor))
 					return value;
 				if (propertyType == typeof(string))
-					return ColorToString((SKColor)value);
+					return ColorToString(colorValue);
 			}
-			throw new NotSupportedException(String.Concat("ColorField not supports this conversion: ", typeof(SKColor).FullName, " to ", propertyType.FullName));
+            throw new NotSupportedException(
+                $"ColorField not supports this conversion: {value?.GetType().FullName ?? "[null]"} to {propertyType.FullName}");
 		}
 
-		public static string ColorToString(SKColor color)
+        public static string ColorToString(SKColor color)
 		{
 			if (color == SKColor.Empty)
 				return "";

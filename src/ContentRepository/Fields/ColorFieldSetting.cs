@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
@@ -102,17 +100,11 @@ namespace SenseNet.ContentRepository.Fields
 
         public override FieldValidationResult ValidateData(object value, Field field)
         {
-            if (value == null || value.GetType() == typeof(string))
+            if (value == null || value is string)
                 return base.ValidateData(null, field);
 
-            //if (value.GetType() == typeof(Color))
-            //{
-            //    return base.ValidateData(ColorField.ColorToString((Color)value), field);
-            //}
-            if (value.GetType() == typeof(SKColor))
-            {
-                return base.ValidateData(ColorField.ColorToString((SKColor)value), field);
-            }
+            if (value is SKColor colorValue)
+                return base.ValidateData(ColorField.ColorToString(colorValue), field);
 
             return FieldValidationResult.Successful;
         }

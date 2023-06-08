@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository
             // gif -> png! resizing gif with gif imageformat ruins alpha values, therefore we return with png
             if (lowerContentType.EndsWith("gif"))
                 return SKEncodedImageFormat.Png;
-            // These are not supported in SkiaSharp.
+            // ---- These are not supported in SkiaSharp.
             // (see for tiff support: https://stackoverflow.com/questions/50312937/skiasharp-tiff-support)
             //if (lowerContentType.EndsWith("tiff"))
             //    return SKEncodedImageFormat.Tiff;

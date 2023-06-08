@@ -28,7 +28,9 @@ using SenseNet.Tools;
 using SkiaSharp;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable InconsistentNaming
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Preview
 {
     public enum WatermarkPosition { BottomLeftToUpperRight, UpperLeftToBottomRight, Top, Bottom, Center }
@@ -81,7 +83,7 @@ namespace SenseNet.Preview
         public SKSize MeasureString(string text)
         {
             var rectangle = new SKRect();
-            var textWidth = Paint.MeasureText(text, ref rectangle);
+            var _ = Paint.MeasureText(text, ref rectangle);
             return new SKSize(rectangle.Width, rectangle.Height);
         }
     }
@@ -181,8 +183,7 @@ namespace SenseNet.Preview
                 return null;
 
 
-            int rotation = 0;
-            if (!int.TryParse(paramVal, out rotation))
+            if (!int.TryParse(paramVal, out var rotation))
                 return null;
 
             // both positive and negative values are accepted
@@ -210,104 +211,108 @@ namespace SenseNet.Preview
                 return pageAttributes;
 
             // load the text field
-            var pageAttribFieldValue = content[FIELD_PAGEATTRIBUTES] as string;
-            if (string.IsNullOrEmpty(pageAttribFieldValue))
+            var pageAttributesFieldValue = content[FIELD_PAGEATTRIBUTES] as string;
+            if (string.IsNullOrEmpty(pageAttributesFieldValue))
                 return pageAttributes;
 
-            var pageAttribArray = JsonConvert.DeserializeObject(pageAttribFieldValue) as JArray;
-            foreach (dynamic pa in pageAttribArray)
-            {
-                pageAttributes.Add((int)pa.pageNum, pa.options as dynamic);
-            }
+            var pageAttributeArray = JsonConvert.DeserializeObject(pageAttributesFieldValue) as JArray;
+            if (pageAttributeArray == null)
+                return null;
+            foreach (dynamic pa in pageAttributeArray)
+                pageAttributes.Add((int) pa.pageNum, pa.options);
 
             return pageAttributes;
         }
-/*
-        protected static System.Drawing.Color ParseColor(string color)
-        {
-            // rgba(0,0,0,1)
-            if (string.IsNullOrEmpty(color))
-                return System.Drawing.Color.DarkBlue;
-
-            var i1 = color.IndexOf('(');
-            var colorVals = color.Substring(i1 + 1, color.IndexOf(')') - i1 - 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-            return System.Drawing.Color.FromArgb(Convert.ToInt32(colorVals[3]), Convert.ToInt32(colorVals[0]),
-                                  Convert.ToInt32(colorVals[1]), Convert.ToInt32(colorVals[2]));
-        }
-*/
-/*
-        protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
-        {
-            if (image == null)
-                return null;
-
-            // do not scale up the image
-            if (image.Width < maxWidth && image.Height < maxHeight)
-                return image;
-
-            int newWidth;
-            int newHeight;
-
-            ComputeResizedDimensions(image.Width, image.Height, maxWidth, maxHeight, out newWidth, out newHeight);
-
-            try
+        //UNDONE:xxxDrawing: discussion: //protected static System.Drawing.Color ParseColor(string color)
+        /*
+            protected static System.Drawing.Color ParseColor(string color)
             {
-                var newImage = new System.Drawing.Bitmap(newWidth, newHeight);
-                using (var graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
+                // rgba(0,0,0,1)
+                if (string.IsNullOrEmpty(color))
+                    return System.Drawing.Color.DarkBlue;
+
+                var i1 = color.IndexOf('(');
+                var colorVals = color.Substring(i1 + 1, color.IndexOf(')') - i1 - 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                return System.Drawing.Color.FromArgb(Convert.ToInt32(colorVals[3]), Convert.ToInt32(colorVals[0]),
+                                      Convert.ToInt32(colorVals[1]), Convert.ToInt32(colorVals[2]));
+            }
+        */
+        //UNDONE:xxxDrawing: discussion: //protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
+        /*
+            protected static System.Drawing.Image ResizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
+            {
+                if (image == null)
+                    return null;
+
+                // do not scale up the image
+                if (image.Width < maxWidth && image.Height < maxHeight)
+                    return image;
+
+                int newWidth;
+                int newHeight;
+
+                ComputeResizedDimensions(image.Width, image.Height, maxWidth, maxHeight, out newWidth, out newHeight);
+
+                try
                 {
-                    graphicsHandle.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
+                    var newImage = new System.Drawing.Bitmap(newWidth, newHeight);
+                    using (var graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
+                    {
+                        graphicsHandle.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
+                    }
+
+                    return newImage;
+                }
+                catch (OutOfMemoryException omex)
+                {
+                    SnLog.WriteException(omex);
+                    return null;
+                }
+            }
+        */
+        //UNDONE:xxxDrawing: discussion: //protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
+        /*
+            protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
+            {
+                // do not scale up the image
+                if (originalWidth <= maxWidth && originalHeight <= maxHeight)
+                {
+                    newWidth = originalWidth;
+                    newHeight = originalHeight;
+                    return;
                 }
 
-                return newImage;
+                var percentWidth = (float)maxWidth / (float)originalWidth;
+                var percentHeight = (float)maxHeight / (float)originalHeight;
+
+                // determine which dimension scale should we use (the smaller)
+                var percent = percentHeight < percentWidth ? percentHeight : percentWidth;
+
+                // compute new width and height, based on the final scale
+                newWidth = (int)(originalWidth * percent);
+                newHeight = (int)(originalHeight * percent);
             }
-            catch (OutOfMemoryException omex)
+        */
+        //UNDONE:xxxDrawing: discussion: //protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
+        /*
+            protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
             {
-                SnLog.WriteException(omex);
-                return null;
+                // Compute dimensions using a SQUARE (max width and height are equal). This way
+                // the image quality and size will be correct. The page will be rotated
+                // later to match the image orientation.
+                ComputeResizedDimensions(previewImage.Width, previewImage.Height, maxWidthHeight, maxWidthHeight, out newWidth, out newHeight);
+
+                // if the page is rotated, we need to swap the two coordinates (180 degree does not count, but negative values do)
+                if (rotation.HasValue && (Math.Abs(rotation.Value) == 90 || Math.Abs(rotation.Value) == 270))
+                {
+                    int tempWidth = newWidth;
+                    newWidth = newHeight;
+                    newHeight = tempWidth;
+                }
             }
-        }
-*/
-/*
-        protected static void ComputeResizedDimensions(int originalWidth, int originalHeight, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
-        {
-            // do not scale up the image
-            if (originalWidth <= maxWidth && originalHeight <= maxHeight)
-            {
-                newWidth = originalWidth;
-                newHeight = originalHeight;
-                return;
-            }
-
-            var percentWidth = (float)maxWidth / (float)originalWidth;
-            var percentHeight = (float)maxHeight / (float)originalHeight;
-
-            // determine which dimension scale should we use (the smaller)
-            var percent = percentHeight < percentWidth ? percentHeight : percentWidth;
-
-            // compute new width and height, based on the final scale
-            newWidth = (int)(originalWidth * percent);
-            newHeight = (int)(originalHeight * percent);
-        }
-*/
-/*
-        protected static void ComputeResizedDimensionsWithRotation(Image previewImage, int maxWidthHeight, int? rotation, out int newWidth, out int newHeight)
-        {
-            // Compute dimensions using a SQUARE (max width and height are equal). This way
-            // the image quality and size will be correct. The page will be rotated
-            // later to match the image orientation.
-            ComputeResizedDimensions(previewImage.Width, previewImage.Height, maxWidthHeight, maxWidthHeight, out newWidth, out newHeight);
-
-            // if the page is rotated, we need to swap the two coordinates (180 degree does not count, but negative values do)
-            if (rotation.HasValue && (Math.Abs(rotation.Value) == 90 || Math.Abs(rotation.Value) == 270))
-            {
-                int tempWidth = newWidth;
-                newWidth = newHeight;
-                newHeight = tempWidth;
-            }
-        }
-*/
+        */
         protected static void SavePageCount(File file, int pageCount)
         {
             if (file == null || file.PageCount == pageCount)
@@ -327,7 +332,7 @@ namespace SenseNet.Preview
                         file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
                         return file;
                     },
-                    (result, iteration, exception) =>
+                    (_, _, exception) =>
                     {
                         // test
                         if (exception == null)
@@ -752,6 +757,7 @@ namespace SenseNet.Preview
             {
                 case PreviewStatus.Postponed:
                 case PreviewStatus.InProgress:
+                // ReSharper disable once UnreachableSwitchCaseDueToIntegerAnalysis
                 case PreviewStatus.Ready:
                     return true;
                 default:
@@ -986,9 +992,16 @@ namespace SenseNet.Preview
                 var imageIndex = GetPreviewImagePageIndex(previewImage);
                 var settings = new JsonSerializerSettings();
                 var serializer = JsonSerializer.Create(settings);
-                var jreader = new JsonTextReader(new IO.StringReader(shapes));
-                var shapeCollection = (JArray)serializer.Deserialize(jreader);
-                var redactions = shapeCollection[0]["redactions"].Where(jt => (int)jt["imageIndex"] == imageIndex).ToList();
+                var jReader = new JsonTextReader(new IO.StringReader(shapes));
+                var shapeCollection = (JArray)serializer.Deserialize(jReader);
+                if (shapeCollection == null)
+                    return bitmap;
+                if (!shapeCollection.Any())
+                    return bitmap;
+                var redactionsToken = shapeCollection[0]["redactions"];
+                if(redactionsToken == null)
+                    return bitmap;
+                var redactions = redactionsToken.Where(jt => (int)jt["imageIndex"] == imageIndex).ToList();
 
                 var realWidthRatio = THUMBNAIL_PREVIEW_WIDTH_RATIO;
                 var realHeightRatio = THUMBNAIL_PREVIEW_HEIGHT_RATIO;
