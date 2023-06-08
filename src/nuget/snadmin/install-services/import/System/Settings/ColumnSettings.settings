@@ -13,6 +13,18 @@
       "title": "Created by"
     },
     {
+      "field": "CreationDate",
+      "title": "Creation Date"
+    },
+    {
+      "field": "ModifiedBy",
+      "title": "Modified by"
+    },
+    {
+      "field": "ModificationDate",
+      "title": "Modification Date"
+    },
+    {
       "field": "Actions",
       "title": "Actions"
     }
