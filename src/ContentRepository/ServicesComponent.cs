@@ -1563,7 +1563,7 @@ namespace SenseNet.ContentRepository
             builder.Patch("7.7.28", "7.7.29", "2023-03-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_29);
 
-            builder.Patch("7.7.29", "7.7.29.6", "2023-06-08", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.29", "7.7.30", "2023-06-09", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
         }
 
