@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
@@ -13,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Handlers;
 using SenseNet.Security;
+using SenseNet.Tools;
 
 namespace SenseNet.OData.IO
 {
@@ -104,7 +106,7 @@ namespace SenseNet.OData.IO
             {
                 if (type == "File")
                     // maybe there was not metadata file (.Content) in the import material.
-                    type = GetContentTypeName(path);
+                    type = await GetContentTypeName(path, context).ConfigureAwait(false);
 
                 var parentPath = RepositoryPath.GetParentPath(path);
                 var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, name,
@@ -128,14 +130,18 @@ namespace SenseNet.OData.IO
                 messages = setPermissionResult.Messages
             };
         }
-        private static string GetContentTypeName(string path)
+        private static async Task<string> GetContentTypeName(string path, HttpContext httpContext)
         {
             var parentPath = RepositoryPath.GetParentPath(path);
             if (string.IsNullOrEmpty(parentPath) || parentPath == "/")
                 return "File";
 
-            var parent = Content.Load(parentPath);
-            if (parent.ContentHandler is not GenericContent node)
+            var retrier = httpContext.RequestServices.GetRequiredService<IRetrier>();
+            var parent = await retrier.RetryAsync(
+                () => Node.LoadNodeAsync(parentPath, httpContext.RequestAborted),
+                (loaded, _) => loaded == null).ConfigureAwait(false);
+
+            if (parent is not GenericContent node)
                 return "File";
 
             var fileName = RepositoryPath.GetFileName(path);
