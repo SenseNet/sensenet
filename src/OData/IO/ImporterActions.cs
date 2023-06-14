@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Portal.Handlers;
 using SenseNet.Security;
 
 namespace SenseNet.OData.IO
@@ -100,6 +102,10 @@ namespace SenseNet.OData.IO
 
             if (targetContent == null)
             {
+                if (type == "File")
+                    // maybe there was not metadata file (.Content) in the import material.
+                    type = GetContentTypeName(path);
+
                 var parentPath = RepositoryPath.GetParentPath(path);
                 var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, name,
                     null, false, model, true, context.RequestAborted).ConfigureAwait(false);
@@ -122,6 +128,51 @@ namespace SenseNet.OData.IO
                 messages = setPermissionResult.Messages
             };
         }
+        private static string GetContentTypeName(string path)
+        {
+            var parentPath = RepositoryPath.GetParentPath(path);
+            if (string.IsNullOrEmpty(parentPath) || parentPath == "/")
+                return "File";
+
+            var parent = Content.Load(parentPath);
+            if (parent.ContentHandler is not GenericContent node)
+                return "File";
+
+            var fileName = RepositoryPath.GetFileName(path);
+
+            // 1. check configured upload types (by extension) and use it if it is allowed
+            // 2. otherwise get the first allowed type that is or is derived from file
+
+            string contentTypeName = null;
+
+            var allowedTypes = node.GetAllowedChildTypes().ToArray();
+
+            // check configured upload types (by extension) and use it if it is allowed
+            var fileContentType = UploadHelper.GetContentType(fileName, parent.Path);
+            if (!string.IsNullOrEmpty(fileContentType))
+            {
+                if (allowedTypes.Select(ct => ct.Name).Contains(fileContentType))
+                    contentTypeName = fileContentType;
+            }
+
+            if (string.IsNullOrEmpty(contentTypeName))
+            {
+                // get the first allowed type that is or is derived from file
+                if (allowedTypes.Any(ct => ct.Name == "File"))
+                {
+                    contentTypeName = "File";
+                }
+                else
+                {
+                    var fileDescendant = allowedTypes.FirstOrDefault(ct => ct.IsInstaceOfOrDerivedFrom("File"));
+                    if (fileDescendant != null)
+                        contentTypeName = fileDescendant.Name;
+                }
+            }
+
+            return contentTypeName;
+        }
+
 
         private static async Task<SetPermissionResult> SetPermissionsAsync(Content content, 
             PermissionModel permissions, CancellationToken cancel)
