@@ -77,6 +77,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                //UNDONE:xxxxPreview: ? Check ContentType 
                 switch (PreviewEnabled)
                 {
                     case ContentRepository.PreviewEnabled.Inherited:

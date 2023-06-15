@@ -568,6 +568,7 @@ namespace SenseNet.Preview
         /// </remarks>
         public bool IsPreviewEnabled(Node content)
         {
+            //UNDONE:xxxxPreview: ? Check ContentType 
             return content.IsPreviewEnabled && IsContentSupported(content);
         }
 
@@ -668,6 +669,7 @@ namespace SenseNet.Preview
 
             var pc = (int)content["PageCount"];
 
+            //UNDONE:xxxxPreview: ? Check ContentType 
             if (content.ContentHandler.IsPreviewEnabled)
             {
                 while (pc == (int) PreviewStatus.InProgress || pc == (int) PreviewStatus.Postponed)
@@ -787,6 +789,7 @@ namespace SenseNet.Preview
                 if (img != null)
                     return img;
 
+                //UNDONE:xxxxPreview: ? Check ContentType 
                 if (file.IsPreviewEnabled)
                     StartPreviewGenerationInternal(file, page - 1, TaskPriority.Immediately);
             }
@@ -1450,6 +1453,7 @@ namespace SenseNet.Preview
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
+            //UNDONE:xxxxPreview: ? Check ContentType 
             if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.NotSupported);
             else if (!content.ContentHandler.IsPreviewEnabled)
@@ -1861,9 +1865,16 @@ namespace SenseNet.Preview
                 throw new ArgumentNullException("content");
 
             // Regardless of the current status, generate preview images again
-            // (e.g. because previously there was an error).
-            SetPreviewStatus(content.ContentHandler as File, PreviewStatus.InProgress);
-            StartPreviewGeneration(content.ContentHandler, TaskPriority.Immediately);
+            // (e.g. because previously there was an error) if the preview generation is enabled.
+            if (content.ContentHandler.IsPreviewEnabled && content.ContentType.Preview)
+            {
+                SetPreviewStatus(content.ContentHandler as File, PreviewStatus.InProgress);
+                StartPreviewGeneration(content.ContentHandler, TaskPriority.Immediately);
+            }
+            else
+            {
+                SetPreviewStatus(content.ContentHandler as File, PreviewStatus.Postponed);
+            }
 
             // reload to make sure we have the latest value
             var file = Node.Load<File>(content.Id);
