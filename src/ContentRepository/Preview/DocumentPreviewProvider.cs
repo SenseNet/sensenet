@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
@@ -568,8 +569,8 @@ namespace SenseNet.Preview
         /// </remarks>
         public bool IsPreviewEnabled(Node content)
         {
-            //UNDONE:xxxxPreview: ? Check ContentType 
-            return content.IsPreviewEnabled && IsContentSupported(content);
+            var contentType = ContentType.GetByName(content.NodeType.Name);
+            return content.IsPreviewEnabled && contentType.Preview && IsContentSupported(content);
         }
 
         /// <summary>
@@ -669,8 +670,7 @@ namespace SenseNet.Preview
 
             var pc = (int)content["PageCount"];
 
-            //UNDONE:xxxxPreview: ? Check ContentType 
-            if (content.ContentHandler.IsPreviewEnabled)
+            if (content.ContentHandler.IsPreviewEnabled && content.ContentType.Preview)
             {
                 while (pc == (int) PreviewStatus.InProgress || pc == (int) PreviewStatus.Postponed)
                 {
@@ -789,8 +789,7 @@ namespace SenseNet.Preview
                 if (img != null)
                     return img;
 
-                //UNDONE:xxxxPreview: ? Check ContentType 
-                if (file.IsPreviewEnabled)
+                if (file.IsPreviewEnabled && content.ContentType.Preview)
                     StartPreviewGenerationInternal(file, page - 1, TaskPriority.Immediately);
             }
 
@@ -1448,15 +1447,14 @@ namespace SenseNet.Preview
                 return;
 
             // check if the feature is enabled on the content type
-            var content = Content.Create(node);
-            if (!content.ContentType.Preview)
+            var contentType = ContentType.GetByName(node.NodeType.Name);
+            if (!contentType.Preview)
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
-            //UNDONE:xxxxPreview: ? Check ContentType 
             if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.NotSupported);
-            else if (!content.ContentHandler.IsPreviewEnabled)
+            else if (!node.IsPreviewEnabled)
                 DocumentPreviewProvider.SetPreviewStatusWithoutSave(node as File, PreviewStatus.Postponed);
         }
 
