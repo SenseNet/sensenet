@@ -71,15 +71,27 @@ namespace SenseNet.OData.IO
         {
             var jData = data as JObject;
             var imported = new ImportedContent(jData);
-            var name = imported.Name;
+            var requestedName = imported.Name;
+            var realName = ContentNamingProvider.GetNameFromDisplayName(requestedName);
+            string realPath;
+            if (requestedName == realName)
+            {
+                realPath = path;
+            }
+            else
+            {
+                realPath = RepositoryPath.Combine(RepositoryPath.GetParentPath(path), realName);
+                SnTrace.ContentOperation.Write(()=>$"Content will be renamed from {requestedName} to {realName}.");
+            }
+
             var type = imported.Type;
-            using var op = SnTrace.ContentOperation.StartOperation($"Import: {path}, {type}, {name}");
+            using var op = SnTrace.ContentOperation.StartOperation($"Import: {realPath}, {type}, {realName}");
             JObject model = imported.Fields;
             model.Remove("Name");
 
             string action = null;
             List<string> brokenReferences = null;
-            var targetContent = Content.Load(path);
+            var targetContent = Content.Load(realPath);
             if (targetContent != null)
             {
                 try
@@ -91,11 +103,11 @@ namespace SenseNet.OData.IO
                 }
                 catch (ContentNotFoundException)
                 {
-                    SnTrace.Repository.Write($"WARNING: Content {path} was loaded from the cache but not found in the database: Update failed.");
+                    SnTrace.Repository.Write($"WARNING: Content {realPath} was loaded from the cache but not found in the database: Update failed.");
 
                     // the content was loaded from the cache but not found in the database
                     NodeIdDependency.FireChanged(targetContent.Id);
-                    PathDependency.FireChanged(path);
+                    PathDependency.FireChanged(realPath);
 
                     // this will make the next block create a new content
                     targetContent = null;
@@ -106,10 +118,10 @@ namespace SenseNet.OData.IO
             {
                 if (type == "File")
                     // maybe there was not metadata file (.Content) in the import material.
-                    type = await GetContentTypeName(path, context).ConfigureAwait(false);
+                    type = await GetContentTypeName(realPath, context).ConfigureAwait(false);
 
-                var parentPath = RepositoryPath.GetParentPath(path);
-                var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, name,
+                var parentPath = RepositoryPath.GetParentPath(realPath);
+                var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, requestedName,
                     null, false, model, true, context.RequestAborted).ConfigureAwait(false);
 
                 targetContent = creationResult.Content;
@@ -125,7 +137,8 @@ namespace SenseNet.OData.IO
 
             return new
             {
-                path, name, type, action, brokenReferences,
+                path = realPath,
+                name = realName, type, action, brokenReferences,
                 retryPermissions = setPermissionResult.HasUnknownIdentity,
                 messages = setPermissionResult.Messages
             };
