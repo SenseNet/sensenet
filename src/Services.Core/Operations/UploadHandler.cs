@@ -638,7 +638,10 @@ namespace SenseNet.Services.Core.Operations
         protected internal static void SetPreviewGenerationPriority(Content content)
         {
             if (content?.ContentHandler is ContentRepository.File file)
+            {
                 file.PreviewGenerationPriority = TaskManagement.Core.TaskPriority.Important;
+                file.PageCount = (int)PreviewStatus.Postponed;
+            }
         }
 
         private static (string ParentName, string Name) GetContentTypeInfo(string ctdXml)

@@ -88,6 +88,7 @@ namespace SenseNet.OData.IO
             using var op = SnTrace.ContentOperation.StartOperation($"Import: {realPath}, {type}, {realName}");
             JObject model = imported.Fields;
             model.Remove("Name");
+            model.Remove("PageCount");
 
             string action = null;
             List<string> brokenReferences = null;
