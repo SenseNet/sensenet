@@ -339,7 +339,8 @@ namespace SenseNet.OData
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
-                    return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
+                    return new ODataException("The content was not saved because it already exists.",
+                        ODataExceptionCode.ContentAlreadyExists, e);
                 case SenseNetSecurityException sse:
                 {
                     // If the current user (visitor or the logged-in user) has not See permission on the requested content,
