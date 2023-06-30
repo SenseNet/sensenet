@@ -157,6 +157,10 @@ namespace SenseNet.WebHooks
                 whResource.Binary = UploadHelper.CreateBinaryData(resourceContentName, resourceStream);
                 whResource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
+
+            // Calling SaveAsync of the resource content resets the SenseNetResourceManager
+            //   therefore, the loaded state must be ensured here for further usability
+            var _ = SenseNetResourceManager.Current;
         }
         private static void InstallCtd(string ctdFileName)
         {
