@@ -52,13 +52,15 @@ public partial class Settings
     [AllowedRoles(N.R.Everyone, N.R.Visitor)]
     public static async Task<object> GetSettings(Content content, HttpContext httpContext, string name, string property = null)
     {
-        if (!await IsCurrentUserInRoleAsync(SettingsRole.Reader, name, content, null, null, httpContext.RequestAborted))
+        var effectiveSettings = await GetEffectiveValues(name, content.Path, httpContext.RequestAborted)
+            .ConfigureAwait(false);
+        if (effectiveSettings == null)
             return "{}";
+        if (property == null)
+            return effectiveSettings;
 
-        using(new SystemAccount())
-            return property == null
-                ? GetEffectiveValues(name, content.Path)
-                : GetValue<object>(name, property, content.Path);
+        //UNDONE:ySettings: use GetEffectiveValues and return the whole object or a top level property
+        return GetValue<object>(name, property, content.Path);
     }
 
     [ODataAction]
@@ -85,7 +87,7 @@ public partial class Settings
                                                     $"in the the global settings folder ({Repository.SettingsFolderPath})");
         }
 
-        if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content, workspace, globalSettings, httpContext.RequestAborted))
+        if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content.ContentHandler, workspace, globalSettings, httpContext.RequestAborted))
             throw new InvalidContentActionException($"Not enough permission for write local settings {name} " +
                                                     $"for the requested path: {content.Path}");
 
@@ -107,7 +109,7 @@ public partial class Settings
     }
 
     private static async Task<bool> IsCurrentUserInRoleAsync(SettingsRole role, string settingsName,
-        Content content, Workspace workspace, Settings globalSettings, CancellationToken cancel)
+        Node contentHandler, Workspace workspace, Settings globalSettings, CancellationToken cancel)
     {
         var user = User.Current;
         if (user.Id == Identifiers.SystemUserId)
@@ -118,21 +120,23 @@ public partial class Settings
         if (user.IsInGroup(Group.Administrators))
             return true;
 
-        if (!(content.ContentHandler is GenericContent gc))
+        if (!(contentHandler is GenericContent gc))
             return false;
 
+        IGroup group = null;
         workspace ??= gc.Workspace as Workspace;
-        if (workspace == null)
-            return false;
-
-        string roleName = role switch
+        if (workspace != null)
         {
-            SettingsRole.Reader => "Readers",
-            SettingsRole.Editor => "Editors",
-            _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
-        };
+            string roleName = role switch
+            {
+                SettingsRole.Reader => "Readers",
+                SettingsRole.Editor => "Editors",
+                _ => throw new ArgumentOutOfRangeException(nameof(role), role, null)
+            };
 
-        var group = await GetLocalGroupAsync(workspace, $"{settingsName}{roleName}", cancel).ConfigureAwait(false);
+            group = await GetLocalGroupAsync(workspace, $"{settingsName}{roleName}", cancel).ConfigureAwait(false);
+        }
+
         return group == null
             ? HasEnoughPermission(user, globalSettings ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath), role)
             : user.IsInGroup(group);

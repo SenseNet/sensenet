@@ -117,19 +117,23 @@ public class SettingsTests : TestBase
             var contents = await Node.LoadNodeAsync("/Root/Content", _cancel).ConfigureAwait(false);
 
             // Default (without context path)
-            var effectiveValues0 = Settings.GetEffectiveValues(nameof(Settings1), null).ToObject<SettingsData1>();
+            var effectiveValues0 = (await Settings.GetEffectiveValues(nameof(Settings1), null, _cancel))
+                .ToObject<SettingsData1>();
             Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = null, P3 = null }, effectiveValues0);
 
             // No local settings, nearest: default
-            var effectiveValues1 = Settings.GetEffectiveValues(nameof(Settings1), contents.Path).ToObject<SettingsData1>();
+            var effectiveValues1 = (await Settings.GetEffectiveValues(nameof(Settings1), contents.Path, _cancel))
+                .ToObject<SettingsData1>();
             Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = null, P3 = null }, effectiveValues1);
 
             // Has explicit settings
-            var effectiveValues2 = Settings.GetEffectiveValues(nameof(Settings1), folder1.Path).ToObject<SettingsData1>();
+            var effectiveValues2 = (await Settings.GetEffectiveValues(nameof(Settings1), folder1.Path, _cancel))
+                .ToObject<SettingsData1>();
             Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = null, P3 = "V3" }, effectiveValues2);
 
             // No local settings, nearest: on the parent chain
-            var effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+            var effectiveValues = (await Settings.GetEffectiveValues(nameof(Settings1), folder3.Path, _cancel))
+                .ToObject<SettingsData1>();
             Assert.AreEqual(new SettingsData1 {P1 = "V11", P2 = "V2", P3 = "V33"}, effectiveValues);
 
         }).ConfigureAwait(false);
@@ -194,13 +198,15 @@ public class SettingsTests : TestBase
                 _cancel).ConfigureAwait(false);
             var folder3 = await EnsureNodeAsync("/Root/Content/Folder1/Folder2", _cancel).ConfigureAwait(false);
 
-            var effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+            var effectiveValues = (await Settings.GetEffectiveValues(nameof(Settings1), folder3.Path, _cancel))
+                .ToObject<SettingsData1>();
             Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2" }, effectiveValues);
 
             // Test-1: an administrator 
             using (new CurrentUserBlock(user1))
             {
-                effectiveValues = Settings.GetEffectiveValues(nameof(Settings1), folder3.Path).ToObject<SettingsData1>();
+                effectiveValues = (await Settings.GetEffectiveValues(nameof(Settings1), folder3.Path, _cancel))
+                    .ToObject<SettingsData1>();
                 Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2" }, effectiveValues);
             }
 
