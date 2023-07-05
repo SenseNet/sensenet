@@ -77,15 +77,13 @@ public partial class Settings
         using (new SystemAccount())
         {
             workspace = GetWorkspace(content);
-            if (workspace == null)
-                throw new InvalidOperationException("Local settings cannot be written outside a workspace.");
 
             globalSettings = GetSettingsByName<Settings>(name, Identifiers.RootPath);
             if (globalSettings == null)
                 throw new InvalidOperationException($"Cannot write local settings {name} if it is not created " +
                                                     $"in the the global settings folder ({Repository.SettingsFolderPath})");
         }
-
+//UNDONE:ySettings: Permissions!
         if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content.ContentHandler, workspace, globalSettings, httpContext.RequestAborted))
             throw new InvalidContentActionException($"Not enough permission for write local settings {name} " +
                                                     $"for the requested path: {content.Path}");
@@ -94,7 +92,7 @@ public partial class Settings
         {
             var settings = await EnsureSettingsContentAsync(content, name, httpContext.RequestAborted)
                 .ConfigureAwait(false);
-            var settingsText = JsonConvert.SerializeObject(settingsData);
+            var settingsText = JsonConvert.SerializeObject(settingsData ?? new object());
             settings.Binary.SetStream(RepositoryTools.GetStreamFromString(settingsText));
             await settings.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
         }

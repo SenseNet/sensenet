@@ -708,7 +708,7 @@ public class ODataSettingsTests : ODataTestBase
         }).ConfigureAwait(false);
     }
     [TestMethod]
-    public async Task OD_Settings_WriteSettings_Error_NotWorkspace()
+    public async Task OD_Settings_WriteSettings_OutsideOfWorkspace()
     {
         await ODataTestAsync(async () =>
         {
@@ -718,32 +718,116 @@ public class ODataSettingsTests : ODataTestBase
             ODataResponse response;
             ODataErrorResponse error;
 
-            // ACT-1
+            // Create a global settings.
+            var settings0 = new SettingsData1 { P1 = "V0", P2 = "V0" };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            // ACT-1 /Root
             response = await ODataPostAsync($"/OData.svc/('Root')/WriteSettings", null, requestBody)
                 .ConfigureAwait(false);
             // ASSERT-1
-            error = GetError(response);
-            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
-            Assert.AreEqual(expectedErrorType, error.ExceptionType);
-            Assert.AreEqual(expectedMessage, error.Message);
+            Assert.AreEqual(204, response.StatusCode);
+            response = await ODataGetAsync("/OData.svc/('Root')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = "V2", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
-            // ACT-2
+            // ACT-2 /Root/System
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11\",\"P2\":\"V22\"}}]";
             response = await ODataPostAsync($"/OData.svc/Root('System')/WriteSettings", null, requestBody)
                 .ConfigureAwait(false);
             // ASSERT-2
-            error = GetError(response);
-            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
-            Assert.AreEqual(expectedErrorType, error.ExceptionType);
-            Assert.AreEqual(expectedMessage, error.Message);
+            Assert.AreEqual(204, response.StatusCode);
+            response = await ODataGetAsync("/OData.svc/('Root')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V22", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+            response = await ODataGetAsync("/OData.svc/Root('System')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V22", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
-            // ACT-2
+            // ACT-3 /Root/IMS
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V111\",\"P2\":\"V222\"}}]";
+            response = await ODataPostAsync($"/OData.svc/Root('IMS')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-3
+            Assert.AreEqual(204, response.StatusCode);
+            response = await ODataGetAsync("/OData.svc/('Root')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V22", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+            response = await ODataGetAsync("/OData.svc/Root('IMS')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V111", P2 = "V222", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+
+            // ACT-4 /Root/System/Schema
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V1111\",\"P2\":\"V2222\"}}]";
             response = await ODataPostAsync($"/OData.svc/Root/System('Schema')/WriteSettings", null, requestBody)
                 .ConfigureAwait(false);
-            // ASSERT-2
-            error = GetError(response);
+            // ASSERT-4
+            Assert.AreEqual(204, response.StatusCode);
+            response = await ODataGetAsync("/OData.svc/('Root')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V22", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+            response = await ODataGetAsync("/OData.svc/Root/System('Schema')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V1111", P2 = "V2222", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+
+            // ACT-5 /Root/System/Schema/ContentTypes
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11111\",\"P2\":\"V22222\"}}]";
+            response = await ODataPostAsync($"/OData.svc/Root/System/Schema('ContentTypes')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-5
+            Assert.AreEqual(204, response.StatusCode);
+            response = await ODataGetAsync("/OData.svc/('Root')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V22", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+            response = await ODataGetAsync("/OData.svc/Root/System/Schema('ContentTypes')/GetSettings", "?name=Settings1")
+                .ConfigureAwait(false);
+            Assert.AreEqual(new SettingsData1 { P1 = "V11111", P2 = "V22222", P3 = null },
+                JsonConvert.DeserializeObject<SettingsData1>(response.Result));
+
+            // ACT-5 /Root/System/Schema/ContentTypes/GenericContent
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V111111\",\"P2\":\"V222222\"}}]";
+            response = await ODataPostAsync($"/OData.svc/Root/System/Schema/ContentTypes('GenericContent')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-5
+            Assert.AreEqual(500, response.StatusCode);
+            error = GetError(response); // Operation not found: WriteSettings(name,settingsData)
             Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
-            Assert.AreEqual(expectedErrorType, error.ExceptionType);
-            Assert.AreEqual(expectedMessage, error.Message);
+            Assert.AreEqual("InvalidContentActionException", error.ExceptionType);
+            Assert.AreEqual("Operation not found: WriteSettings(name,settingsData)", error.Message);
+
+            // ACT-6 /Root/System/Settings
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V1111111\",\"P2\":\"V2222222\"}}]";
+            response = await ODataPostAsync($"/OData.svc/Root/System('Settings')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-2
+            Assert.AreEqual(500, response.StatusCode);
+            error = GetError(response); // Operation not found: WriteSettings(name,settingsData)
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual("InvalidContentActionException", error.ExceptionType);
+            Assert.AreEqual("Cannot create settings under any  Settings  folder. " +
+                            "Choose a parent content. Requested path: /Root/System/Settings", error.Message);
+
+            // ACT-7 /Root/System/Settings/Settings1.settings
+            requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":{\"P1\":\"V11111111\",\"P2\":\"V22222222\"}}]";
+            response = await ODataPostAsync($"/OData.svc/Root/System/Settings('Settings1.settings')/WriteSettings", null, requestBody)
+                .ConfigureAwait(false);
+            // ASSERT-7
+            Assert.AreEqual(500, response.StatusCode);
+            error = GetError(response); // Operation not found: WriteSettings(name,settingsData)
+            Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+            Assert.AreEqual("InvalidContentActionException", error.ExceptionType);
+            Assert.AreEqual("Cannot create settings under any  Settings  folder. " +
+                            "Choose a parent content. Requested path: /Root/System/Settings/Settings1.settings", error.Message);
+
         }).ConfigureAwait(false);
     }
     [TestMethod]
