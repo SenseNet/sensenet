@@ -54,13 +54,12 @@ public partial class Settings
     {
         var effectiveSettings = await GetEffectiveValues(name, content.Path, httpContext.RequestAborted)
             .ConfigureAwait(false);
+
         if (effectiveSettings == null)
             return "{}";
         if (property == null)
             return effectiveSettings;
-
-        //UNDONE:ySettings: use GetEffectiveValues and return the whole object or a top level property
-        return GetValue<object>(name, property, content.Path);
+        return effectiveSettings[property];
     }
 
     [ODataAction]
