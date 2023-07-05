@@ -185,11 +185,11 @@ public class ODataSettingsTests : ODataTestBase
             };
 
             // ACT-1
-//responses = await GetResponsesAsync(user1, controlData);
+            responses = await GetResponsesAsync(user1, controlData);
 
             // ASSERT-1
-//for (int i = 0; i < responses.Count; i++)
-//    Assert.AreEqual(controlData[i].Expectation, responses[i], $"url:{controlData[i].Url}");
+            for (int i = 0; i < responses.Count; i++)
+                Assert.AreEqual(controlData[i].Expectation, responses[i], $"url:{controlData[i].Url}");
 
             // ================ TESTS-2
 
