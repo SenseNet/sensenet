@@ -134,6 +134,15 @@ public partial class Settings
             group = await GetLocalGroupAsync(workspace, $"{settingsName}{roleName}", cancel).ConfigureAwait(false);
         }
 
+        if (role == SettingsRole.Editor)
+        {
+            var settingsForCheck = GetSettingsByName<Settings>(settingsName, contentHandler.Path) ??
+                                  (globalSettings ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath));
+            return group == null
+                ? HasEnoughPermission(user, settingsForCheck ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath), role)
+                : user.IsInGroup(group);
+        }
+
         return group == null
             ? HasEnoughPermission(user, globalSettings ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath), role)
             : user.IsInGroup(group);

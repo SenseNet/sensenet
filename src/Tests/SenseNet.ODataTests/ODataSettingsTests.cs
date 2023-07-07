@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.X509;
@@ -1036,4 +1037,179 @@ public class ODataSettingsTests : ODataTestBase
         }).ConfigureAwait(false);
     }
 
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_TopWorkspace_WithoutRole()
+    {
+        await ODataTestAsync(async () =>
+        {
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+            var editors = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Editors", _cancel);
+            editors.AddMember(user1);
+
+            var settings0 = new { Root = 0 };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            var node = await Node.LoadNodeAsync("/Root/Content", _cancel).ConfigureAwait(false);
+
+            // allow minimal permissions to use WriteSettings action
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See)
+                .Allow(node.Id, user1.Id, false, PermissionType.See)
+                .ApplyAsync(_cancel);
+
+            // -------- TEST-1
+            // Creation failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 0 });
+
+            // -------- TEST-2
+            // Allow saving on global settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(globalSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+            
+            // Create
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 0 },
+                    expectationValues: new { Root = 0, Content = 0 });
+
+            // Load new setting
+            var localSettings = await Node.LoadNodeAsync("/Root/Content/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+
+            // Check inherited permission
+            // Save is not permitted because the context node (grandparent) is see-only in this test.
+            Assert.IsFalse(localSettings.Security.HasPermission(user1, PermissionType.Save));
+
+            // -------- TEST-3
+
+            // Updating failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 1 });
+
+            // -------- TEST-4
+            // Allow saving on local settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(localSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+
+            // Update
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 2 },
+                    expectationValues: new { Root = 0, Content = 2 });
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_TopWorkspace_WithRole()
+    {
+        await ODataTestAsync(async () =>
+        {
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+            var editors = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Editors", _cancel);
+            editors.AddMember(user1);
+
+            var node = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            var readerRole = await EnsureLocalGroupAsync(node, "Settings1Readers", _cancel).ConfigureAwait(false);
+            readerRole.AddMember(user1);
+
+            var editorRole = await EnsureLocalGroupAsync(node, "Settings1Editors", _cancel).ConfigureAwait(false);
+
+            var settings0 = new { Root = 0 };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            //var node = await Node.LoadNodeAsync("/Root/Content", _cancel).ConfigureAwait(false);
+
+            // allow minimal permissions to use WriteSettings action
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See)
+                .Allow(node.Id, user1.Id, false, PermissionType.See)
+                .ApplyAsync(_cancel);
+
+            Assert.IsTrue(node.Security.HasPermission(user1, PermissionType.See));
+            Assert.IsFalse(node.Security.HasPermission(user1, PermissionType.Save));
+            Assert.IsFalse(globalSettings.Security.HasPermission(user1, PermissionType.Save));
+
+            // -------- TEST-1
+            // Creation failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 0 });
+
+            // -------- TEST-2
+            // Add user to settings editors
+            editorRole.AddMember(user1);
+
+            // Create
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 0 },
+                    expectationValues: new {Content = 0 });
+
+            // Load new setting
+            var localSettings = await Node.LoadNodeAsync("/Root/Content/Settings/Settings1.settings", _cancel)
+                .ConfigureAwait(false);
+
+            // Check inherited permission
+            // Save is not permitted because the context node (grandparent) is see-only in this test.
+            Assert.IsFalse(localSettings.Security.HasPermission(user1, PermissionType.Save));
+
+            // -------- TEST-3
+            // Disable saving on local settings
+            editorRole.RemoveMember(user1);
+
+            // Updating failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 1 });
+
+            // -------- TEST-4
+            // Allow saving on local settings
+            editorRole.AddMember(user1);
+
+            // Update
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 2 },
+                    expectationValues: new { Content = 2 });
+        }).ConfigureAwait(false);
+    }
+
+    private async Task WriteSettingsTestError(Node node, object settingValues)
+    {
+        var serializedSettings = JsonConvert.SerializeObject(settingValues);
+        var resource = $"/OData.svc/{node.Parent?.Path ?? string.Empty}('{node.Name}')";
+        var creationData = "models=[{\"name\":\"Settings1\",\"settingsData\":" + serializedSettings + "}]";
+        var response = await ODataPostAsync(resource + "/WriteSettings", null, creationData)
+            .ConfigureAwait(false);
+        Assert.IsTrue(response.StatusCode >= 300, "Response is not an error.");
+        var error = GetError(response);
+        Assert.AreEqual($"Not enough permission for write local settings Settings1 " +
+                        $"for the requested path: {node.Path}", error.Message);
+    }
+
+    private async Task WriteSettingsTest(Node node, object settingValues, object expectationValues)
+    {
+        var serializedSettings = JsonConvert.SerializeObject(settingValues);
+        var resource = $"/OData.svc/{node.Parent?.Path ?? string.Empty}('{node.Name}')";
+        var creationData = "models=[{\"name\":\"Settings1\",\"settingsData\":" + serializedSettings + "}]";
+        var creationResponse = await ODataPostAsync(resource + "/WriteSettings", null, creationData)
+            .ConfigureAwait(false);
+
+        AssertNoError(creationResponse);
+        Assert.AreEqual(204, creationResponse.StatusCode);
+
+        var serializedExpectation = JsonConvert.SerializeObject(expectationValues);
+
+        var creationCheckResponse = await ODataGetAsync(resource + "/GetSettings", "?name=Settings1")
+            .ConfigureAwait(false);
+        Assert.AreEqual(
+            serializedExpectation
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""),
+            creationCheckResponse.Result
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+    }
 }
