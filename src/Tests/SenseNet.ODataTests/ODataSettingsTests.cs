@@ -1037,6 +1037,170 @@ public class ODataSettingsTests : ODataTestBase
         }).ConfigureAwait(false);
     }
 
+    /* ================================================================================= Minimal permission tests */
+
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_Root()
+    {
+        await WriteGlobalSettingsTest("/Root", "/Root/System/Settings/Settings1.settings").ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_RootSystem()
+    {
+        await WriteGlobalSettingsTest("/Root/System", "/Root/System/Settings/Settings1.settings").ConfigureAwait(false);
+    }
+    private async Task WriteGlobalSettingsTest(string targetNodePath, string settingsRealPath)
+    {
+        await ODataTestAsync(async () =>
+        {
+            var targetNode = await Node.LoadNodeAsync(targetNodePath, _cancel).ConfigureAwait(false);
+
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+            var editors = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Editors", _cancel);
+            editors.AddMember(user1);
+
+            var settings0 = new { Root = 0 };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            // allow minimal permissions to use WriteSettings action
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See)
+                .ApplyAsync(_cancel);
+
+            // -------- TEST-1
+            // Creation failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(targetNode, new { Root = 1 });
+
+            // -------- TEST-2
+            // Allow saving on global settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(globalSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+
+            // Create
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(targetNode,
+                    settingValues: new { Root = 2 },
+                    expectationValues: new { Root = 2 },
+                    settingsRealPath);
+
+            // -------- TEST-3
+            // Disallow saving on global settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .ClearPermission(globalSettings.Id, user1.Id, false, PermissionType.Preview)
+                .ApplyAsync(_cancel);
+            Assert.IsTrue(globalSettings.Security.HasPermission(user1, PermissionType.See));
+            Assert.IsFalse(globalSettings.Security.HasPermission(user1, PermissionType.Save));
+
+            // Updating failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(targetNode, new { Root = 3 });
+
+            // -------- TEST-4
+            // Allow saving on global settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(globalSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+
+            // Update
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(targetNode,
+                    settingValues: new { Root = 4 },
+                    expectationValues: new { Root = 4 },
+                    settingsRealPath);
+        }).ConfigureAwait(false);
+    }
+
+
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_RootIMS()
+    {
+        await WriteSettingsOutOfWorkspaceTests("/Root/IMS").ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async Task OD_Settings_WriteSettings_NotAdmin_RootIMSPublic()
+    {
+        await WriteSettingsOutOfWorkspaceTests("/Root/IMS/Public").ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task WriteSettingsOutOfWorkspaceTests(string targetNodePath)
+    {
+        await ODataTestAsync(async () =>
+        {
+            var user1 = new User(User.Administrator.Parent) { Name = "U1" };
+            await user1.SaveAsync(_cancel);
+            var editors = await Node.LoadAsync<Group>("/Root/IMS/BuiltIn/Portal/Editors", _cancel);
+            editors.AddMember(user1);
+
+            var settings0 = new { Root = 0 };
+            var globalSettings = await EnsureSettingsAsync("/Root/System", "Settings1", settings0, _cancel)
+                .ConfigureAwait(false);
+
+            var node = await Node.LoadNodeAsync(targetNodePath, _cancel).ConfigureAwait(false);
+            var settingsRealPath = targetNodePath + "/Settings/Settings1.settings";
+
+            // allow minimal permissions to use WriteSettings action
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See)
+                .Allow(node.Id, user1.Id, false, PermissionType.See)
+                .ApplyAsync(_cancel);
+
+            // -------- TEST-1
+            // Creation failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 0 });
+
+            // -------- TEST-2
+            // Allow saving on global settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(globalSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+
+            // Create
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 0 },
+                    expectationValues: new { Root = 0, Content = 0 },
+                    settingsRealPath);
+
+            // Load new setting
+            var localSettings = await Node.LoadNodeAsync(settingsRealPath, _cancel)
+                .ConfigureAwait(false);
+
+            // Ensure read-only permission
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Deny(localSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+            Assert.IsTrue(localSettings.Security.HasPermission(user1, PermissionType.Open));
+            Assert.IsFalse(localSettings.Security.HasPermission(user1, PermissionType.Save));
+
+            // -------- TEST-3
+
+            // Updating failed
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTestError(node, new { Content = 1 });
+
+            // -------- TEST-4
+            // Allow saving on local settings
+            await Providers.Instance.SecurityHandler.CreateAclEditor()
+                .Allow(localSettings.Id, user1.Id, false, PermissionType.Save)
+                .ApplyAsync(_cancel);
+
+            // Update
+            using (new CurrentUserBlock(user1))
+                await WriteSettingsTest(node,
+                    settingValues: new { Content = 2 },
+                    expectationValues: new { Root = 0, Content = 2 },
+                    settingsRealPath);
+        }).ConfigureAwait(false);
+    }
+
+
+
     [TestMethod]
     public async Task OD_Settings_WriteSettings_NotAdmin_TopWorkspace_WithoutRole()
     {
@@ -1052,6 +1216,7 @@ public class ODataSettingsTests : ODataTestBase
                 .ConfigureAwait(false);
 
             var node = await Node.LoadNodeAsync("/Root/Content", _cancel).ConfigureAwait(false);
+            var settingsRealPath = "/Root/Content/Settings/Settings1.settings";
 
             // allow minimal permissions to use WriteSettings action
             await Providers.Instance.SecurityHandler.CreateAclEditor()
@@ -1074,7 +1239,8 @@ public class ODataSettingsTests : ODataTestBase
             using (new CurrentUserBlock(user1))
                 await WriteSettingsTest(node,
                     settingValues: new { Content = 0 },
-                    expectationValues: new { Root = 0, Content = 0 });
+                    expectationValues: new { Root = 0, Content = 0 },
+                    settingsRealPath);
 
             // Load new setting
             var localSettings = await Node.LoadNodeAsync("/Root/Content/Settings/Settings1.settings", _cancel)
@@ -1100,7 +1266,8 @@ public class ODataSettingsTests : ODataTestBase
             using (new CurrentUserBlock(user1))
                 await WriteSettingsTest(node,
                     settingValues: new { Content = 2 },
-                    expectationValues: new { Root = 0, Content = 2 });
+                    expectationValues: new { Root = 0, Content = 2 },
+                    settingsRealPath);
         }).ConfigureAwait(false);
     }
     [TestMethod]
@@ -1114,6 +1281,7 @@ public class ODataSettingsTests : ODataTestBase
             editors.AddMember(user1);
 
             var node = await Node.LoadAsync<Workspace>("/Root/Content", _cancel).ConfigureAwait(false);
+            var settingsRealPath = "/Root/Content/Settings/Settings1.settings";
             var readerRole = await EnsureLocalGroupAsync(node, "Settings1Readers", _cancel).ConfigureAwait(false);
             readerRole.AddMember(user1);
 
@@ -1148,7 +1316,8 @@ public class ODataSettingsTests : ODataTestBase
             using (new CurrentUserBlock(user1))
                 await WriteSettingsTest(node,
                     settingValues: new { Content = 0 },
-                    expectationValues: new {Content = 0 });
+                    expectationValues: new {Content = 0 },
+                    settingsRealPath);
 
             // Load new setting
             var localSettings = await Node.LoadNodeAsync("/Root/Content/Settings/Settings1.settings", _cancel)
@@ -1174,7 +1343,8 @@ public class ODataSettingsTests : ODataTestBase
             using (new CurrentUserBlock(user1))
                 await WriteSettingsTest(node,
                     settingValues: new { Content = 2 },
-                    expectationValues: new { Content = 2 });
+                    expectationValues: new { Content = 2 },
+                    settingsRealPath);
         }).ConfigureAwait(false);
     }
 
@@ -1190,26 +1360,37 @@ public class ODataSettingsTests : ODataTestBase
         Assert.AreEqual($"Not enough permission for write local settings Settings1 " +
                         $"for the requested path: {node.Path}", error.Message);
     }
-
-    private async Task WriteSettingsTest(Node node, object settingValues, object expectationValues)
+    private async Task WriteSettingsTest(Node node, object settingValues, object expectationValues, string localSettingsPath)
     {
         var serializedSettings = JsonConvert.SerializeObject(settingValues);
         var resource = $"/OData.svc/{node.Parent?.Path ?? string.Empty}('{node.Name}')";
-        var creationData = "models=[{\"name\":\"Settings1\",\"settingsData\":" + serializedSettings + "}]";
-        var creationResponse = await ODataPostAsync(resource + "/WriteSettings", null, creationData)
+        var requestBody = "models=[{\"name\":\"Settings1\",\"settingsData\":" + serializedSettings + "}]";
+        var response = await ODataPostAsync(resource + "/WriteSettings", null, requestBody)
             .ConfigureAwait(false);
 
-        AssertNoError(creationResponse);
-        Assert.AreEqual(204, creationResponse.StatusCode);
+        AssertNoError(response);
+        Assert.AreEqual(204, response.StatusCode);
 
         var serializedExpectation = JsonConvert.SerializeObject(expectationValues);
+        var expectation = serializedExpectation
+            .Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
-        var creationCheckResponse = await ODataGetAsync(resource + "/GetSettings", "?name=Settings1")
+        var checkResponse = await ODataGetAsync(resource + "/GetSettings", "?name=Settings1")
             .ConfigureAwait(false);
         Assert.AreEqual(
             serializedExpectation
                 .Replace(" ", "").Replace("\r", "").Replace("\n", ""),
-            creationCheckResponse.Result
+            checkResponse.Result
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+
+        Settings settingsNode = null;
+        using(new SystemAccount())
+            settingsNode = await Node.LoadAsync<Settings>(localSettingsPath, _cancel).ConfigureAwait(false);
+        var streamText = RepositoryTools.GetStreamString(settingsNode.Binary.GetStream());
+        Assert.AreEqual(
+            serializedSettings
+                .Replace(" ", "").Replace("\r", "").Replace("\n", ""),
+            streamText
                 .Replace(" ", "").Replace("\r", "").Replace("\n", ""));
     }
 }
