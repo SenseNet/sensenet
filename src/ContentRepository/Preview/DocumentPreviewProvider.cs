@@ -1447,8 +1447,14 @@ namespace SenseNet.Preview
                 return;
 
             // check if the feature is enabled on the content type
-            var contentType = ContentType.GetByName(node.NodeType.Name);
-            if (!contentType.Preview)
+            var typeName = node?.NodeType?.Name;
+
+            // it is possible that the node type is not available yet (e.g. during installation)
+            if (typeName == null)
+                return;
+
+            var contentType = ContentType.GetByName(typeName);
+            if (!(contentType?.Preview ?? false))
                 return;
 
             // check if content is supported by the provider. if not, don't bother starting the preview generation)
