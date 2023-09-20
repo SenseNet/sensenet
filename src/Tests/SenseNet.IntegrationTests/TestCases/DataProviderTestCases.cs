@@ -2,10 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -19,13 +25,16 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.Workspaces;
+using SenseNet.Diagnostics;
 using SenseNet.IntegrationTests.Infrastructure;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
+using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.TestCases
@@ -1833,6 +1842,133 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(node.NodeTimestamp, nodeTimeStamp);
                 Assert.AreEqual(node.VersionTimestamp, versionTimeStamp);
             });
+        }
+
+        /* ================================================================================================== Replicate */
+
+        public async Task DP_ReplicateNode()
+        {
+            var cancel = CancellationToken.None;
+            await IntegrationTestAsync(async () =>
+            {
+                var testRoot = CreateTestRoot();
+                var source = new SenseNet.ContentRepository.CalendarEvent(testRoot) {Name = "Event-1", DisplayName = "Event-1 D"};
+                await source.SaveAsync(cancel);
+                var target = CreateFolder(testRoot, "replicated");
+
+                // ACTION
+                var replicationCount = 1_000_000; // 12;
+                var replicationSettings = new ReplicationSettings
+                {
+                    CountMin = replicationCount,
+                    CountMax = replicationCount,
+                    MaxItemsPerFolder = 2,
+                    MaxFoldersPerFolder = 2,
+
+                    Diversity = new Dictionary<string, IDiversity>
+                    {
+                        {"Name", new StringDiversity
+                        {
+                            Type = DiversityType.Sequence, Pattern = "Event-*", Sequence = new Sequence{MinValue = 1}
+                        }},
+                        //{"DisplayName", new StringDiversity
+                        //{
+                        //    Type = DiversityType.Random, Pattern = "[Name]_Random-{100-200}"
+                        //}},
+                        {"Index", new IntDiversity
+                        {
+                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 1001 // only MinValue
+                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 0    // MinValue + count
+                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 1005 // MinValue + count % (MaxValue - MinValue + 1)
+                            //Type = DiversityType.Random, MinValue = 1001, MaxValue = 0      // only MinValue
+                            Type = DiversityType.Random, MinValue = 1001, MaxValue = 1005     // random between min and max inclusive
+                        }},
+                        {"CreationDate", new DateTimeDiversity
+                        {
+                            Type = DiversityType.Sequence, Sequence = new DateTimeSequence{MinValue = DateTime.UtcNow.AddYears(-1), Step = TimeSpan.FromDays(1)}
+                        }},
+                        {"ModificationDate", new DateTimeDiversity
+                        {
+                            Type = DiversityType.Random, Sequence = new DateTimeSequence{MinValue = DateTime.UtcNow.AddDays(-1), MaxValue = DateTime.UtcNow}
+                        }},
+                        {"MaxParticipants", new IntDiversity
+                        {
+                            Type = DiversityType.Random, MinValue = 20, MaxValue = 100
+                        }},
+                    }
+                };
+                SnTrace.Test.Write(">>>> START Replication: " + replicationCount);
+                var timer = Stopwatch.StartNew();
+                await DP.ReplicateNodeAsync(source, target, replicationSettings, CancellationToken.None);
+                var time = timer.Elapsed;
+                timer.Stop();
+                SnTrace.Test.Write(">>>> Replication time: " + time);
+/*
+                await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
+                    await SaveWholeInvertedIndexAsync(writer, cancel);
+                for (int i = 0; i < replicationCount; i++)
+                {
+                    var versionId = target.VersionId + i + 1;
+                    using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
+                        await SaveIndexDocumentAsync(versionId, writer, cancel);
+                }
+*/
+                // ASSERT
+                var hits = await CreateSafeContentQuery("Name:'Event-1'").ExecuteAsync(cancel);
+                Assert.AreEqual(1, hits.Count);
+                //Assert.AreEqual(1, (await CreateSafeContentQuery($"Path:'{target.Path}/event-1'").ExecuteAsync(cancel)).Count);
+                Assert.IsTrue(0 < (await CreateSafeContentQuery("Index:1001").ExecuteAsync(cancel)).Count);
+            });
+        }
+        public static async Task SaveWholeInvertedIndexAsync(TextWriter writer, CancellationToken cancel)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = await engine.GetInvertedIndexAsync(cancel);
+
+            using (var op = SnTrace.Test.StartOperation("GetWholeInvertedIndex"))
+            {
+                await writer.WriteAsync("{");
+                var fieldLines = 0;
+                foreach (var fieldData in response)
+                {
+                    var fieldLine = "  \"" + fieldData.Key + "\": {";
+                    if (fieldLines++ == 0)
+                        await writer.WriteAsync("\n" + fieldLine);
+                    else
+                        await writer.WriteAsync(",\n" + fieldLine);
+
+                    var termLines = 0;
+                    foreach (var termData in fieldData.Value)
+                    {
+                        var termLine = "    \"" +
+                                       termData.Key.Replace("\\", "\\\\")
+                                           .Replace("\"", "\\\"") + "\": \"" +
+                                       string.Join(" ", termData.Value.Select(x => x.ToString())) + "\"";
+                        if (termLines++ == 0)
+                            await writer.WriteAsync("\n" + termLine);
+                        else
+                            await writer.WriteAsync(",\n" + termLine);
+                    }
+                    await writer.WriteAsync("\n  }");
+                }
+                await writer.WriteAsync("\n}");
+
+                op.Successful = true;
+            }
+        }
+        public static async Task SaveIndexDocumentAsync(int versionId, TextWriter writer, CancellationToken cancel)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = engine.GetIndexDocumentByVersionId(versionId);
+
+            if (response == null)
+                return;
+
+            var result = response
+                .OrderBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => (object)x.Value);
+
+            await writer.WriteLineAsync(JsonConvert.SerializeObject(result, Formatting.Indented));
         }
 
         /* ================================================================================================== Errors */

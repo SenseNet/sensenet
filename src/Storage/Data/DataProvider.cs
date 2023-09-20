@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     ///                                                         |-> ReferenceProperties
     /// Additional structure: TreeLocks, LogEntries, IndexingActivities
     /// </remarks>
-    public abstract class DataProvider
+    public abstract partial class DataProvider
     {
         /// <summary>
         /// Gets the allowed length of the Path of a <see cref="Node"/>.
