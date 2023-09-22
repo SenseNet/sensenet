@@ -123,8 +123,7 @@ namespace SenseNet.Services.Core.Virtualization
                 _context.Response.ContentType = contentType;
                 _context.Response.Headers.Append(HeaderNames.ContentLength, binaryStream.Length.ToString());
 
-                if (_context.Request.Path.StartsWithSegments("/binaryhandler.ashx"))
-                    httpHeaderTools.SetContentDispositionHeader(fileName);
+                httpHeaderTools.SetContentDispositionHeader(fileName);
 
                 httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: MaxAge);
 
