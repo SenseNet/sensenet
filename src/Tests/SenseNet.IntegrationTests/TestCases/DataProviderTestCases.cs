@@ -1857,7 +1857,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var target = CreateFolder(testRoot, "replicated");
 
                 // ACTION
-                var replicationCount = 1_000_000; // 12;
+                var replicationCount = 17; // 12;
                 var replicationSettings = new ReplicationSettings
                 {
                     CountMin = replicationCount,
