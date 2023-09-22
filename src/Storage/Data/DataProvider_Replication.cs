@@ -137,26 +137,58 @@ public abstract partial class DataProvider
 
     public async Task ReplicateNodeAsync(Node source, Node target, ReplicationSettings replicationSettings, CancellationToken cancel)
     {
-        var baseData = (await LoadNodesAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
-        var originalIndexDoc = (await LoadIndexDocumentsAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
+        var sourceData = (await LoadNodesAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
+        var sourceIndexDoc = (await LoadIndexDocumentsAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
+        if (sourceData == null || sourceIndexDoc == null)
+            throw new InvalidOperationException("Cannot replicate missing source");
 
-        if (baseData == null || originalIndexDoc == null)
-            throw new InvalidOperationException("Cannot replicate missing version");
+        var targetData = (await LoadNodesAsync(new[] { target.VersionId }, cancel)).FirstOrDefault();
+        var targetIndexDoc = (await LoadIndexDocumentsAsync(new[] { target.VersionId }, cancel)).FirstOrDefault();
+        if (targetData == null || targetIndexDoc == null)
+            throw new InvalidOperationException("Cannot replicate missing target");
 
         var userId = AccessProvider.Current.GetOriginalUser().Id;
+
+        // Initialize folder generation
+
+        var folderHeadData = sourceData.GetNodeHeadData();
+        var folderVersionData = sourceData.GetVersionData();
+        var folderDynamicData = sourceData.GetDynamicData(true);
+
+        var folderGenContext = new ReplicationContext
+        {
+            CountMin = replicationSettings.CountMin,
+            CountMax = replicationSettings.CountMax,
+            ReplicationStart = DateTime.UtcNow,
+            NodeHeadData = folderHeadData,
+            VersionData = folderVersionData,
+            DynamicData = folderDynamicData,
+            TargetId = target.Id,
+            TargetPath = target.Path
+        };
+        var folderReplicationSettings = new ReplicationSettings
+        {
+            Diversity = new Dictionary<string, IDiversity>
+            {
+                {"Name", new StringDiversity {Type = DiversityType.Constant, Pattern = "*"}}
+            }
+        };
+        var folderFieldGenerators = CreateFieldGenerators(folderReplicationSettings, targetIndexDoc, folderGenContext);
+
+        var folderGenerator = new FolderGenerator1(folderGenContext, 0, 3, 2, cancel);
+
+        // Initialize content generation
+
         var typeName = source.NodeType.Name.ToLowerInvariant();
 
-        var nodeHeadData = baseData.GetNodeHeadData();
-        var versionData = baseData.GetVersionData();
-        var dynamicData = baseData.GetDynamicData(true);
+        var nodeHeadData = sourceData.GetNodeHeadData();
+        var versionData = sourceData.GetVersionData();
+        var dynamicData = sourceData.GetDynamicData(true);
 
         var sourceIsSystem = source.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
-
         var min = Math.Min(replicationSettings.CountMin, replicationSettings.CountMax);
         var max = Math.Max(replicationSettings.CountMin, replicationSettings.CountMax);
         var count = min >= max ? min : new Random().Next(min, max + 1);
-
-
         var context = new ReplicationContext
         {
             CountMin = replicationSettings.CountMin,
@@ -168,19 +200,20 @@ public abstract partial class DataProvider
             TargetId = target.Id,
             TargetPath = target.Path
         };
-        var fieldGenerators = CreateFieldGenerators(replicationSettings, originalIndexDoc, context);
-        var folderGenerator = new FolderGenerator1(target.Id, target.Path, count, 3, 2);
+        var fieldGenerators = CreateFieldGenerators(replicationSettings, sourceIndexDoc, context);
         for (var i = 0; i < count; i++)
         {
-            var date = DateTime.UtcNow;
-
             folderGenerator.EnsureFolder();
             SnTrace.Test.Write(()=>$"{i} --> {folderGenerator.CurrentFolderId}, {folderGenerator.CurrentFolderPath}");
-            //context.TargetId = folderGenerator.CurrentFolderId;
-            //context.TargetPath = folderGenerator.CurrentFolderPath;
+            context.TargetId = folderGenerator.CurrentFolderId;
+            context.TargetPath = folderGenerator.CurrentFolderPath;
 
             context.CurrentCount = i;
-            context.Now = date;
+
+            await XxxAsync(context, fieldGenerators, target.IsSystem || sourceIsSystem, typeName, cancel);
+
+
+            context.Now = DateTime.UtcNow;
             context.IndexDocument = CreateIndexDocument(context);
             context.TextExtract = new StringBuilder();
 
@@ -193,7 +226,7 @@ public abstract partial class DataProvider
             versionData.ChangedData = null;
             dynamicData.VersionId = 0;
 
-            nodeHeadData.ParentNodeId = target.Id; // consider generated folder structure
+            nodeHeadData.ParentNodeId = context.TargetId;
             context.IndexDocument.ParentId = nodeHeadData.ParentNodeId;
             nodeHeadData.IsSystem = target.IsSystem || sourceIsSystem;
             context.IndexDocument.IsSystem = nodeHeadData.IsSystem;
@@ -231,11 +264,68 @@ public abstract partial class DataProvider
         await Providers.Instance.IndexManager.CommitAsync(cancel);
     }
 
+    private async Task XxxAsync(ReplicationContext context, List<IFieldGenerator> fieldGenerators, bool targetIsSystem, string typeName, CancellationToken cancel)
+    {
+        var nodeHeadData = context.NodeHeadData;
+        var versionData = context.VersionData;
+        var dynamicData = context.DynamicData;
 
-    private IndexDocumentData CreateIndexDocument(ReplicationContext context)
+        context.Now = DateTime.UtcNow;
+        context.IndexDocument = CreateIndexDocument(context);
+        context.TextExtract = new StringBuilder();
+
+        // Generate system data
+        nodeHeadData.NodeId = 0;
+        nodeHeadData.LastMajorVersionId = 0;
+        nodeHeadData.LastMinorVersionId = 0;
+        versionData.VersionId = 0;
+        versionData.NodeId = 0;
+        versionData.ChangedData = null;
+        dynamicData.VersionId = 0;
+
+        nodeHeadData.ParentNodeId = context.TargetId;
+        context.IndexDocument.ParentId = nodeHeadData.ParentNodeId;
+        nodeHeadData.IsSystem = targetIsSystem;
+        context.IndexDocument.IsSystem = nodeHeadData.IsSystem;
+        SetIndexValue("IsFolder", true, context);
+
+        // Generate data and index fields
+        foreach (var fieldGenerator in fieldGenerators)
+            fieldGenerator.Generate(context);
+
+        // INSERT
+        await InsertNodeAsync(nodeHeadData, versionData, dynamicData, cancel);
+
+        // Complete index data
+        SetIndexValue(IndexFieldName.NodeId, nodeHeadData.NodeId, context);
+        SetIndexValue(IndexFieldName.VersionId, versionData.VersionId, context);
+        context.IndexDocument.NodeId = nodeHeadData.NodeId;
+        context.IndexDocument.VersionId = versionData.VersionId;
+        context.IndexDocument.NodeTimestamp = nodeHeadData.Timestamp;
+        context.IndexDocument.VersionTimestamp = versionData.Timestamp;
+        context.IndexDocument.IsLastDraft = true;
+        context.IndexDocument.IsLastPublic = versionData.Version.IsMajor;
+
+        context.TextExtract.AppendLine(typeName);
+        UpdateTextExtract(context.IndexDocument, context.TextExtract);
+        context.IndexDocument.IndexDocumentChanged();
+
+        // Save index document
+        var serialized = context.IndexDocument.IndexDocument.Serialize();
+        await SaveIndexDocumentAsync(versionData.VersionId, serialized, cancel);
+
+        // Write index
+        var doc = Providers.Instance.IndexManager.CompleteIndexDocument(context.IndexDocument);
+        await Providers.Instance.IndexManager.AddDocumentsAsync(new[] { doc }, cancel);
+
+    }
+
+    private IndexDocumentData CreateIndexDocument(ReplicationContext context) =>
+        CreateIndexDocument(context.IndexDocumentPrototype.IndexDocument.Fields.Values);
+    private IndexDocumentData CreateIndexDocument(IEnumerable<IndexField> indexFields)
     {
         var indexDoc = new IndexDocument();
-        foreach (var f in context.IndexDocumentPrototype.IndexDocument.Fields.Values)
+        foreach (var f in indexFields)
         {
             IndexField indexField;
             switch (f.Type)
@@ -446,6 +536,9 @@ public abstract partial class DataProvider
 
     private class FolderGenerator1 : IFolderGenerator
     {
+        private ReplicationContext _context;
+        private CancellationToken _cancel;
+
         public int RootFolderId { get; }
         public string RootFolderPath { get; }
         public int MaxItems { get; }
@@ -455,13 +548,15 @@ public abstract partial class DataProvider
         public int CurrentFolderId { get; private set; }
         public string CurrentFolderPath { get; private set; }
 
-        public FolderGenerator1(int rootFolderId, string rootFolderPath, int maxItems, int maxItemsPerFolder, int maxFoldersPerFolder)
+        public FolderGenerator1(ReplicationContext context, int maxItems, int maxItemsPerFolder, int maxFoldersPerFolder, CancellationToken cancel)
         {
-            RootFolderId = rootFolderId;
-            RootFolderPath = rootFolderPath;
+            _context = context;
+            RootFolderId = context.TargetId;
+            RootFolderPath = context.TargetPath;
             MaxItems = maxItems;
             MaxItemsPerFolder = maxItemsPerFolder;
             MaxFoldersPerFolder = maxFoldersPerFolder;
+            _cancel = cancel;
 
             var maxLevels = Convert.ToInt32(Math.Ceiling(Math.Log(Math.Ceiling(0.0d + MaxItems / MaxItemsPerFolder),
                 maxFoldersPerFolder)));
