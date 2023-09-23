@@ -150,6 +150,9 @@ namespace SenseNet.Services.Core.Virtualization
             if (string.IsNullOrEmpty(fileName))
                 fileName = "unknown";
 
+            // Inline or Attachment
+            var forDownload = _context.Request.Path.StartsWithSegments("/binaryhandler.ashx");
+
             // the default .net core conversion should work in most cases
             if (TrySetHeader(fileName))
                 return;
@@ -163,7 +166,7 @@ namespace SenseNet.Services.Core.Virtualization
 
             bool TrySetHeader(string fn)
             {
-                var cdh = new ContentDisposition { FileName = fn };
+                var cdh = new ContentDisposition { FileName = fn, Inline = !forDownload};
                 try
                 {
                     // We have to remove new line characters so that the generated value is a single
