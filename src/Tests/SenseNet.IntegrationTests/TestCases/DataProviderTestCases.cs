@@ -1903,7 +1903,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var time = timer.Elapsed;
                 timer.Stop();
                 SnTrace.Test.Write(">>>> Replication time: " + time);
-/*
+
                 await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
                     await SaveWholeInvertedIndexAsync(writer, cancel);
                 for (int i = 0; i < replicationCount; i++)
@@ -1912,7 +1912,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
                         await SaveIndexDocumentAsync(versionId, writer, cancel);
                 }
-*/
+
                 // ASSERT
                 var hits = await CreateSafeContentQuery("Name:'Event-1'").ExecuteAsync(cancel);
                 Assert.AreEqual(1, hits.Count);

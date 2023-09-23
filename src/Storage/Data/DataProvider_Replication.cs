@@ -17,36 +17,8 @@ using String = System.String;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data;
 
+#region DIVERSITY CLASSES
 public enum DiversityType { Constant, Sequence, Random, /* Dictionary, etc*/}
-
-//public class DiversitySettings
-//{
-//    public DiversityType Type { get; set; }
-//}
-//public class StringDiversitySettings : DiversitySettings
-//{
-//    public string Pattern { get; set; }
-//}
-//public class IntDiversitySettings : DiversitySettings
-//{
-//    public int MinValue { get; set; }
-//    public int MaxValue { get; set; }
-//}
-//public class ReferenceIdDiversitySettings : IntDiversitySettings
-//{
-//}
-//public class DateTimeDiversitySettings : DiversitySettings
-//{
-//    public int MinValue { get; set; }
-//    public int MaxValue { get; set; }
-//    public Func<DateTime> Value { get; set; }
-//}
-//public class ReplicationSettings
-//{
-//    public int CountMin { get; set; }
-//    public int CountMax { get; set; }
-//    public IDictionary<string, DiversitySettings> Diversity { get; set; }
-//}
 
 public class Sequence
 {
@@ -100,6 +72,7 @@ public class DateTimeDiversity : Diversity<DateTime>
 {
     public DateTimeSequence Sequence { get; set; }
 }
+#endregion
 
 public class ReplicationSettings
 {
@@ -115,7 +88,9 @@ public abstract partial class DataProvider
 {
     private class ReplicationContext
     {
-        public int CountMin { get; set; }
+        public string TypeName { get; set; }
+        public bool IsSystemContent { get; set; }
+
         public int CountMax { get; set; }
         public int CurrentCount { get; set; }
 
@@ -129,9 +104,11 @@ public abstract partial class DataProvider
         public VersionData VersionData { get; set; }
         public DynamicPropertyData DynamicData { get; set; }
 
+
         public IndexDocumentData IndexDocumentPrototype { get; set; }
         public IndexDocumentData IndexDocument { get; set; }
         public StringBuilder TextExtract { get; set; }
+        public List<IFieldGenerator> FieldGenerators { get; set; }
     }
 
 
@@ -149,20 +126,21 @@ public abstract partial class DataProvider
 
         var userId = AccessProvider.Current.GetOriginalUser().Id;
 
-        // Initialize folder generation
+        var min = Math.Min(replicationSettings.CountMin, replicationSettings.CountMax);
+        var max = Math.Max(replicationSettings.CountMin, replicationSettings.CountMax);
+        var count = min >= max ? min : new Random().Next(min, max + 1);
 
-        var folderHeadData = sourceData.GetNodeHeadData();
-        var folderVersionData = sourceData.GetVersionData();
-        var folderDynamicData = sourceData.GetDynamicData(true);
+        // Initialize folder generation
 
         var folderGenContext = new ReplicationContext
         {
-            CountMin = replicationSettings.CountMin,
-            CountMax = replicationSettings.CountMax,
+            TypeName = target.NodeType.Name.ToLowerInvariant(),
+            CountMax = 0, // irrelevant in this case
             ReplicationStart = DateTime.UtcNow,
-            NodeHeadData = folderHeadData,
-            VersionData = folderVersionData,
-            DynamicData = folderDynamicData,
+            IsSystemContent = target.IsSystem, //target.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
+            NodeHeadData = targetData.GetNodeHeadData(),
+            VersionData = targetData.GetVersionData(),
+            DynamicData = targetData.GetDynamicData(true),
             TargetId = target.Id,
             TargetPath = target.Path
         };
@@ -173,44 +151,38 @@ public abstract partial class DataProvider
                 {"Name", new StringDiversity {Type = DiversityType.Constant, Pattern = "*"}}
             }
         };
-        var folderFieldGenerators = CreateFieldGenerators(folderReplicationSettings, targetIndexDoc, folderGenContext);
-
-        var folderGenerator = new FolderGenerator1(folderGenContext, 0, 3, 2, cancel);
+        CreateFieldGenerators(folderReplicationSettings, targetIndexDoc, folderGenContext);
+        var folderGenerator = new FolderGenerator1(folderGenContext, count, 3, 2, cancel);
 
         // Initialize content generation
 
-        var typeName = source.NodeType.Name.ToLowerInvariant();
-
-        var nodeHeadData = sourceData.GetNodeHeadData();
-        var versionData = sourceData.GetVersionData();
-        var dynamicData = sourceData.GetDynamicData(true);
-
-        var sourceIsSystem = source.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
-        var min = Math.Min(replicationSettings.CountMin, replicationSettings.CountMax);
-        var max = Math.Max(replicationSettings.CountMin, replicationSettings.CountMax);
-        var count = min >= max ? min : new Random().Next(min, max + 1);
         var context = new ReplicationContext
         {
-            CountMin = replicationSettings.CountMin,
-            CountMax = replicationSettings.CountMax,
+            TypeName = source.NodeType.Name.ToLowerInvariant(),
+            CountMax = count,
             ReplicationStart = DateTime.UtcNow,
-            NodeHeadData = nodeHeadData,
-            VersionData = versionData,
-            DynamicData = dynamicData,
+            IsSystemContent = source.IsSystem, //source.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
+            NodeHeadData = sourceData.GetNodeHeadData(),
+            VersionData = sourceData.GetVersionData(),
+            DynamicData = sourceData.GetDynamicData(true),
             TargetId = target.Id,
             TargetPath = target.Path
         };
+
+        var nodeHeadData = context.NodeHeadData;
+        var versionData = context.VersionData;
+        var dynamicData = context.DynamicData;
         var fieldGenerators = CreateFieldGenerators(replicationSettings, sourceIndexDoc, context);
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < context.CountMax; i++)
         {
             folderGenerator.EnsureFolder();
-            SnTrace.Test.Write(()=>$"{i} --> {folderGenerator.CurrentFolderId}, {folderGenerator.CurrentFolderPath}");
+            SnTrace.Test.Write(()=>$">>>> {i} --> {folderGenerator.CurrentFolderId}, {folderGenerator.CurrentFolderPath}");
             context.TargetId = folderGenerator.CurrentFolderId;
             context.TargetPath = folderGenerator.CurrentFolderPath;
 
             context.CurrentCount = i;
 
-            await XxxAsync(context, fieldGenerators, target.IsSystem || sourceIsSystem, typeName, cancel);
+//await XxxAsync(context, cancel);
 
 
             context.Now = DateTime.UtcNow;
@@ -228,12 +200,12 @@ public abstract partial class DataProvider
 
             nodeHeadData.ParentNodeId = context.TargetId;
             context.IndexDocument.ParentId = nodeHeadData.ParentNodeId;
-            nodeHeadData.IsSystem = target.IsSystem || sourceIsSystem;
+            nodeHeadData.IsSystem = target.IsSystem || source.IsSystem;
             context.IndexDocument.IsSystem = nodeHeadData.IsSystem;
             SetIndexValue("IsFolder", true, context);
 
             // Generate data and index fields
-            foreach (var fieldGenerator in fieldGenerators)
+            foreach (var fieldGenerator in context.FieldGenerators)
                 fieldGenerator.Generate(context);
 
             // INSERT
@@ -249,7 +221,7 @@ public abstract partial class DataProvider
             context.IndexDocument.IsLastDraft = true;
             context.IndexDocument.IsLastPublic = versionData.Version.IsMajor;
 
-            context.TextExtract.AppendLine(typeName);
+            context.TextExtract.AppendLine(context.TypeName);
             UpdateTextExtract(context.IndexDocument, context.TextExtract);
             context.IndexDocument.IndexDocumentChanged();
 
@@ -264,7 +236,7 @@ public abstract partial class DataProvider
         await Providers.Instance.IndexManager.CommitAsync(cancel);
     }
 
-    private async Task XxxAsync(ReplicationContext context, List<IFieldGenerator> fieldGenerators, bool targetIsSystem, string typeName, CancellationToken cancel)
+    private async Task XxxAsync(ReplicationContext context, CancellationToken cancel)
     {
         var nodeHeadData = context.NodeHeadData;
         var versionData = context.VersionData;
@@ -285,12 +257,12 @@ public abstract partial class DataProvider
 
         nodeHeadData.ParentNodeId = context.TargetId;
         context.IndexDocument.ParentId = nodeHeadData.ParentNodeId;
-        nodeHeadData.IsSystem = targetIsSystem;
+        nodeHeadData.IsSystem = context.IsSystemContent;
         context.IndexDocument.IsSystem = nodeHeadData.IsSystem;
         SetIndexValue("IsFolder", true, context);
 
         // Generate data and index fields
-        foreach (var fieldGenerator in fieldGenerators)
+        foreach (var fieldGenerator in context.FieldGenerators)
             fieldGenerator.Generate(context);
 
         // INSERT
@@ -306,7 +278,7 @@ public abstract partial class DataProvider
         context.IndexDocument.IsLastDraft = true;
         context.IndexDocument.IsLastPublic = versionData.Version.IsMajor;
 
-        context.TextExtract.AppendLine(typeName);
+        context.TextExtract.AppendLine(context.TypeName);
         UpdateTextExtract(context.IndexDocument, context.TextExtract);
         context.IndexDocument.IndexDocumentChanged();
 
@@ -347,104 +319,6 @@ public abstract partial class DataProvider
         }
 
         return new IndexDocumentData(indexDoc, null);
-    }
-
-
-    private static readonly Random _rng = new Random();
-    private static string _generate(ReplicationContext context, StringDiversity diversity)
-    {
-        var pattern = diversity.Pattern;
-        var paddingFormat = "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(context.CountMax)));
-        Func<int, string> Replace = (i) => pattern.Replace("*", i.ToString(paddingFormat));
-
-        var min = diversity.Sequence?.MinValue ?? 0;
-        var max = diversity.Sequence?.MaxValue ?? 0;
-        switch (diversity.Type)
-        {
-            case DiversityType.Constant:
-                return pattern;
-
-            case DiversityType.Sequence:
-                if (max == min)
-                    return Replace(min);
-                if (max < min)
-                    return Replace(context.CurrentCount + min);
-                var offset = context.CurrentCount % (max - min + 1);
-                return Replace(min + offset);
-
-            case DiversityType.Random:
-                if(min >= max)
-                    return Replace(min);
-                return Replace(_rng.Next(min, max + 1));
-                //return RandomNumberGenerator.GetInt32(min, max + 1);
-
-            default: throw new ArgumentOutOfRangeException();
-        }
-    }
-    private static int _generate(ReplicationContext context, IntDiversity diversity)
-    {
-        var min = diversity.MinValue;
-        var max = diversity.MaxValue;
-
-        switch (diversity.Type)
-        {
-            case DiversityType.Constant:
-                return min;
-
-            case DiversityType.Sequence:
-                if (max == min)
-                    return min;
-                if (max < min)
-                    return context.CurrentCount + min;
-                var offset = context.CurrentCount % (max - min + 1);
-                return min + offset;
-
-            case DiversityType.Random:
-                return min >= max ? min : _rng.Next(min, max + 1);
-            //return RandomNumberGenerator.GetInt32(min, max + 1);
-
-            default: throw new ArgumentOutOfRangeException();
-        }
-    }
-    private static DateTime _generate(ReplicationContext context, DateTimeDiversity diversity)
-    {
-        long LongRandom(long min, long max, Random rand) // See: https://stackoverflow.com/questions/6651554/random-number-in-long-range-is-this-the-way
-        {
-            var buf = new byte[8];
-            rand.NextBytes(buf);
-            var longRand = BitConverter.ToInt64(buf, 0);
-            return (Math.Abs(longRand % (max - min)) + min);
-        }
-
-        var min = diversity.Sequence.MinValue;
-        var max = diversity.Sequence.MaxValue;
-        var step = diversity.Sequence.Step;
-        if (diversity.Current == default)
-            diversity.Current = min;
-
-        switch (diversity.Type)
-        {
-            case DiversityType.Constant:
-                return min;
-
-            case DiversityType.Sequence:
-                if (max == min)
-                    return min;
-                if (max < min)
-                    return diversity.Current += step;
-                var d = diversity.Current + step;
-                if (d > max)
-                    d = min;
-                diversity.Current = d;
-                return d;
-
-            case DiversityType.Random:
-                if (min >= max)
-                    return min;
-                return new DateTime(LongRandom(min.Ticks, max.Ticks + 1, _rng));
-
-            default: throw new ArgumentOutOfRangeException();
-        }
     }
 
 
@@ -613,13 +487,112 @@ public abstract partial class DataProvider
         private int _lastId = 100_000_000;
         private int GenerateDataAndIndex(int parentId, string parentPath, string name)
         {
-            ???
             return ++_lastId;
             throw new NotImplementedException();
         }
     }
 
-    /* --------------------------------------------------------------------------------- */
+    /* =============================== FIELD GENERATOR HELPERS **/
+    //UNDONE:xxxxReplication: Refactor field generators family. Example: interface -> StringFieldGenerator -> NameFieldGenerator
+    private static readonly Random _rng = new Random();
+    private static string _generate(ReplicationContext context, StringDiversity diversity)
+    {
+        var pattern = diversity.Pattern;
+        var paddingFormat = "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(context.CountMax)));
+        Func<int, string> Replace = (i) => pattern.Replace("*", i.ToString(paddingFormat));
+
+        var min = diversity.Sequence?.MinValue ?? 0;
+        var max = diversity.Sequence?.MaxValue ?? 0;
+        switch (diversity.Type)
+        {
+            case DiversityType.Constant:
+                return pattern;
+
+            case DiversityType.Sequence:
+                if (max == min)
+                    return Replace(min);
+                if (max < min)
+                    return Replace(context.CurrentCount + min);
+                var offset = context.CurrentCount % (max - min + 1);
+                return Replace(min + offset);
+
+            case DiversityType.Random:
+                if (min >= max)
+                    return Replace(min);
+                return Replace(_rng.Next(min, max + 1));
+            //return RandomNumberGenerator.GetInt32(min, max + 1);
+
+            default: throw new ArgumentOutOfRangeException();
+        }
+    }
+    private static int _generate(ReplicationContext context, IntDiversity diversity)
+    {
+        var min = diversity.MinValue;
+        var max = diversity.MaxValue;
+
+        switch (diversity.Type)
+        {
+            case DiversityType.Constant:
+                return min;
+
+            case DiversityType.Sequence:
+                if (max == min)
+                    return min;
+                if (max < min)
+                    return context.CurrentCount + min;
+                var offset = context.CurrentCount % (max - min + 1);
+                return min + offset;
+
+            case DiversityType.Random:
+                return min >= max ? min : _rng.Next(min, max + 1);
+            //return RandomNumberGenerator.GetInt32(min, max + 1);
+
+            default: throw new ArgumentOutOfRangeException();
+        }
+    }
+    private static DateTime _generate(ReplicationContext context, DateTimeDiversity diversity)
+    {
+        long LongRandom(long min, long max, Random rand) // See: https://stackoverflow.com/questions/6651554/random-number-in-long-range-is-this-the-way
+        {
+            var buf = new byte[8];
+            rand.NextBytes(buf);
+            var longRand = BitConverter.ToInt64(buf, 0);
+            return (Math.Abs(longRand % (max - min)) + min);
+        }
+
+        var min = diversity.Sequence.MinValue;
+        var max = diversity.Sequence.MaxValue;
+        var step = diversity.Sequence.Step;
+        if (diversity.Current == default)
+            diversity.Current = min;
+
+        switch (diversity.Type)
+        {
+            case DiversityType.Constant:
+                return min;
+
+            case DiversityType.Sequence:
+                if (max == min)
+                    return min;
+                if (max < min)
+                    return diversity.Current += step;
+                var d = diversity.Current + step;
+                if (d > max)
+                    d = min;
+                diversity.Current = d;
+                return d;
+
+            case DiversityType.Random:
+                if (min >= max)
+                    return min;
+                return new DateTime(LongRandom(min.Ticks, max.Ticks + 1, _rng));
+
+            default: throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    #region FIELDGENERATOR CLASSES
+
 
     private interface IFieldGenerator
     {
@@ -840,16 +813,17 @@ public abstract partial class DataProvider
             SetIndexValue(PropertyType.Name, value, context);
         }
     }
+    #endregion
 
-    private static readonly string[] _omittedFieldNames = new[]
+    private static readonly string[] OmittedFieldNames = new[]
     {
         "NodeId","ParentNodeId","IsSystem","VersionId","NodeTimestamp","VersionTimestamp"
     };
-    private static readonly string[] _wellKnownFieldNames = new[]
+    private static readonly string[] WellKnownFieldNames = new[]
     {
         "Name", "DisplayName", "Index", "OwnerId", "Version", "CreatedById", "ModifiedById", "CreationDate", "ModificationDate",
     };
-    private static readonly string[] _wellKnownIndexFieldNames = new[]
+    private static readonly string[] WellKnownIndexFieldNames = new[]
     {
         IndexFieldName.NodeId, IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, "IsFolder", 
         IndexFieldName.CreatedById, "CreatedBy", IndexFieldName.ModifiedById, "ModifiedBy", IndexFieldName.OwnerId, "Owner",
@@ -869,7 +843,7 @@ public abstract partial class DataProvider
         foreach (var item in replicationSettings.Diversity)
         {
             var fieldName = item.Key;
-            if (_omittedFieldNames.Contains(fieldName))
+            if (OmittedFieldNames.Contains(fieldName))
                 throw new InvalidOperationException($"The field '{fieldName}' cannot be included in the data generation.");
             var diversity = item.Value;
 
@@ -957,6 +931,7 @@ public abstract partial class DataProvider
         //    NodeTypeId = indexDocumentData.NodeTypeId
         //};
         context.IndexDocumentPrototype = indexDocumentData;
+        context.FieldGenerators = result;
 
         return result;
     }
