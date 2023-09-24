@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
@@ -1914,7 +1915,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
 
                 // ASSERT
-                var hits = await CreateSafeContentQuery("Name:'Event-1'").ExecuteAsync(cancel);
+                var hits = await CreateSafeContentQuery("Name:'Event-2'").ExecuteAsync(cancel);
                 Assert.AreEqual(1, hits.Count);
                 //Assert.AreEqual(1, (await CreateSafeContentQuery($"Path:'{target.Path}/event-1'").ExecuteAsync(cancel)).Count);
                 Assert.IsTrue(0 < (await CreateSafeContentQuery("Index:1001").ExecuteAsync(cancel)).Count);
