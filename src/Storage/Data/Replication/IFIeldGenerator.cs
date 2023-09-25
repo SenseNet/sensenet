@@ -28,6 +28,18 @@ internal class NameFieldGenerator : StringFieldGenerator
         context.TextExtract.AppendLine(context.NodeHeadData.Name.ToLowerInvariant());
     }
 }
+internal class FolderGeneratorNameFieldGenerator : StringFieldGenerator
+{
+    public string Name { get; set; }
+    public FolderGeneratorNameFieldGenerator(StringDiversity diversity) : base("Name", diversity) { }
+    public override void Generate(ReplicationContext context)
+    {
+        context.NodeHeadData.Name = Name;
+        context.NodeHeadData.Path = RepositoryPath.Combine(context.TargetPath, context.NodeHeadData.Name); // consider generated folder structure
+        context.IndexDocument.Path = context.NodeHeadData.Path;
+        context.TextExtract.AppendLine(Name.ToLowerInvariant());
+    }
+}
 internal class DisplayNameFieldGenerator : StringFieldGenerator
 {
     public DisplayNameFieldGenerator(StringDiversity diversity) : base("DisplayName", diversity)
@@ -142,7 +154,6 @@ internal class StringFieldGenerator : IFieldGenerator
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public StringDiversity Diversity { get; protected set; }
-    private string _paddingFormat;
     public StringFieldGenerator(string propertyName, StringDiversity diversity)
     {
         PropertyName = propertyName;
@@ -151,7 +162,6 @@ internal class StringFieldGenerator : IFieldGenerator
     }
     public virtual void Generate(ReplicationContext context)
     {
-        _paddingFormat ??= "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(context.CountMax)));
         var value = Generate(context, Diversity);
         StoreData(value, context);
         if (value == null)
@@ -168,7 +178,7 @@ internal class StringFieldGenerator : IFieldGenerator
     {
         var pattern = diversity.Pattern;
 
-        Func<int, string> Replace = (i) => pattern.Replace("*", i.ToString(_paddingFormat));
+        Func<int, string> Replace = (i) => pattern.Replace("*", i.ToString(context.PaddingFormat));
 
         var min = diversity.Sequence?.MinValue ?? 0;
         var max = diversity.Sequence?.MaxValue ?? 0;
@@ -275,6 +285,9 @@ internal class DateTimeFieldGenerator : IFieldGenerator
     }
     protected DateTime Generate(ReplicationContext context, DateTimeDiversity diversity)
     {
+        if (diversity == null)
+            return DateTime.UtcNow;
+
         long LongRandom(long min, long max, Random rand) // See: https://stackoverflow.com/questions/6651554/random-number-in-long-range-is-this-the-way
         {
             var buf = new byte[8];

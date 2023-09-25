@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.Replication;
-using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
-using String = System.String;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data;
@@ -42,20 +35,18 @@ public abstract partial class DataProvider
         if (targetData == null || targetIndexDoc == null)
             throw new InvalidOperationException("Cannot replicate missing target");
 
-        var userId = AccessProvider.Current.GetOriginalUser().Id;
-
         var min = Math.Min(replicationSettings.CountMin, replicationSettings.CountMax);
         var max = Math.Max(replicationSettings.CountMin, replicationSettings.CountMax);
         var count = min >= max ? min : new Random().Next(min, max + 1);
 
         // Initialize folder generation
 
-        var folderGenContext = new ReplicationContext
+        var folderGenContext = new ReplicationContext(this)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
-            CountMax = 0, // irrelevant in this case
+            CountMax = count, // 
             ReplicationStart = DateTime.UtcNow,
-            IsSystemContent = target.IsSystem, //target.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
+            IsSystemContent = target.IsSystem, //target.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder")),
             NodeHeadData = targetData.GetNodeHeadData(),
             VersionData = targetData.GetVersionData(),
             DynamicData = targetData.GetDynamicData(true),
@@ -64,17 +55,18 @@ public abstract partial class DataProvider
         };
         var folderReplicationSettings = new ReplicationSettings
         {
-            Diversity = new Dictionary<string, IDiversity>
-            {
-                {"Name", new StringDiversity {Type = DiversityType.Constant, Pattern = "*"}}
-            }
+            Diversity = new Dictionary<string, IDiversity>()
+            //{
+            //    {"Name", new StringDiversity {Type = DiversityType.Constant, Pattern = "*"}}
+            //}
         };
         CreateFieldGenerators(folderReplicationSettings, targetIndexDoc, folderGenContext);
-        var folderGenerator = new DefaultFolderGenerator(folderGenContext, count, 3, 2, cancel);
+        var folderGenerator = new DefaultFolderGenerator(folderGenContext, count,
+            replicationSettings.MaxItemsPerFolder, replicationSettings.MaxFoldersPerFolder, cancel);
 
         // Initialize content generation
 
-        var context = new ReplicationContext
+        var context = new ReplicationContext(this)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
             CountMax = count,
@@ -92,133 +84,35 @@ public abstract partial class DataProvider
         // REPLICATION MAIN ENUMERATION
         for (var i = 0; i < context.CountMax; i++)
         {
-            folderGenerator.EnsureFolder();
+            await folderGenerator.EnsureFolderAsync(cancel);
 var i1 = i;
 SnTrace.Test.Write(()=>$">>>> {i1} --> {folderGenerator.CurrentFolderId}, {folderGenerator.CurrentFolderPath}");
             context.TargetId = folderGenerator.CurrentFolderId;
             context.TargetPath = folderGenerator.CurrentFolderPath;
 
-            context.CurrentCount = i;
-
-            await GenerateContentAsync(context, cancel);
+            await context.GenerateContentAsync(cancel);
         }
         await Providers.Instance.IndexManager.CommitAsync(cancel);
     }
-
-    private async Task<int> GenerateContentAsync(ReplicationContext context, CancellationToken cancel)
-    {
-        var nodeHeadData = context.NodeHeadData;
-        var versionData = context.VersionData;
-        var dynamicData = context.DynamicData;
-
-        context.Now = DateTime.UtcNow;
-        context.IndexDocument = CreateIndexDocument(context);
-        context.TextExtract = new StringBuilder();
-
-        // Generate system data
-        nodeHeadData.NodeId = 0;
-        nodeHeadData.LastMajorVersionId = 0;
-        nodeHeadData.LastMinorVersionId = 0;
-        versionData.VersionId = 0;
-        versionData.NodeId = 0;
-        versionData.ChangedData = null;
-        dynamicData.VersionId = 0;
-
-        nodeHeadData.ParentNodeId = context.TargetId;
-        context.IndexDocument.ParentId = nodeHeadData.ParentNodeId;
-        nodeHeadData.IsSystem = context.IsSystemContent;
-        context.IndexDocument.IsSystem = nodeHeadData.IsSystem;
-        context.SetIndexValue("IsFolder", true);
-
-        // Generate data and index fields
-        foreach (var fieldGenerator in context.FieldGenerators)
-            fieldGenerator.Generate(context);
-
-        // INSERT
-        await InsertNodeAsync(nodeHeadData, versionData, dynamicData, cancel);
-
-        // Complete index data
-        context.SetIndexValue(IndexFieldName.NodeId, nodeHeadData.NodeId);
-        context.SetIndexValue(IndexFieldName.VersionId, versionData.VersionId);
-        context.IndexDocument.NodeId = nodeHeadData.NodeId;
-        context.IndexDocument.VersionId = versionData.VersionId;
-        context.IndexDocument.NodeTimestamp = nodeHeadData.Timestamp;
-        context.IndexDocument.VersionTimestamp = versionData.Timestamp;
-        context.IndexDocument.IsLastDraft = true;
-        context.IndexDocument.IsLastPublic = versionData.Version.IsMajor;
-
-        context.TextExtract.AppendLine(context.TypeName);
-        UpdateTextExtract(context.IndexDocument, context.TextExtract);
-        context.IndexDocument.IndexDocumentChanged();
-
-        // Save index document
-        var serialized = context.IndexDocument.IndexDocument.Serialize();
-        await SaveIndexDocumentAsync(versionData.VersionId, serialized, cancel);
-
-        // Write index
-        var doc = Providers.Instance.IndexManager.CompleteIndexDocument(context.IndexDocument);
-        await Providers.Instance.IndexManager.AddDocumentsAsync(new[] { doc }, cancel);
-
-        return nodeHeadData.NodeId;
-    }
-
-    private IndexDocumentData CreateIndexDocument(ReplicationContext context) =>
-        CreateIndexDocument(context.IndexDocumentPrototype.IndexDocument.Fields.Values);
-    private IndexDocumentData CreateIndexDocument(IEnumerable<IndexField> indexFields)
-    {
-        var indexDoc = new IndexDocument();
-        foreach (var f in indexFields)
-        {
-            IndexField indexField;
-            switch (f.Type)
-            {
-                case IndexValueType.String: indexField = new IndexField(f.Name, f.StringValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.StringArray: indexField = new IndexField(f.Name, f.StringArrayValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.Bool: indexField = new IndexField(f.Name, f.BooleanValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.Int: indexField = new IndexField(f.Name, f.IntegerValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.IntArray: indexField = new IndexField(f.Name, f.IntegerArrayValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.Long: indexField = new IndexField(f.Name, f.LongValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.Float: indexField = new IndexField(f.Name, f.SingleValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.Double: indexField = new IndexField(f.Name, f.DoubleValue, f.Mode, f.Store, f.TermVector); break;
-                case IndexValueType.DateTime: indexField = new IndexField(f.Name, f.DateTimeValue, f.Mode, f.Store, f.TermVector); break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            indexDoc.Add(indexField);
-        }
-
-        return new IndexDocumentData(indexDoc, null);
-    }
-
-    private void UpdateTextExtract(IndexDocumentData indexDoc, StringBuilder textExtract)
-    {
-        var indexField = indexDoc.IndexDocument.Fields[IndexFieldName.AllText];
-        indexDoc.IndexDocument.Fields[IndexFieldName.AllText] = new IndexField(IndexFieldName.AllText, textExtract.ToString(),
-            indexField.Mode, indexField.Store, indexField.TermVector);
-    }
-
+    
     /* =============================== FIELD GENERATOR HELPERS **/
 
-    private static readonly string[] OmittedFieldNames = new[]
-    {
+    private static readonly string[] OmittedFieldNames = {
         "NodeId","ParentNodeId","IsSystem","VersionId","NodeTimestamp","VersionTimestamp"
     };
-    private static readonly string[] WellKnownFieldNames = new[]
-    {
-        "Name", "DisplayName", "Index", "OwnerId", "Version", "CreatedById", "ModifiedById", "CreationDate", "ModificationDate",
-    };
-    private static readonly string[] WellKnownIndexFieldNames = new[]
-    {
-        IndexFieldName.NodeId, IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, "IsFolder", 
-        IndexFieldName.CreatedById, "CreatedBy", IndexFieldName.ModifiedById, "ModifiedBy", IndexFieldName.OwnerId, "Owner",
-        IndexFieldName.Depth, IndexFieldName.ParentId, IndexFieldName.IsSystem,
-        IndexFieldName.VersionId, IndexFieldName.IsLastPublic, IndexFieldName.IsLastDraft,
-        IndexFieldName.Version, IndexFieldName.IsMajor, IndexFieldName.IsPublic,
-        IndexFieldName.NodeTimestamp, IndexFieldName.VersionTimestamp,
-        "Workspace",
-    };
-    private List<IFieldGenerator> CreateFieldGenerators(ReplicationSettings replicationSettings, IndexDocumentData indexDocumentData, ReplicationContext context)
+    //private static readonly string[] WellKnownFieldNames = {
+    //    "Name", "DisplayName", "Index", "OwnerId", "Version", "CreatedById", "ModifiedById", "CreationDate", "ModificationDate",
+    //};
+    //private static readonly string[] WellKnownIndexFieldNames = {
+    //    IndexFieldName.NodeId, IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, "IsFolder", 
+    //    IndexFieldName.CreatedById, "CreatedBy", IndexFieldName.ModifiedById, "ModifiedBy", IndexFieldName.OwnerId, "Owner",
+    //    IndexFieldName.Depth, IndexFieldName.ParentId, IndexFieldName.IsSystem,
+    //    IndexFieldName.VersionId, IndexFieldName.IsLastPublic, IndexFieldName.IsLastDraft,
+    //    IndexFieldName.Version, IndexFieldName.IsMajor, IndexFieldName.IsPublic,
+    //    IndexFieldName.NodeTimestamp, IndexFieldName.VersionTimestamp,
+    //    "Workspace",
+    //};
+    private void CreateFieldGenerators(ReplicationSettings replicationSettings, IndexDocumentData indexDocumentData, ReplicationContext context)
     {
         var result = new List<IFieldGenerator>();
         var indexDocument = Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
@@ -302,23 +196,8 @@ SnTrace.Test.Write(()=>$">>>> {i1} --> {folderGenerator.CurrentFolderId}, {folde
             }
         }
 
-        // Create index document prototype
-
-        //fieldNames = fieldNames.Except(_wellKnownFieldNames).Except(_wellKnownIndexFieldNames).ToList();
-        //var protoTypeFields = indexDocument.Fields;
-        //foreach (var unnecessaryField in indexDocument.Fields.Keys.ToArray())
-        //{
-        //    if (protoTypeFields.ContainsKey(unnecessaryField))
-        //        protoTypeFields.Remove(unnecessaryField);
-        //}
-        //context.IndexDocumentPrototype = new IndexDocumentData(indexDocument, null)
-        //{
-        //    NodeTypeId = indexDocumentData.NodeTypeId
-        //};
         context.IndexDocumentPrototype = indexDocumentData;
         context.FieldGenerators = result;
-
-        return result;
     }
     private Exception GetDiversityTypeError<TDiv>(IDiversity diversity, PropertyType propertyType) where TDiv : IDiversity
     {
@@ -326,11 +205,11 @@ SnTrace.Test.Write(()=>$">>>> {i1} --> {folderGenerator.CurrentFolderId}, {folde
                                              $"'{propertyType.Name}' ({propertyType.DataType}) property. " +
                                              $"Expected: {typeof(TDiv).Name}");
     }
-    private Tdiv GetDiversity<Tdiv>(IDiversity diversity)
+    private TDiv GetDiversity<TDiv>(IDiversity diversity)
     {
-        if (diversity is not Tdiv typedDiversity)
+        if (diversity is not TDiv typedDiversity)
             throw new InvalidOperationException(
-                $"The DiversitySettings of the Name field should be {typeof(Tdiv).Name} instead of {diversity.GetType().Name}.");
+                $"The DiversitySettings of the Name field should be {typeof(TDiv).Name} instead of {diversity.GetType().Name}.");
         return typedDiversity;
     }
 

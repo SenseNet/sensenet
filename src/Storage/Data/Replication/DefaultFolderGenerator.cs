@@ -1,19 +1,26 @@
-﻿using System;
+﻿using SenseNet.Client;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
-internal class IFolderGenerator
+internal interface IFolderGenerator
 {
+    int CurrentFolderId { get; }
+    string CurrentFolderPath { get; }
+    Task EnsureFolderAsync(CancellationToken cancel);
 }
 
 internal class DefaultFolderGenerator : IFolderGenerator
 {
-    private ReplicationContext _context;
+    private readonly ReplicationContext _context;
     private CancellationToken _cancel;
+    private readonly FolderGeneratorNameFieldGenerator _nameFieldGenerator;
 
     public int RootFolderId { get; }
     public string RootFolderPath { get; }
@@ -41,37 +48,51 @@ internal class DefaultFolderGenerator : IFolderGenerator
         _levels = new int[maxLevels];
         for (int i = 0; i < _levels.Length; i++)
             _levels[i] = maxFoldersPerFolder - 1;
+
+        // Change default name generator
+        var nameFieldGeneratorIndex = -1;
+        for (int i = 0; i < _context.FieldGenerators.Count; i++)
+        {
+            if (_context.FieldGenerators[i].GetType() == typeof(NameFieldGenerator))
+            {
+                nameFieldGeneratorIndex = i;
+                break;
+            }
+        }
+
+        _nameFieldGenerator = new FolderGeneratorNameFieldGenerator(null);
+        _context.FieldGenerators[nameFieldGeneratorIndex] = _nameFieldGenerator;
     }
 
     private readonly int[] _ids;
     private readonly string[] _names;
     private readonly int[] _levels;
     private int _itemIndex = -1;
-    public void EnsureFolder()
+    public async Task EnsureFolderAsync(CancellationToken cancel)
     {
         if (++_itemIndex % MaxItemsPerFolder != 0)
             return;
-        CreateLevel(0);
+        await CreateLevelAsync(0, cancel);
     }
 
-    private void CreateLevel(int level)
+    private async Task CreateLevelAsync(int level, CancellationToken cancel)
     {
         if (++_levels[level] >= MaxFoldersPerFolder)
         {
             if (level < _levels.Length - 1)
-                CreateLevel(level + 1);
+                await CreateLevelAsync(level + 1, cancel);
             _levels[level] = 0;
         }
-        CreateFolder(level);
+        await CreateFolderAsync(level, cancel);
     }
 
-    private void CreateFolder(int level)
+    private async Task CreateFolderAsync(int level, CancellationToken cancel)
     {
         var parentId = level == _levels.Length - 1 ? RootFolderId : _ids[level + 1];
         var parentPath = level == _levels.Length - 1 ? RootFolderPath : GetPath(level + 1);
-        var nodeId = GenerateDataAndIndex(parentId, parentPath, _itemIndex.ToString());
+        var name = _itemIndex.ToString(_context.PaddingFormat);
+        var nodeId = await GenerateDataAndIndexAsync(parentId, parentPath, name, cancel);
 
-        var name = _itemIndex.ToString();
         _ids[level] = nodeId;
         _names[level] = name;
         CurrentFolderId = nodeId;
@@ -86,11 +107,15 @@ internal class DefaultFolderGenerator : IFolderGenerator
         return path;
     }
 
-    private int _lastId = 100_000_000;
-    private int GenerateDataAndIndex(int parentId, string parentPath, string name)
+//private int _lastId = 100_000_000;
+    private async Task<int> GenerateDataAndIndexAsync(int parentId, string parentPath, string name, CancellationToken cancel)
     {
+//return ++_lastId;
+        _context.TargetId = parentId;
+        _context.TargetPath = parentPath;
+        _nameFieldGenerator.Name = name;
 
-        return ++_lastId;
-        throw new NotImplementedException();
+        var newFolderId = await _context.GenerateContentAsync(cancel);
+        return newFolderId;
     }
 }
