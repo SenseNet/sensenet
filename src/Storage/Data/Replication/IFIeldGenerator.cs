@@ -31,7 +31,7 @@ internal class NameFieldGenerator : StringFieldGenerator
 internal class FolderGeneratorNameFieldGenerator : StringFieldGenerator
 {
     public string Name { get; set; }
-    public FolderGeneratorNameFieldGenerator(StringDiversity diversity) : base("Name", diversity) { }
+    public FolderGeneratorNameFieldGenerator() : base("Name", null) { }
     public override void Generate(ReplicationContext context)
     {
         context.NodeHeadData.Name = Name;

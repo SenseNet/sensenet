@@ -17,6 +17,7 @@ public class ReplicationSettings
     public int CountMax { get; set; }
     public int MaxItemsPerFolder { get; set; }
     public int MaxFoldersPerFolder { get; set; }
+    public int FirstFolderIndex { get; set; }
     public IDictionary<string, IDiversity> Diversity { get; set; }
 }
 
@@ -61,7 +62,7 @@ public abstract partial class DataProvider
             //}
         };
         CreateFieldGenerators(folderReplicationSettings, targetIndexDoc, folderGenContext);
-        var folderGenerator = new DefaultFolderGenerator(folderGenContext, count,
+        var folderGenerator = new DefaultFolderGenerator(folderGenContext, count, replicationSettings.FirstFolderIndex,
             replicationSettings.MaxItemsPerFolder, replicationSettings.MaxFoldersPerFolder, cancel);
 
         // Initialize content generation

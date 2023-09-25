@@ -1865,7 +1865,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     CountMax = replicationCount,
                     MaxItemsPerFolder = 4,
                     MaxFoldersPerFolder = 3,
-
+                    FirstFolderIndex = 1,
                     Diversity = new Dictionary<string, IDiversity>
                     {
                         {"Name", new StringDiversity

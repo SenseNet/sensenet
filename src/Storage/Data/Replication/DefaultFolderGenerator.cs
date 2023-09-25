@@ -21,6 +21,7 @@ internal class DefaultFolderGenerator : IFolderGenerator
     private readonly ReplicationContext _context;
     private CancellationToken _cancel;
     private readonly FolderGeneratorNameFieldGenerator _nameFieldGenerator;
+    private readonly int _startIndex;
 
     public int RootFolderId { get; }
     public string RootFolderPath { get; }
@@ -31,7 +32,7 @@ internal class DefaultFolderGenerator : IFolderGenerator
     public int CurrentFolderId { get; private set; }
     public string CurrentFolderPath { get; private set; }
 
-    public DefaultFolderGenerator(ReplicationContext context, int maxItems, int maxItemsPerFolder, int maxFoldersPerFolder, CancellationToken cancel)
+    public DefaultFolderGenerator(ReplicationContext context, int maxItems, int startIndex, int maxItemsPerFolder, int maxFoldersPerFolder, CancellationToken cancel)
     {
         _context = context;
         RootFolderId = context.TargetId;
@@ -39,8 +40,9 @@ internal class DefaultFolderGenerator : IFolderGenerator
         MaxItems = maxItems;
         MaxItemsPerFolder = maxItemsPerFolder;
         MaxFoldersPerFolder = maxFoldersPerFolder;
+        _startIndex = startIndex;
         _cancel = cancel;
-
+        
         var maxLevels = Convert.ToInt32(Math.Ceiling(Math.Log(Math.Ceiling(0.0d + MaxItems / MaxItemsPerFolder),
             maxFoldersPerFolder)));
         _ids = new int[maxLevels];
@@ -59,8 +61,7 @@ internal class DefaultFolderGenerator : IFolderGenerator
                 break;
             }
         }
-
-        _nameFieldGenerator = new FolderGeneratorNameFieldGenerator(null);
+        _nameFieldGenerator = new FolderGeneratorNameFieldGenerator();
         _context.FieldGenerators[nameFieldGeneratorIndex] = _nameFieldGenerator;
     }
 
@@ -90,7 +91,7 @@ internal class DefaultFolderGenerator : IFolderGenerator
     {
         var parentId = level == _levels.Length - 1 ? RootFolderId : _ids[level + 1];
         var parentPath = level == _levels.Length - 1 ? RootFolderPath : GetPath(level + 1);
-        var name = _itemIndex.ToString(_context.PaddingFormat);
+        var name = (_itemIndex + _startIndex).ToString(_context.PaddingFormat);
         var nodeId = await GenerateDataAndIndexAsync(parentId, parentPath, name, cancel);
 
         _ids[level] = nodeId;
