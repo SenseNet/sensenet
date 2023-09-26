@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Data.Replication;
+using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests;
@@ -9,111 +11,65 @@ namespace SenseNet.ContentRepository.Tests;
 public class ReplicationTests : TestBase
 {
     [TestMethod]
-    public void Replication_Parser_Error_NullDescriptor()
+    public void Replication_Parser_Defaults()
     {
-        try
-        {
-            // ACTION
-            var parsed = ReplicationDescriptor.Parse(null);
-            Assert.Fail("ArgumentException was not thrown");
-        }
-        catch (ArgumentNullException e)
-        {
-            // ASSERT
-            Assert.AreEqual("Value cannot be null. (Parameter 'descriptor')", e.Message);
-        }
-    }
-    [TestMethod]
-    public void Replication_Parser_Error_EmptyDescriptor()
-    {
-        try
-        {
-            // ACTION
-            var parsed = ReplicationDescriptor.Parse(string.Empty);
-            Assert.Fail("ArgumentException was not thrown");
-        }
-        catch (ArgumentException e)
-        {
-            // ASSERT
-            Assert.AreEqual("The 'descriptor' argument cannot be empty.", e.Message);
-        }
-    }
-    [TestMethod]
-    public void Replication_Parser_Error_DescriptorBadFormat()
-    {
-        try
-        {
-            // ACTION
-            var parsed = ReplicationDescriptor.Parse("unrecognizable data");
-            Assert.Fail("ArgumentException was not thrown");
-        }
-        catch (ArgumentException e)
-        {
-            // ASSERT
-            Assert.AreEqual("The value of the 'descriptor' argument cannot be recognized as a valid ReplicationDescriptor.", e.Message);
-        }
-    }
-    [TestMethod]
-    public void Replication_Parser_NoDiversity()
-    {
-        var descriptor = @"{
-""CountMax"": 42,
-""MaxItemsPerFolder"": 5,
-""MaxFoldersPerFolder"": 4,
-""FirstFolderIndex"": 1
-}";
+        var descriptor = JsonConvert.DeserializeObject<ReplicationDescriptor>(@"{
+}");
+        Assert.IsNotNull(descriptor);
+
         // ACTION
-        var parsed = ReplicationDescriptor.Parse(descriptor);
+        descriptor.Initialize();
 
         // ASSERT
-        Assert.AreEqual(42, parsed.CountMax);
-        Assert.AreEqual(5, parsed.MaxItemsPerFolder);
-        Assert.AreEqual(4, parsed.MaxFoldersPerFolder);
-        Assert.AreEqual(1, parsed.FirstFolderIndex);
-        Assert.IsNull(parsed.DiversityControl);
-        Assert.IsNull(parsed.Diversity);
+        Assert.AreEqual(10, descriptor.CountMax);
+        Assert.AreEqual(100, descriptor.MaxItemsPerFolder);
+        Assert.AreEqual(100, descriptor.MaxFoldersPerFolder);
+        Assert.AreEqual(0, descriptor.FirstFolderIndex);
+        Assert.IsNull(descriptor.DiversityControl);
+        Assert.IsNotNull(descriptor.Diversity);
+        Assert.AreEqual(0, descriptor.Diversity.Count);
     }
     [TestMethod]
     public void Replication_Parser_EmptyDiversity()
     {
-        var descriptor = @"{
-""CountMax"": 42,
-""MaxItemsPerFolder"": 5,
-""MaxFoldersPerFolder"": 4,
-""FirstFolderIndex"": 1,
-""DiversityControl"": { }
-}";
+        var descriptor = JsonConvert.DeserializeObject<ReplicationDescriptor>(@"{
+  ""CountMax"": 42,
+  ""MaxItemsPerFolder"": 5,
+  ""MaxFoldersPerFolder"": 4,
+  ""FirstFolderIndex"": 1,
+  ""DiversityControl"": { }
+}");
+        Assert.IsNotNull(descriptor);
 
         // ACTION
-        var parsed = ReplicationDescriptor.Parse(descriptor);
+        descriptor.Initialize();
 
         // ASSERT
-        Assert.AreEqual(42, parsed.CountMax);
-        Assert.AreEqual(5, parsed.MaxItemsPerFolder);
-        Assert.AreEqual(4, parsed.MaxFoldersPerFolder);
-        Assert.AreEqual(1, parsed.FirstFolderIndex);
-        Assert.IsNotNull(parsed.DiversityControl);
-        Assert.AreEqual(0, parsed.DiversityControl.Count);
-        Assert.IsNull(parsed.Diversity);
+        Assert.AreEqual(42, descriptor.CountMax);
+        Assert.AreEqual(5, descriptor.MaxItemsPerFolder);
+        Assert.AreEqual(4, descriptor.MaxFoldersPerFolder);
+        Assert.AreEqual(1, descriptor.FirstFolderIndex);
+        Assert.IsNotNull(descriptor.DiversityControl);
+        Assert.AreEqual(0, descriptor.DiversityControl.Count);
+        Assert.IsNotNull(descriptor.Diversity);
+        Assert.AreEqual(0, descriptor.Diversity.Count);
     }
 
     [TestMethod]
-    public void Replication_Parser_Defaults()
+    public void Replication_Parser_IntDiversity()
     {
-        var descriptor = @"{
-  ""CountMax"": 42,
-}";
+        var descriptor = JsonConvert.DeserializeObject<ReplicationDescriptor>(@"{
+  ""DiversityControl"": {
+    ""Index"": ""0 TO 99 RANDOM""
+  }
+}");
+        Assert.IsNotNull(descriptor);
 
         // ACTION
-        var parsed = ReplicationDescriptor.Parse(descriptor);
+        descriptor.Initialize();
 
         // ASSERT
-        Assert.AreEqual(42, parsed.CountMax);
-        Assert.AreEqual(100, parsed.MaxItemsPerFolder);
-        Assert.AreEqual(100, parsed.MaxFoldersPerFolder);
-        Assert.AreEqual(0, parsed.FirstFolderIndex);
-        Assert.IsNull(parsed.DiversityControl);
-        Assert.IsNull(parsed.Diversity);
+        Assert.IsNotNull(descriptor.Diversity);
+        Assert.AreEqual(1, descriptor.Diversity.Count);
     }
-
 }

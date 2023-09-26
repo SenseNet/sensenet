@@ -15,7 +15,7 @@ public static class ContentGenerationOperations
     [ODataAction(OperationName = "Replicate")]
     [AllowedRoles(N.R.Administrators, N.R.Developers)]
     [ContentTypes(N.CT.GenericContent)]
-    public static async STT.Task ReplicateAsync(Content content, string targetIdOrPath, object descriptor, HttpContext httpContext)
+    public static async STT.Task ReplicateAsync(Content content, HttpContext httpContext, string targetIdOrPath, ReplicationDescriptor descriptor)
     {
         var target = await Content.LoadByIdOrPathAsync(targetIdOrPath, httpContext.RequestAborted);
         if (target == null)
@@ -25,11 +25,10 @@ public static class ContentGenerationOperations
         if (replicationService == null)
             throw new NotSupportedException("Replication is not supported.");
 
-        var replicationDescriptor = ReplicationDescriptor.Parse(descriptor);
+        descriptor.Initialize();
 
 #pragma warning disable CS4014 // This call is not awaited, execution of the current method continues before the call is completed.
-        replicationService.ReplicateNodeAsync(content.ContentHandler, target.ContentHandler, replicationDescriptor,
-            CancellationToken.None);
+        replicationService.ReplicateNodeAsync(content.ContentHandler, target.ContentHandler, descriptor, CancellationToken.None);
 #pragma warning restore CS4014
     }
 }
