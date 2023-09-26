@@ -1865,12 +1865,12 @@ namespace SenseNet.IntegrationTests.TestCases
                 var target = CreateFolder(testRoot, "replicated");
 
                 // ACTION
-                var replicationCount = 17000; // 12;
+                var replicationCount = 12; // 12;
                 var replicationDescriptor = new ReplicationDescriptor
                 {
                     CountMax = replicationCount,
-                    MaxItemsPerFolder = 100,
-                    MaxFoldersPerFolder = 100,
+                    MaxItemsPerFolder = 4,
+                    MaxFoldersPerFolder = 3,
                     FirstFolderIndex = 1,
                     Diversity = new Dictionary<string, IDiversity>
                     {

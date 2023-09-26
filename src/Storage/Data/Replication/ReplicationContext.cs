@@ -139,7 +139,6 @@ internal class ReplicationContext
         IndexDocument.ParentId = nodeHeadData.ParentNodeId;
         nodeHeadData.IsSystem = IsSystemContent;
         IndexDocument.IsSystem = nodeHeadData.IsSystem;
-        SetIndexValue("IsFolder", true); // UNDONE:xxxxReplication: ????
 
         // Generate data and index fields
         foreach (var fieldGenerator in FieldGenerators)
