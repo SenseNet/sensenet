@@ -1857,7 +1857,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 //var logger = NullLoggerFactory.Instance.CreateLogger<IReplicationService>();
                 var logger = Providers.Instance.Services.GetRequiredService<ILogger<IReplicationService>>();
-                var replicationService = new SingleNodeReplicationService(DP, logger);
+                var replicationService = new SingleNodeReplicationService(DP, Providers.Instance.IndexManager, logger);
 
                 var testRoot = CreateFolder(Repository.Root, "ReplicationRoot"); //CreateTestRoot();
                 var source = new SenseNet.ContentRepository.CalendarEvent(testRoot) {Name = "Event-1", DisplayName = "Event-1 D"};

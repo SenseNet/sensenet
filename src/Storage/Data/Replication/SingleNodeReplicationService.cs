@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
@@ -13,11 +13,13 @@ namespace SenseNet.ContentRepository.Storage.Data.Replication;
 public class SingleNodeReplicationService : IReplicationService
 {
     private readonly DataProvider _dataProvider;
-    private ILogger<IReplicationService> _logger;
+    private readonly IIndexManager _indexManager;
+    private readonly ILogger<IReplicationService> _logger;
 
-    public SingleNodeReplicationService(DataProvider dataProvider, ILogger<IReplicationService> logger)
+    public SingleNodeReplicationService(DataProvider dataProvider, IIndexManager indexManager, ILogger<IReplicationService> logger)
     {
         _dataProvider = dataProvider;
+        _indexManager = indexManager;
         _logger = logger;
     }
 
@@ -34,14 +36,12 @@ public class SingleNodeReplicationService : IReplicationService
             throw new InvalidOperationException("Cannot replicate missing target");
 
         var timer = Stopwatch.StartNew();
-        var parametersForLogging = $"Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}";
         _logger.LogInformation($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
 SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
-
-
+        
         // Initialize folder generation
-
-        var folderGenContext = new ReplicationContext(_dataProvider)
+        
+        var folderGenContext = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
             CountMax = replicationDescriptor.CountMax, // 
@@ -53,7 +53,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} 
             TargetId = target.Id,
             TargetPath = target.Path
         };
-        folderGenContext.CreateFieldGenerators(new ReplicationDescriptor(), targetIndexDoc);
+        folderGenContext.Initialize(new ReplicationDescriptor(), targetIndexDoc);
         var folderGenerator = new DefaultFolderGenerator(folderGenContext,
             replicationDescriptor.CountMax,
             replicationDescriptor.FirstFolderIndex,
@@ -61,7 +61,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} 
 
         // Initialize content generation
 
-        var context = new ReplicationContext(_dataProvider)
+        var context = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
             CountMax = replicationDescriptor.CountMax,
@@ -73,7 +73,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} 
             TargetId = target.Id,
             TargetPath = target.Path
         };
-        context.CreateFieldGenerators(replicationDescriptor, sourceIndexDoc);
+        context.Initialize(replicationDescriptor, sourceIndexDoc);
 
         // REPLICATION MAIN ENUMERATION
         var lastLogTime = DateTime.UtcNow;
@@ -100,7 +100,7 @@ SnTrace.Test.Write($"Replication in progress. " +
             }
         }
 
-        await Providers.Instance.IndexManager.CommitAsync(cancel);
+        await _indexManager.CommitAsync(cancel);
 
         timer.Stop();
         var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";

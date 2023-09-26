@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -36,18 +36,22 @@ internal class ReplicationContext
     private string _paddingFormat;
     public string PaddingFormat => _paddingFormat ??= CountMax == 0 ? "D" : "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(CountMax)));
 
-    private DataProvider _dataProvider;
+    private readonly DataProvider _dataProvider;
+    private readonly IIndexManager _indexManager;
 
     /* ================================================================== INITIALIZATION */
 
-    public ReplicationContext(DataProvider dataProvider)
+    public ReplicationContext(DataProvider dataProvider, IIndexManager indexManager)
     {
         _dataProvider = dataProvider;
+        _indexManager = indexManager;
     }
 
-    public void CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocumentData indexDoc)
+    public void Initialize(ReplicationDescriptor replicationDescriptor, IndexDocumentData indexDocData)
     {
-        FieldGenerator.CreateFieldGenerators(replicationDescriptor, indexDoc, this);
+        var indexDocument = _indexManager.CompleteIndexDocument(indexDocData);
+        IndexDocumentPrototype = indexDocData;
+        FieldGenerators = FieldGenerator.CreateFieldGenerators(replicationDescriptor, indexDocument, this);
     }
 
     /* ================================================================== INDEX HANDLING */
@@ -135,7 +139,7 @@ internal class ReplicationContext
         IndexDocument.ParentId = nodeHeadData.ParentNodeId;
         nodeHeadData.IsSystem = IsSystemContent;
         IndexDocument.IsSystem = nodeHeadData.IsSystem;
-        SetIndexValue("IsFolder", true);
+        SetIndexValue("IsFolder", true); // UNDONE:xxxxReplication: ????
 
         // Generate data and index fields
         foreach (var fieldGenerator in FieldGenerators)
@@ -163,8 +167,8 @@ internal class ReplicationContext
         await _dataProvider.SaveIndexDocumentAsync(versionData.VersionId, serialized, cancel);
 
         // Write index
-        var doc = Providers.Instance.IndexManager.CompleteIndexDocument(IndexDocument);
-        await Providers.Instance.IndexManager.AddDocumentsAsync(new[] { doc }, cancel);
+        var doc = _indexManager.CompleteIndexDocument(IndexDocument);
+        await _indexManager.AddDocumentsAsync(new[] { doc }, cancel);
 
         CurrentCount++;
 

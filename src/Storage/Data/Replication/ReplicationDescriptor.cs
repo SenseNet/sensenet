@@ -15,9 +15,11 @@ public class ReplicationDescriptor
     [JsonIgnore]
     public IDictionary<string, IDiversity> Diversity { get; set; }
 
-    public static ReplicationDescriptor Parse(string descriptor)
+    public static ReplicationDescriptor Parse(object descriptorJson)
     {
-        if (descriptor == null)
+        throw new NotImplementedException();
+        /*
+        if (descriptorJson == null)
             throw new ArgumentNullException(nameof(descriptor));
         if (descriptor.Length == 0)
             throw new ArgumentException($"The '{nameof(descriptor)}' argument cannot be empty.");
@@ -39,9 +41,7 @@ public class ReplicationDescriptor
         if (deserialized.MaxFoldersPerFolder < 1)
             deserialized.MaxFoldersPerFolder = 100;
 
-        if (deserialized.MaxFoldersPerFolder < 1)
-            deserialized.MaxFoldersPerFolder = 100;
-
         return deserialized;
+        */
     }
 }

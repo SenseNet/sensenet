@@ -50,9 +50,6 @@ public class IntDiversity : Diversity<int>
     public int MinValue { get; set; }
     public int MaxValue { get; set; }
 }
-public class ReferenceIdDiversity : IntDiversity
-{
-}
 public class DateTimeDiversity : Diversity<DateTime>
 {
     public DateTimeSequence Sequence { get; set; }

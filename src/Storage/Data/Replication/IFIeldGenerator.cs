@@ -3,7 +3,7 @@ using SenseNet.Search;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.Configuration;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
@@ -20,22 +20,9 @@ internal abstract class FieldGenerator : IFieldGenerator
     private static readonly string[] OmittedFieldNames = {
         "NodeId","ParentNodeId","IsSystem","VersionId","NodeTimestamp","VersionTimestamp"
     };
-    //private static readonly string[] WellKnownFieldNames = {
-    //    "Name", "DisplayName", "Index", "OwnerId", "Version", "CreatedById", "ModifiedById", "CreationDate", "ModificationDate",
-    //};
-    //private static readonly string[] WellKnownIndexFieldNames = {
-    //    IndexFieldName.NodeId, IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, "IsFolder", 
-    //    IndexFieldName.CreatedById, "CreatedBy", IndexFieldName.ModifiedById, "ModifiedBy", IndexFieldName.OwnerId, "Owner",
-    //    IndexFieldName.Depth, IndexFieldName.ParentId, IndexFieldName.IsSystem,
-    //    IndexFieldName.VersionId, IndexFieldName.IsLastPublic, IndexFieldName.IsLastDraft,
-    //    IndexFieldName.Version, IndexFieldName.IsMajor, IndexFieldName.IsPublic,
-    //    IndexFieldName.NodeTimestamp, IndexFieldName.VersionTimestamp,
-    //    "Workspace",
-    //};
-    internal static void CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocumentData indexDocumentData, ReplicationContext context)
+    internal static List<IFieldGenerator> CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocument indexDocument, ReplicationContext context)
     {
         var result = new List<IFieldGenerator>();
-        var indexDocument = Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
         var fieldNames = indexDocument.Fields.Keys.ToList();
 
         if (replicationDescriptor.Diversity != null)
@@ -119,8 +106,7 @@ internal abstract class FieldGenerator : IFieldGenerator
             }
         }
 
-        context.IndexDocumentPrototype = indexDocumentData;
-        context.FieldGenerators = result;
+        return result;
     }
     private static Exception GetDiversityTypeError<TDiv>(IDiversity diversity, PropertyType propertyType) where TDiv : IDiversity
     {
@@ -135,7 +121,6 @@ internal abstract class FieldGenerator : IFieldGenerator
                 $"The DiversitySettings of the Name field should be {typeof(TDiv).Name} instead of {diversity.GetType().Name}.");
         return typedDiversity;
     }
-
 }
 internal class NameFieldGenerator : StringFieldGenerator
 {
