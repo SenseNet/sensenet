@@ -21,7 +21,7 @@ public class SingleNodeReplicationService : IReplicationService
         _logger = logger;
     }
 
-    public async Task ReplicateNodeAsync(Node source, Node target, ReplicationSettings replicationSettings, CancellationToken cancel)
+    public async Task ReplicateNodeAsync(Node source, Node target, ReplicationDescriptor replicationDescriptor, CancellationToken cancel)
     {
         var sourceData = (await _dataProvider.LoadNodesAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
         var sourceIndexDoc = (await _dataProvider.LoadIndexDocumentsAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
@@ -34,9 +34,9 @@ public class SingleNodeReplicationService : IReplicationService
             throw new InvalidOperationException("Cannot replicate missing target");
 
         var timer = Stopwatch.StartNew();
-        var parametersForLogging = $"Count: {replicationSettings.CountMax} Source: {source.Path}, Target: {target.Path}";
-        _logger.LogInformation($"Start replication. Count: {replicationSettings.CountMax} Source: {source.Path}, Target: {target.Path}");
-SnTrace.Test.Write($"Start replication. Count: {replicationSettings.CountMax} Source: {source.Path}, Target: {target.Path}");
+        var parametersForLogging = $"Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}";
+        _logger.LogInformation($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
 
 
         // Initialize folder generation
@@ -44,7 +44,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationSettings.CountMax} So
         var folderGenContext = new ReplicationContext(_dataProvider)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
-            CountMax = replicationSettings.CountMax, // 
+            CountMax = replicationDescriptor.CountMax, // 
             ReplicationStart = DateTime.UtcNow,
             IsSystemContent = target.IsSystem, //target.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder")),
             NodeHeadData = targetData.GetNodeHeadData(),
@@ -53,18 +53,18 @@ SnTrace.Test.Write($"Start replication. Count: {replicationSettings.CountMax} So
             TargetId = target.Id,
             TargetPath = target.Path
         };
-        folderGenContext.CreateFieldGenerators(new ReplicationSettings(), targetIndexDoc);
+        folderGenContext.CreateFieldGenerators(new ReplicationDescriptor(), targetIndexDoc);
         var folderGenerator = new DefaultFolderGenerator(folderGenContext,
-            replicationSettings.CountMax,
-            replicationSettings.FirstFolderIndex,
-            replicationSettings.MaxItemsPerFolder, replicationSettings.MaxFoldersPerFolder);
+            replicationDescriptor.CountMax,
+            replicationDescriptor.FirstFolderIndex,
+            replicationDescriptor.MaxItemsPerFolder, replicationDescriptor.MaxFoldersPerFolder);
 
         // Initialize content generation
 
         var context = new ReplicationContext(_dataProvider)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
-            CountMax = replicationSettings.CountMax,
+            CountMax = replicationDescriptor.CountMax,
             ReplicationStart = DateTime.UtcNow,
             IsSystemContent = source.IsSystem || target.IsSystem, //source.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
             NodeHeadData = sourceData.GetNodeHeadData(),
@@ -73,7 +73,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationSettings.CountMax} So
             TargetId = target.Id,
             TargetPath = target.Path
         };
-        context.CreateFieldGenerators(replicationSettings, sourceIndexDoc);
+        context.CreateFieldGenerators(replicationDescriptor, sourceIndexDoc);
 
         // REPLICATION MAIN ENUMERATION
         var lastLogTime = DateTime.UtcNow;
@@ -91,11 +91,11 @@ SnTrace.Test.Write($"Start replication. Count: {replicationSettings.CountMax} So
                 lastLogTime = DateTime.UtcNow;
                 _logger.LogInformation($"Replication in progress. " +
                                        $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds} CPS). " +
-                                       $"Count: {i + 1}/{replicationSettings.CountMax} ({(i + 1) * 100 / replicationSettings.CountMax}%)" +
+                                       $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%)" +
                                        $"Source: {source.Path}, Target: {target.Path}");
 SnTrace.Test.Write($"Replication in progress. " +
                    $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds:0} CPS). " +
-                   $"Count: {i + 1}/{replicationSettings.CountMax} ({(i + 1) * 100 / replicationSettings.CountMax}%) " +
+                   $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%) " +
                    $"Source: {source.Path}, Target: {target.Path}");
             }
         }
@@ -103,8 +103,8 @@ SnTrace.Test.Write($"Replication in progress. " +
         await Providers.Instance.IndexManager.CommitAsync(cancel);
 
         timer.Stop();
-        var cps = $"{1.0d * replicationSettings.CountMax / timer.Elapsed.TotalSeconds:0}";
-        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationSettings.CountMax} Source: {source.Path}, Target: {target.Path}");
-SnTrace.Test.Write($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationSettings.CountMax} Source: {source.Path}, Target: {target.Path}");
+        var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";
+        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+SnTrace.Test.Write($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
     }
 }

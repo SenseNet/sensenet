@@ -6,5 +6,5 @@ namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
 public interface IReplicationService
 {
-    Task ReplicateNodeAsync(Node source, Node target, ReplicationSettings replicationSettings, CancellationToken cancel);
+    Task ReplicateNodeAsync(Node source, Node target, ReplicationDescriptor replicationDescriptor, CancellationToken cancel);
 }

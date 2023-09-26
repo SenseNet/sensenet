@@ -45,9 +45,9 @@ internal class ReplicationContext
         _dataProvider = dataProvider;
     }
 
-    public void CreateFieldGenerators(ReplicationSettings replicationSettings, IndexDocumentData indexDoc)
+    public void CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocumentData indexDoc)
     {
-        FieldGenerator.CreateFieldGenerators(replicationSettings, indexDoc, this);
+        FieldGenerator.CreateFieldGenerators(replicationDescriptor, indexDoc, this);
     }
 
     /* ================================================================== INDEX HANDLING */

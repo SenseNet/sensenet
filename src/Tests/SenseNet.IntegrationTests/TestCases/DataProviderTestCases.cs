@@ -1866,7 +1866,7 @@ namespace SenseNet.IntegrationTests.TestCases
 
                 // ACTION
                 var replicationCount = 17000; // 12;
-                var replicationSettings = new ReplicationSettings
+                var replicationDescriptor = new ReplicationDescriptor
                 {
                     CountMax = replicationCount,
                     MaxItemsPerFolder = 100,
@@ -1906,7 +1906,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 };
                 SnTrace.Test.Write(">>>> START Replication: " + replicationCount);
                 var timer = Stopwatch.StartNew();
-                await replicationService.ReplicateNodeAsync(source, target, replicationSettings, CancellationToken.None);
+                await replicationService.ReplicateNodeAsync(source, target, replicationDescriptor, CancellationToken.None);
                 var time = timer.Elapsed;
                 timer.Stop();
                 SnTrace.Test.Write(()=> $">>>> Replication time: {time} ({1.0d * replicationCount / time.TotalSeconds:0} CPS)");

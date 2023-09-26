@@ -32,16 +32,16 @@ internal abstract class FieldGenerator : IFieldGenerator
     //    IndexFieldName.NodeTimestamp, IndexFieldName.VersionTimestamp,
     //    "Workspace",
     //};
-    internal static void CreateFieldGenerators(ReplicationSettings replicationSettings, IndexDocumentData indexDocumentData, ReplicationContext context)
+    internal static void CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocumentData indexDocumentData, ReplicationContext context)
     {
         var result = new List<IFieldGenerator>();
         var indexDocument = Providers.Instance.IndexManager.CompleteIndexDocument(indexDocumentData);
         var fieldNames = indexDocument.Fields.Keys.ToList();
 
-        if (replicationSettings.Diversity != null)
+        if (replicationDescriptor.Diversity != null)
         {
             // Create configured field generators
-            foreach (var item in replicationSettings.Diversity)
+            foreach (var item in replicationDescriptor.Diversity)
             {
                 var fieldName = item.Key;
                 if (OmittedFieldNames.Contains(fieldName))
