@@ -48,7 +48,11 @@ public class ReplicationDescriptor
                 }
                 else
                 {
-                    if (words.Length == 4)
+                    if (words.Length == 3)
+                    {
+                        type = DiversityType.Sequence;
+                    }
+                    else if (words.Length == 4)
                     {
                         if (words[3].Equals("RANDOM", StringComparison.InvariantCultureIgnoreCase))
                             type = DiversityType.Random;
@@ -57,6 +61,7 @@ public class ReplicationDescriptor
                         else
                             throw new ArgumentException($"Invalid qualifier in the IntDiversity of the '{name}' field: '{src}'. Expected last word: 'Random' or 'Sequence'");
                     }
+
                     if (!words[1].Equals("TO", StringComparison.InvariantCultureIgnoreCase))
                         throw new ArgumentException($"Invalid range definition in the IntDiversity of the '{name}' field: '{src}'. Expected format: <min> TO <max> RANDOM|SEQUENCE");
                     if (!int.TryParse(words[0], out min))
