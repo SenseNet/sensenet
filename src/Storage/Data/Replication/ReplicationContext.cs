@@ -38,9 +38,16 @@ internal class ReplicationContext
 
     private DataProvider _dataProvider;
 
+    /* ================================================================== INITIALIZATION */
+
     public ReplicationContext(DataProvider dataProvider)
     {
         _dataProvider = dataProvider;
+    }
+
+    public void CreateFieldGenerators(ReplicationSettings replicationSettings, IndexDocumentData indexDoc)
+    {
+        FieldGenerator.CreateFieldGenerators(replicationSettings, indexDoc, this);
     }
 
     /* ================================================================== INDEX HANDLING */
@@ -198,5 +205,4 @@ internal class ReplicationContext
         indexDoc.IndexDocument.Fields[IndexFieldName.AllText] = new IndexField(IndexFieldName.AllText, textExtract.ToString(),
             indexField.Mode, indexField.Store, indexField.TermVector);
     }
-
 }

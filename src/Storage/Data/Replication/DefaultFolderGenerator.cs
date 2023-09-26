@@ -1,8 +1,4 @@
-﻿using SenseNet.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +15,6 @@ internal interface IFolderGenerator
 internal class DefaultFolderGenerator : IFolderGenerator
 {
     private readonly ReplicationContext _context;
-    private CancellationToken _cancel;
     private readonly FolderGeneratorNameFieldGenerator _nameFieldGenerator;
     private readonly int _startIndex;
 
@@ -32,7 +27,7 @@ internal class DefaultFolderGenerator : IFolderGenerator
     public int CurrentFolderId { get; private set; }
     public string CurrentFolderPath { get; private set; }
 
-    public DefaultFolderGenerator(ReplicationContext context, int maxItems, int startIndex, int maxItemsPerFolder, int maxFoldersPerFolder, CancellationToken cancel)
+    public DefaultFolderGenerator(ReplicationContext context, int maxItems, int startIndex, int maxItemsPerFolder, int maxFoldersPerFolder)
     {
         _context = context;
         RootFolderId = context.TargetId;
@@ -41,9 +36,11 @@ internal class DefaultFolderGenerator : IFolderGenerator
         MaxItemsPerFolder = maxItemsPerFolder;
         MaxFoldersPerFolder = maxFoldersPerFolder;
         _startIndex = startIndex;
-        _cancel = cancel;
-        
-        var maxLevels = Convert.ToInt32(Math.Ceiling(Math.Log(Math.Ceiling(0.0d + MaxItems / MaxItemsPerFolder),
+
+        CurrentFolderId = RootFolderId;
+        CurrentFolderPath = RootFolderPath;
+
+        var maxLevels = Convert.ToInt32(Math.Ceiling(Math.Log(Math.Ceiling((0.0d + MaxItems) / MaxItemsPerFolder),
             maxFoldersPerFolder)));
         _ids = new int[maxLevels];
         _names = new string[maxLevels];
@@ -71,6 +68,8 @@ internal class DefaultFolderGenerator : IFolderGenerator
     private int _itemIndex = -1;
     public async Task EnsureFolderAsync(CancellationToken cancel)
     {
+        if (_levels.Length == 0)
+            return;
         if (++_itemIndex % MaxItemsPerFolder != 0)
             return;
         await CreateLevelAsync(0, cancel);
@@ -108,10 +107,8 @@ internal class DefaultFolderGenerator : IFolderGenerator
         return path;
     }
 
-//private int _lastId = 100_000_000;
     private async Task<int> GenerateDataAndIndexAsync(int parentId, string parentPath, string name, CancellationToken cancel)
     {
-//return ++_lastId;
         _context.TargetId = parentId;
         _context.TargetPath = parentPath;
         _nameFieldGenerator.Name = name;

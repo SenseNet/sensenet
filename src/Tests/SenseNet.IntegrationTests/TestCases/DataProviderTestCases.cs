@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -1852,18 +1855,22 @@ namespace SenseNet.IntegrationTests.TestCases
             var cancel = CancellationToken.None;
             await IntegrationTestAsync(async () =>
             {
+                //var logger = NullLoggerFactory.Instance.CreateLogger<IReplicationService>();
+                var logger = Providers.Instance.Services.GetRequiredService<ILogger<IReplicationService>>();
+                var replicationService = new SingleNodeReplicationService(DP, logger);
+
                 var testRoot = CreateFolder(Repository.Root, "ReplicationRoot"); //CreateTestRoot();
                 var source = new SenseNet.ContentRepository.CalendarEvent(testRoot) {Name = "Event-1", DisplayName = "Event-1 D"};
                 await source.SaveAsync(cancel);
                 var target = CreateFolder(testRoot, "replicated");
 
                 // ACTION
-                var replicationCount = 17; // 12;
+                var replicationCount = 17000; // 12;
                 var replicationSettings = new ReplicationSettings
                 {
                     CountMax = replicationCount,
-                    MaxItemsPerFolder = 3,
-                    MaxFoldersPerFolder = 2,
+                    MaxItemsPerFolder = 100,
+                    MaxFoldersPerFolder = 100,
                     FirstFolderIndex = 1,
                     Diversity = new Dictionary<string, IDiversity>
                     {
@@ -1899,19 +1906,19 @@ namespace SenseNet.IntegrationTests.TestCases
                 };
                 SnTrace.Test.Write(">>>> START Replication: " + replicationCount);
                 var timer = Stopwatch.StartNew();
-                await DP.ReplicateNodeAsync(source, target, replicationSettings, CancellationToken.None);
+                await replicationService.ReplicateNodeAsync(source, target, replicationSettings, CancellationToken.None);
                 var time = timer.Elapsed;
                 timer.Stop();
-                SnTrace.Test.Write(">>>> Replication time: " + time);
+                SnTrace.Test.Write(()=> $">>>> Replication time: {time} ({1.0d * replicationCount / time.TotalSeconds:0} CPS)");
 
-                await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
-                    await SaveWholeInvertedIndexAsync(writer, cancel);
-                for (int i = 0; i < replicationCount; i++)
-                {
-                    var versionId = target.VersionId + i + 1;
-                    using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
-                        await SaveIndexDocumentAsync(versionId, writer, cancel);
-                }
+//await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
+//    await SaveWholeInvertedIndexAsync(writer, cancel);
+//for (int i = 0; i < replicationCount; i++)
+//{
+//    var versionId = target.VersionId + i + 1;
+//    using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
+//        await SaveIndexDocumentAsync(versionId, writer, cancel);
+//}
 
                 // ASSERT
                 var hits = await CreateSafeContentQuery("Name:'Event-*'").ExecuteAsync(cancel);
