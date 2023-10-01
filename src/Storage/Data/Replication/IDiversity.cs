@@ -9,10 +9,10 @@ public class Sequence
 {
     public int MinValue { get; set; }
     public int MaxValue { get; set; }
+    public int Step { get; set; }
 }
 public class DateTimeSequence
 {
-    // How many seconds is int.max: 2147483647 / 60 / 60 / 24 / 365 = 68.09625973490614
     public DateTime MinValue { get; set; }
     public DateTime MaxValue { get; set; }
     public TimeSpan Step { get; set; } = TimeSpan.FromSeconds(1);
@@ -49,6 +49,7 @@ public class IntDiversity : Diversity<int>
 {
     public int MinValue { get; set; }
     public int MaxValue { get; set; }
+    public int Step { get; set; }
 }
 public class DateTimeDiversity : Diversity<DateTime>
 {
