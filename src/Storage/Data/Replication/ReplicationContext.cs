@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
@@ -39,6 +42,9 @@ internal class ReplicationContext
     private readonly DataProvider _dataProvider;
     private readonly IIndexManager _indexManager;
 
+    private IUser _currentUser;
+    private SnSecurityContext _securityContext;
+
     /* ================================================================== INITIALIZATION */
 
     public ReplicationContext(DataProvider dataProvider, IIndexManager indexManager)
@@ -52,6 +58,8 @@ internal class ReplicationContext
         var indexDocument = _indexManager.CompleteIndexDocument(indexDocData);
         IndexDocumentPrototype = indexDocData;
         FieldGenerators = FieldGenerator.CreateFieldGenerators(replicationDescriptor, indexDocument, this);
+        _currentUser = AccessProvider.Current.GetCurrentUser();
+        _securityContext = Providers.Instance.SecurityHandler.CreateSecurityContextFor(_currentUser);
     }
 
     /* ================================================================== INDEX HANDLING */
@@ -144,8 +152,17 @@ internal class ReplicationContext
         foreach (var fieldGenerator in FieldGenerators)
             fieldGenerator.Generate(this);
 
-        // INSERT
+        // INSERT Data
         await _dataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData, cancel);
+
+        // INSERT SecurityEntity
+        await _securityContext.SecuritySystem.DataProvider.InsertSecurityEntityAsync(new StoredSecurityEntity
+        {
+            Id = nodeHeadData.NodeId,
+            ParentId = TargetId,
+            IsInherited = true,
+            OwnerId = nodeHeadData.OwnerId
+        }, cancel).ConfigureAwait(false);
 
         // Complete index data
         SetIndexValue(IndexFieldName.NodeId, nodeHeadData.NodeId);
