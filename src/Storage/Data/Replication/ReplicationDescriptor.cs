@@ -12,7 +12,7 @@ public class ReplicationDescriptor
     public int MaxItemsPerFolder { get; set; }
     public int MaxFoldersPerFolder { get; set; }
     public int FirstFolderIndex { get; set; }
-    public Dictionary<string, string> DiversityControl { get; set; }
+    public Dictionary<string, string> Fields { get; set; }
     [JsonIgnore]
     public IDictionary<string, IDiversity> Diversity { get; set; }
 
@@ -28,11 +28,11 @@ public class ReplicationDescriptor
 
         var diversity = new Dictionary<string, IDiversity>();
         Diversity = diversity;
-        if (DiversityControl == null)
+        if (Fields == null)
             return;
 
         var errors = new List<Exception>();
-        foreach (var item in DiversityControl)
+        foreach (var item in Fields)
         {
             var fieldName = item.Key;
             var dataType = GetDataType(fieldName);

@@ -37,10 +37,8 @@ public class SingleNodeReplicationService : IReplicationService
 
         var timer = Stopwatch.StartNew();
         _logger.LogInformation($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
-        SnTrace.Repository.Write($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
         
         // Initialize folder generation
-        
         var folderGenContext = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
@@ -60,7 +58,6 @@ public class SingleNodeReplicationService : IReplicationService
             replicationDescriptor.MaxItemsPerFolder, replicationDescriptor.MaxFoldersPerFolder);
 
         // Initialize content generation
-
         var context = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
@@ -93,10 +90,6 @@ public class SingleNodeReplicationService : IReplicationService
                                        $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds} CPS). " +
                                        $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%)" +
                                        $"Source: {source.Path}, Target: {target.Path}");
-                SnTrace.Repository.Write($"Replication in progress. " +
-                   $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds:0} CPS). " +
-                   $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%) " +
-                   $"Source: {source.Path}, Target: {target.Path}");
             }
         }
 
@@ -105,6 +98,5 @@ public class SingleNodeReplicationService : IReplicationService
         timer.Stop();
         var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";
         _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
-        SnTrace.Repository.Write($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
     }
 }

@@ -170,7 +170,6 @@ public class DiversityParser
 
     //<StringExpression>		::= <StringConstant>* | <Pattern> "," <IntegerRange>
     //<Pattern>					::= <StringConstant> "*" <StringConstant>
-    //<StringConstant>			::= any char except ',' '*' ':' | empty
     private IDiversity? ParseStringExpression()
     {
         if (_lexer.CurrentToken != DiversityLexer.Token.Pattern)
@@ -194,6 +193,7 @@ public class DiversityParser
         };
     }
 
+    //<StringConstant>			::= any char except ',' '*' ':' | empty
     private IDiversity? ParseStringConstant()
     {
         if (_lexer.CurrentToken != DiversityLexer.Token.String)
@@ -209,47 +209,3 @@ public class DiversityParser
         return new StringDiversity { Pattern = string.Join(" ", words), Type = DiversityType.Constant };
     }
 }
-//<TopLevelExpression>		::= <AdditionalExpression> | <BuiltInTopLevelExpression>
-//<AdditionalExpression>		::= <GeneratorKeyword> ":" | <AdditionalParameters>*
-//<BuiltInTopLevelExpression> ::= <BuiltInGeneratorKeyword>? <BuiltInExpression>
-//<BuiltInExpression>			::= <IntExpression> | <DateTimeExpression> | <StringExpression>
-
-//<IntExpression>				::= <IntConstant> | <IntegerRange>
-//<IntegerRange>				::= <SimpleIntRange> | <SimpleIntRange> <IntStepExpr>
-//<SimpleIntRange>			::= <IntConstant> "TO" <IntConstant> 
-//<IntStepExpr>				::= "STEP" <IntConstant>
-//<IntConstant>				::= ('0'..'9')*
-
-//<DateTimeExpression>		::= <DateTimeConstant> | <DateTimeRange>
-//<DateTimeRange>				::= <SimpleDateTimeRange> | <SimpleDateTimeRange> <DateTimeStepExpr>
-//<SimpleDateTimeRange>		::= <DateTimeConstant> "TO" <DateTimeConstant> 
-//<DateTimeStepExpr>			::= "STEP" <TimespanConstant>
-//<DateTimeConstant>			::= "yyyy-MM-dd" | "yyyy-MM-dd HH:mm:ss"
-//<TimespanConstant>			::= "days.HH:mm:ss"
-
-//<StringExpression>		::= <StringConstant>* | <Pattern> "," <IntegerRange>
-//<Pattern>					::= <StringConstant> "*" <StringConstant>
-//<StringConstant>			::= any char except ',' '*' ':' | empty
-
-//<GeneratorKeyword>			::=	[a-zA-Z0-9_] ; well known word in a list except: <builtInGeneratorKeyword>
-//<BuiltInGeneratorKeyword>	::= "RANDOM" | "SEQUENCE"
-
-/*
-Request:
-POST https://example.com/odata.svc/root/test('mySource')/Replicate
-body:
-{
-	"target": 4564,
-	"options": {
-		MaxCount = 1000000,
-		MaxItemsPerFolder = 40,
-		MaxFoldersPerFolder = 100,
-		FirstFolderIndex = 1,
-		Fields = {
-			"Name": "Event-*, 1 TO 9999999999,",
-			"Mérőóra": "mérőóra: 12 length 3 decimal"
-			"DisplayName": "DICIONARY: 'Lorem', WORDS 10 TO 900",
-		}
-	}
-}
-*/

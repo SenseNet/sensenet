@@ -692,7 +692,7 @@ public class ReplicationTests : TestBase
             await ContentGenerationOperations.ReplicateAsync(Content.Load(source.Id), httpContext, target.Id.ToString(),
                 new ReplicationDescriptor
                 {
-                    DiversityControl = new Dictionary<string, string>
+                    Fields = new Dictionary<string, string>
                     {
                         {"Name", "Replicated-*, 1 to 10"},
                         {"Index", "random: 1 to 9 step 2"}
@@ -751,7 +751,7 @@ public class ReplicationTests : TestBase
                 await ContentGenerationOperations.ReplicateAsync(Content.Load(source.Id), httpContext, target.Id.ToString(),
                     new ReplicationDescriptor
                     {
-                        DiversityControl = new Dictionary<string, string>
+                        Fields = new Dictionary<string, string>
                         {
                             {"Name2", "Replicated-*, 1 to 10"},
                             {"Index2", "random: 1 to 9 step 2"},
