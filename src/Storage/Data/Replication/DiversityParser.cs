@@ -32,7 +32,7 @@ public class DiversityParser
         var parsed = ParseAdditionalExpression() ?? ParseBuiltInTopLevelExpression();
         if (parsed != null)
             return parsed;
-        throw new ReplicationParserException($"Cannot parse this \"{_fieldDataType}\" expression of the \"{_fieldName}\" field: \"{_diversitySource}\"");
+        throw new DiversityParserException($"Cannot parse this \"{_fieldDataType}\" expression of the \"{_fieldName}\" field: \"{_diversitySource}\"");
     }
 
     //<AdditionalExpression>		::= <GeneratorKeyword> ":" | <AdditionalParameters>*
@@ -94,7 +94,7 @@ public class DiversityParser
 
         _lexer.NextToken();
         if (_lexer.CurrentToken != DiversityLexer.Token.Integer)
-            throw new ReplicationParserException($"Invalid maximum value in the integer range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
+            throw new DiversityParserException($"Invalid maximum value in the integer range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
         var maxValue = _lexer.IntegerValue;
 
         _lexer.NextToken();
@@ -108,7 +108,7 @@ public class DiversityParser
 
         _lexer.NextToken();
         if (_lexer.CurrentToken != DiversityLexer.Token.Integer)
-            throw new ReplicationParserException($"Invalid step value in the integer range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
+            throw new DiversityParserException($"Invalid step value in the integer range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
 
         _lexer.NextToken();
         return _lexer.IntegerValue;
@@ -148,7 +148,7 @@ public class DiversityParser
 
         _lexer.NextToken();
         if (_lexer.CurrentToken != DiversityLexer.Token.DateTime)
-            throw new ReplicationParserException($"Invalid maximum value in the date-time range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
+            throw new DiversityParserException($"Invalid maximum value in the date-time range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
         var maxValue = _lexer.DateTimeValue;
 
         _lexer.NextToken();
@@ -162,7 +162,7 @@ public class DiversityParser
 
         _lexer.NextToken();
         if (_lexer.CurrentToken != DiversityLexer.Token.Timespan)
-            throw new ReplicationParserException($"Invalid step value in the DateTime range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
+            throw new DiversityParserException($"Invalid step value in the DateTime range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
 
         _lexer.NextToken();
         return _lexer.TimeSpanValue;
@@ -179,7 +179,7 @@ public class DiversityParser
         _lexer.NextToken();
         var range = ParseBuiltInTopLevelExpression();
         if (range is not IntDiversity intRange || intRange.Type == DiversityType.Constant)
-            throw new ReplicationParserException(
+            throw new DiversityParserException(
                 $"Invalid integer range in the string expression of the \"{_fieldName}\" field: \"{_diversitySource}\".");
         return new StringDiversity
         {

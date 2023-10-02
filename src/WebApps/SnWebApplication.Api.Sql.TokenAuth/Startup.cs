@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Components;
+using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
@@ -89,6 +90,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     .AddDefaultStatisticalDataProvider()
                     .AddDefaultStatisticalDataCollector();
             }
+
+            services.AddSingleton<IReplicationService, SingleNodeReplicationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

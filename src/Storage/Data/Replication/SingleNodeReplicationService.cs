@@ -37,7 +37,7 @@ public class SingleNodeReplicationService : IReplicationService
 
         var timer = Stopwatch.StartNew();
         _logger.LogInformation($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
-SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        SnTrace.Repository.Write($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
         
         // Initialize folder generation
         
@@ -93,7 +93,7 @@ SnTrace.Test.Write($"Start replication. Count: {replicationDescriptor.CountMax} 
                                        $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds} CPS). " +
                                        $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%)" +
                                        $"Source: {source.Path}, Target: {target.Path}");
-SnTrace.Test.Write($"Replication in progress. " +
+                SnTrace.Repository.Write($"Replication in progress. " +
                    $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds:0} CPS). " +
                    $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%) " +
                    $"Source: {source.Path}, Target: {target.Path}");
@@ -105,6 +105,6 @@ SnTrace.Test.Write($"Replication in progress. " +
         timer.Stop();
         var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";
         _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
-SnTrace.Test.Write($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        SnTrace.Repository.Write($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
     }
 }

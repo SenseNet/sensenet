@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Services.Core.Operations;
@@ -127,7 +133,7 @@ public class ReplicationTests : TestBase
             lexer.NextToken();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid keyword in the \"Field1\" field: \"Wrong!Keyword:\". " +
                             "The keyword can only contain letter, digit or '_' characters.", e.Message);
@@ -225,7 +231,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid maximum value in the integer range of the \"Index\" field: \"42 TO FiftyFour\".", e.Message);
         }
@@ -241,7 +247,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid step value in the integer range of the \"Index\" field: \"42 TO 508 STEP three\".", e.Message);
         }
@@ -431,7 +437,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid maximum value in the date-time range of the \"CreationDate\" field: \"Random: 2022-09-28 TO 2023-09+28\".", e.Message);
         }
@@ -448,7 +454,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid step value in the DateTime range of the \"CreationDate\" field: \"2022-09-28 TO 2023-09-28 STEP 10:00\".", e.Message);
         }
@@ -579,7 +585,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid integer range in the string expression of the \"Name\" field: \"Word,\".", e.Message);
         }
@@ -595,7 +601,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid integer range in the string expression of the \"Name\" field: \"Word word last-word,\".", e.Message);
         }
@@ -611,7 +617,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid integer range in the string expression of the \"Name\" field: \"Prefix*, FortyTwo TO 54\".", e.Message);
         }
@@ -627,7 +633,7 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid maximum value in the integer range of the \"Name\" field: \"Prefix*, 42 TO FiftyFour\".", e.Message);
         }
@@ -643,10 +649,128 @@ public class ReplicationTests : TestBase
             parser.Parse();
             Assert.Fail("ReplicationParserException was not thrown.");
         }
-        catch (ReplicationParserException e)
+        catch (DiversityParserException e)
         {
             Assert.AreEqual("Invalid step value in the integer range of the \"Name\" field: \"Prefix*, 42 TO 508 STEP three\".", e.Message);
         }
     }
 
+    /* ========================================================================================= STRING PARSER */
+
+    private class TestReplicationService : IReplicationService
+    {
+        public Node Source { get; private set; }
+        public Node Target { get; private set; }
+        public ReplicationDescriptor ReplicationDescriptor { get; private set; }
+        public System.Threading.Tasks.Task ReplicateNodeAsync(Node source, Node target, ReplicationDescriptor replicationDescriptor,
+            CancellationToken cancel)
+        {
+            Source = source;
+            Target = target;
+            ReplicationDescriptor = replicationDescriptor;
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
+    }
+
+    [TestMethod]
+    public async System.Threading.Tasks.Task Replication_OData_Happy_Path()
+    {
+        await Test2(services =>
+        {
+            services.AddSingleton<IReplicationService, TestReplicationService>();
+        }, async () =>
+        {
+            var httpContext = new DefaultHttpContext { RequestServices = Providers.Instance.Services };
+
+            var workspace = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+            var source = new Folder(workspace) { Name = "ReplicationSource" };
+            await source.SaveAsync(CancellationToken.None);
+            var target = new Folder(workspace) { Name = "ReplicationTarget" };
+            await target.SaveAsync(CancellationToken.None);
+
+            // ACT
+            await ContentGenerationOperations.ReplicateAsync(Content.Load(source.Id), httpContext, target.Id.ToString(),
+                new ReplicationDescriptor
+                {
+                    DiversityControl = new Dictionary<string, string>
+                    {
+                        {"Name", "Replicated-*, 1 to 10"},
+                        {"Index", "random: 1 to 9 step 2"}
+                    }
+                });
+
+            // ASSERT
+            var replicator = Providers.Instance.Services.GetRequiredService<IReplicationService>() as TestReplicationService;
+            Assert.IsNotNull(replicator);
+            Assert.AreEqual("/Root/Content/ReplicationSource", replicator.Source.Path);
+            Assert.AreEqual("/Root/Content/ReplicationTarget", replicator.Target.Path);
+            var diversity = replicator.ReplicationDescriptor.Diversity;
+            Assert.IsNotNull(diversity);
+            Assert.AreEqual(2, diversity.Count);
+
+            var diversityItems = diversity.ToArray();
+            Assert.AreEqual("Name", diversityItems[0].Key);
+            var nameDiversity = diversityItems[0].Value as StringDiversity;
+            Assert.IsNotNull(nameDiversity);
+            Assert.AreEqual("Replicated-*", nameDiversity.Pattern);
+            Assert.AreEqual(DiversityType.Sequence, nameDiversity.Type);
+            Assert.AreEqual(1, nameDiversity.Sequence.MinValue);
+            Assert.AreEqual(10, nameDiversity.Sequence.MaxValue);
+            Assert.AreEqual(0, nameDiversity.Sequence.Step);
+
+            Assert.AreEqual("Index", diversityItems[1].Key);
+            var indexDiversity = diversityItems[1].Value as IntDiversity;
+            Assert.IsNotNull(indexDiversity);
+            Assert.AreEqual(DiversityType.Random, indexDiversity.Type);
+            Assert.AreEqual(1, indexDiversity.MinValue);
+            Assert.AreEqual(9, indexDiversity.MaxValue);
+            Assert.AreEqual(2, indexDiversity.Step);
+
+        }).ConfigureAwait(false);
+    }
+    [TestMethod]
+    public async System.Threading.Tasks.Task Replication_OData_Errors()
+    {
+        await Test2(services =>
+        {
+            services.AddSingleton<IReplicationService, TestReplicationService>();
+        }, async () =>
+        {
+            var httpContext = new DefaultHttpContext {RequestServices = Providers.Instance.Services};
+
+            var workspace = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+            var source = new Folder(workspace) { Name = "ReplicationSource" };
+            await source.SaveAsync(CancellationToken.None);
+            var target = new Folder(workspace) { Name = "ReplicationTarget" };
+            await target.SaveAsync(CancellationToken.None);
+
+            // ACT
+            string[] errors = null;
+            try
+            {
+                await ContentGenerationOperations.ReplicateAsync(Content.Load(source.Id), httpContext, target.Id.ToString(),
+                    new ReplicationDescriptor
+                    {
+                        DiversityControl = new Dictionary<string, string>
+                        {
+                            {"Name2", "Replicated-*, 1 to 10"},
+                            {"Index2", "random: 1 to 9 step 2"},
+                            {"StartDate", "1 to end"}
+                        }
+                    });
+                Assert.Fail("AggregateException was not thrown.");
+            }
+            catch (AggregateException ae)
+            {
+                errors = ae.InnerExceptions.Select(e => e.Message).ToArray();
+            }
+
+            // ASSERT
+            Assert.AreEqual(3, errors.Length);
+            Assert.AreEqual("Unknown field: 'Name2'.", errors[0]);
+            Assert.AreEqual("Unknown field: 'Index2'.", errors[1]);
+            Assert.AreEqual("Invalid maximum value in the integer range of the \"StartDate\" field: \"1 to end\".", errors[2]);
+
+        }).ConfigureAwait(false);
+    }
 }

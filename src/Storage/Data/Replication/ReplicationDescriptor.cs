@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
@@ -30,51 +31,49 @@ public class ReplicationDescriptor
         if (DiversityControl == null)
             return;
 
+        var errors = new List<Exception>();
         foreach (var item in DiversityControl)
         {
-            var name = item.Key;
-            var src = item.Value;
+            var fieldName = item.Key;
+            var dataType = GetDataType(fieldName);
+            var diversitySource = item.Value;
 
-            if (name == "Index")
+            if (dataType == null)
             {
-                var type = DiversityType.Constant;
-                var min = 0;
-                var max = 0;
-                var words = src.Split(_whitespaces, StringSplitOptions.RemoveEmptyEntries);
-                if (words.Length == 1)
-                {
-                    if (!int.TryParse(words[0], out min))
-                        throw new ArgumentException($"Invalid constant value in the IntDiversity of the '{name}' field: '{src}'");
-                }
-                else
-                {
-                    if (words.Length == 3)
-                    {
-                        type = DiversityType.Sequence;
-                    }
-                    else if (words.Length == 4)
-                    {
-                        if (words[3].Equals("RANDOM", StringComparison.InvariantCultureIgnoreCase))
-                            type = DiversityType.Random;
-                        else if (words[3].Equals("SEQUENCE", StringComparison.InvariantCultureIgnoreCase))
-                            type = DiversityType.Sequence;
-                        else
-                            throw new ArgumentException($"Invalid qualifier in the IntDiversity of the '{name}' field: '{src}'. Expected last word: 'Random' or 'Sequence'");
-                    }
-
-                    if (!words[1].Equals("TO", StringComparison.InvariantCultureIgnoreCase))
-                        throw new ArgumentException($"Invalid range definition in the IntDiversity of the '{name}' field: '{src}'. Expected format: <min> TO <max> RANDOM|SEQUENCE");
-                    if (!int.TryParse(words[0], out min))
-                        throw new ArgumentException($"Invalid minimum value in the IntDiversity of the '{name}' field: '{src}'");
-                    if (!int.TryParse(words[2], out max))
-                        throw new ArgumentException($"Invalid maximum value in the IntDiversity of the '{name}' field: '{src}'");
-                }
-
-                diversity.Add(name, new IntDiversity {Type = type, MinValue = min, MaxValue = max});
+                errors.Add(new InvalidOperationException($"Unknown field: '{fieldName}'."));
+                continue;
             }
-            else
-                throw new NotImplementedException();
+
+            var parser = new DiversityParser(fieldName, dataType.Value, diversitySource);
+            try
+            {
+                diversity.Add(fieldName, parser.Parse());
+            }
+            catch (DiversityParserException e)
+            {
+                errors.Add(e);
+            }
         }
 
+        if(errors.Count > 0)
+            throw new AggregateException(errors);
+    }
+
+    private DataType? GetDataType(string fieldName)
+    {
+        switch (fieldName)
+        {
+            case "Name": return DataType.String;
+            case "DisplayName": return DataType.String;
+            case "Index": return DataType.Int;
+            case "OwnerId": return DataType.Int;
+            case "Version": return DataType.String;
+            case "CreatedById": return DataType.DateTime;
+            case "ModifiedById": return DataType.DateTime;
+            case "CreationDate": return DataType.DateTime;
+            case "ModificationDate": return DataType.DateTime;
+        }
+
+        return PropertyType.GetByName(fieldName)?.DataType;
     }
 }

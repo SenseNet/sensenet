@@ -11,12 +11,12 @@ using AngleSharp.Dom;
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
 [Serializable]
-public class ReplicationParserException : Exception
+public class DiversityParserException : Exception
 {
-    public ReplicationParserException() { }
-    public ReplicationParserException(string message) : base(message) { }
-    public ReplicationParserException(string message, Exception inner) : base(message, inner) { }
-    protected ReplicationParserException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    public DiversityParserException() { }
+    public DiversityParserException(string message) : base(message) { }
+    public DiversityParserException(string message, Exception inner) : base(message, inner) { }
+    protected DiversityParserException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }
 internal class DiversityLexer
 {
@@ -127,7 +127,7 @@ internal class DiversityLexer
             return true;
         }
 
-        throw new ReplicationParserException(
+        throw new DiversityParserException(
             $"Invalid keyword in the \"{_fieldName}\" field: \"{word}\". The keyword can only contain letter, digit or '_' characters.");
 
     }
