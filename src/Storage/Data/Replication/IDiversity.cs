@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
@@ -21,7 +22,7 @@ public class DateTimeSequence
 public interface IDiversity
 {
     DiversityType Type { get; set; }
-    Type DataType { get; set; }
+    DataType DataType { get; }
     object Current { get; set; }
 }
 public interface IDiversity<T> : IDiversity
@@ -31,7 +32,7 @@ public interface IDiversity<T> : IDiversity
 public abstract class Diversity<T> : IDiversity<T>
 {
     public DiversityType Type { get; set; }
-    public Type DataType { get; set; }
+    public abstract DataType DataType { get; }
     public T Current { get; set; }
 
     object IDiversity.Current
@@ -42,16 +43,19 @@ public abstract class Diversity<T> : IDiversity<T>
 }
 public class StringDiversity : Diversity<string>
 {
+    public override DataType DataType => DataType.String;
     public string Pattern { get; set; }
     public Sequence Sequence { get; set; }
 }
 public class IntDiversity : Diversity<int>
 {
+    public override DataType DataType => DataType.Int;
     public int MinValue { get; set; }
     public int MaxValue { get; set; }
     public int Step { get; set; }
 }
 public class DateTimeDiversity : Diversity<DateTime>
 {
+    public override DataType DataType => DataType.DateTime;
     public DateTimeSequence Sequence { get; set; }
 }

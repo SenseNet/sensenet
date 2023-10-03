@@ -655,7 +655,118 @@ public class ReplicationTests : TestBase
         }
     }
 
-    /* ========================================================================================= STRING PARSER */
+    /* ========================================================================================= DATA-TYPE ERRORS */
+
+    [TestMethod]
+    public void Replication_Parser_DataType_Integer_StringSequence()
+    {
+        var parser = new DiversityParser("Index", DataType.Int, "Prefix*, Sequence: 42 TO 52");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"String\" for the \"Index\" field because it's data type is \"Int\".", e.Message);
+        }
+    }
+    [TestMethod]
+    public void Replication_Parser_DataType_Integer_DateTimeSequence()
+    {
+        var parser = new DiversityParser("Index", DataType.Int, "2022-09-28 TO 2023-09-28");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"DateTime\" for the \"Index\" field because it's data type is \"Int\".", e.Message);
+        }
+    }
+    [TestMethod]
+    public void Replication_Parser_DataType_DateTime_StringSequence()
+    {
+        var parser = new DiversityParser("CreationDate", DataType.DateTime, "Prefix*, Sequence: 42 TO 52");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"String\" for the \"CreationDate\" field because it's data type is \"DateTime\".", e.Message);
+        }
+    }
+    [TestMethod]
+    public void Replication_Parser_DataType_DateTime_IntSequence()
+    {
+        var parser = new DiversityParser("CreationDate", DataType.DateTime, "42 TO 52");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"Int\" for the \"CreationDate\" field because it's data type is \"DateTime\".", e.Message);
+        }
+    }
+    [TestMethod]
+    public void Replication_Parser_DataType_String_DateTimeSequence()
+    {
+        var parser = new DiversityParser("DisplayName", DataType.String, "2022-09-28 TO 2023-09-28");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"DateTime\" for the \"DisplayName\" field because it's data type is \"String\".", e.Message);
+        }
+    }
+    [TestMethod]
+    public void Replication_Parser_DataType_String_IntSequence()
+    {
+        var parser = new DiversityParser("DisplayName", DataType.String, "42 TO 52");
+
+        try
+        {
+            // ACT
+            var _ = parser.Parse();
+
+            // ASSERT
+            Assert.Fail("DiversityParserException was not thrown.");
+        }
+        catch (DiversityParserException e)
+        {
+            Assert.AreEqual("Cannot use \"Int\" for the \"DisplayName\" field because it's data type is \"String\".", e.Message);
+        }
+    }
+
+    /* ========================================================================================= ODATA API */
 
     private class TestReplicationService : IReplicationService
     {

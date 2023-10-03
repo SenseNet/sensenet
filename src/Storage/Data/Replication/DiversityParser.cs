@@ -30,9 +30,19 @@ public class DiversityParser
     private IDiversity ParseTopLevelExpression()
     {
         var parsed = ParseAdditionalExpression() ?? ParseBuiltInTopLevelExpression();
-        if (parsed != null)
-            return parsed;
-        throw new DiversityParserException($"Cannot parse this \"{_fieldDataType}\" expression of the \"{_fieldName}\" field: \"{_diversitySource}\"");
+        if (parsed == null)
+            throw new DiversityParserException($"Cannot parse this \"{_fieldDataType}\" expression of the \"{_fieldName}\" field: \"{_diversitySource}\"");
+        AssertDataType(parsed);
+        return parsed;
+    }
+    private void AssertDataType(IDiversity parsed)
+    {
+        if (_fieldDataType == parsed.DataType)
+            return;
+        if ((_fieldDataType == DataType.String || _fieldDataType == DataType.Text) &&
+            (parsed.DataType == DataType.String || parsed.DataType == DataType.Text))
+            return;
+        throw new DiversityParserException($"Cannot use \"{parsed.DataType}\" for the \"{_fieldName}\" field because it's data type is \"{_fieldDataType}\".");
     }
 
     //<AdditionalExpression>		::= <GeneratorKeyword> ":" | <AdditionalParameters>*
