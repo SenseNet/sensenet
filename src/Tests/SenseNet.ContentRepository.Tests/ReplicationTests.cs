@@ -866,7 +866,8 @@ public class ReplicationTests : TestBase
                         {
                             {"Name2", "Replicated-*, 1 to 10"},
                             {"Index2", "random: 1 to 9 step 2"},
-                            {"StartDate", "1 to end"}
+                            {"StartDate", "1 to 2"},
+                            {"ModificationDate", "1 to end"}
                         }
                     });
                 Assert.Fail("AggregateException was not thrown.");
@@ -877,10 +878,11 @@ public class ReplicationTests : TestBase
             }
 
             // ASSERT
-            Assert.AreEqual(3, errors.Length);
-            Assert.AreEqual("Unknown field: 'Name2'.", errors[0]);
-            Assert.AreEqual("Unknown field: 'Index2'.", errors[1]);
-            Assert.AreEqual("Invalid maximum value in the integer range of the \"StartDate\" field: \"1 to end\".", errors[2]);
+            Assert.AreEqual(4, errors.Length);
+            Assert.AreEqual("Type \"Folder\" does not have a field named \"Name2\".", errors[0]);
+            Assert.AreEqual("Type \"Folder\" does not have a field named \"Index2\".", errors[1]);
+            Assert.AreEqual("Type \"Folder\" does not have a field named \"StartDate\".", errors[2]);
+            Assert.AreEqual("Invalid maximum value in the integer range of the \"ModificationDate\" field: \"1 to end\".", errors[3]);
 
         }).ConfigureAwait(false);
     }

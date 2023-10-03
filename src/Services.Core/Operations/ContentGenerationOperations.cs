@@ -25,7 +25,7 @@ public static class ContentGenerationOperations
         if (replicationService == null)
             throw new NotSupportedException("Replication is not supported.");
 
-        options.Initialize();
+        options.Initialize(content.ContentHandler.NodeType);
 
 #pragma warning disable CS4014 // This call is not awaited, execution of the current method continues before the call is completed.
         replicationService.ReplicateNodeAsync(content.ContentHandler, targetContent.ContentHandler, options, CancellationToken.None);

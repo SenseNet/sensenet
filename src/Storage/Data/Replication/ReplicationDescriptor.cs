@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -17,7 +18,7 @@ public class ReplicationDescriptor
     public IDictionary<string, IDiversity> Diversity { get; set; }
 
     private char[] _whitespaces = " \t\r\n".ToCharArray();
-    public void Initialize()
+    public void Initialize(NodeType nodeType)
     {
         if (MaxCount < 1)
             MaxCount = 10;
@@ -38,6 +39,11 @@ public class ReplicationDescriptor
             var dataType = GetDataType(fieldName);
             var diversitySource = item.Value;
 
+            if (nodeType.PropertyTypes[fieldName] ==  null && !IsWellKnownProperty(fieldName))
+            {
+                errors.Add(new InvalidOperationException($"Type \"{nodeType.Name}\" does not have a field named \"{fieldName}\"."));
+                continue;
+            }
             if (dataType == null)
             {
                 errors.Add(new InvalidOperationException($"Unknown field: '{fieldName}'."));
@@ -59,21 +65,28 @@ public class ReplicationDescriptor
             throw new AggregateException(errors);
     }
 
+    private bool IsWellKnownProperty(string fieldName)
+    {
+        return WellKnownProperties.ContainsKey(fieldName);
+    }
     private DataType? GetDataType(string fieldName)
     {
-        switch (fieldName)
-        {
-            case "Name": return DataType.String;
-            case "DisplayName": return DataType.String;
-            case "Index": return DataType.Int;
-            case "OwnerId": return DataType.Int;
-            case "Version": return DataType.String;
-            case "CreatedById": return DataType.DateTime;
-            case "ModifiedById": return DataType.DateTime;
-            case "CreationDate": return DataType.DateTime;
-            case "ModificationDate": return DataType.DateTime;
-        }
-
+        if (WellKnownProperties.TryGetValue(fieldName, out var dataType))
+            return dataType;
         return PropertyType.GetByName(fieldName)?.DataType;
     }
+
+    public static readonly IDictionary<string, DataType> WellKnownProperties =
+        new ReadOnlyDictionary<string, DataType>(new Dictionary<string, DataType>
+        {
+            {"Name", DataType.String},
+            {"DisplayName", DataType.String},
+            {"Index", DataType.Int},
+            {"OwnerId", DataType.Int},
+            {"Version", DataType.String},
+            {"CreatedById", DataType.DateTime},
+            {"ModifiedById", DataType.DateTime},
+            {"CreationDate", DataType.DateTime},
+            {"ModificationDate", DataType.DateTime}
+        });
 }
