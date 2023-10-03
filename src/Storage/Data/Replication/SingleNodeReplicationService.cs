@@ -98,6 +98,6 @@ public class SingleNodeReplicationService : IReplicationService
 
         timer.Stop();
         var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";
-        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed:hh\\:mm\\:ss} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
     }
 }
