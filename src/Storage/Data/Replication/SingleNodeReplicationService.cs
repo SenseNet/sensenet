@@ -36,7 +36,7 @@ public class SingleNodeReplicationService : IReplicationService
             throw new InvalidOperationException("Cannot replicate missing target");
 
         var timer = Stopwatch.StartNew();
-        _logger.LogInformation($"Start replication. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        _logger.LogInformation($"Replication started. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
         
         // Initialize folder generation
         var folderGenContext = new ReplicationContext(_dataProvider, _indexManager)
@@ -86,8 +86,9 @@ public class SingleNodeReplicationService : IReplicationService
             if (DateTime.UtcNow - lastLogTime > logPeriod)
             {
                 lastLogTime = DateTime.UtcNow;
+                var time = (i + 1) / timer.Elapsed.TotalSeconds;
                 _logger.LogInformation($"Replication in progress. " +
-                                       $"time: {timer.Elapsed} ({(i + 1) / timer.Elapsed.TotalSeconds} CPS). " +
+                                       $"time: {timer.Elapsed:hh\\:mm\\:ss} ({time:F0} CPS). " +
                                        $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%)" +
                                        $"Source: {source.Path}, Target: {target.Path}");
             }
