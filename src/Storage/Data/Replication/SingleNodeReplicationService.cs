@@ -36,13 +36,13 @@ public class SingleNodeReplicationService : IReplicationService
             throw new InvalidOperationException("Cannot replicate missing target");
 
         var timer = Stopwatch.StartNew();
-        _logger.LogInformation($"Replication started. Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        _logger.LogInformation($"Replication started. Count: {replicationDescriptor.MaxCount} Source: {source.Path}, Target: {target.Path}");
         
         // Initialize folder generation
         var folderGenContext = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
-            CountMax = replicationDescriptor.CountMax, // 
+            MaxCount = replicationDescriptor.MaxCount, // 
             ReplicationStart = DateTime.UtcNow,
             IsSystemContent = target.IsSystem, //target.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder")),
             NodeHeadData = targetData.GetNodeHeadData(),
@@ -53,7 +53,7 @@ public class SingleNodeReplicationService : IReplicationService
         };
         folderGenContext.Initialize(new ReplicationDescriptor(), targetIndexDoc);
         var folderGenerator = new DefaultFolderGenerator(folderGenContext,
-            replicationDescriptor.CountMax,
+            replicationDescriptor.MaxCount,
             replicationDescriptor.FirstFolderIndex,
             replicationDescriptor.MaxItemsPerFolder, replicationDescriptor.MaxFoldersPerFolder);
 
@@ -61,7 +61,7 @@ public class SingleNodeReplicationService : IReplicationService
         var context = new ReplicationContext(_dataProvider, _indexManager)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
-            CountMax = replicationDescriptor.CountMax,
+            MaxCount = replicationDescriptor.MaxCount,
             ReplicationStart = DateTime.UtcNow,
             IsSystemContent = source.IsSystem || target.IsSystem, //source.NodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("SystemFolder"));
             NodeHeadData = sourceData.GetNodeHeadData(),
@@ -75,7 +75,7 @@ public class SingleNodeReplicationService : IReplicationService
         // REPLICATION MAIN ENUMERATION
         var lastLogTime = DateTime.UtcNow;
         var logPeriod = TimeSpan.FromSeconds(10.0);
-        for (var i = 0; i < context.CountMax; i++)
+        for (var i = 0; i < context.MaxCount; i++)
         {
             await folderGenerator.EnsureFolderAsync(cancel);
             context.TargetId = folderGenerator.CurrentFolderId;
@@ -89,7 +89,7 @@ public class SingleNodeReplicationService : IReplicationService
                 var time = (i + 1) / timer.Elapsed.TotalSeconds;
                 _logger.LogInformation($"Replication in progress. " +
                                        $"time: {timer.Elapsed:hh\\:mm\\:ss} ({time:F0} CPS). " +
-                                       $"Count: {i + 1}/{replicationDescriptor.CountMax} ({(i + 1) * 100 / replicationDescriptor.CountMax}%)" +
+                                       $"Count: {i + 1}/{replicationDescriptor.MaxCount} ({(i + 1) * 100 / replicationDescriptor.MaxCount}%)" +
                                        $"Source: {source.Path}, Target: {target.Path}");
             }
         }
@@ -97,7 +97,7 @@ public class SingleNodeReplicationService : IReplicationService
         await _indexManager.CommitAsync(cancel);
 
         timer.Stop();
-        var cps = $"{1.0d * replicationDescriptor.CountMax / timer.Elapsed.TotalSeconds:0}";
-        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed:hh\\:mm\\:ss} ({cps} CPS). Count: {replicationDescriptor.CountMax} Source: {source.Path}, Target: {target.Path}");
+        var cps = $"{1.0d * replicationDescriptor.MaxCount / timer.Elapsed.TotalSeconds:0}";
+        _logger.LogInformation($"Replication finished. Total time: {timer.Elapsed:hh\\:mm\\:ss} ({cps} CPS). Count: {replicationDescriptor.MaxCount} Source: {source.Path}, Target: {target.Path}");
     }
 }

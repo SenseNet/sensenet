@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
 public class ReplicationDescriptor
 {
-    public int CountMax { get; set; }
+    public int MaxCount { get; set; }
     public int MaxItemsPerFolder { get; set; }
     public int MaxFoldersPerFolder { get; set; }
     public int FirstFolderIndex { get; set; }
@@ -19,8 +19,8 @@ public class ReplicationDescriptor
     private char[] _whitespaces = " \t\r\n".ToCharArray();
     public void Initialize()
     {
-        if (CountMax < 1)
-            CountMax = 10;
+        if (MaxCount < 1)
+            MaxCount = 10;
         if (MaxItemsPerFolder < 1)
             MaxItemsPerFolder = 100;
         if (MaxFoldersPerFolder < 1)

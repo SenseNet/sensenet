@@ -1868,7 +1868,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 var replicationCount = 12; // 12;
                 var replicationDescriptor = new ReplicationDescriptor
                 {
-                    CountMax = replicationCount,
+                    MaxCount = replicationCount,
                     MaxItemsPerFolder = 4,
                     MaxFoldersPerFolder = 3,
                     FirstFolderIndex = 1,

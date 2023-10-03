@@ -19,7 +19,7 @@ internal class ReplicationContext
     public string TypeName { get; set; }
     public bool IsSystemContent { get; set; }
 
-    public int CountMax { get; set; }
+    public int MaxCount { get; set; }
     public int CurrentCount { get; set; }
 
     public DateTime ReplicationStart { get; set; }
@@ -37,7 +37,7 @@ internal class ReplicationContext
     public StringBuilder TextExtract { get; set; }
     public List<IFieldGenerator> FieldGenerators { get; set; }
     private string _paddingFormat;
-    public string PaddingFormat => _paddingFormat ??= CountMax == 0 ? "D" : "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(CountMax)));
+    public string PaddingFormat => _paddingFormat ??= MaxCount == 0 ? "D" : "D" + Convert.ToInt32(Math.Ceiling(Math.Log10(MaxCount)));
 
     private readonly DataProvider _dataProvider;
     private readonly IIndexManager _indexManager;
