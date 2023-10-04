@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
@@ -77,10 +76,17 @@ public class SingleNodeReplicationService : IReplicationService
         var logPeriod = TimeSpan.FromSeconds(10.0);
         for (var i = 0; i < context.MaxCount; i++)
         {
+            // stop generating in case of shutdown
+            if (cancel.IsCancellationRequested)
+            {
+                _logger.LogWarning("Replication cancelled after {count} generated items.", i);
+                break;
+            }
+
             await folderGenerator.EnsureFolderAsync(cancel);
             context.TargetId = folderGenerator.CurrentFolderId;
             context.TargetPath = folderGenerator.CurrentFolderPath;
-
+            
             await context.GenerateContentAsync(cancel);
 
             if (DateTime.UtcNow - lastLogTime > logPeriod)
