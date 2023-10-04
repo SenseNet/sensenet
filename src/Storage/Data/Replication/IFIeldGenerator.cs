@@ -259,6 +259,9 @@ internal class ModificationDateFieldGenerator : DateTimeFieldGenerator
 internal class StringFieldGenerator : IFieldGenerator
 {
     private readonly Random _rng = new Random();
+    private bool _generationStarted;
+    private int _currentSequenceValue;
+
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public StringDiversity Diversity { get; protected set; }
@@ -290,6 +293,8 @@ internal class StringFieldGenerator : IFieldGenerator
 
         var min = diversity.Sequence?.MinValue ?? 0;
         var max = diversity.Sequence?.MaxValue ?? 0;
+        var step = diversity.Sequence?.Step ?? 1;
+
         switch (diversity.Type)
         {
             case DiversityType.Constant:
@@ -300,8 +305,21 @@ internal class StringFieldGenerator : IFieldGenerator
                     return Replace(min);
                 if (max < min)
                     return Replace(context.CurrentCount + min);
-                var offset = context.CurrentCount % (max - min + 1);
-                return Replace(min + offset);
+                //var offset = context.CurrentCount % (max - min + 1);
+                //return Replace(min + offset);
+                if (!_generationStarted)
+                {
+                    _currentSequenceValue = min;
+                    _generationStarted = true;
+                }
+                else
+                {
+                    var d = _currentSequenceValue + step;
+                    if (d > max)
+                        d = min;
+                    _currentSequenceValue = d;
+                }
+                return Replace(_currentSequenceValue);
 
             case DiversityType.Random:
                 if (min >= max)
@@ -324,6 +342,8 @@ internal class TextFieldGenerator : StringFieldGenerator
 internal class IntFieldGenerator : IFieldGenerator
 {
     private readonly Random _rng = new Random();
+    private bool _generationStarted;
+
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public IntDiversity Diversity { get; protected set; }
@@ -347,6 +367,7 @@ internal class IntFieldGenerator : IFieldGenerator
     {
         var min = diversity.MinValue;
         var max = diversity.MaxValue;
+        var step = diversity.Step;
 
         switch (diversity.Type)
         {
@@ -358,8 +379,19 @@ internal class IntFieldGenerator : IFieldGenerator
                     return min;
                 if (max < min)
                     return context.CurrentCount + min;
-                var offset = context.CurrentCount % (max - min + 1);
-                return min + offset;
+                if (!_generationStarted)
+                {
+                    diversity.Current = min;
+                    _generationStarted = true;
+                }
+                else
+                {
+                    var d = diversity.Current + step;
+                    if (d > max)
+                        d = min;
+                    diversity.Current = d;
+                }
+                return diversity.Current;
 
             case DiversityType.Random:
                 return min >= max ? min : _rng.Next(min, max + 1);

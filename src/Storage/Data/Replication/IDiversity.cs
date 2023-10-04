@@ -52,7 +52,7 @@ public class IntDiversity : Diversity<int>
     public override DataType DataType => DataType.Int;
     public int MinValue { get; set; }
     public int MaxValue { get; set; }
-    public int Step { get; set; }
+    public int Step { get; set; } = 1;
 }
 public class DateTimeDiversity : Diversity<DateTime>
 {

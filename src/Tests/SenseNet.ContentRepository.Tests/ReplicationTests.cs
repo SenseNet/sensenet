@@ -396,6 +396,23 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(TimeSpan.FromSeconds(32), diversity.Sequence.Step);
     }
     [TestMethod]
+    public void Replication_Parser_DateTimeRange4Step()
+    {
+        var parser = new DiversityParser("StartDate", DataType.DateTime,
+            "2023-01-01 12:00:05 TO 2023-01 12:00:50 STEP 0.00:05:00");
+
+        // ACT
+        var parsed = parser.Parse();
+
+        // ASSERT
+        var diversity = parsed as DateTimeDiversity;
+        Assert.IsNotNull(diversity);
+        Assert.AreEqual(DiversityType.Sequence, diversity.Type);
+        Assert.AreEqual(new DateTime(2022, 09, 28), diversity.Sequence.MinValue);
+        Assert.AreEqual(new DateTime(2023, 09, 28, 18, 20, 32), diversity.Sequence.MaxValue);
+        Assert.AreEqual(TimeSpan.FromSeconds(32), diversity.Sequence.Step);
+    }
+    [TestMethod]
     public void Replication_Parser_DateTimeSequence()
     {
         var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 18:20:32 STEP 0.02:00:32");

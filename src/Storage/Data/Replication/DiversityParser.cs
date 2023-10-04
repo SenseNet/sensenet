@@ -120,8 +120,9 @@ public class DiversityParser
         if (_lexer.CurrentToken != DiversityLexer.Token.Integer)
             throw new DiversityParserException($"Invalid step value in the integer range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
 
+        var step = _lexer.IntegerValue;
         _lexer.NextToken();
-        return _lexer.IntegerValue;
+        return step;
     }
 
 
@@ -162,7 +163,7 @@ public class DiversityParser
         var maxValue = _lexer.DateTimeValue;
 
         _lexer.NextToken();
-        return new DateTimeDiversity { Type = _currentDiversityRangeType, Sequence = new DateTimeSequence { MinValue = minValue, MaxValue = maxValue, Step = TimeSpan.Zero } };
+        return new DateTimeDiversity { Type = _currentDiversityRangeType, Sequence = new DateTimeSequence { MinValue = minValue, MaxValue = maxValue } };
     }
     //<DateTimeStepExpr>			::= "STEP" <TimespanConstant>
     private TimeSpan? ParseDateTimeStepExpr()
@@ -174,8 +175,9 @@ public class DiversityParser
         if (_lexer.CurrentToken != DiversityLexer.Token.Timespan)
             throw new DiversityParserException($"Invalid step value in the DateTime range of the \"{_fieldName}\" field: \"{_diversitySource}\".");
 
+        var step = _lexer.TimeSpanValue;
         _lexer.NextToken();
-        return _lexer.TimeSpanValue;
+        return step;
     }
 
     //<StringExpression>		::= <StringConstant>* | <Pattern> "," <IntegerRange>
