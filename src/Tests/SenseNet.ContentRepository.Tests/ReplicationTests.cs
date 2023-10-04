@@ -170,7 +170,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(42, diversity.MinValue);
         Assert.AreEqual(52, diversity.MaxValue);
-        Assert.AreEqual(0, diversity.Step);
+        Assert.AreEqual(1, diversity.Step);
     }
     [TestMethod]
     public void Replication_Parser_IntRangeWithStep()
@@ -202,7 +202,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(42, diversity.MinValue);
         Assert.AreEqual(52, diversity.MaxValue);
-        Assert.AreEqual(0, diversity.Step);
+        Assert.AreEqual(1, diversity.Step);
     }
     [TestMethod]
     public void Replication_Parser_IntRandom()
@@ -218,7 +218,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Random, diversity.Type);
         Assert.AreEqual(42, diversity.MinValue);
         Assert.AreEqual(52, diversity.MaxValue);
-        Assert.AreEqual(0, diversity.Step);
+        Assert.AreEqual(1, diversity.Step);
     }
     [TestMethod]
     public void Replication_Parser_Error_IntRange()
@@ -297,7 +297,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(new DateTime(2022, 09, 28), diversity.Sequence.MinValue);
         Assert.AreEqual(new DateTime(2023, 09, 28), diversity.Sequence.MaxValue);
-        Assert.AreEqual(TimeSpan.Zero, diversity.Sequence.Step);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_DateTimeRange2()
@@ -313,7 +313,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(new DateTime(2022, 09, 28, 18, 20, 32), diversity.Sequence.MinValue);
         Assert.AreEqual(new DateTime(2023, 09, 28), diversity.Sequence.MaxValue);
-        Assert.AreEqual(TimeSpan.Zero, diversity.Sequence.Step);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_DateTimeRange3()
@@ -329,7 +329,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(new DateTime(2022, 09, 28), diversity.Sequence.MinValue);
         Assert.AreEqual(new DateTime(2023, 09, 28, 18, 20, 32), diversity.Sequence.MaxValue);
-        Assert.AreEqual(TimeSpan.Zero, diversity.Sequence.Step);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_DateTimeRange4()
@@ -345,7 +345,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(new DateTime(2022, 09, 28, 18, 20, 32), diversity.Sequence.MinValue);
         Assert.AreEqual(new DateTime(2023, 09, 28, 18, 20, 32), diversity.Sequence.MaxValue);
-        Assert.AreEqual(TimeSpan.Zero, diversity.Sequence.Step);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_DateTimeRange1Step()
@@ -399,7 +399,7 @@ public class ReplicationTests : TestBase
     public void Replication_Parser_DateTimeRange4Step()
     {
         var parser = new DiversityParser("StartDate", DataType.DateTime,
-            "2023-01-01 12:00:05 TO 2023-01 12:00:50 STEP 0.00:05:00");
+            "2023-01-01 12:00:05 TO 2023-01-01 12:50:00 STEP 0.00:05:00");
 
         // ACT
         var parsed = parser.Parse();
@@ -408,9 +408,9 @@ public class ReplicationTests : TestBase
         var diversity = parsed as DateTimeDiversity;
         Assert.IsNotNull(diversity);
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
-        Assert.AreEqual(new DateTime(2022, 09, 28), diversity.Sequence.MinValue);
-        Assert.AreEqual(new DateTime(2023, 09, 28, 18, 20, 32), diversity.Sequence.MaxValue);
-        Assert.AreEqual(TimeSpan.FromSeconds(32), diversity.Sequence.Step);
+        Assert.AreEqual(new DateTime(2023, 1, 1, 12, 0, 5), diversity.Sequence.MinValue);
+        Assert.AreEqual(new DateTime(2023, 1, 1, 12, 50, 00), diversity.Sequence.MaxValue);
+        Assert.AreEqual(TimeSpan.FromMinutes(5), diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_DateTimeSequence()
@@ -538,7 +538,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(42, diversity.Sequence.MinValue);
         Assert.AreEqual(52, diversity.Sequence.MaxValue);
-        Assert.AreEqual(0, diversity.Sequence.Step);
+        Assert.AreEqual(1, diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_StringRangeWithStep()
@@ -572,7 +572,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Sequence, diversity.Type);
         Assert.AreEqual(42, diversity.Sequence.MinValue);
         Assert.AreEqual(52, diversity.Sequence.MaxValue);
-        Assert.AreEqual(0, diversity.Sequence.Step);
+        Assert.AreEqual(1, diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_StringRandom()
@@ -589,7 +589,7 @@ public class ReplicationTests : TestBase
         Assert.AreEqual(DiversityType.Random, diversity.Type);
         Assert.AreEqual(42, diversity.Sequence.MinValue);
         Assert.AreEqual(52, diversity.Sequence.MaxValue);
-        Assert.AreEqual(0, diversity.Sequence.Step);
+        Assert.AreEqual(1, diversity.Sequence.Step);
     }
     [TestMethod]
     public void Replication_Parser_Error_StringMissingRange1()
@@ -844,7 +844,7 @@ public class ReplicationTests : TestBase
             Assert.AreEqual(DiversityType.Sequence, nameDiversity.Type);
             Assert.AreEqual(1, nameDiversity.Sequence.MinValue);
             Assert.AreEqual(10, nameDiversity.Sequence.MaxValue);
-            Assert.AreEqual(0, nameDiversity.Sequence.Step);
+            Assert.AreEqual(1, nameDiversity.Sequence.Step);
 
             Assert.AreEqual("Index", diversityItems[1].Key);
             var indexDiversity = diversityItems[1].Value as IntDiversity;
