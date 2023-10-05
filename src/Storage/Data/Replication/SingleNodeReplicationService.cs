@@ -15,7 +15,7 @@ public class SingleNodeReplicationService : IReplicationService
     private readonly IIndexManager _indexManager;
     private readonly ILogger<IReplicationService> _logger;
 
-    //UNDONE:xxxxReplication: get CustomFieldGeneratorFactory from services?
+    //TODO: Consider getting CustomFieldGeneratorFactory from ServiceProvider
     private readonly ICustomFieldGeneratorFactory _customFieldGeneratorFactory = new CustomFieldGeneratorFactory();
 
     public SingleNodeReplicationService(DataProvider dataProvider, IIndexManager indexManager, ILogger<IReplicationService> logger)

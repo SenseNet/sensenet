@@ -1,9 +1,6 @@
 ﻿using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
