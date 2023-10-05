@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Virtualization;
@@ -71,7 +72,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<StatisticsOptions>(configuration.GetSection("sensenet:statistics"));
             services.Configure<MultiFactorOptions>(configuration.GetSection("sensenet:Authentication:MultiFactor"));
             services.Configure<RepositoryTypeOptions>(options => {});
-            
+
             services.ConfigureConnectionStrings(configuration);
 
             return services;
@@ -106,7 +107,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddPlatformIndependentServices()
+                .AddPlatformIndependentServices(configuration)
                 .AddSenseNetTaskManager()
                 .AddContentNamingProvider<CharReplacementContentNamingProvider>()
                 .AddSenseNetDocumentPreviewProvider()
@@ -141,9 +142,10 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
+        public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services, 
+            IConfiguration configuration)
         {
-            return services
+            services
                 .AddSenseNetDefaultRepositoryServices()
                 .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
@@ -178,6 +180,12 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetApiKeys()
                 .AddDefaultMultiFactorAuthenticationProvider()
             ;
+
+            // register the replication feature only if it is enabled
+            if (configuration?.GetSection("sensenet:replication")?.GetValue<bool>("Enabled") ?? false)
+                services.AddSingleton<IReplicationService, SingleNodeReplicationService>();
+
+            return services;
         }
 
         /// <summary>
