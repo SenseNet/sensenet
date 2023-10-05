@@ -17,8 +17,7 @@ public class ReplicationDescriptor
     [JsonIgnore]
     public IDictionary<string, IDiversity> Diversity { get; set; }
 
-    private char[] _whitespaces = " \t\r\n".ToCharArray();
-    public void Initialize(NodeType nodeType)
+    internal void Initialize(NodeType nodeType, ICustomFieldGeneratorFactory customFieldGeneratorFactory)
     {
         if (MaxCount < 1)
             MaxCount = 10;
@@ -50,7 +49,7 @@ public class ReplicationDescriptor
                 continue;
             }
 
-            var parser = new DiversityParser(fieldName, dataType.Value, diversitySource);
+            var parser = new DiversityParser(fieldName, dataType.Value, diversitySource, customFieldGeneratorFactory);
             try
             {
                 diversity.Add(fieldName, parser.Parse());

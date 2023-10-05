@@ -15,6 +15,9 @@ public class SingleNodeReplicationService : IReplicationService
     private readonly IIndexManager _indexManager;
     private readonly ILogger<IReplicationService> _logger;
 
+    //UNDONE:xxxxReplication: get CustomFieldGeneratorFactory from services?
+    private readonly ICustomFieldGeneratorFactory _customFieldGeneratorFactory = new CustomFieldGeneratorFactory();
+
     public SingleNodeReplicationService(DataProvider dataProvider, IIndexManager indexManager, ILogger<IReplicationService> logger)
     {
         _dataProvider = dataProvider;
@@ -24,6 +27,8 @@ public class SingleNodeReplicationService : IReplicationService
 
     public async Task ReplicateNodeAsync(Node source, Node target, ReplicationDescriptor replicationDescriptor, CancellationToken cancel)
     {
+        replicationDescriptor.Initialize(source.NodeType, _customFieldGeneratorFactory);
+
         var sourceData = (await _dataProvider.LoadNodesAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
         var sourceIndexDoc = (await _dataProvider.LoadIndexDocumentsAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
         if (sourceData == null || sourceIndexDoc == null)
@@ -38,7 +43,7 @@ public class SingleNodeReplicationService : IReplicationService
         _logger.LogInformation($"Replication started. Count: {replicationDescriptor.MaxCount} Source: {source.Path}, Target: {target.Path}");
         
         // Initialize folder generation
-        var folderGenContext = new ReplicationContext(_dataProvider, _indexManager)
+        var folderGenContext = new ReplicationContext(_dataProvider, _indexManager, _customFieldGeneratorFactory)
         {
             TypeName = target.NodeType.Name.ToLowerInvariant(),
             MaxCount = replicationDescriptor.MaxCount, // 
@@ -57,7 +62,7 @@ public class SingleNodeReplicationService : IReplicationService
             replicationDescriptor.MaxItemsPerFolder, replicationDescriptor.MaxFoldersPerFolder);
 
         // Initialize content generation
-        var context = new ReplicationContext(_dataProvider, _indexManager)
+        var context = new ReplicationContext(_dataProvider, _indexManager, _customFieldGeneratorFactory)
         {
             TypeName = source.NodeType.Name.ToLowerInvariant(),
             MaxCount = replicationDescriptor.MaxCount,

@@ -5,18 +5,22 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
-public class DiversityParser
+internal class DiversityParser
 {
     private readonly string _diversitySource;
     private readonly string _fieldName;
     private readonly DataType _fieldDataType;
+    private readonly ICustomFieldGeneratorFactory _customFieldGeneratorFactory;
     private readonly DiversityLexer _lexer;
 
-    public DiversityParser(string fieldName, DataType fieldDataType, string diversitySource)
+    public DiversityParser(string fieldName, DataType fieldDataType, string diversitySource,
+        ICustomFieldGeneratorFactory customFieldGeneratorFactory)
     {
         _fieldName = fieldName;
         _fieldDataType = fieldDataType;
         _diversitySource = diversitySource;
+        _customFieldGeneratorFactory = customFieldGeneratorFactory;
+
         _lexer = new DiversityLexer(fieldName, diversitySource);
     }
 
@@ -48,7 +52,15 @@ public class DiversityParser
     //<AdditionalExpression>		::= <GeneratorKeyword> ":" | <AdditionalParameters>*
     private IDiversity? ParseAdditionalExpression()
     {
-        return null; //UNDONE:xxxxReplication: ParseAdditionalExpression is not implemented
+        if (_lexer.CurrentToken != DiversityLexer.Token.GeneratorKeyword)
+            return null;
+
+        var customDiversity = _customFieldGeneratorFactory.CreateDiversity(_lexer.StringValue);
+        if (customDiversity == null)
+            return null;
+
+        customDiversity.Parse(_diversitySource.Substring(_lexer.StringValue.Length + 1));
+        return customDiversity;
     }
 
     //<BuiltInTopLevelExpression>   ::= <BuiltInGeneratorKeyword>? <BuiltInExpression>

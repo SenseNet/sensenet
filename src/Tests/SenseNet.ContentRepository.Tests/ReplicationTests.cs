@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests;
 
@@ -145,7 +146,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_IntConstant()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "42");
+        var parser = CreateParser("Index", DataType.Int, "42");
 
         // ACT
         var parsed = parser.Parse();
@@ -159,7 +160,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_IntRange()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "42 TO 52");
+        var parser = CreateParser("Index", DataType.Int, "42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -175,7 +176,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_IntRangeWithStep()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "42 TO 532 STEP 7");
+        var parser = CreateParser("Index", DataType.Int, "42 TO 532 STEP 7");
 
         // ACT
         var parsed = parser.Parse();
@@ -191,7 +192,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_IntSequence()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "Sequence: 42 TO 52");
+        var parser = CreateParser("Index", DataType.Int, "Sequence: 42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -207,7 +208,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_IntRandom()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "Random: 42 TO 52");
+        var parser = CreateParser("Index", DataType.Int, "Random: 42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -223,7 +224,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_IntRange()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "42 TO FiftyFour");
+        var parser = CreateParser("Index", DataType.Int, "42 TO FiftyFour");
 
         // ACT
         try
@@ -239,7 +240,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_IntStep()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "42 TO 508 STEP three");
+        var parser = CreateParser("Index", DataType.Int, "42 TO 508 STEP three");
 
         try
         {
@@ -258,7 +259,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeConstant1()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2023-09-28");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2023-09-28");
 
         // ACT
         var parsed = parser.Parse();
@@ -272,7 +273,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeConstant2()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2023-09-28 18:20:32");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2023-09-28 18:20:32");
 
         // ACT
         var parsed = parser.Parse();
@@ -286,7 +287,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange1()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28");
 
         // ACT
         var parsed = parser.Parse();
@@ -302,7 +303,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange2()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28");
 
         // ACT
         var parsed = parser.Parse();
@@ -318,7 +319,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange3()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 18:20:32");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 18:20:32");
 
         // ACT
         var parsed = parser.Parse();
@@ -334,7 +335,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange4()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 18:20:32");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 18:20:32");
 
         // ACT
         var parsed = parser.Parse();
@@ -350,7 +351,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange1Step()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 STEP 0.00:10:00");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 STEP 0.00:10:00");
 
         // ACT
         var parsed = parser.Parse();
@@ -366,7 +367,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange2Step()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 STEP 12.00:00:00");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 STEP 12.00:00:00");
 
         // ACT
         var parsed = parser.Parse();
@@ -382,7 +383,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange3Step()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 18:20:32 STEP 0.00:00:32");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 TO 2023-09-28 18:20:32 STEP 0.00:00:32");
 
         // ACT
         var parsed = parser.Parse();
@@ -398,7 +399,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRange4Step()
     {
-        var parser = new DiversityParser("StartDate", DataType.DateTime,
+        var parser = CreateParser("StartDate", DataType.DateTime,
             "2023-01-01 12:00:05 TO 2023-01-01 12:50:00 STEP 0.00:05:00");
 
         // ACT
@@ -415,7 +416,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeSequence()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 18:20:32 STEP 0.02:00:32");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "2022-09-28 18:20:32 TO 2023-09-28 18:20:32 STEP 0.02:00:32");
 
         // ACT
         var parsed = parser.Parse();
@@ -431,7 +432,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DateTimeRandom()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "Random: 2022-09-28 TO 2023-09-28");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "Random: 2022-09-28 TO 2023-09-28");
 
         // ACT
         var parsed = parser.Parse();
@@ -446,7 +447,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_DateTimeRandom()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "Random: 2022-09-28 TO 2023-09+28");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "Random: 2022-09-28 TO 2023-09+28");
 
         try
         {
@@ -462,7 +463,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_DateTimeStep()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime,
+        var parser = CreateParser("CreationDate", DataType.DateTime,
             "2022-09-28 TO 2023-09-28 STEP 10:00");
 
         try
@@ -482,7 +483,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringConstant()
     {
-        var parser = new DiversityParser("Name", DataType.String,
+        var parser = CreateParser("Name", DataType.String,
             "String1");
 
         // ACT
@@ -497,7 +498,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringConstantMoreWords()
     {
-        var parser = new DiversityParser("Name", DataType.String,
+        var parser = CreateParser("Name", DataType.String,
             "Word1 word2 word3 ");
 
         // ACT
@@ -512,7 +513,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringPattern_WithoutTrailingSpace()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*,FortyTwo TO 54");
+        var parser = CreateParser("Name", DataType.String, "Prefix*,FortyTwo TO 54");
 
         // ACT
         var parsed = parser.Parse();
@@ -526,7 +527,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringRange()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, 42 TO 52");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, 42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -543,7 +544,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringRangeWithStep()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, 42 TO 532 STEP 7");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, 42 TO 532 STEP 7");
 
         // ACT
         var parsed = parser.Parse();
@@ -560,7 +561,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringSequence()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, Sequence: 42 TO 52");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, Sequence: 42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -577,7 +578,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_StringRandom()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, Random: 42 TO 52");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, Random: 42 TO 52");
 
         // ACT
         var parsed = parser.Parse();
@@ -594,7 +595,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_StringMissingRange1()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Word,");
+        var parser = CreateParser("Name", DataType.String, "Word,");
 
         // ACT
         try
@@ -610,7 +611,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_StringMissingRange2()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Word word last-word,");
+        var parser = CreateParser("Name", DataType.String, "Word word last-word,");
 
         // ACT
         try
@@ -626,7 +627,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_StringRangeMin()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, FortyTwo TO 54");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, FortyTwo TO 54");
 
         // ACT
         try
@@ -642,7 +643,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_StringRangeMax()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, 42 TO FiftyFour");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, 42 TO FiftyFour");
 
         // ACT
         try
@@ -658,7 +659,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_Error_StringRangeStep()
     {
-        var parser = new DiversityParser("Name", DataType.String, "Prefix*, 42 TO 508 STEP three");
+        var parser = CreateParser("Name", DataType.String, "Prefix*, 42 TO 508 STEP three");
 
         try
         {
@@ -672,12 +673,83 @@ public class ReplicationTests : TestBase
         }
     }
 
+    /* ========================================================================================= CUSTOM DIVERSITY */
+
+    [TestMethod]
+    public void Replication_Parser_CustomDiversity()
+    {
+        var parser = CreateParser("Owner", DataType.Reference, "RandomReference: [1, 2, 5, 12]");
+
+        // ACT
+        var parsed = parser.Parse();
+
+        // ASSERT
+        var diversity = parsed as RandomReferenceDiversity;
+        Assert.IsNotNull(diversity);
+        Assert.AreEqual(DiversityType.Custom, diversity.Type);
+        Assert.AreEqual("1, 2, 5, 12", string.Join(", ", diversity.Array.Select(x => x.ToString())));
+    }
+    [TestMethod]
+    public async STT.Task Replication_Parser_CustomDiversity_CustomFieldGenerator()
+    {
+        await Test(async () =>
+        {
+            var cancel = CancellationToken.None;
+            var dataProvider = Providers.Instance.DataProvider;
+
+            var root = await Node.LoadNodeAsync("/Root/Content", cancel);
+            var testRoot = new SystemFolder(root) { Name = "Replication" };
+            await testRoot.SaveAsync(cancel);
+
+            var source = new Task(testRoot) {Name = "Source"};
+            await source.SaveAsync(cancel);
+            var sourceData = (await dataProvider.LoadNodesAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
+            var sourceIndexDoc = (await dataProvider.LoadIndexDocumentsAsync(new[] { source.VersionId }, cancel)).FirstOrDefault();
+
+            var target = new Folder(testRoot) { Name = "Target" };
+            await target.SaveAsync(cancel);
+            //var targetData = (await dataProvider.LoadNodesAsync(new[] { target.VersionId }, cancel)).FirstOrDefault();
+            //var targetIndexDoc = (await dataProvider.LoadIndexDocumentsAsync(new[] { target.VersionId }, cancel)).FirstOrDefault();
+
+            var context = new ReplicationContext(dataProvider, Providers.Instance.IndexManager, _customFieldGeneratorFactory)
+            {
+                TypeName = source.NodeType.Name.ToLowerInvariant(),
+                ReplicationStart = DateTime.UtcNow,
+                IsSystemContent = source.IsSystem || target.IsSystem,
+                NodeHeadData = sourceData.GetNodeHeadData(),
+                VersionData = sourceData.GetVersionData(),
+                DynamicData = sourceData.GetDynamicData(true),
+                TargetId = target.Id,
+                TargetPath = target.Path
+            };
+
+            var replicationDescriptor = new ReplicationDescriptor
+            {
+                Fields = new Dictionary<string, string>
+                {
+                    {"AssignedTo", "RandomReference: [1, 2, 5, 12]"},
+                }
+            };
+            replicationDescriptor.Initialize(source.NodeType, _customFieldGeneratorFactory);
+
+            // ACT
+            context.Initialize(replicationDescriptor, sourceIndexDoc);
+
+            // ASSERT
+            var generator = context.FieldGenerators.FirstOrDefault(x => x.PropertyName == "AssignedTo");
+            Assert.IsNotNull(generator);
+            var diversity = generator.Diversity as RandomReferenceDiversity;
+            Assert.IsNotNull(diversity);
+            AssertSequenceEqual(new[] {1, 2, 5, 12}, diversity.Array);
+        });
+    }
+
     /* ========================================================================================= DATA-TYPE ERRORS */
 
     [TestMethod]
     public void Replication_Parser_DataType_Integer_StringSequence()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "Prefix*, Sequence: 42 TO 52");
+        var parser = CreateParser("Index", DataType.Int, "Prefix*, Sequence: 42 TO 52");
 
         try
         {
@@ -695,7 +767,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DataType_Integer_DateTimeSequence()
     {
-        var parser = new DiversityParser("Index", DataType.Int, "2022-09-28 TO 2023-09-28");
+        var parser = CreateParser("Index", DataType.Int, "2022-09-28 TO 2023-09-28");
 
         try
         {
@@ -713,7 +785,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DataType_DateTime_StringSequence()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "Prefix*, Sequence: 42 TO 52");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "Prefix*, Sequence: 42 TO 52");
 
         try
         {
@@ -731,7 +803,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DataType_DateTime_IntSequence()
     {
-        var parser = new DiversityParser("CreationDate", DataType.DateTime, "42 TO 52");
+        var parser = CreateParser("CreationDate", DataType.DateTime, "42 TO 52");
 
         try
         {
@@ -749,7 +821,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DataType_String_DateTimeSequence()
     {
-        var parser = new DiversityParser("DisplayName", DataType.String, "2022-09-28 TO 2023-09-28");
+        var parser = CreateParser("DisplayName", DataType.String, "2022-09-28 TO 2023-09-28");
 
         try
         {
@@ -767,7 +839,7 @@ public class ReplicationTests : TestBase
     [TestMethod]
     public void Replication_Parser_DataType_String_IntSequence()
     {
-        var parser = new DiversityParser("DisplayName", DataType.String, "42 TO 52");
+        var parser = CreateParser("DisplayName", DataType.String, "42 TO 52");
 
         try
         {
@@ -796,6 +868,9 @@ public class ReplicationTests : TestBase
             Source = source;
             Target = target;
             ReplicationDescriptor = replicationDescriptor;
+
+            replicationDescriptor.Initialize(source.NodeType, new CustomFieldGeneratorFactory());
+
             return System.Threading.Tasks.Task.CompletedTask;
         }
     }
@@ -902,5 +977,13 @@ public class ReplicationTests : TestBase
             Assert.AreEqual("Invalid maximum value in the integer range of the \"ModificationDate\" field: \"1 to end\".", errors[3]);
 
         }).ConfigureAwait(false);
+    }
+
+    /* ========================================================================================= TOOLS */
+
+    private CustomFieldGeneratorFactory _customFieldGeneratorFactory = new CustomFieldGeneratorFactory();
+    private DiversityParser CreateParser(string fieldName, DataType dataType, string source)
+    {
+        return new DiversityParser(fieldName, dataType, source, _customFieldGeneratorFactory);
     }
 }

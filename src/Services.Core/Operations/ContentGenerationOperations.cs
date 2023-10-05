@@ -29,8 +29,6 @@ public static class ContentGenerationOperations
         if (replicationService == null)
             throw new NotSupportedException("Replication is not supported.");
 
-        options.Initialize(content.ContentHandler.NodeType);
-
         var cancel = CancellationToken.None;
 
         // load the app cancellation token that will shut down this background process gracefully
@@ -54,9 +52,8 @@ public static class ContentGenerationOperations
         var fields1 = ReplicationDescriptor.WellKnownProperties
             .Select(x=>new KeyValuePair<string,string>(x.Key, $"____DataType.{x.Value}____"));
         var fields2 = content.ContentHandler.NodeType.PropertyTypes
-            .Where(x => x.DataType == DataType.String || x.DataType == DataType.Int || x.DataType == DataType.DateTime || x.DataType == DataType.Text)
+            .Where(x => x.DataType != DataType.Binary && x.DataType != DataType.Currency)
             .Select(x => new KeyValuePair<string, string>(x.Name, $"____DataType.{x.DataType}____"))
-            //.OrderBy(x=>x.Key)
             ;
         var fields = fields1.Union(fields2)
             .Where(x => !readOnlyFields.Contains(x.Key))

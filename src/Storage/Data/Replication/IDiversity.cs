@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
-public enum DiversityType { Constant, Sequence, Random, /* Dictionary, etc*/}
+public enum DiversityType { Constant, Sequence, Random, Custom /* Dictionary, etc*/}
 
 public class Sequence
 {
@@ -25,6 +25,12 @@ public interface IDiversity
     DataType DataType { get; }
     object Current { get; set; }
 }
+
+public interface ICustomDiversity : IDiversity
+{
+    void Parse(string diversitySettings);
+}
+
 public interface IDiversity<T> : IDiversity
 {
     new T Current { get; set; }

@@ -8,120 +8,15 @@ using SenseNet.Search.Indexing;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.Replication;
 
-internal interface IFieldGenerator
+public interface IFieldGenerator
 {
+    string PropertyName { get; }
+    PropertyType PropertyType { get; }
+    IDiversity Diversity { get; }
+
     void Generate(ReplicationContext context);
 }
 
-internal abstract class FieldGenerator : IFieldGenerator
-{
-    public abstract void Generate(ReplicationContext context);
-
-    private static readonly string[] OmittedFieldNames = {
-        "NodeId","ParentNodeId","IsSystem","VersionId","NodeTimestamp","VersionTimestamp"
-    };
-    internal static List<IFieldGenerator> CreateFieldGenerators(ReplicationDescriptor replicationDescriptor, IndexDocument indexDocument, ReplicationContext context)
-    {
-        var result = new List<IFieldGenerator>();
-        var fieldNames = indexDocument.Fields.Keys.ToList();
-
-        if (replicationDescriptor.Diversity != null)
-        {
-            // Create configured field generators
-            foreach (var item in replicationDescriptor.Diversity)
-            {
-                var fieldName = item.Key;
-                if (OmittedFieldNames.Contains(fieldName))
-                    throw new InvalidOperationException($"The field '{fieldName}' cannot be included in the data generation.");
-                var diversity = item.Value;
-
-                fieldNames.Remove(fieldName);
-                switch (fieldName)
-                {
-                    case "Name": result.Add(new NameFieldGenerator(GetDiversity<StringDiversity>(diversity))); break;
-                    case "DisplayName": result.Add(new DisplayNameFieldGenerator(GetDiversity<StringDiversity>(diversity))); break;
-                    case "Index": result.Add(new IndexFieldGenerator(GetDiversity<IntDiversity>(diversity))); break;
-                    case "OwnerId": result.Add(new OwnerIdFieldGenerator(GetDiversity<IntDiversity>(diversity))); break;
-                    case "Version": result.Add(new VersionFieldGenerator(GetDiversity<StringDiversity>(diversity))); break;
-                    case "CreatedById": result.Add(new CreatedByIdFieldGenerator(GetDiversity<IntDiversity>(diversity))); break;
-                    case "ModifiedById": result.Add(new ModifiedByIdFieldGenerator(GetDiversity<IntDiversity>(diversity))); break;
-                    case "CreationDate": result.Add(new CreationDateFieldGenerator(GetDiversity<DateTimeDiversity>(diversity))); break;
-                    case "ModificationDate": result.Add(new ModificationDateFieldGenerator(GetDiversity<DateTimeDiversity>(diversity))); break;
-                    default:
-                        {
-                            var propertyType = context.DynamicData.PropertyTypes.FirstOrDefault(x => x.Name == fieldName);
-                            if (propertyType == null)
-                                throw new InvalidOperationException("Unknown property type in the prototype: " + fieldName);
-
-                            switch (propertyType.DataType)
-                            {
-                                case DataType.String:
-                                    if (!(diversity is StringDiversity stringDiversity))
-                                        throw GetDiversityTypeError<StringDiversity>(diversity, propertyType);
-                                    result.Add(new StringFieldGenerator(propertyType.Name, stringDiversity));
-                                    break;
-                                case DataType.Text:
-                                    if (!(diversity is StringDiversity textDiversity))
-                                        throw GetDiversityTypeError<StringDiversity>(diversity, propertyType);
-                                    result.Add(new TextFieldGenerator(propertyType.Name, textDiversity));
-                                    break;
-                                case DataType.Int:
-                                    if (!(diversity is IntDiversity intDiversity))
-                                        throw GetDiversityTypeError<IntDiversity>(diversity, propertyType);
-                                    result.Add(new IntFieldGenerator(propertyType.Name, intDiversity));
-                                    break;
-                                case DataType.DateTime:
-                                    if (!(diversity is DateTimeDiversity dateTimeDiversity))
-                                        throw GetDiversityTypeError<DateTimeDiversity>(diversity, propertyType);
-                                    result.Add(new DateTimeFieldGenerator(propertyType.Name, dateTimeDiversity));
-                                    break;
-                                case DataType.Currency:
-                                case DataType.Binary:
-                                case DataType.Reference:
-                                    throw new NotSupportedException();
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
-
-                            break;
-                        }
-                }
-            }
-        }
-
-        // Create missing well known field generators
-        foreach (var fieldName in fieldNames)
-        {
-            switch (fieldName)
-            {
-                case "Name": result.Add(new NameFieldGenerator(null)); break;
-                case "DisplayName": result.Add(new DisplayNameFieldGenerator(null)); break;
-                case "Index": result.Add(new IndexFieldGenerator(null)); break;
-                case "OwnerId": result.Add(new OwnerIdFieldGenerator(null)); break;
-                case "Version": result.Add(new VersionFieldGenerator(null)); break;
-                case "CreatedById": result.Add(new CreatedByIdFieldGenerator(null)); break;
-                case "ModifiedById": result.Add(new ModifiedByIdFieldGenerator(null)); break;
-                case "CreationDate": result.Add(new CreationDateFieldGenerator(null)); break;
-                case "ModificationDate": result.Add(new ModificationDateFieldGenerator(null)); break;
-            }
-        }
-
-        return result;
-    }
-    private static Exception GetDiversityTypeError<TDiv>(IDiversity diversity, PropertyType propertyType) where TDiv : IDiversity
-    {
-        return new InvalidOperationException($"Cannot use {diversity.GetType().Name} to generate data for the " +
-                                             $"'{propertyType.Name}' ({propertyType.DataType}) property. " +
-                                             $"Expected: {typeof(TDiv).Name}");
-    }
-    private static TDiv GetDiversity<TDiv>(IDiversity diversity)
-    {
-        if (diversity is not TDiv typedDiversity)
-            throw new InvalidOperationException(
-                $"The DiversitySettings of the Name field should be {typeof(TDiv).Name} instead of {diversity.GetType().Name}.");
-        return typedDiversity;
-    }
-}
 internal class NameFieldGenerator : StringFieldGenerator
 {
     public NameFieldGenerator(StringDiversity diversity) : base("Name", diversity)
@@ -265,6 +160,7 @@ internal class StringFieldGenerator : IFieldGenerator
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public StringDiversity Diversity { get; protected set; }
+    IDiversity IFieldGenerator.Diversity => Diversity;
     public StringFieldGenerator(string propertyName, StringDiversity diversity)
     {
         PropertyName = propertyName;
@@ -347,6 +243,7 @@ internal class IntFieldGenerator : IFieldGenerator
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public IntDiversity Diversity { get; protected set; }
+    IDiversity IFieldGenerator.Diversity => Diversity;
     public IntFieldGenerator(string propertyName, IntDiversity diversity)
     {
         PropertyName = propertyName;
@@ -407,6 +304,7 @@ internal class DateTimeFieldGenerator : IFieldGenerator
     public string PropertyName { get; }
     public PropertyType PropertyType { get; }
     public DateTimeDiversity Diversity { get; protected set; }
+    IDiversity IFieldGenerator.Diversity => Diversity;
     public DateTimeFieldGenerator(string propertyName, DateTimeDiversity diversity)
     {
         PropertyName = propertyName;
