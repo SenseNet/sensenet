@@ -68,5 +68,6 @@ internal class RandomReferenceFieldGenerator : IFieldGenerator
         var index = length < 2 ? 0 : _rng.Next(0, length);
         var value = Diversity.Array[index];
         context.DynamicData.ReferenceProperties[PropertyType] = new List<int> { value };
+        context.SetIndexValue(PropertyName, value);
     }
 }
