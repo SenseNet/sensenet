@@ -1878,17 +1878,9 @@ namespace SenseNet.IntegrationTests.TestCases
                         {
                             Type = DiversityType.Sequence, Pattern = "Event-*", Sequence = new Sequence{MinValue = 1}
                         }},
-                        //{"DisplayName", new StringDiversity
-                        //{
-                        //    Type = DiversityType.Random, Pattern = "[Name]_Random-{100-200}"
-                        //}},
                         {"Index", new IntDiversity
                         {
-                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 1001 // only MinValue
-                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 0    // MinValue + count
-                            //Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 1005 // MinValue + count % (MaxValue - MinValue + 1)
-                            //Type = DiversityType.Random, MinValue = 1001, MaxValue = 0      // only MinValue
-                            Type = DiversityType.Random, MinValue = 1001, MaxValue = 1005     // random between min and max inclusive
+                            Type = DiversityType.Sequence, MinValue = 1001, MaxValue = 1005     // random between min and max inclusive
                         }},
                         {"CreationDate", new DateTimeDiversity
                         {
@@ -1911,14 +1903,15 @@ namespace SenseNet.IntegrationTests.TestCases
                 timer.Stop();
                 SnTrace.Test.Write(()=> $">>>> Replication time: {time} ({1.0d * replicationCount / time.TotalSeconds:0} CPS)");
 
-//await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
-//    await SaveWholeInvertedIndexAsync(writer, cancel);
-//for (int i = 0; i < replicationCount; i++)
-//{
-//    var versionId = target.VersionId + i + 1;
-//    using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
-//        await SaveIndexDocumentAsync(versionId, writer, cancel);
-//}
+                //// Save index
+                //await using (var writer = new StreamWriter(@"D:\dev\replication\test\invertedindex.txt"))
+                //    await SaveWholeInvertedIndexAsync(writer, cancel);
+                //for (int i = 0; i < replicationCount; i++)
+                //{
+                //    var versionId = target.VersionId + i + 1;
+                //    using (var writer = new StreamWriter($@"D:\dev\replication\test\{versionId}.txt"))
+                //        await SaveIndexDocumentAsync(versionId, writer, cancel);
+                //}
 
                 // ASSERT
                 var hits = await CreateSafeContentQuery("Name:'Event-*'").ExecuteAsync(cancel);
