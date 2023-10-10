@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Storage.Security;
+using StringExtensions = SenseNet.Client.StringExtensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
@@ -493,8 +494,9 @@ namespace SenseNet.Services.Core.Operations
                         {
                             p["Email"] = email;
                             p["Username"] = email;
+                            p["LoginName"] = user.LoginName;
                             p["FullName"] = fullName;
-                            p["RepositoryUrl"] = repositoryUrl;
+                            p["RepositoryUrl"] = StringExtensions.TrimSchema(repositoryUrl);
                             p["ActionUrl"] = actionUrl;
 
                             return Task.CompletedTask;
