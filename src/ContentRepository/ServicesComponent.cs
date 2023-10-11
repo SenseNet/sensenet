@@ -1565,6 +1565,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.29", "7.7.30", "2023-06-09", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_30);
+
+            builder.Patch("7.7.30", "7.7.30.1", "2023-10-11", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_31);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -1827,6 +1830,108 @@ namespace SenseNet.ContentRepository
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Error during CTD changes.");
+            }
+
+            #endregion
+        }
+
+        private void Patch_7_7_31(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Content changes
+
+            // email template for changed password
+            var changePassTemplate = Content.Load("/Root/System/Templates/Email/Registration/ChangePassword");
+            if (changePassTemplate != null)
+            {
+                // update only if it has NOT changed after installation
+                var timeDiff = changePassTemplate.ModificationDate - changePassTemplate.CreationDate;
+                if (timeDiff.TotalSeconds < 1)
+                {
+                    logger.LogInformation("Updating password change email template...");
+
+                    changePassTemplate["Subject"] = "{FullName} - Please change your password in {RepositoryUrl}";
+                    changePassTemplate["Body"] = @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"" />
+    <title>{FullName} - Please change your password in {RepositoryUrl}</title>
+</head>
+<body>
+    <div style=""text-align: center;padding: 10px;padding-top:30px"">
+        <div style=""width: 600px;margin: 0 auto;
+                    text-align: left;
+                    font-family: Roboto, Arial, Helvetica, sans-serif;
+                    color: #757575;
+                    font-size: 16px;
+                    line-height: 150%;"">
+            <div style=""text-align: center"">
+                <img src=""https://github.com/SenseNet/sn-resources/blob/master/images/sn-icon/sensenet-icon-64.png?raw=true"" alt=""sensenet logo"" />
+            </div>
+            <div style=""padding: 10px"">
+                <h1 style=""font-size: 16px"">Welcome {LoginName}</h1>
+				<h4>Repository: {RepositoryUrl}</h4>
+                <div>Before you log in with your user <strong>{LoginName}</strong>, please change your password.</div>
+                <div>If you did not create an account using this address (<a style=""color: #007C89 !important;text-decoration: none !important"">{Email}</a>), please skip this mail.</div>
+                <table width=""100%"" border=""0"" cellspacing=""0"" cellpadding=""0"">
+                    <tr>
+                        <td align=""center"" style=""padding: 30px"">
+                            <table border=""0"" cellspacing=""0"" cellpadding=""0"">
+                                <tr>
+                                    <td align=""center"" style=""border-radius: 25px;text-align: center;"" bgcolor=""#13a5ad"">
+                                        <a href=""{ActionUrl}"" target=""_blank""
+                                           style="" font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; text-decoration: none;border-radius: 25px;padding: 10px; border: 1px solid #13a5ad; display: inline-block;"">
+                                            Change your password
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <div style=""text-align: center; width: auto; font-size: 80%;"">
+                    Or using this link:<br />
+                    <a style=""color: #007C89"" href=""{ActionUrl}"">{ActionUrl}</a>
+                </div>
+                <br />
+                <div>Thank you!</div>
+                <br />
+                <div>regards,<br />sensenet team</div>
+            </div>
+            <br />
+            <br />
+            <div style=""width: 100%;clear: both;display:block;text-align: center;border-top: solid 1px #cfcfcf;margin-top: 20px;padding: 10px;margin: 20px 10px 10px"">
+                <table style=""margin: 0 auto"">
+                    <tr>
+                        <td style=""padding: 10px"">
+                            <a href=""https://github.com/SenseNet"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-github-48.png"" />
+                            </a>
+                        </td>
+                        <td style=""padding: 10px"">
+                            <a href=""https://sensenet.com"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-link-48.png"" />
+                            </a>
+                        </td>
+                        <td style=""padding: 10px"">
+                            <a href=""https://www.linkedin.com/company/sense-net-inc/about/"">
+                                <img width=""24"" src=""https://cdn-images.mailchimp.com/icons/social-block-v2/outline-gray-linkedin-48.png"" />
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                <div style=""font-size: 12px"">
+                    <em>Copyright © 2022 Sense/Net, All rights reserved.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+";
+                    changePassTemplate.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                }
             }
 
             #endregion
