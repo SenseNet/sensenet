@@ -26,6 +26,8 @@ public class ReplicationDescriptor
         if (MaxFoldersPerFolder < 1)
             MaxFoldersPerFolder = 100;
 
+        if (Diversity != null)
+            return;
         var diversity = new Dictionary<string, IDiversity>();
         Diversity = diversity;
         if (Fields == null)
