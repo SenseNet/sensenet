@@ -102,6 +102,10 @@ namespace SenseNet.ContentRepository
                 var propGroup = match.Groups[RegexGroupNames.Property];
                 var remainingExpression = templateExpression.Length == propGroup.Length ? null : templateExpression.Substring(propGroup.Length).TrimStart('.');
 
+                // unknown property
+                if (!content.HasProperty(propGroup.Value))
+                    return string.Empty;
+
                 // load the property (e.g. a Deadline field) and evaluate it recursively
                 return EvaluateExpression(content.GetProperty(propGroup.Value), remainingExpression, templatingContext);
             }
