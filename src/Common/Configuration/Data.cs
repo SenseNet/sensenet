@@ -1,4 +1,6 @@
 ﻿using System;
+using SenseNet.Tools.Configuration;
+
 // ReSharper disable CheckNamespace
 
 namespace SenseNet.Configuration
@@ -28,6 +30,7 @@ namespace SenseNet.Configuration
             TransactionTimeout, TransactionTimeout);
     }
 
+    [OptionsClass(sectionName: "sensenet:Data")]
     public class DataOptions
     {
         //TODO: [DIREF] remove legacy data configuration when upper layers are ready.
