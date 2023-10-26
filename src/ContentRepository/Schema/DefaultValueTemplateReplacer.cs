@@ -24,7 +24,8 @@ namespace SenseNet.ContentRepository.Schema
             switch (templateName)
             {
                 case "currentuser":
-                    return EvaluateExpression(User.Current as GenericContent, templateExpression, templatingContext);
+                    var user = AccessProvider.Current.GetOriginalUser() as GenericContent;
+                    return EvaluateExpression(user, templateExpression, templatingContext);
                 case "currenttime":
                     return EvaluateExpression(DateTime.UtcNow, templateExpression, templatingContext, DefaultUnits.Minutes);
                 case "currentdate":
