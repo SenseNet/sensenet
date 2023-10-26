@@ -170,6 +170,9 @@ namespace SenseNet.ContentRepository
             field.Content = content;
             field.FieldSetting = fieldSetting;
 
+            if (content.IsNew)
+                field._changed = true;
+
             return field;
         }
 
