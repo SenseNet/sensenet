@@ -25,7 +25,15 @@
       "MaxAge": 604800
     },
     {
+      "Extension": "svg",
+      "MaxAge": 604800
+    },
+    {
       "Extension": "swf",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "webp",
       "MaxAge": 604800
     },
     {
@@ -47,6 +55,7 @@
     "svgz": "Image",
     "tif": "Image",
     "tiff": "Image",
+    "webp": "Image",
     "xaml": "WorkflowDefinition",
     "DefaultContentType": "File"
   },
