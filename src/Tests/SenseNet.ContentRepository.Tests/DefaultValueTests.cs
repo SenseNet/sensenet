@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tests.Core;
 using System.Threading;
+using FluentAssertions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using STT = System.Threading.Tasks;
@@ -558,11 +559,131 @@ namespace SenseNet.ContentRepository.Tests
             }).ConfigureAwait(false);
         }
 
+        /* =============================================================================== */
+
+        private class ContentHandler1 : GenericContent
+        {
+            public ContentHandler1(Node parent) : base(parent) { }
+            public ContentHandler1(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+            protected ContentHandler1(NodeToken nt) : base(nt) { }
+
+            [RepositoryProperty(nameof(ShortText1), RepositoryDataType.String)]
+            public string ShortText1
+            {
+                get => base.GetProperty<string>(nameof(ShortText1));
+                set => this[nameof(ShortText1)] = value;
+            }
+
+            public override object GetProperty(string name)
+            {
+                switch (name)
+                {
+                    case nameof(ShortText1):
+                        return ShortText1;
+                }
+                return base.GetProperty(name);
+            }
+            public override void SetProperty(string name, object value)
+            {
+                switch (name)
+                {
+                    case nameof(ShortText1):
+                        ShortText1 = (string)value;
+                        break;
+                }
+                base.SetProperty(name, value);
+            }
+        }
+
+        [TestMethod]
+        public async STT.Task FieldDefaultValue_New_ShortText_SetInHandler_Optional()
+        {
+            await Test(async () =>
+            {
+                InstallContentType("ContentHandler1" , @"
+<Field name=""ShortText1"" type=""ShortText"">
+  <Configuration>
+    <Compulsory>false</Compulsory>
+  </Configuration>
+</Field>
+");
+                var testRoot = await CreateTestRootAsync(_cancel);
+                Content content;
+
+                // ACT
+                var node = new ContentHandler1(testRoot) {Name = "TestContent", ShortText1 = "ShortTextValue"};
+                content = Content.Create(node);
+                await content.SaveAsync(_cancel);
+
+                // ASSERT
+                var loaded = await Content.LoadAsync(content.Id, _cancel).ConfigureAwait(false);
+                Assert.AreEqual("ShortTextValue", loaded["ShortText1"]);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async STT.Task FieldDefaultValue_New_ShortText_SetInHandler_Required()
+        {
+            await Test(async () =>
+            {
+                InstallContentType("ContentHandler1", @"
+<Field name=""ShortText1"" type=""ShortText"">
+  <Configuration>
+    <Compulsory>true</Compulsory>
+  </Configuration>
+</Field>
+");
+                var testRoot = await CreateTestRootAsync(_cancel);
+                Content content;
+
+                // ACT
+                var node = new ContentHandler1(testRoot) { Name = "TestContent", ShortText1 = "ShortTextValue" };
+                content = Content.Create(node);
+                await content.SaveAsync(_cancel);
+
+                // ASSERT
+                var loaded = await Content.LoadAsync(content.Id, _cancel).ConfigureAwait(false);
+                Assert.AreEqual("ShortTextValue", loaded["ShortText1"]);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async STT.Task FieldDefaultValue_New_User_SetInHandler_Required()
+        {
+            await Test(async () =>
+            {
+                // ACT
+                var node = new User(await Node.LoadNodeAsync("/Root/IMS/BuiltIn/Portal", _cancel))
+                {
+                    Name = "User-1",
+                    Password = "user-1",
+                    Email = "user-1@xmple.com",
+                    FullName = "John Smith",
+                };
+                var content = Content.Create(node);
+                content["Password"] = "user-1";
+                await content.SaveAsync(_cancel);
+
+                // ASSERT
+                var loaded = await Content.LoadAsync(content.Id, _cancel).ConfigureAwait(false);
+                Assert.AreEqual("user-1@xmple.com", loaded["Email"]);
+                Assert.AreEqual("John Smith", loaded["DisplayName"]);
+                Assert.AreEqual("John Smith", loaded["FullName"]);
+            }).ConfigureAwait(false);
+        }
+
         /* =============================================================================== TOOLS */
 
         private void InstallContentType(string fieldDefinition)
         {
             ContentTypeInstaller.InstallContentType($@"<ContentType name=""{ContentTypeName}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    {fieldDefinition}
+  </Fields>
+</ContentType>");
+        }
+        private void InstallContentType(string contentTypeName, string fieldDefinition)
+        {
+            ContentTypeInstaller.InstallContentType($@"<ContentType name=""{contentTypeName}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <Fields>
     {fieldDefinition}
   </Fields>
