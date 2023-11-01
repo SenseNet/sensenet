@@ -173,13 +173,13 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     AddRootAccessibilityToAdmin();
-                    var currentUserser = User.Visitor;
+                    var currentUser = User.Visitor;
                     using(new SystemAccount())
-                        currentUserser.CreationDate = new DateTime(2001, 01, 02);
-                    User.Current = currentUserser;
+                        currentUser.CreationDate = new DateTime(2001, 01, 02);
+                    User.Current = currentUser;
 
                     var date1 = ((User)User.Current).CreationDate;
-                    var date2 = User.Administrator.CreationDate;
+                    var date2 = currentUser.Owner.CreationDate; // Visitor does not see the admin
 
                     AssertDate("@@CurrentUser.CreationDate@@", date1, "CU.CreationDate is incorrect.");
                     AssertDate("@@CurrentUser.CreationDate+3minutes@@", date1.AddMinutes(3), "CU.CreationDate is incorrect.");

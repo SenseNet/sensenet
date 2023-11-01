@@ -732,9 +732,11 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     // #1 check not saved
                     content = Content.CreateNew(contentTypeName, testRoot, Guid.NewGuid().ToString());
+                    // Re-routed field ignores default value. See SenseNet.ContentRepository.Field.SetDefaultValue method.
+                    content[displayName2Name] = displayName2Default;
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
                     content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -744,7 +746,7 @@ namespace SenseNet.ContentRepository.Tests
                     content = Content.Load(contentId);
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
 
@@ -755,23 +757,23 @@ namespace SenseNet.ContentRepository.Tests
                     // #4 check with 2 aspects / not saved
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
-                    Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
+                    Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
                     content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // #5 check with 2 aspects / reloaded
                     content = Content.Load(contentId);
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
-                    Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
+                    Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
 
                     // #6 add aspect3 without save
@@ -779,12 +781,12 @@ namespace SenseNet.ContentRepository.Tests
 
                     // #7 check with all aspects / not saved
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
-                    Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
+                    Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[aspectReferenceFieldName]).Select(n => n.Path)));
                     content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -792,12 +794,12 @@ namespace SenseNet.ContentRepository.Tests
                     // #8 check with all aspects / reloaded
                     content = Content.Load(contentId);
                     Assert.AreEqual(shortTextDefault, content[shortTextFieldName]);
-                    Assert.AreEqual(null, content[displayName2Name]);
+                    Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(null, content[shortText2FieldName]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
-                    Assert.AreEqual(null, content[aspectDisplayName2FieldName]);
+                    Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[aspectReferenceFieldName]).Select(n => n.Path)));
                 }

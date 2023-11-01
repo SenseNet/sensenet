@@ -133,6 +133,8 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                if (this.FieldSettings == null)
+                    return Array.Empty<Node>();
                 return from fs in this.FieldSettings
                        where StorageSchema.NodeTypes[fs.GetType().Name] != null
                        select new FieldSettingContent(fs.GetEditable(), this) as Node;

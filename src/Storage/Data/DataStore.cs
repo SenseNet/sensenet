@@ -362,6 +362,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
+            if(nodeId == 0 || versionId == 0)
+                return null;
+
             // Try to load cached binary entity
             var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
             var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
