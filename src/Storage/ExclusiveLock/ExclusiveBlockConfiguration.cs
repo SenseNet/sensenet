@@ -2,10 +2,12 @@
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
+using SenseNet.Tools.Configuration;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
+    [OptionsClass(sectionName: "sensenet:ExclusiveLock")]
     public class ExclusiveLockOptions
     {
         /// <summary>
