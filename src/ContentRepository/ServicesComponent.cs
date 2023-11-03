@@ -1937,6 +1937,49 @@ namespace SenseNet.ContentRepository
             #endregion
         }
 
+        private void Patch_7_7_32(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region String resource changes
+
+            var rb = new ResourceBuilder();
+            rb.Content("CtdResourcesCD.xml")
+                .Class("Ctd-ContentType")
+                .Culture("en")
+                .AddResource("Categories-DisplayName", "Categories")
+                .AddResource("Categories-Description", "Space separated list of all categories.")
+                .Culture("hu")
+                .AddResource("Categories-DisplayName", "Kategóriák")
+                .AddResource("Categories-Description", "Kategórianevek szóközzel elválasztva.");
+            rb.Apply();
+
+            #endregion
+
+            #region CTD changes
+
+            try
+            {
+                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+                cb.Type("ContentType")
+                    .Field("Categories", "ShortText")
+                    .DisplayName("$Ctd-ContentType,Categories-DisplayName")
+                    .Description("$Ctd-ContentType,Categories-Description")
+                    .Bind("CategoryNames")
+                    .VisibleBrowse(FieldVisibility.Hide)
+                    .VisibleEdit(FieldVisibility.Hide)
+                    .VisibleNew(FieldVisibility.Hide)
+                    .ReadOnly(true);
+                cb.Apply();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during CTD changes.");
+            }
+
+            #endregion
+        }
+
         #region Patch template
 
         // =================================================================================================
