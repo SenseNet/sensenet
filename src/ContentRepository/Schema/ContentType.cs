@@ -162,6 +162,10 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public IEnumerable<string> Categories { get; private set; } = Array.Empty<string>();
         /// <summary>
+        /// Get the categories as a space separated list
+        /// </summary>
+        public string CategoryNames => string.Join(" ", Categories);
+        /// <summary>
         /// Gets the icon name of the ContentType. This value comes from the ContentTypeDefinition.
         /// If that is left empty, the parent value is returned.
         /// </summary>
