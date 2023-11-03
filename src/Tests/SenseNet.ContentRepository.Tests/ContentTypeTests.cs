@@ -21,6 +21,74 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ContentTypeTests : TestBase
     {
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_HeadElementOrder()
+        {
+            Test(() =>
+            {
+                var ctd = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>displayName1</DisplayName>
+  <Description>description1</Description>
+  <Icon>icon1</Icon>
+  <Preview>true</Preview>
+  <Extension>extension1</Extension>
+  <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <AppInfo>appInfo</AppInfo>
+  <AllowedChildTypes>User,Group</AllowedChildTypes>
+  <Categories>cat1 cat2</Categories>
+  <SystemType>true</SystemType>
+  <AllowIndexing>true</AllowIndexing>
+  <Fields />
+</ContentType>";
+
+                ContentTypeInstaller.InstallContentType(ctd);
+                var contentType = ContentType.GetByName("MyType1");
+                Assert.AreEqual("displayName1", contentType.DisplayName);
+                Assert.AreEqual("description1", contentType.Description);
+                Assert.AreEqual("icon1", contentType.Icon);
+                Assert.AreEqual(true, contentType.Preview);
+                Assert.AreEqual("extension1", contentType.Extension);
+                Assert.AreEqual(true, contentType.AllowIncrementalNaming);
+                AssertSequenceEqual(new[] { "User", "Group" }, contentType.AllowedChildTypeNames);
+                AssertSequenceEqual(new[] { "cat1", "cat2" }, contentType.Categories);
+                Assert.AreEqual(true, contentType.IsSystemType);
+                Assert.AreEqual(true, contentType.IsIndexingEnabled);
+            });
+        }
+
+        /* =========================================================================== Categories */
+
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_Categories()
+        {
+            Test(() =>
+            {
+                var prefix = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+";
+                var suffix = @"
+  <Fields />
+</ContentType>";
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}{suffix}");
+                var contentType = ContentType.GetByName("MyType1");
+                Assert.IsNotNull(contentType.Categories);
+                Assert.AreEqual(0, contentType.Categories.Count());
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}<Categories />{suffix}");
+                contentType = ContentType.GetByName("MyType1");
+                Assert.IsNotNull(contentType.Categories);
+                Assert.AreEqual(0, contentType.Categories.Count());
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}<Categories>Cat1, Cat2 ; Cat3 Cat4</Categories>{suffix}");
+                contentType = ContentType.GetByName("MyType1");
+                Assert.IsNotNull(contentType.Categories);
+                var categories = contentType.Categories.ToArray();
+                AssertSequenceEqual(new[] {"Cat1", "Cat2", "Cat3", "Cat4"}, categories);
+            });
+        }
+
         /* =========================================================================== MORE PERMISSIVE LOAD TESTS */
 
         [TestMethod]
