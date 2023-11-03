@@ -516,9 +516,9 @@ namespace  SenseNet.ContentRepository.Schema
             CalculateFieldBits(allFieldNames);
         }
 
-        private void ParseCategories(XPathNavigator allowedChildTypesElement, IXmlNamespaceResolver nsres)
+        private void ParseCategories(XPathNavigator categoriesElement, IXmlNamespaceResolver nsres)
         {
-            Categories = allowedChildTypesElement.InnerXml
+            Categories = categoriesElement.InnerXml
                 .Split(XmlListSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .ToImmutableArray();
