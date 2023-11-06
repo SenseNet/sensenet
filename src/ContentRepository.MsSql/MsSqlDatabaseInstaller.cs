@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SenseNet.Tools.Configuration;
 
 namespace SenseNet.Storage.Data.MsSqlClient
 {
@@ -17,6 +18,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
         protected DbCreationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
+    [OptionsClass(sectionName: "sensenet:install:mssql")]
     public class MsSqlDatabaseInstallationOptions
     {
         public string Server { get; set; }

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using SenseNet.Tools.Configuration;
+using System.Collections.Generic;
 
 namespace SenseNet.Services.Core.Authentication
 {
+    [OptionsClass(sectionName: "sensenet:Registration")]
     public class RegistrationOptions
     {
         /// <summary>

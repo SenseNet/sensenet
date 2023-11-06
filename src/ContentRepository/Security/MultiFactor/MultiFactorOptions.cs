@@ -1,5 +1,8 @@
-﻿namespace SenseNet.ContentRepository.Security.MultiFactor
+﻿using SenseNet.Tools.Configuration;
+
+namespace SenseNet.ContentRepository.Security.MultiFactor
 {
+    [OptionsClass(sectionName: "sensenet:Authentication:MultiFactor")]
     public class MultiFactorOptions
     {
         public string ApplicationName { get; set; }
