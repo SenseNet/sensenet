@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fileTypeObject = ClientMetadataProvider.Instance.GetClientMetaClass(fileClass) as JObject;
 
                 Assert.IsNotNull(fileTypeObject);
-                Assert.AreEqual("File", fileTypeObject["ContentTypeName"].Value<string>());
+                Assert.AreEqual("File", fileTypeObject["ContentTypeName"]?.Value<string>());
                 Assert.IsNotNull(fileTypeObject["DisplayName"]);
                 Assert.IsNotNull(fileTypeObject["Description"]);
                 Assert.IsNotNull(fileTypeObject["Icon"]);
@@ -37,6 +37,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(fileTypeObject["AllowIndexing"]);
                 Assert.IsNotNull(fileTypeObject["AllowIncrementalNaming"]);
                 Assert.IsNotNull(fileTypeObject["AllowedChildTypes"]);
+                Assert.IsNotNull(fileTypeObject["Categories"]);
                 Assert.IsNotNull(fileTypeObject["FieldSettings"]);
             });
         }
@@ -79,6 +80,38 @@ namespace SenseNet.ContentRepository.Tests
                 var field = myTypeObject["FieldSettings"].Values<JToken>().First(f => f["Name"].Value<string>() == fieldName1);
 
                 Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
+            });
+        }
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public void ClientMetadataProvider_Categories()
+        {
+            var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
+
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
+            {
+                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                <ContentType name='{contentTypeName}' parentType='GenericContent'
+                         handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                    <Categories>Cat1 Cat2</Categories>
+                    <Fields/>
+                </ContentType>
+                ");
+
+                var myType = ContentType.GetByName(contentTypeName);
+                AssertSequenceEqual(new[] {"Cat1", "Cat2"}, myType.Categories);
+
+                var myClass = new Class(myType);
+                var myTypeObject = ClientMetadataProvider.Instance.GetClientMetaClass(myClass) as JObject;
+
+                Assert.IsNotNull(myTypeObject);
+                Assert.AreEqual(contentTypeName, myTypeObject["ContentTypeName"].Value<string>());
+
+                var categories = myTypeObject["Categories"]?.Values<string>() ?? Array.Empty<string>();
+                AssertSequenceEqual(new[] { "Cat1", "Cat2" }, categories.ToArray());
             });
         }
 
