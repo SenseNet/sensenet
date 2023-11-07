@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ContentMetaData>
-	<ContentName>VirtualADUser</ContentName>
-	<ContentType>User</ContentType>
-	<Fields>
+  <ContentName>VirtualADUser</ContentName>
+  <ContentType>User</ContentType>
+  <Fields>
     <FullName>VirtualADUser</FullName>
-		<Enabled>false</Enabled>
-	</Fields>
+    <Enabled>false</Enabled>
+    <Email>VirtualADUser@example.com</Email>
+    <Password>
+      <Text>VirtualADUser</Text>
+    </Password>
+  </Fields>
 </ContentMetaData>
