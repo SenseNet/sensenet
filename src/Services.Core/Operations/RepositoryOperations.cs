@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 
 namespace SenseNet.Services.Core.Operations
 {
+    // SnDocs: legacy option class, not documented
     public class RepositoryTypeOptions
     {
         public string RepositoryType { get; set; } = "standalone";

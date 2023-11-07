@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -155,6 +156,15 @@ namespace  SenseNet.ContentRepository.Schema
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.
         /// </summary>
         public string Description { get; private set; }
+
+        /// <summary>
+        /// Gets the categories of the ContentType. This value comes from the ContentTypeDefinition.
+        /// </summary>
+        public IEnumerable<string> Categories { get; private set; } = Array.Empty<string>();
+        /// <summary>
+        /// Get the categories as a space separated list
+        /// </summary>
+        public string CategoryNames => string.Join(" ", Categories);
         /// <summary>
         /// Gets the icon name of the ContentType. This value comes from the ContentTypeDefinition.
         /// If that is left empty, the parent value is returned.
@@ -458,6 +468,9 @@ namespace  SenseNet.ContentRepository.Schema
                     case "AllowedChildTypes":
                         ParseAllowedChildTypes(subElement, nsres);
                         break;
+                    case "Categories":
+                        ParseCategories(subElement, nsres);
+                        break;
                     case "SystemType":
                         if (!string.IsNullOrEmpty(subElement.Value) && YES_VALUES.Contains(subElement.Value.Trim().ToLower()))
                             this._isSystemType = true;
@@ -482,6 +495,7 @@ namespace  SenseNet.ContentRepository.Schema
             }
         }
 
+
         /// <summary>
         /// Defines a char[] constant that contains all characters that may separate items
         /// in any ContenTypeDefnition's XmlElement or XmlAttribute.
@@ -504,6 +518,14 @@ namespace  SenseNet.ContentRepository.Schema
                 AllowedChildTypes = new System.Collections.ObjectModel.ReadOnlyCollection<ContentType>(AllowedChildTypeNames.Select(y => contentTypes[y]).ToList());
             }
             CalculateFieldBits(allFieldNames);
+        }
+
+        private void ParseCategories(XPathNavigator categoriesElement, IXmlNamespaceResolver nsres)
+        {
+            Categories = categoriesElement.InnerXml
+                .Split(XmlListSeparators, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToImmutableArray();
         }
 
         private static readonly int BitsOfInt = (sizeof(int) * 8);

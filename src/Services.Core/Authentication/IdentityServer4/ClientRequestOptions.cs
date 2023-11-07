@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using SenseNet.Tools.Configuration;
+using System.Collections.Generic;
 
 namespace SenseNet.Services.Core.Authentication.IdentityServer4
 {
@@ -8,6 +9,7 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         public string ClientId { get; set; }
     }
 
+    [OptionsClass(sectionName: "sensenet:ClientRequest")]
     public class ClientRequestOptions
     {
         public ICollection<SnIdentityServerClient> Clients { get; } = new List<SnIdentityServerClient>();

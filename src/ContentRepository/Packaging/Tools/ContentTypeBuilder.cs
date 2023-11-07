@@ -8,6 +8,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics.Analysis;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Tools
@@ -22,6 +23,9 @@ namespace SenseNet.Packaging.Tools
         //IContentTypeBuilder AddAllowedChildTypes(params string[] typeNames);
         IFieldEditor Field(string name, string type = null);
         IContentTypeBuilder RemoveField(string name);
+        IContentTypeBuilder AddCategory(params string[] category);
+        IContentTypeBuilder ClearCategories();
+        IContentTypeBuilder RemoveCategory(params string[] category);
     }
     public interface IFieldEditor
     {
@@ -46,6 +50,8 @@ namespace SenseNet.Packaging.Tools
 
     #region Internal helper classes
 
+    internal enum CategoryOperation{ Add, Remove, Clear }
+
     internal class CtdBuilder : IContentTypeBuilder
     {
         internal string ContentTypeName { get; }
@@ -54,6 +60,7 @@ namespace SenseNet.Packaging.Tools
         internal string IsSystemTypeValue { get; set; }
         internal string IconValue { get; set; }
         internal string[] AllowedChildTypesToAdd { get; set; }
+        internal List<(CategoryOperation, string)> CategoryOperations{ get; } = new();
 
         internal IList<FieldEditor> FieldEditors { get; } = new List<FieldEditor>();
 
@@ -108,6 +115,24 @@ namespace SenseNet.Packaging.Tools
         {
             var field = Field(name);
             return field.Delete();
+        }
+
+        public IContentTypeBuilder AddCategory(params string[] category)
+        {
+            foreach (var cat in category)
+                CategoryOperations.Add(new(CategoryOperation.Add, cat));
+            return this;
+        }
+        public IContentTypeBuilder ClearCategories()
+        {
+            CategoryOperations.Add(new(CategoryOperation.Clear, null));
+            return this;
+        }
+        public IContentTypeBuilder RemoveCategory(params string[] category)
+        {
+            foreach (var cat in category)
+                CategoryOperations.Add(new(CategoryOperation.Remove, cat));
+            return this;
         }
     }
 
@@ -347,6 +372,32 @@ namespace SenseNet.Packaging.Tools
                 _logger.LogTrace($"Deleting property {propertyName} of content type {builder.ContentTypeName}");
                 xDoc.DocumentElement?.RemoveChild(propertyElement);
             }
+            string PlayCategoryOperations(List<(CategoryOperation Verb, string Category)> categoryOperations)
+            {
+                var origElement = LoadChild(xDoc.DocumentElement, "Categories");
+                var categories = origElement?.InnerText.Split(ContentType.XmlListSeparators,
+                    StringSplitOptions.RemoveEmptyEntries).ToList() ?? new List<string>();
+                foreach (var operation in categoryOperations)
+                {
+                    switch (operation.Verb)
+                    {
+                        case CategoryOperation.Add:
+                            if (!categories.Contains(operation.Category))
+                                categories.Add(operation.Category);
+                            break;
+                        case CategoryOperation.Remove:
+                            categories.Remove(operation.Category);
+                            break;
+                        case CategoryOperation.Clear:
+                            categories.Clear();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+
+                return string.Join(" ", categories);
+            }
 
             SetProperty("DisplayName", builder.DisplayNameValue);
             SetProperty("Description", builder.DescriptionValue);
@@ -357,6 +408,12 @@ namespace SenseNet.Packaging.Tools
                 DeleteProperty("SystemType");
             else if (builder.IsSystemTypeValue != null)
                 SetProperty("SystemType", builder.IsSystemTypeValue);
+
+            var categories = PlayCategoryOperations(builder.CategoryOperations);
+            if (string.IsNullOrEmpty(categories))
+                DeleteProperty("Categories");
+            else
+                SetProperty("Categories", categories);
         }
 
         private void EditField(XmlDocument xDoc, FieldEditor fieldEditor, CtdBuilder ctdBuilder)
@@ -613,7 +670,7 @@ namespace SenseNet.Packaging.Tools
         // it to insert a new xml node to a correct location.
         private static readonly List<string> FieldPropertyOrder = new List<string>(new[]
         {
-            "DisplayName", "Description", "Icon", "AllowedChildTypes", "Preview", "AllowIncrementalNaming", "SystemType", 
+            "DisplayName", "Description", "Icon", "AllowedChildTypes", "Preview", "AllowIncrementalNaming", "Categories", "SystemType", 
             "AppInfo", "Bind", "Indexing", "Configuration"
         });
 

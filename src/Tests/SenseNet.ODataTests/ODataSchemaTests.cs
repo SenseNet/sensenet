@@ -33,6 +33,7 @@ namespace SenseNet.ODataTests
                 Assert.IsNotNull(fileTypeObject["AllowIndexing"]);
                 Assert.IsNotNull(fileTypeObject["AllowIncrementalNaming"]);
                 Assert.IsNotNull(fileTypeObject["AllowedChildTypes"]);
+                Assert.IsNotNull(fileTypeObject["Categories"]);
                 Assert.IsNotNull(fileTypeObject["FieldSettings"]);
 
                 return Task.CompletedTask;
