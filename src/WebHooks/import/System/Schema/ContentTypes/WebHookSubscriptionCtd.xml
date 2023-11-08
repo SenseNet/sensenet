@@ -93,7 +93,7 @@
       <Configuration>
         <FieldIndex>20</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
-        <VisibleEdit>Show</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
