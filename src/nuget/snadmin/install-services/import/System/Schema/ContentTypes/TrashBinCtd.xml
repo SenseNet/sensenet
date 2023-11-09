@@ -6,6 +6,7 @@
   <AllowedChildTypes>
     TrashBag
   </AllowedChildTypes>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="Name" type="ShortText">

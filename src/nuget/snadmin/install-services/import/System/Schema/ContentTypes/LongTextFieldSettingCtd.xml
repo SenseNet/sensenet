@@ -2,6 +2,7 @@
 <ContentType name="LongTextFieldSetting" parentType="TextFieldSetting" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-LongTextFieldSetting,DisplayName</DisplayName>
   <Icon>addshorttextfield</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields />
 </ContentType>

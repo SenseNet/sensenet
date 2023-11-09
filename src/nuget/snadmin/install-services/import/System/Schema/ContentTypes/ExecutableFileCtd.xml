@@ -4,5 +4,6 @@
   <Description>$Ctd-ExecutableFile,Description</Description>
   <Icon>ExecutableFile</Icon>
   <Preview>false</Preview>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
 </ContentType>

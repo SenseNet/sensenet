@@ -4,6 +4,7 @@
   <Description>$Ctd-CustomListItem,Description</Description>
   <Icon>FormItem</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="WorkflowsRunning" type="Boolean">
       <Configuration>

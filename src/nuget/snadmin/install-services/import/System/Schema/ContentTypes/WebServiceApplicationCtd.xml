@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-WebServiceApplication,DisplayName</DisplayName>
   <Description>$Ctd-WebServiceApplication,Description</Description>
   <Icon>File</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="Binary" type="Binary">

@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-LoggingSettings,DisplayName</DisplayName>
   <Description>$Ctd-LoggingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-IndexingSettings,DisplayName</DisplayName>
   <Description>$Ctd-IndexingSettings,Description</Description>
   <Icon>Settings</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="TextExtractorInstances" type="TextExtractors">

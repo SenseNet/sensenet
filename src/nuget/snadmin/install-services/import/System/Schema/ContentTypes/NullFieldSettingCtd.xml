@@ -2,6 +2,7 @@
 <ContentType name="NullFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-NullFieldSetting,DisplayName</DisplayName>
   <Icon>FieldSetting</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields />
 </ContentType>

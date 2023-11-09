@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-SystemFile,DisplayName</DisplayName>
   <Description>$Ctd-SystemFile,Description</Description>
   <Icon>SystemFile</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="Watermark" type="ShortText">

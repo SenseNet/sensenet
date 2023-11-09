@@ -4,6 +4,7 @@
   <Description>$Ctd-TrashBag,Description</Description>
   <Icon>TrashBag</Icon>
   <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="DisplayName" type="ShortText">

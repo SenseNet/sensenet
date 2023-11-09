@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-GenericContent,DisplayName</DisplayName>
   <Description>$Ctd-GenericContent,Description</Description>
   <Icon>Content</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="Id" type="Integer">
