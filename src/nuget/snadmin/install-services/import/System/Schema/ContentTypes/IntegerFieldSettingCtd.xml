@@ -2,6 +2,7 @@
 <ContentType name="IntegerFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-IntegerFieldSetting,DisplayName</DisplayName>
   <Icon>addnumberfield</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields />
 </ContentType>

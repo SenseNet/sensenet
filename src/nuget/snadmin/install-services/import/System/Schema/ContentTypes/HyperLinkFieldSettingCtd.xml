@@ -2,6 +2,7 @@
 <ContentType name="HyperLinkFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-HyperLinkFieldSetting,DisplayName</DisplayName>
   <Icon>addhyperlinkfield</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields />
 </ContentType>

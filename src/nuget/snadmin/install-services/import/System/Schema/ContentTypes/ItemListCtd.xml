@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-ItemList,DisplayName</DisplayName>
   <Description>$Ctd-ItemList,Description</Description>
   <Icon>ContentList</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="Name" type="ShortText">

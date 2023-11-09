@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-Aspect,DisplayName</DisplayName>
   <Description>$Ctd-Aspect,Description</Description>
   <Icon>Aspect</Icon>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="DisplayName" type="ShortText">
       <DisplayName>$Ctd-Aspect,DisplayName-DisplayName</DisplayName>

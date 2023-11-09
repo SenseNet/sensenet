@@ -2,6 +2,7 @@
 <ContentType name="ReferenceFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
   <DisplayName>$Ctd-ReferenceFieldSetting,DisplayName</DisplayName>
   <Icon>addreferencefield</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields />
 </ContentType>

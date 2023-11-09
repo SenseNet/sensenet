@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-FieldSettingContent,DisplayName</DisplayName>
   <Description>$Ctd-FieldSettingContent,Description</Description>
   <Icon>fieldsetting</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="DisplayName" type="ShortText">

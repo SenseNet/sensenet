@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-Application,DisplayName</DisplayName>
   <Description>$Ctd-Application,Description</Description>
   <Icon>Application</Icon>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="Name" type="ShortText">
       <Configuration>

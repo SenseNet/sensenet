@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-Device,DisplayName</DisplayName>
   <Description>$Ctd-Device,Description</Description>
   <Icon>Device</Icon>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="UserAgentPattern" type="ShortText">
       <DisplayName>$Ctd-Device,UserAgentPattern-DisplayName</DisplayName>
