@@ -1956,6 +1956,13 @@ namespace SenseNet.ContentRepository
 
             #endregion
 
+            #region Settings changes
+
+            DeleteSettings("OAuth.settings", logger);
+            DeleteSettings("TaskManagement.settings", logger);
+            
+            #endregion
+
             #region CTD changes
 
             try
@@ -2110,6 +2117,29 @@ namespace SenseNet.ContentRepository
             }
 
             logger.LogTrace($"Settings {contentName} was created.");
+        }
+
+        private static void DeleteSettings(string settingsName, ILogger logger)
+        {
+            var path = RepositoryPath.Combine(Repository.SettingsFolderPath, settingsName);
+            try
+            {
+                logger.LogTrace($"Deleting {settingsName} ...");
+                var setting = Node.Load<Settings>(path);
+                if (setting != null)
+                {
+                    setting.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    logger.LogTrace($"{settingsName} successfully deleted.");
+                }
+                else
+                {
+                    logger.LogTrace($"{settingsName} already deleted.");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, $"Error deleting {settingsName} settings.");
+            }
         }
     }
 }
