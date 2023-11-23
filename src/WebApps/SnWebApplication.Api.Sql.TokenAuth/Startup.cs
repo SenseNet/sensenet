@@ -76,7 +76,11 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 })
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
-                .AddSenseNetWopi();
+                .AddSenseNetWopi()
+                .AddSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                });
 
             // [sensenet]: statistics overrides
             var statOptions = new StatisticsOptions();
