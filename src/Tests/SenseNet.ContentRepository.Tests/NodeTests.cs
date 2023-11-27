@@ -178,17 +178,8 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var loadedLink = Node.Load<ContentLink>(link.Id);
 
-                    // Restrictive user cannot access the current target.
-                    //Assert.IsNull(loadedLink.Link);
-                    try
-                    {
-                        var currentLint = loadedLink.Link;
-                        Assert.Fail("The expected AccessDeniedException was not thrown.");
-                    }
-                    catch (SenseNetSecurityException)
-                    {
-                        // expected exception
-                    }
+                    // Restrictive user cannot see/access the current target.
+                    Assert.IsNull(loadedLink.Link);
 
                     // Set new target
                     var loadedTarget = Node.LoadNode(target1.Id);
