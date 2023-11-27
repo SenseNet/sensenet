@@ -231,7 +231,7 @@ namespace SenseNet.ContentRepository
                               WorkspaceId = wsId,
                               DisplayName = node.DisplayName,
                               Link = node,
-                              Owner = node.Owner
+                              Owner = node.OwnerId == Identifiers.VisitorUserId ? User.Administrator : node.Owner
                           };
                 bag.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
