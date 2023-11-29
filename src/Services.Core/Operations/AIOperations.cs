@@ -27,10 +27,10 @@ namespace SenseNet.Services.Core.Operations
             //TODO: add max length parameters
             //TODO: maybe check text length?
 
-            var textService = context.RequestServices.GetService<ITextService>() ??
-                              throw new InvalidOperationException("AI TextService is not available.");
+            var summaryProvider = context.RequestServices.GetService<ISummaryProvider>() ??
+                              throw new InvalidOperationException("AI summary provider is not available.");
 
-            var summary = await textService.GetSummary(text, context.RequestAborted).ConfigureAwait(false);
+            var summary = await summaryProvider.GetSummary(text, context.RequestAborted).ConfigureAwait(false);
 
             return new
             {
