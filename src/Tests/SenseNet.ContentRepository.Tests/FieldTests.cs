@@ -244,6 +244,9 @@ namespace SenseNet.ContentRepository.Tests
         [DataRow("MajorAndMinor", VersioningType.MajorAndMinor)]
         [DataRow("3", VersioningType.MajorAndMinor)]
         [DataRow(3, VersioningType.MajorAndMinor)]
+        [DataRow(2, VersioningType.MajorOnly)]
+        [DataRow(1, VersioningType.None)]
+        [DataRow(0, VersioningType.Inherited)]
         [DataTestMethod]
         public void UT_Field_VersioningMode_ConvertFromInputToProperty(object inputValue, VersioningType expectedValue)
         {
@@ -255,7 +258,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT
             Assert.AreEqual(1, result.Length);
             var parsed = (VersioningType)result[0];
-            Assert.AreEqual(VersioningType.MajorAndMinor, parsed);
+            Assert.AreEqual(expectedValue, parsed);
         }
 
         [DataRow(new[] { "Alberto Juantorena" })]
@@ -303,6 +306,50 @@ namespace SenseNet.ContentRepository.Tests
             //field.Name = fieldName;
 
             return (VersioningModeField)field;
+        }
+
+        /* ========================================================================================= VERSIONINGMODE */
+
+        [DataRow(new[] { "True" }, ApprovingType.True)]
+        [DataRow(new[] { "2" }, ApprovingType.True)]
+        [DataRow(new[] { 2 }, ApprovingType.True)]
+        [DataRow("True", ApprovingType.True)]
+        [DataRow("2", ApprovingType.True)]
+        [DataRow(2, ApprovingType.True)]
+        [DataRow(1, ApprovingType.False)]
+        [DataRow(0, ApprovingType.Inherited)]
+        [DataTestMethod]
+        public void UT_Field_ApprovingMode_ConvertFromInputToProperty(object inputValue, ApprovingType expectedValue)
+        {
+            var field = CreateApprovingModeField("ApprovingMode", 0);
+
+            // ACTION
+            var result = field.ConvertFromInputToProperty(inputValue);
+
+            // ASSERT
+            Assert.AreEqual(1, result.Length);
+            var parsed = (ApprovingType)result[0];
+            Assert.AreEqual(expectedValue, parsed);
+        }
+
+        private ApprovingModeField CreateApprovingModeField(string fieldName, int handlerSlotIndex = 0)
+        {
+            var fDesc = new FieldDescriptor
+            {
+                FieldName = fieldName,
+                //Analyzer = IndexFieldAnalyzer.Standard,
+                Bindings = new List<string> { fieldName },
+                DataTypes = new[] { RepositoryDataType.Int },
+                FieldTypeName = typeof(ApprovingModeField).FullName,
+                FieldTypeShortName = "ApprovingMode"
+            };
+
+            var fieldSetting = FieldSetting.Create(fDesc);
+            fieldSetting.HandlerSlotIndices[0] = handlerSlotIndex;
+            var field = Field.Create(null, fieldSetting);
+            //field.Name = fieldName;
+
+            return (ApprovingModeField)field;
         }
 
     }

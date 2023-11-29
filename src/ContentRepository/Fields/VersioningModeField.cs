@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Versioning;
 
@@ -46,41 +47,7 @@ namespace SenseNet.ContentRepository.Fields
 		}
 		private object ConvertFromControlInner(object value)
         {
-            string stringValue = null;
-            int intValue = 0;
-
-            if (value is int @int)
-                intValue = @int;
-            else if (value is int[] intArray && intArray.Length > 0)
-                intValue = intArray[0];
-            else if (value is List<int> intList && intList.Count > 0)
-                intValue = intList[0];
-            else if (value is string @string)
-				stringValue = @string;
-            else if (value is string[] stringArray && stringArray.Length > 0)
-                stringValue = stringArray[0];
-            else if (value is List<string> stringList && stringList.Count > 0)
-                stringValue = stringList[0];
-			else
-                throw GetParsingError();
-
-            if (stringValue != null && !int.TryParse(stringValue, out intValue))
-            {
-                if (Enum.TryParse<VersioningType>(stringValue, true, out var parsed))
-                    return (VersioningType) parsed;
-				else
-                    throw GetParsingError();
-            }
-
-            if (Enum.IsDefined(typeof(VersioningType), intValue))
-                return (VersioningType) intValue;
-
-            throw GetParsingError();
-        }
-
-        private Exception GetParsingError()
-        {
-			return new ArgumentException("Cannot parse a VersioningModeField: invalid VersioningType value.");
+            return ConvertFromInputToEnumValue<VersioningType, VersioningModeField>(value);
         }
     }
 }
