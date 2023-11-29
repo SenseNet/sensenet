@@ -6,6 +6,8 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests.Core;
 
@@ -14,6 +16,8 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class FieldTests : TestBase
     {
+        /* ========================================================================================= RICHTEXT */
+
         [DataRow("text", "{p1: 'xx', p2: 'yy'}")]
         [DataRow("text", null)]
         [DataRow(null, "{p1: 'xx', p2: 'yy'}")]
@@ -188,5 +192,118 @@ namespace SenseNet.ContentRepository.Tests
 
             return (RichTextField)field;
         }
+
+        /* ========================================================================================= VERSIONINGMODE */
+
+        [TestMethod]
+        public void UT_Field_VersioningMode_ConvertFromInputToProperty_StringList_Int()
+        {
+            var field = CreateVersioningModeField("VersioningMode", 0);
+            object inputData = new List<string> { "3" };
+
+            // ACTION
+            var result = field.ConvertFromInputToProperty(inputData);
+
+            // ASSERT
+            Assert.AreEqual(1, result.Length);
+            var parsed = (VersioningType)result[0];
+            Assert.AreEqual(VersioningType.MajorAndMinor, parsed);
+        }
+        [TestMethod]
+        public void UT_Field_VersioningMode_ConvertFromInputToProperty_StringList_Name()
+        {
+            var field = CreateVersioningModeField("VersioningMode", 0);
+            object inputData = new List<string> { "MajorAndMinor" };
+
+            // ACTION
+            var result = field.ConvertFromInputToProperty(inputData);
+
+            // ASSERT
+            Assert.AreEqual(1, result.Length);
+            var parsed = (VersioningType)result[0];
+            Assert.AreEqual(VersioningType.MajorAndMinor, parsed);
+        }
+        [TestMethod]
+        public void UT_Field_VersioningMode_ConvertFromInputToProperty_IntList()
+        {
+            var field = CreateVersioningModeField("VersioningMode", 0);
+            object inputData = new List<int> { 3 };
+
+            // ACTION
+            var result = field.ConvertFromInputToProperty(inputData);
+
+            // ASSERT
+            Assert.AreEqual(1, result.Length);
+            var parsed = (VersioningType)result[0];
+            Assert.AreEqual(VersioningType.MajorAndMinor, parsed);
+        }
+
+        [DataRow(new[] { "MajorAndMinor" }, VersioningType.MajorAndMinor)]
+        [DataRow(new[] { "3" }, VersioningType.MajorAndMinor)]
+        [DataRow(new[] { 3 }, VersioningType.MajorAndMinor)]
+        [DataRow("MajorAndMinor", VersioningType.MajorAndMinor)]
+        [DataRow("3", VersioningType.MajorAndMinor)]
+        [DataRow(3, VersioningType.MajorAndMinor)]
+        [DataTestMethod]
+        public void UT_Field_VersioningMode_ConvertFromInputToProperty(object inputValue, VersioningType expectedValue)
+        {
+            var field = CreateVersioningModeField("VersioningMode", 0);
+
+            // ACTION
+            var result = field.ConvertFromInputToProperty(inputValue);
+
+            // ASSERT
+            Assert.AreEqual(1, result.Length);
+            var parsed = (VersioningType)result[0];
+            Assert.AreEqual(VersioningType.MajorAndMinor, parsed);
+        }
+
+        [DataRow(new[] { "Alberto Juantorena" })]
+        [DataRow(new[] { "-10" })]
+        [DataRow(new[] { 42 })]
+        [DataRow("Sergey Bubka")]
+        [DataRow("42")]
+        [DataRow(-1)]
+        [DataRow(4)]
+        [DataTestMethod]
+        public void UT_Field_VersioningMode_ConvertFromInputToProperty_Errors(object inputValue)
+        {
+            var field = CreateVersioningModeField("VersioningMode", 0);
+            Exception exception = null;
+            try
+            {
+                // ACTION
+                var _ = field.ConvertFromInputToProperty(inputValue);
+            }
+            catch (ArgumentException e)
+            {
+                exception = e;
+            }
+
+            // ASSERT
+            Assert.IsNotNull(exception);
+            Assert.AreEqual("Cannot parse a VersioningModeField: invalid VersioningType value.", exception.Message);
+        }
+
+        private VersioningModeField CreateVersioningModeField(string fieldName, int handlerSlotIndex = 0)
+        {
+            var fDesc = new FieldDescriptor
+            {
+                FieldName = fieldName,
+                //Analyzer = IndexFieldAnalyzer.Standard,
+                Bindings = new List<string> { fieldName },
+                DataTypes = new[] { RepositoryDataType.Int },
+                FieldTypeName = typeof(VersioningModeField).FullName,
+                FieldTypeShortName = "VersioningMode"
+            };
+
+            var fieldSetting = FieldSetting.Create(fDesc);
+            fieldSetting.HandlerSlotIndices[0] = handlerSlotIndex;
+            var field = Field.Create(null, fieldSetting);
+            //field.Name = fieldName;
+
+            return (VersioningModeField)field;
+        }
+
     }
 }
