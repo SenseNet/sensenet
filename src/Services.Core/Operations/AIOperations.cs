@@ -6,36 +6,40 @@ using SenseNet.ContentRepository;
 using System;
 using System.Threading.Tasks;
 
-namespace SenseNet.Services.Core.Operations
-{
-    // ReSharper disable once InconsistentNaming
-    public static class AIOperations
-    {
-        /// <summary>
-        /// Gets the summary of a long text using AI.
-        /// </summary>
-        /// <snCategory>AI</snCategory>
-        /// <param name="content"></param>
-        /// <param name="context"></param>
-        /// <param name="text">A long text to create summary from.</param>
-        /// <returns>An object containing the summary.</returns>
-        [ODataAction]
-        [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Administrators)]
-        public static async Task<object> GetSummary(Content content, HttpContext context, string text)
-        {
-            //TODO: add max length parameters
-            //TODO: maybe check text length?
+namespace SenseNet.Services.Core.Operations;
 
-            var summaryProvider = context.RequestServices.GetService<ISummaryProvider>() ??
+// ReSharper disable once InconsistentNaming
+public static class AIOperations
+{
+    /// <summary>
+    /// Gets the summary of a long text using AI.
+    /// </summary>
+    /// <snCategory>AI</snCategory>
+    /// <param name="content"></param>
+    /// <param name="maxWordCount">Maximum number of words in the summary.</param>
+    /// <param name="maxSentenceCount">Maximum number of sentences in the summary.</param>
+    /// <param name="context"></param>
+    /// <param name="text">A long text to create summary from.</param>
+    /// <returns>An object containing the summary.</returns>
+    [ODataAction]
+    [ContentTypes(N.CT.PortalRoot)]
+    [AllowedRoles(N.R.Administrators)]
+    public static async Task<object> GetSummary(Content content, int maxWordCount, int maxSentenceCount, 
+        HttpContext context, string text)
+    {
+        //TODO: limit max parameters by configuration
+        //TODO: check text length
+        //TODO: check caller permissions
+
+        var summaryProvider = context.RequestServices.GetService<ISummaryProvider>() ??
                               throw new InvalidOperationException("AI summary provider is not available.");
 
-            var summary = await summaryProvider.GetSummary(text, context.RequestAborted).ConfigureAwait(false);
+        var summary = await summaryProvider.GetSummary(text, maxWordCount, maxSentenceCount, 
+            context.RequestAborted).ConfigureAwait(false);
 
-            return new
-            {
-                summary
-            };
-        }
+        return new
+        {
+            summary
+        };
     }
 }
