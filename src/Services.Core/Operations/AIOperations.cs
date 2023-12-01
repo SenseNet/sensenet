@@ -24,12 +24,11 @@ public static class AIOperations
     [ODataAction]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.Administrators)]
-    public static async Task<object> GetSummary(Content content, int maxWordCount, int maxSentenceCount, 
-        HttpContext context, string text)
+    public static async Task<object> GetSummary(Content content, HttpContext context,
+        int maxWordCount, int maxSentenceCount, string text)
     {
-        //TODO: limit max parameters by configuration
-        //TODO: check text length
-        //TODO: check caller permissions
+        //TODO: limit max parameters and text length by configuration
+        //TODO: add caller permissions: allowed roles
 
         var summaryProvider = context.RequestServices.GetService<ISummaryProvider>() ??
                               throw new InvalidOperationException("AI summary provider is not available.");
