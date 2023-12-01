@@ -144,7 +144,7 @@ public partial class Settings
         }
 
         return group == null
-            ? HasEnoughPermission(user, globalSettings ?? GetSettingsByName<Settings>(settingsName, Identifiers.RootPath), role)
+            ? HasEnoughPermission(user, globalSettings ?? (Settings)gc, role)
             : user.IsInGroup(group);
     }
     private static async Task<IGroup> GetLocalGroupAsync(Workspace workspace, string groupName, CancellationToken cancel)
@@ -161,7 +161,7 @@ public partial class Settings
                 return null;
         }
     }
-    private static bool HasEnoughPermission(IUser user, Settings globalSettings, SettingsRole role)
+    private static bool HasEnoughPermission(IUser user, Settings settings, SettingsRole role)
     {
         PermissionType permissionType;
         switch (role)
@@ -170,7 +170,7 @@ public partial class Settings
             case SettingsRole.Editor: permissionType = PermissionType.Save; break;
             default: throw new ArgumentOutOfRangeException(nameof(role), role, null);
         }
-        return globalSettings.Security.HasPermission(user, permissionType);
+        return settings.Security.HasPermission(user, permissionType);
     }
 
     private static async Task<Settings> EnsureSettingsContentAsync(Content content, string name, CancellationToken cancel)

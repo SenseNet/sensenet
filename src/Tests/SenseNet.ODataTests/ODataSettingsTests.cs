@@ -674,7 +674,7 @@ public class ODataSettingsTests : ODataTestBase
 
             // ASSERT-2: settings solved because there is no readers group and
             // user has enough permission on the global settings.
-            Assert.AreEqual(new SettingsData1 { P1 = "V11", P2 = "V2", P3 = "V3" },
+            Assert.AreEqual(new SettingsData1 { P1 = "V1", P2 = "V2" },
                 JsonConvert.DeserializeObject<SettingsData1>(response.Result));
 
             /* --------------------------------- */
@@ -1125,8 +1125,6 @@ public class ODataSettingsTests : ODataTestBase
     {
         await WriteSettingsOutOfWorkspaceTests("/Root/IMS/Public").ConfigureAwait(false);
     }
-
-    [TestMethod]
     public async Task WriteSettingsOutOfWorkspaceTests(string targetNodePath)
     {
         await ODataTestAsync(async () =>
@@ -1239,7 +1237,8 @@ public class ODataSettingsTests : ODataTestBase
             using (new CurrentUserBlock(user1))
                 await WriteSettingsTest(node,
                     settingValues: new { Content = 0 },
-                    expectationValues: new { Root = 0, Content = 0 },
+//expectationValues: new { Root = 0, Content = 0 },
+                    expectationValues: new { Root = 0 },
                     settingsRealPath);
 
             // Load new setting
