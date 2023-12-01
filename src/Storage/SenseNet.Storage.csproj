@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>7.7.32</Version>
+		<Version>7.7.33</Version>
 		<Authors>kavics,tusmester</Authors>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -27,7 +27,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
 		<PackageReference Include="SenseNet.Security" Version="4.2.0" />
 		<PackageReference Include="SenseNet.TaskManagement.Core" Version="2.2.2" />
-		<PackageReference Include="SenseNet.Tools" Version="3.2.11" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.12" />
 		<PackageReference Include="System.Diagnostics.EventLog" Version="6.0.0" />
 		<PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
 	</ItemGroup>

@@ -446,6 +446,9 @@ namespace SenseNet.Services.Core.Tests
             var publicDomain = Node.Load<Domain>("/Root/IMS/Public");
             var user1Content = Content.CreateNew("User", publicDomain, "user1");
             user1Content["Enabled"] = true;
+            user1Content["Password"] = "user1";
+            user1Content["Email"] = "user1@example.com";
+            user1Content["FullName"] = "user1";
 
             await user1Content.SaveAsync(CancellationToken.None);
             var user1 = user1Content.ContentHandler as User;
@@ -459,6 +462,9 @@ namespace SenseNet.Services.Core.Tests
             await domain2.SaveAsync(CancellationToken.None);
 
             var user2 = Content.CreateNew("User", domain2.ContentHandler, "user2");
+            user2["Email"] = "user2@example.com";
+            user2["Password"] = "user2";
+            user2["FullName"] = "user2";
             await user2.SaveAsync(CancellationToken.None);
 
             // remove public admin permissions from domain2 to have a user that this admin does not see

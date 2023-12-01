@@ -46,12 +46,7 @@ namespace SenseNet.ContentRepository.Fields
 		}
 		private object ConvertFromControlInner(object value)
 		{
-			List<string> listValue = value as List<string>;
-			string stringValue = listValue[0];
-			int intValue;
-			if (Int32.TryParse(stringValue, out intValue))
-				return (ApprovingType)intValue;
-			return (ApprovingType)Enum.Parse(typeof(ApprovingType), stringValue);
+            return ConvertFromInputToEnumValue<ApprovingType, InheritableApprovingModeField>(value);
 		}
-	}
+    }
 }

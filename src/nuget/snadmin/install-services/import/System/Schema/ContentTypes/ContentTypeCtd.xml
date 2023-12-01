@@ -156,7 +156,18 @@
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
-    <Field name="IsSystemType" type="Boolean">
+	  <Field name="Categories" type="ShortText">
+		<DisplayName>$Ctd-ContentType,Categories-DisplayName</DisplayName>
+		<Description>$Ctd-ContentType,Categories-Description</Description>
+		<Bind property="CategoryNames" />
+		<Configuration>
+		  <VisibleBrowse>Hide</VisibleBrowse>
+		  <VisibleEdit>Hide</VisibleEdit>
+		  <VisibleNew>Hide</VisibleNew>
+		  <ReadOnly>true</ReadOnly>
+		</Configuration>
+	  </Field>
+	  <Field name="IsSystemType" type="Boolean">
       <DisplayName>$Ctd-ContentType,IsSystemType-DisplayName</DisplayName>
       <Description>$Ctd-ContentType,IsSystemType-Description</Description>
       <Bind property="IsSystemType"/>

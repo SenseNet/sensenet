@@ -2,6 +2,7 @@
   <DisplayName>$Ctd-ContentList,DisplayName</DisplayName>
   <Description>$Ctd-ContentList,Description</Description>
   <Icon>ContentList</Icon>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="DisplayName" type="ShortText">
       <DisplayName>$Ctd-ContentList,DisplayName-DisplayName</DisplayName>

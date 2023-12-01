@@ -590,7 +590,8 @@ namespace SenseNet.ODataTests
                     {
                         Name = $"Manager{i}",
                         Enabled = true,
-                        Email = $"manager{i}@example.com"
+                        Email = $"manager{i}@example.com",
+                        FullName = $"Manager{i}",
                     };
                     managers[i].SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
@@ -601,9 +602,11 @@ namespace SenseNet.ODataTests
                         Name = $"User{i}",
                         Enabled = true,
                         Email = $"user{i}@example.com",
+                        FullName = $"Manager{i}",
                     };
                     var content = Content.Create(resources[i]);
                     content["Manager"] = managers[i % 3];
+                    content["Password"] = managers[i % 3].Name;
                     content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
 
@@ -1706,9 +1709,10 @@ namespace SenseNet.ODataTests
                 requesterUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 managerUser = new User(container) { Name = "manager", Enabled = true, Email = "manager@example.com" };
                 managerUser.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                workerUser = new User(container) { Name = "worker", Enabled = true, Email = "worker@example.com" };
+                workerUser = new User(container) { Name = "worker", Enabled = true, Email = "worker@example.com", Password = "worker", DisplayName = "worker", FullName = "worker"};
                 var workerUserContent = Content.Create(workerUser);
                 workerUserContent["Manager"] = managerUser;
+                workerUserContent["Password"] = "worker";
                 workerUserContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 ContentTypeInstaller.InstallContentType(

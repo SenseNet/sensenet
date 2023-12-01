@@ -6,6 +6,7 @@
   <AllowedChildTypes>
     Site
   </AllowedChildTypes>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields></Fields>
 </ContentType>

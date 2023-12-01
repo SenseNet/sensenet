@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
@@ -361,6 +362,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
+            if(nodeId == 0 || versionId == 0)
+                return null;
+
             // Try to load cached binary entity
             var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
             var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);

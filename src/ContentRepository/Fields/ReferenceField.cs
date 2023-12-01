@@ -206,6 +206,9 @@ namespace SenseNet.ContentRepository.Fields
 
 		protected override object ConvertTo(object[] handlerValues)
 		{
+            if(handlerValues.Length == 0)
+                return null;
+
 			object handlerValue = handlerValues[0];
 			if (handlerValue == null)
 				return null;

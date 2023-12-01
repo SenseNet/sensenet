@@ -4,6 +4,7 @@
   <Description>$Ctd-PreviewImage,Description</Description>
   <Icon>Image</Icon>
   <AllowIncrementalNaming>false</AllowIncrementalNaming>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <AllowIndexing>false</AllowIndexing>
   <Fields>

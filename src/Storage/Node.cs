@@ -2658,6 +2658,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IEnumerable<Node> LoadVersions()
         {
+            if (this.Id < 1)
+                return Array.Empty<Node>();
             Security.Assert(PermissionType.RecallOldVersion, PermissionType.Open);
             if (Security.HasPermission(PermissionType.OpenMinor))
                 return LoadAllVersions();

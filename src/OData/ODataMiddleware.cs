@@ -339,6 +339,8 @@ namespace SenseNet.OData
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
+                    if (e.Message.StartsWith("Cannot copy the content") || e.Message.StartsWith("Cannot move the content"))
+                        return new ODataException(e.Message, ODataExceptionCode.ContentAlreadyExists, e);
                     return new ODataException("The content was not saved because it already exists.",
                         ODataExceptionCode.ContentAlreadyExists, e);
                 case SenseNetSecurityException sse:

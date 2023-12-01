@@ -291,6 +291,32 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public async Task OD_POST_Creation_FIX1906_NullReferenceExceptionWhenSavingVersioningMode()
+        {
+            await ODataTestAsync(async () =>
+            {
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                // ACTION
+                var response = await ODataPostAsync(
+                        String.Concat("/OData.svc", ODataMiddleware.GetEntityUrl(testRoot.Path)),
+                        "?metadata=no&$select=Name,VersioningMode",
+                        $@"models=[{{""__ContentType"":""Folder"",""Name"":""F1"",""VersioningMode"":""3""}}]")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var entity = GetEntity(response);
+                Assert.IsTrue(entity.AllProperties.ContainsKey("VersioningMode"));
+                var value = entity.AllProperties["VersioningMode"]?.ToString();
+                Assert.IsNotNull(value);
+                var valueAsString = value
+                    .Replace("\r", "").Replace("\n", "").Replace(" ", "");
+                Assert.AreEqual("[\"3\"]", valueAsString);
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private void EnsureTemplateStructure()

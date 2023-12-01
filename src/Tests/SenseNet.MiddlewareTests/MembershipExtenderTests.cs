@@ -68,7 +68,7 @@ namespace SenseNet.MiddlewareTests
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddPlatformIndependentServices()
+                .AddPlatformIndependentServices(null)
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()

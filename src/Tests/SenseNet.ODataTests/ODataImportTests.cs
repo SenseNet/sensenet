@@ -310,8 +310,8 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>)content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);
@@ -383,8 +383,8 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>) content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);
@@ -399,10 +399,13 @@ public class ODataImportTests : ODataTestBase
         var newUser = new User(await Node.LoadNodeAsync("/Root/IMS/Public", cancel))
         {
             Name = "ImportedUser1",
+            Password = "ImportedUser1",
+            FullName = "ImportedUser1",
             Enabled = true,
             Email = "importeduser1@example.com",
         };
         var newUserContent = Content.Create(newUser);
+        newUserContent["Password"] = "ImportedUser1";
         newUserContent["Manager"] = initialReferredUser;
         await newUserContent.SaveAsync(cancel);
 
@@ -424,7 +427,9 @@ public class ODataImportTests : ODataTestBase
             ContentType = "User",
             Fields = new
             {
-                //DisplayName = "Imported User 1",
+                Password = "ImportedUser1",
+                FullName = "Imported User 1",
+                Email = "imported-user-1@xmple.com",
                 Manager = referredUser.Path,
             }
         };
