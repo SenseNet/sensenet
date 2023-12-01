@@ -83,7 +83,6 @@ public partial class Settings
                 throw new InvalidOperationException($"Cannot write local settings {name} if it is not created " +
                                                     $"in the the global settings folder ({Repository.SettingsFolderPath})");
         }
-//UNDONE:ySettings: Permissions!
         if (!await IsCurrentUserInRoleAsync(SettingsRole.Editor, name, content.ContentHandler, workspace, globalSettings, httpContext.RequestAborted))
             throw new InvalidContentActionException($"Not enough permission for write local settings {name} " +
                                                     $"for the requested path: {content.Path}");
