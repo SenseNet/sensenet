@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Json;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Search.Indexing;
 using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
@@ -399,22 +400,25 @@ namespace SenseNet.ContentRepository
             MergeNullValueHandling = MergeNullValueHandling.Ignore,
             PropertyNameComparison = StringComparison.InvariantCultureIgnoreCase
         };
-        public static JObject GetEffectiveValues(string settingsName, string contextPath)
+        public static async Task<JObject> GetEffectiveValues(string settingsName, string contextPath, CancellationToken cancel)
         {
-            var allSettings = GetAllSettingsByName<Settings>(settingsName, contextPath).ToList();
+            var allSettings = SystemAccount.Execute<List<Settings>>(() => 
+                GetAllSettingsByName<Settings>(settingsName, contextPath).ToList());
             if (allSettings.Count == 0)
                 return null;
 
-            var effectiveValues = (JObject)allSettings.Last().BinaryAsJObject.DeepClone();
-            if (allSettings.Count > 1)
+            var effectiveValues = JObject.Parse("{}");
+            if (allSettings.Count > 0)
             {
                 allSettings.Reverse();
-                for (var i = 1; i < allSettings.Count; i++)
-                    effectiveValues.Merge(allSettings[i].BinaryAsJObject, MergeControl);
+                foreach (var settings in allSettings)
+                    if (await IsCurrentUserInRoleAsync(SettingsRole.Reader, settingsName, settings, null, null, cancel))
+                        effectiveValues.Merge(settings.BinaryAsJObject, MergeControl);
             }
 
             return effectiveValues;
         }
+
 
         // ================================================================================= Settings API (INSTANCE)
 
