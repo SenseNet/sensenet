@@ -189,10 +189,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/content({id})/$metadata", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Metadata" },
@@ -203,6 +199,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_metadata_of_entity_by_id",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata_format},
                                 },
                                 Responses = new Dictionary<string, Response>
@@ -216,10 +213,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}/$metadata", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath }
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Metadata" },
@@ -230,6 +223,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_metadata_of_collection",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata_format},
                                 },
                                 Responses = new Dictionary<string, Response>
@@ -243,11 +237,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}('{_name}')/$metadata", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath },
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityName }
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Metadata" },
@@ -258,6 +247,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_metadata_of_entity_by_path",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata_format},
                                 },
                                 Responses = new Dictionary<string, Response>
@@ -271,10 +262,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath }
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Collection" },
@@ -283,6 +270,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_children",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Top},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Skip},
@@ -318,16 +306,16 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}/$count", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath }
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Collection" },
                                 Summary = "Returns count of children.",
                                 Description = "Returns count of child elements under the {_path}.",
                                 OperationId = "sn_v1_get_children_count",
+                                Parameters = new[]
+                                {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntitySetPath },
+                                },
                                 Responses = new Dictionary<string, Response>
                                 {
                                     {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
@@ -347,10 +335,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/content({id})", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
@@ -359,6 +343,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_entity_by_id",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -392,6 +377,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_create_content_under_entity_by_id",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -438,6 +424,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_reset_content_by_id",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -483,6 +470,7 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_patch_content_by_id",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -526,8 +514,9 @@ namespace SenseNet.OpenApi
                                 Summary = "Deletes the content.",
                                 Description = "The content will be deleted or trashed.",
                                 OperationId = "sn_v1_delete_entity_by_id",
-                                Parameters = new Parameter[]
+                                Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
                                     new Parameter
                                     {
                                         Name = "permanent",
@@ -546,25 +535,25 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/content({id})/{property}", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
-                                new Parameter
-                                {
-                                    Name = "property",
-                                    In = "path",
-                                    Required = true,
-                                    AllowEmptyValue = false,
-                                    Description = "Name of the requested property.",
-                                    Schema = new ObjectSchema {Type = T.String}
-                                },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
                                 Summary = "Gets a property of the given Content.",
                                 Description = "Returns the requested property of the given Content",
                                 OperationId = "sn_v1_get_property_by_id",
+                                Parameters = new[]
+                                {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
+                                    new Parameter
+                                    {
+                                        Name = "property",
+                                        In = "path",
+                                        Required = true,
+                                        AllowEmptyValue = false,
+                                        Description = "Name of the requested property.",
+                                        Schema = new ObjectSchema {Type = T.String}
+                                    },
+                                },
                                 Responses = new Dictionary<string, Response>
                                 {
                                     {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
@@ -576,25 +565,25 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/content({id})/{property}/$value", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
-                                new Parameter
-                                {
-                                    Name = "property",
-                                    In = "path",
-                                    Required = true,
-                                    AllowEmptyValue = false,
-                                    Description = "Name of the requested property.",
-                                    Schema = new ObjectSchema {Type = T.String}
-                                },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
                                 Summary = "Gets a property value of the given Content.",
                                 Description = "Returns the requested property value of the given Content",
                                 OperationId = "sn_v1_get_property_value_by_id",
+                                Parameters = new[]
+                                {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.IdInPath },
+                                    new Parameter
+                                    {
+                                        Name = "property",
+                                        In = "path",
+                                        Required = true,
+                                        AllowEmptyValue = false,
+                                        Description = "Name of the requested property.",
+                                        Schema = new ObjectSchema {Type = T.String}
+                                    },
+                                },
                                 Responses = new Dictionary<string, Response>
                                 {
                                     {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
@@ -614,11 +603,6 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}('{_name}')", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityName }
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
@@ -627,6 +611,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_get_entity_by_path",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -660,6 +646,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_create_content_under_entity_by_path",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -667,7 +655,7 @@ namespace SenseNet.OpenApi
                                 },
                                 RequestBody = new RequestBody
                                 {
-                                    Description = "???",
+                                    Description = "Data for creation. Only the `__ContentType` is required. After creation, the unspecified properties are assigned their default values.",
                                     Required = true,
                                     Content = new Dictionary<string, MediaType>
                                     {
@@ -706,6 +694,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_reset_content_by_path",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -751,6 +741,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_patch_content_by_path",
                                 Parameters = new []
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
                                     new Parameter{Ref = Ref.Parameters + Ref.P.Select},
@@ -796,6 +788,8 @@ namespace SenseNet.OpenApi
                                 OperationId = "sn_v1_delete_entity_by_path",
                                 Parameters = new Parameter[]
                                 {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
                                     new Parameter
                                     {
                                         Name = "permanent",
@@ -814,26 +808,26 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}('{_name}')/{property}", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
-                                new Parameter
-                                {
-                                    Name = "property",
-                                    In = "path",
-                                    Required = true,
-                                    AllowEmptyValue = false,
-                                    Description = "Name of the requested property.",
-                                    Schema = new ObjectSchema {Type = T.String}
-                                },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
                                 Summary = "Gets a property of the given Content.",
                                 Description = "Returns the requested property of the given Content",
                                 OperationId = "sn_v1_get_property_by_path",
+                                Parameters = new[]
+                                {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
+                                    new Parameter
+                                    {
+                                        Name = "property",
+                                        In = "path",
+                                        Required = true,
+                                        AllowEmptyValue = false,
+                                        Description = "Name of the requested property.",
+                                        Schema = new ObjectSchema {Type = T.String}
+                                    },
+                                },
                                 Responses = new Dictionary<string, Response>
                                 {
                                     {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
@@ -845,26 +839,26 @@ namespace SenseNet.OpenApi
                     },
                     {"/OData.svc/{_path}('{_name}')/{property}/$value", new PathItem
                         {
-                            Parameters = new[]
-                            {
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
-                                new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
-                                new Parameter
-                                {
-                                    Name = "property",
-                                    In = "path",
-                                    Required = true,
-                                    AllowEmptyValue = false,
-                                    Description = "Name of the requested property.",
-                                    Schema = new ObjectSchema {Type = T.String}
-                                },
-                            },
                             Get = new Operation
                             {
                                 Tags = new []{ "Basic-Entity" },
                                 Summary = "Gets a property value of the given Content.",
                                 Description = "Returns the requested property value of the given Content. The property should be exist otherwise the response will be `UnknownAction` error.",
                                 OperationId = "sn_v1_get_property_value_by_path",
+                                Parameters = new[]
+                                {
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityParentPath },
+                                    new Parameter { Ref = Ref.Parameters + Ref.P.EntityName },
+                                    new Parameter
+                                    {
+                                        Name = "property",
+                                        In = "path",
+                                        Required = true,
+                                        AllowEmptyValue = false,
+                                        Description = "Name of the requested property.",
+                                        Schema = new ObjectSchema {Type = T.String}
+                                    },
+                                },
                                 Responses = new Dictionary<string, Response>
                                 {
                                     {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
