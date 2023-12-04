@@ -601,6 +601,88 @@ namespace SenseNet.OpenApi
                             },
                         }
                     },
+                    {"/OData.svc/('Root')", new PathItem
+                        {
+                            Get = new Operation
+                            {
+                                Tags = new []{ "Basic-Entity" },
+                                Summary = "Gets the Root content.",
+                                /*TODO*/Description = "Returns the requested Content if it is permitted for the current user. The collection of properties depends from the Content's ContentType and the value of the '$select' parameter.",
+                                OperationId = "sn_v1_get_entity_by_path",
+                                Parameters = new []
+                                {
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Select},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Format},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Version},
+                                },
+                                Responses = new Dictionary<string, Response>
+                                {
+                                    {"403", new Response{Ref = Ref.Responses + Ref.R.Http403}},
+                                    {"404", new Response{Ref = Ref.Responses + Ref.R.Http404}},
+                                    {"200", new Response
+                                        {
+                                            Description = "Payload.",
+                                            Content = new Dictionary<string, MediaType>
+                                            {
+                                                {"application/json", new MediaType
+                                                    {
+                                                        Schema = new ObjectSchema{ Ref = Ref.Schemas + Ref.S.ODataEntity }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            Post = new Operation
+                            {
+                                Tags = new []{ "Basic-Entity" },
+                                Summary = "Creates a new child content.",
+                                Description = "???",
+                                OperationId = "sn_v1_create_content_under_entity_by_path",
+                                Parameters = new []
+                                {
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Metadata},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Expand},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Select},
+                                    new Parameter{Ref = Ref.Parameters + Ref.P.Format},
+                                },
+                                RequestBody = new RequestBody
+                                {
+                                    Description = "Data for creation. Only the `__ContentType` is required. After creation, the unspecified properties are assigned their default values.",
+                                    Required = true,
+                                    Content = new Dictionary<string, MediaType>
+                                    {
+                                        {"application/json", new MediaType
+                                            {
+                                                Schema = new ObjectSchema{Ref = Ref.Schemas + Ref.S.ContentCreationRequest}
+                                            }
+                                        }
+                                    }
+                                },
+                                Responses = new Dictionary<string, Response>
+                                {
+                                    {"403", new Response{Ref = Ref.Responses + Ref.R.Http403_creation}},
+                                    {"404", new Response{Ref = Ref.Responses + Ref.R.Http404_creation}},
+                                    {"200", new Response
+                                        {
+                                            Description = "The newly created content according to the given parameters (metadata, $expand, $select, $format).",
+                                            Content = new Dictionary<string, MediaType>
+                                            {
+                                                {"application/json", new MediaType
+                                                    {
+                                                        Schema = new ObjectSchema{ Ref = Ref.Schemas + Ref.S.ODataEntity }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    },
                     {"/OData.svc/{_path}('{_name}')", new PathItem
                         {
                             Get = new Operation
@@ -913,7 +995,7 @@ namespace SenseNet.OpenApi
                                 Name = "_path",
                                 In = "path",
                                 Required = true,
-                                AllowEmptyValue = true,
+                                AllowEmptyValue = false,
                                 Description = "Path of the container content. Leading slash is omitted. If empty, the {name} should be 'Root'.",
                                 Schema = new ObjectSchema { Type = T.String }
                             }
