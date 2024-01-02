@@ -325,6 +325,9 @@ namespace SenseNet.Services.Core.Operations
                 // in case we just loaded this content
                 SetPreviewGenerationPriority(uploadedContent);
 
+                var isContentType = uploadedContent.Path.StartsWith(Repository.ContentTypesFolderPath + "/",
+                    StringComparison.OrdinalIgnoreCase);
+
                 if (FormFile != null)
                 {
                     await SaveFileToRepositoryAsync(uploadedContent, Content, chunkToken, 
@@ -333,7 +336,9 @@ namespace SenseNet.Services.Core.Operations
                 else
                 {
                     // handle text data
-                    var binData = new BinaryData { FileName = new BinaryFileName(uploadedContent.Name) };
+                    var binData = isContentType
+                        ? new BinaryData {FileName = new BinaryFileName(uploadedContent.Name + ".ContentType"), ContentType = "text/xml"}
+                        : new BinaryData {FileName = new BinaryFileName(uploadedContent.Name) };
 
                     // set content type only if we were unable to recognize it
                     if (string.IsNullOrEmpty(binData.ContentType))

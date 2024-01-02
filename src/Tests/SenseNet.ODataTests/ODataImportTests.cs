@@ -310,8 +310,8 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>)content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);
@@ -383,8 +383,8 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>) content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);

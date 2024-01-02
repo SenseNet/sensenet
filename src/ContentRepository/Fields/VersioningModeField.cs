@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Versioning;
 
@@ -45,13 +46,8 @@ namespace SenseNet.ContentRepository.Fields
 			return new object[] { ConvertFromControlInner(value) };
 		}
 		private object ConvertFromControlInner(object value)
-		{
-			List<string> listValue = value as List<string>;
-			string stringValue = listValue[0];
-			int intValue;
-			if (Int32.TryParse(stringValue, out intValue))
-				return (VersioningType)intValue;
-			return (VersioningType)Enum.Parse(typeof(VersioningType), stringValue);
-		}
-	}
+        {
+            return ConvertFromInputToEnumValue<VersioningType, VersioningModeField>(value);
+        }
+    }
 }

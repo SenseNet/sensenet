@@ -560,7 +560,11 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (RawData.Count < 1)
                 return null;
-            var singleNode = Node.Load<T>(RawData[0]);
+            Node singleNode;
+            using(new SystemAccount())
+                singleNode = Node.Load<T>(RawData[0]);
+            if(!singleNode.Security.HasPermission(AccessProvider.Current.GetCurrentUser(), PermissionType.See))
+                return null;
             return singleNode as Q;
         }
         internal void SetSingleValue<Q>(Q value) where Q : Node
