@@ -23,7 +23,7 @@ public static class AIOperations
     /// <returns>An object containing the summary.</returns>
     [ODataAction]
     [ContentTypes(N.CT.PortalRoot)]
-    [AllowedRoles(N.R.Administrators)]
+    [AllowedRoles(N.R.Everyone)]
     public static async Task<object> GetSummary(Content content, HttpContext context,
         int maxWordCount, int maxSentenceCount, string text)
     {
