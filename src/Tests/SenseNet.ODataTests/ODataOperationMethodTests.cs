@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -2679,7 +2680,7 @@ namespace SenseNet.ODataTests
                     user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var publicAdmins = Node.Load<Group>("/Root/IMS/Public/Administrators");
                     publicAdmins.AddMember(user1);
-                    new SecurityHandler().CreateAclEditor()
+                    new SecurityHandler(Providers.Instance.Services.GetService<ILogger<SecurityHandler>>()).CreateAclEditor()
                         .Allow(Repository.ImsFolder.Id, publicAdmins.Id, false, PermissionType.BuiltInPermissionTypes)
                         .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
