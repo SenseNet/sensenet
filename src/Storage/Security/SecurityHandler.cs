@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
 using SenseNet.Security.Messaging;
+using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
@@ -22,7 +24,14 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// Contains both instance API (accessible through the Node.Security or Content.Security properties) and static API.
     /// </summary>
     public sealed class SecurityHandler
-	{
+    {
+        private ILogger<SecurityHandler> _logger;
+
+        public SecurityHandler(ILogger<SecurityHandler> logger)
+        {
+            _logger = logger;
+        }
+
         #region /*========================================================== Evaluation related methods */
 
         /// <summary>
@@ -1457,11 +1466,16 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             _securitySystem = securitySystem;
 
-            SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
-                properties: new Dictionary<string, object> { 
-                    { "DataProvider", securityDataProvider.GetType().FullName },
-                    { "MessageProvider", messageProvider.GetType().FullName }
-                });
+//SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
+//    properties: new Dictionary<string, object> { 
+//        { "DataProvider", securityDataProvider.GetType().FullName },
+//        { "MessageProvider", messageProvider.GetType().FullName }
+//    });
+            _logger.LogInformation("Security subsystem started. " +
+                                   $"DataProvider: {securityDataProvider.GetType().FullName}, " +
+                                   $"MessageProvider: {messageProvider.GetType().FullName}");
+
+
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ using SenseNet.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -15,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Querying;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using EventId = SenseNet.Diagnostics.EventId;
 
 namespace SenseNet.ContentRepository
 {
@@ -70,7 +72,7 @@ namespace SenseNet.ContentRepository
         /// Gets the started up instance or null.
         /// </summary>
         public static RepositoryInstance Instance { get { return _instance; } }
-
+        
         public TextWriter Console => _settings?.Console;
 
         private RepositoryInstance()
@@ -78,6 +80,7 @@ namespace SenseNet.ContentRepository
             _startupInfo = new StartupInfo { Starting = DateTime.UtcNow };
         }
 
+        private ILogger<RepositoryInstance> _logger;
         private static bool _started;
         internal static RepositoryInstance Start(RepositoryStartSettings settings)
         {
@@ -90,6 +93,7 @@ namespace SenseNet.ContentRepository
                         var instance = new RepositoryInstance();
                         instance._settings = new RepositoryStartSettings.ImmutableRepositoryStartSettings(settings);
                         _instance = instance;
+                        _instance._logger = instance._settings.Services.GetService<ILogger<RepositoryInstance>>();
                         try
                         {
                             instance.DoStart();
@@ -138,8 +142,8 @@ namespace SenseNet.ContentRepository
 
             // We have to log the access provider here because it cannot be logged 
             // during creation as it would lead to a circular reference.
-            SnLog.WriteInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
-
+//SnLog.WriteInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
+            _logger.LogInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
             using (new SystemAccount())
                 StartManagers();
 
@@ -239,7 +243,8 @@ namespace SenseNet.ContentRepository
                 
                 // Log this, because logging is switched off when creating the cache provider
                 // to avoid circular reference.
-                SnLog.WriteInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
+//SnLog.WriteInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
+                _logger.LogInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting message channel ... ");
@@ -247,7 +252,9 @@ namespace SenseNet.ContentRepository
                 channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
                 
                 ConsoleWriteLine("ok.");
-                SnLog.WriteInformation($"Message channel {channel.GetType().FullName} started." +
+//SnLog.WriteInformation($"Message channel {channel.GetType().FullName} started." +
+//                       $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
+                _logger.LogInformation($"Message channel started:  {channel.GetType().FullName}. " +
                                        $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
 
                 ConsoleWrite("Sending greeting message ... ");

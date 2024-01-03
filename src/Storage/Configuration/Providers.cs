@@ -21,6 +21,7 @@ using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
@@ -48,10 +49,12 @@ namespace SenseNet.Configuration
         //===================================================================================== Instance
 
         public IServiceProvider Services { get; }
+        private ILogger<Providers> _logger;
 
         public Providers(IServiceProvider services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
+            _logger = services.GetService<ILogger<Providers>>();
 
             DataProvider = services.GetService<DataProvider>();
             DataStore = services.GetService<IDataStore>();
@@ -259,8 +262,9 @@ namespace SenseNet.Configuration
             }
 
             var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-            SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
-                properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
+//SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
+//    properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
+            Instance?._logger.LogInformation($"NodeObservers are instantiated. Types: {string.Join(", ", activeObserverNames)}");
 
             return activeObservers;
         });
