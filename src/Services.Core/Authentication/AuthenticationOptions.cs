@@ -2,9 +2,11 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
+using SenseNet.Tools.Configuration;
 
 namespace SenseNet.Services.Core.Authentication
 {
+    [OptionsClass(sectionName: "sensenet:Authentication")]
     public class AuthenticationOptions
     {
         /// <summary>

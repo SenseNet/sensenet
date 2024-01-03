@@ -138,6 +138,11 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         [TestMethod]
         public Task IntT_MsSql_DP_NodeAndVersion_CountsAndTimestamps() { return TestCase.DP_NodeAndVersion_CountsAndTimestamps(); }
 
+        /* ================================================================================================== Replicate */
+
+        [TestMethod]
+        public Task IntT_MsSql_DP_ReplicateNode() { return TestCase.DP_ReplicateNode(); }
+
         /* ================================================================================================== Errors */
 
         [TestMethod]

@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-Library,DisplayName</DisplayName>
   <Description>$Ctd-Library,Description</Description>
   <Icon>Library</Icon>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="InheritableVersioningMode" type="InheritableVersioningMode">

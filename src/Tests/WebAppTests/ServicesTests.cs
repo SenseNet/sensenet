@@ -24,9 +24,11 @@ using SenseNet.ContentRepository.Packaging;
 using SenseNet.ContentRepository.Packaging.Steps.Internal;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
@@ -63,6 +65,7 @@ using SenseNet.Services.Core.Cors;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Wopi;
 using SenseNet.Storage;
+using SenseNet.Storage.BackgroundOperations;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.DistributedApplication.Messaging;
@@ -259,19 +262,19 @@ namespace WebAppTests
         }
 
         private bool TypesAreEquals(object a, object b)
-            {
-                if (a is Type && b is Type)
-                    return a == b;
-                if (!(a is Type[] aa && b is Type[] bb))
+        {
+            if (a is Type && b is Type)
+                return a == b;
+            if (!(a is Type[] aa && b is Type[] bb))
+                return false;
+            if (aa.Length != bb.Length)
+                return false;
+            foreach (var t in aa)
+                if (!bb.Contains(t))
                     return false;
-                if (aa.Length != bb.Length)
-                    return false;
-                foreach (var t in aa)
-                    if (!bb.Contains(t))
-                        return false;
 
-                return true;
-            }
+            return true;
+        }
         private string GetMessageForDifferences(Dictionary<Type, object> dump, IDictionary<Type, object> expectation)
         {
             string GetName(object a)
@@ -282,7 +285,7 @@ namespace WebAppTests
                     return t.Name;
                 return $"[{string.Join(", ", ((Type[]) a).Select(x => x.Name))}]";
             }
-            
+
             var diffs = dump.Where(x => !TypesAreEquals(x.Value, expectation[x.Key]))
                 .Where(x => x.Value != null)
                 .ToDictionary(x => x.Key, x => (Actual: x.Value, Expected: expectation[x.Key]))
@@ -334,6 +337,7 @@ namespace WebAppTests
                 // TaskManager
                 {typeof(ITaskManager), typeof(TaskManagerBase)},
                 {typeof(ITaskManagementClient), typeof(TaskManagementClient)},
+                {typeof(IUserProvider), typeof(DefaultUserProvider)},
 
                 // Preview
                 {typeof(IPreviewProvider), typeof(DefaultDocumentPreviewProvider)},
@@ -377,6 +381,7 @@ namespace WebAppTests
                 {typeof(IMaintenanceTask), new[] {
                     //typeof(ReindexBinariesTask),
                     typeof(CleanupFilesTask),
+                    typeof(RefreshTaskManagementTask),
                     typeof(StartActiveDirectorySynchronizationTask),
                     typeof(AccessTokenCleanupTask),
                     typeof(SharedLockCleanupTask),
@@ -414,6 +419,7 @@ namespace WebAppTests
                 {typeof(IRetrier), typeof(DefaultRetrier)},
                 {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
+                {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -495,7 +501,7 @@ namespace WebAppTests
             Assert.IsNotNull(pi.TreeLock);
             Assert.IsNotNull(pi.BlobMetaDataProvider);
             Assert.IsNotNull(pi.BlobProviderSelector);
-//Assert.IsNotNull(pi.BlobStorage);
+            //Assert.IsNotNull(pi.BlobStorage);
             Assert.IsNotNull(pi.BlobProviders);
             Assert.IsNotNull(pi.SearchEngine);
             Assert.IsNotNull(pi.SearchManager);
@@ -594,6 +600,7 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
@@ -625,6 +632,7 @@ namespace WebAppTests
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
                         typeof(WebHookComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
@@ -816,6 +824,7 @@ namespace WebAppTests
 
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
@@ -852,6 +861,7 @@ namespace WebAppTests
 
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
@@ -889,6 +899,7 @@ namespace WebAppTests
 
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
@@ -955,6 +966,7 @@ namespace WebAppTests
 
                     {typeof(ISnComponent), new[] {
                         typeof(ServicesComponent),
+                        typeof(InMemoryClientStoreComponent)
                     }},
 
                     {typeof(ISnTracer), typeof(SnFileSystemTracer)},

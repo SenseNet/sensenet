@@ -305,7 +305,16 @@ namespace SenseNet.ContentRepository
                 return this.IsValid;
             return DoValidate();
         }
+
+        private const bool Strict = true;
         internal void Save(bool validOnly)
+        {
+            if (Strict)
+                SaveStrict(validOnly);
+            else
+                SaveFlexible(validOnly);
+        }
+        private void SaveFlexible(bool validOnly)
         {
             // Rewrites ContentHandler properties if Field is changed and values are valid
             if (!_changed)
@@ -324,6 +333,29 @@ namespace SenseNet.ContentRepository
                     __value = null;
             }
         }
+        private void SaveStrict(bool validOnly)
+        {
+            // Rewrites ContentHandler properties if Field is changed and values are valid
+            if (!_changed && !Content.IsNew)
+            {
+                this.ValidationResult = FieldValidationResult.Successful;
+                return;
+            }
+
+            Validate();
+
+            if (!validOnly || this.IsValid)
+            {
+                if (_changed)
+                {
+                    WriteProperties(Value);
+                    _changed = false;
+                }
+                if (!this.IsAspectField)
+                    __value = null;
+            }
+        }
+
         private bool _isDefaultValueHandled;
         public void SetDefaultValue()
         {

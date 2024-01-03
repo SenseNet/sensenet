@@ -1,37 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <Version>0.0.9</Version>
-    <Authors>kavics,aniko,tusmester</Authors>
-    <Company>Sense/Net Inc.</Company>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <PackageIcon>icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet csp content repository webhooks</PackageTags>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Product>sensenet WebHooks Common</Product>
-    <Description>WebHooks common classes for the sensenet platform.</Description>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>0.0.10</Version>
+		<Authors>kavics,aniko,tusmester</Authors>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<PackageIcon>icon.png</PackageIcon>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet csp content repository webhooks</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>sensenet WebHooks Common</Product>
+		<Description>WebHooks common classes for the sensenet platform.</Description>
+		<LangVersion>latest</LangVersion>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Text.Json" Version="6.0.6" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="System.Text.Json" Version="6.0.6" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Abstractions\SenseNet.Abstractions.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
@@ -19,13 +18,15 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.Security.MultiFactor;
 
 namespace SenseNet.ContentRepository
 {
@@ -276,6 +277,10 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        // there is no need for group check in case of system user
+        public bool IsOperator =>
+            Id == Identifiers.SystemUserId || SystemAccount.Execute(() => IsInGroup(Group.Operators));
+
         /// <inheritdoc />
         public override string Name
         {
@@ -349,6 +354,103 @@ namespace SenseNet.ContentRepository
             set { SetReferences(FOLLOWEDWORKSPACES, value); }
         }
 
+        [RepositoryProperty(nameof(MultiFactorEnabled), RepositoryDataType.Int)]
+        public bool MultiFactorEnabled
+        {
+            get => this.GetProperty<int>(nameof(MultiFactorEnabled)) != 0;
+            set => this[nameof(MultiFactorEnabled)] = value ? 1 : 0;
+        }
+        
+        [RepositoryProperty(nameof(MultiFactorRegistered), RepositoryDataType.Int)]
+        public bool MultiFactorRegistered
+        {
+            get => this.GetProperty<int>(nameof(MultiFactorRegistered)) != 0;
+            set => this[nameof(MultiFactorRegistered)] = value ? 1 : 0;
+        }
+
+        /// <summary>
+        /// Gets whether MFA is enabled or forced globally or on this user.
+        /// </summary>
+        public bool EffectiveMultiFactorEnabled
+        {
+            get
+            {
+                var mfaMode = Settings.GetValue<MultiFactorMode>("MultiFactorAuthentication", "MultiFactorAuthentication",
+                    this.Path);
+
+                // merge enabled state into a single effective property
+                return mfaMode switch
+                {
+                    MultiFactorMode.Disabled => false,
+                    MultiFactorMode.Forced => true,
+                    _ => MultiFactorEnabled
+                };
+            }
+        }
+
+        public string QrCodeSetupImageUrl
+        {
+            get
+            {
+                if (!EffectiveMultiFactorEnabled)
+                    return string.Empty;
+
+                // if already generated and cached
+                if (GetCachedData(nameof(QrCodeSetupImageUrl)) is string imageUrl) 
+                    return imageUrl;
+                
+                var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                    GetTwoFactorAccountName(), TwoFactorKey);
+
+                SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                SetCachedData(nameof(ManualEntryKey), entryKey);
+
+                imageUrl = url;
+
+                return imageUrl;
+            }
+        }
+        public string ManualEntryKey
+        {
+            get
+            {
+                if (!EffectiveMultiFactorEnabled)
+                    return string.Empty;
+
+                // if already generated and cached
+                if (GetCachedData(nameof(ManualEntryKey)) is string manualEntryKey) 
+                    return manualEntryKey;
+                
+                var (url, entryKey) = Providers.Instance.MultiFactorAuthenticationProvider.GenerateSetupCode(
+                    GetTwoFactorAccountName(), TwoFactorKey);
+
+                SetCachedData(nameof(QrCodeSetupImageUrl), url);
+                SetCachedData(nameof(ManualEntryKey), entryKey);
+
+                manualEntryKey = entryKey;
+
+                return manualEntryKey;
+            }
+        }
+
+        public string TwoFactorKey
+        {
+            get
+            {
+                // if already cached
+                if (GetCachedData(nameof(TwoFactorKey)) is string twoFactorKey)
+                    return twoFactorKey;
+
+                if (this.Id == 0)
+                    return null;
+
+                var twoFactorToken = AccessTokenVault.GetOrAddToken(this.Id, TimeSpan.MaxValue, Id, "2fa");
+
+                SetCachedData(nameof(TwoFactorKey), twoFactorToken.Value);
+
+                return twoFactorToken.Value;
+            }
+        }
 
         // =================================================================================== Construction
 
@@ -687,7 +789,7 @@ namespace SenseNet.ContentRepository
                         // ReSharper disable once CoVariantArrayConversion
                         .Allow(pc.Id, Identifiers.OwnersGroupId, false, PermissionType.PermissionTypes)
                         .Allow(pc.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open)
-                        .Apply();
+                        .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     profiles = pc.ContentHandler;
                 }
@@ -754,7 +856,7 @@ namespace SenseNet.ContentRepository
                         // they created and own.
                         Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor()
                             .Allow(profile.Id, this.Id, false, PermissionType.Open)
-                            .Apply();
+                            .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {
@@ -1179,7 +1281,7 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== Events
-
+        
         protected override void OnDeletingPhysically(object sender, CancellableNodeEventArgs e)
         {
             base.OnDeletingPhysically(sender, e);
@@ -1215,6 +1317,14 @@ namespace SenseNet.ContentRepository
         {
             base.OnModifying(sender, e);
 
+            // has the MultiFactorEnabled field changed?
+            var multiFactorEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(MultiFactorEnabled));
+            if (multiFactorEnabled != null && !string.IsNullOrEmpty((string)multiFactorEnabled.Value))
+            {
+                // reset values in both cases (on or off)
+                ResetTwoFactorKeyAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+            
             // has the Enabled field changed to False?
             var changedEnabled = e.ChangedData.FirstOrDefault(cd => cd.Name == nameof(Enabled));
             if (changedEnabled == null || string.IsNullOrEmpty((string)changedEnabled.Value) || 
@@ -1254,7 +1364,8 @@ namespace SenseNet.ContentRepository
             {
                 var parent = GroupMembershipObserver.GetFirstOrgUnitParent(e.SourceNode);
                 if (parent != null)
-                    Providers.Instance.SecurityHandler.AddUsersToGroup(parent.Id, new[] { e.SourceNode.Id });
+                    Providers.Instance.SecurityHandler.AddUsersToGroupAsync(parent.Id, new[] { e.SourceNode.Id },
+                        CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -1327,6 +1438,26 @@ namespace SenseNet.ContentRepository
             this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
+        // =================================================================================== Multifactor authentication
+
+        public async System.Threading.Tasks.Task ResetTwoFactorKeyAsync(CancellationToken cancel)
+        {
+            var twoFactorToken = TwoFactorKey;
+
+            // delete the existing key
+            await AccessTokenVault.DeleteTokenAsync(twoFactorToken, cancel).ConfigureAwait(false);
+
+            MultiFactorRegistered = false;
+
+            // clear cache
+            SetCachedData(nameof(TwoFactorKey), null);
+            SetCachedData(nameof(QrCodeSetupImageUrl), null);
+            SetCachedData(nameof(ManualEntryKey), null);
+        }
+        
+        //TODO: handle user-specific account changes
+        private string GetTwoFactorAccountName() => Email ?? LoginName;
+
         // =================================================================================== Generic Property handlers
 
         /// <inheritdoc />
@@ -1356,6 +1487,10 @@ namespace SenseNet.ContentRepository
                     return this.ProfilePath;
                 case LASTLOGGEDOUT:
                     return this.LastLoggedOut;
+                case nameof(MultiFactorEnabled):
+                    return this.MultiFactorEnabled;
+                case nameof(MultiFactorRegistered):
+                    return this.MultiFactorRegistered;
                 default:
                     return base.GetProperty(name);
             }
@@ -1397,6 +1532,12 @@ namespace SenseNet.ContentRepository
                     break;
                 case LASTLOGGEDOUT:
                     this.LastLoggedOut = (DateTime)value;
+                    break;
+                case nameof(MultiFactorEnabled):
+                    this.MultiFactorEnabled = (bool) value;
+                    break;
+                case nameof(MultiFactorRegistered):
+                    this.MultiFactorRegistered = (bool)value;
                     break;
                 default:
                     base.SetProperty(name, value);

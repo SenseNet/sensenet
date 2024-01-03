@@ -11,13 +11,16 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Diagnostics;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Security.Cryptography;
+using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.Replication;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Virtualization;
@@ -31,6 +34,7 @@ using SenseNet.Services.Core.Configuration;
 using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
+using SenseNet.Storage.BackgroundOperations;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -65,8 +69,10 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<ExclusiveLockOptions>(configuration.GetSection("sensenet:ExclusiveLock"));
             services.Configure<MessagingOptions>(configuration.GetSection("sensenet:security:messaging"));
             services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
+            services.Configure<StatisticsOptions>(configuration.GetSection("sensenet:statistics"));
+            services.Configure<MultiFactorOptions>(configuration.GetSection("sensenet:Authentication:MultiFactor"));
             services.Configure<RepositoryTypeOptions>(options => {});
-            
+
             services.ConfigureConnectionStrings(configuration);
 
             return services;
@@ -101,15 +107,13 @@ namespace SenseNet.Extensions.DependencyInjection
                     config.EveryoneGroupId = Identifiers.EveryoneGroupId;
                     config.OwnerGroupId = Identifiers.OwnersGroupId;
                 })
-                .AddPlatformIndependentServices()
+                .AddPlatformIndependentServices(configuration)
                 .AddSenseNetTaskManager()
                 .AddContentNamingProvider<CharReplacementContentNamingProvider>()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddLatestComponentStore()
                 .AddSenseNetCors()
                 .AddSenseNetIdentityServerClients()
-                .AddSenseNetDefaultClientManager()
-                .AddSenseNetApiKeys()
                 .AddSenseNetEmailManager(options =>
                 {
                     configuration.GetSection("sensenet:Email").Bind(options);
@@ -123,6 +127,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
+                .AddSingleton<IMaintenanceTask, RefreshTaskManagementTask>()
                 .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataAggregationMaintenanceTask>()
                 .AddSingleton<IMaintenanceTask, StatisticalDataCollectorMaintenanceTask>()
@@ -137,14 +142,16 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services)
+        public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services, 
+            IConfiguration configuration)
         {
-            return services
+            services
                 .AddSenseNetDefaultRepositoryServices()
                 .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
                 .AddSingleton<SecurityHandler>()
+                .AddSingleton<IUserProvider, DefaultUserProvider>()
                 .AddSecurityMissingEntityHandler<SnMissingEntityHandler>()
                 .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 
@@ -168,7 +175,17 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
+
+                .AddSenseNetDefaultClientManager()
+                .AddSenseNetApiKeys()
+                .AddDefaultMultiFactorAuthenticationProvider()
             ;
+
+            // register the replication feature only if it is enabled
+            if (configuration?.GetSection("sensenet:replication")?.GetValue<bool>("Enabled") ?? false)
+                services.AddSingleton<IReplicationService, SingleNodeReplicationService>();
+
+            return services;
         }
 
         /// <summary>

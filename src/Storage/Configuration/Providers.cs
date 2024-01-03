@@ -23,6 +23,7 @@ using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
+using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using EventId = SenseNet.Diagnostics.EventId;
 
@@ -82,6 +83,7 @@ namespace SenseNet.Configuration
 
             ClusterChannelProvider = services.GetService<IClusterChannel>();
             Retrier = services.GetService<IRetrier>();
+            MultiFactorAuthenticationProvider = services.GetService<IMultiFactorAuthenticationProvider>();
         }
 
         /// <summary>
@@ -121,6 +123,8 @@ namespace SenseNet.Configuration
         public IIndexPopulator IndexPopulator { get; }
 
         public IRetrier Retrier { get; }
+
+        public IMultiFactorAuthenticationProvider MultiFactorAuthenticationProvider { get; }
 
         /* ========================================================= Need to refactor */
 

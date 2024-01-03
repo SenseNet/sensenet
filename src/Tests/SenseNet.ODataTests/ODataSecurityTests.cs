@@ -23,11 +23,11 @@ namespace SenseNet.ODataTests
             {
                 SnAclEditor.Create(Providers.Instance.SecurityHandler.SecurityContext)
                     .Allow(2, 1, false, PermissionType.Custom01)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPostAsync(
-                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions",
+                        "/OData.svc/Root/('IMS')/GetPermissions",
                         "",
                         null)
                     .ConfigureAwait(false);
@@ -57,11 +57,11 @@ namespace SenseNet.ODataTests
                 SnAclEditor.Create(Providers.Instance.SecurityHandler.SecurityContext)
                     .Allow(2, Identifiers.AdministratorUserId, false, PermissionType.Custom01)
                     .Allow(2, Identifiers.VisitorUserId, false, PermissionType.Custom02)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 var response = await ODataPostAsync(
-                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions",
+                        "/OData.svc/Root/('IMS')/GetPermissions",
                         "",
                         "{identity:\"/root/ims/builtin/portal/visitor\"}")
                     .ConfigureAwait(false);
@@ -92,7 +92,7 @@ namespace SenseNet.ODataTests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(Repository.Root.Id, Group.Administrators.Id, false, PermissionType.Open)
                     .Allow(Repository.Root.Id, Group.Administrators.Id, false, PermissionType.Save)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var hasPermission = Providers.Instance.SecurityHandler.HasPermission(
                     User.Administrator, Group.Administrators, PermissionType.Open, PermissionType.Save);

@@ -1,28 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <RootNamespace>SenseNet</RootNamespace>
-    <AssemblyName>SenseNet.Abstractions</AssemblyName>
-    <Version>1.0.2</Version>
-    <Authors>kavics,tusmester</Authors>
-    <Company>Sense/Net Inc.</Company>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet abstractions</PackageTags>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Product>sensenet Abstractions</Product>
-    <Description>Common interfaces and extensions for the sensenet platform.</Description>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<RootNamespace>SenseNet</RootNamespace>
+		<AssemblyName>SenseNet.Abstractions</AssemblyName>
+		<Version>1.0.3</Version>
+		<Authors>kavics,tusmester</Authors>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet abstractions</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>sensenet Abstractions</Product>
+		<Description>Common interfaces and extensions for the sensenet platform.</Description>
+		<LangVersion>latest</LangVersion>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.12" />
+	</ItemGroup>
 
 </Project>

@@ -232,7 +232,7 @@ namespace SenseNet.ODataTests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(2, user.Id, false, PermissionType.PermissionTypes)
                     .Allow(systemFolderCtdId, user.Id, false, PermissionType.See)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 File file;
                 using (new CurrentUserBlock(user))

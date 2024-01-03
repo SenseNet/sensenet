@@ -1,34 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <Version>2.4.14</Version>
-    <AssemblyName>SenseNet.Search</AssemblyName>
-    <RootNamespace>SenseNet.Search</RootNamespace>
-    <Company>Sense/Net Inc.</Company>
-    <Description>General library for the sensenet platform containing interfaces and indexing-related classes.</Description>
-    <PackageId>SenseNet.Search</PackageId>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <PackageTags>sensenet indexing search</PackageTags>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <Authors>kavics,tusmester</Authors>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>2.4.16</Version>
+		<AssemblyName>SenseNet.Search</AssemblyName>
+		<RootNamespace>SenseNet.Search</RootNamespace>
+		<Company>Sense/Net Inc.</Company>
+		<Description>General library for the sensenet platform containing interfaces and indexing-related classes.</Description>
+		<PackageId>SenseNet.Search</PackageId>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<PackageTags>sensenet indexing search</PackageTags>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<Authors>kavics,tusmester</Authors>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\SenseNet.Search.xml</DocumentationFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>bin\Release\netstandard2.0\SenseNet.Search.xml</DocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.9" />
-    <PackageReference Include="SenseNet.Security" Version="4.1.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.12" />
+		<PackageReference Include="SenseNet.Security" Version="4.2.0" />
+	</ItemGroup>
 
 </Project>

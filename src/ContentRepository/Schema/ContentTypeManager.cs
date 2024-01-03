@@ -28,6 +28,8 @@ namespace SenseNet.ContentRepository.Schema
         [Serializable]
         internal sealed class ContentTypeManagerResetDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
@@ -298,9 +300,15 @@ namespace SenseNet.ContentRepository.Schema
 
             // #3 Parent Node: if it is loaded yet use it (ReferenceEquals)
             Node parentNode;
-            if (String.IsNullOrEmpty(parentTypeName))
+            if (string.IsNullOrEmpty(parentTypeName))
             {
+                if(name != "ContentType" && name != "GenericContent")
+                    throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_MissingParentContentType, name);
                 parentNode = (Folder)Node.LoadNode(Repository.ContentTypesFolderPath);
+            }
+            else if (parentTypeName == "ContentType")
+            {
+                throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_ForbiddenParentContentType, name);
             }
             else
             {

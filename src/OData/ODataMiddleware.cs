@@ -30,6 +30,9 @@ using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using System.Net.Http;
+using Nito.AsyncEx;
+using Retrier = SenseNet.Tools.Retrier;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
 // ReSharper disable ArrangeThisQualifier
@@ -41,6 +44,12 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
+        public class ContentCreationResult
+        {
+            public Content Content { get; set; }
+            public List<string> BrokenReferenceFieldNames { get; set; } = new();
+        }
+
         public static readonly string ODataRequestHttpContextKey = "SenseNet.OData.ODataRequest";
 
         private static readonly IActionResolver DefaultActionResolver = new DefaultActionResolver();
@@ -289,7 +298,7 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                             }
 
                             model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
-                            var newContent = CreateNewContent(model, odataRequest);
+                            var newContent = await CreateNewContentAsync(model, odataRequest, httpContext.RequestAborted).ConfigureAwait(false);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
@@ -329,7 +338,7 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                 var oe = HandleException(ex, odataRequest, httpContext);
                 if (oe == null)
                     return;
-                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, odataRequest, oe, _appConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -350,30 +359,35 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                 }
                 case ContentNotFoundException _:
                     return new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                case AccessDeniedException _:
-                    return new ODataException(ODataExceptionCode.Forbidden, e);
+                case AccessDeniedException ade:
+                {
+                    SnTrace.Security.WriteError(ade.ToString);
+                    return new ODataException("Access denied.", ODataExceptionCode.Forbidden, ade);
+                }
                 case UnauthorizedAccessException _:
                     return new ODataException(ODataExceptionCode.Unauthorized, e);
                 case ContentRepository.Storage.Data.NodeAlreadyExistsException nodeAlreadyExistsException:
-                    return new ODataException(ODataExceptionCode.ContentAlreadyExists, e);
-                case SenseNetSecurityException _:
+                    if (e.Message.StartsWith("Cannot copy the content") || e.Message.StartsWith("Cannot move the content"))
+                        return new ODataException(e.Message, ODataExceptionCode.ContentAlreadyExists, e);
+                    return new ODataException("The content was not saved because it already exists.",
+                        ODataExceptionCode.ContentAlreadyExists, e);
+                case SenseNetSecurityException sse:
                 {
-                    // In case of a visitor we should not expose the information that this content actually exists. We return
-                    // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
-                    // really does not exist. But do this only if the visitor really does not have permission for the
-                    // requested content (because security exception could be thrown by an action or something else too).
-                    if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
+                    // If the current user (visitor or the logged-in user) has not See permission on the requested content,
+                    // return 404 (content not found) instead of any security related error.
+                    if (odataRequest != null)
                     {
                         var head = NodeHead.Get(odataRequest.RepositoryPath);
-                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.Open))
+                        if (head != null && !Providers.Instance.SecurityHandler.HasPermission(head, PermissionType.See))
                         {
                             ContentNotFound(httpContext);
+                            SnTrace.Security.Write(sse.Data["FormattedMessage"].ToString());
                             return null;
                         }
                     }
 
-                    var oe = new ODataException(ODataExceptionCode.NotSpecified, e);
-                    SnLog.WriteException(oe);
+                    var oe = new ODataException(ODataExceptionCode.Forbidden, e);
+                    SnTrace.Security.WriteError(e.Message);
                     return oe;
                 }
                 case InvalidContentActionException invalidContentActionException:
@@ -548,7 +562,7 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                 : Content.Load(path);
         }
 
-        private Content CreateNewContent(JObject model, ODataRequest odataRequest) //UNDONE:x: rewrite to async (CRUD save)
+        private async Task<Content> CreateNewContentAsync(JObject model, ODataRequest odataRequest, CancellationToken cancel)
         {
             var parentPath = odataRequest.RepositoryPath;
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
@@ -557,17 +571,20 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
             var displayName = GetPropertyValue<string>("DisplayName", model);
             var isMultiStepSave = odataRequest.MultistepSave;
 
-            return CreateNewContent(parentPath, contentTypeName, templateName, contentName, displayName, isMultiStepSave, model, false, out _);
+            var creationResult = await CreateNewContentAsync(parentPath, contentTypeName, templateName, contentName, displayName, 
+                isMultiStepSave, model, false, cancel).ConfigureAwait(false);
+
+            return creationResult.Content;
         }
-        public static Content CreateNewContent(string parentPath, string contentTypeName, string templateName,
+        public static async Task<ContentCreationResult> CreateNewContentAsync(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, out List<string> brokenReferenceFieldNames) //UNDONE:x: rewrite to async (CRUD save)
+            bool skipBrokenReferences, CancellationToken cancel)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
-            var parent = Tools.Retrier.Retry(5, 2000,
-                () => Node.Load<GenericContent>(parentPath),
-                (node, _, _) => node != null);
+            var parent = await Retrier.RetryAsync(5, 2000,
+                () => Node.LoadAsync<GenericContent>(parentPath, cancel),
+                (node, _, _) => node != null).ConfigureAwait(false);
 
             if (parent == null)
                 throw new InvalidOperationException($"Cannot create content {contentName}, parent not found: {parentPath}");
@@ -604,17 +621,20 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                 content = Content.Create(node);
             }
 
-
-            UpdateFields(content, model, skipBrokenReferences, out brokenReferenceFieldNames);
+            var brokenReferenceFieldNames = await UpdateFieldsAsync(content, model, skipBrokenReferences, cancel)
+                .ConfigureAwait(false);
 
             if (isMultiStepSave)
-                content.SaveAsync(SavingMode.StartMultistepSave, CancellationToken.None).GetAwaiter().GetResult();
+                await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
             else
-                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await content.SaveAsync(cancel).ConfigureAwait(false);
 
-            return content;
+            return new ContentCreationResult
+            {
+                Content = content,
+                BrokenReferenceFieldNames = brokenReferenceFieldNames
+            };
         }
-
 
         private static readonly List<string> SafeFieldsInReset = new List<string>(new[] {
             "Name",
@@ -674,7 +694,7 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
 
         private async Task UpdateContentAsync(Content content, JObject model, ODataRequest odataRequest, CancellationToken cancel)
         {
-            UpdateFields(content, model, false, out _);
+            await UpdateFieldsAsync(content, model, false, cancel).ConfigureAwait(false);
 
             if (odataRequest.MultistepSave)
                 await content.SaveAsync(SavingMode.StartMultistepSave, cancel).ConfigureAwait(false);
@@ -690,21 +710,52 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
         /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
-        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences, out List<string> brokenReferenceFieldNames)
+        [Obsolete("Use async overload.", true)]
+        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences,
+            out List<string> brokenReferenceFieldNames)
         {
-            brokenReferenceFieldNames = new List<string>();
-            var brokenRefs = brokenReferenceFieldNames; // in the lambda expressions need to use a local value
+            brokenReferenceFieldNames = UpdateFieldsAsync(content, model, skipBrokenReferences, CancellationToken.None)
+                .GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
+        /// The <see cref="Content"/> will not be saved.
+        /// </summary>
+        /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
+        /// <param name="model">The modifier JObject instance. Cannot be null.</param>
+        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a list of field names
+        /// that have broken references.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ODataException"></exception>
+        public async static Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
+            CancellationToken cancel)
+        {
+            var brokenReferenceFieldNames = new List<string>();
             if (content == null)
                 throw new ArgumentNullException(nameof(content));
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
+            var readonlyFields = new List<string>();
+
             var isNew = content.Id == 0;
             foreach (var prop in model.Properties())
             {
-                if (string.IsNullOrEmpty(prop.Name) || prop.Name == "__ContentType" || prop.Name == "__ContentTemplate" || prop.Name == "Type" || prop.Name == "ContentType")
+                if (string.IsNullOrEmpty(prop.Name) || prop.Name is "__ContentType" or "__ContentTemplate" or "Type" or "ContentType")
                     continue;
 
+                // readonly properties: skip if not enough permissions
+                if (prop.Name is "CreationDate" or "VersionCreationDate")
+                {
+                    if (!User.Current.IsOperator)
+                    {
+                        readonlyFields.Add(prop.Name);
+                        continue;
+                    }
+                }
+                
                 try
                 {
                     var hasField = content.Fields.TryGetValue(prop.Name, out var field);
@@ -733,20 +784,27 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                                     continue;
                                 if (isNew && field is ReferenceField && jValue.Value == null)
                                 {
-                                    if (field.Name == "CreatedBy" || field.Name == "ModifiedBy" ||
-                                        field.Name == "Owner")
+                                    if (field.Name is "CreatedBy" or "ModifiedBy" or "Owner")
                                         continue;
                                 }
 
                                 if (field is ReferenceField && jValue.Value != null)
                                 {
-                                    var refNode = jValue.Type == JTokenType.Integer
-                                        ? Node.LoadNode(Convert.ToInt32(jValue.Value))
-                                        : Node.LoadNode(jValue.Value.ToString());
+                                    var refNode = await LoadReferenceSafeAsync(jValue, cancel)
+                                        .ConfigureAwait(false);
+
+                                    // skip setting Somebody
+                                    if (prop.Name is "Owner" && refNode?.Id == Identifiers.SomebodyUserId)
+                                    {
+                                        readonlyFields.Add(prop.Name);
+                                        continue;
+                                    }
+
                                     if (refNode == null)
-                                        brokenRefs.Add(field.Name);
-                                    if (!skipBrokenReferences)
+                                        brokenReferenceFieldNames.Add(field.Name);
+                                    if (refNode != null || !skipBrokenReferences)
                                         field.SetData(refNode);
+
                                     continue;
                                 }
 
@@ -788,19 +846,30 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                                         continue;
                                     }
 
-                                    var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
-                                    var nodes = refValues
-                                        .Select(rv =>
+                                    var nodesTasks = refValues
+                                        .Select(async rv =>
                                         {
-                                            var value = rv.Type == JTokenType.Integer
-                                                ? Node.LoadNode(Convert.ToInt32(rv.ToString()))
-                                                : Node.LoadNode(rv.ToString());
-                                            if (value == null)
-                                                brokenRefs.Add(field.Name);
-                                            return value;
-                                        })
-                                        .Where(x => x != null); // filter unknown or invisible items
+                                            Node refNode = null;
+                                            if(rv is JValue jv)
+                                                refNode = await LoadReferenceSafeAsync(jv, cancel)
+                                                    .ConfigureAwait(false);
+                                            if (refNode == null)
+                                                if(!brokenReferenceFieldNames.Contains(field.Name))
+                                                    brokenReferenceFieldNames.Add(field.Name);
+                                            return refNode;
+                                        });
+                                    var nodes = (await nodesTasks.WhenAll())
+                                        .Where(x => x != null) // filter unknown or invisible items
+                                        .ToArray();
 
+                                    // skip setting Somebody
+                                    if (prop.Name is "Owner" && nodes?.FirstOrDefault()?.Id == Identifiers.SomebodyUserId)
+                                    {
+                                        readonlyFields.Add(prop.Name);
+                                        continue;
+                                    }
+
+                                    var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
                                     if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                         field.SetData(nodes);
                                     else
@@ -859,6 +928,33 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                     throw new ODataException($"Error updating property {prop.Name} of {content.Name}.", ODataExceptionCode.RequestError, ex);
                 }
             }
+
+            if (readonlyFields.Any())
+                SnTrace.Repository.Write($"User {User.Current.Name} cannot update the following " +
+                                         $"readonly fields of {content.Path}: {string.Join(", ", readonlyFields)}");
+
+            return brokenReferenceFieldNames;
+        }
+
+        private static async Task<Node> LoadReferenceSafeAsync(JValue identifier, CancellationToken cancel)
+        {
+            if (identifier == null)
+                return null;
+            if (identifier.Value == null)
+                return null;
+            if (identifier.Type == JTokenType.Null)
+                return null;
+
+            var pathOrId = identifier.Value.ToString();
+
+            Node refNode = null;
+            try
+            {
+                refNode = await Node.LoadNodeByIdOrPathAsync(pathOrId, cancel).ConfigureAwait(false);
+            }
+            catch (AccessDeniedException) { /* do nothing, result is null */ }
+            catch (SenseNetSecurityException) { /* do nothing, result is null */ }
+            return refNode;
         }
 
         private T GetPropertyValue<T>(string name, JObject model)

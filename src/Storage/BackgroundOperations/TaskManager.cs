@@ -2,12 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
+using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
@@ -104,11 +109,18 @@ namespace SenseNet.BackgroundOperations
     public class TaskManagerBase : ITaskManager
     {
         private readonly ITaskManagementClient _client;
+        private readonly IApiKeyManager _apiKeyManager;
+        private readonly IUserProvider _userProvider;
+        private readonly ILogger<TaskManagerBase> _logger;
         private readonly TaskManagementOptions _options;
         
-        public TaskManagerBase(ITaskManagementClient client, IOptions<TaskManagementOptions> options)
+        public TaskManagerBase(ITaskManagementClient client, IApiKeyManager apiKeyManager, 
+            IUserProvider userProvider, IOptions<TaskManagementOptions> options, ILogger<TaskManagerBase> logger)
         {
             _client = client;
+            _apiKeyManager = apiKeyManager;
+            _userProvider = userProvider;
+            _logger = logger;
             _options = options?.Value ?? new TaskManagementOptions();
         }
 
@@ -165,37 +177,90 @@ namespace SenseNet.BackgroundOperations
                 return false;
             }
 
+            // load configured authentication values per task type
+            var authList = await GetAuthenticationInfoAsync(cancellationToken).ConfigureAwait(false);
+
             var requestData = new RegisterApplicationRequest
             {
                 AppId = _options.GetApplicationIdOrSetting(),
-                ApplicationUrl = _options.GetApplicationUrlOrSetting()
+                ApplicationUrl = _options.GetApplicationUrlOrSetting(),
+                Authentication = authList
             };
 
             try
             {
                 await _client.RegisterApplicationAsync(requestData).ConfigureAwait(false);
 
-                SnLog.WriteInformation("Task management app registration was successful.", EventId.TaskManagement.General, properties: new Dictionary<string, object>
-                {
-                    { "TaskManagementUrl", taskManagementUrl },
-                    { "AppId", requestData.AppId }
-                });
+                _logger.LogInformation("Task management app registration was successful. " +
+                                       "Url: {url}, AppId: {appId}, Task users: {users}, ApiKeys: {apiKeys}",
+                    taskManagementUrl, requestData.AppId,
+                    string.Join(", ", _options.Authentication.Select(
+                        a => a.Key + ": " + a.Value.User)),
+                    string.Join(", ", requestData.Authentication.Select(a => a.TaskType + ": " + a.ApiKey.Substring(0, 5))));
 
                 return true;
             }
             catch (Exception ex)
             {
-                SnLog.WriteException(ex, "Error during app registration.", EventId.TaskManagement.General,
-                    properties: new Dictionary<string, object>
-                    {
-                        {"TaskManagementUrl", taskManagementUrl},
-                        {"AppId", requestData.AppId},
-                        {"ApplicationUrl", requestData.ApplicationUrl}
-                    });
+                _logger.LogError(ex, "Error during app registration. Url: {url}, AppId: {appId}, AppUrl: {appUrl}",
+                    taskManagementUrl, requestData.AppId, requestData.ApplicationUrl);
             }
 
             // no need to throw an exception, we already logged the error
             return false;
+        }
+
+        private async Task<TaskAuthenticationOptions[]> GetAuthenticationInfoAsync(CancellationToken cancel)
+        {
+            var exp = DateTime.UtcNow.AddHours(_options.ApiKeyExpirationHours);
+            var authList = new List<TaskAuthenticationOptions>();
+
+            foreach (var authenticationInfo in _options.Authentication)
+            {
+                if (authenticationInfo.Value?.User == null)
+                    continue;
+
+                try
+                {
+                    var user = await _userProvider.LoadAsync(authenticationInfo.Value.User, cancel)
+                        .ConfigureAwait(false);
+
+                    if (user == null)
+                    {
+                        _logger.LogTrace("Task user {user} not found.", authenticationInfo.Value.User);
+                        continue;
+                    }
+
+                    _logger.LogTrace("Loaded task user {user} for {taskName}", authenticationInfo.Value.User,
+                        authenticationInfo.Key);
+
+                    // load or create an api key for the admin user
+                    var apiKey =
+                        (await _apiKeyManager.GetApiKeysByUserAsync(user.Id, cancel).ConfigureAwait(false))
+                        .FirstOrDefault(k => k.ExpirationDate > exp);
+
+                    if (apiKey == null)
+                    {
+                        _logger.LogTrace("Api key not found for user {user}, creating a new one.", user.Path);
+
+                        apiKey = await _apiKeyManager.CreateApiKeyAsync(user.Id, exp, cancel).ConfigureAwait(false);
+                    }
+
+                    authList.Add(new TaskAuthenticationOptions
+                    {
+                        ApiKey = apiKey.Value,
+                        ApiKeyExpiration = apiKey.ExpirationDate,
+                        TaskType = authenticationInfo.Key,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error during loading task user {userName} for {taskName}",
+                        authenticationInfo.Value.User, authenticationInfo.Key);
+                }
+            }
+
+            return authList.ToArray();
         }
 
         public virtual Task OnTaskFinishedAsync(SnTaskResult result, CancellationToken cancellationToken)

@@ -1,27 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-    <Version>0.0.12</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Company>Sense/Net Inc.</Company>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet csp content repository wopi office</PackageTags>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <Product>sensenet Wopi</Product>
-    <Description>WOPI protocol and Office Online editing implementation for the sensenet platform.</Description>
-    <LangVersion>latest</LangVersion>
-    <UserSecretsId>cbd1d31b-0291-4bf4-b04e-c5b9dfcfca2f</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>0.0.14</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet csp content repository wopi office</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<Product>sensenet Wopi</Product>
+		<Description>WOPI protocol and Office Online editing implementation for the sensenet platform.</Description>
+		<LangVersion>latest</LangVersion>
+		<UserSecretsId>cbd1d31b-0291-4bf4-b04e-c5b9dfcfca2f</UserSecretsId>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\OData\SenseNet.OData.csproj" />
-    <ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\OData\SenseNet.OData.csproj" />
+		<ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
+	</ItemGroup>
 
 </Project>

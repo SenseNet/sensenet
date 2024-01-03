@@ -22,9 +22,8 @@ namespace SenseNet.Communication.Messaging
         {
             try
             {
+                SnTrace.Messaging.Write(() => $"Executing DistributedAction ({GetType().Name}): {TraceMessage}");
                 await DoActionAsync(false, true, cancellationToken).ConfigureAwait(false);
-
-                SnTrace.Messaging.Write("Execute DistributedAction: {0}", this);
             }
             finally
             {
@@ -70,6 +69,7 @@ namespace SenseNet.Communication.Messaging
     public class DebugMessage : ClusterMessage
     {
         public string Message { get; set; }
+        public override string TraceMessage => Message;
         public override string ToString()
         {
             return "DebugMessage: " + Message;
@@ -85,7 +85,8 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public sealed class PingMessage : DebugMessage
     {
-        public readonly Guid Id;
+        public Guid Id { get; set; }
+        public override string TraceMessage => $"PING {Id}";
         public string[] NotResponsiveChannels { get; private set; }
         public PingMessage(string[] notResponsiveChannels = null)
         {
@@ -98,7 +99,8 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public sealed class PongMessage : DebugMessage
     {
-        public Guid PingId;
+        public Guid PingId { get; set; }
+        public override string TraceMessage => $"PONG {PingId}";
         public PongMessage()
         {
             Message = "PONG";
@@ -109,6 +111,7 @@ namespace SenseNet.Communication.Messaging
     public sealed class WakeUp : DebugMessage
     {
         public string Target { get; private set; }
+        public override string TraceMessage => $"WAKEUP {Target}";
 
         public WakeUp(string target)
         {

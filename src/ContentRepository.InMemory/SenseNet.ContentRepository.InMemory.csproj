@@ -1,24 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-	<Version>0.0.29</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Company>Sense/Net Inc.</Company>
-    <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet csp content repository inmemory</PackageTags>
-    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <Product>sensenet Content Repository InMemory</Product>
-    <Description>In memory database for the sensenet platform.</Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>0.0.32</Version>
+		<Authors>kavics,joe,tusmester</Authors>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet csp content repository inmemory</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<Product>sensenet Content Repository InMemory</Product>
+		<Description>In memory database for the sensenet platform.</Description>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
+	</ItemGroup>
 
 </Project>

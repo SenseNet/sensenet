@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+﻿using System;
+using SkiaSharp;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SenseNet.ContentRepository
@@ -12,129 +11,110 @@ namespace SenseNet.ContentRepository
         {
             return CreateResizedImageFile(originalStream, x, y, q, false);
         }
-        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, ImageFormat outputFormat)
+        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, SKEncodedImageFormat outputFormat)
         {
             return CreateResizedImageFile(originalStream, x, y, q, false, outputFormat);
         }
         public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, bool allowStretching)
         {
-            return CreateResizedImageFile(originalStream, x, y, q, allowStretching, ImageFormat.Jpeg);
+            return CreateResizedImageFile(originalStream, x, y, q, allowStretching, SKEncodedImageFormat.Jpeg);
         }
-        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, bool allowStretching, ImageFormat outputFormat)
+        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, bool allowStretching, SKEncodedImageFormat outputFormat)
         {
-            return CreateResizedImageFile(originalStream, x, y, q, allowStretching, outputFormat, SmoothingMode.AntiAlias, InterpolationMode.HighQualityBicubic, PixelOffsetMode.HighQuality);
+            return CreateResizedImageFile(originalStream, x, y, q, allowStretching, outputFormat, true, SKFilterQuality.High);
         }
 
-        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q, bool allowStretching, ImageFormat outputFormat, SmoothingMode smoothingMode, InterpolationMode interpolationMode, PixelOffsetMode pixelOffsetMode)
+        public static Stream CreateResizedImageFile(Stream originalStream, double x, double y, double q,
+            bool allowStretching, SKEncodedImageFormat outputFormat, bool antiAlias, SKFilterQuality filterQuality)
         {
             if (originalStream == null)
-                return new MemoryStream(); ;
+                return new MemoryStream();
 
             Stream stream;
-
-            using (Bitmap img = new Bitmap(originalStream))
+            SKBitmap targetBitmap = null;
+            try
             {
-                // if the size of the original image is the same as the specified resizing size then we just return the original stream
-                if (img.Width == System.Convert.ToInt32(x) && img.Height == System.Convert.ToInt32(y))
-                {
-                    originalStream.Position = 0;
-                    return originalStream;
-                }
+                using var bitmap = SKBitmap.Decode(originalStream);
 
-                double iw = img.Width; double ih = img.Height;
-                double w = 0; double h = 0;
+                double iw = bitmap.Width;
+                double ih = bitmap.Height;
+                double w = 0;
+                double h = 0;
                 if (allowStretching)
                 {
-                    w = (x == 0 ? img.Width : x);
-                    h = (y == 0 ? img.Height : y);
+                    w = (x == 0 ? bitmap.Width : x);
+                    h = (y == 0 ? bitmap.Height : y);
                 }
                 else
                 {
                     GetRealXY(iw, ih, x, y, out w, out h);
                 }
-                Bitmap newimg;
+
                 if (w == 0 || h == 0)
                 {
-                    newimg = new Bitmap(img);
+                    targetBitmap = new SKBitmap();
+                    bitmap.CopyTo(targetBitmap);
                 }
                 else
                 {
-                    newimg = new Bitmap(img, (int)w, (int)h);
-                    using (Graphics gr = Graphics.FromImage(newimg))
-                    {
-                        gr.SmoothingMode = smoothingMode;
-                        gr.InterpolationMode = interpolationMode;
-                        gr.PixelOffsetMode = pixelOffsetMode;
-                        gr.DrawImage(img, new Rectangle(0, 0, (int)w, (int)h));
+                    var resizeFactorX = Convert.ToSingle(w / iw);
+                    var resizeFactorY = Convert.ToSingle(h / ih);
 
-                    }
+                    targetBitmap = new SKBitmap((int) Math.Round(bitmap.Width * resizeFactorX),
+                        (int) Math.Round(bitmap.Height * resizeFactorY), bitmap.ColorType, bitmap.AlphaType);
+
+                    using var paint = new SKPaint();
+                    paint.IsAntialias = antiAlias;
+                    paint.FilterQuality = filterQuality;
+
+                    using var canvas = new SKCanvas(targetBitmap);
+                    canvas.SetMatrix(SKMatrix.CreateScale(resizeFactorX, resizeFactorY));
+                    canvas.DrawBitmap(bitmap, 0, 0, paint);
+                    canvas.ResetMatrix();
+
+                    canvas.Flush();
                 }
+
                 stream = new MemoryStream();
-                
-                newimg.Save(stream, outputFormat);
-                newimg.Dispose();
+                var image = SKImage.FromBitmap(targetBitmap);
+                var data = image.Encode(outputFormat, 90);
+                data.SaveTo(stream);
+            }
+            finally
+            {
+                targetBitmap?.Dispose();
             }
 
             stream.Position = 0;
             return stream;
         }
-        
-        public static Stream CreateCropedImageFile(Stream originalStream, double x, double y, double q, ImageFormat outputFormat, SmoothingMode smoothingMode, InterpolationMode interpolationMode, PixelOffsetMode pixelOffsetMode, double verticalDiff, double horizontalDiff)
+
+        public static Stream CreateCroppedImageFile(Stream originalStream, double x, double y,
+            double offsetX, double offsetY, SKEncodedImageFormat outputFormat)
         {
-
-
             if (originalStream == null)
                 return new MemoryStream();
 
-            Stream newMemoryStream;
+            var left = Convert.ToInt32(offsetX);
+            var top = Convert.ToInt32(offsetY);
+            var right = left + Convert.ToInt32(x);
+            var bottom = top + Convert.ToInt32(y);
+            var cropRect = new SKRectI(left, top, right, bottom);
 
-            using (var originalImage = System.Drawing.Image.FromStream(originalStream))
-            {
-                using (var bmp = new Bitmap((int)x, (int)y))
-                {
-                    double verticalOffset = verticalDiff;
-                    double horizontalOffset = horizontalDiff;
-                    if(horizontalDiff == double.MaxValue)
-                    {
-                        horizontalOffset = originalImage.Width - x;
-                    }else if(horizontalDiff < 0)
-                    {
-                        horizontalOffset = (originalImage.Width - x)/2;
-                    }
+            using var originalBitmap = SKBitmap.Decode(originalStream);
+            using var croppedBitmap = new SKBitmap(cropRect.Width, cropRect.Height);
+            var okay = originalBitmap.ExtractSubset(croppedBitmap, cropRect);
 
-                    if(horizontalOffset<0)
-                        horizontalOffset = 0;
+            using var image = SKImage.FromBitmap(croppedBitmap);
+            using var data = image.Encode(outputFormat, 90);
 
-                    if (verticalDiff == double.MaxValue)
-                    {
-                        verticalOffset = originalImage.Height - y;
-                    }else if(verticalDiff < 0)
-                    {
-                        verticalOffset = (originalImage.Height - y)/2;
-                    }
+            var resultStream = new MemoryStream();
+            data.SaveTo(resultStream);
 
-                    if(verticalOffset<0)
-                        verticalOffset = 0;
-
-                    bmp.SetResolution(originalImage.HorizontalResolution, originalImage.VerticalResolution);
-                    using (var graphic = Graphics.FromImage(bmp))
-                    {
-                        graphic.SmoothingMode = smoothingMode;
-                        graphic.InterpolationMode = interpolationMode;
-                        graphic.PixelOffsetMode = pixelOffsetMode;
-                        graphic.DrawImage(originalImage, new Rectangle(0, 0, (int)x, (int)y), (int)horizontalOffset, (int)verticalOffset, (int)x, (int)y, GraphicsUnit.Pixel);
-                        newMemoryStream = new MemoryStream();
-                        bmp.Save(newMemoryStream, originalImage.RawFormat);
-                        
-                        if(bmp != null)
-                            bmp.Dispose();
-                    }
-                }
-            }
-            newMemoryStream.Position = 0;
-            return newMemoryStream;
+            resultStream.Position = 0;
+            return resultStream;
         }
-        
+
         private static void GetRealXY(double imgX, double imgY, double targetX, double targetY, out double realX, out double realY)
         {
             double xScale = targetX == 0 ? 1 : imgX / targetX;

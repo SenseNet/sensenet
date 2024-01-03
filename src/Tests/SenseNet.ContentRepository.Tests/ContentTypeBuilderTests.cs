@@ -244,6 +244,65 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void ContentType_Build_Simple_Categories()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdSimple);
+                var ct1 = ContentType.GetByName("SimpleTestContent");
+                Assert.AreEqual(0, ct1.Categories.Count());
+
+                // ACT-1: Add first category
+                var cb = new ContentTypeBuilder(null);
+                cb.Type("SimpleTestContent")
+                    .AddCategory("Cat1");
+                cb.Apply();
+                // ASSERT-1
+                ct1 = ContentType.GetByName("SimpleTestContent");
+                AssertSequenceEqual(new[]{"Cat1"}, ct1.Categories);
+
+                // ACT-2 Add more categories
+                cb = new ContentTypeBuilder(null);
+                cb.Type("SimpleTestContent")
+                    .AddCategory("Cat2", "Cat3", "Cat4");
+                cb.Apply();
+                // ASSERT-2
+                ct1 = ContentType.GetByName("SimpleTestContent");
+                AssertSequenceEqual(new[] { "Cat1", "Cat2", "Cat3", "Cat4" }, ct1.Categories);
+
+                // ACT-3 Remove some categories
+                cb = new ContentTypeBuilder(null);
+                cb.Type("SimpleTestContent")
+                    .RemoveCategory("Cat1", "Cat2", "Cat123");
+                cb.Apply();
+                // ASSERT-3
+                ct1 = ContentType.GetByName("SimpleTestContent");
+                AssertSequenceEqual(new[] { "Cat3", "Cat4" }, ct1.Categories);
+
+                // ACT-4 Clear and add categories
+                cb = new ContentTypeBuilder(null);
+                cb.Type("SimpleTestContent")
+                    .ClearCategories()
+                    .AddCategory("Cat2", "Cat3");
+                cb.Apply();
+                // ASSERT-4
+                ct1 = ContentType.GetByName("SimpleTestContent");
+                AssertSequenceEqual(new[] { "Cat2", "Cat3" }, ct1.Categories);
+
+                // ACT-5 Add existing categories and remove one
+                cb = new ContentTypeBuilder(null);
+                cb.Type("SimpleTestContent")
+                    .AddCategory("Cat1", "Cat2", "Cat4")
+                    .RemoveCategory("Cat3");
+                cb.Apply();
+                // ASSERT-5
+                ct1 = ContentType.GetByName("SimpleTestContent");
+                AssertSequenceEqual(new[] { "Cat2", "Cat1", "Cat4" }, ct1.Categories);
+
+            });
+        }
+
+        [TestMethod]
         public void ContentType_Build_Simple_AddField()
         {
             Test(() =>

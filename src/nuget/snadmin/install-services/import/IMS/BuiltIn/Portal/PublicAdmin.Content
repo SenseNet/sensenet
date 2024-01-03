@@ -6,6 +6,10 @@
     <Enabled>true</Enabled>
     <FullName>PublicAdmin</FullName>
     <LoginName>PublicAdmin</LoginName>
+    <Email>PublicAdmin@example.com</Email>
+    <Password>
+      <Text>PublicAdmin</Text>
+    </Password>
   </Fields>
   <Permissions>
     <Identity path="/Root/IMS/Public/Administrators">

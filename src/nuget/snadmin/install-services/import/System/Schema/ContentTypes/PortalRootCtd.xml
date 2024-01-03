@@ -6,6 +6,7 @@
   <AllowedChildTypes>
     Folder,SystemFolder,TrashBin,ContentList,CustomList,Sites,Domains,Profiles,Resources,Skins,Workspace
   </AllowedChildTypes>
+  <Categories>HideByDefault</Categories>
   <SystemType>true</SystemType>
   <Fields>
     <Field name="DisplayName" type="ShortText">

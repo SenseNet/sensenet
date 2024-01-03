@@ -1,7 +1,10 @@
-﻿namespace SenseNet.ContentRepository.Security.Clients
+﻿using SenseNet.Tools.Configuration;
+
+namespace SenseNet.ContentRepository.Security.Clients
 {
     // This class is a mirror of some parts of the AuthenticationOptions class in the services layer
     // so that we can have the same property values here without having to configure them twice.
+    [OptionsClass(sectionName: "sensenet:Authentication")]
     public class ClientStoreOptions
     {
         /// <summary>

@@ -49,6 +49,8 @@ namespace SenseNet.ContentRepository.i18n
         [Serializable]
         internal sealed class ResourceManagerResetDistributedAction : DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything

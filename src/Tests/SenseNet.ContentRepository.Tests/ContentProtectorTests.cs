@@ -198,7 +198,7 @@ namespace SenseNet.ContentRepository.Tests
                 Providers.Instance.SecurityHandler.CreateAclEditor()
                     .Allow(testOrg.Id, user1.Id, false, PermissionType.Save, PermissionType.Delete)
                     .Allow(testOrg.Id, user2.Id, false, PermissionType.Save, PermissionType.Delete)
-                    .Apply();
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var originalUser = AccessProvider.Current.GetOriginalUser();
                 try

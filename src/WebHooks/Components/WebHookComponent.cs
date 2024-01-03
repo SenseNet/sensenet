@@ -23,7 +23,7 @@ namespace SenseNet.WebHooks
         public override void AddPatches(PatchBuilder builder)
         {
             builder
-                .Install("0.0.4", "2021-06-09", "sensenet WebHooks")
+                .Install("0.0.5", "2023-11-08", "sensenet WebHooks")
                 .DependsOn("SenseNet.Services", "7.7.22")
                 .Action(context =>
                 {
@@ -116,6 +116,27 @@ namespace SenseNet.WebHooks
                     // Do nothing, this is just a version update, because the CTD change (richtext type
                     // change of the Description field) is already handled by the Services component patch.
                 });
+
+            builder.Patch("0.0.4", "0.0.5", "2023-11-08", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.22")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<WebHookComponent>>();
+
+                    #region CTD changes
+
+                    logger.LogTrace("Content type change: hiding SuccessfulCalls field from Edit view of WebHookSubscription.");
+
+                    var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+
+                    cb.Type("WebHookSubscription")
+                        .Field("SuccessfulCalls")
+                        .VisibleEdit(FieldVisibility.Hide);
+
+                    cb.Apply();
+
+                    #endregion
+                });
         }
 
         private static void CreateWebHooksContainer()
@@ -157,6 +178,10 @@ namespace SenseNet.WebHooks
                 whResource.Binary = UploadHelper.CreateBinaryData(resourceContentName, resourceStream);
                 whResource.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
             }
+
+            // Calling SaveAsync of the resource content resets the SenseNetResourceManager
+            //   therefore, the loaded state must be ensured here for further usability
+            var _ = SenseNetResourceManager.Current;
         }
         private static void InstallCtd(string ctdFileName)
         {

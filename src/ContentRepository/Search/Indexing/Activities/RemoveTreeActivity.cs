@@ -10,6 +10,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     internal class RemoveTreeActivity : TreeIndexingActivity
     {
+        public override string TraceMessage => $"NodeId: {NodeId}, VersionId: {VersionId}, Path: {Path}";
+
         protected override Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {
             return IndexManager.DeleteDocumentsAsync(new[]

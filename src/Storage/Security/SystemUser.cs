@@ -6,16 +6,11 @@ namespace SenseNet.ContentRepository.Storage.Security
 {
     internal sealed class SystemUser : IUser
     {
-        private IUser _originalUser;
-
-        public IUser OriginalUser
-        {
-            get { return _originalUser; }
-        }
+        public IUser OriginalUser { get; }
 
         internal SystemUser(IUser originalUser)
         {
-            _originalUser = originalUser;
+            OriginalUser = originalUser;
         }
 
         // ================================================================================================== IUser Members
@@ -56,6 +51,9 @@ namespace SenseNet.ContentRepository.Storage.Security
             get { return "SYSTEM"; }
             set { throw new InvalidOperationException("You cannot set a property of the SYSTEM user."); }
         }
+
+        public bool IsOperator => true;
+
         public bool IsInGroup(IGroup group)
         {
             throw new InvalidOperationException("The SYSTEM user is not a member of any group.");
@@ -80,14 +78,9 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         // ================================================================================================== ISecurityMember Members
 
-        public int Id
-        {
-            get { return -1; }
-        }
-        public string Path
-        {
-            get { throw new InvalidOperationException("You cannot get the Path property of the SYSTEM user."); }
-        }
+        public int Id => -1;
+
+        public string Path => throw new InvalidOperationException("You cannot get the Path property of the SYSTEM user.");
 
         // ================================================================================================== IIdentity Members
 

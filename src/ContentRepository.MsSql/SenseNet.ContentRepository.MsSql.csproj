@@ -1,37 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-  	<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-  	<Version>0.0.4</Version>
-  	<Authors>kavics,tusmester</Authors>
-  	<Company>Sense/Net Inc.</Company>
-  	<Copyright>Copyright © Sense/Net Inc.</Copyright>
-  	<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
-  	<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
-  	<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
-  	<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
-  	<RepositoryType>git</RepositoryType>
-  	<PackageTags>sensenet csp content repository storage mssql</PackageTags>
-  	<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-  	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  	<Product>sensenet Storage MsSql platform</Product>
-  	<Description>MsSql storage layer for the sensenet platform.</Description>
-  	<LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  
-  <ItemGroup>
-  	<None Remove="Scripts\MsSqlInstall_Schema.sql" />
-  	<None Remove="Scripts\MsSqlInstall_Security.sql" />
-  </ItemGroup>
-  
-  <ItemGroup>
-  	<EmbeddedResource Include="Scripts\MsSqlInstall_Schema.sql" />
-  	<EmbeddedResource Include="Scripts\MsSqlInstall_Security.sql" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
-    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<Version>0.0.6</Version>
+		<Authors>kavics,tusmester</Authors>
+		<Company>Sense/Net Inc.</Company>
+		<Copyright>Copyright © Sense/Net Inc.</Copyright>
+		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>sensenet csp content repository storage mssql</PackageTags>
+		<PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>sensenet Storage MsSql platform</Product>
+		<Description>MsSql storage layer for the sensenet platform.</Description>
+		<LangVersion>latest</LangVersion>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Scripts\MsSqlInstall_Schema.sql" />
+		<None Remove="Scripts\MsSqlInstall_Security.sql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Scripts\MsSqlInstall_Schema.sql" />
+		<EmbeddedResource Include="Scripts\MsSqlInstall_Security.sql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
+		<ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
+	</ItemGroup>
 
 </Project>

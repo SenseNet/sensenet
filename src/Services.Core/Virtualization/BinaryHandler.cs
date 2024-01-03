@@ -122,8 +122,9 @@ namespace SenseNet.Services.Core.Virtualization
 
                 _context.Response.ContentType = contentType;
                 _context.Response.Headers.Append(HeaderNames.ContentLength, binaryStream.Length.ToString());
-                
+
                 httpHeaderTools.SetContentDispositionHeader(fileName);
+
                 httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: MaxAge);
 
                 _context.Response.StatusCode = 200;

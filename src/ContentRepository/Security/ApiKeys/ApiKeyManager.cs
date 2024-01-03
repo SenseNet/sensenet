@@ -10,13 +10,6 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
-    public class ApiKey
-    {
-        public string Value { get; internal set; }
-        public DateTime CreationDate { get; internal set; }
-        public DateTime ExpirationDate { get; internal set; }
-    }
-
     /// <summary>
     /// Default implementation of <see cref="IApiKeyManager"/> that uses the <see cref="AccessTokenVault"/>
     /// api to manage api keys.
@@ -32,7 +25,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             _logger = logger;
         }
 
-        public async Task<User> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
+        public async Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
         {
             if (string.IsNullOrEmpty(apiKey))
                 return null;
@@ -54,9 +47,8 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
                     });
             }
 
-            if (token == null || token.ExpirationDate <= DateTime.UtcNow)
+            if (token == null || token.UserId == 0 || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
-
             AssertPermissions(token.UserId);
 
             return await Node.LoadAsync<User>(token.UserId, cancel);

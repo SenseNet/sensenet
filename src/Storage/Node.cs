@@ -177,7 +177,15 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets a boolean value that specifies whether the preview of this content is enabled or not.
         /// </summary>
-        public virtual bool IsPreviewEnabled => Parent?.IsPreviewEnabled ?? false;
+        public virtual bool IsPreviewEnabled
+        {
+            get
+            {
+                AssertSeeOnly(PropertyType.GetByName("PreviewEnabled"));
+                using (new SystemAccount())
+                    return Parent?.IsPreviewEnabled ?? false;
+            }
+        }
 
         /// <summary>
         /// Gets a value that states if indexing is enabled for this content item. By default this is true
@@ -634,24 +642,16 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
+
         /// <summary>
         /// Checks if the current user is a system user or a member of the Operators group
         /// and throws a <see cref="NotSupportedException"/> if not.
         /// </summary>
         /// <param name="propertyName">The property that the caller tried to access. Used only when throwing an exception.</param>
-        protected void AssertUserIsOperator(string propertyName) 
+        protected void AssertUserIsOperator(string propertyName)
         {
-            var user = AccessProvider.Current.GetCurrentUser();
-
-            // there is no need for group check in elevated mode
-            if (user is SystemUser)
-                return;
-
-            using (new SystemAccount())
-            {
-                if (!user.IsInGroup((IGroup)Node.LoadNode(Identifiers.OperatorsGroupPath)))
-                    throw new NotSupportedException(String.Format(SR.Exceptions.General.Msg_CannotWriteReadOnlyProperty_1, propertyName));
-            }
+            if (!AccessProvider.Current.GetCurrentUser().IsOperator)
+                throw new NotSupportedException(string.Format(SR.Exceptions.General.Msg_CannotWriteReadOnlyProperty_1, propertyName));
         }
 
         /// <summary>
@@ -2437,7 +2437,7 @@ namespace SenseNet.ContentRepository.Storage
         public static Task<Node> LoadNodeByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(idOrPath))
-                return null;
+                return Task.FromResult(null as Node);
 
             if (int.TryParse(idOrPath, out var nodeId))
                 return Node.LoadNodeAsync(nodeId, cancellationToken);
@@ -2445,7 +2445,7 @@ namespace SenseNet.ContentRepository.Storage
             if (RepositoryPath.IsValidPath(idOrPath) == RepositoryPath.PathResult.Correct)
                 return Node.LoadNodeAsync(idOrPath, cancellationToken);
 
-            return null;
+            return Task.FromResult(null as Node);
         }
         private static Node LoadLastFinalizedVersion(NodeHead head)
         {
@@ -2658,6 +2658,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IEnumerable<Node> LoadVersions()
         {
+            if (this.Id < 1)
+                return Array.Empty<Node>();
             Security.Assert(PermissionType.RecallOldVersion, PermissionType.Open);
             if (Security.HasPermission(PermissionType.OpenMinor))
                 return LoadAllVersions();
@@ -3465,11 +3467,13 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (isNewNode)
                 {
-                    Providers.Instance.SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
+                    await Providers.Instance.SecurityHandler.CreateSecurityEntityAsync(node.Id, node.ParentId, node.OwnerId, cancel)
+                        .ConfigureAwait(false);
                 }
                 else if (isOwnerChanged)
                 {
-                    Providers.Instance.SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
+                    await Providers.Instance.SecurityHandler.ModifyEntityOwnerAsync(node.Id, node.OwnerId, cancel)
+                        .ConfigureAwait(false);
                 }
             }
             catch (EntityNotFoundException e)
@@ -3738,7 +3742,8 @@ namespace SenseNet.ContentRepository.Storage
                         throw new ApplicationException("Cannot move", e);
                     }
 
-                    Providers.Instance.SecurityHandler.MoveEntity(this.Id, target.Id);
+                    Providers.Instance.SecurityHandler.MoveEntityAsync(this.Id, target.Id, CancellationToken.None)
+                        .GetAwaiter().GetResult();
 
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
@@ -4098,7 +4103,7 @@ namespace SenseNet.ContentRepository.Storage
                 var targetNode = Node.LoadNode(targetNodePath);
                 var copy = sourceNode.MakeCopy(targetNode, newName);
                 copy.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                CopyExplicitPermissionsTo(sourceNode, copy);
+                CopyExplicitPermissionsToAsync(sourceNode, copy, CancellationToken.None).GetAwaiter().GetResult();
                 if (first)
                 {
                     copyOfSource = copy;
@@ -4109,7 +4114,7 @@ namespace SenseNet.ContentRepository.Storage
             return copyOfSource;
         }
 
-        private void CopyExplicitPermissionsTo(Node sourceNode, Node targetNode)
+        private async Task CopyExplicitPermissionsToAsync(Node sourceNode, Node targetNode, CancellationToken cancel)
         {
             AccessProvider.ChangeToSystemAccount();
             try
@@ -4121,10 +4126,10 @@ namespace SenseNet.ContentRepository.Storage
                 var aclEd = Providers.Instance.SecurityHandler.CreateAclEditor();
                 foreach (var entry in entriesToCopy)
                     aclEd.Set(targetNode.Id, entry.IdentityId, entry.LocalOnly, entry.AllowBits, entry.DenyBits);
-                aclEd.Apply();
+                await aclEd.ApplyAsync(cancel).ConfigureAwait(false);
 
                 if (!targetNode.IsInherited)
-                    targetNode.Security.RemoveBreakInheritance();
+                    await targetNode.Security.RemoveBreakInheritanceAsync(cancel).ConfigureAwait(false);
             }
             finally
             {
@@ -4348,7 +4353,7 @@ namespace SenseNet.ContentRepository.Storage
                     var hadContentList = RemoveContentListTypesInTree(contentListTypesInTree) > 0;
 
                     if (this.Id > 0)
-                        Providers.Instance.SecurityHandler.DeleteEntity(this.Id);
+                        await Providers.Instance.SecurityHandler.DeleteEntityAsync(this.Id, cancel).ConfigureAwait(false);
 
                     await Providers.Instance.SearchManager.GetIndexPopulator()
                         .DeleteTreeAsync(myPath, this.Id, CancellationToken.None);
@@ -4539,7 +4544,7 @@ namespace SenseNet.ContentRepository.Storage
                 }
 
                 if (nodeRef.Id > 0)
-                    Providers.Instance.SecurityHandler.DeleteEntity(nodeRef.Id);
+                    Providers.Instance.SecurityHandler.DeleteEntityAsync(nodeRef.Id, CancellationToken.None).GetAwaiter().GetResult();
             }
 
             var ids = new List<Int32>();
@@ -5144,7 +5149,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Private Tools
 
-        private void AssertSeeOnly(PropertyType propertyType)
+        protected void AssertSeeOnly(PropertyType propertyType)
         {
             if (IsPreviewOnly && propertyType.DataType == DataType.Binary)
             {
@@ -5152,7 +5157,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             else if (IsHeadOnly && !SeeEnabledProperties.Contains(propertyType.Name)) // && AccessProvider.Current.GetCurrentUser().Id != -1)
             {
-                SnTrace.Repository.WriteError($"Invalid property access attempt on a See-only node: {Path}");
+                SnTrace.Repository.WriteError($"Invalid property access attempt on a See-only node: {Path}. Property name: {propertyType.Name}.");
 
                 throw new InvalidOperationException(
                     "Invalid property access attempt on a See-only node. " +

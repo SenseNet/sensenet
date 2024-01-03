@@ -8,6 +8,8 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public class UnknownMessageType : ClusterMessage
     {
+        public override string TraceMessage => null;
+
         private Stream _messageData;
         public Stream MessageData
         {

@@ -3,6 +3,7 @@
   <DisplayName>$Ctd-ClientApplication,DisplayName</DisplayName>
   <Description>$Ctd-ClientApplication,Description</Description>
   <Icon>Application</Icon>
+  <Categories>HideByDefault</Categories>
   <Fields>
     <Field name="Parameters" type="LongText">
       <DisplayName>$Ctd-ClientApplication,Parameters-DisplayName</DisplayName>

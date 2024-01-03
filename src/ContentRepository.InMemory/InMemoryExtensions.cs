@@ -1,14 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.InMemory;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -16,7 +15,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -107,7 +105,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddInactiveAuditEventWriter()
                 .AddSenseNetInMemoryClientStoreDataProvider()
                 .AddSenseNetSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .AddSenseNetTracer<SnDebugViewTracer>();
+                .AddSenseNetTracer<SnDebugViewTracer>()
+                .AddComponent<InMemoryClientStoreComponent>();
         }
 
         public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
@@ -120,21 +119,26 @@ namespace SenseNet.Extensions.DependencyInjection
         }
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
         {
+            var loadedEntities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var entities = new ConcurrentDictionary<int, StoredSecurityEntity>();
+            foreach (var loadedEntity in loadedEntities)
+            {
+                entities[loadedEntity.Id] = new StoredSecurityEntity
+                {
+                    Id = loadedEntity.Id,
+                    OwnerId = loadedEntity.OwnerId,
+                    ParentId = loadedEntity.ParentId,
+                    IsInherited = true,
+                    HasExplicitEntry = loadedEntity.Id == 2
+                };
+            }
             return new MemoryDataProvider(new DatabaseStorage
             {
                 Aces = new List<StoredAce>
                 {
                     new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
                 },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
-                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
-                    {
-                        Id = x.Id,
-                        OwnerId = x.OwnerId,
-                        ParentId = x.ParentId,
-                        IsInherited = true,
-                        HasExplicitEntry = x.Id == 2
-                    }),
+                Entities = entities,
                 Memberships = new List<Membership>
                 {
                     new Membership

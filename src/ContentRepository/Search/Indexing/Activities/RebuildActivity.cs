@@ -12,6 +12,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     internal class RebuildActivity : IndexingActivityBase
     {
+        public override string TraceMessage => $"NodeId: {NodeId}, VersionId: {VersionId}, Path: {Path}";
+        
         private static readonly int[] EmptyIntArray = new int[0];
         protected override async Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {

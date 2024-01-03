@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -130,6 +131,9 @@ namespace SenseNet.ContentRepository.Tests
             var publicDomain = Node.Load<Domain>("/Root/IMS/Public");
             var user1Content = Content.CreateNew("User", publicDomain, "user1");
             user1Content["Enabled"] = true;
+            user1Content["Email"] = "user1@example.com";
+            user1Content["Password"] = "user1";
+            user1Content["FullName"] = "user1";
 
             await user1Content.SaveAsync(CancellationToken.None);
             var user1 = (User)user1Content.ContentHandler;
@@ -143,9 +147,21 @@ namespace SenseNet.ContentRepository.Tests
             await domain2.SaveAsync(CancellationToken.None);
 
             var user2 = Content.CreateNew("User", domain2.ContentHandler, "user2");
+            user2["Email"] = "user2@example.com";
+            user2["Password"] = "user2";
+            user2["FullName"] = "user2";
             await user2.SaveAsync(CancellationToken.None);
 
             var publicAdmin = NodeHead.Get(Identifiers.PublicAdminPath);
+
+            await domain2.Security.BreakInheritanceAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // remove public admin permissions from domain2 to have a user that this admin does not see
+            var aclEditor = Providers.Instance.SecurityHandler.SecurityContext.CreateAclEditor();
+            await aclEditor
+                .BreakInheritance(domain2.Id, new[] { EntryType.Normal })
+                .ClearPermission(domain2.Id, publicAdminGroup.Id, false, PermissionType.See)
+                .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
 
             await apiKeyManager.CreateApiKeyAsync(publicAdmin.Id, DateTime.Today.AddDays(10), CancellationToken.None);
             await apiKeyManager.CreateApiKeyAsync(user1.Id, DateTime.Today.AddDays(10), CancellationToken.None);

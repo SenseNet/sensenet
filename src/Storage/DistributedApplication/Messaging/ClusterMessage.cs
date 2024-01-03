@@ -8,6 +8,8 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public abstract class ClusterMessage
     {
+        public abstract string TraceMessage { get; }
+
         public ClusterMessage() { }
 
         internal ClusterMessage(ClusterMemberInfo sender)

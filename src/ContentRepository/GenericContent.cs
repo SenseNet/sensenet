@@ -2181,6 +2181,8 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                if (this.Id < 1)
+                    return false;
                 // field setting is a special content that is not represented in the security component
                 if (this is FieldSettingContent || !this.Security.HasPermission(PermissionType.Open))
                     return false;
@@ -2195,6 +2197,8 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                if (this.Id < 1)
+                    return false;
                 // field setting is a special content that is not represented in the security component
                 if (this is FieldSettingContent || !this.Security.HasPermission(PermissionType.Open))
                     return false;

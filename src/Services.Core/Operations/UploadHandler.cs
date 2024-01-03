@@ -240,6 +240,11 @@ namespace SenseNet.Services.Core.Operations
             if (!AllowCreationForEmptyAllowedContentTypes(Content.ContentHandler))
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action","UploadExceptionEmptyAllowedChildTypes"));
 
+            // Only ContentType is allowed under the System/Schema/ContentTypes
+            if (this.Content.Path.StartsWith(Repository.ContentTypesFolderPath + "/", StringComparison.InvariantCultureIgnoreCase))
+                if (this.ContentTypeName != "ContentType")
+                    throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
+
             // the create parameter is sent in the url
             if (Create.HasValue)
             {
@@ -320,6 +325,9 @@ namespace SenseNet.Services.Core.Operations
                 // in case we just loaded this content
                 SetPreviewGenerationPriority(uploadedContent);
 
+                var isContentType = uploadedContent.Path.StartsWith(Repository.ContentTypesFolderPath + "/",
+                    StringComparison.OrdinalIgnoreCase);
+
                 if (FormFile != null)
                 {
                     await SaveFileToRepositoryAsync(uploadedContent, Content, chunkToken, 
@@ -328,7 +336,9 @@ namespace SenseNet.Services.Core.Operations
                 else
                 {
                     // handle text data
-                    var binData = new BinaryData { FileName = new BinaryFileName(uploadedContent.Name) };
+                    var binData = isContentType
+                        ? new BinaryData {FileName = new BinaryFileName(uploadedContent.Name + ".ContentType"), ContentType = "text/xml"}
+                        : new BinaryData {FileName = new BinaryFileName(uploadedContent.Name) };
 
                     // set content type only if we were unable to recognize it
                     if (string.IsNullOrEmpty(binData.ContentType))
@@ -633,7 +643,10 @@ namespace SenseNet.Services.Core.Operations
         protected internal static void SetPreviewGenerationPriority(Content content)
         {
             if (content?.ContentHandler is ContentRepository.File file)
+            {
                 file.PreviewGenerationPriority = TaskManagement.Core.TaskPriority.Important;
+                file.PageCount = (int)PreviewStatus.Postponed;
+            }
         }
 
         private static (string ParentName, string Name) GetContentTypeInfo(string ctdXml)

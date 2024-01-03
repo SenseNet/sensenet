@@ -90,6 +90,8 @@ namespace SenseNet.ContentRepository.Storage
         [Serializable]
         public class NodeTypeManagerRestartDistributedAction : SenseNet.Communication.Messaging.DistributedAction
         {
+            public override string TraceMessage => null;
+
             public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything

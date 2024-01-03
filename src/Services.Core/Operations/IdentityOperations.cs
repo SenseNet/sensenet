@@ -16,6 +16,8 @@ using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Storage.Security;
+using StringExtensions = SenseNet.Client.StringExtensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
@@ -64,10 +66,53 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context, string userName, string password)
+        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context,
+            string userName, string password)
+
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            return ValidatePassword(context, userName, password);
+        }
+
+        /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
+        /// <param name="password">Password</param>
+        /// <param name="twoFactorCode">Two-factor code</param>
+        /// <returns>A custom object containing basic user data. If the credentials are not valid,
+        /// the request throws a <see cref="SenseNetSecurityException"/> and return a 404 response.
+        /// </returns>
+        /// <example>
+        /// <code>
+        /// {
+        ///     id: 1234,
+        ///     email: "mail@example.com",
+        ///     username: "example",
+        ///     name: "example",
+        ///     loginName: "example"
+        /// }
+        /// </code>
+        /// </example>
+        /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
+        /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
+        [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task<CredentialValidationResult> ValidateCredentialsWithTwoFactorCode(Content content, HttpContext context,
+            string userName, string password, string twoFactorCode)
+
+        {
+            var passwordResult = ValidatePassword(context, userName, password);
+            var userContent = await Content.LoadAsync(passwordResult.Id, context.RequestAborted).ConfigureAwait(false);
+
+            var result = await ValidateTwoFactorCode(userContent, context, twoFactorCode).ConfigureAwait(false);
+
+            return result;
+        }
+
+        private static CredentialValidationResult ValidatePassword(HttpContext context, string userName, string password)
+        {
             if (userName == null)
                 throw new ArgumentNullException(nameof(userName));
             if (password == null)
@@ -115,6 +160,117 @@ namespace SenseNet.Services.Core.Operations
             throw new SenseNetSecurityException("Invalid username or password.");
         }
 
+        /// <summary>Validates the target user with the two-factor code.</summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <param name="twoFactorCode">Two-factor code</param>
+        /// <returns>A custom object containing basic user data. If the credentials are not valid,
+        /// the request throws a <see cref="SenseNetSecurityException"/> and return a 404 response.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">Thrown when two-factor authentication is not enabled for the user.</exception>
+        /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
+        /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
+        [ODataAction]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task<CredentialValidationResult> ValidateTwoFactorCode(Content content, HttpContext context, 
+            string twoFactorCode)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<CredentialValidationResult>>();
+            var user = (User)content.ContentHandler;
+
+            if (!user.EffectiveMultiFactorEnabled)
+            {
+                logger.LogTrace("Warning: two-factor authentication is not enabled for {userPath}", user.Path);
+                throw new InvalidOperationException("Multifactor authentication is not enabled for this user.");
+            }
+
+            if (string.IsNullOrEmpty(twoFactorCode))
+                throw new ArgumentNullException(nameof(twoFactorCode));
+
+            var mfaProvider = context.RequestServices.GetRequiredService<IMultiFactorAuthenticationProvider>();
+            var isValid = mfaProvider.ValidateTwoFactorCode(user.TwoFactorKey, twoFactorCode);
+
+            if (isValid)
+            {
+                logger.LogTrace("Two-factor validation succeeded for user {userId}", user.Id);
+
+                // Set initial registration flag so that clients can decide whether to display
+                // registration QR image next time.
+                if (!user.MultiFactorRegistered)
+                {
+                    user.MultiFactorRegistered = true;
+
+                    await SystemAccount
+                        .ExecuteAsync(async () =>
+                        {
+                            await user.SaveAsync(SavingMode.KeepVersion, context.RequestAborted).ConfigureAwait(false);
+                            return true;
+                        })
+                        .ConfigureAwait(false);
+
+                }
+
+                return new CredentialValidationResult
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Username = user.Username,
+                    Name = user.Name,
+                    LoginName = user.LoginName
+                };
+            }
+
+            logger.LogTrace("Invalid two-factor code provided for user {userId}", user.Id);
+
+            throw new SenseNetSecurityException("Invalid username or two-factor code.");
+        }
+
+        /// <summary>
+            /// Gets the user's multifactor authentication info.
+            /// </summary>
+            /// <param name="content"></param>
+            /// <param name="context"></param>
+            /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+            [ODataFunction]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)
+        {
+            var user = (User)content.ContentHandler;
+            var multiFactorEnabled = user.EffectiveMultiFactorEnabled;
+            
+            return new
+            {
+                multiFactorEnabled,
+                multiFactorRegistered = user.MultiFactorRegistered,
+                qrCodeSetupImageUrl = multiFactorEnabled ? user.QrCodeSetupImageUrl : string.Empty,
+                manualEntryKey = multiFactorEnabled ? user.ManualEntryKey : string.Empty
+            };
+        }
+
+        /// <summary>
+        /// Resets two-factor authentication on a user. Administrators may use this method as a way
+        /// to repair a user account.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+        [ODataAction]
+        [ContentTypes(N.CT.User)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task ResetTwoFactorKey(Content content, HttpContext context)
+        {
+            var user = (User)content.ContentHandler;
+
+            await user.ResetTwoFactorKeyAsync(context.RequestAborted).ConfigureAwait(false);
+            await user.SaveAsync(SavingMode.KeepVersion, context.RequestAborted).ConfigureAwait(false);
+
+            var logger = context.RequestServices.GetRequiredService<ILogger<User>>();
+            logger.LogTrace("Two-factor code reset successful on user {userId} ({userName})", user.Id, user.LoginName);
+        }
+
         private static void CheckDomainPolicy(string userName)
         {
             // return if the domain is specified
@@ -147,6 +303,24 @@ namespace SenseNet.Services.Core.Operations
             public string Name { get; set; }
             [JsonProperty("loginName")]
             public string LoginName { get; set; }
+        }
+
+        /// <summary>
+        /// Gets the currently authenticated user.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>The currently logged in user or Visitor.</returns>
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.All)]
+        public static Task<Content> GetCurrentUser(Content content, HttpContext context)
+        {
+            var user = AccessProvider.Current.GetCurrentUser();
+            if (user == null || user.Id < 1)
+                return null;
+
+            return Content.LoadAsync(user.Id, context.RequestAborted);
         }
 
         /// <summary>Creates an external user who registered using one of the available
@@ -320,8 +494,9 @@ namespace SenseNet.Services.Core.Operations
                         {
                             p["Email"] = email;
                             p["Username"] = email;
+                            p["LoginName"] = user.LoginName;
                             p["FullName"] = fullName;
-                            p["RepositoryUrl"] = repositoryUrl;
+                            p["RepositoryUrl"] = StringExtensions.TrimSchema(repositoryUrl);
                             p["ActionUrl"] = actionUrl;
 
                             return Task.CompletedTask;

@@ -16,6 +16,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         [Serializable]
         public class FireChangedDistributedAction : DistributedAction
         {
+            public override string TraceMessage => $"NodeIdDependency: {NodeId}";
+
             private int _nodeId;
 
             public int NodeId

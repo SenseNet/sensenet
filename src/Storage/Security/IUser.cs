@@ -39,6 +39,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Gets the login name of the user.
         /// </summary>
         string Username { get; } // = Domain + "\" + Node.Name
+        /// <summary>
+        /// Gets whether the current user is a system user or a member of the Operators group.
+        /// </summary>
+        bool IsOperator { get; }
 
         /// <summary>
         /// Gets true if the user is a member of the given group.
