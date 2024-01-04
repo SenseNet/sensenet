@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using SenseNet.AI.Abstractions;
+using SenseNet.AI.Text;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using System;
