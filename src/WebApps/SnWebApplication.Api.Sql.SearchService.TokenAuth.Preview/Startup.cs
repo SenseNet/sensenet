@@ -90,6 +90,10 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview
                 {
                     options.SkipLicenseCheck =
                         Configuration.GetValue("sensenet:AsposePreviewProvider:SkipLicenseCheck", false);
+                })
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
                 });
 
             // [sensenet]: statistics overrides
