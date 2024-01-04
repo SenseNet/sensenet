@@ -242,7 +242,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             /// </summary>
             internal void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
             {
-                consoleOut?.WriteLine("Executing unprocessed activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
+                consoleOut?.WriteLine("Executing unprocessed indexing activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
 //SnLog.WriteInformation("Executing unprocessed activities.",
 //    EventId.RepositoryRuntime,
@@ -252,7 +252,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 //        {"CountOfGaps", gaps.Length},
 //        {"Gaps", IndexingActivityStatus.GapsToString(gaps, 100, 3)}
 //    });
-                this.Logger.LogInformation("Executing unprocessed activities. " +
+                this.Logger.LogInformation("Executing unprocessed indexing activities. " +
                                                       $"LastDatabaseId: {lastDatabaseId}, " +
                                                       $"LastExecutedId: {lastExecutedId}, " +
                                                       $"CountOfGaps {gaps.Length}, " +
@@ -340,8 +340,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _indexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
-                //SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
-                this.Logger.LogInformation($"Executing unprocessed activities finished. Count: {count}.");
+//SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
+                this.Logger.LogInformation($"Executing unprocessed indexing activities finished. Count: {count}.");
             }
 
             // ReSharper disable once MemberHidesStaticFromOuterClass

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
@@ -23,11 +24,14 @@ namespace SenseNet.BackgroundOperations
         private bool? _ADSynchIsAvailable;
         private readonly TaskManagementOptions _taskManagementOptions;
         private readonly ITaskManager _taskManager;
+        private readonly ILogger<StartActiveDirectorySynchronizationTask> _logger;
 
-        public StartActiveDirectorySynchronizationTask(IOptions<TaskManagementOptions> taskManagementOptions, ITaskManager taskManager)
+        public StartActiveDirectorySynchronizationTask(IOptions<TaskManagementOptions> taskManagementOptions, ITaskManager taskManager,
+            ILogger<StartActiveDirectorySynchronizationTask> logger)
         {
             _taskManagementOptions = taskManagementOptions?.Value ?? new TaskManagementOptions();
             _taskManager = taskManager;
+            _logger = logger;
         }
 
         public Task ExecuteAsync(CancellationToken cancellationToken)
@@ -35,7 +39,9 @@ namespace SenseNet.BackgroundOperations
             if (!_ADSynchIsAvailable.HasValue)
             {
                 _ADSynchIsAvailable = Settings.IsSettingsAvailable(ADSyncSettingsName);
-                SnLog.WriteInformation("Active Directory synch feature is " + (_ADSynchIsAvailable.Value ? string.Empty : "not ") + "available.");
+//SnLog.WriteInformation("Active Directory synch feature is " + (_ADSynchIsAvailable.Value ? string.Empty : "not ") + "available.");
+                _logger.LogInformation("Active Directory synch feature is " +
+                                       $"{(_ADSynchIsAvailable.Value ? string.Empty : "not ")}available.");
             }
             if (!_ADSynchIsAvailable.Value)
                 return Task.CompletedTask;

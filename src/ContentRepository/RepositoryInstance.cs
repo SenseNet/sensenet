@@ -329,11 +329,14 @@ namespace SenseNet.ContentRepository
                 SnTrace.SnTracers.AddRange(tracers);
             }
 
-            SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
-            {
-                { "Loggers", SnLog.Instance?.GetType().Name },
-                { "Tracers", string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name)) }
-            });
+//SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
+//{
+//    { "Loggers", SnLog.Instance?.GetType().Name },
+//    { "Tracers", string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name)) }
+//});
+            SnTrace.System.Write("Loggers and tracers initialized. " +
+                                     $"Loggers: {SnLog.Instance?.GetType().Name}. " +
+                                     $"Tracers: {string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name))}");
         }
 
         private void RegisterAppdomainEventHandlers()

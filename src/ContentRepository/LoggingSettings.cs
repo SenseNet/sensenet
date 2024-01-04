@@ -145,14 +145,14 @@ namespace SenseNet.ContentRepository
             {
                 var logger = Providers.Instance?.Services.GetService<ILogger<LoggingSettings>>();
                 logger?.LogInformation($"Trace settings were updated (from {source}). " +
-                                       $"Enabled: {CategoriesToString(true)}, " +
-                                       $"disabled: {CategoriesToString(false)}");
+                                       $"Enabled: {CategoriesToString(true)}. " +
+                                       $"Disabled: {CategoriesToString(false)}");
             }
             private static string CategoriesToString(bool isEnabled)
             {
                 return string.Join(", ", SnTrace.Categories
                     .Where(x => x.Enabled == isEnabled)
-                    .Select(x => x.ToString()));
+                    .Select(x => x.Name));
             }
         }
     }
