@@ -111,9 +111,9 @@ namespace SenseNet.ContentRepository
         }
         internal void DoStart()
         {
-            ConsoleWriteLine();
-            ConsoleWriteLine("Starting Repository...");
-            ConsoleWriteLine();
+            ConsoleWriteLine(false);
+            ConsoleWriteLine(true, "Starting Repository.");
+            ConsoleWriteLine(false);
 
             LoggingSettings.SnTraceConfigurator.ConfigureCategories();
             if (_settings.TraceCategories != null)
@@ -148,9 +148,9 @@ namespace SenseNet.ContentRepository
 
             LoggingSettings.SnTraceConfigurator.UpdateCategoriesBySettings();
             
-            ConsoleWriteLine();
-            ConsoleWriteLine("Repository has started.");
-            ConsoleWriteLine();
+            ConsoleWriteLine(false);
+            ConsoleWriteLine(true, "Repository has started.");
+            ConsoleWriteLine(false);
 
             _startupInfo.Started = DateTime.UtcNow;
         }
@@ -162,13 +162,13 @@ namespace SenseNet.ContentRepository
         {
             if (IndexingEngineIsRunning)
             {
-                ConsoleWrite("IndexingEngine has already started.");
+                ConsoleWrite(true, "IndexingEngine has already started.");
                 return;
             }
-            ConsoleWriteLine("Starting IndexingEngine:");
+            ConsoleWriteLine(true, "Starting IndexingEngine.");
             Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
-            ConsoleWriteLine("IndexingEngine has started.");
+            ConsoleWriteLine(true, "IndexingEngine has started.");
         }
 
         private bool _workflowEngineIsRunning;
@@ -179,21 +179,23 @@ namespace SenseNet.ContentRepository
         {
             if (_workflowEngineIsRunning)
             {
-                ConsoleWrite("Workflow engine has already started.");
+                ConsoleWrite(true, "Workflow engine has already started.");
                 return;
             }
-            ConsoleWrite("Starting Workflow subsystem ... ");
+            ConsoleWrite(false, "Starting Workflow subsystem ... ");
             var t = TypeResolver.GetType("SenseNet.Workflow.InstanceManager", false);
             if (t != null)
             {
                 var m = t.GetMethod("StartWorkflowSystem", BindingFlags.Static | BindingFlags.Public);
                 m.Invoke(null, new object[0]);
                 _workflowEngineIsRunning = true;
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("Workflow subsystem started.");
             }
             else
             {
-                ConsoleWriteLine("NOT STARTED");
+                ConsoleWriteLine(false, "NOT STARTED");
+                SnTrace.System.Write("Workflow subsystem NOT STARTED.");
             }
         }
 
@@ -206,15 +208,15 @@ namespace SenseNet.ContentRepository
 
             if (!isWebContext)
             {
-                ConsoleWriteLine("Loading Assemblies from ", localBin, ":");
+                ConsoleWriteLine(false, "Loading Assemblies from ", localBin, ":");
                 asmNames = TypeResolver.LoadAssembliesFrom(localBin);
                 foreach (string name in asmNames)
-                    ConsoleWriteLine("  ", name);
+                    ConsoleWriteLine(false, "  ", name);
             }
 
             _startupInfo.ReferencedAssemblies = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).ToArray();
 
-            ConsoleWriteLine("Loading Assemblies from ", pluginsPath, ":");
+            ConsoleWriteLine(false, "Loading Assemblies from ", pluginsPath, ":");
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
             _startupInfo.Plugins = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).Except(_startupInfo.ReferencedAssemblies).ToArray();
 
@@ -222,9 +224,9 @@ namespace SenseNet.ContentRepository
                 return;
 
             foreach (string name in asmNames)
-                ConsoleWriteLine("  ", name);
-            ConsoleWriteLine("Ok.");
-            ConsoleWriteLine();
+                ConsoleWriteLine(false, "  ", name);
+            ConsoleWriteLine(false, "Ok.");
+            ConsoleWriteLine(false);
         }
         private IEnumerable<string> GetLoadedAsmNames()
         {
@@ -237,44 +239,48 @@ namespace SenseNet.ContentRepository
 
             try
             {
-                ConsoleWrite("Initializing cache ... ");
+                ConsoleWrite(false, "Initializing cache ... ");
                 dummy = Cache.Count;
                 
                 // Log this, because logging is switched off when creating the cache provider
                 // to avoid circular reference.
                 _logger.LogInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("Cache initialized.");
 
-                ConsoleWrite("Starting message channel ... ");
+                ConsoleWrite(false, "Starting message channel ... ");
                 channel = Providers.Instance.ClusterChannelProvider;
                 channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-                
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
                 _logger.LogInformation($"Message channel started:  {channel.GetType().FullName}. " +
                                        $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
 
-                ConsoleWrite("Sending greeting message ... ");
+                ConsoleWrite(false, "Sending greeting message ... ");
                 new PingMessage(new string[0]).SendAsync(CancellationToken.None).GetAwaiter().GetResult();
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("Greeting message sent (PingMessage).");
 
-                ConsoleWrite("Starting NodeType system ... ");
+                ConsoleWrite(false, "Starting NodeType system ... ");
                 dummy = Providers.Instance.StorageSchema.NodeTypes[0];
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("NodeType system started.");
 
-                ConsoleWrite("Starting ContentType system ... ");
+                ConsoleWrite(false, "Starting ContentType system ... ");
                 dummy = ContentType.GetByName("GenericContent");
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("ContentType system started.");
 
-                ConsoleWrite("Starting AccessProvider ... ");
+                ConsoleWrite(false, "Starting AccessProvider ... ");
                 dummy = User.Current;
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("AccessProvider started.");
 
                 SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
 
                 if (_settings.StartIndexingEngine)
                     StartIndexingEngine();
                 else
-                    ConsoleWriteLine("IndexingEngine is not started.");
+                    ConsoleWriteLine(true, "IndexingEngine is not started.");
 
                 // switch on message processing after IndexingEngine was started.
                 channel.AllowMessageProcessing = true;
@@ -282,18 +288,19 @@ namespace SenseNet.ContentRepository
                 if (_settings.StartWorkflowEngine)
                     StartWorkflowEngine();
                 else
-                    ConsoleWriteLine("Workflow subsystem is not started.");
+                    ConsoleWriteLine(true, "Workflow subsystem is not started.");
 
-                ConsoleWrite("Loading string resources ... ");
+                ConsoleWrite(false, "Loading string resources ... ");
                 dummy = SenseNetResourceManager.Current;
-                ConsoleWriteLine("ok.");
+                ConsoleWriteLine(false, "ok.");
+                SnTrace.System.Write("String resources loaded.");
 
                 _serviceInstances = _settings.Services.GetServices<ISnService>().ToList();
 
                 foreach (var service in _serviceInstances)
                 {
                     service.Start();
-                    ConsoleWriteLine("Service started: ", service.GetType().Name);
+                    ConsoleWriteLine(true, "Service started: " + service.GetType().Name);
                 }
 
                 // register this application in the task management component
@@ -391,9 +398,9 @@ namespace SenseNet.ContentRepository
 
                 SnTrace.Repository.Write("Sending a goodbye message.");
 
-                _instance.ConsoleWriteLine();
+                _instance.ConsoleWriteLine(false);
 
-                _instance.ConsoleWriteLine("Sending a goodbye message...");
+                _instance.ConsoleWriteLine(true, "Sending a goodbye message.");
                 var channel = Providers.Instance.ClusterChannelProvider;
                 channel.ClusterMemberInfo.NeedToRecover = false;
                 var pingMessage = new PingMessage();
@@ -422,8 +429,8 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write(msg);
                 SnTrace.Flush();
 
-                _instance.ConsoleWriteLine(msg);
-                _instance.ConsoleWriteLine();
+                _instance.ConsoleWriteLine(false, msg);
+                _instance.ConsoleWriteLine(false);
                 SnLog.WriteInformation(msg);
 
                 _instance = null;
@@ -431,17 +438,18 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        public void ConsoleWrite(params string[] text)
+        public void ConsoleWrite(bool trace, params string[] text)
         {
             foreach (var s in text)
             {
-                SnTrace.System.Write(s);
+                if(trace)
+                    SnTrace.System.Write(s);
                 _settings.Console?.Write(s);
             }
         }
-        public void ConsoleWriteLine(params string[] text)
+        public void ConsoleWriteLine(bool trace, params string[] text)
         {
-            ConsoleWrite(text);
+            ConsoleWrite(trace, text);
             _settings.Console?.WriteLine();
         }
 
