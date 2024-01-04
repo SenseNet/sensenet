@@ -174,7 +174,6 @@ namespace SenseNet.ContentRepository.Storage
 
             NodeObserver.FireOnStart();
 
-//SnLog.WriteInformation("NodeTypeManager created: " + _nodeTypeManager);
             _logger = Providers.Instance.Services.GetRequiredService<ILogger<StorageSchema>>();
             _logger.LogInformation("NodeTypeManager created: " + _nodeTypeManager);
         }

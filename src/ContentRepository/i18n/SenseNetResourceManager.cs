@@ -111,7 +111,6 @@ namespace SenseNet.ContentRepository.i18n
                             var current = new SenseNetResourceManager();
                             current.Load();
                             _current = current;
-//SnLog.WriteInformation("ResourceManager created: " + _current.GetType().FullName);
                             _current._logger.LogInformation("ResourceManager created: " + _current.GetType().FullName);
                         }
                     }

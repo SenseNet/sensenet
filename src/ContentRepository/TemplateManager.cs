@@ -44,8 +44,6 @@ namespace SenseNet.ContentRepository
                             _templateReplacers = DiscoverTemplateReplacers();
                     }
 
-//SnLog.WriteInformation("TemplateReplacers created, see supported templates below.",
-//    properties: _templateReplacers.Keys.ToDictionary(name => name, name => (object)string.Join(", ", _templateReplacers[name].Keys)));
                     var logger = Providers.Instance.Services.GetService<ILogger<TemplateManager>>();
                     logger?.LogInformation($"TemplateReplacers created. " +
                         $"{string.Join(". ", _templateReplacers.Keys.Select(name => name + ":" + string.Join(", ", _templateReplacers[name].Keys)))}");

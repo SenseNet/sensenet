@@ -262,8 +262,6 @@ namespace SenseNet.Configuration
             }
 
             var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-//SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
-//    properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
             Instance?._logger.LogInformation($"NodeObservers are instantiated. Types: {string.Join(", ", activeObserverNames)}");
 
             return activeObservers;

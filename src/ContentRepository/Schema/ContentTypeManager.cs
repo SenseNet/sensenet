@@ -75,7 +75,6 @@ namespace SenseNet.ContentRepository.Schema
                             contentTypeManager = ctm;
                             _initializing = false;
                             Providers.Instance.SetProvider(ContentTypeManagerProviderKey, ctm);
-//SnLog.WriteInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
                             Instance._logger.LogInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
                         }
                     }

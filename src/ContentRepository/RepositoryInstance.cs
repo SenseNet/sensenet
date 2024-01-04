@@ -142,7 +142,6 @@ namespace SenseNet.ContentRepository
 
             // We have to log the access provider here because it cannot be logged 
             // during creation as it would lead to a circular reference.
-//SnLog.WriteInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
             _logger.LogInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
             using (new SystemAccount())
                 StartManagers();
@@ -243,7 +242,6 @@ namespace SenseNet.ContentRepository
                 
                 // Log this, because logging is switched off when creating the cache provider
                 // to avoid circular reference.
-//SnLog.WriteInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
                 _logger.LogInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
                 ConsoleWriteLine("ok.");
 
@@ -252,8 +250,6 @@ namespace SenseNet.ContentRepository
                 channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
                 
                 ConsoleWriteLine("ok.");
-//SnLog.WriteInformation($"Message channel {channel.GetType().FullName} started." +
-//                       $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
                 _logger.LogInformation($"Message channel started:  {channel.GetType().FullName}. " +
                                        $"Instance id: {channel.ClusterMemberInfo.InstanceID}");
 
@@ -329,11 +325,6 @@ namespace SenseNet.ContentRepository
                 SnTrace.SnTracers.AddRange(tracers);
             }
 
-//SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
-//{
-//    { "Loggers", SnLog.Instance?.GetType().Name },
-//    { "Tracers", string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name)) }
-//});
             SnTrace.System.Write("Loggers and tracers initialized. " +
                                      $"Loggers: {SnLog.Instance?.GetType().Name}. " +
                                      $"Tracers: {string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name))}");

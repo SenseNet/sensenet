@@ -93,8 +93,6 @@ namespace SenseNet.ContentRepository
                     category.Enabled = value ?? _basicCategories[category.Name];
                 }
 
-//SnLog.WriteInformation("Trace settings were updated (from settings).", EventId.RepositoryRuntime,
-//    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
                 WriteInformation("settings");
             }
 
@@ -103,8 +101,6 @@ namespace SenseNet.ContentRepository
                 foreach (var category in SnTrace.Categories)
                     category.Enabled = Tracing.StartupTraceCategories.Contains(category.Name);
 
-//SnLog.WriteInformation("Trace settings were updated (from configuration).", EventId.RepositoryRuntime,
-//    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
                 WriteInformation("configuration");
 
                 UpdateBasicCategories();
@@ -131,8 +127,6 @@ namespace SenseNet.ContentRepository
 
                 UpdateBasicCategories();
 
-//SnLog.WriteInformation("Trace settings were updated (from assembly).", EventId.RepositoryRuntime,
-//    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
                 WriteInformation("assembly");
             }
 

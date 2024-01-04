@@ -39,7 +39,6 @@ namespace SenseNet.BackgroundOperations
             if (!_ADSynchIsAvailable.HasValue)
             {
                 _ADSynchIsAvailable = Settings.IsSettingsAvailable(ADSyncSettingsName);
-//SnLog.WriteInformation("Active Directory synch feature is " + (_ADSynchIsAvailable.Value ? string.Empty : "not ") + "available.");
                 _logger.LogInformation("Active Directory synch feature is " +
                                        $"{(_ADSynchIsAvailable.Value ? string.Empty : "not ")}available.");
             }

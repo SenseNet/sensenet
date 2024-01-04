@@ -1466,11 +1466,6 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             _securitySystem = securitySystem;
 
-//SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
-//    properties: new Dictionary<string, object> { 
-//        { "DataProvider", securityDataProvider.GetType().FullName },
-//        { "MessageProvider", messageProvider.GetType().FullName }
-//    });
             _logger.LogInformation("Security subsystem started. " +
                                    $"DataProvider: {securityDataProvider.GetType().FullName}, " +
                                    $"MessageProvider: {messageProvider.GetType().FullName}");

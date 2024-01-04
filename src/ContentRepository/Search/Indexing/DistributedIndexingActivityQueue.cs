@@ -244,14 +244,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 consoleOut?.WriteLine("Executing unprocessed indexing activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
-//SnLog.WriteInformation("Executing unprocessed activities.",
-//    EventId.RepositoryRuntime,
-//    properties: new Dictionary<string, object>{
-//        {"LastDatabaseId", lastDatabaseId},
-//        {"LastExecutedId", lastExecutedId},
-//        {"CountOfGaps", gaps.Length},
-//        {"Gaps", IndexingActivityStatus.GapsToString(gaps, 100, 3)}
-//    });
                 this.Logger.LogInformation("Executing unprocessed indexing activities. " +
                                                       $"LastDatabaseId: {lastDatabaseId}, " +
                                                       $"LastExecutedId: {lastExecutedId}, " +
@@ -340,7 +332,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _indexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
-//SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
                 this.Logger.LogInformation($"Executing unprocessed indexing activities finished. Count: {count}.");
             }
 
