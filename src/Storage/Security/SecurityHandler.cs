@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
@@ -1454,10 +1455,13 @@ namespace SenseNet.ContentRepository.Storage.Security
                                  };
 
             var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ?? new MessagingOptions();
+            var securityLogger = services?.GetService<ILogger<SecuritySystem>>() ?? NullLogger<SecuritySystem>.Instance;
 
             var securitySystem = new SecuritySystem(securityDataProvider, messageProvider,
                 securityMessageFormatter, missingEntityHandler, 
-                Options.Create(securityConfig), Options.Create(messagingOptions));
+                Options.Create(securityConfig), Options.Create(messagingOptions),
+                securityLogger);
+
             securitySystem.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             _securityContextFactory = isWebContext 
