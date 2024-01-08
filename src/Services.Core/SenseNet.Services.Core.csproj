@@ -29,7 +29,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
-		<PackageReference Include="SenseNet.AI.Text" Version="0.0.1.2" />
+		<PackageReference Include="SenseNet.AI.Text" Version="0.0.1.3" />
+		<PackageReference Include="SenseNet.AI.Vision" Version="0.0.0.2" />
 		<PackageReference Include="SenseNet.Tools" Version="3.2.12.4" />
 	</ItemGroup>
 

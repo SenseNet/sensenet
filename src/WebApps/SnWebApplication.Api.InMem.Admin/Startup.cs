@@ -43,6 +43,10 @@ namespace SnWebApplication.Api.InMem.Admin
                 .AddSenseNetSemanticKernel(options =>
                 {
                     Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
                 });
         }
 

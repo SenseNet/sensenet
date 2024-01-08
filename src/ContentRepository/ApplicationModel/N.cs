@@ -40,6 +40,8 @@ namespace SenseNet.ApplicationModel
             public const string Everyone = "/Root/IMS/BuiltIn/Portal/Everyone";
             public const string IdentifiedUsers = "/Root/IMS/BuiltIn/Portal/IdentifiedUsers";
             public const string Visitor = "/Root/IMS/BuiltIn/Portal/Visitor";
+            public const string AITextUsers = "/Root/IMS/BuiltIn/Portal/AITextUsers";
+            public const string AIVisionUsers = "/Root/IMS/BuiltIn/Portal/AIVisionUsers";
             public const string All = "All";
         }
 
