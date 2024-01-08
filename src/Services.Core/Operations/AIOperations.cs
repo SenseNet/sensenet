@@ -24,7 +24,7 @@ public static class AIOperations
     /// <returns>An object containing the summary.</returns>
     [ODataAction]
     [ContentTypes(N.CT.PortalRoot)]
-    [AllowedRoles(N.R.Everyone)]
+    [AllowedRoles(N.R.AITextUsers)]
     public static async Task<object> GetSummary(Content content, HttpContext context,
         int maxWordCount, int maxSentenceCount, string text)
     {
@@ -55,7 +55,7 @@ public static class AIOperations
     /// <returns>The image data of the generated image.</returns>
     [ODataAction]
     [ContentTypes(N.CT.PortalRoot)]
-    [AllowedRoles(N.R.Everyone)]
+    [AllowedRoles(N.R.AIVisionUsers)]
     public static async Task<object> GenerateImage(Content content, HttpContext context, string text, int width, int height)
     {
         //TODO: limit max parameters and text length by configuration

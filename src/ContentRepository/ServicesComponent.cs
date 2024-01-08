@@ -1568,6 +1568,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.30", "7.7.31", "2023-10-16", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_31);
+
+            //builder.Patch("7.7.31", "7.7.31.1", "2024-01-08", "Upgrades sensenet content repository.")
+            //    .Action(Patch_7_7_32);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -1940,6 +1943,39 @@ namespace SenseNet.ContentRepository
         private void Patch_7_7_32(PatchExecutionContext context)
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region Content changes
+
+            string[] defaultAiUserGroups =
+            {
+                N.R.Administrators,
+                "/Root/IMS/BuiltIn/Portal/Editors",
+                "/Root/IMS/Public/Administrators",
+            };
+
+            if (!Node.Exists(N.R.AITextUsers))
+            {
+                logger.LogTrace("Creating AITextUsers group...");
+
+                var aiTextUsers = Content.CreateNew("Group", OrganizationalUnit.Portal, "AITextUsers");
+
+                aiTextUsers.DisplayName = "AITextUsers";
+                aiTextUsers["Members"] = Node.LoadNodes(defaultAiUserGroups.Select(NodeIdentifier.Get));
+                aiTextUsers.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            if (!Node.Exists(N.R.AIVisionUsers))
+            {
+                logger.LogTrace("Creating AIVisionUsers group...");
+
+                var aiVisionUsers = Content.CreateNew("Group", OrganizationalUnit.Portal, "AIVisionUsers");
+
+                aiVisionUsers.DisplayName = "AIVisionUsers";
+                aiVisionUsers["Members"] = Node.LoadNodes(defaultAiUserGroups.Select(NodeIdentifier.Get));
+                aiVisionUsers.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            #endregion
 
             #region String resource changes
 
