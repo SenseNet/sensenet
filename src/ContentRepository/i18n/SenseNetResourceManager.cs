@@ -13,6 +13,10 @@ using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SenseNet.ContentRepository.Search.Indexing;
+using EventId = SenseNet.Diagnostics.EventId;
 
 namespace SenseNet.ContentRepository.i18n
 {
@@ -107,7 +111,7 @@ namespace SenseNet.ContentRepository.i18n
                             var current = new SenseNetResourceManager();
                             current.Load();
                             _current = current;
-                            SnLog.WriteInformation("ResourceManager created: " + _current.GetType().FullName);
+                            _current._logger.LogInformation("ResourceManager created: " + _current.GetType().FullName);
                         }
                     }
                 }
@@ -129,7 +133,11 @@ namespace SenseNet.ContentRepository.i18n
             get { return _current != null; }
         }
 
-        private SenseNetResourceManager() { }
+        private ILogger<SenseNetResourceManager> _logger;
+        private SenseNetResourceManager()
+        {
+            _logger = Providers.Instance.Services.GetService<ILogger<SenseNetResourceManager>>();
+        }
 
         // ================================================================ Instance part
 
