@@ -63,6 +63,10 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 .AddSenseNetSemanticKernel(options =>
                 {
                     Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
                 });
         }
 

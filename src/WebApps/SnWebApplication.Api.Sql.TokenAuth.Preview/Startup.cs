@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Components;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
@@ -82,6 +81,14 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
                 {
                     options.SkipLicenseCheck =
                         Configuration.GetValue("sensenet:AsposePreviewProvider:SkipLicenseCheck", false);
+                })
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
                 });
 
             // [sensenet]: statistics overrides
