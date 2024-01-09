@@ -11,6 +11,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.AI.Text;
+using SenseNet.AI.Text.SemanticKernel;
+using SenseNet.AI.Vision;
+using SenseNet.AI.Vision.Azure;
 using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Communication.Messaging;
@@ -76,6 +80,7 @@ using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools;
 using SenseNet.Tools.Diagnostics;
+using SenseNet.Tools.Features;
 using SenseNet.Tools.SnInitialDataGenerator;
 using SenseNet.WebHooks;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
@@ -199,7 +204,10 @@ namespace WebAppTests
                 {
                     foreach (DictionaryEntry entry in dictionary)
                     {
-                        result.Add((Type)entry.Key, (ServiceDescriptor)GetPropertyValue(entry.Value, "Last"));
+                        var serviceType = (Type)GetPropertyValue(entry.Key, "ServiceType");
+                        var descriptor = (ServiceDescriptor)GetPropertyValue(entry.Value, "Last");
+
+                        result.Add(serviceType, descriptor);
                     }
                 }
 
@@ -608,6 +616,13 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -640,6 +655,13 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -672,6 +694,13 @@ namespace WebAppTests
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -705,6 +734,13 @@ namespace WebAppTests
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -747,6 +783,13 @@ namespace WebAppTests
                         typeof(WopiService),
                     }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -788,6 +831,13 @@ namespace WebAppTests
                         typeof(WopiService),
                     }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryProvider),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
