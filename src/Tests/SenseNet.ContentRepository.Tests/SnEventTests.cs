@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository.Tests
                     .Select(x =>
                     {
                         var fields = x.Split('\t');
-                        return $"{fields[6],-6} {fields[8]}";
+                        return $"{fields[4],-6} {fields[6]}";
                     })
                     //.SkipWhile(x => !x.StartsWith("Start  -------- TEST: NODE-ACTION"))
                     .ToList();
