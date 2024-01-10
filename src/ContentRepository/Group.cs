@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Schema;
@@ -461,7 +463,7 @@ namespace SenseNet.ContentRepository
         [ODataAction]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
-        public static object AddMembers(Content content, int[] contentIds)
+        public static async Task<object> AddMembers(Content content, HttpContext httpContext, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
             RepositoryTools.AssertArgumentNull(contentIds, "contentIds");
@@ -474,7 +476,7 @@ namespace SenseNet.ContentRepository
 
             // add the provided reference nodes
             group.AddReferences<Node>(MEMBERS, Node.LoadNodes(contentIds));
-            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            await group.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
 
             return null;
         }
