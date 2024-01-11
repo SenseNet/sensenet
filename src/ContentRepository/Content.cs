@@ -151,9 +151,10 @@ namespace SenseNet.ContentRepository
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             [RequiredPermissions(N.P.Save)]
-            public static void RebuildIndex(Content content, bool recursive, IndexRebuildLevel rebuildLevel)
+            public static System.Threading.Tasks.Task RebuildIndex(Content content, HttpContext httpContext,
+                bool recursive, IndexRebuildLevel rebuildLevel)
             {
-                content.RebuildIndex(recursive, rebuildLevel);
+                return content.RebuildIndexAsync(httpContext.RequestAborted, recursive, rebuildLevel);
             }
             /// <summary>
             /// Performs a full reindex operation on the content and the whole subtree.
@@ -163,9 +164,9 @@ namespace SenseNet.ContentRepository
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
-            public static void RebuildIndexSubtree(Content content)
+            public static System.Threading.Tasks.Task RebuildIndexSubtree(Content content, HttpContext httpContext)
             {
-                content.RebuildIndex(true, IndexRebuildLevel.DatabaseAndIndex);
+                return content.RebuildIndexAsync(httpContext.RequestAborted, true, IndexRebuildLevel.DatabaseAndIndex);
             }
             /// <summary>
             /// Refreshes the index document of the content and the whole subtree using the already existing index data stored in the database.
@@ -175,9 +176,9 @@ namespace SenseNet.ContentRepository
             [ODataAction]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
-            public static void RefreshIndexSubtree(Content content)
+            public static System.Threading.Tasks.Task RefreshIndexSubtree(Content content, HttpContext httpContext)
             {
-                content.RebuildIndex(true, IndexRebuildLevel.IndexOnly);
+                return content.RebuildIndexAsync(httpContext.RequestAborted, true, IndexRebuildLevel.IndexOnly);
             }
             /// <summary>
             /// Refreshes all index documents in the index using the already existing 
@@ -1532,20 +1533,22 @@ namespace SenseNet.ContentRepository
 
 
         /// <summary>
-        /// Rebuilds the index document of a content and optionally of all documents in the whole subtree. 
+        /// Asynchronously rebuilds the index document of a content and optionally of all documents in the whole subtree. 
         /// In case the value of <value>rebuildLevel</value> is <value>IndexOnly</value> the index document is refreshed 
         /// based on the already existing extracted data stored in the database. This is a significantly faster method 
         /// and it is designed for cases when only the place of the content in the tree has changed or the index got corrupted.
         /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the index in the
         /// external index provider the same way as the light-weight algorithm.
         /// </summary>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
         /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
-        public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
+        public async System.Threading.Tasks.Task RebuildIndexAsync(CancellationToken cancel, 
+            bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
-            Providers.Instance.SearchManager.GetIndexPopulator()
-                .RebuildIndexAsync(this.ContentHandler, CancellationToken.None, recursive, rebuildLevel).GetAwaiter()
-                .GetResult();
+            await Providers.Instance.SearchManager.GetIndexPopulator()
+                .RebuildIndexAsync(this.ContentHandler, cancel, recursive, rebuildLevel)
+                .ConfigureAwait(false);
         }
 
         /*-------------------------------------------------------------------------- SnLinq */

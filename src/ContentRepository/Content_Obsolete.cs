@@ -1,4 +1,5 @@
 ﻿using SenseNet.ApplicationModel;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using System;
 using System.Collections.Generic;
@@ -279,5 +280,22 @@ namespace SenseNet.ContentRepository
         {
             return GetActions();
         }
+
+        /// <summary>
+        /// Rebuilds the index document of a content and optionally of all documents in the whole subtree. 
+        /// In case the value of <value>rebuildLevel</value> is <value>IndexOnly</value> the index document is refreshed 
+        /// based on the already existing extracted data stored in the database. This is a significantly faster method 
+        /// and it is designed for cases when only the place of the content in the tree has changed or the index got corrupted.
+        /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the index in the
+        /// external index provider the same way as the light-weight algorithm.
+        /// </summary>
+        /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
+        /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
+        [Obsolete("Use async version instead.", true)]
+        public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
+        {
+            RebuildIndexAsync(CancellationToken.None, recursive, rebuildLevel).GetAwaiter().GetResult();
+        }
+
     }
 }
