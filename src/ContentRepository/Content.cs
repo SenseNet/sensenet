@@ -1199,10 +1199,12 @@ namespace SenseNet.ContentRepository
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
         public void SaveSameVersion()
         {
-            SaveSameVersion(true);
+            SaveSameVersionAsync(true, CancellationToken.None).GetAwaiter().GetResult();
         }
+
         /// <summary>
-        /// Validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository without considering the versioning settings.
+        /// Asynchronously validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository
+        /// without considering the versioning settings.
         /// </summary>
         /// <remarks>
         /// This method executes followings:
@@ -1223,7 +1225,7 @@ namespace SenseNet.ContentRepository
         /// After the saving the version of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> will not changed.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        public void SaveSameVersion(bool validOnly) //UNDONE:x: rewrite to async (CRUD save)
+        public async System.Threading.Tasks.Task SaveSameVersionAsync(bool validOnly, CancellationToken cancel)
         {
             AssertContentType();
 
@@ -1232,9 +1234,9 @@ namespace SenseNet.ContentRepository
                 throw InvalidContentExceptionHelper();
             GenericContent genericContent = _contentHandler as GenericContent;
             if (genericContent == null)
-                _contentHandler.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await _contentHandler.SaveAsync(cancel).ConfigureAwait(false);
             else
-                genericContent.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
+                await genericContent.SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
 
             var template = _contentHandler.Template;
             if (template != null)
@@ -1243,7 +1245,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        public void SaveExplicitVersion(bool validOnly = true) //UNDONE:x: rewrite to async (CRUD save)
+        public async System.Threading.Tasks.Task SaveExplicitVersionAsync(CancellationToken cancel, bool validOnly = true)
         {
             AssertContentType();
 
@@ -1254,7 +1256,7 @@ namespace SenseNet.ContentRepository
             if (genericContent == null)
                 throw new InvalidOperationException("Only a generic content can be saved with explicit version.");
             else
-                genericContent.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await genericContent.SaveExplicitVersionAsync(CancellationToken.None).ConfigureAwait(false);
 
             var template = _contentHandler.Template;
             if (template != null)
@@ -1801,7 +1803,7 @@ namespace SenseNet.ContentRepository
             if (saveContent)
             {
                 if (ImportingExplicitVersion)
-                    this.SaveExplicitVersion();
+                    this.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else if (context.IsNewContent)
                     this.SaveSameVersion();
                 else
