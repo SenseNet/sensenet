@@ -131,7 +131,7 @@ namespace SenseNet.ContentRepository
     /// }
     /// </code>
     /// </example>
-    public class Content : FeedContent, ICustomTypeDescriptor
+    public partial class Content : FeedContent, ICustomTypeDescriptor
     {
         public static class Operations
         {
@@ -829,11 +829,6 @@ namespace SenseNet.ContentRepository
             return node == null ? null : Create(node);
         }
 
-        [Obsolete("Use Content.Create instead")]
-        public Content()
-        {
-
-        }
         /// <summary>
         /// Creates a <c>Content</c> instance from an instantiated <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
         /// </summary>
@@ -1082,35 +1077,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
-        /// </summary>
-        /// <remarks>
-        /// This method executes followings:
-        /// <list type="bullet">
-        ///     <item>
-        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
-        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
-        ///     </item>
-        ///     <item>
-        ///         If <c>Content</c> is not valid 
-        ///         throws an <see cref="InvalidContentException">InvalidContentException</see>.
-        ///     </item>
-        ///     <item>
-        ///         Saves the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> into the Sense/Net Content Repository.
-        ///     </item>
-        /// </list>
-        /// 
-        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
-        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> after the saving
-        /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
-        /// </remarks>
-        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        [Obsolete("Use async version instead.", true)]
-        public void Save()
-        {
-            SaveAsync(true, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
         /// </summary>
         /// <remarks>
@@ -1139,11 +1105,6 @@ namespace SenseNet.ContentRepository
             return SaveAsync(true, CancellationToken.None);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void Save(bool validOnly)
-        {
-            SaveAsync(validOnly, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task SaveAsync(bool validOnly, CancellationToken cancel)
         {
             if (_contentHandler.Locked)
@@ -1152,45 +1113,11 @@ namespace SenseNet.ContentRepository
                 await SaveAsync(validOnly, SavingMode.RaiseVersion, cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             return SaveAsync(true, mode, cancel);
         }
 
-        /// <summary>
-        /// Saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
-        /// </summary>
-        /// <remarks>
-        /// This method executes followings:
-        /// <list type="bullet">
-        ///     <item>
-        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
-        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
-        ///     </item>
-        ///     <item>
-        ///         If passed <paramref name="validOnly">validOnly</paramref> parameter is true  and <c>Content</c> is not valid 
-        ///         throws an <see cref="InvalidContentException">InvalidContentException</see>
-        ///     </item>
-        ///     <item>
-        ///         Saves the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> into the Sense/Net Content Repository.
-        ///     </item>
-        /// </list>
-        /// 
-        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
-        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> after the saving
-        /// its version is depends its <see cref="SenseNet.ContentRepository.GenericContent.VersioningMode">VersioningMode</see> setting.
-        /// </remarks>
-        /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
-        [Obsolete("Use async version instead.", true)]
-        public void Save(bool validOnly, SavingMode mode)
-        {
-            SaveAsync(validOnly, mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository with considering the versioning settings.
         /// </summary>
@@ -1238,14 +1165,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Ends the multistep saving process and makes the content available for modification.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public void FinalizeContent()
-        {
-            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously ends the multistep saving process and makes the content available for modification.
         /// </summary>
@@ -1349,32 +1268,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Validates and publishes the wrapped <c>ContentHandler</c> if it is a <c>GenericContent</c> otherwise saves it normally.
-        /// </summary>
-        /// <remarks>
-        /// This method executes followings:
-        /// <list type="bullet">
-        ///     <item>
-        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
-        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
-        ///     </item>
-        ///     <item>
-        ///         If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
-        ///     </item>
-        ///     <item>
-        ///         If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
-        ///         the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
-        ///         <see cref="SenseNet.ContentRepository.GenericContent.Publish">Publish</see> method otherwise saves it normally.
-        ///     </item>
-        /// </list>
-        /// </remarks>
-        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        [Obsolete("Use async version instead.", true)]
-        public void Publish()
-        {
-            PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously validates and publishes the wrapped <c>ContentHandler</c> if it is a <c>GenericContent</c> otherwise saves it normally.
         /// </summary>
         /// <remarks>
@@ -1406,11 +1299,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.PublishAsync(cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void Approve()
-        {
-            ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task ApproveAsync(CancellationToken cancel)
         {
             SaveFields();
@@ -1422,11 +1310,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.ApproveAsync(cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void Reject()
-        {
-            RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task RejectAsync(CancellationToken cancel)
         {
             SaveFields();
@@ -1438,46 +1321,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.RejectAsync(cancel).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
-        /// 
-        /// If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
-        /// 
-        /// If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
-        /// the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
-        /// <see cref="SenseNet.ContentRepository.GenericContent.CheckIn">CheckIn</see> method otherwise calls the
-        /// <see cref="SenseNet.ContentRepository.Storage.Node.Lock.Unlock">Unlock</see> method with
-        /// <c><see cref="SenseNet.ContentRepository.Storage.VersionStatus">VersionStatus</see>.Public</c> and 
-        /// <c><see cref="SenseNet.ContentRepository.Storage.VersionRaising">VersionRaising</see>.None</c> parameters.
-        /// 
-        /// </summary>
-        /// <remarks>
-        /// This method executes followings:
-        /// <list type="bullet">
-        ///     <item>
-        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
-        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
-        ///     </item>
-        ///     <item>
-        ///         If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
-        ///     </item>
-        ///     <item>
-        /// 		If the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> inherited from 
-        /// 		the <see cref="SenseNet.ContentRepository.GenericContent">GenericContent</see> calls its
-        /// 		<see cref="SenseNet.ContentRepository.GenericContent.CheckIn">CheckIn</see> method otherwise calls the
-        /// 		<see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>'s
-        /// 		<see cref="SenseNet.ContentRepository.Storage.Security.LockHandler.Unlock(VersionStatus, VersionRaising)">Lock.Unlock</see> method with
-        /// 		<c><see cref="SenseNet.ContentRepository.Storage.VersionStatus">VersionStatus</see>.Public</c> and 
-        /// 		<c><see cref="SenseNet.ContentRepository.Storage.VersionRaising">VersionRaising</see>.None</c> parameters.
-        ///     </item>
-        /// </list>
-        /// </remarks>
-        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        [Obsolete("Use async version instead.", true)]
-        public void CheckIn()
-        {
-            CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
         /// 
@@ -1524,11 +1367,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.CheckInAsync(cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void CheckOut()
-        {
-            CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task CheckOutAsync(CancellationToken cancel)
         {
             SaveFields();
@@ -1540,11 +1378,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.CheckOutAsync(cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void UndoCheckOut()
-        {
-            UndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task UndoCheckOutAsync(CancellationToken cancel)
         {
             SaveFields();
@@ -1556,11 +1389,6 @@ namespace SenseNet.ContentRepository
                 await genericContent.UndoCheckOutAsync(cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void ForceUndoCheckOut()
-        {
-            ForceUndoCheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task ForceUndoCheckOutAsync(CancellationToken cancel)
         {
             if (!SavingAction.HasForceUndoCheckOutRight(this.ContentHandler))
@@ -1636,19 +1464,6 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        [Obsolete("Use ForceDelete method instead", true)]
-        public static void DeletePhysical(int contentId)
-        {
-            Node.ForceDelete(contentId);
-        }
-        /// <summary>
-        /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
-        /// </summary>
-        /// <param name="contentId">Identifier of the Node that will be deleted.</param>
-        public static void ForceDelete(int contentId)
-        {
-            ForceDeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
@@ -1658,19 +1473,6 @@ namespace SenseNet.ContentRepository
             return Node.ForceDeleteAsync(contentId, cancel);
         }
 
-        [Obsolete("Use ForceDelete method instead", true)]
-        public static void DeletePhysical(string path)
-        {
-            Node.ForceDelete(path);
-        }
-        /// <summary>
-        /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
-        /// </summary>
-        /// <param name="path">The path of the Node that will be deleted.</param>
-        public static void ForceDelete(string path)
-        {
-            ForceDeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
@@ -1680,42 +1482,21 @@ namespace SenseNet.ContentRepository
             return Node.ForceDeleteAsync(path, cancel);
         }
 
-        public static void Delete(int contentId)
-        {
-            DeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public static System.Threading.Tasks.Task DeleteAsync(int contentId, CancellationToken cancel)
         {
             return Node.DeleteAsync(contentId, cancel);
         }
 
-        public static void Delete(string path)
-        {
-            DeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public static System.Threading.Tasks.Task DeleteAsync(string path, CancellationToken cancel)
         {
             return Node.DeleteAsync(path, cancel);
         }
 
-        [Obsolete("Use async version instead", false)]
-        public void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {
             return this.ContentHandler.DeleteAsync(cancel);
         }
 
-        /// <summary>
-        /// Deletes the <see cref="Content"/> permanently.
-        /// </summary>
-        [Obsolete("Use async version instead", false)]
-        public void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false);
-        }
         /// <summary>
         /// Asynchronously deletes the <see cref="Node"/> permanently.
         /// </summary>
@@ -1724,10 +1505,6 @@ namespace SenseNet.ContentRepository
             return this.ContentHandler.ForceDeleteAsync(cancel);
         }
 
-        public void Delete(bool byPassTrash)
-        {
-            DeleteAsync(byPassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task DeleteAsync(bool byPassTrash, CancellationToken cancel)
         {
             if (!byPassTrash)
@@ -1753,17 +1530,6 @@ namespace SenseNet.ContentRepository
                 String.Join(", ", (from field in fields where !field.IsValid select field.DisplayName ?? field.Name).ToArray())));
         }
 
-        [Obsolete("Use the methods of the ContentNamingProvider class instead")]
-        public static string GenerateNameFromTitle(string parent, string title)
-        {
-            return ContentNamingProvider.GetNameFromDisplayName(title);
-        }
-
-        [Obsolete("Use the methods of the ContentNamingProvider class instead")]
-        public static string GenerateNameFromTitle(string title)
-        {
-            return ContentNamingProvider.GetNameFromDisplayName(title);
-        }
 
         /// <summary>
         /// Rebuilds the index document of a content and optionally of all documents in the whole subtree. 
@@ -2274,15 +2040,6 @@ namespace SenseNet.ContentRepository
             }
 
             return new ActionBase[0];
-        }
-        /// <summary>
-        /// Returns all conventional (non-virtual) actions available on the Content.
-        /// </summary>
-        /// <returns>An IEnumerable&lt;ActionBase&gt;</returns>
-        [Obsolete("Use the Actions property instead")]
-        public IEnumerable<ActionBase> GetContentActions()
-        {
-            return GetActions();
         }
 
         // =================================================================================== Runtime Content
