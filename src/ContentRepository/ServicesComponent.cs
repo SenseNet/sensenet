@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository
                         if (settings == null)
                             return;
                         settings["Description"] = description;
-                        settings.SaveSameVersion();
+                        settings.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     #endregion
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository
                     if (app1 != null)
                     {
                         app1["Scenario"] = string.Empty;
-                        app1.SaveSameVersion();
+                        app1.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     var app2 = Content.Load("/Root/(apps)/ContentType/Edit");
@@ -1284,7 +1284,7 @@ namespace SenseNet.ContentRepository
 
                     pwChangeEmailTemplate["Body"] = emailTemplate;
                     pwChangeEmailTemplate["Subject"] = "sensenet - Please change your password!";
-                    pwChangeEmailTemplate.SaveSameVersion();
+                    pwChangeEmailTemplate.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
 

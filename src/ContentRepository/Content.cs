@@ -1177,7 +1177,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository without considering the versioning settings.
+        /// Asynchronously validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository without considering the versioning settings.
         /// </summary>
         /// <remarks>
         /// This method executes followings:
@@ -1197,9 +1197,9 @@ namespace SenseNet.ContentRepository
         /// After the saving the version of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> will not changed.
         /// </remarks>
         /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
-        public void SaveSameVersion()
+        public System.Threading.Tasks.Task SaveSameVersionAsync(CancellationToken cancel)
         {
-            SaveSameVersionAsync(true, CancellationToken.None).GetAwaiter().GetResult();
+            return SaveSameVersionAsync(true, cancel);
         }
 
         /// <summary>
@@ -1805,7 +1805,7 @@ namespace SenseNet.ContentRepository
                 if (ImportingExplicitVersion)
                     this.SaveExplicitVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else if (context.IsNewContent)
-                    this.SaveSameVersion();
+                    this.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else
                     this.SaveAsync(context.NeedToValidate, CancellationToken.None).GetAwaiter().GetResult();
             }

@@ -357,7 +357,7 @@ namespace SenseNet.ContentRepository.Sharing
             {
                 // set sharing id on the group if it is not there yet
                 group[Constants.SharingIdsFieldName] = AddSharingIdToText((string)group[Constants.SharingIdsFieldName], id);
-                group.SaveSameVersion();
+                group.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             return group.ContentHandler as Group;

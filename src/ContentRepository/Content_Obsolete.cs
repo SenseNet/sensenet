@@ -107,6 +107,33 @@ namespace SenseNet.ContentRepository
         ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
         ///     </item>
         ///     <item>
+        ///         If <c>Content</c> is not valid throws an <see cref="InvalidContentException">InvalidContentException</see>.
+        ///     </item>
+        ///     <item>
+        ///         Saves the wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> into the Sense/Net Content Repository.
+        ///     </item>
+        /// </list>
+        /// 
+        /// After the saving the version of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> will not changed.
+        /// </remarks>
+        /// <exception cref="InvalidContentException">Thrown when <c>Content</c> is invalid.</exception>
+        [Obsolete("Use async version instead.", true)]
+        public void SaveSameVersion()
+        {
+            SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Validates and saves the wrapped <c>ContentHandler</c> into the Sense/Net Content Repository without considering the versioning settings.
+        /// </summary>
+        /// <remarks>
+        /// This method executes followings:
+        /// <list type="bullet">
+        ///     <item>
+        ///         Saves all <see cref="SenseNet.ContentRepository.Field">Field</see>s into the properties 
+        ///         of wrapped <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
+        ///     </item>
+        ///     <item>
         ///         If passed <paramref name="validOnly">validOnly</paramref> parameter is true  and <c>Content</c> is not valid 
         ///         throws an <see cref="InvalidContentException">InvalidContentException</see>
         ///     </item>

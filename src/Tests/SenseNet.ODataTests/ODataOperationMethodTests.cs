@@ -2978,13 +2978,13 @@ namespace SenseNet.ODataTests
                 
                 // workaround for trash disabled default value (true for Folders)
                 parent["TrashDisabled"] = false;
-                parent.SaveSameVersion();
+                parent.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
                 file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // delete to the Trash
-                file.Delete();
+                file.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload to get the new trashbag parent
                 file = Node.Load<File>(file.Id);

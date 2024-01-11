@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -29,11 +30,11 @@ xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefini
 
                 var parent = RepositoryTools.CreateStructure("/Root/" + Guid.NewGuid(), "SystemFolder");
                 var folder1 = Content.CreateNew("Folder", parent.ContentHandler, "f1");
-                folder1.SaveSameVersion();
+                folder1.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = Content.CreateNew("Folder", parent.ContentHandler, "f2");
-                folder2.SaveSameVersion();
+                folder2.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder3 = Content.CreateNew("Folder", parent.ContentHandler, "f3");
-                folder3.SaveSameVersion();
+                folder3.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var content1 = Content.CreateNew("GenericContentWithReferenceTest", parent.ContentHandler, "content1");
 
@@ -41,7 +42,7 @@ xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefini
                 {
                     folder1.ContentHandler, folder2.ContentHandler, folder3.ContentHandler
                 };
-                content1.SaveSameVersion();
+                content1.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // find content by the reference field
                 var result1 = CreateSafeContentQuery($"+SearchTestReference:{folder1.Id}").Execute().Nodes.FirstOrDefault();
