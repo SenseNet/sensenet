@@ -609,8 +609,8 @@ namespace SenseNet.ContentRepository.Tests
 
                     // -----------
 
-                    content1.ForceDelete();
-                    content2.ForceDelete();
+                    content1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    content2.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
@@ -620,9 +620,9 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void Aspect_AddingAspectDoesNotResetDefaultValuesOfTheOriginalFields()
+        public async System.Threading.Tasks.Task Aspect_AddingAspectDoesNotResetDefaultValuesOfTheOriginalFields()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 var testRoot = CreateTestRoot();
 
@@ -698,7 +698,7 @@ namespace SenseNet.ContentRepository.Tests
         </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await aspect1.SaveAsync(CancellationToken.None).ConfigureAwait(false);
                 var aspect2 = EnsureAspect(aspect2Name);
                 aspect2.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
     <Fields>
@@ -710,7 +710,7 @@ namespace SenseNet.ContentRepository.Tests
         </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await aspect2.SaveAsync(CancellationToken.None).ConfigureAwait(false);
                 var aspect3 = EnsureAspect(aspect3Name);
                 aspect3.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
     <Fields>
@@ -724,7 +724,7 @@ namespace SenseNet.ContentRepository.Tests
 	    </AspectField>
     </Fields>
 </AspectDefinition>";
-                aspect3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await aspect3.SaveAsync(CancellationToken.None).ConfigureAwait(false);
 
                 Content content = null;
 
@@ -739,7 +739,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(displayName2Default, content[displayName2Name]);
                     Assert.AreEqual(int32Default, content[int32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[referenceFieldName]).Select(n => n.Path)));
-                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    await content.SaveAsync(CancellationToken.None).ConfigureAwait(false);
                     var contentId = content.Id;
 
                     // #2 check reloaded
@@ -763,7 +763,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(shortTextDefault, content[aspectShortTextFieldName]);
                     Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
-                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    await content.SaveAsync(CancellationToken.None).ConfigureAwait(false);
 
                     // #5 check with 2 aspects / reloaded
                     content = Content.Load(contentId);
@@ -789,7 +789,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(displayName2Default, content[aspectDisplayName2FieldName]);
                     Assert.AreEqual(int32Default, content[aspectInt32FieldName]);
                     Assert.AreEqual(referenceDefault, String.Join(",", ((IEnumerable<Node>)content[aspectReferenceFieldName]).Select(n => n.Path)));
-                    content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    await content.SaveAsync(CancellationToken.None).ConfigureAwait(false);
 
                     // #8 check with all aspects / reloaded
                     content = Content.Load(contentId);
@@ -805,9 +805,10 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    content.ForceDelete();
+                    if(content != null)
+                        await content.ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false);
                     if (ContentType.GetByName(contentTypeName) != null)
-                        ContentTypeInstaller.RemoveContentType(contentTypeName);
+                        await ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).ConfigureAwait(false);
                 }
             });
         }

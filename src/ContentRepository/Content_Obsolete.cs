@@ -267,25 +267,25 @@ namespace SenseNet.ContentRepository
             Node.ForceDelete(path);
         }
 
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public static void Delete(int contentId)
         {
             DeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public static void Delete(string path)
         {
             DeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public void Delete(bool byPassTrash)
         {
             DeleteAsync(byPassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -294,7 +294,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Deletes the <see cref="Content"/> permanently.
         /// </summary>
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false);
@@ -304,7 +304,7 @@ namespace SenseNet.ContentRepository
         /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
         /// <param name="contentId">Identifier of the Node that will be deleted.</param>
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public static void ForceDelete(int contentId)
         {
             ForceDeleteAsync(contentId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -314,19 +314,19 @@ namespace SenseNet.ContentRepository
         /// Deletes the Node and all of its contents from the database. This operation removes all child nodes too.
         /// </summary>
         /// <param name="path">The path of the Node that will be deleted.</param>
-        [Obsolete("Use async version instead")]
+        [Obsolete("Use async version instead", true)]
         public static void ForceDelete(string path)
         {
             ForceDeleteAsync(path, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-        [Obsolete("Use the methods of the ContentNamingProvider class instead")]
+        [Obsolete("Use the methods of the ContentNamingProvider class instead", true)]
         public static string GenerateNameFromTitle(string parent, string title)
         {
             return ContentNamingProvider.GetNameFromDisplayName(title);
         }
 
-        [Obsolete("Use the methods of the ContentNamingProvider class instead")]
+        [Obsolete("Use the methods of the ContentNamingProvider class instead", true)]
         public static string GenerateNameFromTitle(string title)
         {
             return ContentNamingProvider.GetNameFromDisplayName(title);
@@ -336,7 +336,7 @@ namespace SenseNet.ContentRepository
         /// Returns all conventional (non-virtual) actions available on the Content.
         /// </summary>
         /// <returns>An IEnumerable&lt;ActionBase&gt;</returns>
-        [Obsolete("Use the Actions property instead")]
+        [Obsolete("Use the Actions property instead", true)]
         public IEnumerable<ActionBase> GetContentActions()
         {
             return GetActions();
