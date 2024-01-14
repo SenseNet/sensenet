@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Search.Querying;
@@ -16,11 +17,10 @@ namespace SenseNet.Search.Tests.Implementations
             _stringResults = stringResults;
         }
 
+        [Obsolete("Use async version instead", false)]
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
-            if (_intResults.TryGetValue(query.Querytext, out var result))
-                return result;
-            return QueryResult<int>.Empty;
+            return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
@@ -30,7 +30,9 @@ namespace SenseNet.Search.Tests.Implementations
 
         public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
         {
-            return Task.FromResult(ExecuteQuery(query, filter, context));
+            if (_intResults.TryGetValue(query.Querytext, out var result))
+                return Task.FromResult(result);
+            return Task.FromResult(QueryResult<int>.Empty);
         }
 
         public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
