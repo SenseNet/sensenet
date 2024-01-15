@@ -1088,8 +1088,20 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Defines constants for the verification of the child type.
         /// </summary>
-        [Obsolete("This enum will become private in the future.")]
+        [Obsolete("This enum will become private in the future.", true)]
         public enum TypeAllow
+        {
+            /// <summary>The type is allowed and permitted.</summary>
+            Allowed,
+            /// <summary>The type is allowed but not permitted.</summary>
+            TypeIsNotPermitted,
+            /// <summary>The type is not allowed.</summary>
+            NotAllowed
+        }
+        /// <summary>
+        /// Defines constants for the verification of the child type.
+        /// </summary>
+        internal enum TypePermission
         {
             /// <summary>The type is allowed and permitted.</summary>
             Allowed,
@@ -1103,35 +1115,35 @@ namespace SenseNet.ContentRepository
         {
             switch (CheckAllowedChildType(node))
             {
-                case TypeAllow.Allowed:
+                case TypePermission.Allowed:
                     return;
-                case TypeAllow.TypeIsNotPermitted:
+                case TypePermission.TypeIsNotPermitted:
                     throw new SenseNetSecurityException(node.Path, PermissionType.See, User.Current);
-                case TypeAllow.NotAllowed:
+                case TypePermission.NotAllowed:
                     if (move)
                         throw GetNotAllowedContentTypeExceptionOnMove(node, this);
                     else
                         throw GetNotAllowedContentTypeExceptionOnCreate(node, this);
             }
         }
-        internal TypeAllow CheckAllowedChildType(Node node)
+        internal TypePermission CheckAllowedChildType(Node node)
         {
             var contentTypeName = node.NodeType.Name;
 
             // Ok if the new node is exactly TrashBag
             if (contentTypeName == "TrashBag")
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
 
             // Ok if the new node is exactly SystemFolder and it is permitted
             if (contentTypeName == typeof(SystemFolder).Name)
             {
                 if (node.CopyInProgress)
-                    return TypeAllow.Allowed;
+                    return TypePermission.Allowed;
 
                 var contentType = ContentType.GetByName(contentTypeName);
                 if(contentType.Security.HasPermission(PermissionType.See))
-                    return TypeAllow.Allowed;
-                return TypeAllow.TypeIsNotPermitted;
+                    return TypePermission.Allowed;
+                return TypePermission.TypeIsNotPermitted;
             }
 
             // Get parent if this is Folder or Page. Exit if current is SystemFolder or it is not a GenericContent
@@ -1144,13 +1156,13 @@ namespace SenseNet.ContentRepository
             }
 
             if (current != null && current.NodeType.Name == "SystemFolder")
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
             if (current == null)
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
 
             if(current.IsAllowedChildType(contentTypeName))
-                return TypeAllow.Allowed;
-            return TypeAllow.NotAllowed;
+                return TypePermission.Allowed;
+            return TypePermission.NotAllowed;
         }
 
         private Exception GetNotAllowedContentTypeExceptionOnCreate(Node node, GenericContent parent)
@@ -1429,7 +1441,7 @@ namespace SenseNet.ContentRepository
                     continue;
 
                 var checkResult = parentGc.CheckAllowedChildType(node);
-                if(checkResult != TypeAllow.Allowed)
+                if(checkResult != TypePermission.Allowed)
                 {
                     result.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\r\n", parentGc.Path, parentGc.NodeType.Name, node.Name, node.NodeType.Name, 
                         string.Join(", ", parentGc.GetAllowedChildTypeNames()), checkResult);
