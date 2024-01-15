@@ -148,7 +148,7 @@ namespace SenseNet.ContentRepository
         public override bool IsTrashable => false;
 
         /// <inheritdoc />
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

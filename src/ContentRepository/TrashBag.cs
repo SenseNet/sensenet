@@ -175,7 +175,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

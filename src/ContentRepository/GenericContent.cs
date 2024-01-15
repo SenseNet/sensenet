@@ -1659,7 +1659,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

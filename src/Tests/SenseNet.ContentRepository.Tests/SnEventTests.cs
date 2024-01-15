@@ -358,7 +358,7 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    node.Delete();
+                    node.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
         [TestMethod]
@@ -374,7 +374,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
                     node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    node.Delete();
+                    node.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     trashBag = (TrashBag)Node.Load<TrashBin>("/Root/Trash").Children.First();
                 },

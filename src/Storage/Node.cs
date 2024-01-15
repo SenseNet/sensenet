@@ -4574,7 +4574,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the current node.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public virtual void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

@@ -38,7 +38,7 @@ namespace SenseNet.Storage
         {
             ThrowException("copy");
         }
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete()
         {
             ThrowException("delete");
