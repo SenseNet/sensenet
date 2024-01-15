@@ -250,7 +250,7 @@ namespace SenseNet.ContentRepository
         /// This method is obsolete. Use <see cref="Group.IsInGroup"/> instead.
         /// </summary>
         /// <param name="securityGroupId">Id of the container group.</param>
-        [Obsolete("Use IsInGroup instead.", false)]
+        [Obsolete("Use IsInGroup instead.", true)]
         public bool IsInRole(int securityGroupId)
         {
             return IsInGroup(securityGroupId);
