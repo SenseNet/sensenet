@@ -618,10 +618,12 @@ namespace WebAppTests
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -657,10 +659,12 @@ namespace WebAppTests
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -696,10 +700,12 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -736,10 +742,12 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -785,10 +793,12 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -833,10 +843,12 @@ namespace WebAppTests
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
-                        typeof(SummaryProvider),
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
                         typeof(ImageGenerator)
                     }},
-                    {typeof(ISummaryProvider), typeof(SummaryProvider)},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
