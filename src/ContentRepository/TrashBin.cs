@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository
         /// If any condition is false, the Content will be deleted permanently.
         /// </summary>
         /// <param name="n">The <see cref="GenericContent"/> instance that will be deleted.</param>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static bool DeleteNode(GenericContent n)
         {
             return DeleteNodeAsync(n, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
