@@ -537,7 +537,7 @@ namespace SenseNet.ContentRepository
                     content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
                     content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
-                    content.SaveSameVersion();
+                    content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }

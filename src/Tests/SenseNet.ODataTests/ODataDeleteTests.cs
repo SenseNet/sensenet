@@ -163,7 +163,7 @@ namespace SenseNet.ODataTests
             // not compatible with the .net core method
             var deleteAppPath = "/Root/(apps)/GenericContent/Delete";
             if (Node.Exists(deleteAppPath))
-                Node.ForceDelete(deleteAppPath);
+                Node.ForceDeleteAsync(deleteAppPath, CancellationToken.None).GetAwaiter().GetResult();
 
             // ARRANGE
             var testRoot = CreateTestRoot("ODataTestRoot");

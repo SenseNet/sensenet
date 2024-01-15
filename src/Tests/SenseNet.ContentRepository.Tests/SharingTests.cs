@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -963,7 +964,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, root, PermissionType.Open));
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
-                user.ForceDelete();
+                user.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -1035,7 +1036,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(items.Single(sd => sd.Identity == group.Id));
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
-                group.ForceDelete();
+                group.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -1164,7 +1165,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSharingGroup(group, gc, true);
 
                 // ACTION: delete content --> the group and its permissions should be deleted
-                gc.ForceDelete();
+                gc.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background task
                 Thread.Sleep(100);
@@ -1192,7 +1193,7 @@ namespace SenseNet.ContentRepository.Tests
                 var groups = LoadSharingGroups(content.ContentHandler);
 
                 // ACTION: delete parent
-                root.ForceDelete();
+                root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background task
                 Thread.Sleep(1500);
@@ -1237,13 +1238,14 @@ namespace SenseNet.ContentRepository.Tests
         }
         //UNDONE:TEST: Inactivated due TypeLoadException: Microsoft.Extensions.Primitives.InplaceStringBuilder
         //[TestMethod]
-        public void Sharing_Public_MembershipExtender_Deleted()
+        public async System.Threading.Tasks.Task Sharing_Public_MembershipExtender_Deleted()
         {
-            Test(() =>
+            var cancel = new CancellationTokenSource().Token;
+            await Test(async () =>
             {
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                await content.SaveAsync(cancel).ConfigureAwait(false);
 
                 var gc = (GenericContent)content.ContentHandler;
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
@@ -1266,11 +1268,11 @@ namespace SenseNet.ContentRepository.Tests
                 if (!trash.IsActive)
                 {
                     trash.IsActive = true;
-                    trash.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
+                    await trash.SaveAsync(SavingMode.KeepVersion, cancel).ConfigureAwait(false);
                 }
 
                 // move to the trash
-                content.Delete(false);
+                await content.DeleteAsync(false, cancel).ConfigureAwait(false); ;
                 content = Content.Load(content.Id);
 
                 extension = extender.GetExtension(User.Current);
@@ -1286,7 +1288,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
 
-                content.ForceDelete();
+                await content.ForceDeleteAsync(cancel).ConfigureAwait(false);
 
                 extension = extender.GetExtension(User.Current);
 

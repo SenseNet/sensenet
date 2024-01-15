@@ -71,7 +71,7 @@ namespace SenseNet.ContentRepository.Tests
                 finally
                 {
                     // cleanup
-                    tempAppContent.ForceDelete();
+                    tempAppContent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }

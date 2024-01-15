@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -36,7 +37,7 @@ namespace SenseNet.Packaging.Steps
                         throw new ContentNotFoundException(contextPath);
                     }
                     content["Name"] = name;
-                    content.SaveSameVersion();
+                    content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     return;
                 }
 

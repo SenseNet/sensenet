@@ -466,7 +466,7 @@ namespace SenseNet.Services.Core.Operations
                 var guid = Guid.NewGuid().ToString();
 
                 content["SyncGuid"] = guid;
-                content.SaveSameVersion();
+                await content.SaveSameVersionAsync(httpContext.RequestAborted).ConfigureAwait(false);
 
                 logger.LogTrace($"Sync guid {guid} was set on user {content.Name} ({content.Id}) " +
                                 "before sending password change mail.");
@@ -538,7 +538,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]
         [Scenario(N.S.ContextMenu)]
-        public static void ChangePassword(Content content, string password)
+        public static async Task ChangePassword(Content content, HttpContext httpContext, string password)
         {
             //TODO: enforce password policy when available
             if (string.IsNullOrEmpty(password))
@@ -557,7 +557,7 @@ namespace SenseNet.Services.Core.Operations
                 try
                 {
                     content["Password"] = password;
-                    content.SaveSameVersion();
+                    await content.SaveSameVersionAsync(httpContext.RequestAborted).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

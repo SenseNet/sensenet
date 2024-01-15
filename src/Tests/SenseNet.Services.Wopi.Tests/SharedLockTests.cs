@@ -609,7 +609,7 @@ namespace SenseNet.Services.Wopi.Tests
 
             public OperationContext Delete()
             {
-                LoadTestFile().ForceDelete();
+                LoadTestFile().ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 return this;
             }
         }
@@ -639,7 +639,7 @@ namespace SenseNet.Services.Wopi.Tests
             SharedLock.Lock(nodeId, lockValue, CancellationToken.None);
 
             // ACTION
-            node.ForceDelete();
+            node.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]

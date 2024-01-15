@@ -569,7 +569,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 BlobStoragePlatform.UpdateFileCreationDate(file.Binary.FileId, DateTime.UtcNow.AddDays(-1));
 
                 // Action #1
-                file.ForceDelete();
+                file.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // Assert #1
                 var dbFile = BlobStoragePlatform.LoadDbFile(fileId);
@@ -682,7 +682,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
 
                 // ACTION
-                Node.ForceDelete(root.Path);
+                Node.ForceDeleteAsync(root.Path, CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 //Assert.IsNull(Node.Load<SystemFolder>(root.Id));

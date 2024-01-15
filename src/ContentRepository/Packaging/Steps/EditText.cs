@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using File = System.IO.File;
@@ -78,7 +79,7 @@ namespace SenseNet.Packaging.Steps
             else
                 content[Field] = text;
 
-            content.SaveSameVersion();
+            content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

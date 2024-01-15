@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.Schema
         }
 
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void RemoveContentType(string contentTypeName)
         {
             RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), CancellationToken.None)
@@ -162,7 +162,7 @@ namespace SenseNet.ContentRepository.Schema
             return RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), cancel);
         }
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void RemoveContentType(ContentType contentType)
         {
             RemoveContentTypeAsync(contentType, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

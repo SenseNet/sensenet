@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Workspaces
         }
 
         /// <inheritdoc />
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

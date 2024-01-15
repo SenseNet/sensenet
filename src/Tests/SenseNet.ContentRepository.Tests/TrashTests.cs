@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(User.Visitor);
 
                     // action: try to trash the file as Visitor
-                    TrashBin.DeleteNode(file);
+                    TrashBin.DeleteNodeAsync(file, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(User.Visitor);
 
                     // action: try to trash the file as Visitor - it should succeed
-                    TrashBin.DeleteNode(file);
+                    TrashBin.DeleteNodeAsync(file, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {

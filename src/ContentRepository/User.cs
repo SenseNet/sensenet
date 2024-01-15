@@ -925,7 +925,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// This method is obsolete. Use IsInGroup() instead.
         /// </summary>
-        [Obsolete("Use IsInGroup instead.", false)]
+        [Obsolete("Use IsInGroup instead.", true)]
         public bool IsInRole(int securityGroupId)
         {
             return IsInGroup(securityGroupId);
@@ -984,7 +984,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// This method is obsolete. Use GetGroups() instead.
         /// </summary>
-        [Obsolete("Use GetGroups() instead.", false)]
+        [Obsolete("Use GetGroups() instead.", true)]
         public List<int> GetRoles()
         {
             return GetGroups();
@@ -1225,7 +1225,7 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

@@ -236,7 +236,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     var targetPathWithName = RepositoryPath.Combine(targetPath, sourceName);
                     if (Node.Exists(targetPathWithName))
-                        Node.ForceDelete(targetPathWithName);
+                        Node.ForceDeleteAsync(targetPathWithName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
 

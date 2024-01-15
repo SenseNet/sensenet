@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
 	    public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -186,7 +186,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// This method is obsolete. Use <see cref="IUser.IsInOrganizationalUnit"/> method instead.
         /// </summary>
-        [Obsolete("Use User.IsInOrganizationalUnit instead.", false)]
+        [Obsolete("Use User.IsInOrganizationalUnit instead.", true)]
         public bool IsMember(IUser user)
         {
             return user.IsInOrganizationalUnit(this);
@@ -198,7 +198,7 @@ namespace SenseNet.ContentRepository
         /// This method is obsolete. Use <see cref="Group.IsInGroup"/> method instead.
         /// </summary>
         /// <param name="securityGroupId">Id of the container group.</param>
-	    [Obsolete("Use IsInGroup instead.", false)]
+	    [Obsolete("Use IsInGroup instead.", true)]
 	    public bool IsInRole(int securityGroupId)
 	    {
             return IsInGroup(securityGroupId);

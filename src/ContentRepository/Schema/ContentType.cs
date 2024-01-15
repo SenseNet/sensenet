@@ -862,7 +862,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// The operation is forbidden if an instance exists of any of these types.
         /// In this case an <see cref="ApplicationException"/> will be thrown.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete()
         {
             DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

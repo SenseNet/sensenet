@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository;
 
 namespace SenseNet.Packaging.Steps
@@ -39,7 +40,7 @@ namespace SenseNet.Packaging.Steps
             urlList[url] = authType;
 
             site["UrlList"] = urlList;
-            site.SaveSameVersion();
+            site.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

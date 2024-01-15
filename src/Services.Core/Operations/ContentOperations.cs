@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using STT = System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -25,6 +26,7 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
         [ODataAction(OperationName = "Approve", Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
@@ -519,6 +521,7 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
         /// <returns>This method returns nothing.</returns>
         [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
@@ -526,10 +529,9 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.ListItem, N.S.ContextMenu)]
         [RequiredPermissions(N.P.Delete)]
-        public static object Delete(Content content, bool permanent = false)
+        public static Task Delete(Content content, HttpContext httpContext, bool permanent = false)
         {
-            content.Delete(permanent);
-            return null;
+            return content.DeleteAsync(permanent, httpContext.RequestAborted);
         }
 
         /// <summary>
@@ -1132,7 +1134,7 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreToolbar, N.S.ContextMenu)]
-        public static async STT.Task Restore(Content content, string destination = null, bool? newname = null)
+        public static async Task Restore(Content content, string destination = null, bool? newname = null)
         {
             if (!(content?.ContentHandler is TrashBag tb))
                 throw new InvalidContentActionException("The resource content must be a TrashBag.");

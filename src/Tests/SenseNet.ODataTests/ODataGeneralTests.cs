@@ -1470,8 +1470,8 @@ namespace SenseNet.ODataTests
                 }
                 finally
                 {
-                    root.ForceDelete();
-                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }).ConfigureAwait(false);
         }
