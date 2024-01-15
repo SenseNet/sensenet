@@ -1471,7 +1471,7 @@ namespace SenseNet.ODataTests
                 finally
                 {
                     root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                    ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }).ConfigureAwait(false);
         }

@@ -398,7 +398,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 finally
                 {
                     node?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                    ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }

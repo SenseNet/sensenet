@@ -775,7 +775,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 {
                     srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                     target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    ContentTypeInstaller.RemoveContentType(nameof(TestSystemFolder));
+                    ContentTypeInstaller.RemoveContentTypeAsync(nameof(TestSystemFolder), CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }

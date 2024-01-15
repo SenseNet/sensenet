@@ -532,7 +532,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var contentType = ContentType.GetByName(contentTypeName);
             if(contentType != null)
-                ContentTypeInstaller.RemoveContentType(contentTypeName);
+                ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
 
             return result;
         }

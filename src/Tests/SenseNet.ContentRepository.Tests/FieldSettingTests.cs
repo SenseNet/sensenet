@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 ContentType c = ContentType.GetByName("CT_Root");
                 if (c != null)
-                    ContentTypeInstaller.RemoveContentType(c);
+                    ContentTypeInstaller.RemoveContentTypeAsync(c, CancellationToken.None).GetAwaiter().GetResult();
                 ContentTypeManager.Reset();
 
                 ContentTypeInstaller installer = ContentTypeInstaller.CreateBatchContentTypeInstaller();
@@ -288,7 +288,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 //----------------------
 
-                ContentTypeInstaller.RemoveContentType(ContentType.GetByName("CT_Root"));
+                ContentTypeInstaller.RemoveContentTypeAsync(ContentType.GetByName("CT_Root"), CancellationToken.None).GetAwaiter().GetResult();
                 ContentTypeManager.Reset();
 
                 //----------------------
@@ -1656,7 +1656,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 ContentType c = ContentType.GetByName("CT_Root");
                 if (c != null)
-                    ContentTypeInstaller.RemoveContentType(c);
+                    ContentTypeInstaller.RemoveContentTypeAsync(c, CancellationToken.None).GetAwaiter().GetResult();
                 ContentTypeManager.Reset();
 
                 ContentTypeInstaller installer = ContentTypeInstaller.CreateBatchContentTypeInstaller();
@@ -1734,7 +1734,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // ----------------------
 
-                ContentTypeInstaller.RemoveContentType(ContentType.GetByName("CT_Root"));
+                ContentTypeInstaller.RemoveContentTypeAsync(ContentType.GetByName("CT_Root"), CancellationToken.None).GetAwaiter().GetResult();
                 ContentTypeManager.Reset();
 
                 // ----------------------
