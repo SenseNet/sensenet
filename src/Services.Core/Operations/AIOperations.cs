@@ -13,7 +13,7 @@ namespace SenseNet.Services.Core.Operations;
 public static class AIOperations
 {
     /// <summary>
-    /// Gets the summary of a long text using AI.
+    /// Generates the summary of a long text using AI.
     /// </summary>
     /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
@@ -25,21 +25,45 @@ public static class AIOperations
     [ODataAction]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.AITextUsers)]
-    public static async Task<object> GetSummary(Content content, HttpContext context,
+    public static async Task<object> GenerateSummary(Content content, HttpContext context,
         int maxWordCount, int maxSentenceCount, string text)
     {
-        //TODO: limit max parameters and text length by configuration
-        //TODO: add caller permissions: allowed roles
+        var summaryGenerator = context.RequestServices.GetService<ISummaryGenerator>() ??
+                              throw new InvalidOperationException("AI summary generator is not available.");
 
-        var summaryProvider = context.RequestServices.GetService<ISummaryProvider>() ??
-                              throw new InvalidOperationException("AI summary provider is not available.");
-
-        var summary = await summaryProvider.GetSummary(text, maxWordCount, maxSentenceCount, 
+        var summary = await summaryGenerator.GenerateSummaryAsync(text, maxWordCount, maxSentenceCount, 
             context.RequestAborted).ConfigureAwait(false);
 
         return new
         {
             summary
+        };
+    }
+
+    /// <summary>
+    /// Generates a content query from natural language text using AI.
+    /// </summary>
+    /// <snCategory>AI</snCategory>
+    /// <param name="content"></param>
+    /// <param name="context"></param>
+    /// <param name="text">A natural language text to generate a from.</param>
+    /// <param name="threadId">Optional thread id to chain requests.</param>
+    /// <returns>An object containing the generated query and a thread ID.</returns>
+    [ODataAction]
+    [ContentTypes(N.CT.PortalRoot)]
+    [AllowedRoles(N.R.AITextUsers)]
+    public static async Task<object> GenerateContentQuery(Content content, HttpContext context, string text, string threadId = null)
+    {
+        //TODO: remove the root restriction and add context info to the query
+
+        var queryGenerator = context.RequestServices.GetService<IContentQueryGenerator>() ??
+                               throw new InvalidOperationException("AI content query generator is not available.");
+
+        var queryData = await queryGenerator.GenerateQueryAsync(text, threadId, context.RequestAborted).ConfigureAwait(false);
+
+        return new
+        {
+            queryData
         };
     }
 
