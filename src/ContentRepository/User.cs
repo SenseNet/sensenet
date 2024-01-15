@@ -925,7 +925,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// This method is obsolete. Use IsInGroup() instead.
         /// </summary>
-        [Obsolete("Use IsInGroup instead.", false)]
+        [Obsolete("Use IsInGroup instead.", true)]
         public bool IsInRole(int securityGroupId)
         {
             return IsInGroup(securityGroupId);
@@ -984,7 +984,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// This method is obsolete. Use GetGroups() instead.
         /// </summary>
-        [Obsolete("Use GetGroups() instead.", false)]
+        [Obsolete("Use GetGroups() instead.", true)]
         public List<int> GetRoles()
         {
             return GetGroups();
