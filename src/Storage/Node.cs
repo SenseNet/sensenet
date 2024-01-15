@@ -4421,7 +4421,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the node.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void Delete(string sourcePath)
         {
             DeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -4440,7 +4440,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the node.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void Delete(int nodeId)
         {
             DeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
