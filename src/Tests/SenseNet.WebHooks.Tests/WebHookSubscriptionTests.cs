@@ -182,7 +182,7 @@ namespace SenseNet.WebHooks.Tests
             await Test_Versioning(VersioningType.None, ApprovingType.False,
                 file =>
                 {
-                    file.ForceDelete();
+                    file.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     return Task.CompletedTask;
                 },

@@ -203,7 +203,7 @@ namespace SenseNet.Tests.Core.Tests
                 node1 = Node.Load<SystemFolder>(node1.Id);
 
                 // ACTION
-                node1.ForceDelete();
+                node1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // load last indexing activity
                 var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();

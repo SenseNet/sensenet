@@ -86,8 +86,8 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    aspect1.ForceDelete();
-                    aspect2.ForceDelete();
+                    aspect1?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    aspect2?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -185,8 +185,8 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    aspect1.ForceDelete();
-                    aspect2.ForceDelete();
+                    aspect1?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    aspect2?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -253,7 +253,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    aspect1.ForceDelete();
+                    aspect1?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -293,7 +293,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(aspect1.Id, Aspect.LoadAspectByName(aspectName).Id, "#1 load newly created aspect by name failed: a different aspect was loaded.");
 
                 //delete aspect to make its name available
-                aspect1.ForceDelete();
+                aspect1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //create aspect with the same name
                 var aspect2 = new Aspect(Repository.AspectsFolder) { Name = aspectName };
@@ -401,7 +401,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    aspect.ForceDelete();
+                    aspect.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -419,7 +419,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fieldName = "References";
                 var aspectFieldName = aspectName + Aspect.ASPECTFIELDSEPARATOR + fieldName;
                 if (Node.Exists(aspectPath))
-                    Node.ForceDelete(aspectPath);
+                    Node.ForceDeleteAsync(aspectPath, CancellationToken.None).GetAwaiter().GetResult();
 
                 var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, aspectName);
                 aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -457,7 +457,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fieldName = "References";
                 var aspectFieldName = aspectName + Aspect.ASPECTFIELDSEPARATOR + fieldName;
                 if (Node.Exists(aspectPath))
-                    Node.ForceDelete(aspectPath);
+                    Node.ForceDeleteAsync(aspectPath, CancellationToken.None).GetAwaiter().GetResult();
 
                 var aspectContent = Content.CreateNew("Aspect", Repository.AspectsFolder, aspectName);
                 aspectContent.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -614,7 +614,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 finally
                 {
-                    aspect1.ForceDelete();
+                    aspect1?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }

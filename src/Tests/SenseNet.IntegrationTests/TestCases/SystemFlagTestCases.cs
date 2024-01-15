@@ -42,7 +42,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -59,7 +59,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -78,7 +78,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -155,8 +155,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -232,8 +232,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -309,8 +309,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -386,8 +386,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -463,8 +463,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -539,8 +539,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -615,8 +615,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -691,8 +691,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -773,8 +773,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                     ContentTypeInstaller.RemoveContentType(nameof(TestSystemFolder));
                 }
             });

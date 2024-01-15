@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = _factory.CreateUserAndSave("U2");
                 group.AddReferences("Members", new[] {user1});
                 group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                user1.ForceDelete();
+                user1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = _factory.CreateUserAndSave("U2");
                 group.AddReferences("Members", new[] { user1 });
                 group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                user1.ForceDelete();
+                user1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);
@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user3 = _factory.CreateUserAndSave("U3");
                 group.AddReferences("Members", new[] { user1, user2, user3 });
                 group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                user2.ForceDelete();
+                user2.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);
@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Tests
                 var user3 = _factory.CreateUserAndSave("U3");
                 group.AddReferences("Members", new[] { user1, user2, user3 });
                 group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                user2.ForceDelete();
+                user2.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 group = Node.Load<Group>(group.Id);

@@ -964,7 +964,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(Providers.Instance.SecurityHandler.HasPermission(user, root, PermissionType.Open));
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
-                user.ForceDelete();
+                user.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -1036,7 +1036,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(items.Single(sd => sd.Identity == group.Id));
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
-                group.ForceDelete();
+                group.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background tasks
                 Thread.Sleep(200);
@@ -1165,7 +1165,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSharingGroup(group, gc, true);
 
                 // ACTION: delete content --> the group and its permissions should be deleted
-                gc.ForceDelete();
+                gc.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background task
                 Thread.Sleep(100);
@@ -1193,7 +1193,7 @@ namespace SenseNet.ContentRepository.Tests
                 var groups = LoadSharingGroups(content.ContentHandler);
 
                 // ACTION: delete parent
-                root.ForceDelete();
+                root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // wait for the background task
                 Thread.Sleep(1500);

@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 try
                 {
-                    node.ForceDelete();
+                    node.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                     Assert.Fail("The expected exception was not thrown.");
                 }
                 catch (ApplicationException)
@@ -43,7 +43,7 @@ namespace SenseNet.ContentRepository.Tests
                 var node = new SystemFolder(Repository.Root) { Name = "TestFolder" };
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                node.ForceDelete();
+                node.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
             });
         }
 
@@ -113,9 +113,9 @@ namespace SenseNet.ContentRepository.Tests
                 AssertProtectedGroup_DeleteUser("/Root/IMS/Public/TestOrg");
 
                 // can be deleted, group3 is not protected
-                Node.ForceDelete("/Root/IMS/Public/TestOrg/user3");
+                Node.ForceDeleteAsync("/Root/IMS/Public/TestOrg/user3", CancellationToken.None).GetAwaiter().GetResult();
                 // user without groups
-                Node.ForceDelete("/Root/IMS/Public/TestOrg/user4");
+                Node.ForceDeleteAsync("/Root/IMS/Public/TestOrg/user4", CancellationToken.None).GetAwaiter().GetResult();
             });
         }
         [TestMethod]
@@ -206,7 +206,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(user1);
 
                     // delete user2 without a problem
-                    user2.ForceDelete();
+                    user2.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
@@ -219,7 +219,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(user1);
 
                     // try to delete themselves
-                    user1.ForceDelete();
+                    user1.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (ApplicationException ex)
                 {
@@ -239,7 +239,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(user1);
 
                     // try to delete parent
-                    testOrg.ForceDelete();
+                    testOrg.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (ApplicationException ex)
                 {
@@ -259,7 +259,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             try
             {
-                Node.ForceDelete(userToDelete);
+                Node.ForceDeleteAsync(userToDelete, CancellationToken.None).GetAwaiter().GetResult();
                 Assert.Fail("The expected exception was not thrown.");
             }
             catch (InvalidOperationException)

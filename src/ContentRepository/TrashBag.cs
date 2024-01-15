@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository
         /// <inheritdoc />
         /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
         /// an <see cref="ApplicationException"/> will be thrown.</remarks>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

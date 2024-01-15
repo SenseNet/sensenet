@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
 	    public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

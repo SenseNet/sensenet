@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Tests
                 },
                 () =>
                 {
-                    node.ForceDelete();
+                    node.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 });
         }
         [TestMethod]

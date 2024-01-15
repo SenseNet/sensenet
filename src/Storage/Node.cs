@@ -4234,7 +4234,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void ForceDelete(string sourcePath)
         {
             ForceDeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -4253,7 +4253,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static void ForceDelete(int nodeId)
         {
             ForceDeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -4272,7 +4272,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes the <see cref="Node"/> permanently.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public virtual void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

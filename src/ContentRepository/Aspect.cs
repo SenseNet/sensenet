@@ -428,7 +428,7 @@ namespace SenseNet.ContentRepository
         /// The logged-in user need to have ManageListsAndWorkspaces permission,
         /// otherwise <see cref="SenseNetSecurityException"/> will be thrown.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void ForceDelete()
         {
             ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

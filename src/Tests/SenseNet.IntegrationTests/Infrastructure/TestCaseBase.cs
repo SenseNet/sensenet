@@ -81,7 +81,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     if(sandbox!=null)
                         using (new SystemAccount())
-                            sandbox.ForceDelete();
+                            sandbox.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }
@@ -123,7 +123,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     if (sandbox != null)
                         using (new SystemAccount())
-                            sandbox.ForceDelete();
+                            sandbox.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }
@@ -172,7 +172,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 {
                     if (sandbox != null)
                         using (new SystemAccount())
-                            sandbox.ForceDelete();
+                            sandbox.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }

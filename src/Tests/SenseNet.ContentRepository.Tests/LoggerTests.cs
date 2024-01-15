@@ -85,7 +85,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // operations for a "content deleted" audit event
                 folder = Node.Load<SystemFolder>(folderId);
-                folder.ForceDelete();
+                folder.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // load audit log entries
                 var entries = Providers.Instance.GetProvider<ITestingDataProvider>().LoadLastAuditLogEntries(10);
