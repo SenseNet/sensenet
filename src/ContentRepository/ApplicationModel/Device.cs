@@ -60,11 +60,10 @@ namespace SenseNet.ApplicationModel
             DeviceManager.Reset();
         }
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void Delete(bool bypassTrash)
         {
-            base.Delete(bypassTrash);
-            DeviceManager.Reset();
+            DeleteAsync(bypassTrash, CancellationToken.None).GetAwaiter().GetResult();
         }
         public override async Task DeleteAsync(bool bypassTrash, CancellationToken cancel)
         {

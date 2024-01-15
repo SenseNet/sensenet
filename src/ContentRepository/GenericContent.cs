@@ -1664,7 +1664,7 @@ namespace SenseNet.ContentRepository
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public virtual void Delete(bool bypassTrash)
         {
             DeleteAsync(bypassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
