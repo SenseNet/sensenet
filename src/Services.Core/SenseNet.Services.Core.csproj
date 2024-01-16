@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>0.0.37</Version>
+		<Version>0.0.37.1</Version>
 		<Authors>kavics,joe,tusmester</Authors>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Company>Sense/Net Inc.</Company>
@@ -31,7 +31,7 @@
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 		<PackageReference Include="SenseNet.AI.Text" Version="0.0.1.4" />
 		<PackageReference Include="SenseNet.AI.Vision" Version="0.0.0.2" />
-		<PackageReference Include="SenseNet.Tools" Version="3.2.12.4" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.13" />
 	</ItemGroup>
 
 	<ItemGroup>
