@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
@@ -110,6 +111,16 @@ namespace SenseNet.ContentRepository
 
                 return System.Threading.Tasks.Task.CompletedTask;
             }).GetAwaiter().GetResult();
+
+            // generate default clients and secrets
+            var clientStore = builder.Services?.GetService<ClientStore>();
+            var clientOptions = builder.Services?.GetService<IOptions<ClientStoreOptions>>()?.Value;
+            var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
+
+            logger?.LogInformation("Ensuring default clients and secrets...");
+
+            clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
+                .GetAwaiter().GetResult();
 
             return repositoryInstance;
         }
