@@ -195,6 +195,8 @@ namespace SenseNet.ContentRepository.Security.Clients
 
                 if (clients.Any()) return;
 
+                _logger.LogTrace($"Creating {type} client for {host} for {authority}.");
+
                 var client = new Client
                 {
                     Authority = authority.RemoveUrlSchema(),
