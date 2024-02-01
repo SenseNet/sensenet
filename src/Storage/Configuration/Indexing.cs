@@ -22,11 +22,12 @@ namespace SenseNet.Configuration
         public static int IndexingActivityQueueMaxLength { get; set; } = 500;
         public static int TextExtractTimeout { get; set; } = 300;
         /// <summary>
-        /// Gets or sets the periodicity of deletion the old IndexingActivities. Default: 10 minutes.
+        /// Gets or sets the periodicity of deleting old IndexingActivities. Default: 10 minutes.
         /// </summary>
         public static int IndexingActivityDeletionPeriodInMinutes { get; set; } = 10;
         /// <summary>
-        /// Gets or sets the age of the IndexingActivities that will be deleted periodically. Default: 480 (8 hours).
+        /// Gets or sets the age threshold for IndexingActivities that are periodically deleted.
+        /// The default age threshold is set to 480 (8 hours).
         /// </summary>
         public static int IndexingActivityMaxAgeInMinutes { get; set; } = 480;
     }
