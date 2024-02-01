@@ -1447,7 +1447,10 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
+                {
                     activity.RunningState = runningState;
+                    activity.LockTime = DateTime.UtcNow;
+                }
             }
             return STT.Task.CompletedTask;
         }
@@ -1471,8 +1474,12 @@ namespace SenseNet.ContentRepository.InMemory
         public override STT.Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var timeLimit = DateTime.UtcNow.AddMinutes(maxAgeInMinutes);
             lock (DB.IndexingActivities)
-                foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
+                foreach(var existing in DB.IndexingActivities
+                            .Where(x => x.RunningState == IndexingActivityRunningState.Done &&
+                                        (x.LockTime == null || x.LockTime < timeLimit))
+                            .ToArray())
                     DB.IndexingActivities.Remove(existing);
             return STT.Task.CompletedTask;
         }
