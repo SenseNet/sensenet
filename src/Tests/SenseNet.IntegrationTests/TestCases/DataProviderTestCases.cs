@@ -1639,7 +1639,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IndexingActivityTest(async (firstId, lastId) =>
             {
                 // ACTION
-                await DP.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None);
+                await DP.DeleteFinishedIndexingActivitiesAsync(23, CancellationToken.None);
 
                 // ASSERT
                 var result = await DP.LoadIndexingActivitiesAsync(firstId, lastId, 100, false, new TestIndexingActivityFactory(), CancellationToken.None);
