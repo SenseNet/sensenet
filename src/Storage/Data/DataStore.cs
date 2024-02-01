@@ -698,9 +698,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds, cancellationToken);
         }
-        public Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
-            return DataProvider.DeleteFinishedIndexingActivitiesAsync(cancellationToken);
+            return DataProvider.DeleteFinishedIndexingActivitiesAsync(maxAgeInMinutes, cancellationToken);
         }
         public Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {

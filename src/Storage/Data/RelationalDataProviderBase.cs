@@ -2044,11 +2044,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string RefreshIndexingActivityLockTimeScript { get; }
 
-        public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public override async Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: DeleteFinishedIndexingActivities()");
             using var ctx = CreateDataContext(cancellationToken);
-            await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript).ConfigureAwait(false);
+            await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript, cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@Minutes", DbType.Int32, maxAgeInMinutes));
+            }).ConfigureAwait(false);
             op.Successful = true;
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }

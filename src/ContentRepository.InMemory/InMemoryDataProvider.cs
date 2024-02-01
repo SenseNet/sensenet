@@ -1468,7 +1468,7 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)

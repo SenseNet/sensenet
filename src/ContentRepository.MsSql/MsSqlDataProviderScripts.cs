@@ -1149,7 +1149,7 @@ UPDATE IndexingActivities SET LockTime = @LockTime WHERE IndexingActivityId IN (
 
         #region DeleteFinishedIndexingActivitiesScript
         protected override string DeleteFinishedIndexingActivitiesScript => @"-- MsSqlDataProvider.DeleteFinishedIndexingActivities
-DELETE FROM IndexingActivities WHERE RunningState = 'Done' AND (LockTime < DATEADD(MINUTE, -23, GETUTCDATE()) OR LockTime IS NULL)
+DELETE FROM IndexingActivities WHERE RunningState = 'Done' AND (LockTime < DATEADD(MINUTE, -@Minutes, GETUTCDATE()) OR LockTime IS NULL)
 ";
         #endregion
 
