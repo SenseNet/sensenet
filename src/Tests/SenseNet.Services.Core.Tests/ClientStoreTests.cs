@@ -395,7 +395,7 @@ namespace SenseNet.Services.Core.Tests
                 {
                     var context = new DefaultHttpContext { RequestServices = services };
 
-                    await CreateUsersAndClients(clientStore);
+                    await CreateUsersAndClients(context, clientStore);
                     await callback(context, clientStore);
                 });
         }
@@ -438,7 +438,7 @@ namespace SenseNet.Services.Core.Tests
             });
         }
 
-        private static async Task CreateUsersAndClients(ClientStore clientStore)
+        private static async Task CreateUsersAndClients(HttpContext context, ClientStore clientStore)
         {
             // public\user1     --> member of PublicAdmins
             // domain2\user2
@@ -474,6 +474,14 @@ namespace SenseNet.Services.Core.Tests
                 .ClearPermission(domain2.Id, publicAdminGroup.Id, false, PermissionType.See)
                 .ApplyAsync(CancellationToken.None).ConfigureAwait(false);
 
+            // cleanup: delete all existing clients before creating test clients
+            dynamic result = await ClientStoreOperations.GetClients(null, context);
+            var clients = (ContentRepository.Security.Clients.Client[])result.clients;
+
+            foreach (var client in clients)
+            {
+                await clientStore.DeleteClientAsync(client.ClientId, CancellationToken.None);
+            }
 
             await clientStore.SaveClientAsync(new ContentRepository.Security.Clients.Client
             {
