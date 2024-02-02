@@ -131,7 +131,7 @@ namespace SenseNet.OData
                 {
                     // Log the cancellation. There is no point in returning anything to the client,
                     // because the client is not listening anymore.
-                    _logger.LogWarning("The operation was canceled. Request: {Request}", 
+                    _logger.LogInformation("The operation was canceled. Request: {Request}", 
                         httpContext.Request.GetDisplayUrl());
                 }
             }

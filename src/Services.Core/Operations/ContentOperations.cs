@@ -599,7 +599,7 @@ namespace SenseNet.Services.Core.Operations
                 // exit gracefully if the whole request is cancelled
                 if (httpContext.RequestAborted.IsCancellationRequested)
                 {
-                    logger.LogTrace("Exiting batch delete as the request was cancelled. Url: {RequestUrl}", 
+                    logger.LogInformation("Exiting batch delete as the request was cancelled. Url: {RequestUrl}", 
                         httpContext.Request.GetDisplayUrl());
                     break;
                 }
@@ -624,7 +624,7 @@ namespace SenseNet.Services.Core.Operations
                 }
                 catch (OperationCanceledException ex)
                 {
-                    logger.LogWarning(ex, "Operation was cancelled during batch delete. Request: {RequestUrl}",
+                    logger.LogInformation("Operation was cancelled during batch delete. Request: {RequestUrl}",
                         httpContext.Request.GetDisplayUrl());
 
                     // exit gracefully if the whole request is cancelled
