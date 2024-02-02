@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -583,6 +586,8 @@ namespace SenseNet.Services.Core.Operations
             if(paths == null || paths.Length == 0)
                 return null;
 
+            var logger = (ILogger<Content>)httpContext.RequestServices.GetRequiredService(typeof(ILogger<Content>));
+
             var results = new List<object>();
             var errors = new List<ErrorContent>();
             var identifiers = paths.Select(NodeIdentifier.Get).ToList();
@@ -591,6 +596,14 @@ namespace SenseNet.Services.Core.Operations
 
             foreach (var node in nodes)
             {
+                // exit gracefully if the whole request is cancelled
+                if (httpContext.RequestAborted.IsCancellationRequested)
+                {
+                    logger.LogTrace("Exiting batch delete as the request was cancelled. Url: {RequestUrl}", 
+                        httpContext.Request.GetDisplayUrl());
+                    break;
+                }
+
                 try
                 {
                     // Collect already found identifiers in a separate list otherwise the error list
@@ -609,12 +622,22 @@ namespace SenseNet.Services.Core.Operations
 
                     results.Add(new { node.Id, node.Path, node.Name });
                 }
+                catch (OperationCanceledException ex)
+                {
+                    logger.LogWarning(ex, "Operation was cancelled during batch delete. Request: {RequestUrl}",
+                        httpContext.Request.GetDisplayUrl());
+
+                    // exit gracefully if the whole request is cancelled
+                    if (httpContext.RequestAborted.IsCancellationRequested)
+                        break;
+                }
                 catch (Exception e)
                 {
                     //TODO: we should log only relevant exceptions here and skip
                     // business logic-related errors, e.g. lack of permissions or
                     // existing target content path.
-                    SnLog.WriteException(e);
+                    logger.LogError(e, "Error during batch delete. Request: {RequestUrl}",
+                        httpContext.Request.GetDisplayUrl());
 
                     errors.Add(new ErrorContent
                     {

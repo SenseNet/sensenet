@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.OData;
 
@@ -44,7 +45,8 @@ namespace SenseNet.ODataTests
 
                 // ACTION: Simulate the aspnet framework
                 // instantiate the OData with the next chain member
-                var odata = new ODataMiddleware(new TestMiddleware(null).InvokeAsync, null, null);
+                var odata = new ODataMiddleware(new TestMiddleware(null).InvokeAsync, null, null, 
+                    NullLogger<ODataMiddleware>.Instance);
                 // call the first of the chain
                 await odata.InvokeAsync(httpContext, null);
 
@@ -78,7 +80,7 @@ namespace SenseNet.ODataTests
                 var responseStream = httpContext.Response.Body = new MemoryStream();
 
                 // ACTION: Simulate the aspnet framework
-                var odata = new ODataMiddleware(null, null, null);
+                var odata = new ODataMiddleware(null, null, null, NullLogger<ODataMiddleware>.Instance);
                 // call the first of the chain
                 await odata.InvokeAsync(httpContext, null);
 

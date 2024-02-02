@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -239,7 +240,8 @@ namespace SenseNet.ODataTests
             var builder = base.CreateRepositoryBuilderForTest(modifyServices);
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
-            var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover in the static ctor
+            var _ = new ODataMiddleware(null, null, null, 
+                NullLogger<ODataMiddleware>.Instance); // Ensure running the first-touch discover in the static ctor
             OperationCenter.Operations.Clear();
             OperationCenter.Discover();
 
@@ -318,7 +320,8 @@ namespace SenseNet.ODataTests
 
             httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null, config, null);
+            var odata = new ODataMiddleware(null, config, null, 
+                NullLogger<ODataMiddleware>.Instance);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
@@ -343,7 +346,7 @@ namespace SenseNet.ODataTests
 
             //httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null, config, null);
+            var odata = new ODataMiddleware(null, config, null, NullLogger<ODataMiddleware>.Instance);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
