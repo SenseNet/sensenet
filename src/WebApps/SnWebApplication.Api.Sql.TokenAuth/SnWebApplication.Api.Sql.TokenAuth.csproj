@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="SenseNet.AI.Text.SemanticKernel" Version="0.0.2-beta1" />
     <PackageReference Include="SenseNet.AI.Vision.Azure" Version="0.0.1-beta1" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.11" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.11.1" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.1.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
