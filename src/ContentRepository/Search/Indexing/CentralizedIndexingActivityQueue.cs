@@ -66,6 +66,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     while (_activeTasks > ActiveTaskLimit)
                         Thread.Sleep(_hearthBeatMilliseconds);
                 }
+                Providers.Instance.IndexManager.CommitAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // every period starts now
                 _lastLockRefreshTime = DateTime.UtcNow;
