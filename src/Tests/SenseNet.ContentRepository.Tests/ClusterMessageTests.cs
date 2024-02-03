@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
@@ -38,7 +39,7 @@ namespace SenseNet.ContentRepository.Tests
         #region private class TestIndexManager
         private class TestIndexManager : IndexManager
         {
-            public TestIndexManager() : base(null, null, null) { }
+            public TestIndexManager() : base(null, null, null, NullLogger<IndexManager>.Instance) { }
             public override IndexDocument CompleteIndexDocument(IndexDocumentData docData)
             {
                 return docData.IndexDocument;
