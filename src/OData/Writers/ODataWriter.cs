@@ -61,7 +61,7 @@ namespace SenseNet.OData.Writers
                         {
                             _odataWriterTypes = LoadODataWriterTypes();
 
-                            SnLog.WriteInformation("ODataWriter types loaded: " +
+                            SnTrace.System.Write("ODataWriter types loaded: " +
                                 string.Join(", ", _odataWriterTypes.Values.Select(t => t.FullName)));
                         }
                     }

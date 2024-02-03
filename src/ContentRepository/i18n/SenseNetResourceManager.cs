@@ -68,15 +68,13 @@ namespace SenseNet.ContentRepository.i18n
 
         internal static void Reset()
         {
-            SnLog.WriteInformation("ResourceManager.Reset called.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("ResourceManager.Reset called.");
 
             new ResourceManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
-            SnLog.WriteInformation("ResourceManager.Reset executed.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("ResourceManager.Reset executed.");
 
             lock (_syncRoot)
             {

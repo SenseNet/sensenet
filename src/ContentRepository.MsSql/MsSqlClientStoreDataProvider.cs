@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using Tasks=System.Threading.Tasks;
@@ -99,16 +100,23 @@ SELECT S.* FROM ClientSecrets S JOIN ClientApps A ON S.ClientId = A.ClientId WHE
                 "LoadClientsByRepository(repositoryHost: {0})", repositoryHost);
 
             using var ctx = DataProvider.CreateDataContext(cancellation);
-            var result = await ctx.ExecuteReaderAsync(LoadClientsByRepositorySql, cmd =>
+
+            try
             {
-                cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
-            },
-            async (reader, cancel) => await GetClientsFromReader(reader, cancel)).ConfigureAwait(false);
-            op.Successful = true;
+                var result = await ctx.ExecuteReaderAsync(LoadClientsByRepositorySql, cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@Repository", DbType.String, 450, repositoryHost));
+                    },
+                    async (reader, cancel) => await GetClientsFromReader(reader, cancel)).ConfigureAwait(false);
+                op.Successful = true;
 
-            return result;
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                throw new DataException("Error loading clients by repository. " + ex.Message, ex);
+            }
         }
-
 
         private static readonly string LoadClientsByAuthority = @"-- MsSqlClientStoreDataProvider.LoadClientsByAuthority
 SELECT * FROM ClientApps WHERE Authority = @Authority

@@ -142,8 +142,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         internal void Reset()
         {
-            SnLog.WriteInformation("NodeTypeManager.Restart called.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("NodeTypeManager.Restart called.");
+
             new NodeTypeManagerRestartDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
@@ -153,8 +153,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void RestartPrivate()
         {
-            SnLog.WriteInformation("NodeTypeManager.Restart executed.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("NodeTypeManager.Restart executed.");
+
             NodeObserver.FireOnReset();
 
             lock (_lock)
