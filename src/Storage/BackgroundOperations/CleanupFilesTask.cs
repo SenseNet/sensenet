@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
@@ -14,12 +14,14 @@ namespace SenseNet.BackgroundOperations
     /// </summary>
     public class CleanupFilesTask : IMaintenanceTask
     {
+        private readonly ILogger<CleanupFilesTask> _logger;
         public int WaitingSeconds { get; } = 120; // 2 minutes
         private bool _fileCleanupIsRunning;
         private IBlobStorage BlobStorage { get; }
 
-        public CleanupFilesTask(IBlobStorage blobStorage)
+        public CleanupFilesTask(IBlobStorage blobStorage, ILogger<CleanupFilesTask> logger)
         {
+            _logger = logger;
             BlobStorage = blobStorage;
         }
 
@@ -52,12 +54,12 @@ namespace SenseNet.BackgroundOperations
         {
             try
             {
-                SnTrace.Database.Write(SnMaintenance.TracePrefix + "Cleanup files: setting the IsDeleted flag...");
+                _logger.LogTrace(SnMaintenance.TracePrefix + "Cleanup files: setting the IsDeleted flag...");
                 await BlobStorage.CleanupFilesSetFlagAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                SnLog.WriteWarning("Error in file cleanup set flag background process. " + ex, EventId.RepositoryRuntime);
+                _logger.LogWarning(ex, "Error in file cleanup set flag background process.");
             }
         }
         /// <summary>
@@ -69,21 +71,30 @@ namespace SenseNet.BackgroundOperations
 
             try
             {
-                SnTrace.Database.Write(SnMaintenance.TracePrefix + "Cleanup files: deleting rows...");
+                _logger.LogTrace(SnMaintenance.TracePrefix + "Cleanup files: deleting rows...");
 
                 // keep deleting orphaned binary rows while there are any
                 while (await BlobStorage.CleanupFilesAsync(cancellationToken).ConfigureAwait(false))
                 {
                     deleteCount++;
+
+                    // check if the task was cancelled and return silently if yes
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
                 }
 
                 if (deleteCount > 0)
-                    SnLog.WriteInformation($"{deleteCount} orphaned rows were deleted from the binary table during cleanup.", 
-                        EventId.RepositoryRuntime);
+                    _logger.LogInformation(
+                        "{DeleteRowCount} orphaned rows were deleted from the binary table during cleanup.",
+                        deleteCount);
+            }
+            catch(OperationCanceledException)
+            {
+                _logger.LogInformation("File cleanup was cancelled.");
             }
             catch (Exception ex)
             {
-                SnLog.WriteWarning("Error in file cleanup background process. " + ex, EventId.RepositoryRuntime);
+                _logger.LogWarning(ex, "Error in file cleanup background process.");
             }
         }
     }
