@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version Condition="'$(GitVersion)' != ''">$(GitVersion.NuGetVersion)</Version>
-		<Version Condition="'$(GitVersion)' == ''">7.7.39.2</Version>
+		<Version Condition="'$(GitVersion_NuGetVersion)' != ''">$(GitVersion_NuGetVersion)</Version>
+		<Version Condition="'$(GitVersion_NuGetVersion)' == ''">7.7.39.2</Version>
 		<Authors>kavics,joe,tusmester</Authors>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -25,7 +25,6 @@
 	</PropertyGroup>
 
 	<Target Name="GenerateVersion" BeforeTargets="CoreCompile">
-		<!--<Exec Command="dotnet gitversion /output buildserver" />-->
 		<Exec Command="..\..\tools\build\dotnet-gitversion.exe /output buildserver" />	
 	</Target>
 
