@@ -262,3 +262,4 @@ paket-files/
 **/App_Data/LocalIndex
 **/App_Data/Logs
 /src/WebApps/**/install-services-core
+/tools/build
