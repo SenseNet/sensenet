@@ -24,10 +24,6 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
-	<Target Name="GenerateVersion" BeforeTargets="CoreCompile">
-		<Exec Command="..\..\tools\build\dotnet-gitversion.exe /output buildserver" />	
-	</Target>
-
 	<ItemGroup>
 		<None Remove="Schema\AspectDefinition.xsd" />
 		<None Remove="Schema\ContentListDefinition.xsd" />
