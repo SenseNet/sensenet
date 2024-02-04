@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version Condition="'$(GitVersion)' != ''">$(GitVersion)</Version>
+		<Version Condition="'$(GitVersion)' != ''">$(GitVersion.NuGetVersion)</Version>
 		<Version Condition="'$(GitVersion)' == ''">7.7.39.2</Version>
 		<Authors>kavics,joe,tusmester</Authors>
 		<Company>Sense/Net Inc.</Company>
