@@ -178,6 +178,9 @@ namespace SenseNet.Packaging
             if (!successful && !executionContext.Terminated)
                 throw new ApplicationException(String.Format(SR.Errors.PhaseFinishedWithError_1, phaseException.Message), phaseException);
 
+            if (successful && !executionContext.Terminated && manifest.PackageType == PackageType.Install)
+                Logger.LogMessage("COMPONENT INSTALLED SUCCESSFULLY: " + manifest.ComponentId);
+
             return new PackagingResult { NeedRestart = false, Successful = successful, Terminated = executionContext.Terminated && !successful, Errors = Logger.Errors };
         }
         public static void ExecuteSteps(List<XmlElement> stepElements, ExecutionContext executionContext)
