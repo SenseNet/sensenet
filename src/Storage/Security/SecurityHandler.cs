@@ -1487,6 +1487,17 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public SnSecurityContext CreateSecurityContextFor(IUser user) => _securityContextFactory.Create(user);
 
+        /// <summary>
+        /// Reloads the security local or remote cache. Reloading the local cache can be skipped.
+        /// </summary>
+        /// <param name="remoteOnly">If true, the sender's cache will not reloaded.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task ReloadCacheAsync(bool remoteOnly, CancellationToken cancel)
+        {
+            return SecurityContext.ReloadCacheAsync(remoteOnly, cancel);
+        }
+
         #endregion
 
         #region /*========================================================== Install, Import, Export */

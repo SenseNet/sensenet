@@ -308,6 +308,21 @@ namespace SenseNet.ContentRepository.Storage.Security
             return base.IsEntityExist(contentId);
         }
 
+
+        /// <summary>
+        /// Reloads the security local or remote cache. Reloading the local cache can be skipped.
+        /// </summary>
+        /// <param name="remoteOnly">If true, the sender's cache will not reloaded.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async Task ReloadCacheAsync(bool remoteOnly, CancellationToken cancel)
+        {
+            using var op = SnTrace.Security.StartOperation(() =>
+                $"Reload Security Cache {(remoteOnly ? " REMOTE ONLY" : "")}");
+            await base.ReloadCacheAsync(remoteOnly, cancel).ConfigureAwait(false);
+            op.Successful = true;
+        }
+
         /*********************** Public permission query API **********************/
 
         /// <summary>
