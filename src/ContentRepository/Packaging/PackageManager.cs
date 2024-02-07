@@ -83,6 +83,11 @@ namespace SenseNet.Packaging
             try
             {
                 result = ExecuteCurrentPhase(manifest, executionContext);
+
+                if(manifest.SystemInstall)
+                    Providers.Instance.SecurityHandler
+                        .ReloadCacheAsync(true, CancellationToken.None)
+                        .GetAwaiter().GetResult();
             }
             finally
             {
