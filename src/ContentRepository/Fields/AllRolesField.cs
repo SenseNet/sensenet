@@ -1,11 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Xml;
-using AngleSharp.Dom;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
 using Node = SenseNet.ContentRepository.Storage.Node;
 
 namespace SenseNet.ContentRepository.Fields
