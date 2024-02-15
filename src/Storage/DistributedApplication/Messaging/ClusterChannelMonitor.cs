@@ -6,8 +6,8 @@ using SenseNet.ContentRepository.Storage;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
-using SenseNet.Diagnostics;
 using Timer = System.Timers.Timer;
 
 
@@ -15,12 +15,18 @@ namespace SenseNet.Communication.Messaging
 {
     public class ClusterChannelMonitor : ISnService
     {
+        private readonly ILogger<ClusterChannelMonitor> _logger;
         private static Timer _pingTimer;
         private static Timer _pongTimer;
         private static List<string> _lastResponses = new List<string>();
         private static List<string> _currentResponses;
         private static bool _receiverEnabled;
         private static Guid _actualPingId;
+
+        public ClusterChannelMonitor(ILogger<ClusterChannelMonitor> logger)
+        {
+            _logger = logger;
+        }
 
         public bool Start()
         {
@@ -81,8 +87,8 @@ namespace SenseNet.Communication.Messaging
                 pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (Exception ex)
-            {                
-                SnLog.WriteException(ex);
+            {
+                _logger.LogError(ex, "Error sending ping message.");
             }
         }
 
@@ -109,8 +115,8 @@ namespace SenseNet.Communication.Messaging
                 _lastResponses = _currentResponses;
             }
             catch (Exception ex)
-            {                
-                SnLog.WriteException(ex);
+            {
+                _logger.LogError(ex, "Error in clusterchannel monitor PONG timer.");
             }
         }
 
@@ -128,24 +134,22 @@ namespace SenseNet.Communication.Messaging
                 var startedNames = brandNewChannels.Select(c => c.Name).ToArray();
                 Debug.WriteLine(
                     $"ClusterChannelMonitor> CHANNEL STARTED ({receiverName}): {string.Join(", ", startedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
-                SnLog.WriteInformation(
-                    $"{startedNames.Length} cluster channel started: {string.Join(", ", startedNames)}",
-                    EventId.RepositoryLifecycle,
-                    categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
-                );
+                
+                _logger.LogInformation("{ChannelCount} cluster channel started: {StartedChannelNames} " +
+                                       "Name: {ReceiverName}, Running channels: {RunningChannels}",
+                    startedNames.Length, string.Join(", ", startedNames),
+                    receiverName, string.Join(", ", _currentResponses));
             }
             if (repairedChannels.Length > 0)
             {
                 var repairedNames = repairedChannels.Select(c => c.Name).ToArray();
                 Debug.WriteLine(
                     $"ClusterChannelMonitor> CHANNEL REPAIRED ({receiverName}): {string.Join(", ", repairedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
-                SnLog.WriteInformation(
-                    $"{repairedNames.Length} cluster channel repaired: {string.Join(", ", repairedNames)}",
-                    EventId.RepositoryLifecycle,
-                    categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
-                );
+                
+                _logger.LogInformation("{ChannelCount} cluster channel repaired: {RepairedChannelNames} " +
+                                       "Name: {ReceiverName}, Running channels: {RunningChannels}",
+                    repairedNames.Length, string.Join(", ", repairedNames),
+                    receiverName, string.Join(", ", _currentResponses));
             }
 
             foreach (var channel in allStartedChannels)
@@ -169,23 +173,22 @@ namespace SenseNet.Communication.Messaging
                 var brokenNames = brokenChannels.Select(c => c.Name).ToArray();
                 Debug.WriteLine(
                     $"ClusterChannelMonitor> BROKEN CHANNELS ({receiverName}): {string.Join(", ", brokenNames)}, Running channels: {string.Join(", ", _currentResponses)}");
-                SnLog.WriteError(
-                    $"{brokenChannels.Length} cluster channel stopped: {string.Join(", ", brokenNames)}",
-                    EventId.RepositoryLifecycle,
-                    MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } });
+
+                _logger.LogError("{ChannelCount} cluster channel stopped: {BrokenChannelNames} " +
+                                 "Name: {ReceiverName}, Running channels: {RunningChannels}",
+                    brokenNames.Length, string.Join(", ", brokenNames),
+                    receiverName, string.Join(", ", _currentResponses));
             }
             if (closedChannels.Length > 0)
             {
                 var closedNames = closedChannels.Select(c => c.Name).ToArray();
                 Debug.WriteLine(
                     $"ClusterChannelMonitor> CLOSED CHANNELS ({receiverName}): {string.Join(", ", closedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
-                SnLog.WriteInformation(
-                    $"{closedChannels.Length} Message channel stopped: {string.Join(", ", closedNames)}",
-                    EventId.RepositoryLifecycle,
-                    categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
-                );
+
+                _logger.LogInformation("{ChannelCount} cluster channel stopped: {ClosedChannelNames} " +
+                                       "Name: {ReceiverName}, Running channels: {RunningChannels}",
+                    closedChannels.Length, string.Join(", ", closedNames),
+                    receiverName, string.Join(", ", _currentResponses));
             }
 
             var channels = _channels.Where(x => stoppedChannels.Contains(x.Name));

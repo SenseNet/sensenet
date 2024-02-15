@@ -124,9 +124,10 @@ namespace SenseNet.Search.Tests
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine
         {
+            [Obsolete("Use async version instead", false)]
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
-                return QueryResult<int>.Empty;
+                return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
             }
 
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
@@ -136,7 +137,7 @@ namespace SenseNet.Search.Tests
 
             public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
             {
-                return Task.FromResult(ExecuteQuery(query, filter, context));
+                return Task.FromResult(QueryResult<int>.Empty);
             }
 
             public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,

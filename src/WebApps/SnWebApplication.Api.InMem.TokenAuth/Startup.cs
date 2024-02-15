@@ -59,7 +59,15 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 .AddSenseNetInMemoryProviders()
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
-                .AddSenseNetWopi();
+                .AddSenseNetWopi()
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

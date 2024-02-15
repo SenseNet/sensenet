@@ -60,7 +60,15 @@ namespace SnWebApplication.Api.Sql.Admin
                 })
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
-                .AddSenseNetWopi();
+                .AddSenseNetWopi()
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
+                });
 
             // [sensenet]: statistics overrides
             var statOptions = new StatisticsOptions();

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
@@ -10,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using EventId = SenseNet.Diagnostics.EventId;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
@@ -213,6 +216,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 _indexingActivityFactory = indexingActivityFactory;
             }
 
+            // ReSharper disable once InconsistentNaming
+            private ILogger<DistributedIndexingActivityQueue> __logger;
+            private ILogger<DistributedIndexingActivityQueue> Logger => __logger ??= Providers.Instance.Services
+                        .GetRequiredService<ILogger<DistributedIndexingActivityQueue>>();
+
             internal void Reset(int lastQueued = 0)
             {
                 lock (ArrivalQueueLock)
@@ -234,16 +242,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             /// </summary>
             internal void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
             {
-                consoleOut?.WriteLine("Executing unprocessed activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
+                consoleOut?.WriteLine("Executing unprocessed indexing activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
-                SnLog.WriteInformation("Executing unprocessed activities.",
-                    EventId.RepositoryRuntime,
-                    properties: new Dictionary<string, object>{
-                        {"LastDatabaseId", lastDatabaseId},
-                        {"LastExecutedId", lastExecutedId},
-                        {"CountOfGaps", gaps.Length},
-                        {"Gaps", IndexingActivityStatus.GapsToString(gaps, 100, 3)}
-                    });
+                this.Logger.LogInformation("Executing unprocessed indexing activities. " +
+                                                      $"LastDatabaseId: {lastDatabaseId}, " +
+                                                      $"LastExecutedId: {lastExecutedId}, " +
+                                                      $"CountOfGaps {gaps.Length}, " +
+                                                      $"Gaps {IndexingActivityStatus.GapsToString(gaps, 100, 3)}");
 
                 IndexingActivityBase.NotIndexableContentCollection.Clear();
                 _dependencyManager.Start();
@@ -327,7 +332,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _indexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
-                SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
+                this.Logger.LogInformation($"Executing unprocessed indexing activities finished. Count: {count}.");
             }
 
             // ReSharper disable once MemberHidesStaticFromOuterClass

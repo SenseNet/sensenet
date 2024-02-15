@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace WebHookHandler.Controllers
 {
@@ -19,12 +21,27 @@ namespace WebHookHandler.Controllers
         public int subscriptionId { get; set; }
         public DateTime sentTime { get; set; }
         public DateTime arrivedTime { get; set; }
+        public string[] changedFields { get; set; }
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            {
+                WriteIndented = true
+            });
+        }
     }
 
     public class WebHooksController : Controller
     {
-        private static object _sync = new object();
-        public static List<WebHookModel> WebHooks { get; } = new List<WebHookModel>();
+        private readonly ILogger<WebHooksController> _logger;
+        private static readonly object Sync = new();
+        public static List<WebHookModel> WebHooks { get; } = new();
+
+        public WebHooksController(ILogger<WebHooksController> logger)
+        {
+            _logger = logger;
+        }
 
         [HttpGet()]
         [ActionName("test")]
@@ -78,10 +95,12 @@ namespace WebHookHandler.Controllers
         {
             model.arrivedTime = DateTime.UtcNow;
 
-            lock (_sync)
+            lock (Sync)
             {
                 WebHooks.Add(model);
             }
+
+            _logger.LogInformation("WebHook received: {model}", model);
         }
     }
 }

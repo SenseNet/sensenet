@@ -300,7 +300,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var testNode = new SystemFolder(Repository.Root) { Name = "TestRoot" };
                 testNode.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                testNode.ForceDelete();
+                testNode.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var testContent = testNode.Content ?? Content.Create(testNode);
                 var prE = new PredicationEngine(testContent);

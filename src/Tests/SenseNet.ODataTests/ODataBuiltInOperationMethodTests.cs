@@ -660,7 +660,7 @@ namespace SenseNet.ODataTests
 
             public void Dispose()
             {
-                TheFile.ForceDelete();
+                TheFile.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

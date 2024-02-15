@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
@@ -42,7 +43,8 @@ namespace SenseNet.ODataTests
                 httpContext.Response.Body = new MemoryStream();
 
                 // ACTION
-                var odata = new ODataMiddleware(null, null, null);
+                var odata = new ODataMiddleware(null, null, null, 
+                    NullLogger<ODataMiddleware>.Instance);
                 await odata.ProcessRequestAsync(httpContext, null).ConfigureAwait(false);
 
                 // ASSERT
@@ -1470,8 +1472,8 @@ namespace SenseNet.ODataTests
                 }
                 finally
                 {
-                    root.ForceDelete();
-                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }).ConfigureAwait(false);
         }

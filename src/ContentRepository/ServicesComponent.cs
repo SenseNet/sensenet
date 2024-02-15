@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -64,7 +65,7 @@ namespace SenseNet.ContentRepository
                         if (settings == null)
                             return;
                         settings["Description"] = description;
-                        settings.SaveSameVersion();
+                        settings.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     #endregion
@@ -75,7 +76,7 @@ namespace SenseNet.ContentRepository
                     if (app1 != null)
                     {
                         app1["Scenario"] = string.Empty;
-                        app1.SaveSameVersion();
+                        app1.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
 
                     var app2 = Content.Load("/Root/(apps)/ContentType/Edit");
@@ -1284,7 +1285,7 @@ namespace SenseNet.ContentRepository
 
                     pwChangeEmailTemplate["Body"] = emailTemplate;
                     pwChangeEmailTemplate["Subject"] = "sensenet - Please change your password!";
-                    pwChangeEmailTemplate.SaveSameVersion();
+                    pwChangeEmailTemplate.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     #endregion
 
@@ -1568,6 +1569,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.30", "7.7.31", "2023-10-16", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_31);
+
+            builder.Patch("7.7.31", "7.7.32", "2024-01-17", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_32);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -1941,6 +1945,39 @@ namespace SenseNet.ContentRepository
         {
             var logger = context.GetService<ILogger<ServicesComponent>>();
 
+            #region Content changes
+
+            string[] defaultAiUserGroups =
+            {
+                N.R.Administrators,
+                "/Root/IMS/BuiltIn/Portal/Editors",
+                "/Root/IMS/Public/Administrators",
+            };
+
+            if (!Node.Exists(N.R.AITextUsers))
+            {
+                logger.LogTrace("Creating AITextUsers group...");
+
+                var aiTextUsers = Content.CreateNew("Group", OrganizationalUnit.Portal, "AITextUsers");
+
+                aiTextUsers.DisplayName = "AITextUsers";
+                aiTextUsers["Members"] = Node.LoadNodes(defaultAiUserGroups.Select(NodeIdentifier.Get));
+                aiTextUsers.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            if (!Node.Exists(N.R.AIVisionUsers))
+            {
+                logger.LogTrace("Creating AIVisionUsers group...");
+
+                var aiVisionUsers = Content.CreateNew("Group", OrganizationalUnit.Portal, "AIVisionUsers");
+
+                aiVisionUsers.DisplayName = "AIVisionUsers";
+                aiVisionUsers["Members"] = Node.LoadNodes(defaultAiUserGroups.Select(NodeIdentifier.Get));
+                aiVisionUsers.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            #endregion
+
             #region String resource changes
 
             var rb = new ResourceBuilder();
@@ -1960,7 +1997,26 @@ namespace SenseNet.ContentRepository
 
             DeleteSettings("OAuth.settings", logger);
             DeleteSettings("TaskManagement.settings", logger);
-            
+
+            try
+            {
+                // add client cache header value for svg and webp files if necessary
+                UpdatePortalSettings(new (string Key, string Value, int MaxAge)[]
+                    {
+                        ("Extension", "svg", 604800),
+                        ("Extension", "webp", 604800)
+                    },
+                    new (string extension, string typeName)[]
+                    {
+                        ("webp", "Image")
+                    },
+                    logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error loading or modifying Portal settings.");
+            }
+
             #endregion
 
             #region CTD changes
@@ -2035,7 +2091,7 @@ namespace SenseNet.ContentRepository
 
             #endregion
         }
-
+        
         #region Patch template
 
         // =================================================================================================
@@ -2140,6 +2196,69 @@ namespace SenseNet.ContentRepository
             {
                 logger.LogWarning(ex, $"Error deleting {settingsName} settings.");
             }
+        }
+
+        private static void UpdatePortalSettings(IEnumerable<(string Key, string Value, int MaxAge)> headers,
+            IEnumerable<(string extension, string typeName)> uploadExtensions, ILogger logger)
+        {
+            var setting = Node.Load<Settings>("/Root/System/Settings/Portal.settings");
+            if (setting == null)
+                return;
+
+            using var bs = setting.Binary.GetStream();
+            var settingsObject = Settings.DeserializeToJObject(bs);
+            var cacheHeaderArray = (JArray)settingsObject?["ClientCacheHeaders"];
+            var uploadExtensionsObject = (JObject)settingsObject?["UploadFileExtensions"];
+            var modified = false;
+
+            if (headers != null && cacheHeaderArray != null)
+            {
+                foreach (var (key, value, maxAge) in headers)
+                {
+                    if (cacheHeaderArray.Children().All(jt => jt.Value<string>(key) != value))
+                    {
+                        // no value found: add it
+                        cacheHeaderArray.Add(new JObject(
+                            new JProperty(key, value),
+                            new JProperty("MaxAge", maxAge)));
+
+                        modified = true;
+                    }
+                    else
+                    {
+                        logger.LogTrace($"{key} {value} cache header section already exists in Portal settings.");
+                    }
+                }
+            }
+
+            if (uploadExtensions != null && uploadExtensionsObject != null)
+            {
+                foreach (var (extension, typeName) in uploadExtensions)
+                {
+                    if (uploadExtensionsObject.Properties().All(jt => jt.Name != extension))
+                    {
+                        // no value found: add it
+                        uploadExtensionsObject.Add(new JProperty(extension, typeName));
+
+                        modified = true;
+                    }
+                    else
+                    {
+                        logger.LogTrace($"{extension} {typeName} upload extension already exists in Portal settings.");
+                    }
+                }
+            }
+
+            if (!modified) 
+                return;
+
+            logger.LogTrace("Updating Portal settings with new cache header values...");
+
+            var modifiedJson = JsonConvert.SerializeObject(settingsObject, Formatting.Indented);
+
+            using var modifiedStream = RepositoryTools.GetStreamFromString(modifiedJson);
+            setting.Binary.SetStream(modifiedStream);
+            setting.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

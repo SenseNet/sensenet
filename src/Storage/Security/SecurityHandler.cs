@@ -5,12 +5,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Configuration;
 using SenseNet.Security.Messaging;
+using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
@@ -22,7 +25,14 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// Contains both instance API (accessible through the Node.Security or Content.Security properties) and static API.
     /// </summary>
     public sealed class SecurityHandler
-	{
+    {
+        private ILogger<SecurityHandler> _logger;
+
+        public SecurityHandler(ILogger<SecurityHandler> logger)
+        {
+            _logger = logger;
+        }
+
         #region /*========================================================== Evaluation related methods */
 
         /// <summary>
@@ -1445,10 +1455,13 @@ namespace SenseNet.ContentRepository.Storage.Security
                                  };
 
             var messagingOptions = services?.GetService<IOptions<MessagingOptions>>()?.Value ?? new MessagingOptions();
+            var securityLogger = services?.GetService<ILogger<SecuritySystem>>() ?? NullLogger<SecuritySystem>.Instance;
 
             var securitySystem = new SecuritySystem(securityDataProvider, messageProvider,
                 securityMessageFormatter, missingEntityHandler, 
-                Options.Create(securityConfig), Options.Create(messagingOptions));
+                Options.Create(securityConfig), Options.Create(messagingOptions),
+                securityLogger);
+
             securitySystem.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             _securityContextFactory = isWebContext 
@@ -1457,11 +1470,11 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             _securitySystem = securitySystem;
 
-            SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
-                properties: new Dictionary<string, object> { 
-                    { "DataProvider", securityDataProvider.GetType().FullName },
-                    { "MessageProvider", messageProvider.GetType().FullName }
-                });
+            _logger.LogInformation("Security subsystem started. " +
+                                   $"DataProvider: {securityDataProvider.GetType().FullName}, " +
+                                   $"MessageProvider: {messageProvider.GetType().FullName}");
+
+
         }
 
         /// <summary>
@@ -1473,6 +1486,17 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns with a security context containing the provided user who can be different from the logged-in user.
         /// </summary>
         public SnSecurityContext CreateSecurityContextFor(IUser user) => _securityContextFactory.Create(user);
+
+        /// <summary>
+        /// Reloads the security local or remote cache. Reloading the local cache can be skipped.
+        /// </summary>
+        /// <param name="remoteOnly">If true, the sender's cache will not reloaded.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task ReloadCacheAsync(bool remoteOnly, CancellationToken cancel)
+        {
+            return SecurityContext.ReloadCacheAsync(remoteOnly, cancel);
+        }
 
         #endregion
 

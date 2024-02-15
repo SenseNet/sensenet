@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using SenseNet.Configuration;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
@@ -25,15 +25,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private readonly IDataStore _dataStore;
         private readonly ISearchManager _searchManager;
         private readonly IIndexingActivityFactory _indexingActivityFactory;
+        private readonly ILogger<IndexManager> _logger;
 
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
         private CentralizedIndexingActivityQueue CentralizedIndexingActivityQueue { get; }
 
-        public IndexManager(IDataStore dataStore, ISearchManager searchManager, IIndexingActivityFactory indexingActivityFactory)
+        public IndexManager(IDataStore dataStore, ISearchManager searchManager, IIndexingActivityFactory indexingActivityFactory,
+            ILogger<IndexManager> logger)
         {
             _dataStore = dataStore;
             _searchManager = searchManager;
             _indexingActivityFactory = indexingActivityFactory;
+            _logger = logger;
             DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this, indexingActivityFactory);
             CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue(indexingActivityFactory);
         }
@@ -124,7 +127,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             //TODO: [async] rewrite this using async APIs.
             IndexingEngine.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
-            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
+
+            _logger.LogInformation("Indexing engine has stopped. Max task id and exceptions: {IndexCompletionState}",
+                DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
         public STT.Task ClearIndexAsync(CancellationToken cancellationToken)

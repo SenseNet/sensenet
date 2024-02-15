@@ -64,6 +64,7 @@ namespace SenseNet.ContentRepository.InMemory
             _searchEngine = searchEngine;
         }
 
+        [Obsolete("Use async version instead", false)]
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             return ExecuteQueryAsync(query, filter, context, CancellationToken.None)

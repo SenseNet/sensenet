@@ -75,7 +75,7 @@ WHERE RelType = 'Aspects' and TargetId in
             foreach (var field in content.AspectFields.Values.Where(f => f is ReferenceField))
                 content[field.Name] = content[field.Name];
 
-            content.SaveSameVersion();
+            content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

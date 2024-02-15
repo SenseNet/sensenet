@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -57,7 +58,7 @@ namespace SenseNet.Packaging.Steps
             if (changed)
             {
                 Logger.LogMessage($"Updating: {content.Path}");
-                content.SaveSameVersion();
+                content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {

@@ -160,7 +160,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     using (new SystemAccount())
                         if (Node.Exists(parentPath))
-                            Node.ForceDelete(parentPath);
+                            Node.ForceDeleteAsync(parentPath, CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }

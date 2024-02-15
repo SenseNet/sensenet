@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
+using EventId = SenseNet.Diagnostics.EventId;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -19,6 +22,7 @@ namespace SenseNet.ContentRepository.Storage
             "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
 
         private IDataStore DataStore => Providers.Instance.DataStore;
+        private ILogger<StorageSchema> _logger;
 
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
@@ -138,8 +142,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         internal void Reset()
         {
-            SnLog.WriteInformation("NodeTypeManager.Restart called.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("NodeTypeManager.Restart called.");
+
             new NodeTypeManagerRestartDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
@@ -149,8 +153,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void RestartPrivate()
         {
-            SnLog.WriteInformation("NodeTypeManager.Restart executed.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
+            SnTrace.Repository.Write("NodeTypeManager.Restart executed.");
+
             NodeObserver.FireOnReset();
 
             lock (_lock)
@@ -169,7 +173,9 @@ namespace SenseNet.ContentRepository.Storage
             _nodeTypeManager = current;
 
             NodeObserver.FireOnStart();
-            SnLog.WriteInformation("NodeTypeManager created: " + _nodeTypeManager);
+
+            _logger = Providers.Instance.Services.GetRequiredService<ILogger<StorageSchema>>();
+            _logger.LogInformation("NodeTypeManager created: " + _nodeTypeManager);
         }
 
     }

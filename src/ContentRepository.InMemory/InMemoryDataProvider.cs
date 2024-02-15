@@ -402,7 +402,7 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
-        public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken)
+        public override async STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var needToCleanupFiles = false;
@@ -417,7 +417,7 @@ namespace SenseNet.ContentRepository.InMemory
 
                         var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
                         if (nodeDoc == null)
-                            return STT.Task.CompletedTask;
+                            return;
 
                         if (nodeDoc.Timestamp != timestamp)
                             throw new NodeIsOutOfDateException(
@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.InMemory
                             .Select(r => r.ReferencePropertyId)
                             .ToArray();
 
-                        BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).GetAwaiter().GetResult();
+                        await BlobStorage.DeleteBinaryPropertiesAsync(versionIds, dataContext).ConfigureAwait(false);
 
                         //foreach (var refPropPropId in refPropPropIds) ...
                         foreach (var refPropId in refPropIds)
@@ -475,9 +475,7 @@ namespace SenseNet.ContentRepository.InMemory
             }
 
             if (needToCleanupFiles)
-                BlobStorage.DeleteOrphanedFilesAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
-
-            return STT.Task.CompletedTask;
+                await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
@@ -1449,7 +1447,10 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
+                {
                     activity.RunningState = runningState;
+                    activity.LockTime = DateTime.UtcNow;
+                }
             }
             return STT.Task.CompletedTask;
         }
@@ -1470,11 +1471,15 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var timeLimit = DateTime.UtcNow.AddMinutes(maxAgeInMinutes);
             lock (DB.IndexingActivities)
-                foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
+                foreach(var existing in DB.IndexingActivities
+                            .Where(x => x.RunningState == IndexingActivityRunningState.Done &&
+                                        (x.LockTime == null || x.LockTime < timeLimit))
+                            .ToArray())
                     DB.IndexingActivities.Remove(existing);
             return STT.Task.CompletedTask;
         }

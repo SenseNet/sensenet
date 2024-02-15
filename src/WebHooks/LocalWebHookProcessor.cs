@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
@@ -77,7 +78,7 @@ namespace SenseNet.WebHooks
                 node.Id,
                 si.Subscription.Id,
                 si.Subscription.HttpMethod,
-                GetPayload(si.Subscription, si.EventType, node, previousVersion),
+                GetPayload(si.Subscription, si.EventType, node, previousVersion, eventArgs?.ChangedData),
                 si.Subscription.HttpHeaders,
                 cancel));
 
@@ -89,14 +90,14 @@ namespace SenseNet.WebHooks
         public Task FireWebHookAsync(WebHookSubscription subscription, WebHookEventType eventType, Node node, CancellationToken cancel)
         {
             return _webHookClient.SendAsync(subscription.Url, eventType.ToString(), node.Id, subscription.Id,
-                subscription.HttpMethod, GetPayload(subscription, eventType, node, null),
+                subscription.HttpMethod, GetPayload(subscription, eventType, node, null, null),
                 subscription.HttpHeaders, cancel);
         }
 
         private object GetPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node,
-            VersionNumber previousVersion)
+            VersionNumber previousVersion, IEnumerable<ChangedData> changedFields)
         {
-            var defaultPayload = GetDefaultPayload(subscription, eventType, node, previousVersion);
+            var defaultPayload = GetDefaultPayload(subscription, eventType, node, previousVersion, changedFields);
             
             return string.IsNullOrWhiteSpace(subscription.Payload)
                 ? defaultPayload
@@ -125,8 +126,12 @@ namespace SenseNet.WebHooks
         }
 
         private object GetDefaultPayload(WebHookSubscription subscription, WebHookEventType eventType, Node node, 
-            VersionNumber previousVersion)
+            VersionNumber previousVersion, IEnumerable<ChangedData> changedFields)
         {
+            var changedFieldNames = changedFields == null
+                ? Array.Empty<string>()
+                : changedFields.Select(cf => cf.Name).ToArray();
+
             return new
             {
                 nodeId = node?.Id ?? 0,
@@ -141,7 +146,8 @@ namespace SenseNet.WebHooks
                 eventName = eventType.ToString(),
                 subscriptionId = subscription.Id,
                 sentTime = DateTime.UtcNow,
-                repository = _clientStoreOptions.RepositoryUrl?.RemoveUrlSchema()
+                repository = _clientStoreOptions.RepositoryUrl?.RemoveUrlSchema(),
+                changedFields = changedFieldNames
             };
         }
     }

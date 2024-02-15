@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Tests
                 var thrown = false;
                 try
                 {
-                    link.SaveSameVersion();
+                    link.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidContentException)
                 {

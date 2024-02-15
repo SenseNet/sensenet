@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using Tasks=System.Threading.Tasks;
@@ -195,6 +196,8 @@ namespace SenseNet.ContentRepository.Security.Clients
 
                 if (clients.Any()) return;
 
+                _logger.LogTrace($"Creating {type} client for {host} for {authority}.");
+
                 var client = new Client
                 {
                     Authority = authority.RemoveUrlSchema(),
@@ -221,7 +224,7 @@ namespace SenseNet.ContentRepository.Security.Clients
                 // internal tools
                 await EnsureClientAsync(ClientType.InternalClient, _options.DefaultClientUserInternal)
                     .ConfigureAwait(false);
-                
+
                 // external tools
                 await EnsureClientAsync(ClientType.ExternalClient, _options.DefaultClientUserExternal)
                     .ConfigureAwait(false);
@@ -229,6 +232,11 @@ namespace SenseNet.ContentRepository.Security.Clients
                 // external SPA
                 await EnsureClientAsync(ClientType.ExternalSpa)
                     .ConfigureAwait(false);
+            }
+            catch (DataException ex)
+            {
+                // this happens during installation, when the table does not exist yet
+                _logger.LogTrace("Loading existing clients failed. " + ex.Message);
             }
             catch (Exception ex)
             {

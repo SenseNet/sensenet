@@ -1723,7 +1723,7 @@ namespace SenseNet.Services.Wopi.Tests
             }
             finally
             {
-                site.ForceDelete();
+                site.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

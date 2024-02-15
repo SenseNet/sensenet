@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -630,7 +631,7 @@ namespace SenseNet.Packaging.Tools
                 {
                     // if a migration fails on a single content, we only log it. Patch log should be reviewed by the operator!
                     content[fieldName] = oldValues[content.Id];
-                    content.SaveSameVersion();
+                    content.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
                     changedCount++;
                 }
                 catch (Exception ex)

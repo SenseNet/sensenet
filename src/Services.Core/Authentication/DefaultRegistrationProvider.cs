@@ -283,7 +283,7 @@ namespace SenseNet.Services.Core.Authentication
                 if (!string.IsNullOrEmpty(fullName))
                     userContent["FullName"] = fullName;
 
-                userContent.SaveSameVersion();
+                userContent.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
     }

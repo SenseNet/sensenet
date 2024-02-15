@@ -21,6 +21,7 @@ using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
@@ -48,10 +49,12 @@ namespace SenseNet.Configuration
         //===================================================================================== Instance
 
         public IServiceProvider Services { get; }
+        private ILogger<Providers> _logger;
 
         public Providers(IServiceProvider services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
+            _logger = services.GetService<ILogger<Providers>>();
 
             DataProvider = services.GetService<DataProvider>();
             DataStore = services.GetService<IDataStore>();
@@ -211,7 +214,7 @@ namespace SenseNet.Configuration
             // We have to skip logging the creation of this provider, because the logger
             // itself tries to use the access provider when collecting event properties,
             // which would lead to a circular reference.
-            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider", true);
+            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider");
             provider.InitializeInternal();
 
             return provider;
@@ -259,8 +262,7 @@ namespace SenseNet.Configuration
             }
 
             var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-            SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
-                properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
+            Instance?._logger.LogInformation($"NodeObservers are instantiated. Types: {string.Join(", ", activeObserverNames)}");
 
             return activeObservers;
         });
@@ -338,7 +340,7 @@ namespace SenseNet.Configuration
             _providersByType[providerType] = provider;
         }
 
-        private static T CreateProviderInstance<T>(string className, string providerName, bool skipLog = false)
+        private static T CreateProviderInstance<T>(string className, string providerName)
         {
             T provider;
 
@@ -355,11 +357,7 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid {providerName} implementation: {className}");
             }
 
-            // in some cases the logger is not available yet
-            if (skipLog)
-                SnTrace.System.Write($"{providerName} created: {className}");
-            else
-                SnLog.WriteInformation($"{providerName} created: {className}");
+            SnTrace.System.Write($"{providerName} created: {className}");
 
             return provider;
         }

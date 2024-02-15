@@ -501,7 +501,7 @@ namespace SenseNet.ContentRepository
                 MailProvider.Instance.OnListEmailChanged(this);
         }
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public override void ForceDelete()
         {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);

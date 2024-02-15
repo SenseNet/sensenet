@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -14,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using STT = System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -25,6 +29,7 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
         [ODataAction(OperationName = "Approve", Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
@@ -519,6 +524,7 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
+        /// <param name="httpContext"></param>
         /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
         /// <returns>This method returns nothing.</returns>
         [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
@@ -526,10 +532,9 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.ListItem, N.S.ContextMenu)]
         [RequiredPermissions(N.P.Delete)]
-        public static object Delete(Content content, bool permanent = false)
+        public static Task Delete(Content content, HttpContext httpContext, bool permanent = false)
         {
-            content.Delete(permanent);
-            return null;
+            return content.DeleteAsync(permanent, httpContext.RequestAborted);
         }
 
         /// <summary>
@@ -581,6 +586,8 @@ namespace SenseNet.Services.Core.Operations
             if(paths == null || paths.Length == 0)
                 return null;
 
+            var logger = (ILogger<Content>)httpContext.RequestServices.GetRequiredService(typeof(ILogger<Content>));
+
             var results = new List<object>();
             var errors = new List<ErrorContent>();
             var identifiers = paths.Select(NodeIdentifier.Get).ToList();
@@ -589,6 +596,14 @@ namespace SenseNet.Services.Core.Operations
 
             foreach (var node in nodes)
             {
+                // exit gracefully if the whole request is cancelled
+                if (httpContext.RequestAborted.IsCancellationRequested)
+                {
+                    logger.LogInformation("Exiting batch delete as the request was cancelled. Url: {RequestUrl}", 
+                        httpContext.Request.GetDisplayUrl());
+                    break;
+                }
+
                 try
                 {
                     // Collect already found identifiers in a separate list otherwise the error list
@@ -607,12 +622,22 @@ namespace SenseNet.Services.Core.Operations
 
                     results.Add(new { node.Id, node.Path, node.Name });
                 }
+                catch (OperationCanceledException ex)
+                {
+                    logger.LogInformation("Operation was cancelled during batch delete. Request: {RequestUrl}",
+                        httpContext.Request.GetDisplayUrl());
+
+                    // exit gracefully if the whole request is cancelled
+                    if (httpContext.RequestAborted.IsCancellationRequested)
+                        break;
+                }
                 catch (Exception e)
                 {
                     //TODO: we should log only relevant exceptions here and skip
                     // business logic-related errors, e.g. lack of permissions or
                     // existing target content path.
-                    SnLog.WriteException(e);
+                    logger.LogError(e, "Error during batch delete. Request: {RequestUrl}",
+                        httpContext.Request.GetDisplayUrl());
 
                     errors.Add(new ErrorContent
                     {
@@ -1132,7 +1157,7 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreToolbar, N.S.ContextMenu)]
-        public static async STT.Task Restore(Content content, string destination = null, bool? newname = null)
+        public static async Task Restore(Content content, string destination = null, bool? newname = null)
         {
             if (!(content?.ContentHandler is TrashBag tb))
                 throw new InvalidContentActionException("The resource content must be a TrashBag.");

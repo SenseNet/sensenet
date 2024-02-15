@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
@@ -39,7 +40,7 @@ namespace SenseNet.Packaging.Steps
 
             // wrap the node into a content just to make saving the same version easier
             var editedContent = ContentRepository.Content.Create(node);
-            editedContent.SaveSameVersion();
+            editedContent.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

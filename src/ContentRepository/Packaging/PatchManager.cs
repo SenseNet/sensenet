@@ -340,7 +340,9 @@ namespace SenseNet.Packaging
                                 ModifyStateInDb(patch, ExecutionResult.Successful, null);
                             }
                             ModifyState(patch, installed, ExecutionResult.Successful);
-                            Log(patch, PatchExecutionEventType.OnAfterActionFinished);
+                            
+                            Log(patch, PatchExecutionEventType.OnAfterActionFinished,
+                                patch.Type == PackageType.Install ? "COMPONENT INSTALLED SUCCESSFULLY" : null);
                         }
                         catch (Exception e)
                         {
@@ -579,9 +581,9 @@ namespace SenseNet.Packaging
 
         }
 
-        private void Log(ISnPatch patch, PatchExecutionEventType eventType)
+        private void Log(ISnPatch patch, PatchExecutionEventType eventType, string message = null)
         {
-            _context.LogCallback?.Invoke(new PatchExecutionLogRecord(eventType, patch));
+            _context.LogCallback?.Invoke(new PatchExecutionLogRecord(eventType, patch, message));
         }
 
         private void Error(ISnPatch patch, PatchExecutionErrorType errorType, string message)

@@ -30,6 +30,7 @@ using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Retrier = SenseNet.Tools.Retrier;
 
@@ -89,13 +90,17 @@ namespace SenseNet.OData
 
         private readonly RequestDelegate _next;
         private readonly IConfiguration _appConfig;
+        private readonly ILogger<ODataMiddleware> _logger;
         private readonly SenseNet.Services.Core.Configuration.HttpRequestOptions _requestOptions;
 
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next, IConfiguration config, IOptions<SenseNet.Services.Core.Configuration.HttpRequestOptions> requestOptions)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config, 
+            IOptions<SenseNet.Services.Core.Configuration.HttpRequestOptions> requestOptions,
+            ILogger<ODataMiddleware> logger)
         {
             _next = next;
             _appConfig = config;
+            _logger = logger;
             _requestOptions = requestOptions?.Value ?? new SenseNet.Services.Core.Configuration.HttpRequestOptions();
         }
 
@@ -115,13 +120,21 @@ namespace SenseNet.OData
                 var odataRequest = ODataRequest.Parse(httpContext);
 
                 // Write headers and body of the HttpResponse
-                await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
-
-                statistics?.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
-
-                op.Successful = true;
+                try
+                {
+                    await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+                    statistics?.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
+                    
+                    op.Successful = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    // Log the cancellation. There is no point in returning anything to the client,
+                    // because the client is not listening anymore.
+                    _logger.LogInformation("The operation was canceled. Request: {Request}", 
+                        httpContext.Request.GetDisplayUrl());
+                }
             }
-
 
             // Call next in the chain if exists
             if (_next != null)
@@ -399,11 +412,17 @@ await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appC
                     // it is unnecessary to log this exception as this is not a real error
                     return oe;
                 }
+                case OperationCanceledException operationCanceledException:
+                {
+                    return new ODataException(
+                        $"The operation was canceled. Request url: {httpContext?.Request?.GetDisplayUrl()}",
+                        ODataExceptionCode.NotSpecified, operationCanceledException);
+                }
             }
 
             // General error handling
             var generalError = new ODataException(ODataExceptionCode.NotSpecified, e);
-            SnLog.WriteException(generalError);
+            _logger.LogError(generalError, generalError.Message);
             return generalError;
         }
 

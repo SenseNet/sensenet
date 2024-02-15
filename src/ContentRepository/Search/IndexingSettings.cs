@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -11,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
+using EventId = SenseNet.Diagnostics.EventId;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search
@@ -65,7 +67,9 @@ namespace SenseNet.Search
 
                             SetCachedData(TextExtractorsCacheKey, _textExtractors);
 
-                            SnLog.WriteInformation("Text extractors were created.", properties: _textExtractors.ToDictionary(t => t.Key, t => (object)t.Value.GetType().FullName));
+                            var logger = Providers.Instance.Services.GetRequiredService<ILogger<IndexingSettings>>();
+                            logger.LogInformation($"Text extractors were created. File extensions and types: " +
+                                $"{string.Join(", ", _textExtractors.Select(t => $"'.{t.Key}': {t.Value.GetType().FullName}"))}");
                         }
                     }
                 }

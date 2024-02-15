@@ -397,8 +397,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    node?.ForceDelete();
-                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                    node?.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -762,7 +762,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 f4.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
-                Node.ForceDelete(root.Path);
+                Node.ForceDeleteAsync(root.Path, CancellationToken.None).GetAwaiter().GetResult();
 
                 // ASSERT
                 Assert.IsNull(Node.Load<SystemFolder>(root.Id));
@@ -782,7 +782,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 folder.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 folder = Node.Load<SystemFolder>(folder.Id);
                 var nodeHeadData = folder.Data.GetNodeHeadData();
-                Node.ForceDelete(folder.Path);
+                Node.ForceDeleteAsync(folder.Path, CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
                 await DP.DeleteNodeAsync(nodeHeadData, CancellationToken.None);
@@ -1639,7 +1639,7 @@ namespace SenseNet.IntegrationTests.TestCases
             await IndexingActivityTest(async (firstId, lastId) =>
             {
                 // ACTION
-                await DP.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None);
+                await DP.DeleteFinishedIndexingActivitiesAsync(23, CancellationToken.None);
 
                 // ASSERT
                 var result = await DP.LoadIndexingActivitiesAsync(firstId, lastId, 100, false, new TestIndexingActivityFactory(), CancellationToken.None);
