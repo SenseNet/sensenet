@@ -422,37 +422,31 @@ namespace SenseNet.OData.Writers
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            object response;
-            if (odataReq.IsControllerRequest)
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
+
+            if (action == null)
             {
-                response = HandleControllerRequest_Prototype(content, httpContext, odataReq, appConfig, "GET");
+                // check if this is a versioning action (e.g. a checkout)
+                SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
+
+                SnTrace.System.WriteError($"OData: {odataReq.PropertyName} operation not found " +
+                                          $"for content {content.Path} and user {User.Current.Username}.");
+
+                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
             }
-            else
-            {
-                var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
-                if (action == null)
-                {
-                    // check if this is a versioning action (e.g. a checkout)
-                    SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
-                    SnTrace.System.WriteError($"OData: {odataReq.PropertyName} operation not found " +
-                                              $"for content {content.Path} and user {User.Current.Username}.");
+            if (!action.IsODataOperation)
+                throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
+            if (action.CausesStateChange)
+                throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
 
-                    throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
-                }
+            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+                throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-                if (!action.IsODataOperation)
-                    throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
-                if (action.CausesStateChange)
-                    throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
-
-                if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
-                    throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
-
-                response = action is ODataOperationMethodExecutor odataAction
-                    ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
-                    : action.Execute(content, GetOperationParameters(action, httpContext.Request));
-            }
+            var response = action is ODataOperationMethodExecutor odataAction
+                ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
+                : action.Execute(content, GetOperationParameters(action, httpContext.Request));
 
             if (response is Content responseAsContent)
             {
@@ -522,6 +516,9 @@ namespace SenseNet.OData.Writers
         {
             var resolver = httpContext.RequestServices.GetRequiredService<IODataControllerResolver>();
             var controller = resolver.ResolveController(odataReq.ControllerName);
+            controller.Content = content;
+            controller.HttpContext = httpContext;
+            controller.ODataRequest = odataReq;
 
             var controllerType = controller.GetType();
             var methods = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
@@ -529,10 +526,10 @@ namespace SenseNet.OData.Writers
             var method = methods[0];
 
             var parameters = method.GetParameters();
-            var parameter = parameters[1];
+            var parameter = parameters[0];
             var parameterValue = httpContext.Request.Query[parameter.Name];
 
-            var result = method.Invoke(controller, new object[] {content, parameterValue.ToString()});
+            var result = method.Invoke(controller, new object[] {parameterValue.ToString()});
             return result;
         }
 

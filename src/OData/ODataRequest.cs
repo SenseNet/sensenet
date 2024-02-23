@@ -380,6 +380,7 @@ namespace SenseNet.OData
                         req.IsControllerRequest = true;
                         req.ControllerName = prmSegments[0];
                         req.ControllerMethod = prmSegments[1];
+                        req.PropertyName = $"{prmSegments[0]}.{prmSegments[1]}" ;
                     }
                     else if (prmSegments.Count > 0)
                     {

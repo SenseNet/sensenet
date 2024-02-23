@@ -55,20 +55,20 @@ namespace SenseNet.OData
                 try
                 {
                     foreach (var type in assembly.GetExportedTypes())
-                        foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                            AddMethod(method);
+                    foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                        AddMethod(method, null);
                 }
                 catch (NotSupportedException)
                 {
                 }
             }
         }
-        internal static OperationInfo AddMethod(MethodBase method)
+        internal static OperationInfo AddMethod(MethodBase method, string odataControllerName)
         {
             var attributes = method.GetCustomAttributes().ToArray();
-            return AddMethod(method, attributes);
+            return AddMethod(method, attributes, odataControllerName);
         }
-        internal static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
+        internal static OperationInfo AddMethod(MethodBase method, Attribute[] attributes, string odataControllerName)
         {
             var parameters = method.GetParameters();
             var req = new List<ParameterInfo>();
@@ -91,6 +91,7 @@ namespace SenseNet.OData
 
             var info = new OperationInfo(name, opAttr?.DisplayName, opAttr?.Icon, opAttr?.Description, method, attributes)
             {
+                ControllerName = odataControllerName,
                 RequiredParameterNames = req.Select(x => x.Name).ToArray(),
                 RequiredParameterTypes = req.Select(x => x.ParameterType).ToArray(),
                 OptionalParameterNames = opt.Select(x => x.Name).ToArray(),
@@ -113,16 +114,20 @@ namespace SenseNet.OData
         {
             if (!info.Attributes.Any(a => a is ODataOperationAttribute))
                 return null;
+            if (info.ControllerName == null)
+            {
+                if (info.RequiredParameterNames.Length == 0)
+                    return null;
+                if (info.RequiredParameterTypes[0] != typeof(Content))
+                    return null;
+                info.RequiredParameterNames = info.RequiredParameterNames.Skip(1).ToArray();
+                info.RequiredParameterTypes = info.RequiredParameterTypes.Skip(1).ToArray();
+            }
 
-            if (info.RequiredParameterNames.Length == 0)
-                return null;
-            if (info.RequiredParameterTypes[0] != typeof(Content))
-                return null;
-
-            info.RequiredParameterNames = info.RequiredParameterNames.Skip(1).ToArray();
-            info.RequiredParameterTypes = info.RequiredParameterTypes.Skip(1).ToArray();
-
-            var operationName = IsCaseInsensitiveOperationNameEnabled ? info.Name.ToLowerInvariant() : info.Name;
+            var infoName = info.ControllerName == null
+                ? info.Name
+                : $"{info.ControllerName}.{info.Name}";
+            var operationName = IsCaseInsensitiveOperationNameEnabled ? infoName.ToLowerInvariant() : infoName;
 
             // This is a custom dynamic array implementation. 
             // Reason: The single / overloaded method rate probably very high (a lot of single vs a few overloads).
@@ -724,14 +729,32 @@ namespace SenseNet.OData
         public static object Invoke(OperationCallingContext context)
         {
             var parameters = PrepareInvoke(context);
-            return context.Operation.Method.Invoke(null, parameters);
+            return context.Operation.Method.Invoke(GetControllerInstance(context), parameters);
+        }
+
+        private static ODataController GetControllerInstance(OperationCallingContext context)
+        {
+            var controllerName = context.Operation.ControllerName;
+            if (controllerName == null)
+                return null;
+
+            var resolver = context.HttpContext.RequestServices.GetRequiredService<IODataControllerResolver>();
+            var controller = resolver.ResolveController(controllerName);
+            if (controller == null)
+                throw new InvalidOperationException($"ODataController not found: " + controllerName);
+
+            controller.Content = context.Content;
+            controller.HttpContext = context.HttpContext;
+            controller.ODataRequest = context.HttpContext.GetODataRequest();
+
+            return controller;
         }
 
         public static async Task<object> InvokeAsync(OperationCallingContext context)
         {
             var parameters = PrepareInvoke(context);
 
-            var invokeResult = context.Operation.Method.Invoke(null, parameters);
+            var invokeResult = context.Operation.Method.Invoke(GetControllerInstance(context), parameters);
             var invokeResultType = invokeResult.GetType();
 
             var awaitable = (Task)invokeResult;
@@ -751,12 +774,16 @@ namespace SenseNet.OData
 
         private static object[] PrepareInvoke(OperationCallingContext context)
         {
+            var isControllerMethod = context.Operation.ControllerName != null;
             var method = context.Operation.Method;
             var methodParams = method.GetParameters();
             var paramValues = new object[methodParams.Length];
-            paramValues[0] = context.Content;
 
-            for (int i = 1; i < methodParams.Length; i++)
+            if(!isControllerMethod)
+                paramValues[0] = context.Content;
+
+            var start = isControllerMethod ? 0 : 1;
+            for (int i = start; i < methodParams.Length; i++)
             {
                 if (!context.Parameters.TryGetValue(methodParams[i].Name, out paramValues[i]))
                 {
