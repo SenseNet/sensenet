@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
@@ -12,6 +13,12 @@ using SenseNet.Tools;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
+    public class ODataControllerRegistration
+    {
+        public string Name { get; set; }
+        public Type Type { get; set; }
+    }
+
     public static class ODataExtensions
     {
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
@@ -21,6 +28,22 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
                 .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
                 ;
+        }
+
+        public static IServiceCollection AddODataController<TImpl>(this IServiceCollection services, string name = null)
+            where TImpl : ODataController
+        {
+            if (name != null && name.Length == 0)
+                name = null;
+
+            services.AddTransient<TImpl>();
+            services.AddSingleton<ODataControllerRegistration>(new ODataControllerRegistration
+            {
+                Name = name?.Trim() ?? typeof(TImpl).Name,
+                Type = typeof(TImpl)
+            });
+
+            return services;
         }
 
         /// <summary>

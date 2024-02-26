@@ -1,59 +1,80 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.OData;
 
-public interface IODataControllerResolver
+public interface IODataControllerFactory
 {
-    ODataController ResolveController(string controllerName);
+    public IDictionary<string, Type> ControllerTypes { get; }
+    ODataController CreateController(string controllerName);
 }
 
-public class ODataControllerResolver : IODataControllerResolver
+/// <summary>
+/// Singleton service for creating an ODataController by the registered name
+/// </summary>
+public class ODataControllerFactory : IODataControllerFactory
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _services;
+    // ReSharper disable once InconsistentNaming
+    private ReadOnlyDictionary<string, Type> __controllerTypes;
 
-    public ODataControllerResolver(IServiceProvider serviceProvider)
+    public ODataControllerFactory(IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        _services = serviceProvider;
     }
 
-    public ODataController ResolveController(string controllerName)
+    private static readonly object LoaderLock = new();
+    public IDictionary<string, Type> ControllerTypes
     {
-        var typeName = $"{controllerName}";
-        //var typeName = $"SenseNet.ODataTests.{controllerName}";
-        //var typeName = $"SenseNet.ODataTests.{controllerName}, SenseNet.ODataTests";
-        var controllerType = Type.GetType(typeName,
-            assemblyName =>
+        get
+        {
+            if (__controllerTypes == null)
             {
-                var asm = AppDomain.CurrentDomain.GetAssemblies()
-                    .FirstOrDefault(x => x.GetName().Name == assemblyName.Name);
-                return asm;
-            },
-            (asm, typeName, b) =>
-            {
-                if (asm != null)
+                lock (LoaderLock)
                 {
-                    var type = asm.GetTypes().FirstOrDefault(x => x.FullName == typeName);
-                    return type;
+                    if (__controllerTypes == null)
+                    {
+                        __controllerTypes = new ReadOnlyDictionary<string, Type>(LoadRegistrations());
+                        var logger = _services.GetRequiredService<ILogger<ODataControllerFactory>>();
+                        logger.LogInformation($"ODataControllers discovered. Names and types: " +
+                            $"{string.Join(", ", __controllerTypes.Select(x => $"'.{x.Key}': {x.Value.GetType().FullName}"))}");
+                    }
                 }
+            }
+            return __controllerTypes;
+        }
+    }
 
-                var typeSet = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes().Where(t => t.BaseType == typeof(ODataController)));
-                var types = typeName.Contains('.')
-                    ? typeSet.Where(x => x.FullName == typeName).ToArray()
-                    : typeSet.Where(x => x.Name == typeName).ToArray();
-                if (types.Length == 0)
-                    throw new MissingMethodException(controllerName);
-                if (types.Length > 1)
-                    throw new AmbiguousMatchException(
-                        $"Ambiguous call: {string.Join(", ", types.Select(t => t.AssemblyQualifiedName))}");
-                return types[0];
+    private IDictionary<string, Type> LoadRegistrations()
+    {
+        var registration = _services.GetServices<ODataControllerRegistration>();
+        var types = new Dictionary<string, Type>();
+        foreach (var item in registration)
+        {
+            types[item.Name.Trim().ToLowerInvariant()] = item.Type;
 
-            });
-        var controller = (ODataController)_serviceProvider.GetService(controllerType);
+//UNDONE:yOdataController: Create method registrations: 
+//var method = typeof(TestODataController2).GetMethod("GetData");
+//OperationCenter.AddMethod(method, controllerName);
+
+        }
+        return types;
+    }
+
+    public ODataController CreateController(string controllerName)
+    {
+        if (!ControllerTypes.TryGetValue(controllerName.ToLowerInvariant(), out var controllerType))
+            throw new InvalidOperationException($"Controller not found: {controllerName}");
+        var controller = (ODataController)_services.GetService(controllerType);
         return controller;
     }
 }

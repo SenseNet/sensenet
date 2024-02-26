@@ -273,7 +273,9 @@ namespace SenseNet.OData
         }
         private static bool TryParseParameter(Type expectedType, ODataParameterValue parameter, bool strict, out object parsed)
         {
-            if (expectedType == GetTypeAndValue(expectedType, parameter, out parsed))
+            var parameterType = GetTypeAndValue(expectedType, parameter, out parsed);
+            //if (expectedType == parameterType)
+            if(expectedType.IsAssignableFrom(parameterType))
                 return true;
 
             Type nullableBaseType;
@@ -738,8 +740,8 @@ namespace SenseNet.OData
             if (controllerName == null)
                 return null;
 
-            var resolver = context.HttpContext.RequestServices.GetRequiredService<IODataControllerResolver>();
-            var controller = resolver.ResolveController(controllerName);
+            var resolver = context.HttpContext.RequestServices.GetRequiredService<IODataControllerFactory>();
+            var controller = resolver.CreateController(controllerName);
             if (controller == null)
                 throw new InvalidOperationException($"ODataController not found: " + controllerName);
 

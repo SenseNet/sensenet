@@ -459,78 +459,55 @@ namespace SenseNet.OData.Writers
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
+
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq,
+            IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
-                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
+                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"),
+                    odataReq.RepositoryPath));
 
-            object response;
-            var count = 0;
-            if (odataReq.IsControllerRequest)
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
+            if (action == null)
             {
-                response = HandleControllerRequest_Prototype(content, httpContext, odataReq, appConfig, "POST");
+                // check if this is a versioning action (e.g. a checkout)
+                SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
+
+                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null,
+                    odataReq.PropertyName);
             }
-            else
-            {
-                var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
-                if (action == null)
-                {
-                    // check if this is a versioning action (e.g. a checkout)
-                    SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
-                    throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
-                }
+            if (action.Forbidden || (action.GetApplication() != null &&
+                                     !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+                throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-                if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
-                    throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
-
-                var odataAction = action as ODataOperationMethodExecutor;
-                response = odataAction != null
+            var odataAction = action as ODataOperationMethodExecutor;
+            var response = odataAction != null
                 ? (odataAction.IsAsync
                     ? await odataAction.ExecuteAsync(content)
                     : action.Execute(content))
                 : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
 
-                if (response is Content responseAsContent)
-                {
-                    await WriteSingleContentAsync(responseAsContent, httpContext, odataReq)
-                        .ConfigureAwait(false);
-                    return;
-                }
-
-                count = 0;
-                response = odataAction != null && odataAction.Method.Operation.IsAsyncVoid
-                    ? null
-                    : ProcessOperationResponse(response, odataReq, httpContext, out count);
+            if (response is Content responseAsContent)
+            {
+                await WriteSingleContentAsync(responseAsContent, httpContext, odataReq)
+                    .ConfigureAwait(false);
+                return;
             }
+
+            var count = 0;
+            response = odataAction != null && odataAction.Method.Operation.IsAsyncVoid
+                ? null
+                : ProcessOperationResponse(response, odataReq, httpContext, out count);
 
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
-        }
-        private object HandleControllerRequest_Prototype(Content content, HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig, string httpMethod)
-        {
-            var resolver = httpContext.RequestServices.GetRequiredService<IODataControllerResolver>();
-            var controller = resolver.ResolveController(odataReq.ControllerName);
-            controller.Content = content;
-            controller.HttpContext = httpContext;
-            controller.ODataRequest = odataReq;
-
-            var controllerType = controller.GetType();
-            var methods = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
-            methods = methods.Where(m => m.Name == odataReq.ControllerMethod).ToArray();
-            var method = methods[0];
-
-            var parameters = method.GetParameters();
-            var parameter = parameters[0];
-            var parameterValue = httpContext.Request.Query[parameter.Name];
-
-            var result = method.Invoke(controller, new object[] {parameterValue.ToString()});
-            return result;
         }
 
         private async Task WriteOperationResultAsync(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
