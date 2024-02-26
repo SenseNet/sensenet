@@ -46,7 +46,7 @@ public class ODataControllerFactory : IODataControllerFactory
                         __controllerTypes = new ReadOnlyDictionary<string, Type>(LoadRegistrations());
                         var logger = _services.GetRequiredService<ILogger<ODataControllerFactory>>();
                         logger.LogInformation($"ODataControllers discovered. Names and types: " +
-                            $"{string.Join(", ", __controllerTypes.Select(x => $"'.{x.Key}': {x.Value.GetType().FullName}"))}");
+                                              $"{string.Join(", ", __controllerTypes.Select(x => $"'.{x.Key}': {x.Value.GetType().FullName}"))}");
                     }
                 }
             }
@@ -62,10 +62,9 @@ public class ODataControllerFactory : IODataControllerFactory
         {
             types[item.Name.Trim().ToLowerInvariant()] = item.Type;
 
-//UNDONE:yOdataController: Create method registrations: 
-//var method = typeof(TestODataController2).GetMethod("GetData");
-//OperationCenter.AddMethod(method, controllerName);
-
+            var methods = item.Type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var method in methods)
+                OperationCenter.AddMethod(method, item.Name);
         }
         return types;
     }

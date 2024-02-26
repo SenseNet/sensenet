@@ -33,6 +33,7 @@ using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Retrier = SenseNet.Tools.Retrier;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo

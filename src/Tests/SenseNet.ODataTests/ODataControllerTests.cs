@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
@@ -18,9 +19,11 @@ namespace SenseNet.ODataTests;
 
 public class TestODataController1 : ODataController
 {
-    [ODataFunction] public object GetData(Content content, string id) { return $"From TestODataController1.GetData({id})"; }
-    [ODataAction] public object SetData(Content content, string id, object value) { return null; }
-    [ODataFunction] public static object NotOdataControllerMember1(Content content, string id) { return null; }
+    [ODataFunction] public object GetData(string id) { return $"From TestODataController1.GetData({id})"; }
+    [ODataAction] public object SetData(string id, object value) { return null; }
+
+    public object NotOdataControllerMember1(string id) { return null; }
+    [ODataFunction] public static object NotOdataControllerMember2(Content content, string id) { return null; }
 }
 
 public class TestODataController2 : ODataController
@@ -57,17 +60,15 @@ public class ODataControllerTests : ODataTestBase
             services.AddODataController<TestODataController2>();
         }, async () =>
         {
-            //var xxx = await ODataGetAsync("/OData.svc/('Root')/NotOdataControllerMember2",
-            //        "?id=234").ConfigureAwait(false);
-
-            var controllerName = "TestODataController2";
-var method = typeof(TestODataController2).GetMethod("GetData");
-OperationCenter.AddMethod(method, controllerName);
-var key = $"{controllerName}.GetData".ToLowerInvariant();
-var op = OperationCenter.Operations[key];
+            var factory = Providers.Instance.Services.GetRequiredService<IODataControllerFactory>();
+var _ = factory.ControllerTypes.Count;
+//var method = typeof(TestODataController2).GetMethod("GetData");
+//OperationCenter.AddMethod(method, controllerName);
+//var key = $"{controllerName}.GetData".ToLowerInvariant();
+//var op = OperationCenter.Operations[key];
 
             // ACTION
-            var response = await ODataGetAsync($"/OData.svc/('Root')/{controllerName}/GetData", "?id=id21")
+            var response = await ODataGetAsync($"/OData.svc/('Root')/TestODataController2/GetData", "?id=id21")
                 .ConfigureAwait(false);
 
             // ASSERT
@@ -86,11 +87,12 @@ var op = OperationCenter.Operations[key];
             services.AddODataController<TestODataController2>();
         }, async () =>
         {
-            var controllerName = "TestODataController2";
-var method = typeof(TestODataController2).GetMethod("SetData");
-OperationCenter.AddMethod(method, controllerName);
-var key = $"{controllerName}.SetData".ToLowerInvariant();
-var op = OperationCenter.Operations[key];
+var factory = Providers.Instance.Services.GetRequiredService<IODataControllerFactory>();
+var _ = factory.ControllerTypes.Count;
+//var method = typeof(TestODataController2).GetMethod("SetData");
+//OperationCenter.AddMethod(method, controllerName);
+//var key = $"{controllerName}.SetData".ToLowerInvariant();
+//var op = OperationCenter.Operations[key];
 
             // ACTION
             var response = await ODataPostAsync("/OData.svc/('Root')/TestODataController2/SetData", null,
