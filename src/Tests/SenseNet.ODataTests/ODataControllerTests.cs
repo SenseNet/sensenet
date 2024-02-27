@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
@@ -11,7 +13,11 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.Search;
 using System.Reflection;
+using Newtonsoft.Json;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Testing;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.Extensions.Logging;
 
 namespace SenseNet.ODataTests;
 
@@ -21,6 +27,10 @@ public class TestODataController1 : ODataController
 {
     [ODataFunction] public object GetData(string id) { return $"From TestODataController1.GetData({id})"; }
     [ODataAction] public object SetData(string id, object value) { return null; }
+
+    [ODataFunction]
+    [ContentTypes(nameof(User))]
+    public IUser GetBoss() { return new TestUser($"Boss of user '{this.Content.Name}'", -42); }
 
     public object NotOdataControllerMember1(string id) { return null; }
     [ODataFunction] public static object NotOdataControllerMember2(Content content, string id) { return null; }
@@ -51,7 +61,7 @@ public class TestODataController3 : ODataController
 public class ODataControllerTests : ODataTestBase
 {
     [TestMethod]
-    public async Task ODC_Prototype_1()
+    public async Task ODC_ExecuteControllerFunction()
     {
         await ODataTest2Async(services =>
         {
@@ -60,13 +70,6 @@ public class ODataControllerTests : ODataTestBase
             services.AddODataController<TestODataController2>();
         }, async () =>
         {
-            var factory = Providers.Instance.Services.GetRequiredService<IODataControllerFactory>();
-var _ = factory.ControllerTypes.Count;
-//var method = typeof(TestODataController2).GetMethod("GetData");
-//OperationCenter.AddMethod(method, controllerName);
-//var key = $"{controllerName}.GetData".ToLowerInvariant();
-//var op = OperationCenter.Operations[key];
-
             // ACTION
             var response = await ODataGetAsync($"/OData.svc/('Root')/TestODataController2/GetData", "?id=id21")
                 .ConfigureAwait(false);
@@ -78,7 +81,7 @@ var _ = factory.ControllerTypes.Count;
         });
     }
     [TestMethod]
-    public async Task ODC_Prototype_2()
+    public async Task ODC_ExecuteControllerAction()
     {
         await ODataTest2Async(services =>
         {
@@ -87,13 +90,6 @@ var _ = factory.ControllerTypes.Count;
             services.AddODataController<TestODataController2>();
         }, async () =>
         {
-var factory = Providers.Instance.Services.GetRequiredService<IODataControllerFactory>();
-var _ = factory.ControllerTypes.Count;
-//var method = typeof(TestODataController2).GetMethod("SetData");
-//OperationCenter.AddMethod(method, controllerName);
-//var key = $"{controllerName}.SetData".ToLowerInvariant();
-//var op = OperationCenter.Operations[key];
-
             // ACTION
             var response = await ODataPostAsync("/OData.svc/('Root')/TestODataController2/SetData", null,
                     "{id:\"meaning of life\",value:42}")
@@ -105,13 +101,52 @@ var _ = factory.ControllerTypes.Count;
             Assert.AreEqual("{\r\n  \"Trace\": \"meaning of life = 42\"\r\n}", response.Result);
         });
     }
+    [TestMethod]
+    public async Task ODC_ExecuteRestrictedControllerFunction()
+    {
+        await ODataTest2Async(services =>
+        {
+            services.AddSingleton<IODataControllerFactory, ODataControllerFactory>();
+            services.AddODataController<TestODataController1>();
+        }, async () =>
+        {
+            // ACTION-1 Called for non-user content
+            var response = await ODataGetAsync("/OData.svc/('Root')/TestODataController1/GetBoss", null)
+                .ConfigureAwait(false);
 
+            // ASSERT-1
+            var error = GetError(response);
+            Assert.AreNotEqual(200, response.StatusCode);
+            Assert.AreEqual("Operation not found: TestODataController1.GetBoss()", error.Message);
+
+            // ACTION-2 Called for user content (id of 'Admin' = 1)
+            response = await ODataGetAsync("/OData.svc/content(1)/TestODataController1/GetBoss", null)
+                .ConfigureAwait(false);
+
+            // ASSERT-1
+            AssertNoError(response);
+            Assert.AreEqual(200, response.StatusCode);
+            dynamic responseUser = JsonConvert.DeserializeObject(response.Result);
+            Assert.IsNotNull(responseUser);
+            Assert.AreEqual("Boss of user 'Admin'", responseUser.Name.ToString());
+        });
+    }
+
+    private class TestDataControllerFactoryLogger : ILogger<ODataControllerFactory>
+    {
+        public List<string> Entries { get; } = new();
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
+            Exception exception, Func<TState, Exception, string> formatter) => Entries.Add(formatter(state, exception));
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull { throw new NotImplementedException(); }
+    }
     [TestMethod]
     public void ODC_Registration_HappyPath()
     {
         // ACTION
         var services = new ServiceCollection()
-            .AddLogging()
+            //.AddLogging()
+            .AddSingleton<ILogger<ODataControllerFactory>, TestDataControllerFactoryLogger>()
             .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
 
             // ACTION
@@ -132,9 +167,13 @@ var _ = factory.ControllerTypes.Count;
 
         // ASSERT
         var factory = services.GetRequiredService<IODataControllerFactory>();
-        Assert.IsTrue(factory.ControllerTypes.ContainsKey("TestODataController1".ToLowerInvariant()));
-        Assert.IsTrue(factory.ControllerTypes.ContainsKey("Test-OData-Controller2".ToLowerInvariant()));
-        Assert.IsTrue(factory.ControllerTypes.ContainsKey("SenseNet.ODataTests.TestODataController3".ToLowerInvariant()));
+        factory.Initialize(); // required in tests that doesn't start the repository
+
+        Assert.AreEqual(typeof(TestODataController1), factory.GetControllerType("TestODataController1".ToLowerInvariant()));
+        Assert.AreEqual(typeof(TestODataController2), factory.GetControllerType("Test-OData-Controller2".ToLowerInvariant()));
+        Assert.AreEqual(typeof(TestODataController2), factory.GetControllerType("builtin"));
+        Assert.AreEqual(typeof(TestODataController3), factory.GetControllerType("TestODataController3".ToLowerInvariant()));
+        Assert.AreEqual(typeof(TestODataController3), factory.GetControllerType("SenseNet.ODataTests.TestODataController3".ToLowerInvariant()));
         var controller1 = factory.CreateController("TestODataController1");
         var controller2 = factory.CreateController("Test-OData-Controller2");
         var controller3 = factory.CreateController("TestODataController3");
@@ -155,5 +194,15 @@ var _ = factory.ControllerTypes.Count;
         Assert.AreNotSame(
             factory.CreateController("TestODataController1"),
             factory.CreateController("TestODataController1"));
+
+        // check log
+        var logger = (TestDataControllerFactoryLogger)services.GetRequiredService<ILogger<ODataControllerFactory>>();
+        var entry = logger.Entries.FirstOrDefault(x => x.StartsWith("ODataControllerFactory initialized"));
+        Assert.AreEqual("ODataControllerFactory initialized. Controller names and types: " +
+                        "'testodatacontroller1': SenseNet.ODataTests.TestODataController1, " +
+                        "'test-odata-controller2': SenseNet.ODataTests.TestODataController2, " +
+                        "'testodatacontroller3': SenseNet.ODataTests.TestODataController3, " +
+                        "'sensenet.odatatests.testodatacontroller3': SenseNet.ODataTests.TestODataController3, " +
+                        "'builtin': SenseNet.ODataTests.TestODataController2.", entry);
     }
 }

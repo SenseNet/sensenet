@@ -62,6 +62,9 @@ namespace SenseNet.OData
                 {
                 }
             }
+
+            var factory = Providers.Instance.Services.GetRequiredService<IODataControllerFactory>();
+            factory.Initialize();
         }
         internal static OperationInfo AddMethod(MethodBase method, string odataControllerName)
         {

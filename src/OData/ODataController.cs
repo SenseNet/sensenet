@@ -14,8 +14,9 @@ namespace SenseNet.OData;
 
 public interface IODataControllerFactory
 {
-    public IDictionary<string, Type> ControllerTypes { get; }
+    Type GetControllerType(string controllerName);
     ODataController CreateController(string controllerName);
+    void Initialize();
 }
 
 /// <summary>
@@ -24,36 +25,21 @@ public interface IODataControllerFactory
 public class ODataControllerFactory : IODataControllerFactory
 {
     private readonly IServiceProvider _services;
-    // ReSharper disable once InconsistentNaming
-    private ReadOnlyDictionary<string, Type> __controllerTypes;
+    private ReadOnlyDictionary<string, Type> _controllerTypes;
 
     public ODataControllerFactory(IServiceProvider serviceProvider)
     {
         _services = serviceProvider;
     }
 
-    private static readonly object LoaderLock = new();
-    public IDictionary<string, Type> ControllerTypes
-    {
-        get
-        {
-            if (__controllerTypes == null)
-            {
-                lock (LoaderLock)
-                {
-                    if (__controllerTypes == null)
-                    {
-                        __controllerTypes = new ReadOnlyDictionary<string, Type>(LoadRegistrations());
-                        var logger = _services.GetRequiredService<ILogger<ODataControllerFactory>>();
-                        logger.LogInformation($"ODataControllers discovered. Names and types: " +
-                                              $"{string.Join(", ", __controllerTypes.Select(x => $"'.{x.Key}': {x.Value.GetType().FullName}"))}");
-                    }
-                }
-            }
-            return __controllerTypes;
-        }
-    }
 
+    public void Initialize()
+    {
+        _controllerTypes = new ReadOnlyDictionary<string, Type>(LoadRegistrations());
+        var logger = _services.GetRequiredService<ILogger<ODataControllerFactory>>();
+        logger.LogInformation($"ODataControllerFactory initialized. Controller names and types: " +
+            $"{string.Join(", ", _controllerTypes.Select(x => $"'{x.Key}': {x.Value?.FullName}"))}.");
+    }
     private IDictionary<string, Type> LoadRegistrations()
     {
         var registration = _services.GetServices<ODataControllerRegistration>();
@@ -69,13 +55,21 @@ public class ODataControllerFactory : IODataControllerFactory
         return types;
     }
 
+    public Type GetControllerType(string controllerName)
+    {
+        return _controllerTypes.TryGetValue(controllerName.ToLowerInvariant(), out var controllerType)
+            ? controllerType :
+            null;
+    }
+
     public ODataController CreateController(string controllerName)
     {
-        if (!ControllerTypes.TryGetValue(controllerName.ToLowerInvariant(), out var controllerType))
+        if (!_controllerTypes.TryGetValue(controllerName.ToLowerInvariant(), out var controllerType))
             throw new InvalidOperationException($"Controller not found: {controllerName}");
         var controller = (ODataController)_services.GetService(controllerType);
         return controller;
     }
+
 }
 
 public class ODataController
