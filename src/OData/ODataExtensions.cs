@@ -28,7 +28,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 ;
         }
 
-        public static IServiceCollection AddODataController<TImpl>(this IServiceCollection services, string name = null)
+        public static IServiceCollection AddSenseNetOdataController<TImpl>(this IServiceCollection services, string name = null)
             where TImpl : ODataController
         {
             if (name != null && name.Length == 0)
