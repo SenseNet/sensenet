@@ -27,6 +27,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<OperationInspector>()
                 .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
                 .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
+                .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
                 ;
         }
 

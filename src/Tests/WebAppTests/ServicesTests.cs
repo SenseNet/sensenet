@@ -612,6 +612,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
@@ -653,6 +654,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
@@ -696,6 +698,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
@@ -738,6 +741,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
@@ -786,6 +790,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
@@ -836,6 +841,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
@@ -927,6 +933,7 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 

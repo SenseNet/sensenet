@@ -65,7 +65,6 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSingleton<IODataControllerFactory, ODataControllerFactory>();
             services.AddODataController<TestODataController1>();
             services.AddODataController<TestODataController2>();
         }, async () =>
@@ -85,7 +84,6 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSingleton<IODataControllerFactory, ODataControllerFactory>();
             services.AddODataController<TestODataController1>();
             services.AddODataController<TestODataController2>();
         }, async () =>
@@ -106,7 +104,6 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSingleton<IODataControllerFactory, ODataControllerFactory>();
             services.AddODataController<TestODataController1>();
         }, async () =>
         {
@@ -145,9 +142,8 @@ public class ODataControllerTests : ODataTestBase
     {
         // ACTION
         var services = new ServiceCollection()
-            //.AddLogging()
             .AddSingleton<ILogger<ODataControllerFactory>, TestDataControllerFactoryLogger>()
-            .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
+            .AddSingleton<IODataControllerFactory, ODataControllerFactory>() // only in this test
 
             // ACTION
             // register by default name (type name without namespace)
