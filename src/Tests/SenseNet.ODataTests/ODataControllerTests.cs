@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
-using SenseNet.Search;
-using System.Reflection;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Testing;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.Extensions.Logging;
 

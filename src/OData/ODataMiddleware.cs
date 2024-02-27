@@ -215,10 +215,10 @@ namespace SenseNet.OData
                                         odataRequest)
                                     .ConfigureAwait(false);
                             else if (odataRequest.IsControllerRequest)
-await odataWriter.WriteContentPropertyAsync(
-        odataRequest.RepositoryPath, odataRequest.PropertyName,
-        odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
-    .ConfigureAwait(false);
+                                await odataWriter.WriteContentPropertyAsync(
+                                        odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                        odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
+                                    .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
                                         odataRequest.RepositoryPath, odataRequest.PropertyName,
@@ -291,9 +291,9 @@ await odataWriter.WriteContentPropertyAsync(
                     case "POST": // invoke an action, create content
                         if (odataRequest.IsControllerRequest)
                         {
-// CONTROLLER REQUEST
-await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
-    .ConfigureAwait(false);
+                            // CONTROLLER REQUEST
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
+                                .ConfigureAwait(false);
                         }
                         else if (odataRequest.IsMemberRequest)
                         {
