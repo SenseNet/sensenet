@@ -2,8 +2,13 @@ Function Test-Docker {
 	# Check if docker is running
 	if ($DryRun) { return }
 
-	$ServerErrors = (ConvertFrom-Json -InputObject (docker info --format '{{json .}}')).ServerErrors
-	if ($ServerErrors){
+	$dockerResult = (docker info --format '{{json .}}')
+	if ($dockerResult -is [array] -and $dockerResult[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+    	$dockerResult = $dockerResult[1]
+	}
+	$ServerErrors = (ConvertFrom-Json -InputObject $dockerResult).ServerErrors
+	if ($ServerErrors){		
 		Write-Error "Docker server is not running!"
 	}
 }
@@ -321,6 +326,10 @@ Function Wait-CntDbServer {
 			$isServerAvailable = $False
 			try {
 				$dummyQuery = $((docker exec $ContainerName /opt/mssql-tools/bin/sqlcmd -U "$($UserName)" -P "$($UserPsw)" -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+				if ($dummyQuery -is [array] -and $dummyQuery[1] -is [string]) {
+					# workaround for "failed to get console mode for stdout: The handle is invalid."
+					$dummyQuery = $dummyQuery[1]
+				}
 			} catch {
 				$dummyQuery = -1
 			}
