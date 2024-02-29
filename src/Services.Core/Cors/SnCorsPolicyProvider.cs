@@ -12,6 +12,10 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Cors
 {
+    /// <summary>
+    /// Provides a CORS policy for sensenet, based on the allowed domains 
+    /// and other settings in PortalSettings in the repository.
+    /// </summary>
     internal class SnCorsPolicyProvider : ICorsPolicyProvider
     {
         public const string DefaultSenseNetCorsPolicyName = "sensenet";

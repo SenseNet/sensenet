@@ -27,6 +27,9 @@ namespace SenseNet.Extensions.DependencyInjection
 
     public static class ODataExtensions
     {
+        /// <summary>
+        /// Adds the required services for the sensenet OData layer.
+        /// </summary>
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
         {
             return services
@@ -37,6 +40,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 ;
         }
 
+        /// <summary>
+        /// Registers a custom OData controller in the DI container.
+        /// </summary>
         public static IServiceCollection AddSenseNetODataController<TImpl>(this IServiceCollection services, string name = null)
             where TImpl : ODataController
         {
